@@ -1,12 +1,7 @@
-# swarmauri
+# swarmaURI sdk
 
-## Build
+This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
 
-```bash
-python -m build && \
-pip uninstall swarmauri -y && \
-pip install ./dist/swarmauri-0.1.16-py3-none-any.whl[full]
-```
 
 ## Core
 - ABCs
