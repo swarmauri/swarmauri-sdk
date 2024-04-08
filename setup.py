@@ -7,7 +7,7 @@ setup(
     author='Jacob Stewart',
     author_email='corporate@swarmauri.com',
     description='This repository includes core interfaces, standard ABCs and concrete references, third party plugins, and experimental modules for the swarmaURI framework.',
-    long_description=open('./PYPI.md').read(),
+    long_description=__long_desc__,
     long_description_content_type='text/markdown',
     url='http://github.com/swarmauri/swarmauri-sdk',
     license='MIT',
@@ -85,6 +85,7 @@ setup(
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     python_requires='>=3.10',
     setup_requires=["wheel"]
