@@ -1,0 +1,9 @@
+.spyproject
+.spyder
+*.pyc
+build
+*.egg-info
+*.txt
+env
+/.vs
+.pyirc
