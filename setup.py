@@ -5,11 +5,11 @@ setup(
     name='swarmauri',
     version=swarmauri.__version__,
     author='Jacob Stewart',
-    author_email='your_email@example.com',
-    description='A short description of your package',
-    long_description=open('README.md').read(),
+    author_email='corporate@swarmauri.com',
+    description='This repository includes core interfaces, standard ABCs and concrete references, third party plugins, and experimental modules for the swarmaURI framework.',
+    long_description=open('pypi.md').read(),
     long_description_content_type='text/markdown',
-    url='http://github.com/yourusername/your_package_name',
+    url='http://github.com/swarmauri/swarmauri-sdk',
     license='MIT',
     packages=find_packages(include=['swarmauri*']),  # Include packages in your_package and libs directories
     install_requires=[
