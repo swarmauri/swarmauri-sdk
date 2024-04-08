@@ -41,7 +41,8 @@ jobs:
         python -m build
     - name: Install package
       run: |
-        python -m pip install dist/*.whl
+        LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
+        python -m pip install "$LATEST_WHL"
     - name: Test with pytest
       run: |
         pytest
