@@ -2,6 +2,7 @@
 .spyder
 *.pyc
 build
+dist
 *.egg-info
 *.txt
 env
