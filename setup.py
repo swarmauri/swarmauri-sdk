@@ -27,7 +27,6 @@ setup(
             'scikit-learn',
             'gensim',
             'rdflib',
-            'ampligraph',
             'pygments',
             'stanford_openie'
         ],
@@ -75,8 +74,6 @@ setup(
             'gensim',
             'lightgbm',
             'rdflib',
-            'ampligraph',
-            'weaviate',
             'textblob',
             'spacy',
             'pygments',
