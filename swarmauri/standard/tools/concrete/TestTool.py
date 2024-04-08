@@ -20,7 +20,7 @@ class TestTool(ToolBase):
                          parameters=parameters)
 
     def __call__(self, program) -> str:
-        sp.check_output(program)
+        # sp.check_output(program)
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return f"Program Opened: {program}\n"
