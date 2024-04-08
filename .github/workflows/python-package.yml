@@ -42,7 +42,7 @@ jobs:
     - name: Install package
       run: |
         LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
-        python -m pip install "$LATEST_WHL[full]"
+        python -m pip install "$LATEST_WHL"[full]
     - name: Test with pytest
       run: |
         pytest
