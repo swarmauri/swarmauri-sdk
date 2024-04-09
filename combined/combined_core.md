@@ -119,7 +119,10 @@ class IModel(ABC):
 
 ```swarmauri/core/agent_apis/__init__.py
 
+from .IAgentCommands import IAgentCommands
+from .IAgentRouterCRUD import IAgentRouterCRUD
 
+__all__ = ['IAgentCommands', 'IAgentRouterCRUD']
 
 ```
 
@@ -641,37 +644,18 @@ class IAgentConversation(ABC):
 ```swarmauri/core/agents/IAgentRetriever.py
 
 from abc import ABC, abstractmethod
-from swarmauri.core.retrievers.IRetriever import IRetriever 
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 
 class IAgentRetriever(ABC):
     
     @property
     @abstractmethod
-    def retriever(self) -> IRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
     @retriever.setter
     @abstractmethod
-    def retriever(self) -> IRetriever:
-        pass
-
-```
-
-```swarmauri/core/agents/IAgentDocument.py
-
-from abc import ABC, abstractmethod
-from swarmauri.core.documents.IDocument import IDocument
-
-class IAgentDocumentStore(ABC):
-    
-    @property
-    @abstractmethod
-    def document_store(self) -> IDocument:
-        pass
-
-    @documents.setter
-    @abstractmethod
-    def document_store(self) -> IDocument:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
 ```
@@ -748,6 +732,25 @@ class IAgent(ABC):
 
 ```
 
+```swarmauri/core/agents/IAgentDocument.py
+
+from abc import ABC, abstractmethod
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+
+class IAgentDocumentStore(ABC):
+    
+    @property
+    @abstractmethod
+    def document_store(self) -> IDocumentStore:
+        pass
+
+    @document_store.setter
+    @abstractmethod
+    def document_store(self) -> IDocumentStore:
+        pass
+
+```
+
 ```swarmauri/core/swarms/__init__.py
 
 
@@ -758,7 +761,7 @@ class IAgent(ABC):
 
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
-from swarmauri.core.agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.chains.ICallableChain import ICallableChain
 
 class ISwarm(ABC):
@@ -767,12 +770,12 @@ class ISwarm(ABC):
     """
 
     @abstractmethod
-    def add_agent(self, agent: ISwarmAgent) -> None:
+    def add_agent(self, agent: IAgent) -> None:
         """
         Adds an agent to the swarm.
 
         Args:
-            agent (ISwarmAgent): The agent to be added.
+            agent (IAgent): The agent to be added.
         """
         pass
 
@@ -804,7 +807,7 @@ class ISwarm(ABC):
         pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> ISwarmAgent:
+    def get_agent(self, agent_id: str) -> IAgent:
         """
         Retrieves an agent by its ID from the swarm.
 
@@ -812,17 +815,17 @@ class ISwarm(ABC):
             agent_id (str): The unique identifier for the agent.
 
         Returns:
-            ISwarmAgent: The agent associated with the given id.
+            IAgent: The agent associated with the given id.
         """
         pass
 
     @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
+    def list_agents(self) -> List[IAgent]:
         """
         Lists all agents currently in the swarm.
 
         Returns:
-            List[ISwarmAgent]: A list of agents in the swarm.
+            List[IAgent]: A list of agents in the swarm.
         """
         pass
 
@@ -1027,6 +1030,83 @@ class ISwarmFactory(ABC):
         """
         pass
 
+
+```
+
+```swarmauri/core/swarms/ISwarmAgentRegistration.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Optional
+from swarmauri.core.agents.IAgent import IAgent
+
+class IAgentRegistration(ABC):
+    """
+    Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
+    """
+
+    @abstractmethod
+    def register_agent(self, agent: IAgent) -> bool:
+        """
+        Register a new agent with the swarm.
+
+        Parameters:
+            agent (IAgent): An instance of IAgent representing the agent to register.
+
+        Returns:
+            bool: True if the registration succeeded; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
+        """
+        Update the details of an existing agent. This could include changing the agent's configuration,
+        task assignment, or any other mutable attribute.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent.
+            updated_agent (IAgent): An updated IAgent instance to replace the existing one.
+
+        Returns:
+            bool: True if the update was successful; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def remove_agent(self, agent_id: str) -> bool:
+        """
+        Remove an agent from the swarm based on its unique identifier.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent to be removed.
+
+        Returns:
+            bool: True if the removal was successful; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def get_agent(self, agent_id: str) -> Optional[IAgent]:
+        """
+        Retrieve an agent's instance from its unique identifier.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent of interest.
+
+        Returns:
+            Optional[IAgent]: The IAgent instance if found; None otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def list_agents(self) -> List[IAgent]:
+        """
+        List all registered agents.
+
+        Returns:
+            List[IAgent]: A list containing instances of all registered IAgents.
+        """
+        pass
 
 ```
 
@@ -1350,7 +1430,7 @@ class IAngleBetweenVectors(ABC):
 
 from abc import ABC, abstractmethod
 from typing import Tuple, List
-from .IVector import IVector  # Assuming there's a base IVector interface for vector representations
+from swarmauri.core.vectors.IVector import IVector  # Assuming there's a base IVector interface for vector representations
 
 class IDecompose(ABC):
     """
@@ -1485,7 +1565,7 @@ class IReflect(ABC):
 
 from abc import ABC, abstractmethod
 from typing import List, Tuple
-from .IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
 
 class ISimilarity(ABC):
     """
@@ -1655,77 +1735,6 @@ class IVectorNorm(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/IVectorProduct.py
-
-from abc import ABC, abstractmethod
-from typing import List, Tuple
-
-class IVectorProduct(ABC):
-    """
-    Interface for various vector products including dot product, cross product,
-    and triple products (vector and scalar).
-    """
-
-    @abstractmethod
-    def dot_product(self, vector_a: List[float], vector_b: List[float]) -> float:
-        """
-        Calculate the dot product of two vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-
-        Returns:
-        - float: The dot product of the two vectors.
-        """
-        pass
-
-    @abstractmethod
-    def cross_product(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
-        """
-        Calculate the cross product of two vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-
-        Returns:
-        - List[float]: The cross product as a new vector.
-        """
-        pass
-
-    @abstractmethod
-    def vector_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> List[float]:
-        """
-        Calculate the vector triple product of three vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-        - vector_c (List[float]): The third vector.
-
-        Returns:
-        - List[float]: The result of the vector triple product as a new vector.
-        """
-        pass
-
-    @abstractmethod
-    def scalar_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> float:
-        """
-        Calculate the scalar triple product of three vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-        - vector_c (List[float]): The third vector.
-
-        Returns:
-        - float: The scalar value result of the scalar triple product.
-        """
-        pass
-
-```
-
 ```swarmauri/core/vector_stores/IVectorRotate.py
 
 from abc import ABC, abstractmethod
@@ -1839,61 +1848,6 @@ class IVectorStore(ABC):
             new_metadata (Dict, optional): Optional new metadata related to the vector.
         """
         pass
-
-```
-
-```swarmauri/core/vector_stores/IDistanceSimilarity.py
-
-from abc import ABC, abstractmethod
-from typing import List
-from ..vectors.IVector import IVector
-
-class IDistanceSimilarity(ABC):
-    """
-    Interface for computing distances and similarities between high-dimensional data vectors. This interface
-    abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
-    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
-    """
-
-    @abstractmethod
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the distance between two vectors.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The computed distance between vector_a and vector_b.
-        """
-        pass
-    
-
-    @abstractmethod
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
-        pass
-
-
-    @abstractmethod
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Compute the similarity between two vectors. The definition of similarity (e.g., cosine similarity)
-        should be implemented in concrete classes.
-
-        Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector to compare with the first vector.
-
-        Returns:
-            float: A similarity score between vector_a and vector_b.
-        """
-        pass
-
-    @abstractmethod
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
-        pass
-
 
 ```
 
@@ -2174,6 +2128,77 @@ class IVector(ABC):
 
 ```
 
+```swarmauri/core/vectors/IVectorProduct.py
+
+from abc import ABC, abstractmethod
+from typing import List, Tuple
+
+class IVectorProduct(ABC):
+    """
+    Interface for various vector products including dot product, cross product,
+    and triple products (vector and scalar).
+    """
+
+    @abstractmethod
+    def dot_product(self, vector_a: List[float], vector_b: List[float]) -> float:
+        """
+        Calculate the dot product of two vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+
+        Returns:
+        - float: The dot product of the two vectors.
+        """
+        pass
+
+    @abstractmethod
+    def cross_product(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
+        """
+        Calculate the cross product of two vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+
+        Returns:
+        - List[float]: The cross product as a new vector.
+        """
+        pass
+
+    @abstractmethod
+    def vector_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> List[float]:
+        """
+        Calculate the vector triple product of three vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+        - vector_c (List[float]): The third vector.
+
+        Returns:
+        - List[float]: The result of the vector triple product as a new vector.
+        """
+        pass
+
+    @abstractmethod
+    def scalar_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> float:
+        """
+        Calculate the scalar triple product of three vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+        - vector_c (List[float]): The third vector.
+
+        Returns:
+        - float: The scalar value result of the scalar triple product.
+        """
+        pass
+
+```
+
 ```swarmauri/core/swarm_apis/__init__.py
 
 
@@ -2191,26 +2216,6 @@ class ISwarmAPI(ABC):
     """
     
     @abstractmethod
-    def list_agents(self) -> List[Dict[str, Any]]:
-        """
-        Lists all registered agents within the swarm.
-
-        Returns:
-        - List[Dict[str, Any]]: A list of dictionaries containing information about each agent.
-        """
-        pass
-
-    @abstractmethod
-    def get_swarm_capabilities(self) -> List[str]:
-        """
-        Retrieves a list of all unique capabilities supported by the swarm.
-
-        Returns:
-        - List[str]: A list of unique capabilities.
-        """
-        pass
-
-    @abstractmethod
     def dispatch_request(self, request_data: Dict[str, Any]) -> Any:
         """
         Dispatches an incoming user request to one or more suitable agents based on their capabilities.
@@ -2223,26 +2228,30 @@ class ISwarmAPI(ABC):
         """
         pass
 
+    @abstractmethod
+    def broadcast_request(self, request_data: Dict[str, Any]) -> Any:
+        pass
+
 ```
 
-```swarmauri/core/swarm_apis/IAgentRegistration.py
+```swarmauri/core/swarm_apis/IAgentRegistrationAPI.py
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-from ...agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.IAgent import IAgent
 
-class IAgentRegistration(ABC):
+class IAgentRegistrationAPI(ABC):
     """
-    Interface for registering agents with the swarm, designed to support CRUD operations on ISwarmAgent instances.
+    Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
     """
 
     @abstractmethod
-    def register_agent(self, agent: ISwarmAgent) -> bool:
+    def register_agent(self, agent: IAgent) -> bool:
         """
         Register a new agent with the swarm.
 
         Parameters:
-            agent (ISwarmAgent): An instance of ISwarmAgent representing the agent to register.
+            agent (IAgent): An instance of IAgent representing the agent to register.
 
         Returns:
             bool: True if the registration succeeded; False otherwise.
@@ -2250,14 +2259,14 @@ class IAgentRegistration(ABC):
         pass
 
     @abstractmethod
-    def update_agent(self, agent_id: str, updated_agent: ISwarmAgent) -> bool:
+    def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
         """
         Update the details of an existing agent. This could include changing the agent's configuration,
         task assignment, or any other mutable attribute.
 
         Parameters:
             agent_id (str): The unique identifier for the agent.
-            updated_agent (ISwarmAgent): An updated ISwarmAgent instance to replace the existing one.
+            updated_agent (IAgent): An updated IAgent instance to replace the existing one.
 
         Returns:
             bool: True if the update was successful; False otherwise.
@@ -2278,7 +2287,7 @@ class IAgentRegistration(ABC):
         pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> Optional[ISwarmAgent]:
+    def get_agent(self, agent_id: str) -> Optional[IAgent]:
         """
         Retrieve an agent's instance from its unique identifier.
 
@@ -2286,17 +2295,17 @@ class IAgentRegistration(ABC):
             agent_id (str): The unique identifier for the agent of interest.
 
         Returns:
-            Optional[ISwarmAgent]: The ISwarmAgent instance if found; None otherwise.
+            Optional[IAgent]: The IAgent instance if found; None otherwise.
         """
         pass
 
     @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
+    def list_agents(self) -> List[IAgent]:
         """
         List all registered agents.
 
         Returns:
-            List[ISwarmAgent]: A list containing instances of all registered ISwarmAgents.
+            List[IAgent]: A list containing instances of all registered IAgents.
         """
         pass
 
@@ -2505,41 +2514,80 @@ from swarmauri.core.chains.ICallableChain import ICallableChain
 from abc import ABC, abstractmethod
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChain(ABC):
     """
-    Interface for managing execution chains within the system.
+    Defines the interface for a Chain within a system, facilitating the organized
+    execution of a sequence of tasks or operations. This interface is at the core of
+    orchestrating operations that require coordination between multiple steps, potentially
+    involving decision-making, branching, and conditional execution based on the outcomes
+    of previous steps or external data.
+
+    A chain can be thought of as a workflow or pipeline, where each step in the chain can
+    perform an operation, transform data, or make decisions that influence the flow of
+    execution.
+
+    Implementors of this interface are responsible for managing the execution order,
+    data flow between steps, and any dynamic adjustments to the execution based on
+    runtime conditions.
+
+    Methods:
+        add_step: Adds a step to the chain.
+        remove_step: Removes a step from the chain.
+        execute: Executes the chain, potentially returning a result.
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, steps: List[IChainStep] = None, **configs):
+    def __init__(self, steps: List[IChainStep] = None, **configs):
         pass
 
     @abstractmethod
-    def add_step(self, step: IChainStep):
-        pass
-    
+    def add_step(self, step: IChainStep, **kwargs) -> None:
+        """
+        Adds a new step to the chain. Steps are executed in the order they are added.
+        Each step is represented by a Callable, which can be a function or method, with
+        optional keyword arguments that specify execution aspects or data needed by the step.
 
-    @abstractmethod
-    def invoke(self, *args, **kwargs) -> Any:
-        pass
-
-    @abstractmethod
-    async def ainvoke(self, *args, **kwargs) -> Any:
-        pass
-
-    @abstractmethod
-    def batch(self, requests: List[Dict[str, Any]]) -> List[Any]:
+        Parameters:
+            step (IChainStep): The Callable representing the step to add to the chain.
+            **kwargs: Optional keyword arguments that provide additional data or configuration
+                      for the step when it is executed.
+        """
         pass
 
     @abstractmethod
-    async def abatch(self, requests: List[Dict[str, Any]]) -> List[Any]:
+    def remove_step(self, step: IChainStep) -> None:
+        """
+        Removes an existing step from the chain. This alters the chain's execution sequence
+        by excluding the specified step from subsequent executions of the chain.
+
+        Parameters:
+            step (IChainStep): The Callable representing the step to remove from the chain.
+        """
         pass
 
     @abstractmethod
-    def stream(self, *args, **kwargs) -> Any:
+    def execute(self, *args, **kwargs) -> Any:
+        """
+        Initiates the execution of the chain. This involves invoking each step in the order
+        they have been added to the chain, passing control from one step to the next, and optionally
+        aggregating or transforming results along the way.
+
+        The execution process can incorporate branching, looping, or conditional logic based on the
+        implementation, allowing for complex workflows to be represented and managed within the chain.
+
+        Parameters:
+            *args: Positional arguments passed to the first step in the chain. These can be data inputs
+                   or other values required for the chain's execution.
+            **kwargs: Keyword arguments that provide additional context, data inputs, or configuration
+                      for the chain's execution. These can be passed to individual steps or influence
+                      the execution flow of the chain.
+
+        Returns:
+            Any: The outcome of executing the chain. This could be a value produced by the final
+                 step, a collection of outputs from multiple steps, or any other result type as
+                 determined by the specific chain implementation.
+        """
         pass
 
     @abstractmethod
@@ -2551,12 +2599,9 @@ class IChain(ABC):
 ```swarmauri/core/chains/IChainFactory.py
 
 from abc import ABC, abstractmethod
-from subprocess import ABOVE_NORMAL_PRIORITY_CLASS
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChainFactory(ABC):
     """
@@ -2564,7 +2609,7 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, **configs):
+    def __init__(self, **configs):
         pass
 
     @abstractmethod
@@ -2607,21 +2652,6 @@ class IChainFactory(ABC):
     def remove_chain_step(self, key: str):
         pass
     
-    @abstractmethod
-    def get_chain_order_strategy(self) -> IChainOrderStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_order_strategy(self, order_strategy: IChainOrderStrategy):
-        pass
-    
-    @abstractmethod
-    def get_chain_processing_strategy(self) -> IChainProcessingStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_processing_strategy(self, processing_strategy: IChainProcessingStrategy):
-        pass
     
     @abstractmethod
     def get_configs(self) -> Dict[str, Any]:
@@ -2660,7 +2690,12 @@ class IChainStep:
     """
     Represents a single step within an execution chain.
     """
-    def __init__(self, key: str, method: Callable, args: List[Any] = None, kwargs: Dict[str, Any] = None, ref: str = None):
+    def __init__(self, 
+        key: str, 
+        method: Callable, 
+        args: List[Any] = None, 
+        kwargs: Dict[str, Any] = None, 
+        ref: str = None):
         """
         Initialize a chain step.
 
@@ -2676,5 +2711,66 @@ class IChainStep:
         self.args = args if args is not None else []
         self.kwargs = kwargs if kwargs is not None else {}
         self.ref = ref
+
+```
+
+```swarmauri/core/distances/__init__.py
+
+
+
+```
+
+```swarmauri/core/distances/IDistanceSimilarity.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from ..vectors.IVector import IVector
+
+class IDistanceSimilarity(ABC):
+    """
+    Interface for computing distances and similarities between high-dimensional data vectors. This interface
+    abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
+    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
+    """
+
+    @abstractmethod
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed distance between vector_a and vector_b.
+        """
+        pass
+    
+
+    @abstractmethod
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+        pass
+
+
+    @abstractmethod
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute the similarity between two vectors. The definition of similarity (e.g., cosine similarity)
+        should be implemented in concrete classes.
+
+        Args:
+            vector_a (IVector): The first vector.
+            vector_b (IVector): The second vector to compare with the first vector.
+
+        Returns:
+            float: A similarity score between vector_a and vector_b.
+        """
+        pass
+
+    @abstractmethod
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+        pass
+
 
 ```

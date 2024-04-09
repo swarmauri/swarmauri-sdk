@@ -367,63 +367,6 @@ class SQLite3QueryTool(ToolBase):
 
 ```
 
-```swarmauri/experimental/tools/ZapierHookTool.py
-
-import json
-import requests
-from typing import Dict
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
-
-
-class ZapierHookTool(ToolBase):
-    def __init__(self, auth_token, zap_id):
-        parameters = [
-            Parameter(
-                name="payload",
-                type="string",
-                description="A Payload to send when triggering the Zapier webhook",
-                required=True
-            )
-        ]
-        super().__init__(name="ZapierTool", 
-                         description="Tool to authenticate with Zapier and execute zaps.", 
-                        parameters=parameters)
-        self._auth_token = auth_token
-        self._zap_id = zap_id
-
-    def authenticate(self):
-        """Set up the necessary headers for authentication."""
-        self.headers = {
-            "Authorization": f"Bearer {self._auth_token}",
-            "Content-Type": "application/json"
-        }
-
-    def execute_zap(self, payload: str):
-        """Execute a zap with given payload.
-
-        Args:
-            zap_id (str): The unique identifier for the Zap to trigger.
-            payload (dict): The data payload to send to the Zap.
-
-        Returns:
-            dict: The response from Zapier API.
-        """
-        self.authenticate()
-        response = requests.post(f'https://hooks.zapier.com/hooks/catch/{self._zap_id}/',
-                                     headers=self.headers, json={"data":payload})
-        # Checking the HTTP response status for success or failure
-        if response.status_code == 200:
-            return json.dumps(response.json())
-        else:
-            response.raise_for_status()  # This will raise an error for non-200 responses
-
-    def __call__(self, payload: str):
-        """Enable the tool to be called with zap_id and payload directly."""
-        return self.execute_zap(payload)
-
-```
-
 ```swarmauri/experimental/conversations/__init__.py
 
 
@@ -1541,119 +1484,6 @@ class PDFtoTextParser(IParser):
 
 ```
 
-```swarmauri/experimental/vector_stores/SSIVSimilarity.py
-
-from typing import List, Dict, Set
-from ....core.vector_stores.ISimilarity import ISimilarity
-
-class SSIVSimilarity(ISimilarity):
-    """
-    Concrete class that implements ISimilarity interface using
-    State Similarity of Important Variables (SSIV) as the similarity measure.
-    """
-
-    def similarity(self, state_a: Set[str], state_b: Set[str], importance_a: Dict[str, float], importance_b: Dict[str, float]) -> float:
-        """
-        Calculate the SSIV between two states represented by sets of variables.
-
-        Parameters:
-        - state_a (Set[str]): A set of variables representing state A.
-        - state_b (Set[str]): A set of variables representing state B.
-        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
-        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
-
-        Returns:
-        - float: The SSIV similarity measure, ranging from 0 to 1.
-        """
-        return self.calculate_ssiv(state_a, state_b, importance_a, importance_b)
-
-    @staticmethod
-    def calculate_ssiv(state_a: Set[str], state_b: Set[str], importance_a: Dict[str, float], importance_b: Dict[str, float]) -> float:
-        """
-        Calculate the State Similarity of Important Variables (SSIV) between two states.
-
-        Parameters:
-        - state_a (Set[str]): A set of variables representing state A.
-        - state_b (Set[str]): A set of variables representing state B.
-        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
-        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
-
-        Returns:
-        - float: The SSIV similarity measure, ranging from 0 to 1.
-        
-        Note: It is assumed that the importance weights are non-negative.
-        """
-        shared_variables = state_a.intersection(state_b)
-        
-        # Calculate the summed importance of shared variables
-        shared_importance_sum = sum(importance_a[var] for var in shared_variables) + sum(importance_b[var] for var in shared_variables)
-        
-        # Calculate the total importance of all variables in both states
-        total_importance_sum = sum(importance_a.values()) + sum(importance_b.values())
-        
-        # Calculate and return the SSIV
-        ssiv = (2 * shared_importance_sum) / total_importance_sum if total_importance_sum != 0 else 0
-        return ssiv
-
-
-```
-
-```swarmauri/experimental/vector_stores/SSASimilarity.py
-
-from typing import Set, List, Dict
-from ....core.vector_stores.ISimilarity import ISimilarity
-from ....core.vectors.IVector import IVector
-
-
-class SSASimilarity(ISimilarity):
-    """
-    Implements the State Similarity in Arity (SSA) similarity measure to
-    compare states (sets of variables) for their similarity.
-    """
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Calculate the SSA similarity between two documents by comparing their metadata,
-        assumed to represent states as sets of variables.
-
-        Args:
-        - vector_a (IDocument): The first document.
-        - vector_b (IDocument): The second document to compare with the first document.
-
-        Returns:
-        - float: The SSA similarity measure between vector_a and vector_b, ranging from 0 to 1
-                 where 0 represents no similarity and 1 represents identical states.
-        """
-        state_a = set(vector_a.metadata.keys())
-        state_b = set(vector_b.metadata.keys())
-
-        return self.calculate_ssa(state_a, state_b)
-
-    @staticmethod
-    def calculate_ssa(state_a: Set[str], state_b: Set[str]) -> float:
-        """
-        Calculate the State Similarity in Arity (SSA) between two states.
-
-        Parameters:
-        - state_a (Set[str]): A set of variables representing state A.
-        - state_b (Set[str]): A set of variables representing state B.
-
-        Returns:6
-        - float: The SSA similarity measure, ranging from 0 (no similarity) to 1 (identical states).
-        """
-        # Calculate the intersection (shared variables) between the two states
-        shared_variables = state_a.intersection(state_b)
-        
-        # Calculate the union (total unique variables) of the two states
-        total_variables = state_a.union(state_b)
-        
-        # Calculate the SSA measure as the ratio of shared to total variables
-        ssa = len(shared_variables) / len(total_variables) if total_variables else 1
-        
-        return ssa
-
-```
-
 ```swarmauri/experimental/vector_stores/__init__.py
 
 # -*- coding: utf-8 -*-
@@ -1662,570 +1492,186 @@ class SSASimilarity(ISimilarity):
 
 ```
 
-```swarmauri/experimental/vector_stores/ScannVectorStore.py
+```swarmauri/experimental/vector_stores/Word2VecDocumentStore.py
 
+from typing import List, Union, Optional
 import numpy as np
-import scann
-from typing import List, Dict, Union
-
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
-from swarmauri.core.vector_stores.ISimiliarityQuery import ISimilarityQuery
-from swarmauri.core.vectors.IVector import IVector
+from gensim.models import Word2Vec
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri.core.retrievers.IRetriever import IRetriever
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+import gensim.downloader as api
 
-
-class ScannVectorStore(IVectorStore, ISimilarityQuery):
-    """
-    A vector store that utilizes ScaNN (Scalable Nearest Neighbors) for efficient similarity searches.
-    """
-
-    def __init__(self, dimension: int, num_leaves: int = 100, num_leaves_to_search: int = 10, reordering_num_neighbors: int = 100):
+class Word2VecDocumentStore(IDocumentStore, IRetriever):
+    def __init__(self):
         """
-        Initialize the ScaNN vector store with given parameters.
+        Initializes the Word2VecDocumentStore.
 
         Parameters:
-        - dimension (int): The dimensionality of the vectors being stored.
-        - num_leaves (int): The number of leaves for the ScaNN partitioning tree.
-        - num_leaves_to_search (int): The number of leaves to search for query time. Must be <= num_leaves.
-        - reordering_num_neighbors (int): The number of neighbors to re-rank based on the exact distance after searching leaves.
+        - word2vec_model_path (Optional[str]): File path to a pre-trained Word2Vec model. 
+                                               Leave None to use Gensim's pre-trained model.
+        - pre_trained (bool): If True, loads a pre-trained Word2Vec model. If False, an uninitialized model is used that requires further training.
         """
-        self.dimension = dimension
-        self.num_leaves = num_leaves
-        self.num_leaves_to_search = num_leaves_to_search
-        self.reordering_num_neighbors = reordering_num_neighbors
+        self.model = Word2Vec(vector_size=100, window=5, min_count=1, workers=4)  # Example parameters; adjust as needed
+        self.documents = []
+        self.metric = CosineDistance()
 
-        self.searcher = None  # Placeholder for the ScaNN searcher initialized during building
-        self.dataset_vectors = []
-        self.id_to_metadata = {}
-
-    def _build_scann_searcher(self):
-        """Build the ScaNN searcher based on current dataset vectors."""
-        self.searcher = scann.ScannBuilder(np.array(self.dataset_vectors, dtype=np.float32), num_neighbors=self.reordering_num_neighbors, distance_measure="dot_product").tree(
-            num_leaves=self.num_leaves, num_leaves_to_search=self.num_leaves_to_search, training_sample_size=25000
-        ).score_ah(
-            dimensions_per_block=2
-        ).reorder(self.reordering_num_neighbors).build()
-
-    def add_vector(self, vector_id: str, vector: Union[np.ndarray, List[float]], metadata: Dict = None) -> None:
-        """
-        Adds a vector along with its identifier and optional metadata to the store.
-
-        Args:
-            vector_id (str): Unique identifier for the vector.
-            vector (Union[np.ndarray, List[float]]): The high-dimensional vector to be stored.
-            metadata (Dict, optional): Optional metadata related to the vector.
-        """
-        if not isinstance(vector, np.ndarray):
-            vector = np.array(vector, dtype=np.float32)
+    def add_document(self, document: EmbeddedDocument) -> None:
+        # Check if the document already has an embedding, if not generate one using _average_word_vectors
+        if not hasattr(document, 'embedding') or document.embedding is None:
+            words = document.content.split()  # Simple tokenization, consider using a better tokenizer
+            embedding = self._average_word_vectors(words)
+            document.embedding = embedding
+            print(document.embedding)
+        self.documents.append(document)
         
-        if self.searcher is None:
-            self.dataset_vectors.append(vector)
-        else:
-            raise Exception("Cannot add vectors after building the index. Rebuild the index to include new vectors.")
-
-        if metadata is None:
-            metadata = {}
-        self.id_to_metadata[vector_id] = metadata
-
-    def build_index(self):
-        """Builds or rebuilds the ScaNN searcher to reflect the current dataset vectors."""
-        self._build_scann_searcher()
-
-    def get_vector(self, vector_id: str) -> Union[IVector, None]:
-        """
-        Retrieve a vector by its identifier.
-
-        Args:
-            vector_id (str): The unique identifier for the vector.
-
-        Returns:
-            Union[IVector, None]: The vector associated with the given id, or None if not found.
-        """
-        if vector_id in self.id_to_metadata:
-            metadata = self.id_to_metadata[vector_id]
-            return SimpleVector(data=metadata.get('vector'), metadata=metadata)
+    def add_documents(self, documents: List[EmbeddedDocument]) -> None:
+        self.documents.extend(documents)
+        
+    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
         return None
+        
+    def get_all_documents(self) -> List[EmbeddedDocument]:
+        return self.documents
+        
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [doc for doc in self.documents if doc.id != doc_id]
 
-    def delete_vector(self, vector_id: str) -> None:
+    def update_document(self, doc_id: str, updated_document: EmbeddedDocument) -> None:
+        for i, document in enumerate(self.documents):
+            if document.id == doc_id:
+                self.documents[i] = updated_document
+                break
+
+    def _average_word_vectors(self, words: List[str]) -> np.ndarray:
         """
-        Deletes a vector from the ScannVectorStore and marks the index for rebuilding.
-        Note: For simplicity, this function assumes vectors are uniquely identifiable by their metadata.
-
-        Args:
-            vector_id (str): The unique identifier for the vector to be deleted.
+        Generate document vector by averaging its word vectors.
         """
-        if vector_id in self.id_to_metadata:
-            # Identify index of the vector to be deleted
-            vector = self.id_to_metadata[vector_id]['vector']
-            index = self.dataset_vectors.index(vector)
-
-            # Remove vector and its metadata
-            del self.dataset_vectors[index]
-            del self.id_to_metadata[vector_id]
-
-            # Since vector order is important for matching ids, rebuild the searcher to reflect deletion
-            self.searcher = None
+        word_vectors = [self.model.wv[word] for word in words if word in self.model.wv]
+        print(word_vectors)
+        if word_vectors:
+            return np.mean(word_vectors, axis=0)
         else:
-            # Handle case where vector_id is not found
-            print(f"Vector ID {vector_id} not found.")
+            return np.zeros(self.model.vector_size)
 
-    def update_vector(self, vector_id: str, new_vector: Union[np.ndarray, List[float]], new_metadata: Dict = None) -> None:
+    def retrieve(self, query: str, top_k: int = 5) -> List[EmbeddedDocument]:
         """
-        Updates an existing vector in the ScannVectorStore and marks the index for rebuilding.
-
-        Args:
-            vector_id (str): The unique identifier for the vector to be updated.
-            new_vector (Union[np.ndarray, List[float]]): The updated vector.
-            new_metadata (Dict, optional): Optional updated metadata for the vector.
+        Retrieve documents similar to the query string based on Word2Vec embeddings.
         """
-        # Ensure new_vector is numpy array for consistency
-        if not isinstance(new_vector, np.ndarray):
-            new_vector = np.array(new_vector, dtype=np.float32)
+        query_vector = self._average_word_vectors(query.split())
+        print('query_vector', query_vector)
+        # Compute similarity scores between the query and each document's stored embedding
+        similarities = self.metric.similarities(SimpleVector(query_vector), [SimpleVector(doc.embedding) for doc in self.documents if doc.embedding])
+        print('similarities', similarities)
+        # Retrieve indices of top_k most similar documents
+        top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i], reverse=True)[:top_k]
+        print('top_k_indices', top_k_indices)
+        return [self.documents[i] for i in top_k_indices]
 
-        if vector_id in self.id_to_metadata:
-            # Update operation follows delete then add strategy because vector order matters in ScaNN
-            self.delete_vector(vector_id)
-            self.add_vector(vector_id, new_vector, new_metadata)
+```
+
+```swarmauri/experimental/vector_stores/TriplesDocumentStore.py
+
+from typing import List, Union, Optional
+import numpy as np
+from rdflib import Graph, URIRef, Literal, BNode
+from ampligraph.latent_features import ComplEx
+from ampligraph.evaluation import train_test_split_no_unseen
+from ampligraph.latent_features import EmbeddingModel
+from ampligraph.utils import save_model, restore_model
+
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri.core.retrievers.IRetriever import IRetriever
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.standard.vectorizers.concrete.AmpligraphVectorizer import AmpligraphVectorizer
+
+
+class TriplesDocumentStore(IDocumentStore, IRetriever):
+    def __init__(self, rdf_file_path: str, model_path: Optional[str] = None):
+        """
+        Initializes the TriplesDocumentStore.
+        """
+        self.graph = Graph()
+        self.rdf_file_path = rdf_file_path
+        self.graph.parse(rdf_file_path, format='turtle')
+        self.documents = []
+        self.vectorizer = AmpligraphVectorizer()
+        self.model_path = model_path
+        if model_path:
+            self.model = restore_model(model_path)
         else:
-            # Handle case where vector_id is not found
-            print(f"Vector ID {vector_id} not found.")
+            self.model = None
+        self.metric = CosineDistance()
+        self._load_documents()
+        if not self.model:
+            self._train_model()
 
-
-
-    def search_by_similarity_threshold(self, query_vector: Union[np.ndarray, List[float]], similarity_threshold: float, space_name: str = None) -> List[Dict]:
+    def _train_model(self):
         """
-        Search vectors exceeding a similarity threshold to a query vector within an optional vector space.
-
-        Args:
-            query_vector (Union[np.ndarray, List[float]]): The high-dimensional query vector.
-            similarity_threshold (float): The similarity threshold for filtering results.
-            space_name (str, optional): The name of the vector space to search within. Not used in this implementation.
-
-        Returns:
-            List[Dict]: A list of dictionaries with vector IDs, similarity scores, and optional metadata that meet the similarity threshold.
+        Trains a model based on triples in the graph.
         """
-        if not isinstance(query_vector, np.ndarray):
-            query_vector = np.array(query_vector, dtype=np.float32)
-        
-        if self.searcher is None:
-            self._build_scann_searcher()
-        
-        _, indices = self.searcher.search(query_vector, final_num_neighbors=self.reordering_num_neighbors)
-        results = [{"id": str(idx), "metadata": self.id_to_metadata.get(str(idx), {})} for idx in indices if idx < similarity_threshold]
-        return results
+        # Extract triples for embedding model
+        triples = np.array([[str(s), str(p), str(o)] for s, p, o in self.graph])
+        # Split data
+        train, test = train_test_split_no_unseen(triples, test_size=0.1)
+        self.model = ComplEx(batches_count=100, seed=0, epochs=20, k=150, eta=1,
+                             optimizer='adam', optimizer_params={'lr': 1e-3},
+                             loss='pairwise', regularizer='LP', regularizer_params={'p': 3, 'lambda': 1e-5},
+                             verbose=True)
+        self.model.fit(train)
+        if self.model_path:
+            save_model(self.model, self.model_path)
 
-```
-
-```swarmauri/experimental/vector_stores/CanberraDistance.py
-
-import numpy as np
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-
-class CanberraDistance(IDistanceSimilarity):
-    """
-    Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
-    This class now processes IVector instances instead of raw lists.
-    """
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def _load_documents(self):
         """
-        Computes the Canberra distance between two IVector instances.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The computed Canberra distance between the vectors.
+        Load documents into the store from the RDF graph.
         """
-        # Extract data from IVector
-        data_a = np.array(vector_a.data)
-        data_b = np.array(vector_b.data)
+        for subj, pred, obj in self.graph:
+            doc_id = str(hash((subj, pred, obj)))
+            content = f"{subj} {pred} {obj}"
+            document = Document(content=content, doc_id=doc_id, metadata={})
+            self.documents.append(document)
 
-        # Checking dimensions match
-        if data_a.shape != data_b.shape:
-            raise ValueError("Vectors must have the same dimensionality.")
+    def add_document(self, document: IDocument) -> None:
+        """
+        Adds a single RDF triple document.
+        """
+        subj, pred, obj = document.content.split()  # Splitting content into RDF components
+        self.graph.add((URIRef(subj), URIRef(pred), URIRef(obj) if obj.startswith('http') else Literal(obj)))
+        self.documents.append(document)
+        self._train_model()
 
-        # Computing Canberra distance
-        distance = np.sum(np.abs(data_a - data_b) / (np.abs(data_a) + np.abs(data_b)))
-        # Handling the case where both vectors have a zero value for the same dimension
-        distance = np.nan_to_num(distance)
-        return distance
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Adds multiple RDF triple documents.
+        """
+        for document in documents:
+            subj, pred, obj = document.content.split()  # Assuming each document's content is "subj pred obj"
+            self.graph.add((URIRef(subj), URIRef(pred), URIRef(obj) if obj.startswith('http') else Literal(obj)))
+        self.documents.extend(documents)
+        self._train_model()
+
+    # Implementation for get_document, get_all_documents, delete_document, update_document remains same as before
     
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         """
-        Compute similarity using the Canberra distance. Since this distance metric isn't
-        directly interpretable as a similarity, a transformation is applied to map the distance
-        to a similarity score.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector to compare with the first vector.
-
-        Returns:
-            float: A similarity score between vector_a and vector_b.
+        Retrieve documents similar to the query string.
         """
-        # One way to derive a similarity from distance is through inversion or transformation.
-        # Here we use an exponential decay based on the computed distance. This is a placeholder
-        # that assumes closer vectors (smaller distance) are more similar.
-        distance = self.distance(vector_a, vector_b)
-
-        # Transform the distance into a similarity score
-        similarity = np.exp(-distance)
-
-        return similarity
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
-
-```
-
-```swarmauri/experimental/vector_stores/ChebyshevDistance.py
-
-from typing import List
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-
-class ChebyshevDistance(IDistanceSimilarity):
-    """
-    Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
-    Chebyshev distance is the maximum absolute distance between two vectors' elements.
-    """
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Chebyshev distance between two vectors.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The computed Chebyshev distance between vector_a and vector_b.
-        """
-        max_distance = 0
-        for a, b in zip(vector_a.data, vector_b.data):
-            max_distance = max(max_distance, abs(a - b))
-        return max_distance
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the similarity between two vectors based on the Chebyshev distance.
-
-        Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector.
-
-        Returns:
-            float: The similarity score between the two vectors.
-        """
-
-        return 1 / (1 + self.distance(vector_a, vector_b))
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
-
-```
-
-```swarmauri/experimental/vector_stores/HaversineDistance.py
-
-from typing import List
-from math import radians, cos, sin, sqrt, atan2
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-
-class HaversineDistance(IDistanceSimilarity):
-    """
-    Concrete implementation of IDistanceSimiliarity interface using the Haversine formula.
-    
-    Haversine formula determines the great-circle distance between two points on a sphere given their 
-    longitudes and latitudes. This implementation is particularly useful for geo-spatial data.
-    """ 
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Haversine distance between two geo-spatial points.
-
-        Args:
-            vector_a (IVector): The first point in the format [latitude, longitude].
-            vector_b (IVector): The second point in the same format [latitude, longitude].
-
-        Returns:
-            float: The Haversine distance between vector_a and vector_b in kilometers.
-        """
-        # Earth radius in kilometers
-        R = 6371.0
-
-        lat1, lon1 = map(radians, vector_a.data)
-        lat2, lon2 = map(radians, vector_b.data)
-
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-
-        # Haversine formula
-        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-        c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        distance = R * c
-
-        return distance
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        raise NotImplementedError("Similarity not implemented for Haversine distance.")
-        
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        raise NotImplementedError("Similarity not implemented for Haversine distance.")
-
-```
-
-```swarmauri/experimental/vector_stores/ManhattanDistance.py
-
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-class ManhattanDistance(IDistanceSimilarity):
-    """
-    Concrete implementation of the IDistanceSimiliarity interface using the Manhattan distance.
-    
-    The Manhattan distance between two points is the sum of the absolute differences of their Cartesian coordinates.
-    This is also known as L1 distance.
-    """
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Manhattan distance between two vectors.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The Manhattan distance between vector_a and vector_b.
-        """
-        if vector_a.dimensions != vector_b.dimensions:
-            raise ValueError("Vectors must have the same dimensionality.")
-        
-        return sum(abs(a - b) for a, b in zip(vector_a.data, vector_b.data))
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        The similarity based on Manhattan distance can be inversely related to the distance for some applications,
-        but this method intentionally returns NotImplementedError to signal that Manhattan distance is typically
-        not directly converted to similarity in the conventional sense used in this context.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity measure.
-        """
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
-        
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
-
-```
-
-```swarmauri/experimental/vector_stores/MinkowskiDistance.py
-
-from typing import List
-from scipy.spatial.distance import minkowski
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-class MinkowskiDistance(IDistanceSimilarity):
-    """
-    Implementation of the IDistanceSimiliarity interface using the Minkowski distance metric.
-    Minkowski distance is a generalized metric form that includes Euclidean distance,
-    Manhattan distance, and others depending on the order (p) parameter.
-
-    The class provides methods to compute the Minkowski distance between two vectors.
-    """
-
-    def __init__(self, p: int = 2):
-        """
-        Initializes the MinkowskiDistance calculator with the specified order.
-
-        Parameters:
-        - p (int): The order of the Minkowski distance. p=2 corresponds to the Euclidean distance,
-                   while p=1 corresponds to the Manhattan distance. Default is 2.
-        """
-        self.p = p
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Minkowski distance between two vectors.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The computed Minkowski distance between vector_a and vector_b.
-        """
-        # Check if both vectors have the same dimensionality
-        if vector_a.dimensions != vector_b.dimensions:
-            raise ValueError("Vectors must have the same dimensionality.")
-
-        # Extract data from IVector instances
-        data_a = vector_a.data
-        data_b = vector_b.data
-
-        # Calculate and return the Minkowski distance
-        return minkowski(data_a, data_b, p=self.p)
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Compute the similarity between two vectors based on the Minkowski distance.
-        The similarity is inversely related to the distance.
-
-        Args:
-            vector_a (IVector): The first vector to compare for similarity.
-            vector_b (IVector): The second vector to compare with the first vector.
-
-        Returns:
-            float: A similarity score between vector_a and vector_b.
-        """
-        dist = self.distance(vector_a, vector_b)
-        return 1 / (1 + dist)  # An example similarity score
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
-
-```
-
-```swarmauri/experimental/vector_stores/SorensenDiceDistance.py
-
-import numpy as np
-from typing import List
-from collections import Counter
-
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-class SorensenDiceDistance(IDistanceSimilarity):
-    """
-    Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.
-    The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.
-    """
-
-    def distance(self, vector_a: List[float], vector_b: List[float]) -> float:
-        """
-        Compute the Sörensen-Dice distance between two vectors.
-        
-        Args:
-            vector_a (List[float]): The first vector in the comparison.
-            vector_b (List[float]): The second vector in the comparison.
-        
-        Returns:
-            float: The computed Sörensen-Dice distance between vector_a and vector_b.
-        """
-        # Convert vectors to binary sets
-        set_a = set([i for i, val in enumerate(vector_a) if val])
-        set_b = set([i for i, val in enumerate(vector_b) if val])
-        
-        # Calculate the intersection size
-        intersection_size = len(set_a.intersection(set_b))
-        
-        # Sorensen-Dice Index calculation
-        try:
-            sorensen_dice_index = (2 * intersection_size) / (len(set_a) + len(set_b))
-        except ZeroDivisionError:
-            sorensen_dice_index = 0.0
-        
-        # Distance is inverse of similarity for Sörensen-Dice
-        distance = 1 - sorensen_dice_index
-        
-        return distance
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarity(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
-
-```
-
-```swarmauri/experimental/vector_stores/SquaredEuclideanDistance.py
-
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-class SquaredEuclideanDistance(IDistanceSimilarity):
-    """
-    A concrete class for computing the squared Euclidean distance between two vectors.
-    """
-
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the squared Euclidean distance between vectors `vector_a` and `vector_b`.
-
-        Parameters:
-        - vector_a (IVector): The first vector in the comparison.
-        - vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-        - float: The computed squared Euclidean distance between vector_a and vector_b.
-        """
-        if vector_a.dimensions != vector_b.dimensions:
-            raise ValueError("Vectors must be of the same dimensionality.")
-
-        squared_distance = sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data))
-        return squared_distance
-
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Squared Euclidean distance is not used for calculating similarity.
-        
-        Parameters:
-        - vector_a (IVector): The first vector.
-        - vector_b (IVector): The second vector.
-
-        Raises:
-        - NotImplementedError: Indicates that similarity calculation is not implemented.
-        """
-        raise NotImplementedError("Similarity calculation is not implemented for Squared Euclidean distance.")
-        
-        
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        raise NotImplementedError("Similarity calculation is not implemented for Squared Euclidean distance.")
+        if not self.model:
+            self._train_model()
+        query_vector = self.vectorizer.infer_vector(model=self.model, samples=[query])[0]
+        document_vectors = [self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0] for doc in self.documents]
+        similarities = self.metric.distances(SimpleVector(data=query_vector), [SimpleVector(vector) for vector in document_vectors])
+        top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[:top_k]
+        return [self.documents[i] for i in top_k_indices]
 
 ```
 
@@ -2291,6 +1737,14 @@ class RemoteAPITracer(ITracer):
 
     def annotate_trace(self, trace_context: 'RemoteTraceContext', key: str, value):
         trace_context.add_annotation(key, value)
+
+```
+
+```swarmauri/experimental/tracing/__init__.py
+
+# -*- coding: utf-8 -*-
+
+
 
 ```
 
@@ -2621,73 +2075,11 @@ class DGLVectorizer(IVectorize):
 
 ```
 
-```swarmauri/experimental/vectorizers/AmpligraphVectorizer.py
+```swarmauri/experimental/vectorizers/__init__.py
 
-from typing import List, Union, Any
-from ampligraph.latent_features import ScoringBasedEmbeddingModel
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-
-class AmpligraphVectorizer(IVectorize, IFeature):
-    def __init__(self, model: Union[str, EmbeddingModel]):
-        """
-        Initialize the AmpligraphVectorizer.
-
-        Parameters:
-        - model (Union[str, EmbeddingModel]): Either the path to a saved model or an instance of an EmbeddingModel.
-        """
-        self.model = ScoringBasedEmbeddingModel(k=150,
-                                   eta=10,
-                                   scoring_type='ComplEx',
-                                   seed=0)
-
-    def extract_features(self) -> List[str]:
-        raise NotImplementedError("AmpligraphVectorizer does not support feature extraction.")
-
-    def fit(self, data: Union[str, Any]) -> List[IVector]:
-        optim = tf.keras.optimizers.Adam(learning_rate=1e-3)
-        loss = get_loss('pairwise', {'margin': 0.5})
-        regularizer = get_regularizer('LP', {'p': 2, 'lambda': 1e-5})
-        self.model.compile(optimizer=optim, loss=loss, entity_relation_regularizer=regularizer)
-        # Fit the model on training and validation set
-        model.fit(X['train'],
-                  batch_size=int(X['train'].shape[0] / 10),
-                  epochs=20,                    # Number of training epochs
-                  validation_freq=20,           # Epochs between successive validation
-                  validation_burn_in=100,       # Epoch to start validation
-                  validation_data=X['valid'],   # Validation data
-                  validation_filter=filter,     # Filter positives from validation corruptions
-                  callbacks=[checkpoint],       # Early stopping callback (more from tf.keras.callbacks are supported)
-                  verbose=True                  # Enable stdout messages
-                  )
+# -*- coding: utf-8 -*-
 
 
-    def transform(self, data: Union[str, Any]) -> List[IVector]:
-        raise NotImplementedError("AmpligraphVectorizer transform method is not implemented. Please use infer_vector instead.")
-
-    def infer_vector(self, data: Union[str, Any]) -> IVector:
-        """
-        Generates an embedding for the input data.
-
-        Parameters:
-        - data (Union[str, Any]): The input data, expected to be a textual representation of an RDF triple
-                                  or a list of textual representations if batching.
-
-        Returns:
-        - IVector: An instance of IVector containing the generated embedding.
-        """
-        if isinstance(data, str):
-            data = [data.split()]
-        elif isinstance(data, list):
-            data = [d.split() for d in data]
-        else:
-            raise TypeError("Data must be a string or a list of strings.")
-
-        # Generate embeddings
-        embeddings = self.model.predict(data)
-        return SimpleVector(embeddings[0] if embeddings.ndim == 1 else embeddings.mean(axis=0))
 
 ```
 
@@ -2871,5 +2263,701 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i], reverse=True)[:top_k]
         print('top_k_indices', top_k_indices)
         return [self.documents[i] for i in top_k_indices]
+
+```
+
+```swarmauri/experimental/document_stores/__init__.py
+
+# -*- coding: utf-8 -*-
+
+
+
+```
+
+```swarmauri/experimental/distances/CanberraDistance.py
+
+import numpy as np
+from typing import List
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+
+class CanberraDistance(IDistanceSimilarity):
+    """
+    Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
+    This class now processes IVector instances instead of raw lists.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Canberra distance between two IVector instances.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed Canberra distance between the vectors.
+        """
+        # Extract data from IVector
+        data_a = np.array(vector_a.data)
+        data_b = np.array(vector_b.data)
+
+        # Checking dimensions match
+        if data_a.shape != data_b.shape:
+            raise ValueError("Vectors must have the same dimensionality.")
+
+        # Computing Canberra distance
+        distance = np.sum(np.abs(data_a - data_b) / (np.abs(data_a) + np.abs(data_b)))
+        # Handling the case where both vectors have a zero value for the same dimension
+        distance = np.nan_to_num(distance)
+        return distance
+    
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute similarity using the Canberra distance. Since this distance metric isn't
+        directly interpretable as a similarity, a transformation is applied to map the distance
+        to a similarity score.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector to compare with the first vector.
+
+        Returns:
+            float: A similarity score between vector_a and vector_b.
+        """
+        # One way to derive a similarity from distance is through inversion or transformation.
+        # Here we use an exponential decay based on the computed distance. This is a placeholder
+        # that assumes closer vectors (smaller distance) are more similar.
+        distance = self.distance(vector_a, vector_b)
+
+        # Transform the distance into a similarity score
+        similarity = np.exp(-distance)
+
+        return similarity
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/experimental/distances/ChebyshevDistance.py
+
+from typing import List
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+
+class ChebyshevDistance(IDistanceSimilarity):
+    """
+    Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
+    Chebyshev distance is the maximum absolute distance between two vectors' elements.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Chebyshev distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed Chebyshev distance between vector_a and vector_b.
+        """
+        max_distance = 0
+        for a, b in zip(vector_a.data, vector_b.data):
+            max_distance = max(max_distance, abs(a - b))
+        return max_distance
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the similarity between two vectors based on the Chebyshev distance.
+
+        Args:
+            vector_a (IVector): The first vector.
+            vector_b (IVector): The second vector.
+
+        Returns:
+            float: The similarity score between the two vectors.
+        """
+
+        return 1 / (1 + self.distance(vector_a, vector_b))
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/experimental/distances/HaversineDistance.py
+
+from typing import List
+from math import radians, cos, sin, sqrt, atan2
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+
+class HaversineDistance(IDistanceSimilarity):
+    """
+    Concrete implementation of IDistanceSimiliarity interface using the Haversine formula.
+    
+    Haversine formula determines the great-circle distance between two points on a sphere given their 
+    longitudes and latitudes. This implementation is particularly useful for geo-spatial data.
+    """ 
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Haversine distance between two geo-spatial points.
+
+        Args:
+            vector_a (IVector): The first point in the format [latitude, longitude].
+            vector_b (IVector): The second point in the same format [latitude, longitude].
+
+        Returns:
+            float: The Haversine distance between vector_a and vector_b in kilometers.
+        """
+        # Earth radius in kilometers
+        R = 6371.0
+
+        lat1, lon1 = map(radians, vector_a.data)
+        lat2, lon2 = map(radians, vector_b.data)
+
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+
+        # Haversine formula
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        distance = R * c
+
+        return distance
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        raise NotImplementedError("Similarity not implemented for Haversine distance.")
+        
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        raise NotImplementedError("Similarity not implemented for Haversine distance.")
+
+```
+
+```swarmauri/experimental/distances/ManhattanDistance.py
+
+from typing import List
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class ManhattanDistance(IDistanceSimilarity):
+    """
+    Concrete implementation of the IDistanceSimiliarity interface using the Manhattan distance.
+    
+    The Manhattan distance between two points is the sum of the absolute differences of their Cartesian coordinates.
+    This is also known as L1 distance.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Manhattan distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The Manhattan distance between vector_a and vector_b.
+        """
+        if vector_a.dimensions != vector_b.dimensions:
+            raise ValueError("Vectors must have the same dimensionality.")
+        
+        return sum(abs(a - b) for a, b in zip(vector_a.data, vector_b.data))
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        The similarity based on Manhattan distance can be inversely related to the distance for some applications,
+        but this method intentionally returns NotImplementedError to signal that Manhattan distance is typically
+        not directly converted to similarity in the conventional sense used in this context.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity measure.
+        """
+        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
+        
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
+
+```
+
+```swarmauri/experimental/distances/MinkowskiDistance.py
+
+from typing import List
+from scipy.spatial.distance import minkowski
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class MinkowskiDistance(IDistanceSimilarity):
+    """
+    Implementation of the IDistanceSimiliarity interface using the Minkowski distance metric.
+    Minkowski distance is a generalized metric form that includes Euclidean distance,
+    Manhattan distance, and others depending on the order (p) parameter.
+
+    The class provides methods to compute the Minkowski distance between two vectors.
+    """
+
+    def __init__(self, p: int = 2):
+        """
+        Initializes the MinkowskiDistance calculator with the specified order.
+
+        Parameters:
+        - p (int): The order of the Minkowski distance. p=2 corresponds to the Euclidean distance,
+                   while p=1 corresponds to the Manhattan distance. Default is 2.
+        """
+        self.p = p
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Minkowski distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed Minkowski distance between vector_a and vector_b.
+        """
+        # Check if both vectors have the same dimensionality
+        if vector_a.dimensions != vector_b.dimensions:
+            raise ValueError("Vectors must have the same dimensionality.")
+
+        # Extract data from IVector instances
+        data_a = vector_a.data
+        data_b = vector_b.data
+
+        # Calculate and return the Minkowski distance
+        return minkowski(data_a, data_b, p=self.p)
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute the similarity between two vectors based on the Minkowski distance.
+        The similarity is inversely related to the distance.
+
+        Args:
+            vector_a (IVector): The first vector to compare for similarity.
+            vector_b (IVector): The second vector to compare with the first vector.
+
+        Returns:
+            float: A similarity score between vector_a and vector_b.
+        """
+        dist = self.distance(vector_a, vector_b)
+        return 1 / (1 + dist)  # An example similarity score
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/experimental/distances/ScannVectorStore.py
+
+import numpy as np
+import scann
+from typing import List, Dict, Union
+
+from swarmauri.core.vector_stores.IVectorStore import IVectorStore
+from swarmauri.core.vector_stores.ISimiliarityQuery import ISimilarityQuery
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+
+
+class ScannVectorStore(IVectorStore, ISimilarityQuery):
+    """
+    A vector store that utilizes ScaNN (Scalable Nearest Neighbors) for efficient similarity searches.
+    """
+
+    def __init__(self, dimension: int, num_leaves: int = 100, num_leaves_to_search: int = 10, reordering_num_neighbors: int = 100):
+        """
+        Initialize the ScaNN vector store with given parameters.
+
+        Parameters:
+        - dimension (int): The dimensionality of the vectors being stored.
+        - num_leaves (int): The number of leaves for the ScaNN partitioning tree.
+        - num_leaves_to_search (int): The number of leaves to search for query time. Must be <= num_leaves.
+        - reordering_num_neighbors (int): The number of neighbors to re-rank based on the exact distance after searching leaves.
+        """
+        self.dimension = dimension
+        self.num_leaves = num_leaves
+        self.num_leaves_to_search = num_leaves_to_search
+        self.reordering_num_neighbors = reordering_num_neighbors
+
+        self.searcher = None  # Placeholder for the ScaNN searcher initialized during building
+        self.dataset_vectors = []
+        self.id_to_metadata = {}
+
+    def _build_scann_searcher(self):
+        """Build the ScaNN searcher based on current dataset vectors."""
+        self.searcher = scann.ScannBuilder(np.array(self.dataset_vectors, dtype=np.float32), num_neighbors=self.reordering_num_neighbors, distance_measure="dot_product").tree(
+            num_leaves=self.num_leaves, num_leaves_to_search=self.num_leaves_to_search, training_sample_size=25000
+        ).score_ah(
+            dimensions_per_block=2
+        ).reorder(self.reordering_num_neighbors).build()
+
+    def add_vector(self, vector_id: str, vector: Union[np.ndarray, List[float]], metadata: Dict = None) -> None:
+        """
+        Adds a vector along with its identifier and optional metadata to the store.
+
+        Args:
+            vector_id (str): Unique identifier for the vector.
+            vector (Union[np.ndarray, List[float]]): The high-dimensional vector to be stored.
+            metadata (Dict, optional): Optional metadata related to the vector.
+        """
+        if not isinstance(vector, np.ndarray):
+            vector = np.array(vector, dtype=np.float32)
+        
+        if self.searcher is None:
+            self.dataset_vectors.append(vector)
+        else:
+            raise Exception("Cannot add vectors after building the index. Rebuild the index to include new vectors.")
+
+        if metadata is None:
+            metadata = {}
+        self.id_to_metadata[vector_id] = metadata
+
+    def build_index(self):
+        """Builds or rebuilds the ScaNN searcher to reflect the current dataset vectors."""
+        self._build_scann_searcher()
+
+    def get_vector(self, vector_id: str) -> Union[IVector, None]:
+        """
+        Retrieve a vector by its identifier.
+
+        Args:
+            vector_id (str): The unique identifier for the vector.
+
+        Returns:
+            Union[IVector, None]: The vector associated with the given id, or None if not found.
+        """
+        if vector_id in self.id_to_metadata:
+            metadata = self.id_to_metadata[vector_id]
+            return SimpleVector(data=metadata.get('vector'), metadata=metadata)
+        return None
+
+    def delete_vector(self, vector_id: str) -> None:
+        """
+        Deletes a vector from the ScannVectorStore and marks the index for rebuilding.
+        Note: For simplicity, this function assumes vectors are uniquely identifiable by their metadata.
+
+        Args:
+            vector_id (str): The unique identifier for the vector to be deleted.
+        """
+        if vector_id in self.id_to_metadata:
+            # Identify index of the vector to be deleted
+            vector = self.id_to_metadata[vector_id]['vector']
+            index = self.dataset_vectors.index(vector)
+
+            # Remove vector and its metadata
+            del self.dataset_vectors[index]
+            del self.id_to_metadata[vector_id]
+
+            # Since vector order is important for matching ids, rebuild the searcher to reflect deletion
+            self.searcher = None
+        else:
+            # Handle case where vector_id is not found
+            print(f"Vector ID {vector_id} not found.")
+
+    def update_vector(self, vector_id: str, new_vector: Union[np.ndarray, List[float]], new_metadata: Dict = None) -> None:
+        """
+        Updates an existing vector in the ScannVectorStore and marks the index for rebuilding.
+
+        Args:
+            vector_id (str): The unique identifier for the vector to be updated.
+            new_vector (Union[np.ndarray, List[float]]): The updated vector.
+            new_metadata (Dict, optional): Optional updated metadata for the vector.
+        """
+        # Ensure new_vector is numpy array for consistency
+        if not isinstance(new_vector, np.ndarray):
+            new_vector = np.array(new_vector, dtype=np.float32)
+
+        if vector_id in self.id_to_metadata:
+            # Update operation follows delete then add strategy because vector order matters in ScaNN
+            self.delete_vector(vector_id)
+            self.add_vector(vector_id, new_vector, new_metadata)
+        else:
+            # Handle case where vector_id is not found
+            print(f"Vector ID {vector_id} not found.")
+
+
+
+    def search_by_similarity_threshold(self, query_vector: Union[np.ndarray, List[float]], similarity_threshold: float, space_name: str = None) -> List[Dict]:
+        """
+        Search vectors exceeding a similarity threshold to a query vector within an optional vector space.
+
+        Args:
+            query_vector (Union[np.ndarray, List[float]]): The high-dimensional query vector.
+            similarity_threshold (float): The similarity threshold for filtering results.
+            space_name (str, optional): The name of the vector space to search within. Not used in this implementation.
+
+        Returns:
+            List[Dict]: A list of dictionaries with vector IDs, similarity scores, and optional metadata that meet the similarity threshold.
+        """
+        if not isinstance(query_vector, np.ndarray):
+            query_vector = np.array(query_vector, dtype=np.float32)
+        
+        if self.searcher is None:
+            self._build_scann_searcher()
+        
+        _, indices = self.searcher.search(query_vector, final_num_neighbors=self.reordering_num_neighbors)
+        results = [{"id": str(idx), "metadata": self.id_to_metadata.get(str(idx), {})} for idx in indices if idx < similarity_threshold]
+        return results
+
+```
+
+```swarmauri/experimental/distances/SorensenDiceDistance.py
+
+import numpy as np
+from typing import List
+from collections import Counter
+
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class SorensenDiceDistance(IDistanceSimilarity):
+    """
+    Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.
+    The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.
+    """
+
+    def distance(self, vector_a: List[float], vector_b: List[float]) -> float:
+        """
+        Compute the Sörensen-Dice distance between two vectors.
+        
+        Args:
+            vector_a (List[float]): The first vector in the comparison.
+            vector_b (List[float]): The second vector in the comparison.
+        
+        Returns:
+            float: The computed Sörensen-Dice distance between vector_a and vector_b.
+        """
+        # Convert vectors to binary sets
+        set_a = set([i for i, val in enumerate(vector_a) if val])
+        set_b = set([i for i, val in enumerate(vector_b) if val])
+        
+        # Calculate the intersection size
+        intersection_size = len(set_a.intersection(set_b))
+        
+        # Sorensen-Dice Index calculation
+        try:
+            sorensen_dice_index = (2 * intersection_size) / (len(set_a) + len(set_b))
+        except ZeroDivisionError:
+            sorensen_dice_index = 0.0
+        
+        # Distance is inverse of similarity for Sörensen-Dice
+        distance = 1 - sorensen_dice_index
+        
+        return distance
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarity(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
+
+```
+
+```swarmauri/experimental/distances/SquaredEuclideanDistance.py
+
+from typing import List
+from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class SquaredEuclideanDistance(IDistanceSimilarity):
+    """
+    A concrete class for computing the squared Euclidean distance between two vectors.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the squared Euclidean distance between vectors `vector_a` and `vector_b`.
+
+        Parameters:
+        - vector_a (IVector): The first vector in the comparison.
+        - vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+        - float: The computed squared Euclidean distance between vector_a and vector_b.
+        """
+        if vector_a.dimensions != vector_b.dimensions:
+            raise ValueError("Vectors must be of the same dimensionality.")
+
+        squared_distance = sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data))
+        return squared_distance
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Squared Euclidean distance is not used for calculating similarity.
+        
+        Parameters:
+        - vector_a (IVector): The first vector.
+        - vector_b (IVector): The second vector.
+
+        Raises:
+        - NotImplementedError: Indicates that similarity calculation is not implemented.
+        """
+        raise NotImplementedError("Similarity calculation is not implemented for Squared Euclidean distance.")
+        
+        
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        raise NotImplementedError("Similarity calculation is not implemented for Squared Euclidean distance.")
+
+```
+
+```swarmauri/experimental/distances/SSASimilarity.py
+
+from typing import Set, List, Dict
+from ....core.vector_stores.ISimilarity import ISimilarity
+from ....core.vectors.IVector import IVector
+
+
+class SSASimilarity(ISimilarity):
+    """
+    Implements the State Similarity in Arity (SSA) similarity measure to
+    compare states (sets of variables) for their similarity.
+    """
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Calculate the SSA similarity between two documents by comparing their metadata,
+        assumed to represent states as sets of variables.
+
+        Args:
+        - vector_a (IDocument): The first document.
+        - vector_b (IDocument): The second document to compare with the first document.
+
+        Returns:
+        - float: The SSA similarity measure between vector_a and vector_b, ranging from 0 to 1
+                 where 0 represents no similarity and 1 represents identical states.
+        """
+        state_a = set(vector_a.metadata.keys())
+        state_b = set(vector_b.metadata.keys())
+
+        return self.calculate_ssa(state_a, state_b)
+
+    @staticmethod
+    def calculate_ssa(state_a: Set[str], state_b: Set[str]) -> float:
+        """
+        Calculate the State Similarity in Arity (SSA) between two states.
+
+        Parameters:
+        - state_a (Set[str]): A set of variables representing state A.
+        - state_b (Set[str]): A set of variables representing state B.
+
+        Returns:6
+        - float: The SSA similarity measure, ranging from 0 (no similarity) to 1 (identical states).
+        """
+        # Calculate the intersection (shared variables) between the two states
+        shared_variables = state_a.intersection(state_b)
+        
+        # Calculate the union (total unique variables) of the two states
+        total_variables = state_a.union(state_b)
+        
+        # Calculate the SSA measure as the ratio of shared to total variables
+        ssa = len(shared_variables) / len(total_variables) if total_variables else 1
+        
+        return ssa
+
+```
+
+```swarmauri/experimental/distances/SSIVSimilarity.py
+
+from typing import List, Dict, Set
+from ....core.vector_stores.ISimilarity import ISimilarity
+
+class SSIVSimilarity(ISimilarity):
+    """
+    Concrete class that implements ISimilarity interface using
+    State Similarity of Important Variables (SSIV) as the similarity measure.
+    """
+
+    def similarity(self, state_a: Set[str], state_b: Set[str], importance_a: Dict[str, float], importance_b: Dict[str, float]) -> float:
+        """
+        Calculate the SSIV between two states represented by sets of variables.
+
+        Parameters:
+        - state_a (Set[str]): A set of variables representing state A.
+        - state_b (Set[str]): A set of variables representing state B.
+        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
+        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
+
+        Returns:
+        - float: The SSIV similarity measure, ranging from 0 to 1.
+        """
+        return self.calculate_ssiv(state_a, state_b, importance_a, importance_b)
+
+    @staticmethod
+    def calculate_ssiv(state_a: Set[str], state_b: Set[str], importance_a: Dict[str, float], importance_b: Dict[str, float]) -> float:
+        """
+        Calculate the State Similarity of Important Variables (SSIV) between two states.
+
+        Parameters:
+        - state_a (Set[str]): A set of variables representing state A.
+        - state_b (Set[str]): A set of variables representing state B.
+        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
+        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
+
+        Returns:
+        - float: The SSIV similarity measure, ranging from 0 to 1.
+        
+        Note: It is assumed that the importance weights are non-negative.
+        """
+        shared_variables = state_a.intersection(state_b)
+        
+        # Calculate the summed importance of shared variables
+        shared_importance_sum = sum(importance_a[var] for var in shared_variables) + sum(importance_b[var] for var in shared_variables)
+        
+        # Calculate the total importance of all variables in both states
+        total_importance_sum = sum(importance_a.values()) + sum(importance_b.values())
+        
+        # Calculate and return the SSIV
+        ssiv = (2 * shared_importance_sum) / total_importance_sum if total_importance_sum != 0 else 0
+        return ssiv
+
+
+```
+
+```swarmauri/experimental/distances/__init__.py
+
+# -*- coding: utf-8 -*-
+
+
 
 ```

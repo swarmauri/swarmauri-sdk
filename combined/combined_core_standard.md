@@ -119,7 +119,10 @@ class IModel(ABC):
 
 ```swarmauri/core/agent_apis/__init__.py
 
+from .IAgentCommands import IAgentCommands
+from .IAgentRouterCRUD import IAgentRouterCRUD
 
+__all__ = ['IAgentCommands', 'IAgentRouterCRUD']
 
 ```
 
@@ -641,37 +644,18 @@ class IAgentConversation(ABC):
 ```swarmauri/core/agents/IAgentRetriever.py
 
 from abc import ABC, abstractmethod
-from swarmauri.core.retrievers.IRetriever import IRetriever 
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 
 class IAgentRetriever(ABC):
     
     @property
     @abstractmethod
-    def retriever(self) -> IRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
     @retriever.setter
     @abstractmethod
-    def retriever(self) -> IRetriever:
-        pass
-
-```
-
-```swarmauri/core/agents/IAgentDocument.py
-
-from abc import ABC, abstractmethod
-from swarmauri.core.documents.IDocument import IDocument
-
-class IAgentDocumentStore(ABC):
-    
-    @property
-    @abstractmethod
-    def document_store(self) -> IDocument:
-        pass
-
-    @documents.setter
-    @abstractmethod
-    def document_store(self) -> IDocument:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
 ```
@@ -748,6 +732,25 @@ class IAgent(ABC):
 
 ```
 
+```swarmauri/core/agents/IAgentDocument.py
+
+from abc import ABC, abstractmethod
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+
+class IAgentDocumentStore(ABC):
+    
+    @property
+    @abstractmethod
+    def document_store(self) -> IDocumentStore:
+        pass
+
+    @document_store.setter
+    @abstractmethod
+    def document_store(self) -> IDocumentStore:
+        pass
+
+```
+
 ```swarmauri/core/swarms/__init__.py
 
 
@@ -758,7 +761,7 @@ class IAgent(ABC):
 
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
-from swarmauri.core.agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.chains.ICallableChain import ICallableChain
 
 class ISwarm(ABC):
@@ -767,12 +770,12 @@ class ISwarm(ABC):
     """
 
     @abstractmethod
-    def add_agent(self, agent: ISwarmAgent) -> None:
+    def add_agent(self, agent: IAgent) -> None:
         """
         Adds an agent to the swarm.
 
         Args:
-            agent (ISwarmAgent): The agent to be added.
+            agent (IAgent): The agent to be added.
         """
         pass
 
@@ -804,7 +807,7 @@ class ISwarm(ABC):
         pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> ISwarmAgent:
+    def get_agent(self, agent_id: str) -> IAgent:
         """
         Retrieves an agent by its ID from the swarm.
 
@@ -812,17 +815,17 @@ class ISwarm(ABC):
             agent_id (str): The unique identifier for the agent.
 
         Returns:
-            ISwarmAgent: The agent associated with the given id.
+            IAgent: The agent associated with the given id.
         """
         pass
 
     @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
+    def list_agents(self) -> List[IAgent]:
         """
         Lists all agents currently in the swarm.
 
         Returns:
-            List[ISwarmAgent]: A list of agents in the swarm.
+            List[IAgent]: A list of agents in the swarm.
         """
         pass
 
@@ -1027,6 +1030,83 @@ class ISwarmFactory(ABC):
         """
         pass
 
+
+```
+
+```swarmauri/core/swarms/ISwarmAgentRegistration.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Optional
+from swarmauri.core.agents.IAgent import IAgent
+
+class IAgentRegistration(ABC):
+    """
+    Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
+    """
+
+    @abstractmethod
+    def register_agent(self, agent: IAgent) -> bool:
+        """
+        Register a new agent with the swarm.
+
+        Parameters:
+            agent (IAgent): An instance of IAgent representing the agent to register.
+
+        Returns:
+            bool: True if the registration succeeded; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
+        """
+        Update the details of an existing agent. This could include changing the agent's configuration,
+        task assignment, or any other mutable attribute.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent.
+            updated_agent (IAgent): An updated IAgent instance to replace the existing one.
+
+        Returns:
+            bool: True if the update was successful; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def remove_agent(self, agent_id: str) -> bool:
+        """
+        Remove an agent from the swarm based on its unique identifier.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent to be removed.
+
+        Returns:
+            bool: True if the removal was successful; False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def get_agent(self, agent_id: str) -> Optional[IAgent]:
+        """
+        Retrieve an agent's instance from its unique identifier.
+
+        Parameters:
+            agent_id (str): The unique identifier for the agent of interest.
+
+        Returns:
+            Optional[IAgent]: The IAgent instance if found; None otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def list_agents(self) -> List[IAgent]:
+        """
+        List all registered agents.
+
+        Returns:
+            List[IAgent]: A list containing instances of all registered IAgents.
+        """
+        pass
 
 ```
 
@@ -1350,7 +1430,7 @@ class IAngleBetweenVectors(ABC):
 
 from abc import ABC, abstractmethod
 from typing import Tuple, List
-from .IVector import IVector  # Assuming there's a base IVector interface for vector representations
+from swarmauri.core.vectors.IVector import IVector  # Assuming there's a base IVector interface for vector representations
 
 class IDecompose(ABC):
     """
@@ -1485,7 +1565,7 @@ class IReflect(ABC):
 
 from abc import ABC, abstractmethod
 from typing import List, Tuple
-from .IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
 
 class ISimilarity(ABC):
     """
@@ -1655,77 +1735,6 @@ class IVectorNorm(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/IVectorProduct.py
-
-from abc import ABC, abstractmethod
-from typing import List, Tuple
-
-class IVectorProduct(ABC):
-    """
-    Interface for various vector products including dot product, cross product,
-    and triple products (vector and scalar).
-    """
-
-    @abstractmethod
-    def dot_product(self, vector_a: List[float], vector_b: List[float]) -> float:
-        """
-        Calculate the dot product of two vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-
-        Returns:
-        - float: The dot product of the two vectors.
-        """
-        pass
-
-    @abstractmethod
-    def cross_product(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
-        """
-        Calculate the cross product of two vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-
-        Returns:
-        - List[float]: The cross product as a new vector.
-        """
-        pass
-
-    @abstractmethod
-    def vector_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> List[float]:
-        """
-        Calculate the vector triple product of three vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-        - vector_c (List[float]): The third vector.
-
-        Returns:
-        - List[float]: The result of the vector triple product as a new vector.
-        """
-        pass
-
-    @abstractmethod
-    def scalar_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> float:
-        """
-        Calculate the scalar triple product of three vectors.
-
-        Parameters:
-        - vector_a (List[float]): The first vector.
-        - vector_b (List[float]): The second vector.
-        - vector_c (List[float]): The third vector.
-
-        Returns:
-        - float: The scalar value result of the scalar triple product.
-        """
-        pass
-
-```
-
 ```swarmauri/core/vector_stores/IVectorRotate.py
 
 from abc import ABC, abstractmethod
@@ -1839,61 +1848,6 @@ class IVectorStore(ABC):
             new_metadata (Dict, optional): Optional new metadata related to the vector.
         """
         pass
-
-```
-
-```swarmauri/core/vector_stores/IDistanceSimilarity.py
-
-from abc import ABC, abstractmethod
-from typing import List
-from ..vectors.IVector import IVector
-
-class IDistanceSimilarity(ABC):
-    """
-    Interface for computing distances and similarities between high-dimensional data vectors. This interface
-    abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
-    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
-    """
-
-    @abstractmethod
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the distance between two vectors.
-
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The computed distance between vector_a and vector_b.
-        """
-        pass
-    
-
-    @abstractmethod
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
-        pass
-
-
-    @abstractmethod
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Compute the similarity between two vectors. The definition of similarity (e.g., cosine similarity)
-        should be implemented in concrete classes.
-
-        Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector to compare with the first vector.
-
-        Returns:
-            float: A similarity score between vector_a and vector_b.
-        """
-        pass
-
-    @abstractmethod
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
-        pass
-
 
 ```
 
@@ -2174,6 +2128,77 @@ class IVector(ABC):
 
 ```
 
+```swarmauri/core/vectors/IVectorProduct.py
+
+from abc import ABC, abstractmethod
+from typing import List, Tuple
+
+class IVectorProduct(ABC):
+    """
+    Interface for various vector products including dot product, cross product,
+    and triple products (vector and scalar).
+    """
+
+    @abstractmethod
+    def dot_product(self, vector_a: List[float], vector_b: List[float]) -> float:
+        """
+        Calculate the dot product of two vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+
+        Returns:
+        - float: The dot product of the two vectors.
+        """
+        pass
+
+    @abstractmethod
+    def cross_product(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
+        """
+        Calculate the cross product of two vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+
+        Returns:
+        - List[float]: The cross product as a new vector.
+        """
+        pass
+
+    @abstractmethod
+    def vector_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> List[float]:
+        """
+        Calculate the vector triple product of three vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+        - vector_c (List[float]): The third vector.
+
+        Returns:
+        - List[float]: The result of the vector triple product as a new vector.
+        """
+        pass
+
+    @abstractmethod
+    def scalar_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> float:
+        """
+        Calculate the scalar triple product of three vectors.
+
+        Parameters:
+        - vector_a (List[float]): The first vector.
+        - vector_b (List[float]): The second vector.
+        - vector_c (List[float]): The third vector.
+
+        Returns:
+        - float: The scalar value result of the scalar triple product.
+        """
+        pass
+
+```
+
 ```swarmauri/core/swarm_apis/__init__.py
 
 
@@ -2191,26 +2216,6 @@ class ISwarmAPI(ABC):
     """
     
     @abstractmethod
-    def list_agents(self) -> List[Dict[str, Any]]:
-        """
-        Lists all registered agents within the swarm.
-
-        Returns:
-        - List[Dict[str, Any]]: A list of dictionaries containing information about each agent.
-        """
-        pass
-
-    @abstractmethod
-    def get_swarm_capabilities(self) -> List[str]:
-        """
-        Retrieves a list of all unique capabilities supported by the swarm.
-
-        Returns:
-        - List[str]: A list of unique capabilities.
-        """
-        pass
-
-    @abstractmethod
     def dispatch_request(self, request_data: Dict[str, Any]) -> Any:
         """
         Dispatches an incoming user request to one or more suitable agents based on their capabilities.
@@ -2223,26 +2228,30 @@ class ISwarmAPI(ABC):
         """
         pass
 
+    @abstractmethod
+    def broadcast_request(self, request_data: Dict[str, Any]) -> Any:
+        pass
+
 ```
 
-```swarmauri/core/swarm_apis/IAgentRegistration.py
+```swarmauri/core/swarm_apis/IAgentRegistrationAPI.py
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-from ...agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.IAgent import IAgent
 
-class IAgentRegistration(ABC):
+class IAgentRegistrationAPI(ABC):
     """
-    Interface for registering agents with the swarm, designed to support CRUD operations on ISwarmAgent instances.
+    Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
     """
 
     @abstractmethod
-    def register_agent(self, agent: ISwarmAgent) -> bool:
+    def register_agent(self, agent: IAgent) -> bool:
         """
         Register a new agent with the swarm.
 
         Parameters:
-            agent (ISwarmAgent): An instance of ISwarmAgent representing the agent to register.
+            agent (IAgent): An instance of IAgent representing the agent to register.
 
         Returns:
             bool: True if the registration succeeded; False otherwise.
@@ -2250,14 +2259,14 @@ class IAgentRegistration(ABC):
         pass
 
     @abstractmethod
-    def update_agent(self, agent_id: str, updated_agent: ISwarmAgent) -> bool:
+    def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
         """
         Update the details of an existing agent. This could include changing the agent's configuration,
         task assignment, or any other mutable attribute.
 
         Parameters:
             agent_id (str): The unique identifier for the agent.
-            updated_agent (ISwarmAgent): An updated ISwarmAgent instance to replace the existing one.
+            updated_agent (IAgent): An updated IAgent instance to replace the existing one.
 
         Returns:
             bool: True if the update was successful; False otherwise.
@@ -2278,7 +2287,7 @@ class IAgentRegistration(ABC):
         pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> Optional[ISwarmAgent]:
+    def get_agent(self, agent_id: str) -> Optional[IAgent]:
         """
         Retrieve an agent's instance from its unique identifier.
 
@@ -2286,17 +2295,17 @@ class IAgentRegistration(ABC):
             agent_id (str): The unique identifier for the agent of interest.
 
         Returns:
-            Optional[ISwarmAgent]: The ISwarmAgent instance if found; None otherwise.
+            Optional[IAgent]: The IAgent instance if found; None otherwise.
         """
         pass
 
     @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
+    def list_agents(self) -> List[IAgent]:
         """
         List all registered agents.
 
         Returns:
-            List[ISwarmAgent]: A list containing instances of all registered ISwarmAgents.
+            List[IAgent]: A list containing instances of all registered IAgents.
         """
         pass
 
@@ -2505,41 +2514,80 @@ from swarmauri.core.chains.ICallableChain import ICallableChain
 from abc import ABC, abstractmethod
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChain(ABC):
     """
-    Interface for managing execution chains within the system.
+    Defines the interface for a Chain within a system, facilitating the organized
+    execution of a sequence of tasks or operations. This interface is at the core of
+    orchestrating operations that require coordination between multiple steps, potentially
+    involving decision-making, branching, and conditional execution based on the outcomes
+    of previous steps or external data.
+
+    A chain can be thought of as a workflow or pipeline, where each step in the chain can
+    perform an operation, transform data, or make decisions that influence the flow of
+    execution.
+
+    Implementors of this interface are responsible for managing the execution order,
+    data flow between steps, and any dynamic adjustments to the execution based on
+    runtime conditions.
+
+    Methods:
+        add_step: Adds a step to the chain.
+        remove_step: Removes a step from the chain.
+        execute: Executes the chain, potentially returning a result.
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, steps: List[IChainStep] = None, **configs):
+    def __init__(self, steps: List[IChainStep] = None, **configs):
         pass
 
     @abstractmethod
-    def add_step(self, step: IChainStep):
-        pass
-    
+    def add_step(self, step: IChainStep, **kwargs) -> None:
+        """
+        Adds a new step to the chain. Steps are executed in the order they are added.
+        Each step is represented by a Callable, which can be a function or method, with
+        optional keyword arguments that specify execution aspects or data needed by the step.
 
-    @abstractmethod
-    def invoke(self, *args, **kwargs) -> Any:
-        pass
-
-    @abstractmethod
-    async def ainvoke(self, *args, **kwargs) -> Any:
-        pass
-
-    @abstractmethod
-    def batch(self, requests: List[Dict[str, Any]]) -> List[Any]:
+        Parameters:
+            step (IChainStep): The Callable representing the step to add to the chain.
+            **kwargs: Optional keyword arguments that provide additional data or configuration
+                      for the step when it is executed.
+        """
         pass
 
     @abstractmethod
-    async def abatch(self, requests: List[Dict[str, Any]]) -> List[Any]:
+    def remove_step(self, step: IChainStep) -> None:
+        """
+        Removes an existing step from the chain. This alters the chain's execution sequence
+        by excluding the specified step from subsequent executions of the chain.
+
+        Parameters:
+            step (IChainStep): The Callable representing the step to remove from the chain.
+        """
         pass
 
     @abstractmethod
-    def stream(self, *args, **kwargs) -> Any:
+    def execute(self, *args, **kwargs) -> Any:
+        """
+        Initiates the execution of the chain. This involves invoking each step in the order
+        they have been added to the chain, passing control from one step to the next, and optionally
+        aggregating or transforming results along the way.
+
+        The execution process can incorporate branching, looping, or conditional logic based on the
+        implementation, allowing for complex workflows to be represented and managed within the chain.
+
+        Parameters:
+            *args: Positional arguments passed to the first step in the chain. These can be data inputs
+                   or other values required for the chain's execution.
+            **kwargs: Keyword arguments that provide additional context, data inputs, or configuration
+                      for the chain's execution. These can be passed to individual steps or influence
+                      the execution flow of the chain.
+
+        Returns:
+            Any: The outcome of executing the chain. This could be a value produced by the final
+                 step, a collection of outputs from multiple steps, or any other result type as
+                 determined by the specific chain implementation.
+        """
         pass
 
     @abstractmethod
@@ -2551,12 +2599,9 @@ class IChain(ABC):
 ```swarmauri/core/chains/IChainFactory.py
 
 from abc import ABC, abstractmethod
-from subprocess import ABOVE_NORMAL_PRIORITY_CLASS
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChainFactory(ABC):
     """
@@ -2564,7 +2609,7 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, **configs):
+    def __init__(self, **configs):
         pass
 
     @abstractmethod
@@ -2607,21 +2652,6 @@ class IChainFactory(ABC):
     def remove_chain_step(self, key: str):
         pass
     
-    @abstractmethod
-    def get_chain_order_strategy(self) -> IChainOrderStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_order_strategy(self, order_strategy: IChainOrderStrategy):
-        pass
-    
-    @abstractmethod
-    def get_chain_processing_strategy(self) -> IChainProcessingStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_processing_strategy(self, processing_strategy: IChainProcessingStrategy):
-        pass
     
     @abstractmethod
     def get_configs(self) -> Dict[str, Any]:
@@ -2660,7 +2690,12 @@ class IChainStep:
     """
     Represents a single step within an execution chain.
     """
-    def __init__(self, key: str, method: Callable, args: List[Any] = None, kwargs: Dict[str, Any] = None, ref: str = None):
+    def __init__(self, 
+        key: str, 
+        method: Callable, 
+        args: List[Any] = None, 
+        kwargs: Dict[str, Any] = None, 
+        ref: str = None):
         """
         Initialize a chain step.
 
@@ -2676,6 +2711,67 @@ class IChainStep:
         self.args = args if args is not None else []
         self.kwargs = kwargs if kwargs is not None else {}
         self.ref = ref
+
+```
+
+```swarmauri/core/distances/__init__.py
+
+
+
+```
+
+```swarmauri/core/distances/IDistanceSimilarity.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from ..vectors.IVector import IVector
+
+class IDistanceSimilarity(ABC):
+    """
+    Interface for computing distances and similarities between high-dimensional data vectors. This interface
+    abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
+    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
+    """
+
+    @abstractmethod
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed distance between vector_a and vector_b.
+        """
+        pass
+    
+
+    @abstractmethod
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+        pass
+
+
+    @abstractmethod
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute the similarity between two vectors. The definition of similarity (e.g., cosine similarity)
+        should be implemented in concrete classes.
+
+        Args:
+            vector_a (IVector): The first vector.
+            vector_b (IVector): The second vector to compare with the first vector.
+
+        Returns:
+            float: A similarity score between vector_a and vector_b.
+        """
+        pass
+
+    @abstractmethod
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+        pass
+
 
 ``````swarmauri/standard/README.md
 
@@ -3153,13 +3249,14 @@ class AgentBase(IAgent, ABC):
 ```swarmauri/standard/agents/base/DocumentAgentBase.py
 
 from typing import Any, Optional
-from swarmauri.core.document_stores.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 from swarmauri.core.agents.IAgentDocument import IAgentDocumentStore
-from swarmauri.core.document_stores.IDocumentStore import DocumentStore
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
+
 
 class DocumentAgentBase(ConversationAgentBase, NamedAgentBase, IAgentDocumentStore):
     """
@@ -3168,7 +3265,7 @@ class DocumentAgentBase(ConversationAgentBase, NamedAgentBase, IAgentDocumentSto
     naming capabilities, and implements IAgentDocumentStore for document storage.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: IConversation, document_store: DocumentStore):
+    def __init__(self, name: str, model: IModel, conversation: IConversation, document_store: IDocumentStore):
         NamedAgentBase.__init__(self, name=name)  # Initialize name through NamedAgentBase
         ConversationAgentBase.__init__(self, model, conversation)  # Initialize conversation and model
         self._document_store = document_store  # Document store initialization
@@ -3553,6 +3650,152 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
 
 ```swarmauri/standard/agents/concrete/RagAgent.py
 
+from typing import Any, Optional, Union, Dict
+from swarmauri.core.messages import IMessage
+from swarmauri.core.models.IModel import IModel
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.agents.base.DocumentAgentBase import DocumentAgentBase
+from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
+
+from swarmauri.standard.messages.concrete import (HumanMessage, 
+                                                  SystemMessage,
+                                                  AgentMessage)
+
+class RagAgent(DocumentAgentBase):
+    """
+    RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
+    specialized in retrieving documents based on input queries and generating responses.
+    """
+
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, document_store: DocumentStoreRetrieveBase):
+        super().__init__(name=name, model=model, conversation=conversation, document_store=document_store)
+
+    def exec(self, 
+             input_data: Union[str, IMessage], 
+             top_k: int = 5, 
+             model_kwargs: Optional[Dict] = {}
+             ) -> Any:
+        conversation = self.conversation
+        model = self.model
+
+        # Check if the input is a string, then wrap it in a HumanMessage
+        if isinstance(input_data, str):
+            human_message = HumanMessage(input_data)
+        elif isinstance(input_data, IMessage):
+            human_message = input_data
+        else:
+            raise TypeError("Input data must be a string or an instance of Message.")
+        
+        # Add the human message to the conversation
+        conversation.add_message(human_message)
+        
+        
+        
+        similar_documents = self.document_store.retrieve(query=input_data, top_k=top_k)
+        substr = '\n'.join([doc.content for doc in similar_documents])
+        
+        # Use substr to set system context
+        system_context = SystemMessage(substr)
+        conversation.system_context = system_context
+        
+
+        # Retrieve the conversation history and predict a response
+        messages = conversation.as_dict()
+        if model_kwargs:
+            prediction = model.predict(messages=messages, **model_kwargs)
+        else:
+            prediction = model.predict(messages=messages)
+            
+        # Create an AgentMessage instance with the model's response and update the conversation
+        agent_message = AgentMessage(prediction)
+        conversation.add_message(agent_message)
+        
+        return prediction
+    
+    
+    
+
+
+```
+
+```swarmauri/standard/agents/concrete/GenerativeRagAgent.py
+
+from typing import Any, Optional, Union, Dict
+from swarmauri.core.messages import IMessage
+from swarmauri.core.models.IModel import IModel
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.agents.base.DocumentAgentBase import DocumentAgentBase
+from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.chunkers.concrete.MdSnippetChunker import MdSnippetChunker
+from swarmauri.standard.messages.concrete import (HumanMessage, 
+                                                  SystemMessage,
+                                                  AgentMessage)
+
+class GenerativeRagAgent(DocumentAgentBase):
+    """
+    RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
+    specialized in retrieving documents based on input queries and generating responses.
+    """
+
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, document_store: DocumentStoreRetrieveBase):
+        super().__init__(name=name, model=model, conversation=conversation, document_store=document_store)
+
+    def exec(self, 
+             input_data: Union[str, IMessage], 
+             top_k: int = 5, 
+             model_kwargs: Optional[Dict] = {}
+             ) -> Any:
+        conversation = self.conversation
+        model = self.model
+
+        # Check if the input is a string, then wrap it in a HumanMessage
+        if isinstance(input_data, str):
+            human_message = HumanMessage(input_data)
+        elif isinstance(input_data, IMessage):
+            human_message = input_data
+        else:
+            raise TypeError("Input data must be a string or an instance of Message.")
+        
+        # Add the human message to the conversation
+        conversation.add_message(human_message)
+        
+        
+        
+        similar_documents = self.document_store.retrieve(query=input_data, top_k=top_k)
+        substr = '\n'.join([doc.content for doc in similar_documents])
+        
+        # Use substr to set system context
+        system_context = SystemMessage(substr)
+        conversation.system_context = system_context
+        
+
+        # Retrieve the conversation history and predict a response
+        messages = conversation.as_dict()
+        if model_kwargs:
+            prediction = model.predict(messages=messages, **model_kwargs)
+        else:
+            prediction = model.predict(messages=messages)
+            
+        # Create an AgentMessage instance with the model's response and update the conversation
+        agent_message = AgentMessage(prediction)
+        conversation.add_message(agent_message)
+        
+        chunker = MdSnippetChunker()
+        
+        new_documents = [Document(doc_id=self.document_store.document_count()+1,
+                                     content=each[2], 
+                                     metadata={"source": "RagSaverAgent", 
+                                               "language": each[1],
+                                               "comments": each[0]})
+                     for each in chunker.chunk_text(prediction)]
+
+        self.document_store.add_documents(new_documents)
+        
+        return prediction
+    
+    
+    
 
 
 ```
@@ -3634,14 +3877,15 @@ class ConversationBase(IConversation, ABC):
 
 ```swarmauri/standard/conversations/base/SystemContextBase.py
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional, Union
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.ISystemContext import ISystemContext
-from ...messages.concrete.SystemMessage import SystemMessage
+from swarmauri.core.conversations.ISystemContext import ISystemContext
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
-class SystemContextBase(ISystemContext, ABC):
+class SystemContextBase(ConversationBase, ISystemContext, ABC):
     def __init__(self, *args, system_message_content: Optional[SystemMessage] = None):
+        ConversationBase.__init__(self)
         # Automatically handle both string and SystemMessage types for initializing system context
         self._system_context = None  # Initialize with None
         if system_message_content:
@@ -3738,13 +3982,12 @@ class SimpleConversation(ConversationBase):
 ```swarmauri/standard/conversations/concrete/LimitedSystemContextConversation.py
 
 from typing import Optional, Union, List
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.IMaxSize import IMaxSize
-from ..base.ConversationBase import ConversationBase
-from ..base.SystemContextBase import SystemContextBase
-from ...messages.concrete.SystemMessage import SystemMessage
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
-class LimitedSystemContextConversation(ConversationBase, SystemContextBase, IMaxSize):
+class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
     def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
         """
         Initializes the conversation with a system context message and a maximum history size.
@@ -3753,7 +3996,6 @@ class LimitedSystemContextConversation(ConversationBase, SystemContextBase, IMax
             max_size (int): The maximum number of messages allowed in the conversation history.
             system_message_content (Optional[str], optional): The initial system message content. Can be a string.
         """
-        ConversationBase.__init__(self)  # Initialize the base Conversation
         SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
         self._max_size = max_size  # Set the maximum size
     
@@ -3836,7 +4078,6 @@ from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 
 class SharedConversation(ConversationBase):
     """
@@ -5470,7 +5711,7 @@ class TestTool(ToolBase):
                          parameters=parameters)
 
     def __call__(self, program) -> str:
-        sp.check_output(program)
+        # sp.check_output(program)
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return f"Program Opened: {program}\n"
@@ -5695,6 +5936,125 @@ class AdditionTool(ToolBase):
 
 ```
 
+```swarmauri/standard/vector_stores/base/VectorDocumentStoreBase.py
+
+import json
+from abc import ABC, abstractmethod
+from typing import List, Optional
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+
+class VectorDocumentStoreBase(IDocumentStore, ABC):
+    """
+    Abstract base class for document stores, implementing the IDocumentStore interface.
+
+    This class provides a standard API for adding, updating, getting, and deleting documents in a store.
+    The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
+    """
+
+    @abstractmethod
+    def add_document(self, document: IDocument) -> None:
+        """
+        Add a single document to the document store.
+
+        Parameters:
+        - document (IDocument): The document to be added to the store.
+        """
+        pass
+
+    @abstractmethod
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Add multiple documents to the document store in a batch operation.
+
+        Parameters:
+        - documents (List[IDocument]): A list of documents to be added to the store.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, doc_id: str) -> Optional[IDocument]:
+        """
+        Retrieve a single document by its identifier.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to retrieve.
+
+        Returns:
+        - Optional[IDocument]: The requested document if found; otherwise, None.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieve all documents stored in the document store.
+
+        Returns:
+        - List[IDocument]: A list of all documents in the store.
+        """
+        pass
+
+    @abstractmethod
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        """
+        Update a document in the document store.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to update.
+        - updated_document (IDocument): The updated document instance.
+        """
+        pass
+
+    @abstractmethod
+    def delete_document(self, doc_id: str) -> None:
+        """
+        Delete a document from the document store by its identifier.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+    
+    def document_count(self):
+        return len(self.documents)
+    
+    def dump(self, file_path):
+        with open(file_path, 'w') as f:
+            json.dumps([each.__dict__ for each in self.documents], f, indent=4)
+            
+    def load(self, file_path):
+        with open(file_path, 'r') as f:
+            self.documents = json.loads(f)
+
+```
+
+```swarmauri/standard/vector_stores/base/VectorDocumentStoreRetrieveBase.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreBase import VectorDocumentStoreBase
+
+class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve, ABC):
+        
+    @abstractmethod
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the top_k most relevant documents based on the given query.
+        
+        Args:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+        
+        Returns:
+            List[IDocument]: A list of the top_k most relevant documents.
+        """
+        pass
+
+```
+
 ```swarmauri/standard/vector_stores/concrete/__init__.py
 
 # -*- coding: utf-8 -*-
@@ -5827,358 +6187,272 @@ class WeaviateVectorStore(IVectorStore):
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/VectorProduct.py
+```swarmauri/standard/vector_stores/concrete/TFIDFVectorStore.py
 
-import numpy as np
-from typing import List
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.vectorizers.concrete.TFIDFVectorizer import TFIDFVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.core.vector_stores.IVectorProduct import IVectorProduct
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+class TFIDFVectorStore(VectorDocumentStoreRetrieveBase):
+    def __init__(self):
+        self.vectorizer = TFIDFVectorizer()
+        self.metric = CosineDistance()
+        self.documents = []      
 
-class VectorProduct(IVectorProduct):
-    def dot_product(self, vector_a: IVector, vector_b: IVector) -> float:
-        a = np.array(vector_a.data).flatten()
-        b = np.array(vector_b.data).flatten()
-        return np.dot(a, b)
-    
-    def cross_product(self, vector_a: IVector, vector_b: IVector) -> IVector:
-        if len(vector_a.data) != 3 or len(vector_b.data) != 3:
-            raise ValueError("Cross product is only defined for 3-dimensional vectors")
-        a = np.array(vector_a.data)
-        b = np.array(vector_b.data)
-        cross = np.cross(a, b)
-        return SimpleVector(cross.tolist())
-    
-    def vector_triple_product(self, vector_a: IVector, vector_b: IVector, vector_c: IVector) -> IVector:
-        a = np.array(vector_a.data)
-        b = np.array(vector_b.data)
-        c = np.array(vector_c.data)
-        result = np.cross(a, np.cross(b, c))
-        return SimpleVector(result.tolist())
-    
-    def scalar_triple_product(self, vector_a: IVector, vector_b: IVector, vector_c: IVector) -> float:
-        a = np.array(vector_a.data)
-        b = np.array(vector_b.data)
-        c = np.array(vector_c.data)
-        return np.dot(a, np.cross(b, c))
+    def add_document(self, document: IDocument) -> None:
+        self.documents.append(document)
+        # Recalculate TF-IDF matrix for the current set of documents
+        self.vectorizer.fit([doc.content for doc in self.documents])
 
-```
+    def add_documents(self, documents: List[IDocument]) -> None:
+        self.documents.extend(documents)
+        # Recalculate TF-IDF matrix for the current set of documents
+        self.vectorizer.fit([doc.content for doc in self.documents])
 
-```swarmauri/standard/vector_stores/concrete/EuclideanDistance.py
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
+        return None
 
-from math import sqrt
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+    def get_all_documents(self) -> List[IDocument]:
+        return self.documents
 
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [doc for doc in self.documents if doc.id != doc_id]
+        # Recalculate TF-IDF matrix for the current set of documents
+        self.vectorizer.fit([doc.content for doc in self.documents])
 
-class EuclideanDistance(IDistanceSimilarity):
-    """
-    Class to compute the Euclidean distance between two vectors.
-    Implements the IDistanceSimiliarity interface.
-    """
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        for i, document in enumerate(self.documents):
+            if document.id == doc_id:
+                self.documents[i] = updated_document
+                break
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Euclidean distance between two vectors.
+        # Recalculate TF-IDF matrix for the current set of documents
+        self.vectorizer.fit([doc.content for doc in self.documents])
 
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        transform_matrix = self.vectorizer.fit_transform(query, self.documents)
 
-        Returns:
-            float: The computed Euclidean distance between vector_a and vector_b.
-        """
-        if len(vector_a.data) != len(vector_b.data):
-            raise ValueError("Vectors do not have the same dimensionality.")
-        
-        distance = sqrt(sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data)))
-        return distance
+        # The inferred vector is the last vector in the transformed_matrix
+        # The rest of the matrix is what we are comparing
+        distances = self.metric.distances(transform_matrix[-1], transform_matrix[:-1])  
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the similarity score as the inverse of the Euclidean distance between two vectors.
+        # Get the indices of the top_k most similar (least distant) documents
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
+        return [self.documents[i] for i in top_k_indices]
 
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-
-        Returns:
-            float: The similarity score between vector_a and vector_b.
-        """
-        distance = self.distance(vector_a, vector_b)
-        return 1 / (1 + distance)
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/LevenshteinDistance.py
+```swarmauri/standard/vector_stores/concrete/BERTVectorStore.py
 
-from typing import List
-import numpy as np
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vectorizers.concrete.BERTEmbeddingVectorizer import BERTEmbeddingVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
-class LevenshteinDistance(IDistanceSimilarity):
-    """
-    Implements the IDistance interface to calculate the Levenshtein distance between two vectors.
-    The Levenshtein distance between two strings is given by the minimum number of operations needed to transform
-    one string into the other, where an operation is an insertion, deletion, or substitution of a single character.
-    """
-    
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+class BERTVectorStore(VectorDocumentStoreRetrieveBase):
+    def __init__(self):
+        self.documents: List[EmbeddedDocument] = []
+        self.vectorizer = BERTEmbeddingVectorizer()  # Assuming this is already implemented
+        self.metric = CosineDistance()
+
+    def add_document(self, document: IDocument) -> None:
         """
-        Compute the Levenshtein distance between two vectors.
-
-        Note: Since Levenshtein distance is typically calculated between strings,
-        it is assumed that the vectors represent strings where each element of the
-        vector corresponds to the ASCII value of a character in the string.
-
-        Args:
-            vector_a (List[float]): The first vector in the comparison.
-            vector_b (List[float]): The second vector in the comparison.
-
-        Returns:
-           float: The computed Levenshtein distance between vector_a and vector_b.
+        Override: Now documents are expected to have labels for fine-tuning when added. 
+        For unsupervised use-cases, labels can be ignored at the vectorizer level.
         """
-        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
-        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
-        
-        return self.levenshtein(string_a, string_b)
-    
-    def levenshtein(self, seq1: str, seq2: str) -> float:
-        """
-        Calculate the Levenshtein distance between two strings.
-        
-        Args:
-            seq1 (str): The first string.
-            seq2 (str): The second string.
-        
-        Returns:
-            float: The Levenshtein distance between seq1 and seq2.
-        """
-        size_x = len(seq1) + 1
-        size_y = len(seq2) + 1
-        matrix = np.zeros((size_x, size_y))
-        
-        for x in range(size_x):
-            matrix[x, 0] = x
-        for y in range(size_y):
-            matrix[0, y] = y
+        self.documents.append(document)
+        documents_text = [doc.content for doc in self.documents]
+        documents_labels = [doc.metadata['label'] for doc in self.documents]
+        self.vectorizer.fit(documents_text, documents_labels)
+        embeddings = self.vectorizer.infer_vector(document.content)
 
-        for x in range(1, size_x):
-            for y in range(1, size_y):
-                if seq1[x-1] == seq2[y-1]:
-                    matrix[x, y] = min(matrix[x-1, y] + 1, matrix[x-1, y-1], matrix[x, y-1] + 1)
-                else:
-                    matrix[x, y] = min(matrix[x-1, y] + 1, matrix[x-1, y-1] + 1, matrix[x, y-1] + 1)
+        embedded_document = EmbeddedDocument(doc_id=document.id, 
+            content=document.content, 
+            metadata=document.metadata, 
+            embedding=embeddings)
+
+        self.documents.append(embedded_document)
+
+    def add_documents(self, documents: List[IDocument]) -> None:
+        # Batch addition of documents with potential fine-tuning trigger
+        self.documents.extend(documents)
+        documents_text = [doc.content for doc in documents]
+        documents_labels = [doc.metadata['label'] for doc in self.documents]
+        self.vectorizer.fit(documents_text, documents_labels)
+
+    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
+        return None
         
-        return matrix[size_x - 1, size_y - 1]
-    
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
-        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
-        return 1 - self.levenshtein(string_a, string_b) / max(len(vector_a), len(vector_b))
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
+    def get_all_documents(self) -> List[EmbeddedDocument]:
+        return self.documents
+
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [doc for doc in self.documents if doc.id != doc_id]
+
+    def update_document(self, doc_id: str) -> None:
+        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
+        
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        query_vector = self.vectorizer.infer_vector(query)
+        document_vectors = [doc.embedding for doc in self.documents]
+        distances = [self.metric.similarities(query_vector, document_vectors)]
+        
+        # Get the indices of the top_k most similar documents
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i], reverse=True)[:top_k]
+        
+        return [self.documents[i] for i in top_k_indices]
+
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/JaccardIndexDistance.py
+```swarmauri/standard/vector_stores/concrete/Doc2VecVectorStore.py
 
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
-class JaccardIndexDistance(IDistanceSimilarity):
-    """
-    A class implementing Jaccard Index as a similarity and distance metric between two vectors.
-    """
+class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase):
+    def __init__(self):
+        self.vectorizer = Doc2VecVectorizer()
+        self.metric = CosineDistance()
+        self.documents = []      
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Jaccard distance between two vectors.
+    def add_document(self, document: IDocument) -> None:
+        self.documents.append(document)
+        self._recalculate_embeddings()
 
-        The Jaccard distance, which is 1 minus the Jaccard similarity,
-        measures dissimilarity between sample sets. It's defined as
-        1 - (the intersection of the sets divided by the union of the sets).
+    def add_documents(self, documents: List[IDocument]) -> None:
+        self.documents.extend(documents)
+        self._recalculate_embeddings()
 
-        Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector.
+    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
+        return None
 
-        Returns:
-            float: The Jaccard distance between vector_a and vector_b.
-        """
-        set_a = set(vector_a.data)
-        set_b = set(vector_b.data)
+    def get_all_documents(self) -> List[EmbeddedDocument]:
+        return self.documents
 
-        # Calculate the intersection and union of the two sets.
-        intersection = len(set_a.intersection(set_b))
-        union = len(set_a.union(set_b))
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [doc for doc in self.documents if doc.id != doc_id]
+        self._recalculate_embeddings()
 
-        # In the special case where the union is zero, return 1.0 which implies complete dissimilarity.
-        if union == 0:
-            return 1.0
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        for i, document in enumerate(self.documents):
+            if document.id == doc_id:
+                self.documents[i] = updated_document
+                break
+        self._recalculate_embeddings()
 
-        # Compute Jaccard similarity and then return the distance as 1 - similarity.
-        jaccard_similarity = intersection / union
-        return 1 - jaccard_similarity
+    def _recalculate_embeddings(self):
+        # Recalculate document embeddings for the current set of documents
+        documents_text = [_d.content for _d in self.documents if _d.content]
+        embeddings = self.vectorizer.fit_transform(documents_text)
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Jaccard similarity between two vectors.
+        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+            content=_d.content, 
+            metadata=_d.metadata, 
+            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents)
+            if _d.content]
 
-        Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector.
+        self.documents = embedded_documents
 
-        Returns:
-            float: Jaccard similarity score between vector_a and vector_b.
-        """
-        set_a = set(vector_a.data)
-        set_b = set(vector_b.data)
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        query_vector = self.vectorizer.infer_vector(query)
+        document_vectors = [_d.embedding for _d in self.documents if _d.content]
 
-        # Calculate the intersection and union of the two sets.
-        intersection = len(set_a.intersection(set_b))
-        union = len(set_a.union(set_b))
+        distances = self.metric.distances(query_vector, document_vectors)
 
-        # In case the union is zero, which means both vectors have no elements, return 1.0 implying identical sets.
-        if union == 0:
-            return 1.0
+        # Get the indices of the top_k least distant (most similar) documents
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
+        
+        return [self.documents[i] for i in top_k_indices]
 
-        # Compute and return Jaccard similarity.
-        return intersection / union
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/ChiSquaredDistance.py
+```swarmauri/standard/vector_stores/concrete/MLMVectorStore.py
 
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
-class ChiSquaredDistance(IDistanceSimilarity):
-    """
-    Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
-    """
+class MLMVectorStore(VectorDocumentStoreRetrieveBase):
+    def __init__(self):
+        self.documents: List[EmbeddedDocument] = []
+        self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
+        self.metric = CosineDistance()
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the Chi-squared distance between two vectors.
-        """
-        if len(vector_a.data) != len(vector_b.data):
-            raise ValueError("Vectors must have the same dimensionality.")
+    def add_document(self, document: IDocument) -> None:
+        self.documents.append(document)
+        documents_text = [_d.content for _d in self.documents if _d.content]
+        embeddings = self.vectorizer.fit_transform(documents_text)
 
-        chi_squared_distance = 0
-        for a, b in zip(vector_a.data, vector_b.data):
-            if (a + b) != 0:
-                chi_squared_distance += (a - b) ** 2 / (a + b)
+        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+            content=_d.content, 
+            metadata=_d.metadata, 
+            embedding=embeddings[_count])
 
-        return 0.5 * chi_squared_distance
+        for _count, _d in enumerate(self.documents) if _d.content]
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Compute the similarity between two vectors based on the Chi-squared distance.
-        """
-        return 1 / (1 + self.distance(vector_a, vector_b))
-    
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
+        self.documents = embedded_documents
 
-```
+    def add_documents(self, documents: List[IDocument]) -> None:
+        self.documents.extend(documents)
+        documents_text = [_d.content for _d in self.documents if _d.content]
+        embeddings = self.vectorizer.fit_transform(documents_text)
 
-```swarmauri/standard/vector_stores/concrete/CosineDistance.py
+        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+            content=_d.content, 
+            metadata=_d.metadata, 
+            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
+            if _d.content]
 
-from numpy.linalg import norm
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+        self.documents = embedded_documents
 
-from swarmauri.standard.vector_stores.concrete.VectorProduct import VectorProduct
+    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
+        return None
+        
+    def get_all_documents(self) -> List[EmbeddedDocument]:
+        return self.documents
 
-class CosineDistance(IDistanceSimilarity, VectorProduct):
-    """
-    Implements cosine distance calculation as an IDistanceSimiliarity interface.
-    Cosine distance measures the cosine of the angle between two non-zero vectors
-    of an inner product space, capturing the orientation rather than the magnitude 
-    of these vectors.
-    """
-       
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
-        """ 
-        Computes the cosine distance between two vectors: 1 - cosine similarity.
-    
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
-    
-        Returns:
-            float: The computed cosine distance between vector_a and vector_b.
-                   It ranges from 0 (completely similar) to 2 (completely dissimilar).
-        """
-        norm_a = norm(vector_a.data)
-        norm_b = norm(vector_b.data)
-    
-        # Check if either of the vector norms is close to zero
-        if norm_a < 1e-10 or norm_b < 1e-10:
-            return 1.0  # Return maximum distance for cosine which varies between -1 to 1, so 1 indicates complete dissimilarity
-    
-        # Compute the cosine similarity between the vectors
-        cos_sim = self.dot_product(vector_a, vector_b) / (norm_a * norm_b)
-    
-        # Covert cosine similarity to cosine distance
-        cos_distance = 1 - cos_sim
-    
-        return cos_distance
-    
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        """
-        Computes the cosine similarity between two vectors.
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [_d for _d in self.documents if _d.id != doc_id]
 
-        Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+    def update_document(self, doc_id: str) -> None:
+        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
+        
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        query_vector = self.vectorizer.infer_vector(query)
+        document_vectors = [_d.embedding for _d in self.documents if _d.content]
+        distances = self.metric.distances(query_vector, document_vectors)
+        
+        # Get the indices of the top_k most similar documents
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
+        
+        return [self.documents[i] for i in top_k_indices]
 
-        Returns:
-            float: The cosine similarity between vector_a and vector_b.
-        """
-        return 1 - self.distance(vector_a, vector_b)
-
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
-        return distances
-    
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
-        return similarities
 
 ```
 
@@ -6191,33 +6465,6 @@ class CosineDistance(IDistanceSimilarity, VectorProduct):
 ```swarmauri/standard/document_stores/base/__init__.py
 
 
-
-```
-
-```swarmauri/standard/document_stores/base/DocumentStoreRetrieveBase.py
-
-from abc import ABC, abstractmethod
-from typing import List
-from swarmauri.core.retrievers.IDocumentRetrieve import IDocumentRetrieve
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.document_stores.base.DocumentStoreBase import DocumentStoreBase
-
-class DocumenStoreRetrieveBase(DocumentStoreBase, IDocumentRetrieve, ABC):
-
-        
-    @abstractmethod
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        """
-        Retrieve the top_k most relevant documents based on the given query.
-        
-        Args:
-            query (str): The query string used for document retrieval.
-            top_k (int): The number of top relevant documents to retrieve.
-        
-        Returns:
-            List[IDocument]: A list of the top_k most relevant documents.
-        """
-        pass
 
 ```
 
@@ -6314,277 +6561,35 @@ class DocumentStoreBase(IDocumentStore, ABC):
 
 ```
 
+```swarmauri/standard/document_stores/base/DocumentStoreRetrieveBase.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.document_stores.base.DocumentStoreBase import DocumentStoreBase
+
+class DocumentStoreRetrieveBase(DocumentStoreBase, IDocumentRetrieve, ABC):
+
+        
+    @abstractmethod
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the top_k most relevant documents based on the given query.
+        
+        Args:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+        
+        Returns:
+            List[IDocument]: A list of the top_k most relevant documents.
+        """
+        pass
+
+```
+
 ```swarmauri/standard/document_stores/concrete/__init__.py
 
-
-
-```
-
-```swarmauri/standard/document_stores/concrete/BERTDocumentStore.py
-
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vectorizers.concrete.BERTEmbeddingVectorizer import BERTEmbeddingVectorizer
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
-
-class BERTDocumentStore(DocumentStoreRetrieveBase):
-    def __init__(self):
-        self.documents: List[EmbeddedDocument] = []
-        self.vectorizer = BERTEmbeddingVectorizer()  # Assuming this is already implemented
-        self.metric = CosineDistance()
-
-    def add_document(self, document: IDocument) -> None:
-        """
-        Override: Now documents are expected to have labels for fine-tuning when added. 
-        For unsupervised use-cases, labels can be ignored at the vectorizer level.
-        """
-        self.documents.append(document)
-        documents_text = [doc.content for doc in self.documents]
-        documents_labels = [doc.metadata['label'] for doc in self.documents]
-        self.vectorizer.fit(documents_text, documents_labels)
-        embeddings = self.vectorizer.infer_vector(document.content)
-
-        embedded_document = EmbeddedDocument(doc_id=document.id, 
-            content=document.content, 
-            metadata=document.metadata, 
-            embedding=embeddings)
-
-        self.documents.append(embedded_document)
-
-    def add_documents(self, documents: List[IDocument]) -> None:
-        # Batch addition of documents with potential fine-tuning trigger
-        self.documents.extend(documents)
-        documents_text = [doc.content for doc in documents]
-        documents_labels = [doc.metadata['label'] for doc in self.documents]
-        self.vectorizer.fit(documents_text, documents_labels)
-
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
-        for document in self.documents:
-            if document.id == doc_id:
-                return document
-        return None
-        
-    def get_all_documents(self) -> List[EmbeddedDocument]:
-        return self.documents
-
-    def delete_document(self, doc_id: str) -> None:
-        self.documents = [doc for doc in self.documents if doc.id != doc_id]
-
-    def update_document(self, doc_id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
-        
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        query_vector = self.vectorizer.infer_vector(query)
-        document_vectors = [doc.embedding for doc in self.documents]
-        distances = [self.metric.similarities(query_vector, document_vectors)]
-        
-        # Get the indices of the top_k most similar documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i], reverse=True)[:top_k]
-        
-        return [self.documents[i] for i in top_k_indices]
-
-
-```
-
-```swarmauri/standard/document_stores/concrete/Doc2VecDocumentStore.py
-
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
-
-class Doc2VecDocumentStore(DocumentStoreRetrieveBase):
-    def __init__(self):
-        self.vectorizer = Doc2VecVectorizer()
-        self.metric = CosineDistance()
-        self.documents = []      
-
-    def add_document(self, document: IDocument) -> None:
-        self.documents.append(document)
-        self._recalculate_embeddings()
-
-    def add_documents(self, documents: List[IDocument]) -> None:
-        self.documents.extend(documents)
-        self._recalculate_embeddings()
-
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
-        for document in self.documents:
-            if document.id == doc_id:
-                return document
-        return None
-
-    def get_all_documents(self) -> List[EmbeddedDocument]:
-        return self.documents
-
-    def delete_document(self, doc_id: str) -> None:
-        self.documents = [doc for doc in self.documents if doc.id != doc_id]
-        self._recalculate_embeddings()
-
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
-        for i, document in enumerate(self.documents):
-            if document.id == doc_id:
-                self.documents[i] = updated_document
-                break
-        self._recalculate_embeddings()
-
-    def _recalculate_embeddings(self):
-        # Recalculate document embeddings for the current set of documents
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
-
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents)
-            if _d.content]
-
-        self.documents = embedded_documents
-
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        query_vector = self.vectorizer.infer_vector(query)
-        document_vectors = [_d.embedding for _d in self.documents if _d.content]
-
-        distances = self.metric.distances(query_vector, document_vectors)
-
-        # Get the indices of the top_k least distant (most similar) documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
-        
-        return [self.documents[i] for i in top_k_indices]
-
-
-```
-
-```swarmauri/standard/document_stores/concrete/MLMDocumentStore.py
-
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
-
-class MLMDocumentStore(DocumentStoreRetrieveBase):
-    def __init__(self):
-        self.documents: List[EmbeddedDocument] = []
-        self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
-        self.metric = CosineDistance()
-
-    def add_document(self, document: IDocument) -> None:
-        self.documents.append(document)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
-
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count])
-
-        for _count, _d in enumerate(self.documents) if _d.content]
-
-        self.documents = embedded_documents
-
-    def add_documents(self, documents: List[IDocument]) -> None:
-        self.documents.extend(documents)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
-
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
-            if _d.content]
-
-        self.documents = embedded_documents
-
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
-        for document in self.documents:
-            if document.id == doc_id:
-                return document
-        return None
-        
-    def get_all_documents(self) -> List[EmbeddedDocument]:
-        return self.documents
-
-    def delete_document(self, doc_id: str) -> None:
-        self.documents = [_d for _d in self.documents if _d.id != doc_id]
-
-    def update_document(self, doc_id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
-        
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        query_vector = self.vectorizer.infer_vector(query)
-        document_vectors = [_d.embedding for _d in self.documents if _d.content]
-        distances = self.metric.distances(query_vector, document_vectors)
-        
-        # Get the indices of the top_k most similar documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
-        
-        return [self.documents[i] for i in top_k_indices]
-
-
-```
-
-```swarmauri/standard/document_stores/concrete/TFIDFDocumentStore.py
-
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.vectorizers.concrete.TFIDFVectorizer import TFIDFVectorizer
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
-
-class TFIDFDocumentStore(DocumentStoreRetrieveBase):
-    def __init__(self):
-        self.vectorizer = TFIDFVectorizer()
-        self.metric = CosineDistance()
-        self.documents = []      
-
-    def add_document(self, document: IDocument) -> None:
-        self.documents.append(document)
-        # Recalculate TF-IDF matrix for the current set of documents
-        self.vectorizer.fit([doc.content for doc in self.documents])
-
-    def add_documents(self, documents: List[IDocument]) -> None:
-        self.documents.extend(documents)
-        # Recalculate TF-IDF matrix for the current set of documents
-        self.vectorizer.fit([doc.content for doc in self.documents])
-
-    def get_document(self, doc_id: str) -> Union[IDocument, None]:
-        for document in self.documents:
-            if document.id == doc_id:
-                return document
-        return None
-
-    def get_all_documents(self) -> List[IDocument]:
-        return self.documents
-
-    def delete_document(self, doc_id: str) -> None:
-        self.documents = [doc for doc in self.documents if doc.id != doc_id]
-        # Recalculate TF-IDF matrix for the current set of documents
-        self.vectorizer.fit([doc.content for doc in self.documents])
-
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
-        for i, document in enumerate(self.documents):
-            if document.id == doc_id:
-                self.documents[i] = updated_document
-                break
-
-        # Recalculate TF-IDF matrix for the current set of documents
-        self.vectorizer.fit([doc.content for doc in self.documents])
-
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        transform_matrix = self.vectorizer.fit_transform(query, self.documents)
-
-        # The inferred vector is the last vector in the transformed_matrix
-        # The rest of the matrix is what we are comparing
-        distances = self.metric.distances(transform_matrix[-1], transform_matrix[:-1])  
-
-        # Get the indices of the top_k most similar (least distant) documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
-        return [self.documents[i] for i in top_k_indices]
 
 
 ```
@@ -6899,6 +6904,44 @@ class SimpleVector(VectorBase):
 
 ```
 
+```swarmauri/standard/vectors/concrete/VectorProduct.py
+
+import numpy as np
+from typing import List
+
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.vectors.IVectorProduct import IVectorProduct
+from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+
+class VectorProduct(IVectorProduct):
+    def dot_product(self, vector_a: IVector, vector_b: IVector) -> float:
+        a = np.array(vector_a.data).flatten()
+        b = np.array(vector_b.data).flatten()
+        return np.dot(a, b)
+    
+    def cross_product(self, vector_a: IVector, vector_b: IVector) -> IVector:
+        if len(vector_a.data) != 3 or len(vector_b.data) != 3:
+            raise ValueError("Cross product is only defined for 3-dimensional vectors")
+        a = np.array(vector_a.data)
+        b = np.array(vector_b.data)
+        cross = np.cross(a, b)
+        return SimpleVector(cross.tolist())
+    
+    def vector_triple_product(self, vector_a: IVector, vector_b: IVector, vector_c: IVector) -> IVector:
+        a = np.array(vector_a.data)
+        b = np.array(vector_b.data)
+        c = np.array(vector_c.data)
+        result = np.cross(a, np.cross(b, c))
+        return SimpleVector(result.tolist())
+    
+    def scalar_triple_product(self, vector_a: IVector, vector_b: IVector, vector_c: IVector) -> float:
+        a = np.array(vector_a.data)
+        b = np.array(vector_b.data)
+        c = np.array(vector_c.data)
+        return np.dot(a, np.cross(b, c))
+
+```
+
 ```swarmauri/standard/vectorizers/__init__.py
 
 #
@@ -6914,87 +6957,6 @@ class SimpleVector(VectorBase):
 ```swarmauri/standard/vectorizers/concrete/__init__.py
 
 #
-
-```
-
-```swarmauri/standard/vectorizers/concrete/BERTEmbeddingVectorizer.py
-
-from typing import List, Union, Any, Optional
-import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-from transformers import BertTokenizer, BertModel, BertForSequenceClassification, AdamW
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-
-class BERTEmbeddingVectorizer(IVectorize, IFeature):
-    def __init__(self, model_name: str = 'bert-base-uncased'):
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
-        self.model = BertModel.from_pretrained(model_name)
-        self.model.eval()
-
-    def extract_features(self):
-        raise NotImplementedError('Extract_features not implemented on BERTEmbeddingVectorizer.')
-
-    def fit(self, documents: List[str], epochs: int = 4, batch_size: int = 8, learning_rate: float = 2e-5):
-
-        # Tokenize and prepare input dat
-        input_ids = []
-        attention_masks = []
-
-        for doc in documents:
-            encoded_dict = self.tokenizer.encode_plus(doc, add_special_tokens=True, max_length=64, pad_to_max_length=True, return_attention_mask=True, return_tensors='pt',)
-            input_ids.append(encoded_dict['input_ids'])
-            attention_masks.append(encoded_dict['attention_mask'])
-            
-        # Convert lists into tensors
-        input_ids = torch.cat(input_ids, dim=0)
-        attention_masks = torch.cat(attention_masks, dim=0)
-        labels = torch.tensor(labels)
-
-        # Create the DataLoader
-        dataset = TensorDataset(input_ids, attention_masks, labels)
-        dataloader = DataLoader(dataset, sampler=RandomSampler(dataset), batch_size=batch_size)
-
-        # Prepare model for training
-        self.model.train()
-        optimizer = AdamW(self.model.parameters(), lr=learning_rate)
-
-        # Training loop
-        for _ in range(epochs):
-            for batch in dataloader:
-                b_input_ids, b_input_mask, b_labels = batch
-                self.model.zero_grad()
-                
-                # Perform a forward pass
-                outputs = self.model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask, labels=b_labels)
-                loss = outputs[0]
-                
-                # Backward pass to calculate the gradients
-                loss.backward()
-                
-                # Update the parameters
-                optimizer.step()
-                
-    def transform(self, documents: List[str]) -> List[IVector]:
-        vectors = []
-        for document in documents:
-            inputs = self.tokenizer(document, return_tensors="pt", padding=True, truncation=True, max_length=512)
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                embeddings = outputs.last_hidden_state.mean(1)
-                vectors.append(SimpleVector(embeddings.squeeze().tolist()))
-        return vectors
-
-    def infer_vector(self, document: Union[str, Any]) -> IVector:
-        inputs = self.tokenizer(document, return_tensors="pt", padding=True, truncation=True, max_length=512)
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-            embeddings = outputs.last_hidden_state.mean(1)
-            return SimpleVector(embeddings.squeeze().tolist())
-        
-
 
 ```
 
@@ -7517,54 +7479,38 @@ def CallableTracer(func):
 from typing import List
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.core.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.core.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
-from typing import Dict, Any
 class ChainBase(IChain):
     """
     A base implementation of the IChain interface.
     """
 
     def __init__(self, 
-                 order_strategy: IChainOrderStrategy, 
-                 processing_strategy: IChainProcessingStrategy, 
                  steps: List[IChainStep] = None,
                  **configs):
-        self.order_strategy = order_strategy
-        self.processing_strategy = processing_strategy
         self.steps = steps if steps is not None else []
         self.configs = configs
 
-    def add_step(self, step: IChainStep):
+    def add_step(self, step: IChainStep) -> None:
         self.steps.append(step)
 
-    def invoke(self, *args, **kwargs) -> Any:
-        ordered_steps = self.order_strategy.order_steps(self.steps)
-        self.processing_strategy.execute_steps(ordered_steps)
-        pass
+    def remove_step(self, step: IChainStep) -> None:
+        """
+        Removes an existing step from the chain. This alters the chain's execution sequence
+        by excluding the specified step from subsequent executions of the chain.
 
-    async def ainvoke(self, *args, **kwargs) -> Any:
-        # Implement asynchronous invocation logic here
-        pass
+        Parameters:
+            step (IChainStep): The Callable representing the step to remove from the chain.
+        """
 
-    def batch(self, requests: List[Dict[str, Any]]) -> List[Any]:
-        # Implement batch processing logic heres
-        pass
+        raise NotImplementedError('this is not yet impplemented')
 
-    async def abatch(self, requests: List[Dict[str, Any]]) -> List[Any]:
-        # Implement asynchronous batch processing logic here
-        pass
-    
-    def stream(self, *args, **kwargs) -> Any:
-        # Implement streaming logic here
-        pass
+    def execute(self, *args, **kwargs) -> Any:
+        raise NotImplementedError('this is not yet impplemented')
 
     def get_schema_info(self) -> Dict[str, Any]:
         # Return a serialized version of the Chain instance's configuration
         return {
-            "order_strategy": str(self.order_strategy),
-            "processing_strategy": str(self.processing_strategy),
             "steps": [str(step) for step in self.steps],
             "configs": self.configs
         }
@@ -7641,41 +7587,336 @@ class CallableChain(ICallableChain):
 
 ```
 
-```swarmauri/standard/chains/concrete/Chain.py
+```swarmauri/standard/distances/__init__.py
 
-from typing import List, Any
 
-from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.core.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.standard.chains.base.ChainBase import ChainBase
-from swarmauri.standard.chains.concrete.ChainProcessingStrategy import ChainProcessingStrategy
 
-class Chain(ChainBase):
-    def __init__(self,
-                 order_strategy: IChainOrderStrategy,
-                 processing_strategy: ChainProcessingStrategy = ChainProcessingStrategy(),
-                 steps: List[IChainStep] = None,
-                 **configs):
+```
+
+```swarmauri/standard/distances/base/__init__.py
+
+
+
+```
+
+```swarmauri/standard/distances/concrete/ChiSquaredDistance.py
+
+from typing import List
+from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class ChiSquaredDistance(IDistanceSimilarity):
+    """
+    Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
         """
-        Initializes a chain with an order and processing strategy, and optionally a list of steps.
+        Computes the Chi-squared distance between two vectors.
+        """
+        if len(vector_a.data) != len(vector_b.data):
+            raise ValueError("Vectors must have the same dimensionality.")
+
+        chi_squared_distance = 0
+        for a, b in zip(vector_a.data, vector_b.data):
+            if (a + b) != 0:
+                chi_squared_distance += (a - b) ** 2 / (a + b)
+
+        return 0.5 * chi_squared_distance
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute the similarity between two vectors based on the Chi-squared distance.
+        """
+        return 1 / (1 + self.distance(vector_a, vector_b))
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/standard/distances/concrete/CosineDistance.py
+
+from numpy.linalg import norm
+from typing import List
+from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.VectorProduct import VectorProduct
+
+class CosineDistance(IDistanceSimilarity, VectorProduct):
+    """
+    Implements cosine distance calculation as an IDistanceSimiliarity interface.
+    Cosine distance measures the cosine of the angle between two non-zero vectors
+    of an inner product space, capturing the orientation rather than the magnitude 
+    of these vectors.
+    """
+       
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """ 
+        Computes the cosine distance between two vectors: 1 - cosine similarity.
+    
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+    
+        Returns:
+            float: The computed cosine distance between vector_a and vector_b.
+                   It ranges from 0 (completely similar) to 2 (completely dissimilar).
+        """
+        norm_a = norm(vector_a.data)
+        norm_b = norm(vector_b.data)
+    
+        # Check if either of the vector norms is close to zero
+        if norm_a < 1e-10 or norm_b < 1e-10:
+            return 1.0  # Return maximum distance for cosine which varies between -1 to 1, so 1 indicates complete dissimilarity
+    
+        # Compute the cosine similarity between the vectors
+        cos_sim = self.dot_product(vector_a, vector_b) / (norm_a * norm_b)
+    
+        # Covert cosine similarity to cosine distance
+        cos_distance = 1 - cos_sim
+    
+        return cos_distance
+    
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the cosine similarity between two vectors.
 
         Args:
-            order_strategy (IChainOrderStrategy): The strategy to order the chain steps.
-            processing_strategy (ChainProcessingStrategy): The strategy to process the chain steps.
-            steps (List[IChainStep]): Optional. Initial list of steps to be added to the chain.
-            **configs: Additional configurations.
-        """
-        super().__init__(order_strategy, processing_strategy, steps, **configs)
-
-    def execute(self) -> Any:
-        """
-        Executes the chain according to the defined steps, ordering strategy, and processing strategy,
-        and returns the result of the execution.
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
 
         Returns:
-            Any: The result of executing the chain steps.
+            float: The cosine similarity between vector_a and vector_b.
         """
-        ordered_steps = self.order_strategy.order_steps(self.steps)
-        return self.processing_strategy.execute_steps(ordered_steps)
+        return 1 - self.distance(vector_a, vector_b)
+
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/standard/distances/concrete/EuclideanDistance.py
+
+from math import sqrt
+from typing import List
+from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+
+class EuclideanDistance(IDistanceSimilarity):
+    """
+    Class to compute the Euclidean distance between two vectors.
+    Implements the IDistanceSimiliarity interface.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Euclidean distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The computed Euclidean distance between vector_a and vector_b.
+        """
+        if len(vector_a.data) != len(vector_b.data):
+            raise ValueError("Vectors do not have the same dimensionality.")
+        
+        distance = sqrt(sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data)))
+        return distance
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the similarity score as the inverse of the Euclidean distance between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector in the comparison.
+            vector_b (IVector): The second vector in the comparison.
+
+        Returns:
+            float: The similarity score between vector_a and vector_b.
+        """
+        distance = self.distance(vector_a, vector_b)
+        return 1 / (1 + distance)
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/standard/distances/concrete/JaccardIndexDistance.py
+
+from typing import List
+from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class JaccardIndexDistance(IDistanceSimilarity):
+    """
+    A class implementing Jaccard Index as a similarity and distance metric between two vectors.
+    """
+
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Jaccard distance between two vectors.
+
+        The Jaccard distance, which is 1 minus the Jaccard similarity,
+        measures dissimilarity between sample sets. It's defined as
+        1 - (the intersection of the sets divided by the union of the sets).
+
+        Args:
+            vector_a (IVector): The first vector.
+            vector_b (IVector): The second vector.
+
+        Returns:
+            float: The Jaccard distance between vector_a and vector_b.
+        """
+        set_a = set(vector_a.data)
+        set_b = set(vector_b.data)
+
+        # Calculate the intersection and union of the two sets.
+        intersection = len(set_a.intersection(set_b))
+        union = len(set_a.union(set_b))
+
+        # In the special case where the union is zero, return 1.0 which implies complete dissimilarity.
+        if union == 0:
+            return 1.0
+
+        # Compute Jaccard similarity and then return the distance as 1 - similarity.
+        jaccard_similarity = intersection / union
+        return 1 - jaccard_similarity
+
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Computes the Jaccard similarity between two vectors.
+
+        Args:
+            vector_a (IVector): The first vector.
+            vector_b (IVector): The second vector.
+
+        Returns:
+            float: Jaccard similarity score between vector_a and vector_b.
+        """
+        set_a = set(vector_a.data)
+        set_b = set(vector_b.data)
+
+        # Calculate the intersection and union of the two sets.
+        intersection = len(set_a.intersection(set_b))
+        union = len(set_a.union(set_b))
+
+        # In case the union is zero, which means both vectors have no elements, return 1.0 implying identical sets.
+        if union == 0:
+            return 1.0
+
+        # Compute and return Jaccard similarity.
+        return intersection / union
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/standard/distances/concrete/LevenshteinDistance.py
+
+from typing import List
+import numpy as np
+from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.core.vectors.IVector import IVector
+
+class LevenshteinDistance(IDistanceSimilarity):
+    """
+    Implements the IDistance interface to calculate the Levenshtein distance between two vectors.
+    The Levenshtein distance between two strings is given by the minimum number of operations needed to transform
+    one string into the other, where an operation is an insertion, deletion, or substitution of a single character.
+    """
+    
+    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+        """
+        Compute the Levenshtein distance between two vectors.
+
+        Note: Since Levenshtein distance is typically calculated between strings,
+        it is assumed that the vectors represent strings where each element of the
+        vector corresponds to the ASCII value of a character in the string.
+
+        Args:
+            vector_a (List[float]): The first vector in the comparison.
+            vector_b (List[float]): The second vector in the comparison.
+
+        Returns:
+           float: The computed Levenshtein distance between vector_a and vector_b.
+        """
+        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
+        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
+        
+        return self.levenshtein(string_a, string_b)
+    
+    def levenshtein(self, seq1: str, seq2: str) -> float:
+        """
+        Calculate the Levenshtein distance between two strings.
+        
+        Args:
+            seq1 (str): The first string.
+            seq2 (str): The second string.
+        
+        Returns:
+            float: The Levenshtein distance between seq1 and seq2.
+        """
+        size_x = len(seq1) + 1
+        size_y = len(seq2) + 1
+        matrix = np.zeros((size_x, size_y))
+        
+        for x in range(size_x):
+            matrix[x, 0] = x
+        for y in range(size_y):
+            matrix[0, y] = y
+
+        for x in range(1, size_x):
+            for y in range(1, size_y):
+                if seq1[x-1] == seq2[y-1]:
+                    matrix[x, y] = min(matrix[x-1, y] + 1, matrix[x-1, y-1], matrix[x, y-1] + 1)
+                else:
+                    matrix[x, y] = min(matrix[x-1, y] + 1, matrix[x-1, y-1] + 1, matrix[x, y-1] + 1)
+        
+        return matrix[size_x - 1, size_y - 1]
+    
+    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
+        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
+        return 1 - self.levenshtein(string_a, string_b) / max(len(vector_a), len(vector_b))
+    
+    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+        return distances
+    
+    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+        return similarities
+
+```
+
+```swarmauri/standard/distances/concrete/__init__.py
+
+
 
 ```
