@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
-from swarmauri.core.agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.chains.ICallableChain import ICallableChain
 
 class ISwarm(ABC):
@@ -9,12 +9,12 @@ class ISwarm(ABC):
     """
 
     @abstractmethod
-    def add_agent(self, agent: ISwarmAgent) -> None:
+    def add_agent(self, agent: IAgent) -> None:
         """
         Adds an agent to the swarm.
 
         Args:
-            agent (ISwarmAgent): The agent to be added.
+            agent (IAgent): The agent to be added.
         """
         pass
 
@@ -46,7 +46,7 @@ class ISwarm(ABC):
         pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> ISwarmAgent:
+    def get_agent(self, agent_id: str) -> IAgent:
         """
         Retrieves an agent by its ID from the swarm.
 
@@ -54,17 +54,17 @@ class ISwarm(ABC):
             agent_id (str): The unique identifier for the agent.
 
         Returns:
-            ISwarmAgent: The agent associated with the given id.
+            IAgent: The agent associated with the given id.
         """
         pass
 
     @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
+    def list_agents(self) -> List[IAgent]:
         """
         Lists all agents currently in the swarm.
 
         Returns:
-            List[ISwarmAgent]: A list of agents in the swarm.
+            List[IAgent]: A list of agents in the swarm.
         """
         pass
 

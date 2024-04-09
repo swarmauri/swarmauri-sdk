@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from swarmauri.core.document_stores.IDocumentRetriever import IDocumentRetriever 
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 
 class IAgentRetriever(ABC):
     
