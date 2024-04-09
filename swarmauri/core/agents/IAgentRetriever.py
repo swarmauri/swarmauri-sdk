@@ -5,10 +5,10 @@ class IAgentRetriever(ABC):
     
     @property
     @abstractmethod
-    def retriever(self) -> IDocumentRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
     @retriever.setter
     @abstractmethod
-    def retriever(self) -> IDocumentRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass
