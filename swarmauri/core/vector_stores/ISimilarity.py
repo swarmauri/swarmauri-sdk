@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
-from .IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
 
 class ISimilarity(ABC):
     """

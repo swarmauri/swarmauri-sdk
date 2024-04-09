@@ -3,8 +3,6 @@ from subprocess import ABOVE_NORMAL_PRIORITY_CLASS
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChainFactory(ABC):
     """
@@ -12,7 +10,7 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, **configs):
+    def __init__(self, **configs):
         pass
 
     @abstractmethod
@@ -55,21 +53,6 @@ class IChainFactory(ABC):
     def remove_chain_step(self, key: str):
         pass
     
-    @abstractmethod
-    def get_chain_order_strategy(self) -> IChainOrderStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_order_strategy(self, order_strategy: IChainOrderStrategy):
-        pass
-    
-    @abstractmethod
-    def get_chain_processing_strategy(self) -> IChainProcessingStrategy:
-        pass
-    
-    @abstractmethod
-    def set_chain_processing_strategy(self, processing_strategy: IChainProcessingStrategy):
-        pass
     
     @abstractmethod
     def get_configs(self) -> Dict[str, Any]:

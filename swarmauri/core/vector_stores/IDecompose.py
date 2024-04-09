@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List
-from .IVector import IVector  # Assuming there's a base IVector interface for vector representations
+from swarmauri.core.vectors.IVector import IVector  # Assuming there's a base IVector interface for vector representations
 
 class IDecompose(ABC):
     """
