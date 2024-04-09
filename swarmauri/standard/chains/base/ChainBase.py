@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
 
