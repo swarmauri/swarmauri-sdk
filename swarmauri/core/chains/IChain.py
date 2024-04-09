@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChainStep import IChainStep
-from swarmauri.experimental.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.experimental.chains.IChainProcessingStrategy import IChainProcessingStrategy
 
 class IChain(ABC):
     """
@@ -10,7 +8,7 @@ class IChain(ABC):
     """
 
     @abstractmethod
-    def __init__(self, order_strategy: IChainOrderStrategy, processing_strategy: IChainProcessingStrategy, steps: List[IChainStep] = None, **configs):
+    def __init__(self, steps: List[IChainStep] = None, **configs):
         pass
 
     @abstractmethod
