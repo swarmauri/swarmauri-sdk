@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-from ...agents.ISwarmAgent import ISwarmAgent
+from swarmauri.core.agents.ISwarmAgent import ISwarmAgent
 
-class IAgentRegistration(ABC):
+class ISwarmAgentRegistrationAPI(ABC):
     """
     Interface for registering agents with the swarm, designed to support CRUD operations on ISwarmAgent instances.
     """
