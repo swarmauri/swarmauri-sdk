@@ -13,8 +13,11 @@ class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
         self._measurements = []
 
     @abstractmethod
-    def add_measurement(self, *args, **kwargs) -> None:
-        raise NotImplementedError('Measurement not implemented')
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds measurement to the internal store of measurements.
+        """
+        self._measurements.append(measurement)
 
     @property
     def measurements(self) -> List[Any]:

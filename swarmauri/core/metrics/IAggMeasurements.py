@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class IAggMeasurements(ABC):
 
     @abstractmethod
-    def add_measurement(self, *args, **kwargs) -> None:
+    def add_measurement(self, measurement: Any) -> None:
         pass
 
     @property

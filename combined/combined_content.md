@@ -3674,6 +3674,7 @@ class IDistanceSimilarity(ABC):
 
 ```swarmauri/core/metrics/IMetric.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 
 class IMetric(ABC):
@@ -3696,7 +3697,7 @@ class IMetric(ABC):
 
     @property
     @abstractmethod
-    def value(self):
+    def value(self) -> Any:
         """
         Current value of the metric.
 
@@ -3734,12 +3735,13 @@ class IMetric(ABC):
 
 ```swarmauri/core/metrics/ICalculateMetric.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 
 class ICalculateMetric(ABC):
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> None:
+    def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
 
@@ -3763,7 +3765,15 @@ class ICalculateMetric(ABC):
         """
         pass
 
+    @abstractmethod
+    def __call__(self, **kwargs) -> Any:
+        """
+        Retrieves the current value of the metric.
 
+        Returns:
+            The current value of the metric.
+        """
+        pass
 
 ```
 
@@ -3775,7 +3785,7 @@ from abc import ABC, abstractmethod
 class IAggMeasurements(ABC):
 
     @abstractmethod
-    def add_measurement(self, *args, **kwargs) -> None:
+    def add_measurement(self, measurement: Any) -> None:
         pass
 
     @property
@@ -12017,7 +12027,7 @@ class MetricBase(IMetric, ABC):
         return self._name
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """
         The current value of the metric.
         """
@@ -12092,9 +12102,10 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         self._unit = value
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> Any:
+    def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
+        Does not update the value. Merely used for inference.
         This method must be implemented by subclasses to define specific calculation logic.
         """
         raise NotImplementedError('calculate is not implemented yet.')
@@ -12106,14 +12117,11 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         """
         self._value = value
 
-    def __call__(self, data):
+    def __call__(self, **kwargs) -> Any:
         """
-        Retrieves the current value of the metric.
-
-        Returns:
-            The current value of the metric.
+        Calculates the metric, updates the value, and returns the current value.
         """
-        value = self.calculate(data)
+        value = self.calculate(**kwargs)
         self.update(value)
         return self.value
 
@@ -12137,8 +12145,11 @@ class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
         self._measurements = []
 
     @abstractmethod
-    def add_measurement(self, *args, **kwargs) -> None:
-        raise NotImplementedError('Measurement not implemented')
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds measurement to the internal store of measurements.
+        """
+        self._measurements.append(measurement)
 
     @property
     def measurements(self) -> List[Any]:
@@ -12162,5 +12173,33 @@ class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
 ```swarmauri/standard/metrics/concrete/__init__.py
 
 
+
+```
+
+```swarmauri/standard/metrics/concrete/TaskSuccessRateMetric.py
+
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class TaskSuccessRateMetric(AggregateMetricBase):
+    def __init__(self):
+        super().__init__(name="Task Success Rate", unit="%")
+        self.total_tasks = 0
+        self.successful_tasks = 0
+
+    def calculate(self, *args, **kwargs) -> Any:
+        if self.total_tasks == 0:
+            return 0
+        else:
+            success_rate = (self.successful_tasks / self.total_tasks) * 100
+            return success_rate
+
+    def add_measurement(self, success: bool) -> None:
+        self.total_tasks += 1
+        if success:
+            self.successful_tasks += 1
+    
+    @property
+    def measurements(self):
+        return {"total_tasks": self.total_tasks, "successful_tasks": self.successful_tasks}
 
 ```

@@ -1,3 +1,4 @@
+from typing import Any
 from abc import ABC, abstractmethod
 
 class IMetric(ABC):
@@ -20,7 +21,7 @@ class IMetric(ABC):
 
     @property
     @abstractmethod
-    def value(self):
+    def value(self) -> Any:
         """
         Current value of the metric.
 

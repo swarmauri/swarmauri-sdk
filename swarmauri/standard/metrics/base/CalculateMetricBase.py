@@ -49,9 +49,10 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         self._unit = value
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> Any:
+    def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
+        Does not update the value. Merely used for inference.
         This method must be implemented by subclasses to define specific calculation logic.
         """
         raise NotImplementedError('calculate is not implemented yet.')
@@ -63,13 +64,10 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         """
         self._value = value
 
-    def __call__(self, data):
+    def __call__(self, **kwargs) -> Any:
         """
-        Retrieves the current value of the metric.
-
-        Returns:
-            The current value of the metric.
+        Calculates the metric, updates the value, and returns the current value.
         """
-        value = self.calculate(data)
+        value = self.calculate(**kwargs)
         self.update(value)
         return self.value

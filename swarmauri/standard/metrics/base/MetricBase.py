@@ -27,7 +27,7 @@ class MetricBase(IMetric, ABC):
         return self._name
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """
         The current value of the metric.
         """

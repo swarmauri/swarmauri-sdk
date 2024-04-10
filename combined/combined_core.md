@@ -2869,6 +2869,7 @@ class IDistanceSimilarity(ABC):
 
 ```swarmauri/core/metrics/IMetric.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 
 class IMetric(ABC):
@@ -2891,7 +2892,7 @@ class IMetric(ABC):
 
     @property
     @abstractmethod
-    def value(self):
+    def value(self) -> Any:
         """
         Current value of the metric.
 
@@ -2929,12 +2930,13 @@ class IMetric(ABC):
 
 ```swarmauri/core/metrics/ICalculateMetric.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 
 class ICalculateMetric(ABC):
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> None:
+    def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
 
@@ -2958,7 +2960,15 @@ class ICalculateMetric(ABC):
         """
         pass
 
+    @abstractmethod
+    def __call__(self, **kwargs) -> Any:
+        """
+        Retrieves the current value of the metric.
 
+        Returns:
+            The current value of the metric.
+        """
+        pass
 
 ```
 
@@ -2970,7 +2980,7 @@ from abc import ABC, abstractmethod
 class IAggMeasurements(ABC):
 
     @abstractmethod
-    def add_measurement(self, *args, **kwargs) -> None:
+    def add_measurement(self, measurement: Any) -> None:
         pass
 
     @property

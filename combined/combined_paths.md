@@ -331,3 +331,4 @@ swarmauri/standard/metrics/base/MetricBase.py
 swarmauri/standard/metrics/base/CalculateMetricBase.py
 swarmauri/standard/metrics/base/AggregateMetricBase.py
 swarmauri/standard/metrics/concrete/__init__.py
+swarmauri/standard/metrics/concrete/TaskSuccessRateMetric.py
