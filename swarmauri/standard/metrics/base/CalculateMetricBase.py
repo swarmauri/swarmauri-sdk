@@ -1,3 +1,4 @@
+from typing import Any
 from abc import ABC, abstractmethod
 from swarmauri.core.metrics.IMetric import IMetric
 from swarmauri.core.metrics.ICalculateMetric import ICalculateMetric

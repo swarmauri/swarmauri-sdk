@@ -1,3 +1,4 @@
+from typing import Any
 from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
 
 class TaskSuccessRateMetric(AggregateMetricBase):
