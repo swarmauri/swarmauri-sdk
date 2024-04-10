@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
 from typing import List, Any
+from abc import ABC, abstractmethod
+
 class IAggMeasurements(ABC):
 
     @abstractmethod

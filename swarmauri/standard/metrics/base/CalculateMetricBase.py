@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from swarmauri.core.metrics.IMetric import IMetric
 from swarmauri.core.metrics.ICalculateMetric import ICalculateMetric
 
-class CalculateMetricBase(IMetric, ICaculateMetric, ABC):
+class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
     """
     A base implementation of the IMetric interface that provides the foundation
     for specific metric implementations.
