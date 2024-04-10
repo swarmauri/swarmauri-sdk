@@ -590,6 +590,92 @@ class IPrompt(ABC):
 
 ```
 
+```swarmauri/core/prompts/ITemplate.py
+
+from typing import Dict, List
+from abc import ABC, abstractmethod
+
+
+class ITemplate(ABC):
+    """
+    Interface for template-based prompt generation within the SwarmAURI framework.
+    Defines standard operations and attributes for managing and utilizing templates.
+    """
+
+    @property
+    @abstractmethod
+    def template(self) -> str:
+        """
+        Abstract property to get the current template string.
+        """
+        pass
+
+    @template.setter
+    @abstractmethod
+    def template(self, value: str) -> None:
+        """
+        Abstract property setter to set or update the current template string.
+
+        Args:
+            value (str): The new template string to be used for generating prompts.
+        """
+        pass
+
+
+    @property
+    @abstractmethod
+    def variables(self) -> List[Dict[str, str]]:
+        """
+        Abstract property to get the current set of variables for the template.
+        """
+        pass
+
+    @variables.setter
+    @abstractmethod
+    def variables(self, value: List[Dict[str, str]]) -> None:
+        """
+        Abstract property setter to set or update the variables for the template.
+        """
+        pass
+
+    @abstractmethod
+    def set_template(self, template: str) -> None:
+        """
+        Sets or updates the current template string.
+
+        Args:
+            template (str): The new template string to be used for generating prompts.
+        """
+        pass
+
+    @abstractmethod
+    def set_variables(self, variables: List[Dict[str, str]]) -> None:
+        """
+        Sets or updates the variables to be substituted into the template.
+
+        Args:
+            variables (List[Dict[str, str]]): A dictionary of variables where each key-value 
+                                        pair corresponds to a placeholder name and its 
+                                        replacement value in the template.
+        """
+        pass
+
+    @abstractmethod
+    def generate_prompt(self, **kwargs) -> str:
+        """
+        Generates a prompt string based on the current template and provided keyword arguments.
+
+        Args:
+            **kwargs: Keyword arguments containing variables for template substitution. 
+
+        Returns:
+            str: The generated prompt string with template variables replaced by their
+                 corresponding values provided in `kwargs`.
+        """
+        pass
+
+```
+
 ```swarmauri/core/agents/__init__.py
 
 
@@ -2772,5 +2858,137 @@ class IDistanceSimilarity(ABC):
     def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
         pass
 
+
+```
+
+```swarmauri/core/metrics/__init__.py
+
+
+
+```
+
+```swarmauri/core/metrics/IMetric.py
+
+from abc import ABC, abstractmethod
+
+class IMetric(ABC):
+    """
+    Defines a general interface for metrics within the SwarmaURI system.
+    Metrics can be anything from system performance measurements to
+    machine learning model evaluation metrics.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        The name identifier for the metric.
+
+        Returns:
+            str: The name of the metric.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def value(self):
+        """
+        Current value of the metric.
+
+        Returns:
+            The metric's value. The type depends on the specific metric implementation.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def unit(self) -> str:
+        """
+        The unit of measurement for the metric.
+
+        Returns:
+            str: The unit of measurement (e.g., 'seconds', 'Mbps').
+        """
+        pass
+
+    @unit.setter
+    @abstractmethod
+    def unit(self, value: str) -> None:
+        """
+        Update the unit of measurement for the metric.
+
+        Args:
+            value (str): The new unit of measurement for the metric.
+        """
+        pass
+
+
+
+
+```
+
+```swarmauri/core/metrics/ICalculateMetric.py
+
+from abc import ABC, abstractmethod
+
+class ICalculateMetric(ABC):
+
+    @abstractmethod
+    def calculate(self, *args, **kwargs) -> None:
+        """
+        Calculate the metric based on the provided data.
+
+        Args:
+            *args: Variable length argument list that the metric calculation might require.
+            **kwargs: Arbitrary keyword arguments that the metric calculation might require.
+        """
+        pass
+
+    @abstractmethod
+    def _update(self, value) -> None:
+        """
+        Update the metric value based on new information.
+
+        Args:
+            value: The new information used to update the metric. This could be a new
+            measurement or data point that affects the metric's current value.
+
+        Note:
+            This method is intended for internal use and should not be publicly accessible.
+        """
+        pass
+
+
+
+```
+
+```swarmauri/core/metrics/IAggMeasurements.py
+
+from typing import List, Any
+from abc import ABC, abstractmethod
+
+class IAggMeasurements(ABC):
+
+    @abstractmethod
+    def add_measurement(self, *args, **kwargs) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def measurements(self) -> List[Any]:
+        pass
+
+    @measurements.setter
+    @abstractmethod
+    def measurements(self, value) -> None:
+        pass
+
+    @abstractmethod
+    def reset(self) -> None:
+        """
+        Reset or clear the metric's current state, starting fresh as if no data had been processed.
+        This is useful for metrics that might aggregate or average data over time and need to be reset.
+        """
+        pass
 
 ```

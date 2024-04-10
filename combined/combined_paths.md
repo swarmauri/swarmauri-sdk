@@ -42,6 +42,7 @@ swarmauri/core/parsers/__init__.py
 swarmauri/core/parsers/IParser.py
 swarmauri/core/prompts/__init__.py
 swarmauri/core/prompts/IPrompt.py
+swarmauri/core/prompts/ITemplate.py
 swarmauri/core/agents/__init__.py
 swarmauri/core/agents/IAgentToolkit.py
 swarmauri/core/agents/IAgentConversation.py
@@ -107,6 +108,10 @@ swarmauri/core/chains/IChainFactory.py
 swarmauri/core/chains/IChainStep.py
 swarmauri/core/distances/__init__.py
 swarmauri/core/distances/IDistanceSimilarity.py
+swarmauri/core/metrics/__init__.py
+swarmauri/core/metrics/IMetric.py
+swarmauri/core/metrics/ICalculateMetric.py
+swarmauri/core/metrics/IAggMeasurements.py
 swarmauri/experimental/__init__.py
 swarmauri/experimental/tools/LinkedInArticleTool.py
 swarmauri/experimental/tools/TwitterPostTool.py
@@ -236,6 +241,7 @@ swarmauri/standard/prompts/base/__init__.py
 swarmauri/standard/prompts/concrete/__init__.py
 swarmauri/standard/prompts/concrete/Prompt.py
 swarmauri/standard/prompts/concrete/PromptTemplate.py
+swarmauri/standard/prompts/concrete/PromptGenerator.py
 swarmauri/standard/states/__init__.py
 swarmauri/standard/states/base/__init__.py
 swarmauri/standard/states/concrete/__init__.py
@@ -319,3 +325,10 @@ swarmauri/standard/distances/concrete/EuclideanDistance.py
 swarmauri/standard/distances/concrete/JaccardIndexDistance.py
 swarmauri/standard/distances/concrete/LevenshteinDistance.py
 swarmauri/standard/distances/concrete/__init__.py
+swarmauri/standard/metrics/__init__.py
+swarmauri/standard/metrics/base/__init__.py
+swarmauri/standard/metrics/base/MetricBase.py
+swarmauri/standard/metrics/base/ResetableMetricBase.py
+swarmauri/standard/metrics/base/CalculateMetricBase.py
+swarmauri/standard/metrics/base/AggregateMetricBase.py
+swarmauri/standard/metrics/concrete/__init__.py

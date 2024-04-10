@@ -590,6 +590,92 @@ class IPrompt(ABC):
 
 ```
 
+```swarmauri/core/prompts/ITemplate.py
+
+from typing import Dict, List
+from abc import ABC, abstractmethod
+
+
+class ITemplate(ABC):
+    """
+    Interface for template-based prompt generation within the SwarmAURI framework.
+    Defines standard operations and attributes for managing and utilizing templates.
+    """
+
+    @property
+    @abstractmethod
+    def template(self) -> str:
+        """
+        Abstract property to get the current template string.
+        """
+        pass
+
+    @template.setter
+    @abstractmethod
+    def template(self, value: str) -> None:
+        """
+        Abstract property setter to set or update the current template string.
+
+        Args:
+            value (str): The new template string to be used for generating prompts.
+        """
+        pass
+
+
+    @property
+    @abstractmethod
+    def variables(self) -> List[Dict[str, str]]:
+        """
+        Abstract property to get the current set of variables for the template.
+        """
+        pass
+
+    @variables.setter
+    @abstractmethod
+    def variables(self, value: List[Dict[str, str]]) -> None:
+        """
+        Abstract property setter to set or update the variables for the template.
+        """
+        pass
+
+    @abstractmethod
+    def set_template(self, template: str) -> None:
+        """
+        Sets or updates the current template string.
+
+        Args:
+            template (str): The new template string to be used for generating prompts.
+        """
+        pass
+
+    @abstractmethod
+    def set_variables(self, variables: List[Dict[str, str]]) -> None:
+        """
+        Sets or updates the variables to be substituted into the template.
+
+        Args:
+            variables (List[Dict[str, str]]): A dictionary of variables where each key-value 
+                                        pair corresponds to a placeholder name and its 
+                                        replacement value in the template.
+        """
+        pass
+
+    @abstractmethod
+    def generate_prompt(self, **kwargs) -> str:
+        """
+        Generates a prompt string based on the current template and provided keyword arguments.
+
+        Args:
+            **kwargs: Keyword arguments containing variables for template substitution. 
+
+        Returns:
+            str: The generated prompt string with template variables replaced by their
+                 corresponding values provided in `kwargs`.
+        """
+        pass
+
+```
+
 ```swarmauri/core/agents/__init__.py
 
 
@@ -2772,6 +2858,138 @@ class IDistanceSimilarity(ABC):
     def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
         pass
 
+
+```
+
+```swarmauri/core/metrics/__init__.py
+
+
+
+```
+
+```swarmauri/core/metrics/IMetric.py
+
+from abc import ABC, abstractmethod
+
+class IMetric(ABC):
+    """
+    Defines a general interface for metrics within the SwarmaURI system.
+    Metrics can be anything from system performance measurements to
+    machine learning model evaluation metrics.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        The name identifier for the metric.
+
+        Returns:
+            str: The name of the metric.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def value(self):
+        """
+        Current value of the metric.
+
+        Returns:
+            The metric's value. The type depends on the specific metric implementation.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def unit(self) -> str:
+        """
+        The unit of measurement for the metric.
+
+        Returns:
+            str: The unit of measurement (e.g., 'seconds', 'Mbps').
+        """
+        pass
+
+    @unit.setter
+    @abstractmethod
+    def unit(self, value: str) -> None:
+        """
+        Update the unit of measurement for the metric.
+
+        Args:
+            value (str): The new unit of measurement for the metric.
+        """
+        pass
+
+
+
+
+```
+
+```swarmauri/core/metrics/ICalculateMetric.py
+
+from abc import ABC, abstractmethod
+
+class ICalculateMetric(ABC):
+
+    @abstractmethod
+    def calculate(self, *args, **kwargs) -> None:
+        """
+        Calculate the metric based on the provided data.
+
+        Args:
+            *args: Variable length argument list that the metric calculation might require.
+            **kwargs: Arbitrary keyword arguments that the metric calculation might require.
+        """
+        pass
+
+    @abstractmethod
+    def _update(self, value) -> None:
+        """
+        Update the metric value based on new information.
+
+        Args:
+            value: The new information used to update the metric. This could be a new
+            measurement or data point that affects the metric's current value.
+
+        Note:
+            This method is intended for internal use and should not be publicly accessible.
+        """
+        pass
+
+
+
+```
+
+```swarmauri/core/metrics/IAggMeasurements.py
+
+from typing import List, Any
+from abc import ABC, abstractmethod
+
+class IAggMeasurements(ABC):
+
+    @abstractmethod
+    def add_measurement(self, *args, **kwargs) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def measurements(self) -> List[Any]:
+        pass
+
+    @measurements.setter
+    @abstractmethod
+    def measurements(self, value) -> None:
+        pass
+
+    @abstractmethod
+    def reset(self) -> None:
+        """
+        Reset or clear the metric's current state, starting fresh as if no data had been processed.
+        This is useful for metrics that might aggregate or average data over time and need to be reset.
+        """
+        pass
 
 ``````swarmauri/standard/README.md
 
@@ -5245,7 +5463,7 @@ class BERTEmbeddingParser(IParser):
 
 ```swarmauri/standard/prompts/concrete/Prompt.py
 
-from ....core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.IPrompt import IPrompt
 
 class Prompt(IPrompt):
     """
@@ -5291,64 +5509,128 @@ class Prompt(IPrompt):
 
 ```swarmauri/standard/prompts/concrete/PromptTemplate.py
 
-from typing import Dict
-from ....core.prompts.IPrompt import IPrompt
+from typing import Dict, List
+from swarmauri.core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.ITemplate import ITemplate
 
-class PromptTemplate(IPrompt):
+class PromptTemplate(IPrompt, ITemplate):
     """
-    A class that represents a template for generating prompts, 
-    allowing dynamic content insertion into pre-defined template slots.
-
-    Attributes:
-        template (str): A string template with placeholders for content insertion.
-        variables (Dict[str, str]): A dictionary mapping placeholder names in the template to their content.
+    A class for generating prompts based on a template and variables.
+    Implements the IPrompt for generating prompts and ITemplate for template manipulation.
     """
 
-    def __init__(self, template: str = "", variables: Dict[str, str] = {}):
-        """
-        Initializes a new instance of the PromptTemplate class.
+    def __init__(self, template: str = "", variables: List[Dict[str, str]] = []):
+        self._template = template
+        self._variables_list = variables
 
-        Args:
-            template (str): The string template for the prompt.
-            variables (Dict[str, str]): A dictionary mapping variables in the template to their values.
+    @property
+    def template(self) -> str:
         """
-        self.template = template
+        Get the current prompt template.
+        """
+        return self._template
+
+    @template.setter
+    def template(self, value: str) -> None:
+        """
+        Set a new template string for the prompt.
+        """
+        self._template = value
+
+    @property
+    def variables(self) -> List[Dict[str, str]]:
+        """
+        Get the current set of variables for the template.
+        """
+        return self._variables_list 
+
+    @variables.setter
+    def variables(self, value: List[Dict[str, str]]) -> None:
+        if not isinstance(value, list):
+            raise ValueError("Variables must be a list of dictionaries.")
+        self._variables_list = value
+
+    def set_template(self, template: str) -> None:
+        """
+        Sets or updates the current template string.
+        """
+        self._template = template
+
+    def set_variables(self, variables: Dict[str, str]) -> None:
+        """
+        Sets or updates the variables to be substituted into the template.
+        """
+        self._variables_list = variables
+
+    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+        variables = variables or (self._variables_list.pop(0) if self._variables_list else {})
+        return self._template.format(**variables)
+
+    def __call__(self, **kwargs) -> str:
+        """
+        Generates a prompt using the current template and provided keyword arguments for substitution.
+        """
+        return self.generate_prompt(**kwargs)
+
+```
+
+```swarmauri/standard/prompts/concrete/PromptGenerator.py
+
+from typing import Dict, List, Generator
+from swarmauri.core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.ITemplate import ITemplate
+
+
+class PromptGenerator(IPrompt, ITemplate):
+    """
+    A class that generates prompts based on a template and a list of variable sets.
+    It implements the IPrompt and ITemplate interfaces.
+    """
+
+    def __init__(self, template: str = ""):
+        self._template = template
+        self._variables_list = []
+
+    @property
+    def template(self) -> str:
+        return self._template
+
+    @template.setter
+    def template(self, value: str) -> None:
+        self._template = value
+
+    @property
+    def variables(self) -> List[Dict[str, str]]:
+        return self._variables_list
+
+    @variables.setter
+    def variables(self, value: List[Dict[str, str]]) -> None:
+        if not isinstance(value, list):
+            raise ValueError("Expected a list of dictionaries for variables.")
+        self._variables_list = value
+
+    def set_template(self, template: str) -> None:
+        self._template = template
+
+    def set_variables(self, variables: List[Dict[str, str]]) -> None:
         self.variables = variables
 
-    def __call__(self, variables: Dict[str, str] = {}):
+    def generate_prompt(self, **kwargs) -> str:
         """
-        Generates the prompt string by substituting variables into the template.
+        Generates a prompt using the provided variables if any, 
+        else uses the next variables set in the list.
+        """
+        variables = kwargs if kwargs else self.variables.pop(0) if self.variables else {}
+        return self._template.format(**variables)
 
-        Returns:
-            str: The generated prompt with variables substituted.
+    def __call__(self) -> Generator[str, None, None]:
         """
-        variables = variables or self.variables
-        formatted_prompt = self.template.format(**variables)
-        return formatted_prompt
-
-    def set_template(self, template: str):
+        Returns a generator that yields prompts constructed from the template and 
+        each set of variables in the variables list.
         """
-        Sets a new template string for the prompt.
-
-        Args:
-            template (str): The new string template to use.
-        """
-        self.template = template
-
-    def set_variables(self, variables: Dict[str, str]):
-        """
-        Sets the variables to be substituted into the template.
-
-        Args:
-            variables (Dict[str, str]): A dictionary of variables to be substituted into the template.
-        
-        Raises:
-            TypeError: If the provided variables argument is not a dictionary.
-        """
-        if isinstance(variables, dict):
-            self.variables = variables
-        else:
-            raise TypeError("Invalid type. Expected dict for variables.")
+        for variables_set in self._variables_list:
+            yield self.generate_prompt(**variables_set)
+        self._variables_list = []  # Reset the list after all prompts have been generated.
 
 ```
 
@@ -7476,7 +7758,7 @@ def CallableTracer(func):
 
 ```swarmauri/standard/chains/base/ChainBase.py
 
-from typing import List
+from typing import List, Dict, Any
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
 
@@ -7503,10 +7785,10 @@ class ChainBase(IChain):
             step (IChainStep): The Callable representing the step to remove from the chain.
         """
 
-        raise NotImplementedError('this is not yet impplemented')
+        raise NotImplementedError('this is not yet implemented')
 
     def execute(self, *args, **kwargs) -> Any:
-        raise NotImplementedError('this is not yet impplemented')
+        raise NotImplementedError('this is not yet implemented')
 
     def get_schema_info(self) -> Dict[str, Any]:
         # Return a serialized version of the Chain instance's configuration
@@ -7916,6 +8198,225 @@ class LevenshteinDistance(IDistanceSimilarity):
 ```
 
 ```swarmauri/standard/distances/concrete/__init__.py
+
+
+
+```
+
+```swarmauri/standard/metrics/__init__.py
+
+
+
+```
+
+```swarmauri/standard/metrics/base/__init__.py
+
+
+
+```
+
+```swarmauri/standard/metrics/base/MetricBase.py
+
+from abc import ABC, abstractmethod
+from swarmauri.core.metrics.IMetric import IMetric
+
+class MetricBase(IMetric, ABC):
+    """
+    A base implementation of the IMetric interface that provides the foundation
+    for specific metric implementations.
+    """
+
+    def __init__(self, name: str, unit: str):
+        """
+        Initializes the metric with a name and unit of measurement.
+
+        Args:
+            name (str): The name of the metric.
+            unit (str): The unit of measurement for the metric (e.g., 'seconds', 'accuracy').
+        """
+        self._name = name
+        self._unit = unit
+        self._value = None  # Initialize with None, or a default value as appropriate
+
+    @property
+    def name(self) -> str:
+        """
+        The metric's name identifier.
+        """
+        return self._name
+
+    @property
+    def value(self):
+        """
+        The current value of the metric.
+        """
+        return self._value
+
+    @property
+    def unit(self) -> str:
+        """
+        The unit of measurement for the metric.
+        """
+        return self._unit
+
+    @unit.setter
+    def unit(self, value: str) -> None:
+        """
+        Set the unit of measurement for the metric.
+        """
+        self._unit = value
+
+```
+
+```swarmauri/standard/metrics/base/ResetableMetricBase.py
+
+from abc import ABC, abstractmethod
+from swarmauri.standard.metrics.base.CalculateMetricBase import CalculateMetricBase
+from swarmauri.core.metrics.IAggMeasurements import IAggMeasurements
+
+class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
+    """
+    An abstract base class that implements the IMetric interface, providing common 
+    functionalities and properties for metrics within SwarmAURI.
+    """
+    def __init__(self, name: str, *args, **kwargs):
+        CalculateMetricBase.__init__(name)
+        self._dataset = []
+
+    @abstractmethod
+    def add_measurement(self, *args, **kwargs) -> None:
+        raise NotImplementedError('Measurement not implemented')
+
+    def reset(self) -> None:
+        """
+        Resets the metric's state/value, allowing for fresh calculations.
+        """
+        self._value = None
+
+
+
+```
+
+```swarmauri/standard/metrics/base/CalculateMetricBase.py
+
+from abc import ABC, abstractmethod
+from swarmauri.core.metrics.IMetric import IMetric
+from swarmauri.core.metrics.ICalculateMetric import ICalculateMetric
+
+class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
+    """
+    A base implementation of the IMetric interface that provides the foundation
+    for specific metric implementations.
+    """
+
+    def __init__(self, name: str, unit: str):
+        """
+        Initializes the metric with a name and unit of measurement.
+
+        Args:
+            name (str): The name of the metric.
+            unit (str): The unit of measurement for the metric (e.g., 'seconds', 'accuracy').
+        """
+        self._name = name
+        self._unit = unit
+        self._value = None  # Initialize with None, or a default value as appropriate
+
+    @property
+    def name(self) -> str:
+        """
+        The metric's name identifier.
+        """
+        return self._name
+
+    @property
+    def value(self):
+        """
+        The current value of the metric.
+        """
+        return self._value
+
+    @property
+    def unit(self) -> str:
+        """
+        The unit of measurement for the metric.
+        """
+        return self._unit
+
+    @unit.setter
+    def unit(self, value: str) -> None:
+        """
+        Set the unit of measurement for the metric.
+        """
+        self._unit = value
+
+    @abstractmethod
+    def calculate(self, *args, **kwargs) -> None:
+        """
+        Calculate the metric based on the provided data.
+        This method must be implemented by subclasses to define specific calculation logic.
+        """
+        raise NotImplementedError('calculate is not implemented yet.')
+
+    def _update(self, value) -> None:
+        """
+        Update the metric value based on new information.
+        This should be used internally by the `calculate` method or other logic.
+        """
+        self._value = value
+
+    def __call__(self, data):
+        """
+        Retrieves the current value of the metric.
+
+        Returns:
+            The current value of the metric.
+        """
+        self._update(self.calculate(data))
+        return self.value
+
+
+```
+
+```swarmauri/standard/metrics/base/AggregateMetricBase.py
+
+from typing import List, Any
+from abc import ABC, abstractmethod
+from swarmauri.standard.metrics.base.CalculateMetricBase import CalculateMetricBase
+from swarmauri.core.metrics.IAggMeasurements import IAggMeasurements
+
+class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
+    """
+    An abstract base class that implements the IMetric interface, providing common 
+    functionalities and properties for metrics within SwarmAURI.
+    """
+    def __init__(self, name: str, unit: str):
+        CalculateMetricBase.__init__(name, unit)
+        self._measurements = []
+
+    @abstractmethod
+    def add_measurement(self, *args, **kwargs) -> None:
+        raise NotImplementedError('Measurement not implemented')
+
+    @property
+    def measurements(self) -> List[Any]:
+        return self._measurements
+
+    @measurements.setter
+    def measurements(self, value) -> None:
+        self._measurements = value
+
+    def reset(self) -> None:
+        """
+        Resets the metric's state/value, allowing for fresh calculations.
+        """
+        self._measurements.clear()
+        self._value = None
+
+
+
+```
+
+```swarmauri/standard/metrics/concrete/__init__.py
 
 
 
