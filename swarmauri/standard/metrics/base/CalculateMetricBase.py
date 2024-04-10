@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from swarmauri.core.metrics.IMetric import IMetric
+from swarmauri.core.metrics.ICalculateMetric import ICalculateMetric
 
-class MetricBase(IMetric, ABC):
+class CalculateMetricBase(IMetric, ICaculateMetric, ABC):
     """
     A base implementation of the IMetric interface that provides the foundation
     for specific metric implementations.
@@ -46,3 +47,28 @@ class MetricBase(IMetric, ABC):
         Set the unit of measurement for the metric.
         """
         self._unit = value
+
+    @abstractmethod
+    def calculate(self, *args, **kwargs) -> None:
+        """
+        Calculate the metric based on the provided data.
+        This method must be implemented by subclasses to define specific calculation logic.
+        """
+        raise NotImplementedError('calculate is not implemented yet.')
+
+    def _update(self, value) -> None:
+        """
+        Update the metric value based on new information.
+        This should be used internally by the `calculate` method or other logic.
+        """
+        self._value = value
+
+    def __call__(self, data):
+        """
+        Retrieves the current value of the metric.
+
+        Returns:
+            The current value of the metric.
+        """
+        self._update(self.calculate(data))
+        return self.value

@@ -8,6 +8,7 @@ class IMetric(ABC):
     """
 
     @property
+    @abstractmethod
     def name(self) -> str:
         """
         The name identifier for the metric.
@@ -18,6 +19,7 @@ class IMetric(ABC):
         pass
 
     @property
+    @abstractmethod
     def value(self):
         """
         Current value of the metric.
@@ -25,37 +27,28 @@ class IMetric(ABC):
         Returns:
             The metric's value. The type depends on the specific metric implementation.
         """
-        pass  
-
-    @abstractmethod
-    def calculate(self, data) -> None:
-        """
-        Calculate the metric based on the provided data.
-
-        Args:
-            data: The data needed to calculate the metric. The type and form of this data
-            would depend on the nature of the metric being calculated.
-        """
         pass
 
+    @property
     @abstractmethod
-    def update(self, value) -> None:
+    def unit(self) -> str:
         """
-        Update the metric value based on new information.
-
-        Args:
-            value: The new information used to update the metric. This could be a new
-            measurement or data point that affects the metric's current value.
-        """
-        pass
-
-    @abstractmethod
-    def get_value(self):
-        """
-        Retrieve the current value of the metric.
+        The unit of measurement for the metric.
 
         Returns:
-            The current metric value. The type of this value can vary depending on the metric.
+            str: The unit of measurement (e.g., 'seconds', 'Mbps').
         """
         pass
+
+    @unit.setter
+    @abstractmethod
+    def unit(self, value: str) -> None:
+        """
+        Update the unit of measurement for the metric.
+
+        Args:
+            value (str): The new unit of measurement for the metric.
+        """
+        pass
+
 
