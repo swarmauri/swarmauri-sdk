@@ -9,9 +9,9 @@ class PromptGenerator(IPrompt, ITemplate):
     It implements the IPrompt and ITemplate interfaces.
     """
 
-    def __init__(self, template: str = ""):
+    def __init__(self, template: str = "", variables: List[Dict[str, str]] = []):
         self._template = template
-        self._variables_list = []
+        self._variables_list = variables
 
     @property
     def template(self) -> str:
