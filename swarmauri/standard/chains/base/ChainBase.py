@@ -25,10 +25,10 @@ class ChainBase(IChain):
             step (IChainStep): The Callable representing the step to remove from the chain.
         """
 
-        raise NotImplementedError('this is not yet impplemented')
+        raise NotImplementedError('this is not yet implemented')
 
     def execute(self, *args, **kwargs) -> Any:
-        raise NotImplementedError('this is not yet impplemented')
+        raise NotImplementedError('this is not yet implemented')
 
     def get_schema_info(self) -> Dict[str, Any]:
         # Return a serialized version of the Chain instance's configuration
