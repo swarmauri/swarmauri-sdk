@@ -14,7 +14,7 @@ class ICalculateMetric(ABC):
         pass
 
     @abstractmethod
-    def _update(self, value) -> None:
+    def update(self, value) -> None:
         """
         Update the metric value based on new information.
 

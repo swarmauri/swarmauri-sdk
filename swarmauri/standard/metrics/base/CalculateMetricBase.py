@@ -56,7 +56,7 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         """
         raise NotImplementedError('calculate is not implemented yet.')
 
-    def _update(self, value) -> None:
+    def update(self, value) -> None:
         """
         Update the metric value based on new information.
         This should be used internally by the `calculate` method or other logic.
