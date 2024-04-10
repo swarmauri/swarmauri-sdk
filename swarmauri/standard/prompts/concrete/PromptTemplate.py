@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from swarmauri.core.prompts.IPrompt import IPrompt
 from swarmauri.core.prompts.ITemplate import ITemplate
 
