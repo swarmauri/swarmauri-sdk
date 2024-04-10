@@ -471,49 +471,49 @@ class AgentBase(IAgent, ABC):
 
 ```
 
-```swarmauri/standard/agents/base/DocumentAgentBase.py
+```swarmauri/standard/agents/base/VectorStoreAgentBase.py
 
 from typing import Any, Optional
 from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
-from swarmauri.core.agents.IAgentDocument import IAgentDocumentStore
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri.core.agents.IAgentVectorStore import IAgentVectorStore
+from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 
 
-class DocumentAgentBase(ConversationAgentBase, NamedAgentBase, IAgentDocumentStore):
+class VectorStoreAgentBase(ConversationAgentBase, NamedAgentBase, IAgentVectorStore):
     """
     Base class for agents that handle and store documents within their processing scope.
     Extends ConversationAgentBase and NamedAgentBase to utilize conversational context,
     naming capabilities, and implements IAgentDocumentStore for document storage.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: IConversation, document_store: IDocumentStore):
+    def __init__(self, name: str, model: IModel, conversation: IConversation, vector_store: IVectorStore):
         NamedAgentBase.__init__(self, name=name)  # Initialize name through NamedAgentBase
         ConversationAgentBase.__init__(self, model, conversation)  # Initialize conversation and model
-        self._document_store = document_store  # Document store initialization
+        self._vector_store = vector_store  # Document store initialization
 
     @property
-    def document_store(self) -> Optional[IDocument]:
+    def vector_store(self) -> Optional[IDocument]:
         """
         Gets the document store associated with this agent.
         
         Returns:
             Optional[IDocument]: The document store of the agent, if any.
         """
-        return self._document_store
+        return self._vector_store
 
-    @document_store.setter
-    def document_store(self, value: IDocument) -> None:
+    @vector_store.setter
+    def vector_store(self, value: IDocument) -> None:
         """
         Sets the document store for this agent.
 
         Args:
             value (IDocument): The new document store to be associated with the agent.
         """
-        self._document_store = value
+        self._vector_store = value
     
     def exec(self, input_data: Optional[Any]) -> Any:
         """
@@ -879,21 +879,21 @@ from typing import Any, Optional, Union, Dict
 from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.agents.base.DocumentAgentBase import DocumentAgentBase
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
+from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveBase import VectorStoreRetrieveBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(DocumentAgentBase):
+class RagAgent(VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, document_store: DocumentStoreRetrieveBase):
-        super().__init__(name=name, model=model, conversation=conversation, document_store=document_store)
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorStoreRetrieveBase):
+        super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 
              input_data: Union[str, IMessage], 
@@ -916,7 +916,7 @@ class RagAgent(DocumentAgentBase):
         
         
         
-        similar_documents = self.document_store.retrieve(query=input_data, top_k=top_k)
+        similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
         substr = '\n'.join([doc.content for doc in similar_documents])
         
         # Use substr to set system context
@@ -3352,130 +3352,6 @@ class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/FaissVectorStore.py
-
-import faiss
-import numpy as np
-from typing import List, Dict
-
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
-from swarmauri.core.vector_stores.ISimilarityQuery import ISimilarityQuery
-from swarmauri.core.vectors.IVector import IVector
-
-class FaissVectorStore(IVectorStore, ISimilarityQuery):
-    """
-    A vector store that utilizes FAISS for efficient similarity searches.
-    """
-
-    def __init__(self, dimension: int, index_type: str = "IVF256,Flat"):
-        """
-        Initialize the FAISS vector store with the given dimension and index type.
-
-        Parameters:
-        - dimension (int): The dimensionality of the vectors being stored.
-        - index_type (str): The FAISS index type. Defaults to "IVF256,Flat" for an inverted file index.
-        """
-        self.dimension = dimension
-        self.index = faiss.index_factory(dimension, index_type)
-        self.id_to_vector = {}
-        self.id_to_metadata = {}
-
-    def add_vector(self, vector_id: str, vector: IVector, metadata: Dict = None) -> None:
-        """
-        Add a vector along with its identifier and optional metadata to the store.
-
-        Parameters:
-        - vector_id (str): Unique identifier for the vector.
-        - vector (IVector): The high-dimensional vector to be stored.
-        - metadata (Dict, optional): Optional metadata related to the vector.
-        """
-        # Ensure the vector is a numpy array and add it to the FAISS index
-        np_vector = np.array(vector.data, dtype='float32').reshape(1, -1)
-        self.index.add(np_vector)
-        self.id_to_vector[vector_id] = vector
-        if metadata:
-            self.id_to_metadata[vector_id] = metadata
-
-    def get_vector(self, vector_id: str) -> IVector:
-        """
-        Retrieve a vector by its identifier.
-
-        Parameters:
-        - vector_id (str): The unique identifier for the vector.
-
-        Returns:
-        - IVector: The vector associated with the given ID.
-        """
-        return self.id_to_vector.get(vector_id)
-
-    def search_by_similarity_threshold(self, query_vector: List[float], similarity_threshold: float, space_name: str = None) -> List[Dict]:
-        """
-        Search vectors exceeding a similarity threshold to a query vector within an optional vector space.
-
-        Parameters:
-        - query_vector (List[float]): The high-dimensional query vector.
-        - similarity_threshold (float): The similarity threshold for filtering results.
-
-        Returns:
-        - List[Dict]: A list of dictionaries with vector IDs, similarity scores, and optional metadata that meet the similarity threshold.
-        """
-        # FAISS requires numpy arrays in float32 for searches
-        np_query_vector = np.array(query_vector, dtype='float32').reshape(1, -1)
-
-        # Perform the search. FAISS returns distances, which can be converted to similarities.
-        _, I = self.index.search(np_query_vector, k=self.index.ntotal)  # Searching the entire index
-        results = []
-        for idx in I[0]:
-            vector_id = list(self.id_to_vector.keys())[idx]
-            # Simulate a similarity score based on the FAISS distance metric (e.g., L2 distance for now).
-            # Note: Depending on the index type and application, you might want to convert distances to actual similarities.
-            results.append({"id": vector_id, "score": similarity_threshold, "metadata": self.id_to_metadata.get(vector_id)})
-
-        return results
-
-```
-
-```swarmauri/standard/vector_stores/concrete/WeaviateVectorStore.py
-
-from typing import List, Dict
-import weaviate
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-
-class WeaviateVectorStore(IVectorStore):
-    def __init__(self, weaviate_url: str):
-        self.client = weaviate.Client(url=weaviate_url)
-        # Set up schema if not exists, etc.
-        pass
-    
-    def add_vector(self, vector_id: str, vector: IVector, metadata: Dict = None) -> None:
-        data_object = {
-            "vector": vector.data
-        }
-        if metadata:
-            data_object["metadata"] = metadata
-        self.client.data_object.create(data_object=data_object, class_name="Vector", uuid=vector_id)
-    
-    def get_vector(self, vector_id: str) -> IVector:
-        result = self.client.data_object.get_by_id(vector_id, ["vector"])
-        return SimpleVector(result['vector'])
-    
-    def delete_vector(self, vector_id: str) -> None:
-        self.client.data_object.delete(vector_id)
-    
-    def update_vector(self, vector_id: str, new_vector: IVector, new_metadata: Dict = None) -> None:
-        update_object = {
-            "vector": new_vector.data
-        }
-        if new_metadata:
-            update_object["metadata"] = new_metadata
-        self.client.data_object.update(object_id=vector_id, data_object=update_object)
-    
-    # Implement other methods like search_by_similarity_threshold from ISimilarityQuery interface, etc.
-
-```
-
 ```swarmauri/standard/vector_stores/concrete/TFIDFVectorStore.py
 
 from typing import List, Union
@@ -5224,6 +5100,7 @@ class LevenshteinDistance(IDistanceSimilarity):
 
 ```swarmauri/standard/metrics/base/MetricBase.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 from swarmauri.core.metrics.IMetric import IMetric
 
@@ -5273,10 +5150,21 @@ class MetricBase(IMetric, ABC):
         """
         self._unit = value
 
+    @abstractmethod
+    def __call__(self, **kwargs) -> Any:
+        """
+        Retrieves the current value of the metric.
+
+        Returns:
+            The current value of the metric.
+        """
+        return self.value
+
 ```
 
 ```swarmauri/standard/metrics/base/CalculateMetricBase.py
 
+from typing import Any
 from abc import ABC, abstractmethod
 from swarmauri.core.metrics.IMetric import IMetric
 from swarmauri.core.metrics.ICalculateMetric import ICalculateMetric
@@ -5331,7 +5219,6 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
     def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
-        Does not update the value. Merely used for inference.
         This method must be implemented by subclasses to define specific calculation logic.
         """
         raise NotImplementedError('calculate is not implemented yet.')
@@ -5347,8 +5234,7 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         """
         Calculates the metric, updates the value, and returns the current value.
         """
-        value = self.calculate(**kwargs)
-        self.update(value)
+        self.calculate(**kwargs)
         return self.value
 
 
@@ -5396,6 +5282,35 @@ class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
 
 ```
 
+```swarmauri/standard/metrics/base/ThresholdMetricBase.py
+
+from abc import ABC, abstractmethod
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+from swarmauri.core.metrics.IAggMeasurements import IAggMeasurements
+from swarmauri.core.metrics.IThreshold import IThreshold
+
+class ThresholdMetricBase(AggregateMetricBase, IAggMeasurements, ABC):
+    """
+    An abstract base class that implements the IMetric interface, providing common 
+    functionalities and properties for metrics within SwarmAURI.
+    """
+    def __init__(self, name: str, unit: str, k: int):
+        AggregateMetricBase.__init__(name, unit)
+        self._k = k
+
+    @property
+    @abstractmethod
+    def k(self) -> int:
+        return self._k
+
+    @k.setter
+    @abstractmethod
+    def k(self, value: int) -> None:
+        self._k = value
+
+
+```
+
 ```swarmauri/standard/metrics/concrete/__init__.py
 
 
@@ -5407,25 +5322,390 @@ class AggregateMetricBase(CalculateMetricBase, IAggMeasurements, ABC):
 from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
 
 class TaskSuccessRateMetric(AggregateMetricBase):
+    """
+    Metric calculating the task success rate over all attempted tasks.
+    """
+    
     def __init__(self):
-        super().__init__(name="Task Success Rate", unit="%")
+        super().__init__(name="TaskSuccessRate", unit="percentage")
         self.total_tasks = 0
         self.successful_tasks = 0
 
-    def calculate(self, *args, **kwargs) -> Any:
-        if self.total_tasks == 0:
-            return 0
-        else:
-            success_rate = (self.successful_tasks / self.total_tasks) * 100
-            return success_rate
-
-    def add_measurement(self, success: bool) -> None:
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds a task outcome to the metrics. Measurement should be a boolean indicating task success.
+        """
         self.total_tasks += 1
-        if success:
+        if measurement:
             self.successful_tasks += 1
+
+    def calculate(self, **kwargs) -> float:
+        """
+        Calculate the success rate of tasks based on the total and successful tasks.
+
+        Returns:
+            float: The success rate as a percentage.
+        """
+        if self.total_tasks == 0:
+            return 0.0
+        success_rate = (self.successful_tasks / self.total_tasks) * 100
+        self.update(success_rate)
+        return self.value
     
     @property
     def measurements(self):
-        return {"total_tasks": self.total_tasks, "successful_tasks": self.successful_tasks}
+        return {"total_tasks": self.total_tasks, "successful_tasks": self.successful_tasks} 
+
+```
+
+```swarmauri/standard/metrics/concrete/TimeOnTaskMetric.py
+
+import statistics
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class TimeOnTaskMetric(AggregateMetricBase):
+    """
+    Metric to calculate the average time users spend on a given task.
+    """
+    def __init__(self, name="Time on Task", unit="seconds"):
+        super().__init__(name, unit)
+
+    def calculate(self, **kwargs):
+        """
+        Calculate the average time on task based on the collected measurements.
+        """
+        if not self.measurements:
+            return 0
+        return statistics.mean(self.measurements)
+
+    def add_measurement(self, seconds: float) -> None:
+        """
+        Adds a measurement of time (in seconds) that a user spent on a task.
+        """
+        if seconds < 0:
+            raise ValueError("Time on task cannot be negative.")
+        super().add_measurement(seconds)
+
+```
+
+```swarmauri/standard/metrics/concrete/StaticValueMetric.py
+
+from swarmauri.standard.metrics.base.MetricBase import MetricBase
+
+# Implementing a StaticValueMetric class
+class StaticValueMetric(MetricBase):
+    """
+    A static metric that always returns a fixed, predefined value.
+    
+    Attributes:
+        name (str): The name of the metric.
+        unit (str): The unit of measurement for the metric.
+        _value (Any): The static value of the metric.
+    """
+    def __init__(self, name: str, unit: str, value):
+        """
+        Initialize the static metric with its name, unit, and static value.
+
+        Args:
+            name (str): The name identifier for the metric.
+            unit (str): The unit of measurement for the metric.
+            value: The static value for this metric.
+        """
+        # Initialize attributes from the base class
+        super().__init__(name, unit)
+        # Assign the static value
+        self._value = value
+
+    # Overriding the 'value' property to always return the static value
+    @property
+    def value(self):
+        """
+        Overridden to return the predefined static value for this metric.
+        """
+        return self._value
+
+```
+
+```swarmauri/standard/metrics/concrete/MeanMetric.py
+
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class MeanMetric(AggregateMetricBase):
+    """
+    A metric that calculates the mean (average) of a list of numerical values.
+
+    Attributes:
+        name (str): The name of the metric.
+        unit (str): The unit of measurement for the mean (e.g., "degrees", "points").
+        _value (float): The calculated mean of the measurements.
+        _measurements (list): A list of measurements (numerical values) to average.
+    """
+    def __init__(self, name: str, unit: str):
+        """
+        Initialize the MeanMetric with its name and unit.
+
+        Args:
+            name (str): The name identifier for the metric.
+            unit (str): The unit of measurement for the mean.
+        """
+        # Calling the constructor of the base class
+        super().__init__(name, unit)
+    
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds a measurement to the internal list of measurements.
+
+        Args:
+            measurement (float): A numerical value to be added to the list of measurements.
+        """
+        # Append the measurement to the internal list
+        self._measurements.append(measurement)
+
+    def calculate(self) -> float:
+        """
+        Calculate the mean of all added measurements.
+        
+        Returns:
+            float: The mean of the measurements or None if no measurements have been added.
+        """
+        if not self._measurements:
+            return None  # Return None if there are no measurements
+        # Calculate the mean
+        mean = sum(self._measurements) / len(self._measurements)
+        # Update the metric's value
+        self.update(mean)
+        # Return the calculated mean
+        return mean
+
+```
+
+```swarmauri/standard/metrics/concrete/ThresholdMeanMetric.py
+
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class ThresholdMeanMetric(ThresholdMetricBase):
+    """
+    Calculates the mean of measurements that fall within a specified threshold from the current mean.
+    """
+
+    def is_within_threshold(self, measurement: float) -> bool:
+        if self._value is None:  # If there's no current value, accept the measurement
+            return True
+        return abs(measurement - self._value) <= self.threshold
+    
+    def calculate(self) -> float:
+        # Filtering the measurements based on the threshold
+        filtered_measurements = [m for m in self._measurements if self.is_within_threshold(m)]
+
+        # Calculate the mean of filtered measurements
+        if not filtered_measurements:
+            return None  # Return None if there are no measurements within the threshold
+
+        mean_value = sum(filtered_measurements) / len(filtered_measurements)
+        self.update(mean_value)
+        return mean_value
+
+```
+
+```swarmauri/standard/metrics/concrete/ZeroMetric.py
+
+from swarmauri.standard.metrics.base.MetricBase import MetricBase
+
+class ZeroMetric(MetricBase):
+    """
+    A concrete implementation of MetricBase that statically represents the value 0.
+    This can be used as a placeholder or default metric where dynamic calculation is not required.
+    """
+
+    def __init__(self):
+        super().__init__(name="ZeroMetric", unit="unitless")
+
+    @property
+    def value(self):
+        """
+        Overrides the value property to always return 0.
+        """
+        return 0
+
+
+
+```
+
+```swarmauri/standard/metrics/concrete/SystemUsabilityScaleMetric.py
+
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class SystemUsabilityScaleMetric(AggregateMetricBase):
+    """
+    Metric calculating the System Usability Scale (SUS) score based on a set of questionnaire responses.
+    """
+    
+    def __init__(self):
+        super().__init__(name="SystemUsabilityScale", unit="SUS score")
+
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds individual SUS questionnaire item scores (ranging from 0-4) to the measurements.
+        """
+        if isinstance(measurement, list) and all(isinstance(item, int) and 0 <= item <= 4 for item in measurement):
+            self._measurements.extend(measurement)
+        else:
+            raise ValueError("Each measurement must be a list of integers between 0 and 4.")
+
+    def calculate(self, **kwargs) -> float:
+        """
+        Calculate the SUS score from the current measurements.
+        
+        Returns:
+            float: The calculated SUS score.
+        """
+        if len(self._measurements) != 10:
+            raise ValueError("Exactly 10 measurements are required to calculate the SUS score.")
+        
+        # Adjust scores for negative items: subtract each score from 4
+        adjusted_scores = [self._measurements[i] if i % 2 == 0 else 4 - self._measurements[i] for i in range(10)]
+        
+        # Calculate the SUS score: multiply the sum of scores by 2.5
+        sus_score = sum(adjusted_scores) * 2.5
+        self.update(sus_score)
+        return self.value
+
+```
+
+```swarmauri/standard/metrics/concrete/FirstImpressionMetric.py
+
+from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+
+class FirstImpressionMetric(AggregateMetricBase):
+    """
+    Metric for capturing the first impression score from a set of scores.
+    """
+
+    def __init__(self, name="FirstImpressionScore", unit="points"):
+        super().__init__(name=name, unit=unit)
+        self._first_impression = None
+
+    def add_measurement(self, measurement) -> None:
+        """
+        Adds a new score as a measurement. Only the first score is considered as the first impression.
+        """
+        if self._first_impression is None:
+            if isinstance(measurement, (int, float)):
+                self._first_impression = measurement
+                self._measurements.append(measurement)
+            else:
+                raise ValueError("Measurement must be a numerical value.")
+    
+    def calculate(self) -> float:
+        """
+        Returns the first impression score.
+
+        Returns:
+            float: The first impression score.
+        """
+        if self._first_impression is None:
+            raise ValueError("No measurement added. Unable to calculate first impression score.")
+        
+        self.update(self._first_impression)
+        return self.value
+
+```
+
+```swarmauri/standard/metrics/concrete/HitRateAtK.py
+
+from typing import List, Tuple, Any
+from swarmauri.standard.metrics.base.ThresholdMetricBase import ThresholdMetricBase
+
+class HitRateAtK(ThresholdMetricBase):
+    """
+    Hit Rate at K (HR@K) metric calculates the proportion of times an item of interest 
+    appears in the top-K recommendations.
+    """
+
+    def __init__(self, name="HitRate@K", unit="ratio", k: int):
+        """
+        Initializes the Hit Rate at K metric with a specified k value, name, and unit 
+        of measurement.
+        
+        Args:
+            k (int): The k value for the top-K recommendations.
+            name (str): The name of the metric.
+            unit (str): The unit of measurement for the metric.
+        """
+        super().__init__(name=name, unit=unit, k=k)
+
+    def add_measurement(self, measurement: Tuple[List[Any], Any]) -> None:
+        """
+        Adds a measurement for HR@K calculation. The measurement should be a tuple
+        (recommendations, target), where recommendations is a list of recommended items, 
+        and target is the item of interest.
+
+        Args:
+            measurement (Tuple[List[Any], Any]): List of recommended items and the target item.
+        """
+        if len(measurement) != 2 or not isinstance(measurement[0], list):
+            raise ValueError("Measurement must be a tuple (recommendations, target).")
+        self._measurements.append(measurement)
+
+    def calculate(self) -> Any:
+        """
+        Calculate the HR@K based on the provided measurements.
+
+        Returns:
+            Any: The HR@K score as a floating point number.
+        """
+        if not self._measurements:
+            raise ValueError("No measurements added to calculate HR@K.")
+
+        hits = 0
+        for recommendations, target in self._measurements:
+            hits += 1 if target in recommendations[:self.k] else 0
+
+        hit_rate_at_k = hits / len(self._measurements)
+
+        self.update(hit_rate_at_k)
+        return self.value
+
+    def reset(self) -> None:
+        """
+        Resets the metric's state/value, allowing for fresh calculations.
+        """
+        super().reset()
+
+```
+
+```swarmauri/standard/metrics/concrete/ImpressionAtK.py
+
+from swarmauri.standard.metrics.base.ThresholdMetricBase import ThresholdMetricBase
+
+class ImpressionAtKMetric(ThresholdMetricBase):
+    def __init__(self, k: int):
+        super().__init__(name="Impression at K", unit="count", k=k)
+    
+    def calculate(self, impressions, **kwargs):
+        if not isinstance(impressions, list):
+            raise ValueError("Impressions should be provided as a list")
+        
+        k_impressions = impressions[:self._k] if len(impressions) >= self._k else impressions
+
+        self._value = len([imp for imp in k_impressions if imp > 0])
+        return self._value
+
+    def reset(self):
+        self._value = 0
+    
+    def update(self, value):
+        raise NotImplementedError("This Metric does not support update operation directly.")
+    
+    def __call__(self, **kwargs):
+        """
+        Retrieves the current value of the metric.
+        
+        Returns:
+            The current value of the metric if calculated; otherwise, triggers a calculation.
+        """
+        if 'impressions' in kwargs:
+            return self.calculate(kwargs['impressions'])
+        return self._value
 
 ```

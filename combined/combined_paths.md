@@ -36,6 +36,7 @@ swarmauri/core/conversations/ISystemContext.py
 swarmauri/core/documents/__init__.py
 swarmauri/core/documents/IDocument.py
 swarmauri/core/documents/IEmbed.py
+swarmauri/core/documents/IExperimentDocument.py
 swarmauri/core/messages/IMessage.py
 swarmauri/core/messages/__init__.py
 swarmauri/core/parsers/__init__.py
@@ -50,7 +51,7 @@ swarmauri/core/agents/IAgentRetriever.py
 swarmauri/core/agents/IAgentParser.py
 swarmauri/core/agents/IAgentName.py
 swarmauri/core/agents/IAgent.py
-swarmauri/core/agents/IAgentDocument.py
+swarmauri/core/agents/IAgentVectorStore.py
 swarmauri/core/swarms/__init__.py
 swarmauri/core/swarms/ISwarm.py
 swarmauri/core/swarms/ISwarmComponent.py
@@ -112,6 +113,9 @@ swarmauri/core/metrics/__init__.py
 swarmauri/core/metrics/IMetric.py
 swarmauri/core/metrics/ICalculateMetric.py
 swarmauri/core/metrics/IAggMeasurements.py
+swarmauri/core/metrics/IThreshold.py
+swarmauri/core/experiment_stores/__init__.py
+swarmauri/core/experiment_stores/IExperimentStore.py
 swarmauri/experimental/__init__.py
 swarmauri/experimental/tools/LinkedInArticleTool.py
 swarmauri/experimental/tools/TwitterPostTool.py
@@ -182,7 +186,7 @@ swarmauri/standard/agents/base/NamedAgentBase.py
 swarmauri/standard/agents/base/ConversationAgentBase.py
 swarmauri/standard/agents/base/ToolAgentBase.py
 swarmauri/standard/agents/base/AgentBase.py
-swarmauri/standard/agents/base/DocumentAgentBase.py
+swarmauri/standard/agents/base/VectorStoreAgentBase.py
 swarmauri/standard/agents/concrete/__init__.py
 swarmauri/standard/agents/concrete/ToolAgent.py
 swarmauri/standard/agents/concrete/ChatSwarmAgent.py
@@ -271,8 +275,6 @@ swarmauri/standard/vector_stores/base/__init__.py
 swarmauri/standard/vector_stores/base/VectorDocumentStoreBase.py
 swarmauri/standard/vector_stores/base/VectorDocumentStoreRetrieveBase.py
 swarmauri/standard/vector_stores/concrete/__init__.py
-swarmauri/standard/vector_stores/concrete/FaissVectorStore.py
-swarmauri/standard/vector_stores/concrete/WeaviateVectorStore.py
 swarmauri/standard/vector_stores/concrete/TFIDFVectorStore.py
 swarmauri/standard/vector_stores/concrete/BERTVectorStore.py
 swarmauri/standard/vector_stores/concrete/Doc2VecVectorStore.py
@@ -330,5 +332,15 @@ swarmauri/standard/metrics/base/__init__.py
 swarmauri/standard/metrics/base/MetricBase.py
 swarmauri/standard/metrics/base/CalculateMetricBase.py
 swarmauri/standard/metrics/base/AggregateMetricBase.py
+swarmauri/standard/metrics/base/ThresholdMetricBase.py
 swarmauri/standard/metrics/concrete/__init__.py
 swarmauri/standard/metrics/concrete/TaskSuccessRateMetric.py
+swarmauri/standard/metrics/concrete/TimeOnTaskMetric.py
+swarmauri/standard/metrics/concrete/StaticValueMetric.py
+swarmauri/standard/metrics/concrete/MeanMetric.py
+swarmauri/standard/metrics/concrete/ThresholdMeanMetric.py
+swarmauri/standard/metrics/concrete/ZeroMetric.py
+swarmauri/standard/metrics/concrete/SystemUsabilityScaleMetric.py
+swarmauri/standard/metrics/concrete/FirstImpressionMetric.py
+swarmauri/standard/metrics/concrete/HitRateAtK.py
+swarmauri/standard/metrics/concrete/ImpressionAtK.py

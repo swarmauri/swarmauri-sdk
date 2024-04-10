@@ -52,4 +52,12 @@ class IMetric(ABC):
         """
         pass
 
+    @abstractmethod
+    def __call__(self, **kwargs) -> Any:
+        """
+        Retrieves the current value of the metric.
 
+        Returns:
+            The current value of the metric.
+        """
+        pass

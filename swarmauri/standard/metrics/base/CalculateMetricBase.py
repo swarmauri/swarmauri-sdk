@@ -53,7 +53,6 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
     def calculate(self, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
-        Does not update the value. Merely used for inference.
         This method must be implemented by subclasses to define specific calculation logic.
         """
         raise NotImplementedError('calculate is not implemented yet.')
@@ -69,6 +68,5 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         """
         Calculates the metric, updates the value, and returns the current value.
         """
-        value = self.calculate(**kwargs)
-        self.update(value)
+        self.calculate(**kwargs)
         return self.value

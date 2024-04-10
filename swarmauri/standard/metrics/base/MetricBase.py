@@ -47,3 +47,13 @@ class MetricBase(IMetric, ABC):
         Set the unit of measurement for the metric.
         """
         self._unit = value
+
+    @abstractmethod
+    def __call__(self, **kwargs) -> Any:
+        """
+        Retrieves the current value of the metric.
+
+        Returns:
+            The current value of the metric.
+        """
+        return self.value
