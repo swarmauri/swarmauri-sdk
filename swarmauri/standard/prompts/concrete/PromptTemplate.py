@@ -1,58 +1,62 @@
 from typing import Dict
-from ....core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.ITemplate import ITemplate
 
-class PromptTemplate(IPrompt):
+class PromptTemplate(IPrompt, ITemplate):
     """
-    A class that represents a template for generating prompts, 
-    allowing dynamic content insertion into pre-defined template slots.
-
-    Attributes:
-        template (str): A string template with placeholders for content insertion.
-        variables (Dict[str, str]): A dictionary mapping placeholder names in the template to their content.
+    A class for generating prompts based on a template and variables.
+    Implements the IPrompt for generating prompts and ITemplate for template manipulation.
     """
 
-    def __init__(self, template: str = "", variables: Dict[str, str] = {}):
-        """
-        Initializes a new instance of the PromptTemplate class.
+    def __init__(self, template: str = "", variables: List[Dict[str, str]] = []):
+        self._template = template
+        self._variables_list = variables
 
-        Args:
-            template (str): The string template for the prompt.
-            variables (Dict[str, str]): A dictionary mapping variables in the template to their values.
+    @property
+    def template(self) -> str:
         """
-        self.template = template
-        self.variables = variables
+        Get the current prompt template.
+        """
+        return self._template
 
-    def __call__(self, variables: Dict[str, str] = {}):
+    @template.setter
+    def template(self, value: str) -> None:
         """
-        Generates the prompt string by substituting variables into the template.
+        Set a new template string for the prompt.
+        """
+        self._template = value
 
-        Returns:
-            str: The generated prompt with variables substituted.
+    @property
+    def variables(self) -> List[Dict[str, str]]:
         """
-        variables = variables or self.variables
-        formatted_prompt = self.template.format(**variables)
-        return formatted_prompt
+        Get the current set of variables for the template.
+        """
+        return self._variables_list 
 
-    def set_template(self, template: str):
-        """
-        Sets a new template string for the prompt.
+    @variables.setter
+    def variables(self, value: List[Dict[str, str]]) -> None:
+        if not isinstance(value, list):
+            raise ValueError("Variables must be a list of dictionaries.")
+        self._variables_list = value
 
-        Args:
-            template (str): The new string template to use.
+    def set_template(self, template: str) -> None:
         """
-        self.template = template
+        Sets or updates the current template string.
+        """
+        self._template = template
 
-    def set_variables(self, variables: Dict[str, str]):
+    def set_variables(self, variables: Dict[str, str]) -> None:
         """
-        Sets the variables to be substituted into the template.
+        Sets or updates the variables to be substituted into the template.
+        """
+        self._variables_list = variables
 
-        Args:
-            variables (Dict[str, str]): A dictionary of variables to be substituted into the template.
-        
-        Raises:
-            TypeError: If the provided variables argument is not a dictionary.
+    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+        variables = variables or (self._variables_list.pop(0) if self._variables_list else {})
+        return self._template.format(**variables)
+
+    def __call__(self, **kwargs) -> str:
         """
-        if isinstance(variables, dict):
-            self.variables = variables
-        else:
-            raise TypeError("Invalid type. Expected dict for variables.")
+        Generates a prompt using the current template and provided keyword arguments for substitution.
+        """
+        return self.generate_prompt(**kwargs)
