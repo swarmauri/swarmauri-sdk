@@ -12113,7 +12113,7 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         Returns:
             The current value of the metric.
         """
-        self._update(self.calculate(data))
+        self.update(self.calculate(data))
         return self.value
 
 
