@@ -24,7 +24,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 ```swarmauri/__init__.py
 
-__version__ = "0.1.30"
+__version__ = "0.1.31"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -9358,9 +9358,9 @@ class PromptGenerator(IPrompt, ITemplate):
     It implements the IPrompt and ITemplate interfaces.
     """
 
-    def __init__(self, template: str = ""):
+    def __init__(self, template: str = "", variables: List[Dict[str, str]] = []):
         self._template = template
-        self._variables_list = []
+        self._variables_list = variables
 
     @property
     def template(self) -> str:
@@ -12092,7 +12092,7 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         self._unit = value
 
     @abstractmethod
-    def calculate(self, *args, **kwargs) -> None:
+    def calculate(self, *args, **kwargs) -> Any:
         """
         Calculate the metric based on the provided data.
         This method must be implemented by subclasses to define specific calculation logic.
@@ -12113,7 +12113,8 @@ class CalculateMetricBase(IMetric, ICalculateMetric, ABC):
         Returns:
             The current value of the metric.
         """
-        self.update(self.calculate(data))
+        value = self.calculate(data)
+        self.update(value)
         return self.value
 
 
