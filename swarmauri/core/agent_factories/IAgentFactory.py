@@ -1,12 +1,20 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict
-from swarmauri.core.agents.IAgent import IAgent
-from swarmauri.core.chains.ICallableChain import ICallableChain
+from typing import Type, Any
+from datetime import datetime
 
-class ISwarm(ABC):
+class IAgentFactory(ABC):
     """
-    Interface for a Swarm, representing a collective of agents capable of performing tasks, executing callable chains, and adaptable configurations.
+    Interface for Agent Factories, extended to include properties like ID, name, type,
+    creation date, and last modification date.
     """
+
+    @abstractmethod
+    def create_agent(self, agent_type: str, **kwargs) -> Any:
+        pass
+
+    @abstractmethod
+    def register_agent(self, agent_type: str, constructor: Type[Any]) -> None:
+        pass
 
     # Abstract properties and setters
     @property
@@ -23,6 +31,7 @@ class ISwarm(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
+        """Name of the factory."""
         pass
 
     @name.setter
@@ -33,6 +42,7 @@ class ISwarm(ABC):
     @property
     @abstractmethod
     def type(self) -> str:
+        """Type of agents this factory produces."""
         pass
 
     @type.setter
@@ -43,11 +53,13 @@ class ISwarm(ABC):
     @property
     @abstractmethod
     def date_created(self) -> datetime:
+        """The creation date of the factory instance."""
         pass
 
     @property
     @abstractmethod
     def last_modified(self) -> datetime:
+        """Date when the factory was last modified."""
         pass
 
     @last_modified.setter
@@ -64,3 +76,4 @@ class ISwarm(ABC):
         """
         pass
 
+   

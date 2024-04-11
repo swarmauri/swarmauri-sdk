@@ -2,10 +2,20 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 from swarmauri.core.agents.IAgent import IAgent
 
-class IAgentRegistration(ABC):
+class ISwarmAgentRegistration(ABC):
     """
     Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
     """
+
+    @id.setter
+    @abstractmethod
+    def registry(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def registry(self) -> List[IAgent]:
+        pass
 
     @abstractmethod
     def register_agent(self, agent: IAgent) -> bool:
@@ -61,12 +71,3 @@ class IAgentRegistration(ABC):
         """
         pass
 
-    @abstractmethod
-    def list_agents(self) -> List[IAgent]:
-        """
-        List all registered agents.
-
-        Returns:
-            List[IAgent]: A list containing instances of all registered IAgents.
-        """
-        pass
