@@ -34,4 +34,4 @@ class StateChain:
         return value
     
     def set_context(self, **kwargs):
-        self._context.update(kwargs))
+        self._context.update(kwargs)

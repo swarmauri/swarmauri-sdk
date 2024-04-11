@@ -1,4 +1,4 @@
-from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+from swarmauri.standard.metrics.base.ThresholdMetricBase import ThresholdMetricBase
 
 class ThresholdMeanMetric(ThresholdMetricBase):
     """

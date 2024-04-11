@@ -7,7 +7,7 @@ class HitRateAtK(ThresholdMetricBase):
     appears in the top-K recommendations.
     """
 
-    def __init__(self, name="HitRate@K", unit="ratio", k: int):
+    def __init__(self, name="HitRate@K", unit="ratio", k: int = 5):
         """
         Initializes the Hit Rate at K metric with a specified k value, name, and unit 
         of measurement.
