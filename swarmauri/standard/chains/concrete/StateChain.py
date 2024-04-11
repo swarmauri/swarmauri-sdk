@@ -7,12 +7,12 @@ class StateChain:
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
     """
     def __init__(self):
-        self._steps: List[ChainStep] = []
+        self._steps: List[ChainStepBase] = []
         self._context: Dict[str, Any] = {}
 
     def add_step(self, key: str, method: Callable[..., Any], *args, return_key: str = None, **kwargs):
         # Directly store args, kwargs and optionally a return_key without resolving them
-        step = ChainStep(key, method, args=args, kwargs=kwargs, return_key=return_key)
+        step = ChainStepBase(key, method, args=args, kwargs=kwargs, return_key=return_key)
         self._steps.append(step)
 
     def execute_chain(self):
