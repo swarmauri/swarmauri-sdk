@@ -9,7 +9,7 @@ from swarmauri.standard.messages.concrete import (HumanMessage,
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(VectorDocumentStoreRetrieveBase):
+class RagAgent(VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
