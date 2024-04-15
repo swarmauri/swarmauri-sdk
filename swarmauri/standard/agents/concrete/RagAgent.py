@@ -3,19 +3,19 @@ from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveBase import VectorStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveAgentBase import VectorStoreRetrieveAgentBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(VectorStoreAgentBase):
+class RagAgent(VectorStoreRetrieveAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorStoreRetrieveBase):
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorStoreRetrieveAgentBase):
         super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 

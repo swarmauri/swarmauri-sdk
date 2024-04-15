@@ -28,7 +28,10 @@ setup(
             'gensim',
             'rdflib',
             'pygments',
-            'stanford_openie'
+            'stanford_openie',
+            'sentencepiece',
+            'gradio',
+            'websockets'
         ],
         'community': [
             'openai',
@@ -77,7 +80,10 @@ setup(
             'textblob',
             'spacy',
             'pygments',
-            'stanford_openie'
+            'stanford_openie',
+            'sentencepiece',
+            'gradio',
+            'websockets'
         ]},
     classifiers=[
         'License :: OSI Approved :: MIT License',
