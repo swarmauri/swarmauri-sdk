@@ -51,12 +51,12 @@ class PromptTemplate(IPrompt, ITemplate):
         """
         self._variables_list = variables
 
-    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
-        variables = variables or (self._variables_list.pop(0) if self._variables_list else {})
+    def generate_prompt(self, variables: List[Dict[str, str]] = None) -> str:
+        variables = variables.pop(0) or (self._variables_list.pop(0) if self._variables_list else {})
         return self._template.format(**variables)
 
-    def __call__(self, **kwargs) -> str:
+    def __call__(self, variables: List[Dict[str, str]]) -> str:
         """
         Generates a prompt using the current template and provided keyword arguments for substitution.
         """
-        return self.generate_prompt(**kwargs)
+        return self.generate_prompt(variables)
