@@ -880,7 +880,7 @@ from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveBase import VectorStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
@@ -892,7 +892,7 @@ class RagAgent(VectorStoreAgentBase):
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorStoreRetrieveBase):
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
         super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 
@@ -2569,15 +2569,15 @@ class PromptTemplate(IPrompt, ITemplate):
         """
         self._variables_list = variables
 
-    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
-        variables = variables or (self._variables_list.pop(0) if self._variables_list else {})
+    def generate_prompt(self, variables: List[Dict[str, str]] = None) -> str:
+        variables = variables.pop(0) or (self._variables_list.pop(0) if self._variables_list else {})
         return self._template.format(**variables)
 
-    def __call__(self, **kwargs) -> str:
+    def __call__(self, variables: List[Dict[str, str]]) -> str:
         """
         Generates a prompt using the current template and provided keyword arguments for substitution.
         """
-        return self.generate_prompt(**kwargs)
+        return self.generate_prompt(variables)
 
 ```
 
@@ -3198,6 +3198,12 @@ class AdditionTool(ToolBase):
 ```
 
 ```swarmauri/standard/apis/base/__init__.py
+
+
+
+```
+
+```swarmauri/standard/apis/base/README.md
 
 
 
@@ -4384,6 +4390,92 @@ class TFIDFVectorizer(IVectorize, IFeature):
 
 ```
 
+```swarmauri/standard/vectorizers/concrete/NMFVectorizer.py
+
+from sklearn.decomposition import NMF
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from swarmauri.core.vectorizers.IVectorize import IVectorize
+from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+
+class NMFVectorizer(IVectorize, IFeature):
+    def __init__(self, n_components=10):
+        # Initialize TF-IDF Vectorizer
+        self.tfidf_vectorizer = TfidfVectorizer()
+        # Initialize NMF with the desired number of components
+        self.nmf_model = NMF(n_components=n_components)
+        self.feature_names = []
+
+    def fit(self, data):
+        """
+        Fit the NMF model to data.
+
+        Args:
+            data (Union[str, Any]): The text data to fit.
+        """
+        # Transform data into TF-IDF matrix
+        tfidf_matrix = self.tfidf_vectorizer.fit_transform(data)
+        # Fit the NMF model
+        self.nmf_model.fit(tfidf_matrix)
+        # Store feature names
+        self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
+
+    def transform(self, data):
+        """
+        Transform new data into NMF feature space.
+
+        Args:
+            data (Union[str, Any]): Text data to transform.
+
+        Returns:
+            List[IVector]: A list of vectors representing the transformed data.
+        """
+        # Transform data into TF-IDF matrix
+        tfidf_matrix = self.tfidf_vectorizer.transform(data)
+        # Transform TF-IDF matrix into NMF space
+        nmf_features = self.nmf_model.transform(tfidf_matrix)
+
+        # Wrap NMF features in SimpleVector instances and return
+        return [SimpleVector(features.tolist()) for features in nmf_features]
+
+    def fit_transform(self, data):
+        """
+        Fit the model to data and then transform it.
+        
+        Args:
+            data (Union[str, Any]): The text data to fit and transform.
+
+        Returns:
+            List[IVector]: A list of vectors representing the fitted and transformed data.
+        """
+        self.fit(data)
+        return self.transform(data)
+
+    def infer_vector(self, data):
+        """
+        Convenience method for transforming a single data point.
+        
+        Args:
+            data (Union[str, Any]): Single text data to transform.
+
+        Returns:
+            IVector: A vector representing the transformed single data point.
+        """
+        return self.transform([data])[0]
+    
+    def extract_features(self):
+        """
+        Extract the feature names from the TF-IDF vectorizer.
+        
+        Returns:
+            The feature names.
+        """
+        return self.feature_names
+
+```
+
 ```swarmauri/standard/tracing/__init__.py
 
 #
@@ -4749,6 +4841,48 @@ class CallableChain(ICallableChain):
         
         new_chain = CallableChain(self.callables + other.callables)
         return new_chain
+
+```
+
+```swarmauri/standard/chains/concrete/StateChain.py
+
+from typing import Any, Dict, List, Callable
+from abc import ABC, abstractmethod
+from standard.chains.base.ChainStepBase import ChainStepBase
+
+class StateChain:
+    """
+    Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
+    """
+    def __init__(self):
+        self._steps: List[ChainStepBase] = []
+        self._context: Dict[str, Any] = {}
+
+    def add_step(self, key: str, method: Callable[..., Any], *args, return_key: str = None, **kwargs):
+        # Directly store args, kwargs and optionally a return_key without resolving them
+        step = ChainStepBase(key, method, args=args, kwargs=kwargs, return_key=return_key)
+        self._steps.append(step)
+
+    def execute_chain(self):
+        for step in self._steps:
+            # Resolve placeholders right before execution
+            resolved_args = [self._resolve_placeholders(arg) for arg in step.raw_args]
+            resolved_kwargs = {k: self._resolve_placeholders(v) for k, v in step.raw_kwargs.items()}
+            result = step.method(*resolved_args, **resolved_kwargs)
+
+            # If a return_key is provided, store the result under that key in the context
+            if step.return_key:
+                resolved_return_key = self._resolve_placeholders(step.return_key)
+                self._context[resolved_return_key] = result
+
+    def _resolve_placeholders(self, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
+            placeholder = value[2:-1]
+            return self._context.get(placeholder, value)
+        return value
+    
+    def set_context(self, **kwargs):
+        self._context.update(kwargs)
 
 ```
 
@@ -5481,7 +5615,7 @@ class MeanMetric(AggregateMetricBase):
 
 ```swarmauri/standard/metrics/concrete/ThresholdMeanMetric.py
 
-from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+from swarmauri.standard.metrics.base.ThresholdMetricBase import ThresholdMetricBase
 
 class ThresholdMeanMetric(ThresholdMetricBase):
     """
@@ -5622,7 +5756,7 @@ class HitRateAtK(ThresholdMetricBase):
     appears in the top-K recommendations.
     """
 
-    def __init__(self, name="HitRate@K", unit="ratio", k: int):
+    def __init__(self, name="HitRate@K", unit="ratio", k: int = 5):
         """
         Initializes the Hit Rate at K metric with a specified k value, name, and unit 
         of measurement.
@@ -5707,5 +5841,287 @@ class ImpressionAtKMetric(ThresholdMetricBase):
         if 'impressions' in kwargs:
             return self.calculate(kwargs['impressions'])
         return self._value
+
+```
+
+```swarmauri/standard/agent_factories/concrete/AgentFactory.py
+
+import json
+from datetime import datetime
+from typing import Callable, Dict, Any
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri.core.agentfactories.IExportConf import IExportConf
+
+class AgentFactory(IAgentFactory, IExportConf):
+    def __init__(self):
+        """ Initializes the AgentFactory with an empty registry and metadata. """
+        self._registry: Dict[str, Callable[..., IAgent]] = {}
+        self._metadata = {
+            'id': None,
+            'name': 'DefaultAgentFactory',
+            'type': 'Generic',
+            'date_created': datetime.now(),
+            'last_modified': datetime.now()
+        }
+    
+    # Implementation of IAgentFactory methods
+    def create_agent(self, agent_type: str, **kwargs) -> IAgent:
+        if agent_type not in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is not registered.")
+        
+        constructor = self._registry[agent_type]
+        return constructor(**kwargs)
+
+    def register_agent(self, agent_type: str, constructor: Callable[..., IAgent]) -> None:
+        if agent_type in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is already registered.")
+        self._registry[agent_type] = constructor
+        self._metadata['last_modified'] = datetime.now()
+    
+    # Implementation of IExportConf methods
+    def to_dict(self) -> Dict[str, Any]:
+        """Exports the registry metadata as a dictionary."""
+        export_data = self._metadata.copy()
+        export_data['registry'] = list(self._registry.keys())
+        return export_data
+
+    def to_json(self) -> str:
+        """Exports the registry metadata as a JSON string."""
+        return json.dumps(self.to_dict(), default=str, indent=4)
+
+    def export_to_file(self, file_path: str) -> None:
+        """Exports the registry metadata to a file."""
+        with open(file_path, 'w') as f:
+            f.write(self.to_json())
+    
+    @property
+    def id(self) -> int:
+        return self._metadata['id']
+
+    @id.setter
+    def id(self, value: int) -> None:
+        self._metadata['id'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def name(self) -> str:
+        return self._metadata['name']
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._metadata['name'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def type(self) -> str:
+        return self._metadata['type']
+
+    @type.setter
+    def type(self, value: str) -> None:
+        self._metadata['type'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def date_created(self) -> datetime:
+        return self._metadata['date_created']
+
+    @property
+    def last_modified(self) -> datetime:
+        return self._metadata['last_modified']
+
+    @last_modified.setter
+    def last_modified(self, value: datetime) -> None:
+        self._metadata['last_modified'] = value
+
+```
+
+```swarmauri/standard/agent_factories/concrete/ConfDrivenAgentFactory.py
+
+import json
+import importlib
+from datetime import datetime
+from typing import Any, Dict, Callable
+from swarmauri.core.agents.IAgent import IAgent  # Replace with the correct IAgent path
+from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri.core.agentfactories.IExportConf import IExportConf
+
+
+class ConfDrivenAgentFactory(IAgentFactory, IExportConf):
+    def __init__(self, config_path: str):
+        self._config_path = config_path
+        self._config = self._load_config(config_path)
+        self._registry = {}
+        self._metadata = {
+            'id': None,
+            'name': 'ConfAgentFactory',
+            'type': 'Configurable',
+            'date_created': datetime.now(),
+            'last_modified': datetime.now()
+        }
+        
+        self._initialize_registry()
+
+    def _load_config(self, config_path: str) -> Dict[str, Any]:
+        with open(config_path, 'r') as file:
+            return json.load(file)
+    
+    def _initialize_registry(self) -> None:
+        for agent_type, agent_info in self._config.get("agents", {}).items():
+            module_name, class_name = agent_info["class_path"].rsplit('.', 1)
+            module = importlib.import_module(module_name)
+            cls = getattr(module, class_name)
+            self.register_agent(agent_type, cls)
+    
+    # Implementation of IAgentFactory methods
+    def create_agent(self, agent_type: str, **kwargs) -> IAgent:
+        if agent_type not in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is not registered.")
+        
+        return self._registry[agent_type](**kwargs)
+
+    def register_agent(self, agent_type: str, constructor: Callable[..., IAgent]) -> None:
+        self._registry[agent_type] = constructor
+        self._metadata['last_modified'] = datetime.now()
+    
+    # Implementation of IExportConf methods
+    def to_dict(self) -> Dict[str, Any]:
+        return self._metadata.copy()
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), default=str, indent=4)
+
+    def export_to_file(self, file_path: str) -> None:
+        with open(file_path, 'w') as f:
+            f.write(self.to_json())
+
+    # Additional methods to implement required properties and their setters
+    # Implementing getters and setters for metadata properties as needed
+    @property
+    def id(self) -> int:
+        return self._metadata['id']
+
+    @id.setter
+    def id(self, value: int) -> None:
+        self._metadata['id'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def name(self) -> str:
+        return self._metadata['name']
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._metadata['name'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def type(self) -> str:
+        return self._metadata['type']
+
+    @type.setter
+    def type(self, value: str) -> None:
+        self._metadata['type'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def date_created(self) -> datetime:
+        return self._metadata['date_created']
+
+    @property
+    def last_modified(self) -> datetime:
+        return self._metadata['last_modified']
+
+    @last_modified.setter
+    def last_modified(self, value: datetime) -> None:
+        self._metadata['last_modified'] = value
+
+```
+
+```swarmauri/standard/agent_factories/concrete/ReflectiveAgentFactory.py
+
+import importlib
+from datetime import datetime
+import json
+from typing import Callable, Dict, Type, Any
+from swarmauri.core.agents.IAgent import IAgent  # Update this import path as needed
+from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri.core.agentfactories.IExportConf import IExportConf
+
+class ReflectiveAgentFactory(IAgentFactory, IExportConf):
+    def __init__(self):
+        self._registry: Dict[str, Type[IAgent]] = {}
+        self._metadata = {
+            'id': None,
+            'name': 'ReflectiveAgentFactory',
+            'type': 'Reflective',
+            'date_created': datetime.now(),
+            'last_modified': datetime.now()
+        }
+
+    def create_agent(self, agent_type: str, **kwargs) -> IAgent:
+        if agent_type not in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is not registered.")
+        
+        agent_class = self._registry[agent_type]
+        return agent_class(**kwargs)
+
+    def register_agent(self, agent_type: str, class_path: str) -> None:
+        module_name, class_name = class_path.rsplit('.', 1)
+        module = importlib.import_module(module_name)
+        cls = getattr(module, class_name)
+        self._registry[agent_type] = cls
+        self._metadata['last_modified'] = datetime.now()
+
+    # Implementations for the IExportConf interface
+    def to_dict(self) -> Dict[str, Any]:
+        return self._metadata.copy()
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), default=str, indent=4)
+
+    def export_to_file(self, file_path: str) -> None:
+        with open(file_path, 'w') as file:
+            file.write(self.to_json())
+
+    # Property implementations: id, name, type, date_created, and last_modified
+    @property
+    def id(self) -> int:
+        return self._metadata['id']
+
+    @id.setter
+    def id(self, value: int) -> None:
+        self._metadata['id'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def name(self) -> str:
+        return self._metadata['name']
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._metadata['name'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def type(self) -> str:
+        return self._metadata['type']
+
+    @type.setter
+    def type(self, value: str) -> None:
+        self._metadata['type'] = value
+        self._metadata['last_modified'] = datetime.now()
+
+    @property
+    def date_created(self) -> datetime:
+        return self._metadata['date_created']
+
+    @property
+    def last_modified(self) -> datetime:
+        return self._metadata['last_modified']
+
+    @last_modified.setter
+    def last_modified(self, value: datetime) -> None:
+        self._metadata['last_modified'] = value
 
 ```

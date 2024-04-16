@@ -494,7 +494,8 @@ class IEmbed(ABC):
 ```swarmauri/core/documents/IExperimentDocument.py
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from datetime import datetime
 from swarmauri.core.documents.IDocument import IDocument
 
 class IExperimentDocument(IDocument, ABC):
@@ -972,6 +973,7 @@ class IAgentVectorStore(ABC):
 
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
+from datetime import datetime
 from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.chains.ICallableChain import ICallableChain
 
@@ -980,85 +982,63 @@ class ISwarm(ABC):
     Interface for a Swarm, representing a collective of agents capable of performing tasks, executing callable chains, and adaptable configurations.
     """
 
+    # Abstract properties and setters
+    @property
     @abstractmethod
-    def add_agent(self, agent: IAgent) -> None:
-        """
-        Adds an agent to the swarm.
+    def id(self) -> str:
+        """Unique identifier for the factory instance."""
+        pass
 
-        Args:
-            agent (IAgent): The agent to be added.
+    @id.setter
+    @abstractmethod
+    def id(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @name.setter
+    @abstractmethod
+    def name(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> str:
+        pass
+
+    @type.setter
+    @abstractmethod
+    def type(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def date_created(self) -> datetime:
+        pass
+
+    @property
+    @abstractmethod
+    def last_modified(self) -> datetime:
+        pass
+
+    @last_modified.setter
+    @abstractmethod
+    def last_modified(self, value: datetime) -> None:
+        pass
+
+    def __hash__(self):
+        """
+        The __hash__ method allows objects of this class to be used in sets and as dictionary keys.
+        __hash__ should return an integer and be defined based on immutable properties.
+        This is generally implemented directly in concrete classes rather than in the interface,
+        but it's declared here to indicate that implementing classes must provide it.
         """
         pass
 
-    @abstractmethod
-    def remove_agent(self, agent_id: str) -> bool:
-        """
-        Removes an agent from the swarm by ID.
 
-        Args:
-            agent_id (str): The unique identifier for the agent.
-            
-        Returns:
-            bool: True if the agent was successfully removed; False otherwise.
-        """
-        pass
-
-    @abstractmethod
-    def execute_callable_chain(self, chain: ICallableChain, context: Dict[str, Any] = {}) -> Any:
-        """
-        Executes a callable chain within the swarm, optionally in a specific execution context.
-
-        Args:
-            chain (ICallableChain): The callable chain to be executed.
-            context (Dict[str, Any]): Optional context and metadata for executing the chain.
-        
-        Returns:
-            Any: The result of the chain execution.
-        """
-        pass
-
-    @abstractmethod
-    def get_agent(self, agent_id: str) -> IAgent:
-        """
-        Retrieves an agent by its ID from the swarm.
-
-        Args:
-            agent_id (str): The unique identifier for the agent.
-
-        Returns:
-            IAgent: The agent associated with the given id.
-        """
-        pass
-
-    @abstractmethod
-    def list_agents(self) -> List[IAgent]:
-        """
-        Lists all agents currently in the swarm.
-
-        Returns:
-            List[IAgent]: A list of agents in the swarm.
-        """
-        pass
-
-    @abstractmethod
-    def update_swarm_configuration(self, configuration: Dict[str, Any]) -> None:
-        """
-        Updates the swarm's configuration.
-
-        Args:
-            configuration (Dict[str, Any]): The new configuration settings for the swarm.
-        """
-        pass
-
-    @abstractmethod
-    def get_swarm_status(self) -> Dict[str, Any]:
-        """
-        Retrieves the current status and health information of the swarm, including the number of agents, active tasks, etc.
-
-        Returns:
-            Dict[str, Any]: The current status of the swarm.
-        """
-        pass
 
 ```
 
@@ -1250,10 +1230,20 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 from swarmauri.core.agents.IAgent import IAgent
 
-class IAgentRegistration(ABC):
+class ISwarmAgentRegistration(ABC):
     """
     Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
     """
+
+    @id.setter
+    @abstractmethod
+    def registry(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def registry(self) -> List[IAgent]:
+        pass
 
     @abstractmethod
     def register_agent(self, agent: IAgent) -> bool:
@@ -1309,13 +1299,72 @@ class IAgentRegistration(ABC):
         """
         pass
 
+
+
+```
+
+```swarmauri/core/swarms/ISwarmChainCRUD.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any
+
+class ISwarmChainCRUD(ABC):
+    """
+    Interface to provide CRUD operations for ICallableChain within swarms.
+    """
+
     @abstractmethod
-    def list_agents(self) -> List[IAgent]:
+    def create_chain(self, chain_id: str, chain_definition: Dict[str, Any]) -> None:
         """
-        List all registered agents.
+        Creates a callable chain with the provided definition.
+
+        Parameters:
+        - chain_id (str): A unique identifier for the callable chain.
+        - chain_definition (Dict[str, Any]): The definition of the callable chain including steps and their configurations.
+        """
+        pass
+
+    @abstractmethod
+    def read_chain(self, chain_id: str) -> Dict[str, Any]:
+        """
+        Retrieves the definition of a callable chain by its identifier.
+
+        Parameters:
+        - chain_id (str): The unique identifier of the callable chain to be retrieved.
 
         Returns:
-            List[IAgent]: A list containing instances of all registered IAgents.
+        - Dict[str, Any]: The definition of the callable chain.
+        """
+        pass
+
+    @abstractmethod
+    def update_chain(self, chain_id: str, new_definition: Dict[str, Any]) -> None:
+        """
+        Updates an existing callable chain with a new definition.
+
+        Parameters:
+        - chain_id (str): The unique identifier of the callable chain to be updated.
+        - new_definition (Dict[str, Any]): The new definition of the callable chain including updated steps and configurations.
+        """
+        pass
+
+    @abstractmethod
+    def delete_chain(self, chain_id: str) -> None:
+        """
+        Removes a callable chain from the swarm.
+
+        Parameters:
+        - chain_id (str): The unique identifier of the callable chain to be removed.
+        """
+        pass
+
+    @abstractmethod
+    def list_chains(self) -> List[Dict[str, Any]]:
+        """
+        Lists all callable chains currently managed by the swarm.
+
+        Returns:
+        - List[Dict[str, Any]]: A list of callable chain definitions.
         """
         pass
 
@@ -3322,6 +3371,141 @@ class IExperimentStore(ABC):
 
         Parameters:
         - experiment_id (str): The unique identifier of the experimental document to be deleted.
+        """
+        pass
+
+```
+
+```swarmauri/core/agent_factories/IAgentFactory.py
+
+from abc import ABC, abstractmethod
+from typing import Type, Any
+from datetime import datetime
+
+class IAgentFactory(ABC):
+    """
+    Interface for Agent Factories, extended to include properties like ID, name, type,
+    creation date, and last modification date.
+    """
+
+    @abstractmethod
+    def create_agent(self, agent_type: str, **kwargs) -> Any:
+        pass
+
+    @abstractmethod
+    def register_agent(self, agent_type: str, constructor: Type[Any]) -> None:
+        pass
+
+    # Abstract properties and setters
+    @property
+    @abstractmethod
+    def id(self) -> str:
+        """Unique identifier for the factory instance."""
+        pass
+
+    @id.setter
+    @abstractmethod
+    def id(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Name of the factory."""
+        pass
+
+    @name.setter
+    @abstractmethod
+    def name(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> str:
+        """Type of agents this factory produces."""
+        pass
+
+    @type.setter
+    @abstractmethod
+    def type(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def date_created(self) -> datetime:
+        """The creation date of the factory instance."""
+        pass
+
+    @property
+    @abstractmethod
+    def last_modified(self) -> datetime:
+        """Date when the factory was last modified."""
+        pass
+
+    @last_modified.setter
+    @abstractmethod
+    def last_modified(self, value: datetime) -> None:
+        pass
+
+    def __hash__(self):
+        """
+        The __hash__ method allows objects of this class to be used in sets and as dictionary keys.
+        __hash__ should return an integer and be defined based on immutable properties.
+        This is generally implemented directly in concrete classes rather than in the interface,
+        but it's declared here to indicate that implementing classes must provide it.
+        """
+        pass
+
+   
+
+```
+
+```swarmauri/core/agent_factories/__init__.py
+
+
+
+```
+
+```swarmauri/core/agent_factories/IExportConf.py
+
+from abc import ABC, abstractmethod
+from typing import Any, Dict
+
+class IExportConf(ABC):
+    """
+    Interface for exporting configurations related to agent factories.
+    
+    Implementing classes are expected to provide functionality for representing
+    the factory's configuration as a dictionary, JSON string, or exporting to a file.
+    """
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serializes the agent factory's configuration to a dictionary.
+        
+        Returns:
+            Dict[str, Any]: A dictionary representation of the factory's configuration.
+        """
+        pass
+
+    @abstractmethod
+    def to_json(self) -> str:
+        """
+        Serializes the agent factory's configuration to a JSON string.
+        
+        Returns:
+            str: A JSON string representation of the factory's configuration.
+        """
+        pass
+
+    @abstractmethod
+    def to_file(self, file_path: str) -> None:
+        """
+        Exports the agent factory's configuration to a file in a suitable format.
+        
+        Parameters:
+            file_path (str): The path to the file where the configuration should be saved.
         """
         pass
 

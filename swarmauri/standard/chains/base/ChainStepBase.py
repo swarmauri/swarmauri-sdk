@@ -6,7 +6,12 @@ class ChainStepBase(IChainStep):
     Represents a single step within an execution chain.
     """
     
-    def __init__(self, key: str, method: Callable, args: List[Any] = None, kwargs: Dict[str, Any] = None, ref: str = None):
+    def __init__(self, 
+        key: str, 
+        method: Callable, 
+        args: List[Any] = None, 
+        kwargs: Dict[str, Any] = None, 
+        ref: str = None):
         """
         Initialize a chain step.
 

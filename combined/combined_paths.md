@@ -58,6 +58,7 @@ swarmauri/core/swarms/ISwarmComponent.py
 swarmauri/core/swarms/ISwarmConfigurationExporter.py
 swarmauri/core/swarms/ISwarmFactory.py
 swarmauri/core/swarms/ISwarmAgentRegistration.py
+swarmauri/core/swarms/ISwarmChainCRUD.py
 swarmauri/core/toolkits/__init__.py
 swarmauri/core/toolkits/IToolkit.py
 swarmauri/core/tools/__init__.py
@@ -116,6 +117,9 @@ swarmauri/core/metrics/IAggMeasurements.py
 swarmauri/core/metrics/IThreshold.py
 swarmauri/core/experiment_stores/__init__.py
 swarmauri/core/experiment_stores/IExperimentStore.py
+swarmauri/core/agent_factories/IAgentFactory.py
+swarmauri/core/agent_factories/__init__.py
+swarmauri/core/agent_factories/IExportConf.py
 swarmauri/experimental/__init__.py
 swarmauri/experimental/tools/LinkedInArticleTool.py
 swarmauri/experimental/tools/TwitterPostTool.py
@@ -170,6 +174,8 @@ swarmauri/experimental/distances/SquaredEuclideanDistance.py
 swarmauri/experimental/distances/SSASimilarity.py
 swarmauri/experimental/distances/SSIVSimilarity.py
 swarmauri/experimental/distances/__init__.py
+swarmauri/experimental/apis/README.md
+swarmauri/experimental/apis/CeleryAgentCommands.py
 swarmauri/standard/README.md
 swarmauri/standard/__init__.py
 swarmauri/standard/models/__init__.py
@@ -269,6 +275,7 @@ swarmauri/standard/tools/concrete/Parameter.py
 swarmauri/standard/tools/concrete/AdditionTool.py
 swarmauri/standard/apis/__init__.py
 swarmauri/standard/apis/base/__init__.py
+swarmauri/standard/apis/base/README.md
 swarmauri/standard/apis/concrete/__init__.py
 swarmauri/standard/vector_stores/__init__.py
 swarmauri/standard/vector_stores/base/__init__.py
@@ -304,6 +311,7 @@ swarmauri/standard/vectorizers/concrete/__init__.py
 swarmauri/standard/vectorizers/concrete/Doc2VecVectorizer.py
 swarmauri/standard/vectorizers/concrete/MLMVectorizer.py
 swarmauri/standard/vectorizers/concrete/TFIDFVectorizer.py
+swarmauri/standard/vectorizers/concrete/NMFVectorizer.py
 swarmauri/standard/tracing/__init__.py
 swarmauri/standard/tracing/base/__init__.py
 swarmauri/standard/tracing/concrete/SimpleTracer.py
@@ -319,6 +327,7 @@ swarmauri/standard/chains/base/ChainBase.py
 swarmauri/standard/chains/base/ChainStepBase.py
 swarmauri/standard/chains/concrete/__init__.py
 swarmauri/standard/chains/concrete/CallableChain.py
+swarmauri/standard/chains/concrete/StateChain.py
 swarmauri/standard/distances/__init__.py
 swarmauri/standard/distances/base/__init__.py
 swarmauri/standard/distances/concrete/ChiSquaredDistance.py
@@ -344,3 +353,6 @@ swarmauri/standard/metrics/concrete/SystemUsabilityScaleMetric.py
 swarmauri/standard/metrics/concrete/FirstImpressionMetric.py
 swarmauri/standard/metrics/concrete/HitRateAtK.py
 swarmauri/standard/metrics/concrete/ImpressionAtK.py
+swarmauri/standard/agent_factories/concrete/AgentFactory.py
+swarmauri/standard/agent_factories/concrete/ConfDrivenAgentFactory.py
+swarmauri/standard/agent_factories/concrete/ReflectiveAgentFactory.py

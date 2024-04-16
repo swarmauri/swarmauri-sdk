@@ -202,5 +202,9 @@
     {
         "document_name": "swarmauri/experimental/distances/__init__.py",
         "content": "```swarmauri/experimental/distances/__init__.py\n# -*- coding: utf-8 -*-\n\n\n```"
+    },
+    {
+        "document_name": "swarmauri/experimental/apis/CeleryAgentCommands.py",
+        "content": "```swarmauri/experimental/apis/CeleryAgentCommands.py\nfrom celery import Celery\nfrom swarmauri.core.agent_apis.IAgentCommands import IAgentCommands\nfrom typing import Callable, Any, Dict\n\nclass CeleryAgentCommands(IAgentCommands):\n    def __init__(self, broker_url: str, backend_url: str):\n        \"\"\"\n        Initializes the Celery application with the specified broker and backend URLs.\n        \"\"\"\n        self.app = Celery('swarmauri_agent_tasks', broker=broker_url, backend=backend_url)\n\n    def register_command(self, command_name: str, function: Callable[..., Any], *args, **kwargs) -> None:\n        \"\"\"\n        Registers a new command as a Celery task.\n        \"\"\"\n        self.app.task(name=command_name, bind=True)(function)\n\n    def execute_command(self, command_name: str, *args, **kwargs) -> Any:\n        \"\"\"\n        Executes a registered command by name asynchronously.\n        \"\"\"\n        result = self.app.send_task(command_name, args=args, kwargs=kwargs)\n        return result.get()\n\n    def get_status(self, task_id: str) -> Dict[str, Any]:\n        \"\"\"\n        Fetches the status of a command execution via its task ID.\n        \"\"\"\n        async_result = self.app.AsyncResult(task_id)\n        return {\"status\": async_result.status, \"result\": async_result.result if async_result.ready() else None}\n\n    def revoke_command(self, task_id: str) -> None:\n        \"\"\"\n        Revokes or terminates a command execution by its task ID.\n        \"\"\"\n        self.app.control.revoke(task_id, terminate=True)\n```"
     }
 ]
