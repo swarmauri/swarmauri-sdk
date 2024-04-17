@@ -1,4 +1,4 @@
-from ....core.prompts.IPrompt import IPrompt
+from swarmauri.core.prompts.IPrompt import IPrompt
 
 class Prompt(IPrompt):
     """

@@ -2,21 +2,21 @@ from typing import Any, Optional, Union, Dict
 from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.agents.base.DocumentAgentBase import DocumentAgentBase
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
+from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(DocumentAgentBase):
+class RagAgent(VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, document_store: DocumentStoreRetrieveBase):
-        super().__init__(name=name, model=model, conversation=conversation, document_store=document_store)
+    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
+        super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 
              input_data: Union[str, IMessage], 
@@ -39,7 +39,7 @@ class RagAgent(DocumentAgentBase):
         
         
         
-        similar_documents = self.document_store.retrieve(query=input_data, top_k=top_k)
+        similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
         substr = '\n'.join([doc.content for doc in similar_documents])
         
         # Use substr to set system context

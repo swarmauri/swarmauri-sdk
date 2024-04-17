@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
-from swarmauri.core.retrievers.IRetriever import IRetriever 
+from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 
 class IAgentRetriever(ABC):
     
     @property
     @abstractmethod
-    def retriever(self) -> IRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass
 
     @retriever.setter
     @abstractmethod
-    def retriever(self) -> IRetriever:
+    def retriever(self) -> IDocumentRetrieve:
         pass

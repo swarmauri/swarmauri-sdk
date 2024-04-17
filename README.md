@@ -3,10 +3,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 ## Steps to compile python package from source
 ```bash
-git clone https://github.com/cobycloud/swarmauri
-cd swarmauri
-python -m build
-pip install ./dist/swarmauri-0.1.10.tar.gz[full] --force-reinstall
+pip install swarmauri[full]
 ```
 ## ./combined
 This includes convenience outputs to enable conversations with GPTs.
@@ -22,7 +19,7 @@ This includes convenience scripts that are nother included with the SwarmaURI SD
 python ./combine_files.py
 ```
 
-## ./swamauri
+## ./swarmauri
 This includes the libaries for the SwarmaURI python package.
 
 ## ./tests

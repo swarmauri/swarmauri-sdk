@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
-from swarmauri.core.agents.ISwarmAgent import ISwarmAgent
+from datetime import datetime
+from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.chains.ICallableChain import ICallableChain
 
 class ISwarm(ABC):
@@ -8,82 +9,59 @@ class ISwarm(ABC):
     Interface for a Swarm, representing a collective of agents capable of performing tasks, executing callable chains, and adaptable configurations.
     """
 
+    # Abstract properties and setters
+    @property
     @abstractmethod
-    def add_agent(self, agent: ISwarmAgent) -> None:
-        """
-        Adds an agent to the swarm.
+    def id(self) -> str:
+        """Unique identifier for the factory instance."""
+        pass
 
-        Args:
-            agent (ISwarmAgent): The agent to be added.
+    @id.setter
+    @abstractmethod
+    def id(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @name.setter
+    @abstractmethod
+    def name(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> str:
+        pass
+
+    @type.setter
+    @abstractmethod
+    def type(self, value: str) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def date_created(self) -> datetime:
+        pass
+
+    @property
+    @abstractmethod
+    def last_modified(self) -> datetime:
+        pass
+
+    @last_modified.setter
+    @abstractmethod
+    def last_modified(self, value: datetime) -> None:
+        pass
+
+    def __hash__(self):
+        """
+        The __hash__ method allows objects of this class to be used in sets and as dictionary keys.
+        __hash__ should return an integer and be defined based on immutable properties.
+        This is generally implemented directly in concrete classes rather than in the interface,
+        but it's declared here to indicate that implementing classes must provide it.
         """
         pass
 
-    @abstractmethod
-    def remove_agent(self, agent_id: str) -> bool:
-        """
-        Removes an agent from the swarm by ID.
-
-        Args:
-            agent_id (str): The unique identifier for the agent.
-            
-        Returns:
-            bool: True if the agent was successfully removed; False otherwise.
-        """
-        pass
-
-    @abstractmethod
-    def execute_callable_chain(self, chain: ICallableChain, context: Dict[str, Any] = {}) -> Any:
-        """
-        Executes a callable chain within the swarm, optionally in a specific execution context.
-
-        Args:
-            chain (ICallableChain): The callable chain to be executed.
-            context (Dict[str, Any]): Optional context and metadata for executing the chain.
-        
-        Returns:
-            Any: The result of the chain execution.
-        """
-        pass
-
-    @abstractmethod
-    def get_agent(self, agent_id: str) -> ISwarmAgent:
-        """
-        Retrieves an agent by its ID from the swarm.
-
-        Args:
-            agent_id (str): The unique identifier for the agent.
-
-        Returns:
-            ISwarmAgent: The agent associated with the given id.
-        """
-        pass
-
-    @abstractmethod
-    def list_agents(self) -> List[ISwarmAgent]:
-        """
-        Lists all agents currently in the swarm.
-
-        Returns:
-            List[ISwarmAgent]: A list of agents in the swarm.
-        """
-        pass
-
-    @abstractmethod
-    def update_swarm_configuration(self, configuration: Dict[str, Any]) -> None:
-        """
-        Updates the swarm's configuration.
-
-        Args:
-            configuration (Dict[str, Any]): The new configuration settings for the swarm.
-        """
-        pass
-
-    @abstractmethod
-    def get_swarm_status(self) -> Dict[str, Any]:
-        """
-        Retrieves the current status and health information of the swarm, including the number of agents, active tasks, etc.
-
-        Returns:
-            Dict[str, Any]: The current status of the swarm.
-        """
-        pass
