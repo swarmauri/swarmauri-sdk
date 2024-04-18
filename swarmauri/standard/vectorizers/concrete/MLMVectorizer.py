@@ -98,6 +98,7 @@ class MLMVectorizer(IVectorize, IFeature):
         """
         Generates embeddings for a list of documents using the fine-tuned MLM.
         """
+        self.model.eval()
         embedding_list = []
         
         for document in documents:
@@ -132,6 +133,7 @@ class MLMVectorizer(IVectorize, IFeature):
                                   Could be a single string or a batch of strings.
         """
         # Tokenize the input data and ensure the tensors are on the correct device.
+        self.model.eval()
         inputs = self.tokenizer(data, return_tensors="pt", padding=True, truncation=True, max_length=512)
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
