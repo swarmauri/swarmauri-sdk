@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 import swarmauri
-from Cython.Build import cythonize
 
 setup(
     name='swarmauri',
@@ -13,9 +12,6 @@ setup(
     url='http://github.com/swarmauri/swarmauri-sdk',
     license='MIT',
     packages=find_packages(include=['swarmauri*']),  # Include packages in your_package and libs directories
-    ext_modules=cythonize(extensions),
-    setup_requires=[
-    ],
     install_requires=[
         'numpy',  # Common dependencies for all distributions
         'requests'
@@ -82,7 +78,7 @@ setup(
             'lightgbm',
             'rdflib',
             'textblob',
-            'spacy',
+            'spacy==3.7.4',
             'pygments',
             'stanford_openie',
             'sentencepiece',
@@ -94,8 +90,5 @@ setup(
         'Programming Language :: Python :: 3.10'
     ],
     python_requires='>=3.10',
-    setup_requires=[
-        "wheel",
-        'Cython',
-        'setuptools>=18.0']
+    setup_requires=["wheel"]
 )
