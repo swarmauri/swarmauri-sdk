@@ -35,16 +35,15 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
 
     @classmethod
     def from_dict(cls, data):
-        data.pop("type") 
-        embedding_data = data.pop("embedding")
-        if embedding_data:
-            embedding_type = embedding_data.pop('type')
-            if embedding_type:
-                module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{embedding_type}")
-                embedding_class = getattr(module, embedding_type)
-                embedding = embedding_class.from_dict(embedding_data)
+        vector_data = data.pop("embedding")
+        if vector_data:
+            vector_type = vector_data.pop('type')
+            if vector_type:
+                module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{vector_type}")
+                vector_class = getattr(module, vector_type)
+                vector = vector_class.from_dict(vector_data)
             else:
-                embedding = None
+                vector = None
         else:
-            embedding = None
-        return cls(**data, embedding=embedding)
+            vector = None 
+        return cls(**data, embedding=vector)
