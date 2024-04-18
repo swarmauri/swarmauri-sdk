@@ -61,24 +61,31 @@ class SaveLoadStoreBase(ISaveLoadStore):
         else:
             raise ValueError("Unknown document type")
         
-    def save_parts(self, combined_file_path: str, parts_directory: str,  chunk_size: int = 10485760) -> None:
+    def save_parts(self, directory_path: str, chunk_size: int = 10485760) -> None:
         """
         Splits the file into parts if it's too large and saves those parts individually.
         """
         file_number = 1
-        with open(combined_file_path, 'rb') as f:
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        parts_directory = f"{directory_path}/parts"
+        if not os.path.exists(parts_directory):
+            os.makedirs(parts_directory)
+
+        with open(f"{model_path}/model.safetensors", 'rb') as f:
             chunk = f.read(chunk_size)
             while chunk:
-                with open(f"{parts_directory}.part{file_number}", 'wb') as chunk_file:
+                with open(f"{parts_directory}/model.safetensors.part{file_number}", 'wb') as chunk_file:
                     chunk_file.write(chunk)
                 file_number += 1
                 chunk = f.read(chunk_size)
 
-    def load_parts(self, parts_directory: str, output_directory: str, file_pattern: str = '*.part*') -> None:
+    def load_parts(self, directory_path: str, file_pattern: str = '*.part*') -> None:
         """
         Combines file parts from a directory back into a single file and loads it.
         """
-        output_file_path = os.path.join(output_directory, "model.safetensors")
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        parts_directory = f"{directory_path}/parts"
+        output_file_path = os.path.join(model_path, "model.safetensors")
 
         parts = sorted(glob.glob(os.path.join(parts_directory, file_pattern)))
         with open(output_file_path, 'wb') as output_file:
@@ -86,4 +93,4 @@ class SaveLoadStoreBase(ISaveLoadStore):
                 with open(part, 'rb') as file_part:
                     output_file.write(file_part.read())
 
-        self.load_store(output_file_path)
+        self.load_store(directory_path)
