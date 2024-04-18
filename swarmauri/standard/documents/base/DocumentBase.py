@@ -4,7 +4,7 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class DocumentBase(IDocument, ABC):
     
-    def __init__(self, doc_id,  content, metadata):
+    def __init__(self, doc_id, content, metadata):
         self._id = doc_id
         self._content = content
         self._metadata = metadata        
