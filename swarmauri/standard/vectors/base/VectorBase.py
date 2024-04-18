@@ -40,4 +40,4 @@ class VectorBase(IVector, ABC):
     @classmethod
     def from_dict(cls, data):
         data.pop("type")
-        return cls(**data)
+        return cls(data)

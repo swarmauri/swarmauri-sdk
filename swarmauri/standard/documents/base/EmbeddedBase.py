@@ -42,7 +42,7 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
             if embedding_type:
                 module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{embedding_type}")
                 embedding_class = getattr(module, embedding_type)
-                embedding = embedding_class.from_dict(**embedding_data)
+                embedding = embedding_class.from_dict(embedding_data)
             else:
                 embedding = None
         else:
