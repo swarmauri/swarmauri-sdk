@@ -17,6 +17,7 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
 
     def to_dict(self):
         document_dict = DocumentBase.to_dict(self)
+        document_dict.update({"type": self.__class__.__name__})
         document_dict.update({"embedding": self.embedding})
         return document_dict
 
