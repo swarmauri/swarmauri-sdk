@@ -84,18 +84,22 @@ class SaveLoadStoreBase(ISaveLoadStore):
 
         # Split the documents into parts and save them
         documents_dir = os.path.join(directory_path, "documents")
-        if not os.path.exists(documents_dir):
-            os.makedirs(documents_dir)
-        self._split_json_file(documents_dir, chunk_size=chunk_size)
+
+        self._split_json_file(directory_path, chunk_size=chunk_size)
 
 
     def _split_json_file(self, directory_path: str, max_records=100, chunk_size: int = 10485760):    
         # Read the input JSON file
-        combined_documents_path = os.path.join(directory_path, "documents.json")
-        documents_dir = os.path.join(directory_path, "documents")
-        with open(combined_documents_path, 'r') as file:
+        combined_documents_file_path = os.path.join(directory_path, "documents.json")
+
+        # load the master JSON file
+        with open(combined_documents_file_path , 'r') as file:
             data = json.load(file)
-        
+
+        # Set and Create documents parts folder if it does not exist
+        documents_dir = os.path.join(directory_path, "documents")
+        if not os.path.exists(documents_dir):
+            os.makedirs(documents_dir)
         current_batch = []
         file_index = 1
         current_size = 0
