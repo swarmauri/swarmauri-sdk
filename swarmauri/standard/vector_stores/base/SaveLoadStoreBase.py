@@ -69,7 +69,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         with open(combined_file_path, 'rb') as f:
             chunk = f.read(chunk_size)
             while chunk:
-                with open(f"{combined_file_path}.part{file_number}", 'wb') as chunk_file:
+                with open(f"{parts_directory}.part{file_number}", 'wb') as chunk_file:
                     chunk_file.write(chunk)
                 file_number += 1
                 chunk = f.read(chunk_size)
