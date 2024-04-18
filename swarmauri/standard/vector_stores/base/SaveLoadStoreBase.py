@@ -2,7 +2,8 @@ import json
 import os
 from typing import List
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
-from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.documents import *
+from swarmauri.standard.documents import *
 from swarmauri.core.vectorizers.IVectorize import IVectorize
 
 class SaveLoadStoreBase(ISaveLoadStore):
