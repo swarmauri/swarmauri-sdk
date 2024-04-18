@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
 from swarmauri.core.documents.IDocument import IDocument
 
