@@ -1,6 +1,5 @@
 from typing import List, Union, Any
 import numpy as np
-
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import AdamW
@@ -23,7 +22,8 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
         batch_size = 32, 
         learning_rate = 5e-5, 
         masking_ratio: float = 0.15, 
-        randomness_ratio: float = 0.10):
+        randomness_ratio: float = 0.10,
+        add_new_tokens: bool = False):
         """
         Initializes the vectorizer with a pre-trained MLM model and tokenizer for fine-tuning.
         
@@ -39,6 +39,7 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
         self.learning_rate = learning_rate
         self.masking_ratio = masking_ratio
         self.randomness_ratio = randomness_ratio
+        self.add_new_tokens = add_new_tokens
         self.mask_token_id = self.tokenizer.convert_tokens_to_ids([self.tokenizer.mask_token])[0]
 
     def extract_features(self):
@@ -68,31 +69,42 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
 
         return input_ids, attention_mask, labels
 
-    # work on this
     def fit(self, documents: List[Union[str, Any]]):
+        # Check if we need to add new tokens
+        if self.add_new_tokens:
+            new_tokens = self.find_new_tokens(documents)
+            if new_tokens:
+                num_added_toks = self.tokenizer.add_tokens(new_tokens)
+                if num_added_toks > 0:
+                    print(f"Added {num_added_toks} new tokens.")
+                    self.model.resize_token_embeddings(len(self.tokenizer))
+
         encodings = self.tokenizer(documents, return_tensors='pt', padding=True, truncation=True, max_length=512)
-        input_ids, attention_mask, labels = self._mask_tokens(encodings)       
+        input_ids, attention_mask, labels = self._mask_tokens(encodings)
         optimizer = AdamW(self.model.parameters(), lr=self.learning_rate)
         dataset = TensorDataset(input_ids, attention_mask, labels)
         data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
         self.model.train()
-
         for batch in data_loader:
-            # Move batch to the correct device
             batch = {k: v.to(self.device) for k, v in zip(['input_ids', 'attention_mask', 'labels'], batch)}
-            
             outputs = self.model(**batch)
             loss = outputs.loss
-
-            # Backpropagation
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
         self.epochs += 1
         print(f"Epoch {self.epochs} complete. Loss {loss.item()}")
 
+    def find_new_tokens(self, documents):
+        # Identify unique words in documents that are not in the tokenizer's vocabulary
+        unique_words = set()
+        for doc in documents:
+            tokens = set(doc.split())  # Simple whitespace tokenization
+            unique_words.update(tokens)
+        existing_vocab = set(self.tokenizer.get_vocab().keys())
+        new_tokens = list(unique_words - existing_vocab)
+        return new_tokens if new_tokens else None
 
     def transform(self, documents: List[Union[str, Any]]) -> List[IVector]:
         """
