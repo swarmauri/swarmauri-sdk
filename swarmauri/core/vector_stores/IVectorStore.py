@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Union
 from swarmauri.core.vectors.IVector import IVector
-from .swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):
     """
