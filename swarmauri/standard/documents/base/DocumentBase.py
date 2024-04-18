@@ -7,25 +7,8 @@ class DocumentBase(IDocument, ABC):
     def __init__(self, id, content, metadata):
         self._id = id
         self._content = content
-        self._metadata = metadata        
-    
-    def __str__(self):
-        return f"Document ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}"
+        self._metadata = metadata
 
-    def __repr__(self):
-        return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
-
-    def to_dict(self):
-        return {'type': self.__class__.__name__,
-                'id': self.id, 
-                'content': self.content, 
-                'metadata': self.metadata}
-      
-    @classmethod
-    def from_dict(cls, data):
-        return cls(id=data['id'],
-                  content=data['content'],
-                  metadata=data['metadata'])
     @property
     def id(self) -> str:
         """
@@ -70,3 +53,21 @@ class DocumentBase(IDocument, ABC):
         Set the document's metadata.
         """
         self._metadata = value
+
+    def __str__(self):
+        return f"Document ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}"
+
+    def __repr__(self):
+        return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
+
+    def to_dict(self):
+        return {'type': self.__class__.__name__,
+                'id': self.id, 
+                'content': self.content, 
+                'metadata': self.metadata}
+      
+    @classmethod
+    def from_dict(cls, data):
+        return cls(id=data['id'],
+                  content=data['content'],
+                  metadata=data['metadata'])

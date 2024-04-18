@@ -8,6 +8,14 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
     def __init__(self, id, content, metadata, embedding: VectorBase):
         DocumentBase.__init__(self, id, content, metadata)
         self._embedding = embedding
+        
+    @property
+    def embedding(self) -> VectorBase:
+        return self._embedding
+
+    @embedding.setter
+    def embedding(self, value: VectorBase) -> None:
+        self._embedding = value
 
     def __str__(self):
         return f"EmbeddedDocument ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}, embedding={self.embedding}"
@@ -31,11 +39,3 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
         embedding_type = embedding_data['type']
         embedding = globals()[embedding_type].from_dict(**embedding_data) if embedding_data else None
         return cls(**data, embedding=embedding)
-  
-    @property
-    def embedding(self) -> VectorBase:
-        return self._embedding
-
-    @embedding.setter
-    def embedding(self, value: VectorBase) -> None:
-        self._embedding = value
