@@ -10,7 +10,8 @@ class TFIDFVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         self.vectorizer = TFIDFVectorizer()
         self.metric = CosineDistance()
         self.documents = []
-        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
+        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)
+      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)

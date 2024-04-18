@@ -3,6 +3,7 @@ import os
 from typing import List
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
 from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.vectorizers.IVectorize import IVectorize
 
 class SaveLoadStoreBase(ISaveLoadStore):
     """
@@ -10,9 +11,9 @@ class SaveLoadStoreBase(ISaveLoadStore):
     the vectorizer's model and the documents.
     """
     
-    def __init__(self, vectorizer, documents: List[IDocument]):
+    def __init__(self, vectorizer: IVectorize, documents: List[IDocument]):
         self.vectorizer = vectorizer
-        self.documents = []
+        self.documents = documents
     
     def save_store(self, directory_path: str) -> None:
         """
