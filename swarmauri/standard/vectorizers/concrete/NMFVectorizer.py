@@ -1,3 +1,5 @@
+import joblib
+
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -5,8 +7,9 @@ from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-class NMFVectorizer(IVectorize, IFeature):
+class NMFVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self, n_components=10):
         # Initialize TF-IDF Vectorizer
         self.tfidf_vectorizer = TfidfVectorizer()
@@ -79,3 +82,21 @@ class NMFVectorizer(IVectorize, IFeature):
             The feature names.
         """
         return self.feature_names
+
+    def save_model(self, path: str) -> None:
+        """
+        Saves the NMF model and TF-IDF vectorizer using joblib.
+        """
+        # It might be necessary to save both tfidf_vectorizer and nmf_model
+        # Consider using a directory for 'path' or appended identifiers for each model file
+        joblib.dump(self.tfidf_vectorizer, f"{path}_tfidf.joblib")
+        joblib.dump(self.nmf_model, f"{path}_nmf.joblib")
+
+    def load_model(self, path: str) -> None:
+        """
+        Loads the NMF model and TF-IDF vectorizer from paths using joblib.
+        """
+        self.tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
+        self.nmf_model = joblib.load(f"{path}_nmf.joblib")
+        # Dependending on your implementation, you might need to refresh the feature_names
+        self.feature_names = self.tfidf_vectorizer.get_feature_names_out()

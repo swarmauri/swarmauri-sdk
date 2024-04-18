@@ -62,3 +62,4 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase):
         top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
         
         return [self.documents[i] for i in top_k_indices]
+

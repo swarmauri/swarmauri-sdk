@@ -12,9 +12,9 @@ from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-
-class MLMVectorizer(IVectorize, IFeature):
+class MLMVectorizer(IVectorize, IFeature, ISaveModel):
     """
     IVectorize implementation that fine-tunes a Masked Language Model (MLM).
     """
@@ -150,3 +150,18 @@ class MLMVectorizer(IVectorize, IFeature):
         embedding = embedding.cpu().numpy()
 
         return SimpleVector(embedding.squeeze().tolist())
+
+    def save_model(self, path: str) -> None:
+        """
+        Saves the model and tokenizer to the specified directory.
+        """
+        self.model.save_pretrained(path)
+        self.tokenizer.save_pretrained(path)
+
+    def load_model(self, path: str) -> None:
+        """
+        Loads the model and tokenizer from the specified directory.
+        """
+        self.model = AutoModelForMaskedLM.from_pretrained(path)
+        self.tokenizer = AutoTokenizer.from_pretrained(path)
+        self.model.to(self.device)  # Ensure the model is loaded to the correct device

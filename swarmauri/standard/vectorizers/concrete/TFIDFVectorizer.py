@@ -1,11 +1,14 @@
-from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
 from typing import List, Union, Any
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
 from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-class TFIDFVectorizer(IVectorize, IFeature):
+
+class TFIDFVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self):
         # Using scikit-learn's TfidfVectorizer as the underlying mechanism
         self.model = SklearnTfidfVectorizer()
@@ -56,3 +59,15 @@ class TFIDFVectorizer(IVectorize, IFeature):
         tmp_tfidf_matrix = self.transform(documents)
         query_vector = tmp_tfidf_matrix[-1]
         return query_vector
+
+    def save_model(self, path: str) -> None:
+        """
+        Saves the TF-IDF model to the specified path using joblib.
+        """
+        joblib.dump(self.model, path)
+    
+    def load_model(self, path: str) -> None:
+        """
+        Loads a TF-IDF model from the specified path using joblib.
+        """
+        self.model = joblib.load(path)
