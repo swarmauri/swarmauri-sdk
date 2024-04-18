@@ -111,7 +111,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
             # Check if current batch meets the splitting criteria
             if len(current_batch) >= max_records or current_size >= chunk_size:
                 # Write current batch to a new file
-                output_file = f'output_{file_index}.json'
+                output_file = f'document_part_{file_index}.json'
                 output_file = os.path.join(documents_dir, output_file)
                 with open(output_file, 'w') as outfile:
                     json.dump(current_batch, outfile)
@@ -123,7 +123,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
 
         # Check if there's any remaining data to be written
         if current_batch:
-            output_file = f'output_{file_index}.json'
+            output_file = f'document_part_{file_index}.json'
             output_file = os.path.join(documents_dir, output_file)
             with open(output_file, 'w') as outfile:
                 json.dump(current_batch, outfile)
