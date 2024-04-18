@@ -15,7 +15,7 @@ class DocumentBase(IDocument, ABC):
     def __repr__(self):
         return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
 
-    def as_dict(self):
+    def to_dict(self):
         return self.__dict__
     
     @property
