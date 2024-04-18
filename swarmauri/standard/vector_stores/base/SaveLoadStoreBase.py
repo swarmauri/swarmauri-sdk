@@ -1,6 +1,7 @@
 import json
 import os
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
+from swarmauri.core.documents.IDocument import IDocument
 
 class SaveLoadStoreBase(ISaveLoadStore):
     """
@@ -8,7 +9,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
     the vectorizer's model and the documents.
     """
     
-    def __init__(self, vectorizer):
+    def __init__(self, vectorizer, documents: List[IDocument]):
         self.vectorizer = vectorizer
         self.documents = []
     

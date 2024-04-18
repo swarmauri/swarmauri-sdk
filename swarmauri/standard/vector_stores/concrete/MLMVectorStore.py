@@ -8,10 +8,10 @@ from standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
 
 class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
-        self.documents: List[EmbeddedDocument] = []
         self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
-        SaveLoadStoreBase.__init__(vectorizer)
+        self.documents: List[EmbeddedDocument] = []
+        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
