@@ -83,6 +83,7 @@ swarmauri/core/vector_stores/IVectorRotate.py
 swarmauri/core/vector_stores/IVectorBasisCheck.py
 swarmauri/core/vector_stores/IVectorStore.py
 swarmauri/core/vector_stores/__init__.py
+swarmauri/core/vector_stores/ISaveLoadStore.py
 swarmauri/core/document_stores/IDocumentStore.py
 swarmauri/core/document_stores/__init__.py
 swarmauri/core/document_stores/IDocumentRetrieve.py
@@ -99,6 +100,7 @@ swarmauri/core/swarm_apis/IAgentRegistrationAPI.py
 swarmauri/core/vectorizers/__init__.py
 swarmauri/core/vectorizers/IVectorize.py
 swarmauri/core/vectorizers/IFeature.py
+swarmauri/core/vectorizers/ISaveModel.py
 swarmauri/core/tracing/__init__.py
 swarmauri/core/tracing/ITraceContext.py
 swarmauri/core/tracing/ITracer.py
@@ -140,6 +142,7 @@ swarmauri/experimental/utils/get_last_frame.py
 swarmauri/experimental/utils/save_schema.py
 swarmauri/experimental/utils/ISerializable.md
 swarmauri/experimental/utils/ISerializable.py
+swarmauri/experimental/utils/log_prompt_response.py
 swarmauri/experimental/docs/replay.md
 swarmauri/experimental/parsers/__init__.py
 swarmauri/experimental/parsers/PDFToTextParser.py
@@ -281,9 +284,9 @@ swarmauri/standard/vector_stores/__init__.py
 swarmauri/standard/vector_stores/base/__init__.py
 swarmauri/standard/vector_stores/base/VectorDocumentStoreBase.py
 swarmauri/standard/vector_stores/base/VectorDocumentStoreRetrieveBase.py
+swarmauri/standard/vector_stores/base/SaveLoadStoreBase.py
 swarmauri/standard/vector_stores/concrete/__init__.py
 swarmauri/standard/vector_stores/concrete/TFIDFVectorStore.py
-swarmauri/standard/vector_stores/concrete/BERTVectorStore.py
 swarmauri/standard/vector_stores/concrete/Doc2VecVectorStore.py
 swarmauri/standard/vector_stores/concrete/MLMVectorStore.py
 swarmauri/standard/document_stores/__init__.py
@@ -328,6 +331,7 @@ swarmauri/standard/chains/base/ChainStepBase.py
 swarmauri/standard/chains/concrete/__init__.py
 swarmauri/standard/chains/concrete/CallableChain.py
 swarmauri/standard/chains/concrete/StateChain.py
+swarmauri/standard/chains/concrete/ChainStep.py
 swarmauri/standard/distances/__init__.py
 swarmauri/standard/distances/base/__init__.py
 swarmauri/standard/distances/concrete/ChiSquaredDistance.py

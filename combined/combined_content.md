@@ -24,7 +24,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 ```swarmauri/__init__.py
 
-__version__ = "0.1.38"
+__version__ = "0.1.45"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -2922,6 +2922,40 @@ class IVectorStore(ABC):
 
 ```
 
+```swarmauri/core/vector_stores/ISaveLoadStore.py
+
+from abc import ABC, abstractmethod
+
+class ISaveLoadStore(ABC):
+    """
+    Interface to abstract the ability to save and load the state of a vector store.
+    This includes saving/loading the vectorizer's model as well as the documents or vectors.
+    """
+
+    @abstractmethod
+    def save_store(self, directory_path: str) -> None:
+        """
+        Saves the state of the vector store to the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+        - directory_path (str): The directory path where the store's state will be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_store(self, directory_path: str) -> None:
+        """
+        Loads the state of the vector store from the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+        - directory_path (str): The directory path from where the store's state will be loaded.
+        """
+        pass
+
+```
+
 ```swarmauri/core/document_stores/IDocumentStore.py
 
 from abc import ABC, abstractmethod
@@ -3425,6 +3459,41 @@ class IFeature(ABC):
         pass
     
 
+
+```
+
+```swarmauri/core/vectorizers/ISaveModel.py
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+class ISaveModel(ABC):
+    """
+    Interface to abstract the ability to save and load models.
+    """
+
+    @abstractmethod
+    def save_model(self, path: str) -> None:
+        """
+        Saves the model to the specified directory.
+
+        Parameters:
+        - path (str): The directory path where the model will be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_model(self, path: str) -> Any:
+        """
+        Loads a model from the specified directory.
+
+        Parameters:
+        - path (str): The directory path from where the model will be loaded.
+
+        Returns:
+        - Returns an instance of the loaded model.
+        """
+        pass
 
 ```
 
@@ -5554,6 +5623,39 @@ This example outlines a basic framework and would need to be expanded and adapte
 #         # Example assumes the presence of model_name in the serialized state.
 #         model = OpenAIToolModel(api_key="api_key_placeholder", model_name=data["state"]["model_name"])
 #         return cls(model=model, conversation=None, toolkit=None)  # Simplify, omit optional parameters for illustration
+
+```
+
+```swarmauri/experimental/utils/log_prompt_response.py
+
+import sqlite3
+from functools import wraps
+
+def log_prompt_response(db_path):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Extracting the 'message' parameter from args which is assumed to be the first argument
+            message = args[0]  
+            response = await func(*args, **kwargs)
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cursor.execute('''CREATE TABLE IF NOT EXISTS prompts_responses
+                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                             prompt TEXT, 
+                             response TEXT)''')
+            
+            # Insert a new record
+            cursor.execute('''INSERT INTO prompts_responses (prompt, response) 
+                            VALUES (?, ?)''', (message, response))
+            conn.commit()
+            conn.close()
+            return response
+        
+        return wrapper
+    return decorator
 
 ```
 
@@ -8764,14 +8866,23 @@ class SharedConversation(ConversationBase):
 ```swarmauri/standard/documents/base/EmbeddedBase.py
 
 from abc import ABC
-from typing import List, Any
+from typing import List, Any, Optional
 from swarmauri.core.documents.IEmbed import IEmbed
 from swarmauri.core.vectors.IVector import IVector
 
 class EmbeddedBase(IEmbed, ABC):
-    def __init__(self, embedding):
+    def __init__(self, embedding: Optional[IVector] = None):
         self._embedding = embedding
-            
+
+    def __str__(self):
+        return f"EmbeddedDocument ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}, embedding={self.embedding}"
+
+    def __repr__(self):
+        return f"EmbeddedDocument(id={self.id}, content={self.content}, metadata={self.metadata}, embedding={self.embedding})"
+
+    def to_dict(self):
+        return self.__dict__
+
     @property
     def embedding(self) -> IVector:
         return self._embedding
@@ -8790,7 +8901,7 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class DocumentBase(IDocument, ABC):
     
-    def __init__(self, doc_id,  content, metadata):
+    def __init__(self, doc_id, content, metadata):
         self._id = doc_id
         self._content = content
         self._metadata = metadata        
@@ -8801,7 +8912,7 @@ class DocumentBase(IDocument, ABC):
     def __repr__(self):
         return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
 
-    def as_dict(self):
+    def to_dict(self):
         return self.__dict__
     
     @property
@@ -8860,14 +8971,14 @@ class DocumentBase(IDocument, ABC):
 ```swarmauri/standard/documents/concrete/EmbeddedDocument.py
 
 from typing import Optional, Any
+from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.documents.base.DocumentBase import DocumentBase
 from swarmauri.standard.documents.base.EmbeddedBase import EmbeddedBase
 
 class EmbeddedDocument(DocumentBase, EmbeddedBase):
-    def __init__(self, doc_id,  content, metadata, embedding: Optional[Any] = None):
+    def __init__(self, doc_id,  content, metadata, embedding: Optional[IVector] = None):
         DocumentBase.__init__(self, doc_id=doc_id, content=content, metadata=metadata)
         EmbeddedBase.__init__(self, embedding=embedding)
-
 
 
 ```
@@ -10650,13 +10761,21 @@ class VectorDocumentStoreBase(IDocumentStore, ABC):
     def document_count(self):
         return len(self.documents)
     
-    def dump(self, file_path):
-        with open(file_path, 'w') as f:
-            json.dumps([each.__dict__ for each in self.documents], f, indent=4)
-            
-    def load(self, file_path):
-        with open(file_path, 'r') as f:
-            self.documents = json.loads(f)
+    #def dumps(self) -> str:
+        #return json.dumps([each.to_dict() for each in self.documents])
+
+    #def dump(self, file_path) -> None:
+        #with open(file_path, 'w') as f:
+            #json.dump([each.to_dict() for each in self.documents], f, indent=4)
+          
+    #def loads(self, json_data: str) -> None:
+        #self.documents = json.loads(json_data)
+
+    #def load(self, file_path: str) -> None:
+        #with open(file_path, 'r') as f:
+            #self.documents = json.load(f)
+
+
 
 ```
 
@@ -10686,6 +10805,56 @@ class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve
 
 ```
 
+```swarmauri/standard/vector_stores/base/SaveLoadStoreBase.py
+
+import json
+import os
+from typing import List
+from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
+from swarmauri.core.documents.IDocument import IDocument
+
+class SaveLoadStoreBase(ISaveLoadStore):
+    """
+    Base class for vector stores with built-in support for saving and loading
+    the vectorizer's model and the documents.
+    """
+    
+    def __init__(self, vectorizer, documents: List[IDocument]):
+        self.vectorizer = vectorizer
+        self.documents = []
+    
+    def save_store(self, directory_path: str) -> None:
+        """
+        Saves both the vectorizer's model and the documents.
+        """
+        # Ensure the directory exists
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
+            
+        # Save the vectorizer model
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        self.vectorizer.save_model(model_path)
+        
+        # Save documents
+        documents_path = os.path.join(directory_path, "documents.json")
+        with open(documents_path, 'w', encoding='utf-8') as f:
+            json.dump(self.documents, f, ensure_ascii=False, indent=4)
+    
+    def load_store(self, directory_path: str) -> None:
+        """
+        Loads both the vectorizer's model and the documents.
+        """
+        # Load the vectorizer model
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        self.vectorizer.load_model(model_path)
+        
+        # Load documents
+        documents_path = os.path.join(directory_path, "documents.json")
+        with open(documents_path, 'r', encoding='utf-8') as f:
+            self.documents = json.load(f)
+
+```
+
 ```swarmauri/standard/vector_stores/concrete/__init__.py
 
 # -*- coding: utf-8 -*-
@@ -10701,12 +10870,14 @@ from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.standard.vectorizers.concrete.TFIDFVectorizer import TFIDFVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
 
-class TFIDFVectorStore(VectorDocumentStoreRetrieveBase):
+class TFIDFVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.vectorizer = TFIDFVectorizer()
         self.metric = CosineDistance()
-        self.documents = []      
+        self.documents = []
+        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
@@ -10755,74 +10926,6 @@ class TFIDFVectorStore(VectorDocumentStoreRetrieveBase):
 
 ```
 
-```swarmauri/standard/vector_stores/concrete/BERTVectorStore.py
-
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vectorizers.concrete.BERTEmbeddingVectorizer import BERTEmbeddingVectorizer
-from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-
-class BERTVectorStore(VectorDocumentStoreRetrieveBase):
-    def __init__(self):
-        self.documents: List[EmbeddedDocument] = []
-        self.vectorizer = BERTEmbeddingVectorizer()  # Assuming this is already implemented
-        self.metric = CosineDistance()
-
-    def add_document(self, document: IDocument) -> None:
-        """
-        Override: Now documents are expected to have labels for fine-tuning when added. 
-        For unsupervised use-cases, labels can be ignored at the vectorizer level.
-        """
-        self.documents.append(document)
-        documents_text = [doc.content for doc in self.documents]
-        documents_labels = [doc.metadata['label'] for doc in self.documents]
-        self.vectorizer.fit(documents_text, documents_labels)
-        embeddings = self.vectorizer.infer_vector(document.content)
-
-        embedded_document = EmbeddedDocument(doc_id=document.id, 
-            content=document.content, 
-            metadata=document.metadata, 
-            embedding=embeddings)
-
-        self.documents.append(embedded_document)
-
-    def add_documents(self, documents: List[IDocument]) -> None:
-        # Batch addition of documents with potential fine-tuning trigger
-        self.documents.extend(documents)
-        documents_text = [doc.content for doc in documents]
-        documents_labels = [doc.metadata['label'] for doc in self.documents]
-        self.vectorizer.fit(documents_text, documents_labels)
-
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
-        for document in self.documents:
-            if document.id == doc_id:
-                return document
-        return None
-        
-    def get_all_documents(self) -> List[EmbeddedDocument]:
-        return self.documents
-
-    def delete_document(self, doc_id: str) -> None:
-        self.documents = [doc for doc in self.documents if doc.id != doc_id]
-
-    def update_document(self, doc_id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
-        
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        query_vector = self.vectorizer.infer_vector(query)
-        document_vectors = [doc.embedding for doc in self.documents]
-        distances = [self.metric.similarities(query_vector, document_vectors)]
-        
-        # Get the indices of the top_k most similar documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i], reverse=True)[:top_k]
-        
-        return [self.documents[i] for i in top_k_indices]
-
-
-```
-
 ```swarmauri/standard/vector_stores/concrete/Doc2VecVectorStore.py
 
 from typing import List, Union
@@ -10831,12 +10934,15 @@ from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocum
 from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
-class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase):
+
+class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.vectorizer = Doc2VecVectorizer()
         self.metric = CosineDistance()
         self.documents = []      
+        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
@@ -10901,12 +11007,14 @@ from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocum
 from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
-class MLMVectorStore(VectorDocumentStoreRetrieveBase):
+class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
-        self.documents: List[EmbeddedDocument] = []
         self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
+        self.documents: List[EmbeddedDocument] = []
+        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
@@ -10959,6 +11067,7 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase):
         top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
         
         return [self.documents[i] for i in top_k_indices]
+
 
 
 ```
@@ -11360,6 +11469,7 @@ class MdSnippetChunker(IChunker):
 
 from abc import ABC, abstractmethod
 from typing import List
+import json
 import numpy as np
 from swarmauri.core.vectors.IVector import IVector
 
@@ -11388,6 +11498,25 @@ class VectorBase(IVector, ABC):
     
     def __len__(self):
         return len(self.data)
+
+    def to_dict(self) -> dict:
+        """
+        Converts the vector into a dictionary suitable for JSON serialization.
+        This method needs to be called explicitly for conversion.
+        """
+        return {'data': self._data}
+
+    def to_json(self):
+        """
+        Return state which can be used by both pickle and json.dumps.
+        For json.dumps, this will enable automatic dictionary serialization.
+        """
+        def my_serializer(self):
+          if isinstance(self, VectorBase):
+              return self.to_dict()
+          raise TypeError("Type not serializable")
+          
+        return json.dumps(self, default=my_serializer)
 
 ```
 
@@ -11475,8 +11604,9 @@ from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-class Doc2VecVectorizer(IVectorize, IFeature):
+class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self):
         self.model = Doc2Vec(vector_size=2000, window=10, min_count=1, workers=5)
 
@@ -11505,6 +11635,18 @@ class Doc2VecVectorizer(IVectorize, IFeature):
         vector = self.model.infer_vector(data.split())
         return SimpleVector(vector.squeeze().tolist())
 
+    def save_model(self, path: str) -> None:
+        """
+        Saves the Doc2Vec model to the specified path.
+        """
+        self.model.save(path)
+    
+    def load_model(self, path: str) -> None:
+        """
+        Loads a Doc2Vec model from the specified path.
+        """
+        self.model = Doc2Vec.load(path)
+
 ```
 
 ```swarmauri/standard/vectorizers/concrete/MLMVectorizer.py
@@ -11523,9 +11665,9 @@ from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-
-class MLMVectorizer(IVectorize, IFeature):
+class MLMVectorizer(IVectorize, IFeature, ISaveModel):
     """
     IVectorize implementation that fine-tunes a Masked Language Model (MLM).
     """
@@ -11609,6 +11751,7 @@ class MLMVectorizer(IVectorize, IFeature):
         """
         Generates embeddings for a list of documents using the fine-tuned MLM.
         """
+        self.model.eval()
         embedding_list = []
         
         for document in documents:
@@ -11643,6 +11786,7 @@ class MLMVectorizer(IVectorize, IFeature):
                                   Could be a single string or a batch of strings.
         """
         # Tokenize the input data and ensure the tensors are on the correct device.
+        self.model.eval()
         inputs = self.tokenizer(data, return_tensors="pt", padding=True, truncation=True, max_length=512)
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
@@ -11660,19 +11804,36 @@ class MLMVectorizer(IVectorize, IFeature):
 
         return SimpleVector(embedding.squeeze().tolist())
 
+    def save_model(self, path: str) -> None:
+        """
+        Saves the model and tokenizer to the specified directory.
+        """
+        self.model.save_pretrained(path)
+        self.tokenizer.save_pretrained(path)
+
+    def load_model(self, path: str) -> None:
+        """
+        Loads the model and tokenizer from the specified directory.
+        """
+        self.model = AutoModelForMaskedLM.from_pretrained(path)
+        self.tokenizer = AutoTokenizer.from_pretrained(path)
+        self.model.to(self.device)  # Ensure the model is loaded to the correct device
 
 ```
 
 ```swarmauri/standard/vectorizers/concrete/TFIDFVectorizer.py
 
-from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
 from typing import List, Union, Any
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
 from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-class TFIDFVectorizer(IVectorize, IFeature):
+
+class TFIDFVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self):
         # Using scikit-learn's TfidfVectorizer as the underlying mechanism
         self.model = SklearnTfidfVectorizer()
@@ -11724,9 +11885,23 @@ class TFIDFVectorizer(IVectorize, IFeature):
         query_vector = tmp_tfidf_matrix[-1]
         return query_vector
 
+    def save_model(self, path: str) -> None:
+        """
+        Saves the TF-IDF model to the specified path using joblib.
+        """
+        joblib.dump(self.model, path)
+    
+    def load_model(self, path: str) -> None:
+        """
+        Loads a TF-IDF model from the specified path using joblib.
+        """
+        self.model = joblib.load(path)
+
 ```
 
 ```swarmauri/standard/vectorizers/concrete/NMFVectorizer.py
+
+import joblib
 
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -11735,13 +11910,14 @@ from swarmauri.core.vectorizers.IVectorize import IVectorize
 from swarmauri.core.vectorizers.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
 from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
-class NMFVectorizer(IVectorize, IFeature):
+class NMFVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self, n_components=10):
         # Initialize TF-IDF Vectorizer
         self.tfidf_vectorizer = TfidfVectorizer()
         # Initialize NMF with the desired number of components
-        self.nmf_model = NMF(n_components=n_components)
+        self.model = NMF(n_components=n_components)
         self.feature_names = []
 
     def fit(self, data):
@@ -11754,7 +11930,7 @@ class NMFVectorizer(IVectorize, IFeature):
         # Transform data into TF-IDF matrix
         tfidf_matrix = self.tfidf_vectorizer.fit_transform(data)
         # Fit the NMF model
-        self.nmf_model.fit(tfidf_matrix)
+        self.model.fit(tfidf_matrix)
         # Store feature names
         self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
 
@@ -11771,7 +11947,7 @@ class NMFVectorizer(IVectorize, IFeature):
         # Transform data into TF-IDF matrix
         tfidf_matrix = self.tfidf_vectorizer.transform(data)
         # Transform TF-IDF matrix into NMF space
-        nmf_features = self.nmf_model.transform(tfidf_matrix)
+        nmf_features = self.model.transform(tfidf_matrix)
 
         # Wrap NMF features in SimpleVector instances and return
         return [SimpleVector(features.tolist()) for features in nmf_features]
@@ -11809,6 +11985,24 @@ class NMFVectorizer(IVectorize, IFeature):
             The feature names.
         """
         return self.feature_names
+
+    def save_model(self, path: str) -> None:
+        """
+        Saves the NMF model and TF-IDF vectorizer using joblib.
+        """
+        # It might be necessary to save both tfidf_vectorizer and model
+        # Consider using a directory for 'path' or appended identifiers for each model file
+        joblib.dump(self.tfidf_vectorizer, f"{path}_tfidf.joblib")
+        joblib.dump(self.model, f"{path}_nmf.joblib")
+
+    def load_model(self, path: str) -> None:
+        """
+        Loads the NMF model and TF-IDF vectorizer from paths using joblib.
+        """
+        self.tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
+        self.model = joblib.load(f"{path}_nmf.joblib")
+        # Dependending on your implementation, you might need to refresh the feature_names
+        self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
 
 ```
 
@@ -12120,7 +12314,12 @@ class ChainStepBase(IChainStep):
     Represents a single step within an execution chain.
     """
     
-    def __init__(self, key: str, method: Callable, args: List[Any] = None, kwargs: Dict[str, Any] = None, ref: str = None):
+    def __init__(self, 
+        key: str, 
+        method: Callable, 
+        args: List[Any] = None, 
+        kwargs: Dict[str, Any] = None, 
+        ref: str = None):
         """
         Initialize a chain step.
 
@@ -12183,42 +12382,98 @@ class CallableChain(ICallableChain):
 ```swarmauri/standard/chains/concrete/StateChain.py
 
 from typing import Any, Dict, List, Callable
-from abc import ABC, abstractmethod
-from standard.chains.base.ChainStepBase import ChainStepBase
+from swarmauri.standard.chains.base.ChainStepBase import ChainStepBase
+from swarmauri.core.chains.IChain import IChain
 
-class StateChain:
+class StateChain(IChain):
     """
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
+    Implements the IChain interface including get_schema_info and remove_step methods.
     """
     def __init__(self):
         self._steps: List[ChainStepBase] = []
         self._context: Dict[str, Any] = {}
-
-    def add_step(self, key: str, method: Callable[..., Any], *args, return_key: str = None, **kwargs):
-        # Directly store args, kwargs and optionally a return_key without resolving them
-        step = ChainStepBase(key, method, args=args, kwargs=kwargs, return_key=return_key)
+    
+    def add_step(self, key: str, method: Callable[..., Any], *args, ref: str = None, **kwargs):
+        # Directly store args, kwargs, and optionally a return_key without resolving them
+        step = ChainStepBase(key, method, args=args, kwargs=kwargs, ref=ref)  # Note the use of 'ref' as 'return_key'
         self._steps.append(step)
-
-    def execute_chain(self):
+    
+    def remove_step(self, step: ChainStepBase) -> None:
+        self._steps = [s for s in self._steps if s.key != step.key]
+    
+    def execute(self, *args, **kwargs) -> Any:
+        # Execute the chain and manage result storage based on return_key
         for step in self._steps:
-            # Resolve placeholders right before execution
-            resolved_args = [self._resolve_placeholders(arg) for arg in step.raw_args]
-            resolved_kwargs = {k: self._resolve_placeholders(v) for k, v in step.raw_kwargs.items()}
+            resolved_args = [self._resolve_placeholders(arg) for arg in step.args]
+            resolved_kwargs = {k: self._resolve_placeholders(v) for k, v in step.kwargs.items() if k != 'ref'}
             result = step.method(*resolved_args, **resolved_kwargs)
-
-            # If a return_key is provided, store the result under that key in the context
-            if step.return_key:
-                resolved_return_key = self._resolve_placeholders(step.return_key)
-                self._context[resolved_return_key] = result
-
+            if step.ref:  # step.ref is used here as the return_key analogy
+                print('step.ref', step.ref)
+                resolved_ref = self._resolve_ref(step.ref)
+                print(resolved_ref)
+                self._context[resolved_ref] = result
+        return self._context  # or any specific result you intend to return
+    
+    def _resolve_ref(self, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
+            placeholder = value[2:-1]
+            return placeholder
+        return value
+    
     def _resolve_placeholders(self, value: Any) -> Any:
         if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
             placeholder = value[2:-1]
-            return self._context.get(placeholder, value)
+            return self._context.get(placeholder)
         return value
-    
+
     def set_context(self, **kwargs):
         self._context.update(kwargs)
+    
+    def get_schema_info(self) -> Dict[str, Any]:
+        # Implementing required method from IChain; 
+        # Adapt the return structure to your needs
+        return {
+            "steps": [step.key for step in self._steps],
+            "context_keys": list(self._context.keys())
+        }
+
+```
+
+```swarmauri/standard/chains/concrete/ChainStep.py
+
+from typing import Any, Callable, List, Dict
+from swarmauri.core.chains.IChainStep import IChainStep
+from swarmauri.standard.chains.base.ChainStepBase import ChainStepBase
+
+class ChainStep(ChainStepBase):
+    """
+    Represents a single step within an execution chain.
+    """
+    
+    def __init__(self, 
+        key: str, 
+        method: Callable, 
+        args: List[Any] = None, 
+        kwargs: Dict[str, Any] = None, 
+        ref: str = None):
+        """
+        Initialize a chain step.
+
+        Args:
+            key (str): Unique key or identifier for the step.
+            method (Callable): The callable object (function or method) to execute in this step.
+            args (List[Any], optional): Positional arguments for the callable.
+            kwargs (Dict[str, Any], optional): Keyword arguments for the callable.
+            ref (str, optional): Reference to another component or context variable, if applicable.
+        """
+        self.key = key
+        self.method = method
+        self.args = args 
+        self.kwargs = kwargs
+        self.ref = ref
+        
+
 
 ```
 

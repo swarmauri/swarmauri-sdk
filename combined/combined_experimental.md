@@ -1239,6 +1239,39 @@ This example outlines a basic framework and would need to be expanded and adapte
 
 ```
 
+```swarmauri/experimental/utils/log_prompt_response.py
+
+import sqlite3
+from functools import wraps
+
+def log_prompt_response(db_path):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Extracting the 'message' parameter from args which is assumed to be the first argument
+            message = args[0]  
+            response = await func(*args, **kwargs)
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cursor.execute('''CREATE TABLE IF NOT EXISTS prompts_responses
+                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                             prompt TEXT, 
+                             response TEXT)''')
+            
+            # Insert a new record
+            cursor.execute('''INSERT INTO prompts_responses (prompt, response) 
+                            VALUES (?, ?)''', (message, response))
+            conn.commit()
+            conn.close()
+            return response
+        
+        return wrapper
+    return decorator
+
+```
+
 ```swarmauri/experimental/docs/replay.md
 
 Creating a system that allows for the serialization of object interactions, along with enabling replay and modification of replay schemas in Python, involves several key steps. This process includes capturing the execution state, serializing it, and then providing mechanisms for replay and modification. Here's how you could implement such a system:

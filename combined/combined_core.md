@@ -2117,6 +2117,40 @@ class IVectorStore(ABC):
 
 ```
 
+```swarmauri/core/vector_stores/ISaveLoadStore.py
+
+from abc import ABC, abstractmethod
+
+class ISaveLoadStore(ABC):
+    """
+    Interface to abstract the ability to save and load the state of a vector store.
+    This includes saving/loading the vectorizer's model as well as the documents or vectors.
+    """
+
+    @abstractmethod
+    def save_store(self, directory_path: str) -> None:
+        """
+        Saves the state of the vector store to the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+        - directory_path (str): The directory path where the store's state will be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_store(self, directory_path: str) -> None:
+        """
+        Loads the state of the vector store from the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+        - directory_path (str): The directory path from where the store's state will be loaded.
+        """
+        pass
+
+```
+
 ```swarmauri/core/document_stores/IDocumentStore.py
 
 from abc import ABC, abstractmethod
@@ -2620,6 +2654,41 @@ class IFeature(ABC):
         pass
     
 
+
+```
+
+```swarmauri/core/vectorizers/ISaveModel.py
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+class ISaveModel(ABC):
+    """
+    Interface to abstract the ability to save and load models.
+    """
+
+    @abstractmethod
+    def save_model(self, path: str) -> None:
+        """
+        Saves the model to the specified directory.
+
+        Parameters:
+        - path (str): The directory path where the model will be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_model(self, path: str) -> Any:
+        """
+        Loads a model from the specified directory.
+
+        Parameters:
+        - path (str): The directory path from where the model will be loaded.
+
+        Returns:
+        - Returns an instance of the loaded model.
+        """
+        pass
 
 ```
 

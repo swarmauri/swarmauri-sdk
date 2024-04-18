@@ -4,7 +4,7 @@ from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocum
 from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-from standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
 
 class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
