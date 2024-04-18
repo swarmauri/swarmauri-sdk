@@ -1,10 +1,10 @@
 from abc import ABC
-from typing import List, Any
+from typing import List, Any, Optional
 from swarmauri.core.documents.IEmbed import IEmbed
 from swarmauri.core.vectors.IVector import IVector
 
 class EmbeddedBase(IEmbed, ABC):
-    def __init__(self, embedding: IVector):
+    def __init__(self, embedding: Optional[IVector] = None):
         self._embedding = embedding
 
     def __str__(self):
