@@ -39,5 +39,5 @@ class VectorBase(IVector, ABC):
 
     @classmethod
     def from_dict(cls, data):
-        data.pop("type", None)
+        data.pop("type")
         return cls(**data)

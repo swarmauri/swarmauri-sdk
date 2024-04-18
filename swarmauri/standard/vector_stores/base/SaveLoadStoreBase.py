@@ -51,7 +51,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
             self.documents = [self._load_document(each) for each in json.load(f)]
 
     def _load_document(self, data):
-        document_type = data.pop("type", None) 
+        document_type = data.pop("type") 
         if document_type:
             module = importlib.import_module(f"swarmauri.standard.documents.concrete.{document_type}")
             document_class = getattr(module, document_type)

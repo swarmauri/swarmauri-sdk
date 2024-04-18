@@ -4,7 +4,7 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class DocumentBase(IDocument, ABC):
     
-    def __init__(self, id, content, metadata):
+    def __init__(self, id: str = "", content: str = "", metadata: dict = {}):
         self._id = id
         self._content = content
         self._metadata = metadata
@@ -68,6 +68,5 @@ class DocumentBase(IDocument, ABC):
       
     @classmethod
     def from_dict(cls, data):
-        return cls(id=data['id'],
-                  content=data['content'],
-                  metadata=data['metadata'])
+        data.pop("type", None)
+        return cls(**data)

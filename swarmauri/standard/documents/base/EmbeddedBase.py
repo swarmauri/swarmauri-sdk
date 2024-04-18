@@ -6,7 +6,7 @@ from swarmauri.standard.vectors.base.VectorBase import VectorBase
 from swarmauri.standard.documents.base.DocumentBase import DocumentBase
 
 class EmbeddedBase(DocumentBase, IEmbed, ABC):
-    def __init__(self, id, content, metadata, embedding: VectorBase):
+    def __init__(self, id: str = "", content: str = "", metadata: dict = {}, embedding: VectorBase = None):
         DocumentBase.__init__(self, id, content, metadata)
         self._embedding = embedding
         
@@ -35,10 +35,10 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
 
     @classmethod
     def from_dict(cls, data):
-        data.pop("type", None) 
-        embedding_data = data.pop("embedding", None)
+        data.pop("type") 
+        embedding_data = data.pop("embedding")
         if embedding_data:
-            embedding_type = embedding_data.pop('type', None)
+            embedding_type = embedding_data.pop('type')
             if embedding_type:
                 module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{embedding_type}")
                 embedding_class = getattr(module, embedding_type)

@@ -18,7 +18,7 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         documents_text = [_d.content for _d in self.documents if _d.content]
         embeddings = self.vectorizer.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count])
