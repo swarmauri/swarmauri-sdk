@@ -4,12 +4,14 @@ from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocum
 from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
-class MLMVectorStore(VectorDocumentStoreRetrieveBase):
+class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.documents: List[EmbeddedDocument] = []
         self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
+        SaveLoadStoreBase.__init__(vectorizer)
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)

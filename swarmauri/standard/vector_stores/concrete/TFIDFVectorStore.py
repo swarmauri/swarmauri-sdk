@@ -3,12 +3,14 @@ from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.standard.vectorizers.concrete.TFIDFVectorizer import TFIDFVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
 
-class TFIDFVectorStore(VectorDocumentStoreRetrieveBase):
+class TFIDFVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.vectorizer = TFIDFVectorizer()
         self.metric = CosineDistance()
-        self.documents = []      
+        self.documents = []
+        SaveLoadStoreBase.__init__(vectorizer)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)

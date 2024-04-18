@@ -14,7 +14,7 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         # Initialize TF-IDF Vectorizer
         self.tfidf_vectorizer = TfidfVectorizer()
         # Initialize NMF with the desired number of components
-        self.nmf_model = NMF(n_components=n_components)
+        self.model = NMF(n_components=n_components)
         self.feature_names = []
 
     def fit(self, data):
@@ -27,7 +27,7 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         # Transform data into TF-IDF matrix
         tfidf_matrix = self.tfidf_vectorizer.fit_transform(data)
         # Fit the NMF model
-        self.nmf_model.fit(tfidf_matrix)
+        self.model.fit(tfidf_matrix)
         # Store feature names
         self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
 
@@ -44,7 +44,7 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         # Transform data into TF-IDF matrix
         tfidf_matrix = self.tfidf_vectorizer.transform(data)
         # Transform TF-IDF matrix into NMF space
-        nmf_features = self.nmf_model.transform(tfidf_matrix)
+        nmf_features = self.model.transform(tfidf_matrix)
 
         # Wrap NMF features in SimpleVector instances and return
         return [SimpleVector(features.tolist()) for features in nmf_features]
@@ -87,16 +87,16 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         """
         Saves the NMF model and TF-IDF vectorizer using joblib.
         """
-        # It might be necessary to save both tfidf_vectorizer and nmf_model
+        # It might be necessary to save both tfidf_vectorizer and model
         # Consider using a directory for 'path' or appended identifiers for each model file
         joblib.dump(self.tfidf_vectorizer, f"{path}_tfidf.joblib")
-        joblib.dump(self.nmf_model, f"{path}_nmf.joblib")
+        joblib.dump(self.model, f"{path}_nmf.joblib")
 
     def load_model(self, path: str) -> None:
         """
         Loads the NMF model and TF-IDF vectorizer from paths using joblib.
         """
         self.tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
-        self.nmf_model = joblib.load(f"{path}_nmf.joblib")
+        self.model = joblib.load(f"{path}_nmf.joblib")
         # Dependending on your implementation, you might need to refresh the feature_names
         self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
