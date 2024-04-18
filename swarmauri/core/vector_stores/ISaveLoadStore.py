@@ -29,7 +29,7 @@ class ISaveLoadStore(ABC):
         pass
 
     @abstractmethod
-    def save_parts(self, combined_file_path: str, parts_directory: str, chunk_size: int=10485760) -> None:
+    def save_parts(self, directory_path: str, chunk_size: int=10485760) -> None:
         """
         Save the model in parts to handle large files by splitting them.
 
@@ -37,7 +37,7 @@ class ISaveLoadStore(ABC):
         pass
 
     @abstractmethod
-    def load_parts(self, parts_directory: str, output_directory: str, file_pattern: str) -> None:
+    def load_parts(self, directory_path: str, file_pattern: str) -> None:
         """
         Load and combine model parts from a directory.
 

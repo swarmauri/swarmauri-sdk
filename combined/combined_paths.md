@@ -81,7 +81,6 @@ swarmauri/core/vector_stores/IVectorLinearCombination.py
 swarmauri/core/vector_stores/IVectorNorm.py
 swarmauri/core/vector_stores/IVectorRotate.py
 swarmauri/core/vector_stores/IVectorBasisCheck.py
-swarmauri/core/vector_stores/IVectorStore.py
 swarmauri/core/vector_stores/__init__.py
 swarmauri/core/vector_stores/ISaveLoadStore.py
 swarmauri/core/document_stores/IDocumentStore.py
@@ -357,6 +356,9 @@ swarmauri/standard/metrics/concrete/SystemUsabilityScaleMetric.py
 swarmauri/standard/metrics/concrete/FirstImpressionMetric.py
 swarmauri/standard/metrics/concrete/HitRateAtK.py
 swarmauri/standard/metrics/concrete/ImpressionAtK.py
+swarmauri/standard/agent_factories/__init__.py
+swarmauri/standard/agent_factories/base/__init__.py
 swarmauri/standard/agent_factories/concrete/AgentFactory.py
 swarmauri/standard/agent_factories/concrete/ConfDrivenAgentFactory.py
 swarmauri/standard/agent_factories/concrete/ReflectiveAgentFactory.py
+swarmauri/standard/agent_factories/concrete/__init__.py

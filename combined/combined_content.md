@@ -24,7 +24,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 ```swarmauri/__init__.py
 
-__version__ = "0.1.45"
+__version__ = "0.1.68"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -1199,7 +1199,7 @@ from typing import Dict
 
 class IDocument(ABC):
     @abstractmethod
-    def __init__(self, doc_id, content, metadata: Dict):
+    def __init__(self, id: str, content: str, metadata: Dict):
         pass
 
     @property
@@ -2855,67 +2855,6 @@ class IVectorBasisCheck(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/IVectorStore.py
-
-from abc import ABC, abstractmethod
-from typing import List, Dict, Union
-from ..vectors.IVector import IVector
-
-class IVectorStore(ABC):
-    """
-    Interface for a vector store that allows the storage, retrieval,
-    and management of high-dimensional vector data used in search and machine learning applications.
-    """
-
-    @abstractmethod
-    def add_vector(self, vector_id: str, vector: IVector, metadata: Dict = None) -> None:
-        """
-        Store a vector along with its identifier and optional metadata.
-
-        Args:
-            vector_id (str): Unique identifier for the vector.
-            vector (List[float]): The high-dimensional vector to be stored.
-            metadata (Dict, optional): Optional metadata related to the vector.
-        """
-        pass
-
-    @abstractmethod
-    def get_vector(self, vector_id: str) -> Union[List[float], None]:
-        """
-        Retrieve a vector by its identifier.
-
-        Args:
-            vector_id (str): The unique identifier for the vector.
-
-        Returns:
-            Union[List[float], None]: The vector associated with the given ID, or None if not found.
-        """
-        pass
-
-    @abstractmethod
-    def delete_vector(self, vector_id: str) -> None:
-        """
-        Delete a vector by its identifier.
-
-        Args:
-            vector_id (str): The unique identifier for the vector to be deleted.
-        """
-        pass
-
-    @abstractmethod
-    def update_vector(self, vector_id: str, new_vector: IVector, new_metadata: Dict = None) -> None:
-        """
-        Update the vector and metadata for a given vector ID.
-
-        Args:
-            vector_id (str): The unique identifier for the vector to update.
-            new_vector (List[float]): The new vector data to store.
-            new_metadata (Dict, optional): Optional new metadata related to the vector.
-        """
-        pass
-
-```
-
 ```swarmauri/core/vector_stores/__init__.py
 
 
@@ -2951,6 +2890,22 @@ class ISaveLoadStore(ABC):
 
         Parameters:
         - directory_path (str): The directory path from where the store's state will be loaded.
+        """
+        pass
+
+    @abstractmethod
+    def save_parts(self, directory_path: str, chunk_size: int=10485760) -> None:
+        """
+        Save the model in parts to handle large files by splitting them.
+
+        """
+        pass
+
+    @abstractmethod
+    def load_parts(self, directory_path: str, file_pattern: str) -> None:
+        """
+        Load and combine model parts from a directory.
+
         """
         pass
 
@@ -8479,7 +8434,7 @@ def load_documents_from_json(json_file_path):
     documents = []
     with open(json_file_path, 'r') as f:
         data = json.load(f)
-    documents = [Document(doc_id=str(_), content=doc['content'], metadata={"document_name": doc['document_name']}) for _, doc in enumerate(data) if doc['content']]
+    documents = [Document(id=str(_), content=doc['content'], metadata={"document_name": doc['document_name']}) for _, doc in enumerate(data) if doc['content']]
     return documents
 
 ```
@@ -8853,13 +8808,15 @@ class SharedConversation(ConversationBase):
 
 ```swarmauri/standard/documents/__init__.py
 
-
+from .concrete import *
+from .base import *
 
 ```
 
 ```swarmauri/standard/documents/base/__init__.py
 
-
+from .DocumentBase import DocumentBase
+from .EmbeddedBase import EmbeddedBase
 
 ```
 
@@ -8867,12 +8824,23 @@ class SharedConversation(ConversationBase):
 
 from abc import ABC
 from typing import List, Any, Optional
+import importlib
 from swarmauri.core.documents.IEmbed import IEmbed
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.base.VectorBase import VectorBase
+from swarmauri.standard.documents.base.DocumentBase import DocumentBase
 
-class EmbeddedBase(IEmbed, ABC):
-    def __init__(self, embedding: Optional[IVector] = None):
+class EmbeddedBase(DocumentBase, IEmbed, ABC):
+    def __init__(self, id: str = "", content: str = "", metadata: dict = {}, embedding: VectorBase = None):
+        DocumentBase.__init__(self, id, content, metadata)
         self._embedding = embedding
+        
+    @property
+    def embedding(self) -> VectorBase:
+        return self._embedding
+
+    @embedding.setter
+    def embedding(self, value: VectorBase) -> None:
+        self._embedding = value
 
     def __str__(self):
         return f"EmbeddedDocument ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}, embedding={self.embedding}"
@@ -8881,15 +8849,28 @@ class EmbeddedBase(IEmbed, ABC):
         return f"EmbeddedDocument(id={self.id}, content={self.content}, metadata={self.metadata}, embedding={self.embedding})"
 
     def to_dict(self):
-        return self.__dict__
+        document_dict = super().to_dict()
+        document_dict.update({
+            "type": self.__class__.__name__,
+            "embedding": self.embedding.to_dict() if hasattr(self.embedding, 'to_dict') else self.embedding
+            })
 
-    @property
-    def embedding(self) -> IVector:
-        return self._embedding
+        return document_dict
 
-    @embedding.setter
-    def embedding(self, value: IVector) -> None:
-        self._embedding = value
+    @classmethod
+    def from_dict(cls, data):
+        vector_data = data.pop("embedding")
+        if vector_data:
+            vector_type = vector_data.pop('type')
+            if vector_type:
+                module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{vector_type}")
+                vector_class = getattr(module, vector_type)
+                vector = vector_class.from_dict(vector_data)
+            else:
+                vector = None
+        else:
+            vector = None 
+        return cls(**data, embedding=vector)
 
 ```
 
@@ -8901,20 +8882,11 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class DocumentBase(IDocument, ABC):
     
-    def __init__(self, doc_id, content, metadata):
-        self._id = doc_id
+    def __init__(self, id: str = "", content: str = "", metadata: dict = {}):
+        self._id = id
         self._content = content
-        self._metadata = metadata        
-    
-    def __str__(self):
-        return f"Document ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}"
+        self._metadata = metadata
 
-    def __repr__(self):
-        return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
-
-    def to_dict(self):
-        return self.__dict__
-    
     @property
     def id(self) -> str:
         """
@@ -8960,11 +8932,30 @@ class DocumentBase(IDocument, ABC):
         """
         self._metadata = value
 
+    def __str__(self):
+        return f"Document ID: {self.id}, Content: {self.content}, Metadata: {self.metadata}"
+
+    def __repr__(self):
+        return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
+
+    def to_dict(self):
+        return {'type': self.__class__.__name__,
+                'id': self.id, 
+                'content': self.content, 
+                'metadata': self.metadata}
+      
+    @classmethod
+    def from_dict(cls, data):
+        data.pop("type", None)
+        return cls(**data)
+
+
 ```
 
 ```swarmauri/standard/documents/concrete/__init__.py
 
-
+from .Document import Document
+from .EmbeddedDocument import EmbeddedDocument
 
 ```
 
@@ -8972,13 +8963,11 @@ class DocumentBase(IDocument, ABC):
 
 from typing import Optional, Any
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.documents.base.DocumentBase import DocumentBase
 from swarmauri.standard.documents.base.EmbeddedBase import EmbeddedBase
 
-class EmbeddedDocument(DocumentBase, EmbeddedBase):
-    def __init__(self, doc_id,  content, metadata, embedding: Optional[IVector] = None):
-        DocumentBase.__init__(self, doc_id=doc_id, content=content, metadata=metadata)
-        EmbeddedBase.__init__(self, embedding=embedding)
+class EmbeddedDocument(EmbeddedBase):
+    def __init__(self, id,  content, metadata, embedding: Optional[IVector] = None):
+        EmbeddedBase.__init__(self, id=id, content=content, metadata=metadata, embedding=embedding)
 
 
 ```
@@ -10761,19 +10750,22 @@ class VectorDocumentStoreBase(IDocumentStore, ABC):
     def document_count(self):
         return len(self.documents)
     
-    #def dumps(self) -> str:
-        #return json.dumps([each.to_dict() for each in self.documents])
+    def document_dumps(self) -> str:
+        return json.dumps([each.to_dict() for each in self.documents])
 
-    #def dump(self, file_path) -> None:
-        #with open(file_path, 'w') as f:
-            #json.dump([each.to_dict() for each in self.documents], f, indent=4)
-          
-    #def loads(self, json_data: str) -> None:
-        #self.documents = json.loads(json_data)
+    def document_dump(self, file_path: str) -> None:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump([each.to_dict() for each in self.documents], 
+                f,
+                ensure_ascii=False, 
+                indent=4)  
 
-    #def load(self, file_path: str) -> None:
-        #with open(file_path, 'r') as f:
-            #self.documents = json.load(f)
+    def document_loads(self, json_data: str) -> None:
+        self.documents = [globals()[each['type']].from_dict(each) for each in json.loads(json_data)]
+
+    def document_load(self, file_path: str) -> None:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]
 
 
 
@@ -10807,11 +10799,14 @@ class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve
 
 ```swarmauri/standard/vector_stores/base/SaveLoadStoreBase.py
 
-import json
-import os
 from typing import List
+import os
+import json
+import glob
+import importlib 
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
-from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents import DocumentBase
+from swarmauri.core.vectorizers.IVectorize import IVectorize
 
 class SaveLoadStoreBase(ISaveLoadStore):
     """
@@ -10819,9 +10814,9 @@ class SaveLoadStoreBase(ISaveLoadStore):
     the vectorizer's model and the documents.
     """
     
-    def __init__(self, vectorizer, documents: List[IDocument]):
+    def __init__(self, vectorizer: IVectorize, documents: List[DocumentBase]):
         self.vectorizer = vectorizer
-        self.documents = []
+        self.documents = documents
     
     def save_store(self, directory_path: str) -> None:
         """
@@ -10838,7 +10833,11 @@ class SaveLoadStoreBase(ISaveLoadStore):
         # Save documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'w', encoding='utf-8') as f:
-            json.dump(self.documents, f, ensure_ascii=False, indent=4)
+            json.dump([each.to_dict() for each in self.documents], 
+                f,
+                ensure_ascii=False, 
+                indent=4)
+
     
     def load_store(self, directory_path: str) -> None:
         """
@@ -10851,7 +10850,51 @@ class SaveLoadStoreBase(ISaveLoadStore):
         # Load documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'r', encoding='utf-8') as f:
-            self.documents = json.load(f)
+            self.documents = [self._load_document(each) for each in json.load(f)]
+
+    def _load_document(self, data):
+        document_type = data.pop("type") 
+        if document_type:
+            module = importlib.import_module(f"swarmauri.standard.documents.concrete.{document_type}")
+            document_class = getattr(module, document_type)
+            document = document_class.from_dict(data)
+            return document
+        else:
+            raise ValueError("Unknown document type")
+        
+    def save_parts(self, directory_path: str, chunk_size: int = 10485760) -> None:
+        """
+        Splits the file into parts if it's too large and saves those parts individually.
+        """
+        file_number = 1
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        parts_directory = f"{directory_path}/parts"
+        if not os.path.exists(parts_directory):
+            os.makedirs(parts_directory)
+
+        with open(f"{model_path}/model.safetensors", 'rb') as f:
+            chunk = f.read(chunk_size)
+            while chunk:
+                with open(f"{parts_directory}/model.safetensors.part{file_number}", 'wb') as chunk_file:
+                    chunk_file.write(chunk)
+                file_number += 1
+                chunk = f.read(chunk_size)
+
+    def load_parts(self, directory_path: str, file_pattern: str = '*.part*') -> None:
+        """
+        Combines file parts from a directory back into a single file and loads it.
+        """
+        model_path = os.path.join(directory_path, "vectorizer_model")
+        parts_directory = f"{directory_path}/parts"
+        output_file_path = os.path.join(model_path, "model.safetensors")
+
+        parts = sorted(glob.glob(os.path.join(parts_directory, file_pattern)))
+        with open(output_file_path, 'wb') as output_file:
+            for part in parts:
+                with open(part, 'rb') as file_part:
+                    output_file.write(file_part.read())
+
+        self.load_store(directory_path)
 
 ```
 
@@ -10877,7 +10920,8 @@ class TFIDFVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         self.vectorizer = TFIDFVectorizer()
         self.metric = CosineDistance()
         self.documents = []
-        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
+        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)
+      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
@@ -10942,7 +10986,7 @@ class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         self.vectorizer = Doc2VecVectorizer()
         self.metric = CosineDistance()
         self.documents = []      
-        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
+        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
@@ -10977,7 +11021,7 @@ class Doc2VecVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         documents_text = [_d.content for _d in self.documents if _d.content]
         embeddings = self.vectorizer.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count]) for _count, _d in enumerate(self.documents)
@@ -11014,14 +11058,14 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
         self.documents: List[EmbeddedDocument] = []
-        SaveLoadStoreBase.__init__(self.vectorizer, self.documents)      
+        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
         self.documents.append(document)
         documents_text = [_d.content for _d in self.documents if _d.content]
         embeddings = self.vectorizer.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count])
@@ -11035,7 +11079,7 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         documents_text = [_d.content for _d in self.documents if _d.content]
         embeddings = self.vectorizer.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(doc_id=_d.id, 
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
@@ -11483,7 +11527,7 @@ class VectorBase(IVector, ABC):
         Returns the vector's data.
         """
         return self._data
-    
+
     def to_numpy(self) -> np.ndarray:
         """
         Converts the vector into a numpy array.
@@ -11504,19 +11548,11 @@ class VectorBase(IVector, ABC):
         Converts the vector into a dictionary suitable for JSON serialization.
         This method needs to be called explicitly for conversion.
         """
-        return {'data': self._data}
+        return {'type': self.__class__.__name__,'data': self.data}
 
-    def to_json(self):
-        """
-        Return state which can be used by both pickle and json.dumps.
-        For json.dumps, this will enable automatic dictionary serialization.
-        """
-        def my_serializer(self):
-          if isinstance(self, VectorBase):
-              return self.to_dict()
-          raise TypeError("Type not serializable")
-          
-        return json.dumps(self, default=my_serializer)
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
 
 ```
 
@@ -11653,7 +11689,6 @@ class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
 
 from typing import List, Union, Any
 import numpy as np
-
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import AdamW
@@ -11676,7 +11711,8 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
         batch_size = 32, 
         learning_rate = 5e-5, 
         masking_ratio: float = 0.15, 
-        randomness_ratio: float = 0.10):
+        randomness_ratio: float = 0.10,
+        add_new_tokens: bool = False):
         """
         Initializes the vectorizer with a pre-trained MLM model and tokenizer for fine-tuning.
         
@@ -11692,6 +11728,7 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
         self.learning_rate = learning_rate
         self.masking_ratio = masking_ratio
         self.randomness_ratio = randomness_ratio
+        self.add_new_tokens = add_new_tokens
         self.mask_token_id = self.tokenizer.convert_tokens_to_ids([self.tokenizer.mask_token])[0]
 
     def extract_features(self):
@@ -11721,31 +11758,42 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
 
         return input_ids, attention_mask, labels
 
-    # work on this
     def fit(self, documents: List[Union[str, Any]]):
+        # Check if we need to add new tokens
+        if self.add_new_tokens:
+            new_tokens = self.find_new_tokens(documents)
+            if new_tokens:
+                num_added_toks = self.tokenizer.add_tokens(new_tokens)
+                if num_added_toks > 0:
+                    print(f"Added {num_added_toks} new tokens.")
+                    self.model.resize_token_embeddings(len(self.tokenizer))
+
         encodings = self.tokenizer(documents, return_tensors='pt', padding=True, truncation=True, max_length=512)
-        input_ids, attention_mask, labels = self._mask_tokens(encodings)       
+        input_ids, attention_mask, labels = self._mask_tokens(encodings)
         optimizer = AdamW(self.model.parameters(), lr=self.learning_rate)
         dataset = TensorDataset(input_ids, attention_mask, labels)
         data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
         self.model.train()
-
         for batch in data_loader:
-            # Move batch to the correct device
             batch = {k: v.to(self.device) for k, v in zip(['input_ids', 'attention_mask', 'labels'], batch)}
-            
             outputs = self.model(**batch)
             loss = outputs.loss
-
-            # Backpropagation
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
         self.epochs += 1
         print(f"Epoch {self.epochs} complete. Loss {loss.item()}")
 
+    def find_new_tokens(self, documents):
+        # Identify unique words in documents that are not in the tokenizer's vocabulary
+        unique_words = set()
+        for doc in documents:
+            tokens = set(doc.split())  # Simple whitespace tokenization
+            unique_words.update(tokens)
+        existing_vocab = set(self.tokenizer.get_vocab().keys())
+        new_tokens = list(unique_words - existing_vocab)
+        return new_tokens if new_tokens else None
 
     def transform(self, documents: List[Union[str, Any]]) -> List[IVector]:
         """
@@ -13435,6 +13483,18 @@ class ImpressionAtKMetric(ThresholdMetricBase):
 
 ```
 
+```swarmauri/standard/agent_factories/__init__.py
+
+
+
+```
+
+```swarmauri/standard/agent_factories/base/__init__.py
+
+
+
+```
+
 ```swarmauri/standard/agent_factories/concrete/AgentFactory.py
 
 import json
@@ -13714,5 +13774,11 @@ class ReflectiveAgentFactory(IAgentFactory, IExportConf):
     @last_modified.setter
     def last_modified(self, value: datetime) -> None:
         self._metadata['last_modified'] = value
+
+```
+
+```swarmauri/standard/agent_factories/concrete/__init__.py
+
+
 
 ```
