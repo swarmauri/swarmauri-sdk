@@ -27,3 +27,19 @@ class ISaveLoadStore(ABC):
         - directory_path (str): The directory path from where the store's state will be loaded.
         """
         pass
+
+    @abstractmethod
+    def save_parts(self, combined_file_path: str, parts_directory: str, chunk_size: int=10485760) -> None:
+        """
+        Save the model in parts to handle large files by splitting them.
+
+        """
+        pass
+
+    @abstractmethod
+    def load_parts(self, combined_file_path: str, parts_directory: str,  file_pattern: str) -> None:
+        """
+        Load and combine model parts from a directory.
+
+        """
+        pass

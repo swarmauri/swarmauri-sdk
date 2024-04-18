@@ -1,6 +1,7 @@
-import json
-import os
 from typing import List
+import os
+import json
+import glob
 import importlib 
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
 from swarmauri.standard.documents import DocumentBase
@@ -60,3 +61,29 @@ class SaveLoadStoreBase(ISaveLoadStore):
         else:
             raise ValueError("Unknown document type")
         
+    def save_parts(self, combined_file_path: str, parts_directory: str,  chunk_size: int = 10485760) -> None:
+        """
+        Splits the file into parts if it's too large and saves those parts individually.
+        """
+        file_number = 1
+        with open(combined_file_path, 'rb') as f:
+            chunk = f.read(chunk_size)
+            while chunk:
+                with open(f"{combined_file_path}.part{file_number}", 'wb') as chunk_file:
+                    chunk_file.write(chunk)
+                file_number += 1
+                chunk = f.read(chunk_size)
+
+    def load_parts(self, combined_file_path: str, parts_directory: str, file_pattern: str = '*.part*') -> None:
+        """
+        Combines file parts from a directory back into a single file and loads it.
+        """
+        output_file_path = os.path.join(parts_directory, "model.safetensors")
+
+        parts = sorted(glob.glob(os.path.join(parts_directory, file_pattern)))
+        with open(output_file_path, 'wb') as output_file:
+            for part in parts:
+                with open(part, 'rb') as file_part:
+                    output_file.write(file_part.read())
+
+        self.load_store(output_file_path)
