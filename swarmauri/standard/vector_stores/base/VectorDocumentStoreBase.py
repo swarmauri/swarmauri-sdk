@@ -2,13 +2,13 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
-class VectorDocumentStoreBase(IDocumentStore, ABC):
+class VectorDocumentStoreBase(IVectorStore, ABC):
     """
-    Abstract base class for document stores, implementing the IDocumentStore interface.
+    Abstract base class for document stores, implementing the IVectorStore interface.
 
-    This class provides a standard API for adding, updating, getting, and deleting documents in a store.
+    This class provides a standard API for adding, updating, getting, and deleting documents in a vector store.
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
 

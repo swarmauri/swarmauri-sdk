@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List
 from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri.core.vector_stores.IVectorRetrieve import IVectorRetrieve
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreBase import VectorDocumentStoreBase
 
-class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve, ABC):
+class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IVectorRetrieve, ABC):
         
     @abstractmethod
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:

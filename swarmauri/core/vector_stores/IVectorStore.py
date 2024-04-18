@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
+from typing import List, Dict, Union
+from swarmauri.core.vectors.IVector import IVector
+from .swarmauri.core.documents.IDocument import IDocument
 
-class IDocumentStore(ABC):
+class IVectorStore(ABC):
     """
     Interface for a Document Store responsible for storing, indexing, and retrieving documents.
     """
@@ -76,4 +77,4 @@ class IDocumentStore(ABC):
 
     @abstractmethod
     def document_count(self) -> int:
-        pass
+        pass 
