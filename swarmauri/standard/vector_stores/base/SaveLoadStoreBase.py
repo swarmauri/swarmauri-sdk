@@ -48,4 +48,4 @@ class SaveLoadStoreBase(ISaveLoadStore):
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'r', encoding='utf-8') as f:
             self.documents = [globals()[each['type']].from_dict(each) 
-                for each in json.load(documents_path)]
+                for each in json.load(f)]
