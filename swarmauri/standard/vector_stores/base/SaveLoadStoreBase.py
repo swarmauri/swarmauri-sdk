@@ -30,7 +30,11 @@ class SaveLoadStoreBase(ISaveLoadStore):
         # Save documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'w', encoding='utf-8') as f:
-            json.dump(self.documents, f, ensure_ascii=False, indent=4)
+            json.dump([each.to_dict() for each in self.documents], 
+                f,
+                ensure_ascii=False, 
+                indent=4)
+
     
     def load_store(self, directory_path: str) -> None:
         """
@@ -43,4 +47,4 @@ class SaveLoadStoreBase(ISaveLoadStore):
         # Load documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'r', encoding='utf-8') as f:
-            self.documents = json.load(f)
+            self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]

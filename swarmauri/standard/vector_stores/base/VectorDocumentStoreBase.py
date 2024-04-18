@@ -79,17 +79,20 @@ class VectorDocumentStoreBase(IDocumentStore, ABC):
     def document_count(self):
         return len(self.documents)
     
-    #def dumps(self) -> str:
-        #return json.dumps([each.to_dict() for each in self.documents])
+    def document_dumps(self) -> str:
+        return json.dumps([each.to_dict() for each in self.documents])
 
-    #def dump(self, file_path) -> None:
-        #with open(file_path, 'w') as f:
-            #json.dump([each.to_dict() for each in self.documents], f, indent=4)
-          
-    #def loads(self, json_data: str) -> None:
-        #self.documents = json.loads(json_data)
+    def document_dump(self, file_path: str) -> None:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump([each.to_dict() for each in self.documents], 
+                f,
+                ensure_ascii=False, 
+                indent=4)  
 
-    #def load(self, file_path: str) -> None:
-        #with open(file_path, 'r') as f:
-            #self.documents = json.load(f)
+    def document_loads(self, json_data: str) -> None:
+        self.documents = [globals()[each['type']].from_dict(each) for each in json.loads(json_data)]
+
+    def document_load(self, file_path: str) -> None:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]
 

@@ -35,7 +35,7 @@ class VectorBase(IVector, ABC):
         Converts the vector into a dictionary suitable for JSON serialization.
         This method needs to be called explicitly for conversion.
         """
-        return {'data': self._data}
+        return {'data': self.data}
 
     def to_json(self):
         """

@@ -4,8 +4,8 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class DocumentBase(IDocument, ABC):
     
-    def __init__(self, doc_id, content, metadata):
-        self._id = doc_id
+    def __init__(self, id, content, metadata):
+        self._id = id
         self._content = content
         self._metadata = metadata        
     
@@ -16,8 +16,16 @@ class DocumentBase(IDocument, ABC):
         return f"Document(id={self.id}, content={self.content}, metadata={self.metadata})"
 
     def to_dict(self):
-        return self.__dict__
-    
+        return {'type': self.__class__.__name__,
+                'id': self.id, 
+                'content': self.content, 
+                'metadata': self.metadata}
+      
+    @classmethod
+    def from_dict(cls, data):
+        return cls(id=data['id'],
+                  content=data['content'],
+                  metadata=data['metadata'])
     @property
     def id(self) -> str:
         """

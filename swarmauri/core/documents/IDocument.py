@@ -3,7 +3,7 @@ from typing import Dict
 
 class IDocument(ABC):
     @abstractmethod
-    def __init__(self, doc_id, content, metadata: Dict):
+    def __init__(self, doc_id: str, content: str, metadata: Dict = {}):
         pass
 
     @property
