@@ -1,2 +1,2 @@
 from .DocumentBase import DocumentBase
-from .EmbeddedDocumentBase import EmbeddedDocumentBase
+from .EmbeddedBase import EmbeddedBase
