@@ -1,6 +1,7 @@
 import json
 import os
 from typing import List
+import importlib 
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
 from swarmauri.standard.documents import DocumentBase
 from swarmauri.core.vectorizers.IVectorize import IVectorize
@@ -54,7 +55,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         if document_type:
             module = importlib.import_module(f"swarmauri.standard.documents.concrete.{document_type}")
             document_class = getattr(module, document_type)
-            document = document_class.from_dict(**embedding_data)
+            document = document_class.from_dict(**data)
             return document
         else:
             raise ValueError("Unknown document type")

@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import List, Any, Optional
+import importlib
 from swarmauri.core.documents.IEmbed import IEmbed
 from swarmauri.standard.vectors.base.VectorBase import VectorBase
 from swarmauri.standard.documents.base.DocumentBase import DocumentBase
