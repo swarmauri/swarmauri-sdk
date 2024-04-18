@@ -1,19 +1,20 @@
 import json
 import os
-from typing import List
+from typing import List, TypeVar, Generic
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.documents import *
-from swarmauri.standard.documents import *
+from swarmauri.standard.documents import DocumentBase, Document, EmbeddedDocument
 from swarmauri.core.vectorizers.IVectorize import IVectorize
 
-class SaveLoadStoreBase(ISaveLoadStore):
+# Define a type variable that is restricted to instances of Document or EmbeddedDocument
+DocType = TypeVar('DocType', Document, EmbeddedDocument)
+
+class SaveLoadStoreBase(Generic[DocType], ISaveLoadStore):
     """
     Base class for vector stores with built-in support for saving and loading
     the vectorizer's model and the documents.
     """
     
-    def __init__(self, vectorizer: IVectorize, documents: List[IDocument]):
+    def __init__(self, vectorizer: IVectorize, documents: List[DocType]):
         self.vectorizer = vectorizer
         self.documents = documents
     
@@ -49,6 +50,12 @@ class SaveLoadStoreBase(ISaveLoadStore):
         # Load documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, 'r', encoding='utf-8') as f:
-            print(globals())
-            self.documents = [globals()[each['type']].from_dict(each) 
-                for each in json.load(f)]
+            self.documents = [self._load_document(each) for each in json.load(f)]
+
+    def _load_document(self, data):
+        if data['type'] == 'Document':
+            return Document.from_dict(data)
+        elif data['type'] == 'EmbeddedDocument':
+            return EmbeddedDocument.from_dict(data)
+        else:
+            raise ValueError("Unknown document type")
