@@ -74,11 +74,11 @@ class SaveLoadStoreBase(ISaveLoadStore):
                 file_number += 1
                 chunk = f.read(chunk_size)
 
-    def load_parts(self, combined_file_path: str, parts_directory: str, file_pattern: str = '*.part*') -> None:
+    def load_parts(self, parts_directory: str, output_directory: str, file_pattern: str = '*.part*') -> None:
         """
         Combines file parts from a directory back into a single file and loads it.
         """
-        output_file_path = os.path.join(parts_directory, "model.safetensors")
+        output_file_path = os.path.join(output_directory, "model.safetensors")
 
         parts = sorted(glob.glob(os.path.join(parts_directory, file_pattern)))
         with open(output_file_path, 'wb') as output_file:

@@ -37,7 +37,7 @@ class ISaveLoadStore(ABC):
         pass
 
     @abstractmethod
-    def load_parts(self, combined_file_path: str, parts_directory: str,  file_pattern: str) -> None:
+    def load_parts(self, parts_directory: str, output_directory: str, file_pattern: str) -> None:
         """
         Load and combine model parts from a directory.
 
