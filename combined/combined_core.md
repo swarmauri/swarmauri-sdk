@@ -947,18 +947,17 @@ class IAgent(ABC):
 ```swarmauri/core/agents/IAgentVectorStore.py
 
 from abc import ABC, abstractmethod
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
 class IAgentVectorStore(ABC):
     
     @property
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
         pass
 
     @vector_store.setter
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
         pass
 
 ```
@@ -2106,11 +2105,126 @@ class ISaveLoadStore(ABC):
 
 ```
 
+```swarmauri/core/vector_stores/IVectorStore.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Union
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorStore(ABC):
+    """
+    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
+    """
+
+    @abstractmethod
+    def add_document(self, document: IDocument) -> None:
+        """
+        Stores a single document in the document store.
+
+        Parameters:
+        - document (IDocument): The document to store.
+        """
+        pass
+
+    @abstractmethod
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Stores multiple documents in the document store.
+
+        Parameters:
+        - documents (List[IDocument]): The list of documents to store.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        """
+        Retrieves a document by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document.
+
+        Returns:
+        - Union[IDocument, None]: The requested document, or None if not found.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieves all documents stored in the document store.
+
+        Returns:
+        - List[IDocument]: A list of all documents.
+        """
+        pass
+
+    @abstractmethod
+    def delete_document(self, doc_id: str) -> None:
+        """
+        Deletes a document from the document store by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+
+
+    @abstractmethod
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        """
+        Updates a document in the document store.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document to update.
+        - updated_document (IDocument): The updated document object.
+
+        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        """
+        pass
+
+    @abstractmethod
+    def document_count(self) -> int:
+        pass 
+
+```
+
+```swarmauri/core/vector_stores/IVectorRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorRetrieve(ABC):
+    """
+    Abstract base class for document retrieval operations.
+    
+    This class defines the interface for retrieving documents based on a query or other criteria.
+    Implementations may use various indexing or search technologies to fulfill these retrievals.
+    """
+
+    @abstractmethod
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the most relevant documents based on the given query.
+        
+        Parameters:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+            
+        Returns:
+            List[Document]: A list of the top_k most relevant documents.
+        """
+        pass
+
+```
+
 ```swarmauri/core/document_stores/IDocumentStore.py
 
 from abc import ABC, abstractmethod
 from typing import List, Union
-from ..documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IDocumentStore(ABC):
     """

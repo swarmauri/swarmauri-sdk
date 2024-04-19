@@ -83,6 +83,8 @@ swarmauri/core/vector_stores/IVectorRotate.py
 swarmauri/core/vector_stores/IVectorBasisCheck.py
 swarmauri/core/vector_stores/__init__.py
 swarmauri/core/vector_stores/ISaveLoadStore.py
+swarmauri/core/vector_stores/IVectorStore.py
+swarmauri/core/vector_stores/IVectorRetrieve.py
 swarmauri/core/document_stores/IDocumentStore.py
 swarmauri/core/document_stores/__init__.py
 swarmauri/core/document_stores/IDocumentRetrieve.py
@@ -288,6 +290,7 @@ swarmauri/standard/vector_stores/concrete/__init__.py
 swarmauri/standard/vector_stores/concrete/TFIDFVectorStore.py
 swarmauri/standard/vector_stores/concrete/Doc2VecVectorStore.py
 swarmauri/standard/vector_stores/concrete/MLMVectorStore.py
+swarmauri/standard/vector_stores/concrete/SpatialDocVectorStore.py
 swarmauri/standard/document_stores/__init__.py
 swarmauri/standard/document_stores/base/__init__.py
 swarmauri/standard/document_stores/base/DocumentStoreBase.py
@@ -314,6 +317,7 @@ swarmauri/standard/vectorizers/concrete/Doc2VecVectorizer.py
 swarmauri/standard/vectorizers/concrete/MLMVectorizer.py
 swarmauri/standard/vectorizers/concrete/TFIDFVectorizer.py
 swarmauri/standard/vectorizers/concrete/NMFVectorizer.py
+swarmauri/standard/vectorizers/concrete/SpatialDocVectorizer.py
 swarmauri/standard/tracing/__init__.py
 swarmauri/standard/tracing/base/__init__.py
 swarmauri/standard/tracing/concrete/SimpleTracer.py

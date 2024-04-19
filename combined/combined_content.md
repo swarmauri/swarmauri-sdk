@@ -24,7 +24,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 ```swarmauri/__init__.py
 
-__version__ = "0.1.71"
+__version__ = "0.1.78"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -1753,18 +1753,17 @@ class IAgent(ABC):
 ```swarmauri/core/agents/IAgentVectorStore.py
 
 from abc import ABC, abstractmethod
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
 class IAgentVectorStore(ABC):
     
     @property
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
         pass
 
     @vector_store.setter
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
         pass
 
 ```
@@ -2912,11 +2911,126 @@ class ISaveLoadStore(ABC):
 
 ```
 
+```swarmauri/core/vector_stores/IVectorStore.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Union
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorStore(ABC):
+    """
+    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
+    """
+
+    @abstractmethod
+    def add_document(self, document: IDocument) -> None:
+        """
+        Stores a single document in the document store.
+
+        Parameters:
+        - document (IDocument): The document to store.
+        """
+        pass
+
+    @abstractmethod
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Stores multiple documents in the document store.
+
+        Parameters:
+        - documents (List[IDocument]): The list of documents to store.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        """
+        Retrieves a document by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document.
+
+        Returns:
+        - Union[IDocument, None]: The requested document, or None if not found.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieves all documents stored in the document store.
+
+        Returns:
+        - List[IDocument]: A list of all documents.
+        """
+        pass
+
+    @abstractmethod
+    def delete_document(self, doc_id: str) -> None:
+        """
+        Deletes a document from the document store by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+
+
+    @abstractmethod
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        """
+        Updates a document in the document store.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document to update.
+        - updated_document (IDocument): The updated document object.
+
+        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        """
+        pass
+
+    @abstractmethod
+    def document_count(self) -> int:
+        pass 
+
+```
+
+```swarmauri/core/vector_stores/IVectorRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorRetrieve(ABC):
+    """
+    Abstract base class for document retrieval operations.
+    
+    This class defines the interface for retrieving documents based on a query or other criteria.
+    Implementations may use various indexing or search technologies to fulfill these retrievals.
+    """
+
+    @abstractmethod
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the most relevant documents based on the given query.
+        
+        Parameters:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+            
+        Returns:
+            List[Document]: A list of the top_k most relevant documents.
+        """
+        pass
+
+```
+
 ```swarmauri/core/document_stores/IDocumentStore.py
 
 from abc import ABC, abstractmethod
 from typing import List, Union
-from ..documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IDocumentStore(ABC):
     """
@@ -10674,13 +10788,13 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
-class VectorDocumentStoreBase(IDocumentStore, ABC):
+class VectorDocumentStoreBase(IVectorStore, ABC):
     """
-    Abstract base class for document stores, implementing the IDocumentStore interface.
+    Abstract base class for document stores, implementing the IVectorStore interface.
 
-    This class provides a standard API for adding, updating, getting, and deleting documents in a store.
+    This class provides a standard API for adding, updating, getting, and deleting documents in a vector store.
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
 
@@ -10777,10 +10891,10 @@ class VectorDocumentStoreBase(IDocumentStore, ABC):
 from abc import ABC, abstractmethod
 from typing import List
 from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri.core.vector_stores.IVectorRetrieve import IVectorRetrieve
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreBase import VectorDocumentStoreBase
 
-class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IDocumentRetrieve, ABC):
+class VectorDocumentStoreRetrieveBase(VectorDocumentStoreBase, IVectorRetrieve, ABC):
         
     @abstractmethod
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
@@ -11127,6 +11241,79 @@ from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStor
 class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
+        self.metric = CosineDistance()
+        self.documents: List[EmbeddedDocument] = []
+        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)      
+
+    def add_document(self, document: IDocument) -> None:
+        self.documents.append(document)
+        documents_text = [_d.content for _d in self.documents if _d.content]
+        embeddings = self.vectorizer.fit_transform(documents_text)
+
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
+            content=_d.content, 
+            metadata=_d.metadata, 
+            embedding=embeddings[_count])
+
+        for _count, _d in enumerate(self.documents) if _d.content]
+
+        self.documents = embedded_documents
+
+    def add_documents(self, documents: List[IDocument]) -> None:
+        self.documents.extend(documents)
+        documents_text = [_d.content for _d in self.documents if _d.content]
+        embeddings = self.vectorizer.fit_transform(documents_text)
+
+        embedded_documents = [EmbeddedDocument(id=_d.id, 
+            content=_d.content, 
+            metadata=_d.metadata, 
+            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
+            if _d.content]
+
+        self.documents = embedded_documents
+
+    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+        for document in self.documents:
+            if document.id == doc_id:
+                return document
+        return None
+        
+    def get_all_documents(self) -> List[EmbeddedDocument]:
+        return self.documents
+
+    def delete_document(self, doc_id: str) -> None:
+        self.documents = [_d for _d in self.documents if _d.id != doc_id]
+
+    def update_document(self, doc_id: str) -> None:
+        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
+        
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        query_vector = self.vectorizer.infer_vector(query)
+        document_vectors = [_d.embedding for _d in self.documents if _d.content]
+        distances = self.metric.distances(query_vector, document_vectors)
+        
+        # Get the indices of the top_k most similar documents
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
+        
+        return [self.documents[i] for i in top_k_indices]
+
+
+
+```
+
+```swarmauri/standard/vector_stores/concrete/SpatialDocVectorStore.py
+
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vectorizers.concrete.SpatialDocVectorizer import SpatialDocVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
+
+class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
+    def __init__(self):
+        self.vectorizer = SpatialDocVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
         self.documents: List[EmbeddedDocument] = []
         SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)      
@@ -12122,6 +12309,97 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         self.model = joblib.load(f"{path}_nmf.joblib")
         # Dependending on your implementation, you might need to refresh the feature_names
         self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
+
+```
+
+```swarmauri/standard/vectorizers/concrete/SpatialDocVectorizer.py
+
+import numpy as np
+
+import torch
+from torch import nn
+from transformers import BertTokenizer, BertModel
+
+from swarmauri.core.vectorizers.IVectorize import IVectorize
+from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+
+
+class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
+    def __init__(self, special_tokens_dict=None):
+        self.special_tokens_dict = special_tokens_dict or {
+            'additional_special_tokens': ['[DIR]', '[TYPE]', '[SECTION]', '[PATH]']
+        }
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.tokenizer.add_special_tokens(self.special_tokens_dict)
+        self.model = BertModel.from_pretrained('bert-base-uncased', return_dict=True)
+        self.model.resize_token_embeddings(len(self.tokenizer))
+
+    def add_metadata(self, text, section_header, file_path, doc_type):
+        dir_token = f"[DIR={file_path.split('/')[-2]}]"
+        doc_type_token = f"[TYPE={doc_type}]"
+        metadata_str = f"{dir_token} {doc_type_token} [SECTION={section_header}] [PATH={file_path}] "
+        return metadata_str + text
+
+    def tokenize_and_encode(self, text):
+        inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        outputs = self.model(**inputs)
+        return outputs.pooler_output
+
+    def enhance_embedding_with_positional_info(self, embeddings, doc_position, total_docs):
+        position_effect = torch.sin(torch.tensor(doc_position / total_docs, dtype=torch.float))
+        enhanced_embeddings = embeddings + position_effect
+        return enhanced_embeddings
+
+    def vectorize_document(self, chunks, section_headers, file_paths, doc_types):
+        all_embeddings = []
+        total_chunks = len(chunks)
+        for i, (chunk, header, path, doc_type) in enumerate(zip(chunks, section_headers, file_paths, doc_types)):
+            embedded_text = self.add_metadata(chunk, header, path, doc_type)
+            embeddings = self.tokenize_and_encode(embedded_text)
+            enhanced_embeddings = self.enhance_embedding_with_positional_info(embeddings, i, total_chunks)
+            all_embeddings.append(enhanced_embeddings)
+        document_embedding = torch.mean(torch.stack(all_embeddings), dim=0)
+        return SimpleVector(data=document_embedding.detach().numpy().tolist())
+
+    def vectorize(self, text):
+        inputs = self.tokenize_and_encode(text)
+        return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
+
+    def fit(self, data):
+        # Although this vectorizer might not need to be fitted in the traditional sense,
+        # this method placeholder allows integration into pipelines that expect a fit method.
+        return self
+
+    def transform(self, data):
+        if isinstance(data, list):
+            return [self.vectorize(text).data for text in data]
+        else:
+            return self.vectorize(data).data
+
+    def fit_transform(self, data):
+        self.fit(data)
+        return self.transform(data)
+
+    def infer_vector(self, data, *args, **kwargs):
+        return self.vectorize(data)
+
+    def save_model(self, path):
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'tokenizer': self.tokenizer
+        }, path)
+    
+    def load_model(self, path):
+        checkpoint = torch.load(path)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.tokenizer = checkpoint['tokenizer']
+
+    def extract_feature(self, text):
+        inputs = self.tokenize_and_encode(text)
+        return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
 
 ```
 
