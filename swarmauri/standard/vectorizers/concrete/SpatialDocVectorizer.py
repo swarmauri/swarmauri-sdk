@@ -14,18 +14,24 @@ from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
     def __init__(self, special_tokens_dict=None):
         self.special_tokens_dict = special_tokens_dict or {
-            'additional_special_tokens': ['[DIR]', '[TYPE]', '[SECTION]', '[PATH]']
+            'additional_special_tokens': [
+                '[DIR]', '[TYPE]', '[SECTION]', '[PATH]',
+                '[PARAGRAPH]', '[SUBPARAGRAPH]', '[CHAPTER]', '[TITLE]', '[SUBSECTION]'
+            ]
         }
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.tokenizer.add_special_tokens(self.special_tokens_dict)
         self.model = BertModel.from_pretrained('bert-base-uncased', return_dict=True)
         self.model.resize_token_embeddings(len(self.tokenizer))
 
-    def add_metadata(self, text, section_header, file_path, doc_type):
-        dir_token = f"[DIR={file_path.split('/')[-2]}]"
-        doc_type_token = f"[TYPE={doc_type}]"
-        metadata_str = f"{dir_token} {doc_type_token} [SECTION={section_header}] [PATH={file_path}] "
-        return metadata_str + text
+    def add_metadata(self, text, metadata_dict):
+        metadata_components = []
+        for key, value in metadata_dict.items():
+            if f"[{key.upper()}]" in self.special_tokens_dict['additional_special_tokens']:
+                token = f"[{key.upper()}={value}]"
+                metadata_components.append(token)
+        metadata_str = ' '.join(metadata_components)
+        return metadata_str + ' ' + text if metadata_components else text
 
     def tokenize_and_encode(self, text):
         inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
@@ -37,16 +43,24 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
         enhanced_embeddings = embeddings + position_effect
         return enhanced_embeddings
 
-    def vectorize_document(self, chunks, section_headers, file_paths, doc_types):
+    def vectorize_document(self, chunks, metadata_list=None):
         all_embeddings = []
         total_chunks = len(chunks)
-        for i, (chunk, header, path, doc_type) in enumerate(zip(chunks, section_headers, file_paths, doc_types)):
-            embedded_text = self.add_metadata(chunk, header, path, doc_type)
+        if not metadata_list:
+            # Default empty metadata if none provided
+            metadata_list = [{} for _ in chunks]
+        
+        for i, (chunk, metadata) in enumerate(zip(chunks, metadata_list)):
+            # Use add_metadata to include any available metadata dynamically
+            embedded_text = self.add_metadata(chunk, metadata)
             embeddings = self.tokenize_and_encode(embedded_text)
             enhanced_embeddings = self.enhance_embedding_with_positional_info(embeddings, i, total_chunks)
             all_embeddings.append(enhanced_embeddings)
+
+        # Aggregate all embeddings into a single document embedding
         document_embedding = torch.mean(torch.stack(all_embeddings), dim=0)
         return SimpleVector(data=document_embedding.detach().numpy().tolist())
+
 
     def vectorize(self, text):
         inputs = self.tokenize_and_encode(text)
