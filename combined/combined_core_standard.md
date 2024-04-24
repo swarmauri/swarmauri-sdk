@@ -7452,7 +7452,7 @@ from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
-class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
+class SpatialDocVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def __init__(self):
         self.vectorizer = SpatialDocVectorizer()  # Assuming this is already implemented
         self.metric = CosineDistance()
@@ -7460,31 +7460,35 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)      
 
     def add_document(self, document: IDocument) -> None:
-        self.documents.append(document)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
-
-        embedded_documents = [EmbeddedDocument(id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count])
-
-        for _count, _d in enumerate(self.documents) if _d.content]
-
-        self.documents = embedded_documents
+        self.add_documents([document])  # Reuse the add_documents logic for batch processing
 
     def add_documents(self, documents: List[IDocument]) -> None:
-        self.documents.extend(documents)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
+        chunks = [doc.content for doc in documents]
+        # Prepare a list of metadata dictionaries for each document based on the required special tokens
+        metadata_list = [{ 
+            'dir': doc.metadata.get('dir', ''),
+            'type': doc.metadata.get('type', ''),
+            'section': doc.metadata.get('section', ''),
+            'path': doc.metadata.get('path', ''),
+            'paragraph': doc.metadata.get('paragraph', ''),
+            'subparagraph': doc.metadata.get('subparagraph', ''),
+            'chapter': doc.metadata.get('chapter', ''),
+            'title': doc.metadata.get('title', ''),
+            'subsection': doc.metadata.get('subsection', ''),
+        } for doc in documents]
 
-        embedded_documents = [EmbeddedDocument(id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
-            if _d.content]
-
-        self.documents = embedded_documents
+        # Use vectorize_document to process all documents with their corresponding metadata
+        embeddings = self.vectorizer.vectorize_document(chunks, metadata_list=metadata_list)
+        
+        # Create EmbeddedDocument instances for each document with the generated embeddings
+        for doc, embedding in zip(documents, embeddings):
+            embedded_doc = EmbeddedDocument(
+                id=doc.id, 
+                content=doc.content, 
+                metadata=doc.metadata, 
+                embedding=embedding
+            )
+            self.documents.append(embedded_doc)
 
     def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
         for document in self.documents:
@@ -7499,7 +7503,7 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         self.documents = [_d for _d in self.documents if _d.id != doc_id]
 
     def update_document(self, doc_id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
+        raise NotImplementedError('Update_document not implemented on SpatialDocVectorStore class.')
         
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         query_vector = self.vectorizer.infer_vector(query)
@@ -8468,24 +8472,34 @@ from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
 from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
 
-class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
+class SpatialDocVectorizer(IVectorize, ISaveModel, IFeature):
     def __init__(self, special_tokens_dict=None):
         self.special_tokens_dict = special_tokens_dict or {
-            'additional_special_tokens': ['[DIR]', '[TYPE]', '[SECTION]', '[PATH]']
+            'additional_special_tokens': [
+                '[DIR]', '[TYPE]', '[SECTION]', '[PATH]',
+                '[PARAGRAPH]', '[SUBPARAGRAPH]', '[CHAPTER]', '[TITLE]', '[SUBSECTION]'
+            ]
         }
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.tokenizer.add_special_tokens(self.special_tokens_dict)
         self.model = BertModel.from_pretrained('bert-base-uncased', return_dict=True)
         self.model.resize_token_embeddings(len(self.tokenizer))
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
 
-    def add_metadata(self, text, section_header, file_path, doc_type):
-        dir_token = f"[DIR={file_path.split('/')[-2]}]"
-        doc_type_token = f"[TYPE={doc_type}]"
-        metadata_str = f"{dir_token} {doc_type_token} [SECTION={section_header}] [PATH={file_path}] "
-        return metadata_str + text
+    def add_metadata(self, text, metadata_dict):
+        metadata_components = []
+        for key, value in metadata_dict.items():
+            if f"[{key.upper()}]" in self.special_tokens_dict['additional_special_tokens']:
+                token = f"[{key.upper()}={value}]"
+                metadata_components.append(token)
+        metadata_str = ' '.join(metadata_components)
+        return metadata_str + ' ' + text if metadata_components else text
 
     def tokenize_and_encode(self, text):
         inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        # Move the input tensors to the same device as the model
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
         outputs = self.model(**inputs)
         return outputs.pooler_output
 
@@ -8494,16 +8508,22 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
         enhanced_embeddings = embeddings + position_effect
         return enhanced_embeddings
 
-    def vectorize_document(self, chunks, section_headers, file_paths, doc_types):
+    def vectorize_document(self, chunks, metadata_list=None):
         all_embeddings = []
         total_chunks = len(chunks)
-        for i, (chunk, header, path, doc_type) in enumerate(zip(chunks, section_headers, file_paths, doc_types)):
-            embedded_text = self.add_metadata(chunk, header, path, doc_type)
+        if not metadata_list:
+            # Default empty metadata if none provided
+            metadata_list = [{} for _ in chunks]
+        
+        for i, (chunk, metadata) in enumerate(zip(chunks, metadata_list)):
+            # Use add_metadata to include any available metadata dynamically
+            embedded_text = self.add_metadata(chunk, metadata)
             embeddings = self.tokenize_and_encode(embedded_text)
             enhanced_embeddings = self.enhance_embedding_with_positional_info(embeddings, i, total_chunks)
             all_embeddings.append(enhanced_embeddings)
-        document_embedding = torch.mean(torch.stack(all_embeddings), dim=0)
-        return SimpleVector(data=document_embedding.detach().numpy().tolist())
+
+        return all_embeddings
+
 
     def vectorize(self, text):
         inputs = self.tokenize_and_encode(text)
@@ -8538,9 +8558,11 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.tokenizer = checkpoint['tokenizer']
 
-    def extract_feature(self, text):
+    def extract_features(self, text):
         inputs = self.tokenize_and_encode(text)
         return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
+
+
 
 ```
 

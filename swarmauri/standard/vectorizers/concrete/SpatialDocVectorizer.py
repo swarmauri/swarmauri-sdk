@@ -11,7 +11,7 @@ from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
 from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
 
-class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
+class SpatialDocVectorizer(IVectorize, ISaveModel, IFeature):
     def __init__(self, special_tokens_dict=None):
         self.special_tokens_dict = special_tokens_dict or {
             'additional_special_tokens': [
@@ -23,6 +23,8 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
         self.tokenizer.add_special_tokens(self.special_tokens_dict)
         self.model = BertModel.from_pretrained('bert-base-uncased', return_dict=True)
         self.model.resize_token_embeddings(len(self.tokenizer))
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
 
     def add_metadata(self, text, metadata_dict):
         metadata_components = []
@@ -35,6 +37,8 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
 
     def tokenize_and_encode(self, text):
         inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        # Move the input tensors to the same device as the model
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
         outputs = self.model(**inputs)
         return outputs.pooler_output
 
@@ -57,9 +61,7 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
             enhanced_embeddings = self.enhance_embedding_with_positional_info(embeddings, i, total_chunks)
             all_embeddings.append(enhanced_embeddings)
 
-        # Aggregate all embeddings into a single document embedding
-        document_embedding = torch.mean(torch.stack(all_embeddings), dim=0)
-        return SimpleVector(data=document_embedding.detach().numpy().tolist())
+        return all_embeddings
 
 
     def vectorize(self, text):
@@ -95,6 +97,7 @@ class SpatialDocVectorizer(nn.Module, IVectorize, ISaveModel, IFeature):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.tokenizer = checkpoint['tokenizer']
 
-    def extract_feature(self, text):
+    def extract_features(self, text):
         inputs = self.tokenize_and_encode(text)
         return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
+

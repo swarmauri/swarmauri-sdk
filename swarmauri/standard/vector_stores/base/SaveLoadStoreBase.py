@@ -77,7 +77,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         with open(f"{model_path}/model.safetensors", 'rb') as f:
             chunk = f.read(chunk_size)
             while chunk:
-                with open(f"{parts_directory}/model.safetensors.part{file_number}", 'wb') as chunk_file:
+                with open(f"{parts_directory}/model.safetensors.part{file_number:03}", 'wb') as chunk_file:
                     chunk_file.write(chunk)
                 file_number += 1
                 chunk = f.read(chunk_size)
