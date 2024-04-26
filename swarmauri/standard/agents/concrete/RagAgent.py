@@ -38,9 +38,11 @@ class RagAgent(VectorStoreAgentBase):
         conversation.add_message(human_message)
         
         
-        
-        similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
-        substr = '\n'.join([doc.content for doc in similar_documents])
+        if top_k > 0:
+            similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
+            substr = '\n'.join([doc.content for doc in similar_documents])
+        else:
+            substr = ""
         
         # Use substr to set system context
         system_context = SystemMessage(substr)
