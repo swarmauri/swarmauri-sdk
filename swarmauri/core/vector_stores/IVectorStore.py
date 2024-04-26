@@ -5,13 +5,13 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):
     """
-    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
+    Interface for a vector store responsible for storing, indexing, and retrieving documents.
     """
 
     @abstractmethod
     def add_document(self, document: IDocument) -> None:
         """
-        Stores a single document in the document store.
+        Stores a single document in the vector store.
 
         Parameters:
         - document (IDocument): The document to store.
@@ -21,7 +21,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def add_documents(self, documents: List[IDocument]) -> None:
         """
-        Stores multiple documents in the document store.
+        Stores multiple documents in the vector store.
 
         Parameters:
         - documents (List[IDocument]): The list of documents to store.
@@ -44,7 +44,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def get_all_documents(self) -> List[IDocument]:
         """
-        Retrieves all documents stored in the document store.
+        Retrieves all documents stored in the vector store.
 
         Returns:
         - List[IDocument]: A list of all documents.
@@ -54,10 +54,18 @@ class IVectorStore(ABC):
     @abstractmethod
     def delete_document(self, doc_id: str) -> None:
         """
-        Deletes a document from the document store by its ID.
+        Deletes a document from the vector store by its ID.
 
         Parameters:
         - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+
+    @abstractmethod
+    def delete_all_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
         """
         pass
 
@@ -65,7 +73,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def update_document(self, doc_id: str, updated_document: IDocument) -> None:
         """
-        Updates a document in the document store.
+        Updates a document in the vector store.
 
         Parameters:
         - doc_id (str): The unique identifier for the document to update.
