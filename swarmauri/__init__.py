@@ -1,11 +1,11 @@
-__version__ = "0.1.80"
+__version__ = "0.1.81"
 __long_desc__ = """
 # swarmaURI sdk
 
 This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
 
 
-## Core
+## Core 
 - ABCs
 - Utilities
 
