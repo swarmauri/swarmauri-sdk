@@ -75,6 +75,13 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         - doc_id (str): The unique identifier of the document to delete.
         """
         pass
+
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
+        """
+        self.documents = []
     
     def document_count(self):
         return len(self.documents)
