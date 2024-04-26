@@ -41,8 +41,11 @@ class RagAgent(VectorStoreAgentBase):
         if top_k > 0:
             similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
             substr = '\n'.join([doc.content for doc in similar_documents])
+            self.last_similar_documents = similar_documents
         else:
             substr = ""
+            self.last_similar_documents = []
+
         
         # Use substr to set system context
         system_context = SystemMessage(substr)
