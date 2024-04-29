@@ -1,3 +1,4 @@
+import warnings
 import uuid
 from abc import ABC
 from typing import List, Union
@@ -41,13 +42,15 @@ class ConversationBase(IConversation, ABC):
 
     def as_dict(self) -> List[dict]:
         print('USE TO_DICT NOW')
-        return [message.as_dict() for message in self.history] # This must utilize the public self.history
+        warnings.warn("""This function is deprecated and will be removed in a future version.
+            USE .to_dict() now
+            """,
+                  DeprecationWarning, stacklevel=2)
+        return [message.as_dict() for message in self.history]
     
-    def to_dict(self):
-        return {'type': self.__class__.__name__,
-            'id': self.id, 
-            'history': [message.as_dict() for message in self.history]}
-      
+    def to_dict(self) -> List[dict]:
+        return [message.as_dict() for message in self.history]
+
     @classmethod
     def from_dict(cls, data):
         #data.pop("type", None)
