@@ -59,9 +59,10 @@ class MaxSystemContextConversation(SystemContextBase, IMaxSize):
     def _enforce_max_size_limit(self):
         """
         Remove messages from the beginning of the conversation history if the limit is exceeded.
+        We add one to max_size to account for the system context message
         """
         try:
-            while len(self._history) > self._max_size:
+            while len(self._history) > self._max_size + 1:
                 self._history.pop(0)
                 self._history.pop(0)
         except IndexError as e:
