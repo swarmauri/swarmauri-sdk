@@ -1,10 +1,9 @@
-import warnings
 from typing import Optional, Union, List
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
-
+from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
     def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
         """
@@ -14,7 +13,6 @@ class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
             max_size (int): The maximum number of messages allowed in the conversation history.
             system_message_content (Optional[str], optional): The initial system message content. Can be a string.
         """
-        warnings.warn("""LimitedSystemContextConversation is deprecating, use MaxSystemContextConversation""")
         SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
         self._max_size = max_size  # Set the maximum size
     
@@ -61,8 +59,13 @@ class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
         """
         Remove messages from the beginning of the conversation history if the limit is exceeded.
         """
-        while len(self._history) + 1 > self._max_size:
-            self._history.pop(0)
+        try:
+            while len(self._history) > self._max_size:
+                self._history.pop(0)
+                self._history.pop(0)
+        except IndexError as e:
+            raise IndexErrorWithContext(e)
+
 
     @property
     def system_context(self) -> Union[SystemMessage, None]:

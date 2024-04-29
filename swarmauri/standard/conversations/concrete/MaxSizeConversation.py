@@ -1,12 +1,11 @@
-import warnings
 from swarmauri.converastions.base.ConversationBase import ConversationBase
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 
-class LimitedSizeConversation(ConversationBase, IMaxSize):
+class MaxSizeConversation(ConversationBase, IMaxSize):
     def __init__(self, max_size: int):
         super().__init__()
-        warnings.warn("""LimitedSizeConversation is deprecating, use MaxSizeConversation""")
+
         self._max_size = max_size
         
     @property
