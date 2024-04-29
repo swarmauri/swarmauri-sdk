@@ -85,7 +85,8 @@ setup(
             'gradio',
             'websockets',
             'groq',
-            'mistralai'
+            'mistralai',
+            'cohere'
 
         ]},
     classifiers=[
