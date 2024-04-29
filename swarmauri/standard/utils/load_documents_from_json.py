@@ -11,6 +11,7 @@ def load_documents_from_json_file(json_file_path):
 
 def load_documents_from_json(json):
     documents = []
-    data = json.loads(f)
+    data = json.loads(json)
     documents = [Document(id=str(_), content=doc['content'], metadata={"document_name": doc['document_name']}) for _, doc in enumerate(data) if doc['content']]
     return documents
+    
