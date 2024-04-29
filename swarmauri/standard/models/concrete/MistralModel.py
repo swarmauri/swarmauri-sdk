@@ -52,6 +52,6 @@ class MistralModel(ModelBase, IPredict):
             )
         
         result = json.loads(response.json())
-        message_content = result.choices[0].message.content
+        message_content = result['choices'][0]['message']['content']
         
         return message_content
