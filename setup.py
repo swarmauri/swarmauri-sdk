@@ -84,7 +84,9 @@ setup(
             'sentencepiece',
             'gradio',
             'websockets',
-            'groq'
+            'groq',
+            'mistralai'
+
         ]},
     classifiers=[
         'License :: OSI Approved :: MIT License',
