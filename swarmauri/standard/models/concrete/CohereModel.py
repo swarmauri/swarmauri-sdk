@@ -22,25 +22,15 @@ class CohereModel(ModelBase, IPredict):
     def predict(self, messages, temperature=0.7, max_tokens=256):
         if self.client is None:
             raise Exception("CohereModel client is not initialized. Call 'load_model' first.")
-        
-        if enable_json:
-            response = self.client.chat(
-                model=self.model_name,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                prompt_truncation='OFF',
-                connectors=[]
-            )
-        else:
-            response = self.client.chat(
-                model=self.model_name,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                prompt_truncation='OFF',
-                connectors=[]
-            )
+            
+        response = self.client.chat(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            prompt_truncation='OFF',
+            connectors=[]
+        )
         
         result = json.loads(response.json())
         message_content = result['choices'][0]['message']['content']
