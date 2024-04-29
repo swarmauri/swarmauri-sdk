@@ -1,6 +1,6 @@
 import json
 from typing import List
-from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
 
 def load_documents_from_json_file(json_file_path):
     documents = []
@@ -8,7 +8,7 @@ def load_documents_from_json_file(json_file_path):
         data = json.load(f)
 
     documents = [
-        Document(id=str(_), 
+        EmbeddedDocument(id=str(_), 
         content=doc['content'], 
         metadata={"document_name": doc['document_name']}) 
         for _, doc in enumerate(data) if doc['content']
@@ -20,7 +20,7 @@ def load_documents_from_json(json):
     documents = []
     data = json.loads(json)
     documents = [
-        Document(id=str(_), 
+        EmbeddedDocument(id=str(_), 
         content=doc['content'], 
         metadata={"document_name": doc['document_name']}) 
         for _, doc in enumerate(data) if doc['content']
