@@ -36,4 +36,6 @@ class LimitedSizeConversation(ConversationBase, IMaxSize):
         If the current history size exceeds the maximum size, the oldest messages are removed.
         """
         while len(self._history) > self.max_size:
+            # we pop two messages (one for the user, one for the assistant)
+            self._history.pop(0)
             self._history.pop(0)
