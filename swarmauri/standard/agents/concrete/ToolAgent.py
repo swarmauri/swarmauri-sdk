@@ -37,7 +37,7 @@ class ToolAgent(ToolAgentBase):
             
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         
         prediction = model.predict(messages=messages, 
                                    tools=toolkit.tools, 

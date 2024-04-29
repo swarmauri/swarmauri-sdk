@@ -49,7 +49,7 @@ class GenerativeRagAgent(DocumentAgentBase):
         
 
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         if model_kwargs:
             prediction = model.predict(messages=messages, **model_kwargs)
         else:

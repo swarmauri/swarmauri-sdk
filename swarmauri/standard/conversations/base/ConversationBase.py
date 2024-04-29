@@ -40,6 +40,9 @@ class ConversationBase(IConversation, ABC):
     def clear_history(self):
         self._history.clear()
 
+    def as_messages(self) -> List[dict]:
+        return [message.as_dict() for message in self.history]
+
     def as_dict(self) -> List[dict]:
         print('USE TO_DICT NOW')
         warnings.warn("""This function is deprecated and will be removed in a future version.
@@ -49,6 +52,8 @@ class ConversationBase(IConversation, ABC):
         return [message.as_dict() for message in self.history]
     
     def to_dict(self) -> List[dict]:
+        # We will need to update this to enable the ability to export and import functions
+        # We need to use a new interface besides to_dict() that enables conversations
         return [message.as_dict() for message in self.history]
 
     @classmethod

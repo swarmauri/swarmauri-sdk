@@ -33,7 +33,7 @@ class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
             conversation.add_message(human_message, sender_id=self.name)
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
 
         
         if model_kwargs:

@@ -40,7 +40,7 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
             
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         
 
         if model_kwargs:

@@ -21,6 +21,6 @@ class SimpleSwarmAgent(AgentBase):
             human_message = HumanMessage(input_str)
             conversation.add_message(human_message)
         
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         prediction = model.predict(messages=messages)
         return prediction

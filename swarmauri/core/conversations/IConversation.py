@@ -37,8 +37,8 @@ class IConversation(ABC):
         pass
 
     @abstractmethod
-    def as_dict(self) -> List[dict]:
+    def as_messages(self) -> List[dict]:
         """
-        Returns all messages from the conversation history as a list of dictionaries.
+        Returns all messages from the conversation history in chat completion format.
         """
         pass
