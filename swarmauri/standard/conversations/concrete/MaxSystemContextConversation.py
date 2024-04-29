@@ -5,7 +5,7 @@ from swarmauri.standard.conversations.base.SystemContextBase import SystemContex
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
-class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
+class MaxSystemContextConversation(SystemContextBase, IMaxSize):
     def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
         """
         Initializes the conversation with a system context message and a maximum history size.
