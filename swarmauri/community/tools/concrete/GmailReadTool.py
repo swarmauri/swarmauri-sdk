@@ -1,11 +1,10 @@
-import os
 import base64
 import json
 from googleapiclient import discovery
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class GmailReadTool(ToolBase):
     SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']

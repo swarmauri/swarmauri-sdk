@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class WebScrapingTool(ToolBase):
     def __init__(self):
