@@ -16,6 +16,7 @@ class RagAgent(VectorStoreAgentBase):
     """
 
     def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
+        self.last_similar_documents = []
         super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 
