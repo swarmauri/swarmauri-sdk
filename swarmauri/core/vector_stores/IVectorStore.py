@@ -62,7 +62,7 @@ class IVectorStore(ABC):
         pass
 
     @abstractmethod
-    def delete_all_documents(self) -> None:
+    def clear_documents(self) -> None:
         """
         Deletes all documents from the vector store
 
