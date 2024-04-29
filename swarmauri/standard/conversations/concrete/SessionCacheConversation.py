@@ -65,6 +65,12 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
         res.extend(self._history[-self._max_size:])
         return res
 
+    def session_to_dict(self) -> List[dict]:
+        """
+        Converts session messages to a list of dictionaries.
+        """
+        return [message.to_dict() for message in self.session]
+
     @property
     def session(self) -> List[IMessage]:
         return self._history[-self._session_cache_max_size:]
