@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Union
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.IConversation import IConversation
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IConversation import IConversation
 
 class ConversationBase(IConversation, ABC):
     """
@@ -30,8 +30,16 @@ class ConversationBase(IConversation, ABC):
         self._history.clear()
 
     def as_dict(self) -> List[dict]:
+        print('USE TO_DICT NOW')
         return [message.as_dict() for message in self.history] # This must utilize the public self.history
     
-    
-    # def __repr__(self):
-        # return repr([message.as_dict() for message in self._history])
+    def to_dict(self):
+        return {'type': self.__class__.__name__,
+            'id': self.id, 
+            'history': [message.as_dict() for message in self.history]}
+      
+    @classmethod
+    def from_dict(cls, data):
+        #data.pop("type", None)
+        #return cls(**data)
+        raise NotImplementedError('from_dict load not implemented on this class yet')
