@@ -7,7 +7,9 @@ from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 class SessionCacheConversation(SystemContextBase, IMaxSize):
-    def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None, session_cache_max_size: int):
+    def __init__(self, max_size: int: 2, 
+        system_message_content: Optional[SystemMessage] = None, 
+        session_cache_max_size: int = -1):
         """
         Initializes the conversation with a system context message and a maximum history size. Also initializes the conversation with
         a session cache with its own maximum size.
@@ -19,7 +21,10 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
         """
         SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
         self._max_size = max_size  # Set the maximum size
-        self._session_cache_max_size = session_cache_max_size
+        if session_cache_max_size:
+            self._session_cache_max_size = session_cache_max_size
+        else:
+            self._session_cache_max_size = self._max_size
         self._history = []
 
     @property
