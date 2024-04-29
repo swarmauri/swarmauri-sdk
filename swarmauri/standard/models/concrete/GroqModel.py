@@ -9,12 +9,6 @@ class GroqModel(ModelBase, IPredict):
     allowed_models = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
 
     def __init__(self, api_key: str, model_name: str = 'mixtral-8x7b-32768'):
-        """
-        Initialize the OpenAI model with an API key.
-
-        Parameters:
-        - api_key (str): Your OpenAI API key.
-        """
         if model_name not in self.allowed_models:
             raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
         
@@ -23,18 +17,6 @@ class GroqModel(ModelBase, IPredict):
         
     
     def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
-        """
-        Generate predictions using the OpenAI model.
-
-        Parameters:
-        - messages: Input data/messages for the model.
-        - temperature (float): Sampling temperature.
-        - max_tokens (int): Maximum number of tokens to generate.
-        - enable_json (bool): Format response as JSON.
-        
-        Returns:
-        - The generated message content.
-        """
         if self.client is None:
             raise Exception("GroqAIModel client is not initialized. Call 'load_model' first.")
         

@@ -6,12 +6,6 @@ class GroqToolModel(ModelBase, IPredict):
     allowed_models = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
 
     def __init__(self, api_key: str, model_name: str = 'mixtral-8x7b-32768'):
-        """
-        Initialize the OpenAI model with an API key.
-
-        Parameters:
-        - api_key (str): Your OpenAI API key.
-        """
         if model_name not in self.allowed_models:
             raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
         
