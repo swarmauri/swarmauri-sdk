@@ -4,6 +4,7 @@ from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
+
 class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
     def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
         """
