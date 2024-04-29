@@ -68,7 +68,7 @@ class ToolAgent(ToolAgentBase):
                 conversation.add_message(func_message)
             
             
-            messages = conversation.as_dict()
+            messages = conversation.as_messages()
             rag_prediction = model.predict(messages=messages, 
                                            tools=toolkit.tools, 
                                            tool_choice="none",
