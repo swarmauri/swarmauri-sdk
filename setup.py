@@ -83,7 +83,8 @@ setup(
             'stanford_openie',
             'sentencepiece',
             'gradio',
-            'websockets'
+            'websockets',
+            'groq'
         ]},
     classifiers=[
         'License :: OSI Approved :: MIT License',
