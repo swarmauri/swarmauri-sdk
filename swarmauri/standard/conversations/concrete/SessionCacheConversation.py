@@ -16,10 +16,10 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
 
         Parameters:
             max_size (int): The maximum number of messages allowed in the conversation history.
-            session_cache_max_size (int): The maximum number of messages allowed in the session cache.
             system_message_content (Optional[str], optional): The initial system message content. Can be a string.
+            session_cache_max_size (int): The maximum number of messages allowed in the session cache.
         """
-        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
+        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")
         self._max_size = max_size  # Set the maximum size
         if session_cache_max_size:
             self._session_cache_max_size = session_cache_max_size
