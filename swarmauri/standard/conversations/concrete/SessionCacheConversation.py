@@ -7,7 +7,7 @@ from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 class SessionCacheConversation(SystemContextBase, IMaxSize):
-    def __init__(self, max_size: int: 2, 
+    def __init__(self, max_size: int = 2, 
         system_message_content: Optional[SystemMessage] = None, 
         session_cache_max_size: int = -1):
         """
