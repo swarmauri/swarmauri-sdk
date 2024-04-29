@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC
 from typing import List, Union
 from swarmauri.core.messages.IMessage import IMessage
@@ -10,6 +11,15 @@ class ConversationBase(IConversation, ABC):
     
     def __init__(self):
         self._history: List[IMessage] = []
+        self._id = uuid.uuid4()  # Assign a unique UUID to each instance
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @id.setter
+    def id(self, value: str) -> None:
+        self._id = value
 
     @property
     def history(self) -> List[IMessage]:
