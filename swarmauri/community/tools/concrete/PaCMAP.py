@@ -2,7 +2,7 @@ import numpy as np
 import pacmap  # Ensure pacmap is installed
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
-class PaCMAPTool(ITool):
+class PaCMAPTool(ToolBase):
     """
     A tool for applying the PaCMAP method for dimensionality reduction.
     """
