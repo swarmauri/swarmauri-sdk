@@ -48,7 +48,15 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
         self._session_cache_max_size = new_max_cache_size
 
     def add_message(self, message: IMessage):
-        self._history.append(message)
+        """
+        Adds a message to the conversation history and ensures history does not exceed the max size.
+        This only allows system context to be set through the system context method.
+        We are forcing the SystemContext to be a preamble only.
+        """
+        if isinstance(message, SystemMessage):
+            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+        else:
+            super().add_message(message)
 
     @property
     def history(self) -> List[IMessage]:
@@ -80,4 +88,3 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
             self._system_context = SystemMessage(new_system_message)
         else:
             raise ValueError("System context must be a string or a SystemMessage instance.")
-        self.add_message()
