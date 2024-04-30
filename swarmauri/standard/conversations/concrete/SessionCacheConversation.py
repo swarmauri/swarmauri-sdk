@@ -69,7 +69,7 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
         """
         Converts session messages to a list of dictionaries.
         """
-        return [message.to_dict() for message in self.session]
+        return [message.as_dict() for message in self.session]
 
     @property
     def session(self) -> List[IMessage]:

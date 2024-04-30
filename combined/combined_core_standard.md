@@ -180,7 +180,7 @@ class IAgentCommands(ABC):
     async def abatch(self, requests: List[Any]) -> List[Any]:
         """
         Handles batched invocation requests asynchronously.
-        
+
         Parameters:
             requests (List[Any]): A list of incoming request payloads.
 
@@ -193,10 +193,10 @@ class IAgentCommands(ABC):
     def stream(self, request: Any) -> Any:
         """
         Handles streaming requests.
-        
+
         Parameters:
             request (Any): The incoming request payload.
-        
+
         Returns:
             Any: A streaming response.
         """
@@ -344,9 +344,9 @@ class IConversation(ABC):
         pass
 
     @abstractmethod
-    def as_dict(self) -> List[dict]:
+    def as_messages(self) -> List[dict]:
         """
-        Returns all messages from the conversation history as a list of dictionaries.
+        Returns all messages from the conversation history in chat completion format.
         """
         pass
 
@@ -2114,13 +2114,13 @@ from swarmauri.core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):
     """
-    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
+    Interface for a vector store responsible for storing, indexing, and retrieving documents.
     """
 
     @abstractmethod
     def add_document(self, document: IDocument) -> None:
         """
-        Stores a single document in the document store.
+        Stores a single document in the vector store.
 
         Parameters:
         - document (IDocument): The document to store.
@@ -2130,7 +2130,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def add_documents(self, documents: List[IDocument]) -> None:
         """
-        Stores multiple documents in the document store.
+        Stores multiple documents in the vector store.
 
         Parameters:
         - documents (List[IDocument]): The list of documents to store.
@@ -2153,7 +2153,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def get_all_documents(self) -> List[IDocument]:
         """
-        Retrieves all documents stored in the document store.
+        Retrieves all documents stored in the vector store.
 
         Returns:
         - List[IDocument]: A list of all documents.
@@ -2163,10 +2163,18 @@ class IVectorStore(ABC):
     @abstractmethod
     def delete_document(self, doc_id: str) -> None:
         """
-        Deletes a document from the document store by its ID.
+        Deletes a document from the vector store by its ID.
 
         Parameters:
         - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+
+    @abstractmethod
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
         """
         pass
 
@@ -2174,7 +2182,7 @@ class IVectorStore(ABC):
     @abstractmethod
     def update_document(self, doc_id: str, updated_document: IDocument) -> None:
         """
-        Updates a document in the document store.
+        Updates a document in the vector store.
 
         Parameters:
         - doc_id (str): The unique identifier for the document to update.
@@ -2341,13 +2349,6 @@ class IDocumentRetrieve(ABC):
 ```
 
 ```swarmauri/core/chunkers/__init__.py
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 28 20:35:27 2024
-
-@author: bigman
-"""
 
 
 
@@ -3962,6 +3963,236 @@ class OpenAIToolModel(ModelBase, IPredict):
 
 ```
 
+```swarmauri/standard/models/concrete/GroqModel.py
+
+import json
+from typing import List
+from groq import Groq
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.standard.models.base.ModelBase import ModelBase
+
+
+class GroqModel(ModelBase, IPredict):
+    allowed_models = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
+
+    def __init__(self, api_key: str, model_name: str = 'mixtral-8x7b-32768'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = Groq(api_key=api_key)
+        super().__init__(model_name)
+        
+    
+    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
+        if self.client is None:
+            raise Exception("GroqModel client is not initialized. Call 'load_model' first.")
+        
+        if enable_json:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=temperature,
+                response_format={ "type": "json_object" },
+                max_tokens=max_tokens,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=stop
+            )
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=stop
+            )
+        
+        result = json.loads(response.json())
+        message_content = result['choices'][0]['message']['content']
+        
+        return message_content
+
+```
+
+```swarmauri/standard/models/concrete/GroqToolModel.py
+
+from groq import Groq
+from swarmauri.standard.models.base.ModelBase import ModelBase
+from swarmauri.core.models.IPredict import IPredict
+
+class GroqToolModel(ModelBase, IPredict):
+    allowed_models = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
+
+    def __init__(self, api_key: str, model_name: str = 'mixtral-8x7b-32768'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = Groq(api_key=api_key)
+        super().__init__(model_name)
+        
+
+    def predict(self, messages, tools=None, tool_choice=None, temperature=0.7, max_tokens=1024):
+        if tools and not tool_choice:
+            tool_choice = "auto"
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=tools,
+            tool_choice=tool_choice,
+        )
+        return response
+
+```
+
+```swarmauri/standard/models/concrete/MistralModel.py
+
+import json
+from typing import List
+from mistralai.client import MistralClient
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.standard.models.base.ModelBase import ModelBase
+
+
+class MistralModel(ModelBase, IPredict):
+    allowed_models = ['open-mistral-7b', 
+    'open-mixtral-8x7b', 
+    'open-mixtral-8x22b', 
+    'mistral-small-latest',
+    'mistral-medium-latest',
+    'mistral-large-latest',
+    ]
+
+    def __init__(self, api_key: str, model_name: str = 'open-mixtral-8x7b'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = MistralClient(api_key=api_key)
+        super().__init__(model_name)
+        
+    
+    def predict(self, messages, 
+        temperature: int = 0.7, 
+        max_tokens: int = 256, 
+        top_p: int = 1,
+        enable_json: bool=False, 
+        safe_prompt: bool=False):
+        if self.client is None:
+            raise Exception("GroqAIModel client is not initialized. Call 'load_model' first.")
+        
+        if enable_json:
+            response = self.client.chat(
+                model=self.model_name,
+                messages=messages,
+                temperature=temperature,
+                response_format={ "type": "json_object" },
+                max_tokens=max_tokens,
+                top_p=top_p,
+                safe_prompt=safe_prompt
+            )
+        else:
+            response = self.client.chat(
+                model=self.model_name,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,                
+                safe_prompt=safe_prompt
+            )
+        
+        result = json.loads(response.json())
+        message_content = result['choices'][0]['message']['content']
+        
+        return message_content
+
+```
+
+```swarmauri/standard/models/concrete/MistralToolModel.py
+
+from mistralai.client import MistralClient
+from swarmauri.standard.models.base.ModelBase import ModelBase
+from swarmauri.core.models.IPredict import IPredict
+
+class MistralToolModel(ModelBase, IPredict):
+    allowed_models = ['open-mixtral-8x22b', 
+    'mistral-small-latest',
+    'mistral-large-latest',
+    ]
+
+    def __init__(self, api_key: str, model_name: str = 'open-mixtral-8x22b'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = MistralClient(api_key=api_key)
+        super().__init__(model_name)
+        
+
+    def predict(self, messages, tools=None, tool_choice=None, temperature=0.7, 
+        max_tokens=1024, safe_prompt: bool = False):
+
+        if tools and not tool_choice:
+            tool_choice = "auto"
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=tools,
+            tool_choice=tool_choice,
+            safe_prompt=safe_prompt
+        )
+        return response
+
+```
+
+```swarmauri/standard/models/concrete/CohereModel.py
+
+import json
+from typing import List
+import cohere
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.standard.models.base.ModelBase import ModelBase
+
+
+class CohereModel(ModelBase, IPredict):
+    allowed_models = ['command-light',
+    'command', 
+    'command-r',
+    'command-r-plus']
+
+    def __init__(self, api_key: str, model_name: str = 'command-light'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = cohere.Client(api_key=api_key)
+        super().__init__(model_name)
+        
+    
+    def predict(self, messages, temperature=0.7, max_tokens=256):
+        if self.client is None:
+            raise Exception("CohereModel client is not initialized. Call 'load_model' first.")
+            
+        response = self.client.chat(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            prompt_truncation='OFF',
+            connectors=[]
+        )
+        
+        result = json.loads(response.json())
+        message_content = result['choices'][0]['message']['content']
+        
+        return message_content
+
+```
+
 ```swarmauri/standard/agents/__init__.py
 
 # -*- coding: utf-8 -*-
@@ -3971,8 +4202,6 @@ class OpenAIToolModel(ModelBase, IPredict):
 ```
 
 ```swarmauri/standard/agents/base/__init__.py
-
-# -*- coding: utf-8 -*-
 
 
 
@@ -4181,8 +4410,6 @@ class VectorStoreAgentBase(ConversationAgentBase, NamedAgentBase, IAgentVectorSt
 
 ```swarmauri/standard/agents/concrete/__init__.py
 
-# -*- coding: utf-8 -*-
-
 
 
 ```
@@ -4228,7 +4455,7 @@ class ToolAgent(ToolAgentBase):
             
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         
         prediction = model.predict(messages=messages, 
                                    tools=toolkit.tools, 
@@ -4259,7 +4486,7 @@ class ToolAgent(ToolAgentBase):
                 conversation.add_message(func_message)
             
             
-            messages = conversation.as_dict()
+            messages = conversation.as_messages()
             rag_prediction = model.predict(messages=messages, 
                                            tools=toolkit.tools, 
                                            tool_choice="none",
@@ -4306,7 +4533,7 @@ class ChatSwarmAgent(ConversationAgentBase):
         conversation.add_message(human_message)
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         if model_kwargs:
             prediction = model.predict(messages=messages, **model_kwargs)
         else:
@@ -4366,7 +4593,7 @@ class SimpleSwarmAgent(AgentBase):
             human_message = HumanMessage(input_str)
             conversation.add_message(human_message)
         
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         prediction = model.predict(messages=messages)
         return prediction
 
@@ -4409,7 +4636,7 @@ class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
             conversation.add_message(human_message, sender_id=self.name)
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
 
         
         if model_kwargs:
@@ -4469,7 +4696,7 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
             
         
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         
 
         if model_kwargs:
@@ -4542,6 +4769,7 @@ class RagAgent(VectorStoreAgentBase):
     """
 
     def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
+        self.last_similar_documents = []
         super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
 
     def exec(self, 
@@ -4564,9 +4792,14 @@ class RagAgent(VectorStoreAgentBase):
         conversation.add_message(human_message)
         
         
-        
-        similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
-        substr = '\n'.join([doc.content for doc in similar_documents])
+        if top_k > 0:
+            similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
+            substr = '\n'.join([doc.content for doc in similar_documents])
+            self.last_similar_documents = similar_documents
+        else:
+            substr = ""
+            self.last_similar_documents = []
+
         
         # Use substr to set system context
         system_context = SystemMessage(substr)
@@ -4574,7 +4807,7 @@ class RagAgent(VectorStoreAgentBase):
         
 
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         if model_kwargs:
             prediction = model.predict(messages=messages, **model_kwargs)
         else:
@@ -4645,7 +4878,7 @@ class GenerativeRagAgent(DocumentAgentBase):
         
 
         # Retrieve the conversation history and predict a response
-        messages = conversation.as_dict()
+        messages = conversation.as_messages()
         if model_kwargs:
             prediction = model.predict(messages=messages, **model_kwargs)
         else:
@@ -4684,14 +4917,74 @@ class GenerativeRagAgent(DocumentAgentBase):
 
 import json
 from typing import List
-from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
 
-def load_documents_from_json(json_file_path):
+def load_documents_from_json_file(json_file_path):
     documents = []
     with open(json_file_path, 'r') as f:
         data = json.load(f)
-    documents = [Document(id=str(_), content=doc['content'], metadata={"document_name": doc['document_name']}) for _, doc in enumerate(data) if doc['content']]
+
+    documents = [
+        EmbeddedDocument(id=str(_), 
+        content=doc['content'], 
+        metadata={"document_name": doc['document_name']}) 
+        for _, doc in enumerate(data) if doc['content']
+        ]
+
     return documents
+
+def load_documents_from_json(json):
+    documents = []
+    data = json.loads(json)
+    documents = [
+        EmbeddedDocument(id=str(_), 
+        content=doc['content'], 
+        metadata={"document_name": doc['document_name']}) 
+        for _, doc in enumerate(data) if doc['content']
+        ]
+    return documents
+
+
+```
+
+```swarmauri/standard/utils/get_class_hash.py
+
+import hashlib
+import inspect
+
+def get_class_hash(cls):
+    """
+    Generates a unique hash value for a given class.
+
+    This function uses the built-in `hashlib` and `inspect` modules to create a hash value based on the class' methods
+    and properties. The members of the class are first sorted to ensure a consistent order, and then the hash object is
+    updated with each member's name and signature.
+
+    Parameters:
+    - cls (type): The class object to calculate the hash for.
+
+    Returns:
+    - str: The generated hexadecimal hash value.
+    """
+    hash_obj = hashlib.sha256()
+
+    # Get the list of methods and properties of the class
+    members = inspect.getmembers(cls, predicate=inspect.isfunction)
+    members += inspect.getmembers(cls, predicate=inspect.isdatadescriptor)
+
+    # Sort members to ensure consistent order
+    members.sort()
+
+    # Update the hash with each member's name and signature
+    for name, member in members:
+        hash_obj.update(name.encode('utf-8'))
+        if inspect.isfunction(member):
+            sig = inspect.signature(member)
+            hash_obj.update(str(sig).encode('utf-8'))
+
+    # Return the hexadecimal digest of the hash
+    return hash_obj.hexdigest()
+
 
 ```
 
@@ -4709,10 +5002,12 @@ def load_documents_from_json(json_file_path):
 
 ```swarmauri/standard/conversations/base/ConversationBase.py
 
+import warnings
+import uuid
 from abc import ABC
 from typing import List, Union
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.IConversation import IConversation
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IConversation import IConversation
 
 class ConversationBase(IConversation, ABC):
     """
@@ -4721,6 +5016,15 @@ class ConversationBase(IConversation, ABC):
     
     def __init__(self):
         self._history: List[IMessage] = []
+        self._id = uuid.uuid4()  # Assign a unique UUID to each instance
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @id.setter
+    def id(self, value: str) -> None:
+        self._id = value
 
     @property
     def history(self) -> List[IMessage]:
@@ -4740,12 +5044,28 @@ class ConversationBase(IConversation, ABC):
     def clear_history(self):
         self._history.clear()
 
+    def as_messages(self) -> List[dict]:
+        return [message.as_dict() for message in self.history]
+
     def as_dict(self) -> List[dict]:
-        return [message.as_dict() for message in self.history] # This must utilize the public self.history
+        print('USE TO_DICT NOW')
+        warnings.warn("""This function is deprecated and will be removed in a future version.
+            USE .to_dict() now
+            """,
+                  DeprecationWarning, stacklevel=2)
+        return [message.as_dict() for message in self.history]
     
-    
-    # def __repr__(self):
-        # return repr([message.as_dict() for message in self._history])
+    def to_dict(self) -> List[dict]:
+        # We will need to update this to enable the ability to export and import functions
+        # We need to use a new interface besides to_dict() that enables conversations
+        return [message.as_dict() for message in self.history]
+
+    @classmethod
+    def from_dict(cls, data):
+        #data.pop("type", None)
+        #return cls(**data)
+        raise NotImplementedError('from_dict load not implemented on this class yet')
+
 
 ```
 
@@ -4795,13 +5115,15 @@ class SystemContextBase(ConversationBase, ISystemContext, ABC):
 
 ```swarmauri/standard/conversations/concrete/LimitedSizeConversation.py
 
-from ..base.ConversationBase import ConversationBase
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.IMaxSize import IMaxSize
+import warnings
+from swarmauri.converastions.base.ConversationBase import ConversationBase
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
 
 class LimitedSizeConversation(ConversationBase, IMaxSize):
     def __init__(self, max_size: int):
         super().__init__()
+        warnings.warn("""LimitedSizeConversation is deprecating, use MaxSizeConversation""")
         self._max_size = max_size
         
     @property
@@ -4831,8 +5153,11 @@ class LimitedSizeConversation(ConversationBase, IMaxSize):
         """
         Enforces the maximum size limit of the conversation history.
         If the current history size exceeds the maximum size, the oldest messages are removed.
+        We pop two messages (one for the user's prompt, one for the assistant's response)
         """
         while len(self._history) > self.max_size:
+            
+            self._history.pop(0)
             self._history.pop(0)
 
 ```
@@ -4850,96 +5175,6 @@ class SimpleConversation(ConversationBase):
     
     def __init__(self):
        super().__init__()
-
-```
-
-```swarmauri/standard/conversations/concrete/LimitedSystemContextConversation.py
-
-from typing import Optional, Union, List
-from swarmauri.core.messages.IMessage import IMessage
-from swarmauri.core.conversations.IMaxSize import IMaxSize
-from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
-
-class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
-    def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
-        """
-        Initializes the conversation with a system context message and a maximum history size.
-        
-        Parameters:
-            max_size (int): The maximum number of messages allowed in the conversation history.
-            system_message_content (Optional[str], optional): The initial system message content. Can be a string.
-        """
-        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
-        self._max_size = max_size  # Set the maximum size
-    
-    @property
-    def history(self) -> List[IMessage]:
-        """
-        Provides read-only access to the conversation history.
-        """
-        
-        
-        res = [] 
-        res.append(self.system_context)
-        res.extend(self._history)
-        return res
-        
-        
-    @property
-    def max_size(self) -> int:
-        """
-        Provides access to the max_size property.
-        """
-        return self._max_size
-    
-    @max_size.setter
-    def max_size(self, new_max_size: int) -> None:
-        """
-        Sets a new maximum size for the conversation history.
-        """
-        if new_max_size <= 0:
-            raise ValueError("max_size must be greater than 0.")
-        self._max_size = new_max_size
-
-    def add_message(self, message: IMessage):
-        """
-        Adds a message to the conversation history and ensures history does not exceed the max size.
-        """
-        if isinstance(message, SystemMessage):
-            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
-        else:
-            super().add_message(message)
-        self._enforce_max_size_limit()
-        
-    def _enforce_max_size_limit(self):
-        """
-        Remove messages from the beginning of the conversation history if the limit is exceeded.
-        """
-        while len(self._history) + 1 > self._max_size:
-            self._history.pop(0)
-
-    @property
-    def system_context(self) -> Union[SystemMessage, None]:
-        """Get the system context message. Raises an error if it's not set."""
-        if self._system_context is None:
-            raise ValueError("System context has not been set.")
-        return self._system_context
-
-
-    @system_context.setter
-    def system_context(self, new_system_message: Union[SystemMessage, str]) -> None:
-        """
-        Set a new system context message. The new system message can be a string or 
-        an instance of SystemMessage. If it's a string, it converts it to a SystemMessage.
-        """
-        if isinstance(new_system_message, SystemMessage):
-            self._system_context = new_system_message
-        elif isinstance(new_system_message, str):
-            self._system_context = SystemMessage(new_system_message)
-        else:
-            raise ValueError("System context must be a string or a SystemMessage instance.")
-            
 
 ```
 
@@ -5062,6 +5297,344 @@ class SharedConversation(ConversationBase):
 
 ```
 
+```swarmauri/standard/conversations/concrete/LimitedSystemContextConversation.py
+
+import warnings
+from typing import Optional, Union, List
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+
+class LimitedSystemContextConversation(SystemContextBase, IMaxSize):
+    def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
+        """
+        Initializes the conversation with a system context message and a maximum history size.
+        
+        Parameters:
+            max_size (int): The maximum number of messages allowed in the conversation history.
+            system_message_content (Optional[str], optional): The initial system message content. Can be a string.
+        """
+        warnings.warn("""LimitedSystemContextConversation is deprecating, use MaxSystemContextConversation""")
+        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
+        self._max_size = max_size  # Set the maximum size
+    
+    @property
+    def history(self) -> List[IMessage]:
+        """
+        Provides read-only access to the conversation history.
+        """
+        
+        
+        res = [] 
+        res.append(self.system_context)
+        res.extend(self._history)
+        return res
+        
+        
+    @property
+    def max_size(self) -> int:
+        """
+        Provides access to the max_size property.
+        """
+        return self._max_size
+    
+    @max_size.setter
+    def max_size(self, new_max_size: int) -> None:
+        """
+        Sets a new maximum size for the conversation history.
+        """
+        if new_max_size <= 0:
+            raise ValueError("max_size must be greater than 0.")
+        self._max_size = new_max_size
+
+    def add_message(self, message: IMessage):
+        """
+        Adds a message to the conversation history and ensures history does not exceed the max size.
+        """
+        if isinstance(message, SystemMessage):
+            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+        else:
+            super().add_message(message)
+        self._enforce_max_size_limit()
+        
+    def _enforce_max_size_limit(self):
+        """
+        Remove messages from the beginning of the conversation history if the limit is exceeded.
+        """
+        while len(self._history) + 1 > self._max_size:
+            self._history.pop(0)
+
+    @property
+    def system_context(self) -> Union[SystemMessage, None]:
+        """Get the system context message. Raises an error if it's not set."""
+        if self._system_context is None:
+            raise ValueError("System context has not been set.")
+        return self._system_context
+
+
+    @system_context.setter
+    def system_context(self, new_system_message: Union[SystemMessage, str]) -> None:
+        """
+        Set a new system context message. The new system message can be a string or 
+        an instance of SystemMessage. If it's a string, it converts it to a SystemMessage.
+        """
+        if isinstance(new_system_message, SystemMessage):
+            self._system_context = new_system_message
+        elif isinstance(new_system_message, str):
+            self._system_context = SystemMessage(new_system_message)
+        else:
+            raise ValueError("System context must be a string or a SystemMessage instance.")
+            
+
+```
+
+```swarmauri/standard/conversations/concrete/MaxSizeConversation.py
+
+from swarmauri.converastions.base.ConversationBase import ConversationBase
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
+
+class MaxSizeConversation(ConversationBase, IMaxSize):
+    def __init__(self, max_size: int):
+        super().__init__()
+
+        self._max_size = max_size
+        
+    @property
+    def max_size(self) -> int:
+        """
+        Provides read-only access to the conversation history.
+        """
+        return self._max_size
+    
+    @max_size.setter
+    def max_size(self, new_max_size: int) -> int:
+        """
+        Provides read-only access to the conversation history.
+        """
+        if new_max_size > 0:
+            self._max_size = int
+        else:
+            raise ValueError('Cannot set conversation size to 0.')
+
+
+    def add_message(self, message: IMessage):
+        """Adds a message and ensures the conversation does not exceed the max size."""
+        super().add_message(message)
+        self._enforce_max_size_limit()
+
+    def _enforce_max_size_limit(self):
+        """
+        Enforces the maximum size limit of the conversation history.
+        If the current history size exceeds the maximum size, the oldest messages are removed.
+        We pop two messages (one for the user's prompt, one for the assistant's response)
+        """
+        while len(self._history) > self.max_size:
+            
+            self._history.pop(0)
+            self._history.pop(0)
+
+```
+
+```swarmauri/standard/conversations/concrete/MaxSystemContextConversation.py
+
+from typing import Optional, Union, List
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
+
+class MaxSystemContextConversation(SystemContextBase, IMaxSize):
+    def __init__(self, max_size: int, system_message_content: Optional[SystemMessage] = None):
+        """
+        Initializes the conversation with a system context message and a maximum history size.
+        
+        Parameters:
+            max_size (int): The maximum number of messages allowed in the conversation history.
+            system_message_content (Optional[str], optional): The initial system message content. Can be a string.
+        """
+        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")  # Initialize SystemContext with a SystemMessage
+        self._max_size = max_size  # Set the maximum size
+    
+    @property
+    def history(self) -> List[IMessage]:
+        """
+        Provides read-only access to the conversation history.
+        """
+        
+        
+        res = [] 
+        res.append(self.system_context)
+        res.extend(self._history)
+        return res
+        
+        
+    @property
+    def max_size(self) -> int:
+        """
+        Provides access to the max_size property.
+        """
+        return self._max_size
+    
+    @max_size.setter
+    def max_size(self, new_max_size: int) -> None:
+        """
+        Sets a new maximum size for the conversation history.
+        """
+        if new_max_size <= 0:
+            raise ValueError("max_size must be greater than 0.")
+        self._max_size = new_max_size
+
+    def add_message(self, message: IMessage):
+        """
+        Adds a message to the conversation history and ensures history does not exceed the max size.
+        """
+        if isinstance(message, SystemMessage):
+            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+        else:
+            super().add_message(message)
+        self._enforce_max_size_limit()
+        
+    def _enforce_max_size_limit(self):
+        """
+        Remove messages from the beginning of the conversation history if the limit is exceeded.
+        We add one to max_size to account for the system context message
+        """
+        try:
+            while len(self._history) > self._max_size + 1:
+                self._history.pop(0)
+                self._history.pop(0)
+        except IndexError as e:
+            raise IndexErrorWithContext(e)
+
+
+    @property
+    def system_context(self) -> Union[SystemMessage, None]:
+        """Get the system context message. Raises an error if it's not set."""
+        if self._system_context is None:
+            raise ValueError("System context has not been set.")
+        return self._system_context
+
+
+    @system_context.setter
+    def system_context(self, new_system_message: Union[SystemMessage, str]) -> None:
+        """
+        Set a new system context message. The new system message can be a string or 
+        an instance of SystemMessage. If it's a string, it converts it to a SystemMessage.
+        """
+        if isinstance(new_system_message, SystemMessage):
+            self._system_context = new_system_message
+        elif isinstance(new_system_message, str):
+            self._system_context = SystemMessage(new_system_message)
+        else:
+            raise ValueError("System context must be a string or a SystemMessage instance.")
+            
+
+```
+
+```swarmauri/standard/conversations/concrete/SessionCacheConversation.py
+
+from typing import Optional, Union, List
+from collections import deque
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.conversations.IMaxSize import IMaxSize
+from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
+
+class SessionCacheConversation(SystemContextBase, IMaxSize):
+    def __init__(self, max_size: int = 2, 
+        system_message_content: Optional[SystemMessage] = None, 
+        session_cache_max_size: int = -1):
+        """
+        Initializes the conversation with a system context message and a maximum history size. Also initializes the conversation with
+        a session cache with its own maximum size.
+
+        Parameters:
+            max_size (int): The maximum number of messages allowed in the conversation history.
+            system_message_content (Optional[str], optional): The initial system message content. Can be a string.
+            session_cache_max_size (int): The maximum number of messages allowed in the session cache.
+        """
+        SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")
+        self._max_size = max_size  # Set the maximum size
+        if session_cache_max_size:
+            self._session_cache_max_size = session_cache_max_size
+        else:
+            self._session_cache_max_size = self._max_size
+        self._history = []
+
+    @property
+    def session_cache_max_size(self) -> int:
+        return self._session_cache_max_size
+
+    @property
+    def max_size(self) -> int:
+        return self._max_size
+
+    @max_size.setter
+    def max_size(self, new_max_size: int) -> None:
+        if new_max_size <= 0:
+            raise ValueError("max_size must be greater than 0.")
+        self._max_size = new_max_size
+
+    @session_cache_max_size.setter
+    def session_cache_max_size(self, new_max_cache_size: int) -> None:
+        if new_max_cache_size <= 0:
+            raise ValueError("session_cache_max_size must be greater than 0.")
+        self._session_cache_max_size = new_max_cache_size
+
+    def add_message(self, message: IMessage):
+        """
+        Adds a message to the conversation history and ensures history does not exceed the max size.
+        This only allows system context to be set through the system context method.
+        We are forcing the SystemContext to be a preamble only.
+        """
+        if isinstance(message, SystemMessage):
+            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+        else:
+            super().add_message(message)
+
+    @property
+    def history(self) -> List[IMessage]:
+        res = [] 
+        res.append(self.system_context)
+        res.extend(self._history[-self._max_size:])
+        return res
+
+    def session_to_dict(self) -> List[dict]:
+        """
+        Converts session messages to a list of dictionaries.
+        """
+        return [message.to_dict() for message in self.session]
+
+    @property
+    def session(self) -> List[IMessage]:
+        return self._history[-self._session_cache_max_size:]
+
+    @property
+    def system_context(self) -> Union[SystemMessage, None]:
+        """Get the system context message. Raises an error if it's not set."""
+        if self._system_context is None:
+            raise ValueError("System context has not been set.")
+        return self._system_context
+
+    @system_context.setter
+    def system_context(self, new_system_message: Union[SystemMessage, str]) -> None:
+        """
+        Set a new system context message. The new system message can be a string or 
+        an instance of SystemMessage. If it's a string, it converts it to a SystemMessage.
+        """
+        if isinstance(new_system_message, SystemMessage):
+            self._system_context = new_system_message
+        elif isinstance(new_system_message, str):
+            self._system_context = SystemMessage(new_system_message)
+        else:
+            raise ValueError("System context must be a string or a SystemMessage instance.")
+
+```
+
 ```swarmauri/standard/documents/__init__.py
 
 from .concrete import *
@@ -5115,9 +5688,9 @@ class EmbeddedBase(DocumentBase, IEmbed, ABC):
 
     @classmethod
     def from_dict(cls, data):
-        vector_data = data.pop("embedding")
+        vector_data = data.pop("embedding", None)
         if vector_data:
-            vector_type = vector_data.pop('type')
+            vector_type = vector_data.pop('type', None)
             if vector_type:
                 module = importlib.import_module(f"swarmauri.standard.vectors.concrete.{vector_type}")
                 vector_class = getattr(module, vector_type)
@@ -7002,6 +7575,13 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         - doc_id (str): The unique identifier of the document to delete.
         """
         pass
+
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
+        """
+        self.documents = []
     
     def document_count(self):
         return len(self.documents)
@@ -7134,7 +7714,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         with open(f"{model_path}/model.safetensors", 'rb') as f:
             chunk = f.read(chunk_size)
             while chunk:
-                with open(f"{parts_directory}/model.safetensors.part{file_number}", 'wb') as chunk_file:
+                with open(f"{parts_directory}/model.safetensors.part{file_number:03}", 'wb') as chunk_file:
                     chunk_file.write(chunk)
                 file_number += 1
                 chunk = f.read(chunk_size)
@@ -10292,5 +10872,49 @@ class ReflectiveAgentFactory(IAgentFactory, IExportConf):
 ```swarmauri/standard/agent_factories/concrete/__init__.py
 
 
+
+```
+
+```swarmauri/standard/exceptions/__init__.py
+
+
+
+```
+
+```swarmauri/standard/exceptions/base/__init__.py
+
+
+
+```
+
+```swarmauri/standard/exceptions/concrete/IndexErrorWithContext.py
+
+import inspect
+
+class IndexErrorWithContext(Exception):
+    def __init__(self, original_exception):
+        self.original_exception = original_exception
+        self.stack_info = inspect.stack()
+        self.handle_error()
+
+    def handle_error(self):
+        # You might want to log this information or handle it differently depending on your application's needs
+        frame = self.stack_info[1]  # Assuming the IndexError occurs one level up from where it's caught
+        error_details = {
+            "message": str(self.original_exception),
+            "function": frame.function,
+            "file": frame.filename,
+            "line": frame.lineno,
+            "code_context": ''.join(frame.code_context).strip() if frame.code_context else "No context available"
+        }
+        print("IndexError occurred with detailed context:")
+        for key, value in error_details.items():
+            print(f"{key.capitalize()}: {value}")
+
+```
+
+```swarmauri/standard/exceptions/concrete/__init__.py
+
+from .IndexErrorWithContext import IndexErrorWithContext
 
 ```

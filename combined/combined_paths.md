@@ -190,6 +190,11 @@ swarmauri/standard/models/concrete/OpenAIModel.py
 swarmauri/standard/models/concrete/AzureGPT.py
 swarmauri/standard/models/concrete/OpenAIImageGenerator.py
 swarmauri/standard/models/concrete/OpenAIToolModel.py
+swarmauri/standard/models/concrete/GroqModel.py
+swarmauri/standard/models/concrete/GroqToolModel.py
+swarmauri/standard/models/concrete/MistralModel.py
+swarmauri/standard/models/concrete/MistralToolModel.py
+swarmauri/standard/models/concrete/CohereModel.py
 swarmauri/standard/agents/__init__.py
 swarmauri/standard/agents/base/__init__.py
 swarmauri/standard/agents/base/NamedAgentBase.py
@@ -208,6 +213,7 @@ swarmauri/standard/agents/concrete/RagAgent.py
 swarmauri/standard/agents/concrete/GenerativeRagAgent.py
 swarmauri/standard/utils/__init__.py
 swarmauri/standard/utils/load_documents_from_json.py
+swarmauri/standard/utils/get_class_hash.py
 swarmauri/standard/conversations/__init__.py
 swarmauri/standard/conversations/base/__init__.py
 swarmauri/standard/conversations/base/ConversationBase.py
@@ -215,8 +221,11 @@ swarmauri/standard/conversations/base/SystemContextBase.py
 swarmauri/standard/conversations/concrete/__init__.py
 swarmauri/standard/conversations/concrete/LimitedSizeConversation.py
 swarmauri/standard/conversations/concrete/SimpleConversation.py
-swarmauri/standard/conversations/concrete/LimitedSystemContextConversation.py
 swarmauri/standard/conversations/concrete/SharedConversation.py
+swarmauri/standard/conversations/concrete/LimitedSystemContextConversation.py
+swarmauri/standard/conversations/concrete/MaxSizeConversation.py
+swarmauri/standard/conversations/concrete/MaxSystemContextConversation.py
+swarmauri/standard/conversations/concrete/SessionCacheConversation.py
 swarmauri/standard/documents/__init__.py
 swarmauri/standard/documents/base/__init__.py
 swarmauri/standard/documents/base/EmbeddedBase.py
@@ -366,3 +375,7 @@ swarmauri/standard/agent_factories/concrete/AgentFactory.py
 swarmauri/standard/agent_factories/concrete/ConfDrivenAgentFactory.py
 swarmauri/standard/agent_factories/concrete/ReflectiveAgentFactory.py
 swarmauri/standard/agent_factories/concrete/__init__.py
+swarmauri/standard/exceptions/__init__.py
+swarmauri/standard/exceptions/base/__init__.py
+swarmauri/standard/exceptions/concrete/IndexErrorWithContext.py
+swarmauri/standard/exceptions/concrete/__init__.py
