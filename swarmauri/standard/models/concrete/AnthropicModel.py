@@ -37,7 +37,7 @@ class AnthropicModel(ModelBase, IPredict):
         response = self.client.messages.create(
             model=self.model_name,
             messages=messages,
-            system_context=system_context,
+            system=system_context,
             temperature=temperature,
             max_tokens=max_tokens
         )
