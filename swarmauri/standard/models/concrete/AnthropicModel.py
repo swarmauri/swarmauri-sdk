@@ -43,5 +43,5 @@ class AnthropicModel(ModelBase, IPredict):
         )
         
         
-        message_content = message.content['text']
+        message_content = response.content[0].text
         return message_content
