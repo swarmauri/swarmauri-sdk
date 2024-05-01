@@ -98,7 +98,7 @@ class GeminiProModel(ModelBase, IPredict):
             safety_settings=self.safety_settings,
             generation_config=generation_config)
 
-        convo = model.start_chat(
+        convo = self.client.start_chat(
             history=sanitized_messages,
             )
 

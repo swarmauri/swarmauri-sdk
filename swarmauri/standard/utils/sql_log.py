@@ -71,6 +71,6 @@ def sql_log_decorator(func):
 class SqlLogMeta(type):
     def __new__(cls, name, bases, dct):
         for key, value in dct.items():
-            if callable(value) and not key.startswith('__')::
+            if callable(value) and not key.startswith('__'):
                 dct[key] = sql_log(value)
         return super().__new__(cls, name, bases, dct)
