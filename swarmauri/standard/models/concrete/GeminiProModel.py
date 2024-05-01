@@ -102,7 +102,7 @@ class GeminiProModel(ModelBase, IPredict):
             history=sanitized_messages,
             )
 
-        convo.send_message(next_message['content'])
+        convo.send_message(next_message['parts'])
 
         message_content = convo.last.text
         
