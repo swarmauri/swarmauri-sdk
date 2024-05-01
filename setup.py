@@ -87,7 +87,8 @@ setup(
             'groq',
             'mistralai',
             'cohere',
-            'google-generativeai'
+            'google-generativeai',
+            'anthropic'
 
         ]},
     classifiers=[
