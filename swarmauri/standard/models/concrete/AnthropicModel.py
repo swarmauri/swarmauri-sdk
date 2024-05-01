@@ -6,7 +6,12 @@ from swarmauri.standard.models.base.ModelBase import ModelBase
 
 
 class AnthropicModel(ModelBase, IPredict):
-    allowed_models = ['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
+    allowed_models = ['claude-3-opus-20240229', 
+    'claude-3-sonnet-20240229', 
+    'claude-3-haiku-20240307',
+    'claude-2.1',
+    'claude-2.0',
+    'claude-instant-1.2']
 
     def __init__(self, api_key: str, model_name: str = 'claude-3-haiku-20240307'):
         if model_name not in self.allowed_models:
