@@ -23,7 +23,7 @@ class AnthropicModel(ModelBase, IPredict):
         # Get system_context
         system_context = None
         for message in messages:
-            if role == 'system':
+            if message['role'] == 'system':
                 system_context = message['content']
 
         # Remove system instruction from messages
