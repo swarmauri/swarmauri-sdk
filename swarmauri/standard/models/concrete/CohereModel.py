@@ -20,9 +20,6 @@ class CohereModel(ModelBase, IPredict):
         
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
-        if self.client is None:
-            raise Exception("CohereModel client is not initialized. Call 'load_model' first.")
-            
         response = self.client.chat(
             model=self.model_name,
             messages=messages,

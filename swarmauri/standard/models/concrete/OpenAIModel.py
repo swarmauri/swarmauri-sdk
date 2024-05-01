@@ -30,8 +30,6 @@ class OpenAIModel(ModelBase, IPredict):
         Returns:
         - The generated message content.
         """
-        if self.client is None:
-            raise Exception("OpenAI client is not initialized. Call 'load_model' first.")
         
         if enable_json:
             response = self.client.chat.completions.create(

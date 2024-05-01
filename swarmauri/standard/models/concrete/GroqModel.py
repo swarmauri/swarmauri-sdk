@@ -16,10 +16,7 @@ class GroqModel(ModelBase, IPredict):
         super().__init__(model_name)
         
     
-    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
-        if self.client is None:
-            raise Exception("GroqModel client is not initialized. Call 'load_model' first.")
-        
+    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):        
         if enable_json:
             response = self.client.chat.completions.create(
                 model=self.model_name,

@@ -28,8 +28,6 @@ class MistralModel(ModelBase, IPredict):
         top_p: int = 1,
         enable_json: bool=False, 
         safe_prompt: bool=False):
-        if self.client is None:
-            raise Exception("GroqAIModel client is not initialized. Call 'load_model' first.")
         
         if enable_json:
             response = self.client.chat(
