@@ -36,12 +36,12 @@ class AnthropicModel(ModelBase, IPredict):
         # Chat
         response = self.client.messages.create(
             model=self.model_name,
-            messages=messages,
+            messages=sanitized_messages,
             system=system_context,
             temperature=temperature,
             max_tokens=max_tokens
         )
         
         
-        message_content = message.content
+        message_content = message.content['text']
         return message_content
