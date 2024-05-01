@@ -86,7 +86,8 @@ setup(
             'websockets',
             'groq',
             'mistralai',
-            'cohere'
+            'cohere',
+            'google-generativeai'
 
         ]},
     classifiers=[
