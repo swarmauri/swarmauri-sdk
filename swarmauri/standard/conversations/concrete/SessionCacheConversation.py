@@ -60,9 +60,23 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
 
     @property
     def history(self) -> List[IMessage]:
-        res = [] 
-        res.append(self.system_context)
-        res.extend(self._history[-self._max_size:])
+        """
+        Get the conversation history, ensuring the list starts with a user message and not with a SystemMessage or AgentMessage.
+        """
+        res = [self.system_context]  # Start with the system context.
+
+        # Try to find the first 'user' message in history to ensure it's the first after the system context.
+        start_index = 0
+        for index, message in enumerate(self._history):
+            if not isinstance(message, (SystemMessage, AgentMessage)):  # Check against both SystemMessage and AgentMessage
+                start_index = index
+                break
+
+        # Extend with the relevant portion of the history
+        if start_index > 0:  # If the first message is not a 'user' message, we adjust the start index.
+            start_index -= 1  # Shift back one position to start from a user message
+
+        res.extend(self._history[start_index:start_index + self._max_size])
         return res
 
     def session_to_dict(self) -> List[dict]:
