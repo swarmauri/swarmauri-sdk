@@ -3,7 +3,7 @@ from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage
+from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 class SessionCacheConversation(SystemContextBase, IMaxSize):
