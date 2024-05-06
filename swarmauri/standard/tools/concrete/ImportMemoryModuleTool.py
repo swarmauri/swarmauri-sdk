@@ -1,0 +1,85 @@
+# standard/tools/concrete/ImportMemoryModuleTool.py
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+import sys
+import types
+
+class ImportMemoryModuleTool(ToolBase):
+    def __init__(self):
+        # Define the parameters required by the tool
+        parameters = [
+            Parameter(
+                name="name",
+                type="string",
+                description="Name of the new module.",
+                required=True
+            ),
+            Parameter(
+                name="code",
+                type="string",
+                description="Python code snippet to include in the module.",
+                required=True
+            ),
+            Parameter(
+                name="package_path",
+                type="string",
+                description="Dot-separated package path where the new module should be inserted.",
+                required=True
+            )
+        ]
+        
+        # Call the ToolBase initializer
+        super().__init__(name="ImportMemoryModuleTool", 
+                         description="Dynamically imports a module from memory into a specified package path.",
+                         parameters=parameters)
+
+    def __call__(self, name: str, code: str, package_path: str) -> str:
+        """
+        Dynamically creates a module from a code snippet and inserts it into the specified package path.
+
+        Args:
+            name (str): Name of the new module.
+            code (str): Python code snippet to include in the module.
+            package_path (str): Dot-separated package path where the new module should be inserted.
+        """
+        # Implementation adapted from the provided snippet
+        # Ensure the package structure exists
+        current_package = self.ensure_module(package_path)
+        
+        # Create a new module
+        module = types.ModuleType(name)
+        
+        # Execute code in the context of this new module
+        exec(code, module.__dict__)
+        
+        # Insert the new module into the desired location
+        setattr(current_package, name, module)
+        sys.modules[package_path + '.' + name] = module
+        return f"{name} has been successfully imported into {package_path}"
+
+    @staticmethod
+    def ensure_module(package_path: str):
+        """
+        Ensures that a module and all its submodules exist, creating them if necessary.
+
+        Args:
+        package_path (str): Dot-separated package path.
+        """
+        package_parts = package_path.split('.')
+        module_path = ""
+        current_module = None
+
+        for part in package_parts:
+            if module_path:
+                module_path += "." + part
+            else:
+                module_path = part
+            
+            if module_path not in sys.modules:
+                new_module = types.ModuleType(part)
+                sys.modules[module_path] = new_module
+                if current_module:
+                    setattr(current_module, part, new_module)
+            current_module = sys.modules[module_path]
+
+        return current_module
