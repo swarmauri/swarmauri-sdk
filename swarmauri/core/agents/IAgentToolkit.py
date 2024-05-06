@@ -4,7 +4,6 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 
 class IAgentToolkit(ABC):
 
-
     @property
     @abstractmethod
     def toolkit(self) -> IToolkit:
