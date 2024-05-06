@@ -3,22 +3,27 @@ import json
 
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.toolkits.IToolkit import IToolkit
-from swarmauri.core.conversations.IConversation import IConversation
+from swarmauri.standard.conversations.concrete.SharedConversation import SharedConversation
 from swarmauri.core.messages import IMessage
 
 from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
+class MultiPartyToolAgent(AgentBase, ConversationAgentBase, NamedAgentBase, ToolAgentBase):
     def __init__(self, 
                  model: IModel, 
-                 conversation: IConversation, 
+                 conversation: SharedConversation, 
                  toolkit: IToolkit,
                  name: str):
-        ToolAgentBase.__init__(self, model, conversation, toolkit)
-        NamedAgentBase.__init__(self, name)
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=name)
+        ToolAgentBase.__init__(self, toolkit=toolkit)
+        
 
     def exec(self, input_data: Union[str, IMessage], model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -35,8 +40,8 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
             raise TypeError("Input data must be a string or an instance of Message.")
 
         if input_data != "":
-            # Add the human message to the conversation
-            conversation.add_message(human_message, sender_id=self.name)
+            # we add the sender's name as the id so we can keep track of who said what in the conversation
+            conversation.add_message(human_message, sender_id=self.name) 
             
         
         # Retrieve the conversation history and predict a response

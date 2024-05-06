@@ -1,20 +1,22 @@
 from typing import Any, Optional, Union, Dict
 
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.messages import IMessage
 
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.conversations.concrete.SharedConversation import SharedConversation
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage
 
-class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
-    def __init__(self, 
-                 model: IModel, 
-                 conversation: SharedConversation,
-                 name: str):
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
+
+from swarmauri.core.models.IModel import IModel
+from swarmauri.core.messages import IMessage
+
+
+class MultiPartyChatSwarmAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
+    def __init__(self, name: str, model: IModel, conversation: SharedConversation):
+        AgentBase.__init__(self, model=model)
         ConversationAgentBase.__init__(self, model, conversation)
-        NamedAgentBase.__init__(self, name)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, input_data: Union[str, IMessage] = "", model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -29,7 +31,7 @@ class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
             raise TypeError("Input data must be a string or an instance of Message.")
 
         if input_data != "":
-            # Add the human message to the conversation
+            # we add the sender's name as the id so we can keep track of who said what in the conversation
             conversation.add_message(human_message, sender_id=self.name)
         
         # Retrieve the conversation history and predict a response

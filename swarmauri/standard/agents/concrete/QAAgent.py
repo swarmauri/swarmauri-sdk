@@ -5,10 +5,9 @@ from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 
-class SingleCommandAgent(AgentBase):
-    def __init__(self, model: IModel, 
-                 conversation: IConversation):
-        super().__init__(model, conversation)
+class QAAgent(AgentBase):
+    def __init__(self, model: IModel):
+        AgentBase.__init__(self, model=model)
 
     def exec(self, input_str: Optional[str] = None) -> Any:
         model = self.model

@@ -2,12 +2,16 @@ from typing import Any, Optional, Union, Dict
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.messages import IMessage
 from swarmauri.core.conversations import IConversation
+from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage
 
-class ChatSwarmAgent(ConversationAgentBase):
-    def __init__(self, model: IModel, conversation: IConversation):
-        super().__init__(model, conversation)
+class ChatSwarmAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
+    def __init__(self, name: str, model: IModel, conversation: IConversation):
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, model, conversation)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, input_data: Union[str, IMessage], model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation

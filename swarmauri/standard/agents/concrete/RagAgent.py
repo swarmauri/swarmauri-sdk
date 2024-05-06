@@ -2,6 +2,10 @@ from typing import Any, Optional, Union, Dict
 from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.AgentRetrieveBase import AgentRetrieveBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
@@ -9,19 +13,41 @@ from swarmauri.standard.messages.concrete import (HumanMessage,
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(VectorStoreAgentBase):
+class RagAgent(AgentBase, AgentRetrieveBase, ConversationAgentBase, NamedAgentBase, SystemContextAgentBase, VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
-        self.last_similar_documents = []
-        super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
+    def __init__(self, name: str, 
+            system_context: Union[SystemMessage, str], 
+            model: IModel, 
+            conversation: SystemContextBase, 
+            vector_store: VectorDocumentStoreRetrieveBase):
+        AgentBase.__init__(self, model=model)
+        AgentRetrieveBase.__init__(self)
+        ConversationAgentBase.__init__(self, model, conversation)
+        NamedAgentBase.__init__(self, name=name)
+        SystemContextAgentBase.__init__(self, system_context=system_context)
+        VectorStoreAgentBase.__init__(self, name=vector_store)
+
+    def _create_preamble_context(self):
+        substr = self.context
+        substr += '\n\n'
+        substr += '\n'.join([doc.content for doc in self.last_retrieved])
+        return substr
+
+    def _create_post_context(self):
+        substr = '\n'.join([doc.content for doc in self.last_retrieved])
+        substr += '\n\n'
+        substr += self.context
+        return substr
 
     def exec(self, 
              input_data: Union[str, IMessage], 
              top_k: int = 5, 
+             preamble: bool = True,
+             fixed: bool = False,
              model_kwargs: Optional[Dict] = {}
              ) -> Any:
         conversation = self.conversation
@@ -38,14 +64,18 @@ class RagAgent(VectorStoreAgentBase):
         # Add the human message to the conversation
         conversation.add_message(human_message)
         
-        
         if top_k > 0:
-            similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
-            substr = '\n'.join([doc.content for doc in similar_documents])
-            self.last_similar_documents = similar_documents
+            self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
+
+            if preamble:
+                substr = self._create_preamble_context()
+            else:
+                substr = self._create_post_context()
+
         else:
-            substr = ""
-            self.last_similar_documents = []
+            substr = self.system_context
+            if fixed == False:
+                self.last_retrieved = []
 
         
         # Use substr to set system context
@@ -65,6 +95,3 @@ class RagAgent(VectorStoreAgentBase):
         conversation.add_message(agent_message)
         
         return prediction
-    
-    
-    

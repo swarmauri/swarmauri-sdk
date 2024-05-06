@@ -10,12 +10,14 @@ from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class ToolAgent(ToolAgentBase):
+class ToolAgent(AgentBase, ToolAgentBase):
     def __init__(self, 
                  model: IModel, 
                  conversation: IConversation, 
                  toolkit: IToolkit):
-        super().__init__(model, conversation, toolkit)
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        ToolAgentBase.__init__(self, toolkit=toolkit)
 
     def exec(self, input_data: Union[str, IMessage],  model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
