@@ -9,9 +9,6 @@ class AgentBase(IAgent, ABC):
     def __init__(self, model: IModel):
         self._model = model
 
-    def exec(self, input_str: Optional[Any]) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
-    
     @property
     def model(self) -> IModel:
         return self._model
@@ -20,6 +17,8 @@ class AgentBase(IAgent, ABC):
     def model(self, value) -> None:
         self._model = value        
 
+    def exec(self, input_str: Optional[Any]) -> Any:
+        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
     
     def __getattr__(self, name):
         # Example of transforming attribute name from simplified to internal naming convention
