@@ -1,8 +1,10 @@
 # standard/tools/concrete/ImportMemoryModuleTool.py
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
 import sys
 import types
+import importlib
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
 
 class ImportMemoryModuleTool(ToolBase):
     def __init__(self):
@@ -59,12 +61,6 @@ class ImportMemoryModuleTool(ToolBase):
 
     @staticmethod
     def ensure_module(package_path: str):
-        """
-        Ensures that a module and all its submodules exist, creating them if necessary.
-
-        Args:
-        package_path (str): Dot-separated package path.
-        """
         package_parts = package_path.split('.')
         module_path = ""
         current_module = None
@@ -74,12 +70,18 @@ class ImportMemoryModuleTool(ToolBase):
                 module_path += "." + part
             else:
                 module_path = part
-            
+                
             if module_path not in sys.modules:
-                new_module = types.ModuleType(part)
-                sys.modules[module_path] = new_module
-                if current_module:
-                    setattr(current_module, part, new_module)
+                try:
+                    # Try importing the module; if it exists, this will add it to sys.modules
+                    imported_module = importlib.import_module(module_path)
+                    sys.modules[module_path] = imported_module
+                except ImportError:
+                    # If the module doesn't exist, create a new placeholder module
+                    new_module = types.ModuleType(part)
+                    if current_module:
+                        setattr(current_module, part, new_module)
+                    sys.modules[module_path] = new_module
             current_module = sys.modules[module_path]
 
         return current_module
