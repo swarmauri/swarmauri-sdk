@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 import json
-from ....core.tools.IParameter import IParameter
+from swarmauri.core.tools.IParameter import IParameter
 
 class Parameter(IParameter):
     """
