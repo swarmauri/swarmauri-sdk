@@ -32,7 +32,7 @@ class RagAgent(AgentBase,
             vector_store: VectorDocumentStoreRetrieveBase):
         AgentBase.__init__(self, model=model)
         AgentRetrieveBase.__init__(self)
-        ConversationAgentBase.__init__(self, model, conversation)
+        ConversationAgentBase.__init__(self, conversation=conversation)
         NamedAgentBase.__init__(self, name=name)
         SystemContextAgentBase.__init__(self, system_context=system_context)
         VectorStoreAgentBase.__init__(self, name=vector_store)
