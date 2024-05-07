@@ -10,7 +10,7 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage
 class ChatSwarmAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
     def __init__(self, name: str, model: IModel, conversation: IConversation):
         AgentBase.__init__(self, model=model)
-        ConversationAgentBase.__init__(self, model, conversation)
+        ConversationAgentBase.__init__(self, conversation=conversation)
         NamedAgentBase.__init__(self, name=name)
 
     def exec(self, input_data: Union[str, IMessage], model_kwargs: Optional[Dict] = {}) -> Any:
