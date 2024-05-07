@@ -6,11 +6,13 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 from swarmauri.core.conversations.IConversation import IConversation
 from swarmauri.core.messages import IMessage
 
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class ToolAgent(AgentBase, ToolAgentBase):
+class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
     def __init__(self, 
                  model: IModel, 
                  conversation: IConversation, 

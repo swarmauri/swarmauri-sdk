@@ -1,5 +1,6 @@
-from swarmauri.core.agents.IAgentSystemContext import IAgentSystemContext
+from typing import Union
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.core.agents.IAgentSystemContext import IAgentSystemContext
 
 
 class SystemContextAgentBase(IAgentSystemContext):

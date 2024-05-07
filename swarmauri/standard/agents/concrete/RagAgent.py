@@ -7,13 +7,19 @@ from swarmauri.standard.agents.base.AgentRetrieveBase import AgentRetrieveBase
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
+from swarmauri.standard.agents.base.SystemContextAgentBase import SystemContextAgentBase
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(AgentBase, AgentRetrieveBase, ConversationAgentBase, NamedAgentBase, SystemContextAgentBase, VectorStoreAgentBase):
+class RagAgent(AgentBase, 
+    AgentRetrieveBase,
+    ConversationAgentBase, 
+    NamedAgentBase, 
+    SystemContextAgentBase, 
+    VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.

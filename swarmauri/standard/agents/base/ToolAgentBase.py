@@ -1,4 +1,5 @@
 from abc import ABC
+from swarmauri.core.agents.IAgentToolkit import IAgentToolkit
 from swarmauri.core.toolkits.IToolkit import IToolkit
 
 
