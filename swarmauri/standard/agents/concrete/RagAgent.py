@@ -35,7 +35,7 @@ class RagAgent(AgentBase,
         ConversationAgentBase.__init__(self, conversation=conversation)
         NamedAgentBase.__init__(self, name=name)
         SystemContextAgentBase.__init__(self, system_context=system_context)
-        VectorStoreAgentBase.__init__(self, name=vector_store)
+        VectorStoreAgentBase.__init__(self, vector_store=vector_store)
 
     def _create_preamble_context(self):
         substr = self.context
