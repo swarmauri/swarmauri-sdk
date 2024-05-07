@@ -56,56 +56,56 @@ class RagAgent(AgentBase,
              fixed: bool = False,
              model_kwargs: Optional[Dict] = {}
              ) -> Any:
-        conversation = self.conversation
-        model = self.model
+        try:
+            conversation = self.conversation
+            model = self.model
 
-        # Check if the input is a string, then wrap it in a HumanMessage
-        if isinstance(input_data, str):
-            human_message = HumanMessage(input_data)
-        elif isinstance(input_data, IMessage):
-            human_message = input_data
-        else:
-            raise TypeError("Input data must be a string or an instance of Message.")
-        
-        # Add the human message to the conversation
-        conversation.add_message(human_message)
-        
-        if top_k > 0:
-            self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
-
-            if preamble:
-                substr = self._create_preamble_context()
+            # Check if the input is a string, then wrap it in a HumanMessage
+            if isinstance(input_data, str):
+                human_message = HumanMessage(input_data)
+            elif isinstance(input_data, IMessage):
+                human_message = input_data
             else:
-                substr = self._create_post_context()
+                raise TypeError("Input data must be a string or an instance of Message.")
+            
+            # Add the human message to the conversation
+            conversation.add_message(human_message)
+            
+            if top_k > 0:
+                self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
 
-        else:
-            if fixed:
                 if preamble:
                     substr = self._create_preamble_context()
                 else:
                     substr = self._create_post_context()
+
             else:
-                substr = self.system_context.content
-                self.last_retrieved = []
+                if fixed:
+                    if preamble:
+                        substr = self._create_preamble_context()
+                    else:
+                        substr = self._create_post_context()
+                else:
+                    substr = self.system_context.content
+                    self.last_retrieved = []
+
             
+            # Use substr to set system context
+            system_context = SystemMessage(substr)
+            conversation.system_context = system_context
             
+
+            # Retrieve the conversation history and predict a response
+            messages = conversation.as_messages()
+            if model_kwargs:
+                prediction = model.predict(messages=messages, **model_kwargs)
+            else:
+                prediction = model.predict(messages=messages)
                 
-
-        
-        # Use substr to set system context
-        system_context = SystemMessage(substr)
-        conversation.system_context = system_context
-        
-
-        # Retrieve the conversation history and predict a response
-        messages = conversation.as_messages()
-        if model_kwargs:
-            prediction = model.predict(messages=messages, **model_kwargs)
-        else:
-            prediction = model.predict(messages=messages)
+            # Create an AgentMessage instance with the model's response and update the conversation
+            agent_message = AgentMessage(prediction)
+            conversation.add_message(agent_message)
             
-        # Create an AgentMessage instance with the model's response and update the conversation
-        agent_message = AgentMessage(prediction)
-        conversation.add_message(agent_message)
-        
-        return prediction
+            return prediction
+        except Exception as e:
+            raise e
