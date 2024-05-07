@@ -7,7 +7,7 @@ class AgentRetrieveBase(IAgentRetrieve, ABC):
 
     def __init__(self):
         self._last_retrieved = []
-
+        
     @property
     def last_retrieved(self) -> List[IDocument]:
         return self._last_retrieved
