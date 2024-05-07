@@ -38,7 +38,7 @@ class RagAgent(AgentBase,
         VectorStoreAgentBase.__init__(self, vector_store=vector_store)
 
     def _create_preamble_context(self):
-        substr = self.context
+        substr = self.system_context.content
         substr += '\n\n'
         substr += '\n'.join([doc.content for doc in self.last_retrieved])
         return substr
@@ -46,7 +46,7 @@ class RagAgent(AgentBase,
     def _create_post_context(self):
         substr = '\n'.join([doc.content for doc in self.last_retrieved])
         substr += '\n\n'
-        substr += self.context
+        substr += self.system_context.content
         return substr
 
     def exec(self, 
@@ -79,9 +79,17 @@ class RagAgent(AgentBase,
                 substr = self._create_post_context()
 
         else:
-            substr = self.system_context
-            if fixed == False:
+            if fixed:
+                if preamble:
+                    substr = self._create_preamble_context()
+                else:
+                    substr = self._create_post_context()
+            else:
+                substr = self.system_context.content
                 self.last_retrieved = []
+            
+            
+                
 
         
         # Use substr to set system context
