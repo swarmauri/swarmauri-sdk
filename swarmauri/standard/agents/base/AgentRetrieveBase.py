@@ -10,8 +10,8 @@ class AgentRetrieveBase(IAgentRetrieve, ABC):
 
     @property
     def last_retrieved(self) -> List[IDocument]:
-        self._last_retrieved
+        return self._last_retrieved
 
     @last_retrieved.setter
-    def last_retrieved(self, value: List[IDocument]) -> List[IDocument]:
+    def last_retrieved(self, value: List[IDocument]) -> None:
         self._last_retrieved = value
