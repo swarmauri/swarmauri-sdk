@@ -7,12 +7,12 @@ class VectorStoreAgentBase(IAgentVectorStore):
         self._vector_store = vector_store  # vector store initialization
 
     @property
-    def vector_store(self) -> Optional[IVectorStore]:
+    def vector_store(self) -> IVectorStore:
         """
         Gets the vector store associated with this agent.
         
         Returns:
-            Optional[IVectorStore]: The new vector store to be associated with the agent.
+            IVectorStore: The new vector store to be associated with the agent.
         """
         return self._vector_store
 
