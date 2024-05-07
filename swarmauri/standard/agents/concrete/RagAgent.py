@@ -3,7 +3,6 @@ from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
 from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.AgentRetrieveBase import AgentRetrieveBase
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
@@ -13,6 +12,7 @@ from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase impor
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
+
 
 class RagAgent(AgentBase, 
     AgentRetrieveBase,
@@ -70,7 +70,8 @@ class RagAgent(AgentBase,
             
             # Add the human message to the conversation
             conversation.add_message(human_message)
-            
+
+            # Retrieval and set new substr for system context
             if top_k > 0:
                 self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
 
@@ -88,6 +89,8 @@ class RagAgent(AgentBase,
                 else:
                     substr = self.system_context.content
                     self.last_retrieved = []
+                
+                
 
             
             # Use substr to set system context
@@ -108,4 +111,5 @@ class RagAgent(AgentBase,
             
             return prediction
         except Exception as e:
+            print(f"RagAgent error: {e}")
             raise e
