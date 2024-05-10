@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
@@ -12,9 +12,12 @@ class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
     def __init__(self, model: IModel, conversation: IConversation, name: str):
         AgentBase.__init__(self, model=model)
         ConversationAgentBase.__init__(self, conversation=conversation)
-        NamedAgentBase.__init__(self, model=str)
+        NamedAgentBase.__init__(self, name=str)
 
-    def exec(self, input_str: Optional[str] = None) -> Any:
+    def exec(self, 
+        input_str: Optional[str] = None,
+        model_kwargs: Optional[Dict] = {}
+        ) -> Any:
         conversation = self.conversation
         model = self.model
 
@@ -24,5 +27,5 @@ class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
             conversation.add_message(human_message)
         
         messages = conversation.as_messages()
-        prediction = model.predict(messages=messages)
+        prediction = model.predict(messages=messages, **model_kwargs)
         return prediction
