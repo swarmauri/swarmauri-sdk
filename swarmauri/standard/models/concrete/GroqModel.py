@@ -16,7 +16,7 @@ class GroqModel(ModelBase, IPredict):
         super().__init__(model_name)
         
     
-    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):        
+    def predict(self, messages, temperature=0.7, max_tokens=256, top_p=1, enable_json=False, stop: List[str] = None):        
         if enable_json:
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -24,7 +24,7 @@ class GroqModel(ModelBase, IPredict):
                 temperature=temperature,
                 response_format={ "type": "json_object" },
                 max_tokens=max_tokens,
-                top_p=1,
+                top_p=top_p,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=stop
@@ -35,7 +35,7 @@ class GroqModel(ModelBase, IPredict):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                top_p=1,
+                top_p=top_p,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=stop
