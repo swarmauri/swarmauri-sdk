@@ -34,13 +34,13 @@ class StateChain(IChain):
     
     def _resolve_ref(self, value: Any) -> Any:
         if isinstance(value, str) and value.startswith('$'):
-            placeholder = value[2:-1]
+            placeholder = value[1:]
             return placeholder
         return value
     
     def _resolve_placeholders(self, value: Any) -> Any:
         if isinstance(value, str) and value.startswith('$'):
-            placeholder = value[2:-1]
+            placeholder = value[1:]
             return self._context.get(placeholder)
         return value
 
