@@ -6,6 +6,16 @@ from swarmauri.standard.models.base.ModelBase import ModelBase
 
 
 class OpenAIModel(ModelBase, IPredict):
+    allowed_models = ['gpt-4o', 
+    'gpt-4-turbo', 
+    'gpt-4-0125-preview',
+    'gpt-4',
+    'gpt-4-0613',
+    'gpt-4-32k',
+    'gpt-4-32k-0613',
+    'gpt-3.5-turbo-0125',
+    'gpt-3.5-turbo']
+
     def __init__(self, api_key: str, model_name: str):
         """
         Initialize the OpenAI model with an API key.
@@ -13,6 +23,9 @@ class OpenAIModel(ModelBase, IPredict):
         Parameters:
         - api_key (str): Your OpenAI API key.
         """
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
         self.client = OpenAI(api_key=api_key)
         super().__init__(model_name)
         
