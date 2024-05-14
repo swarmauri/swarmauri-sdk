@@ -802,6 +802,53 @@ class ITemplate(ABC):
 
 ```
 
+```swarmauri/core/prompts/IPromptMatrix.py
+
+# swarmauri/core/prompts/IPromptMatrix.py
+from abc import ABC, abstractmethod
+from typing import List, Tuple, Optional, Any
+
+class IPromptMatrix(ABC):
+    @property
+    @abstractmethod
+    def matrix(self) -> List[List[Optional[str]]]:
+        """Get the entire prompt matrix."""
+        pass
+
+    @matrix.setter
+    @abstractmethod
+    def matrix(self, value: List[List[Optional[str]]]) -> None:
+        """Set the entire prompt matrix."""
+        pass
+
+    @property
+    @abstractmethod
+    def shape(self) -> Tuple[int, int]:
+        """Get the shape (number of agents, sequence length) of the prompt matrix."""
+        pass
+
+    @abstractmethod
+    def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
+        """Add a new prompt sequence to the matrix."""
+        pass
+
+    @abstractmethod
+    def remove_prompt_sequence(self, index: int) -> None:
+        """Remove a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def get_prompt_sequence(self, index: int) -> List[Optional[str]]:
+        """Get a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def show_matrix(self) -> List[List[Optional[str]]]:
+        """Show the entire prompt matrix."""
+        pass
+
+```
+
 ```swarmauri/core/agents/__init__.py
 
 
@@ -815,7 +862,6 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 
 
 class IAgentToolkit(ABC):
-
 
     @property
     @abstractmethod
@@ -849,25 +895,6 @@ class IAgentConversation(ABC):
     @conversation.setter
     @abstractmethod
     def conversation(self) -> IConversation:
-        pass
-
-```
-
-```swarmauri/core/agents/IAgentRetriever.py
-
-from abc import ABC, abstractmethod
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
-
-class IAgentRetriever(ABC):
-    
-    @property
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
-        pass
-
-    @retriever.setter
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
         pass
 
 ```
@@ -958,6 +985,44 @@ class IAgentVectorStore(ABC):
     @vector_store.setter
     @abstractmethod
     def vector_store(self):
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IAgentRetrieve(ABC):
+
+    @property
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+    @last_retrieved.setter
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentSystemContext.py
+
+from abc import ABC, abstractmethod
+
+class IAgentSystemContext(ABC):
+    
+    @property
+    @abstractmethod
+    def system_context(self):
+        pass
+
+    @system_context.setter
+    @abstractmethod
+    def system_context(self):
         pass
 
 ```
@@ -3110,6 +3175,73 @@ class IChainStep:
         self.args = args if args is not None else []
         self.kwargs = kwargs if kwargs is not None else {}
         self.ref = ref
+
+```
+
+```swarmauri/core/chains/IChainContextLoader.py
+
+from abc import ABC, abstractmethod
+from typing import Dict
+
+class IChainContextLoader(ABC):
+    @abstractmethod
+    def load_context(self, context_id: str) -> Dict[str, Any]:
+        """Load the execution context by its identifier."""
+        pass
+
+```
+
+```swarmauri/core/chains/IChainDependencyResolver.py
+
+from abc import ABC, abstractmethod
+from typing import Tuple, Dict, List
+
+class IChainDependencyResolver(ABC):
+    @abstractmethod
+    def build_dependencies(self) -> List[ChainStep]:
+        """
+        Builds the dependencies for a particular sequence in the matrix.
+
+        Args:
+            matrix (List[List[str]]): The prompt matrix.
+            sequence_index (int): The index of the sequence to build dependencies for.
+
+        Returns:
+            Tuple containing indegrees and graph dicts.
+        """
+        pass
+
+    @abstractmethod
+    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+        """
+        Resolves the execution order based on the provided dependencies.
+
+        Args:
+            indegrees (Dict[int, int]): The indegrees of each node.
+            graph (Dict[int, List[int]]): The graph representing dependencies.
+
+        Returns:
+            List[int]: The resolved execution order.
+        """
+        pass
+
+```
+
+```swarmauri/core/chains/IChainContext.py
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+
+class IChainContext(ABC):
+    @property
+    @abstractmethod
+    def context(self) -> Dict[str, Any]:
+        pass
+
+    @context.setter
+    @abstractmethod
+    def context(self, value: Dict[str, Any]) -> None:
+        pass
 
 ```
 

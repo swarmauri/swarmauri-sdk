@@ -1781,179 +1781,6 @@ class RemoteAPITracer(ITracer):
 
 ```
 
-```swarmauri/experimental/chains/ChainOrderStrategy.py
-
-from typing import List
-from swarmauri.core.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class ChainOrderStrategy(IChainOrderStrategy):
-    def order_steps(self, steps: List[IChainStep]) -> List[IChainStep]:
-        """
-        Orders the chain steps in reverse order.
-
-        Args:
-            steps (List[IChainStep]): The original list of chain steps to be ordered.
-
-        Returns:
-            List[IChainStep]: List of chain steps in order.
-        """
-        # Reverse the list of steps.
-        steps = list(steps)
-        return steps
-
-```
-
-```swarmauri/experimental/chains/ChainOrderStrategyBase.py
-
-from typing import List
-from swarmauri.core.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class ChainOrderStrategyBase(IChainOrderStrategy):
-    """
-    A base implementation of the IChainOrderStrategy interface.
-    """
-
-    def order_steps(self, steps: List[IChainStep]) -> List[IChainStep]:
-        """
-        Default implementation doesn't reorder steps but must be overridden by specific strategies.
-        """
-        return steps
-
-```
-
-```swarmauri/experimental/chains/ChainProcessingStrategy.py
-
-from typing import List, Any
-from swarmauri.core.chains.IChainProcessingStrategy import IChainProcessingStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class ChainProcessingStrategy(IChainProcessingStrategy):
-    def execute_steps(self, steps: List[IChainStep]) -> Any:
-        """
-        Executes the given list of ordered chain steps based on the specific strategy 
-        and collects their results.
-
-        Args:
-            steps (List[IChainStep]): The ordered list of chain steps to be executed.
-        
-        Returns:
-            Any: The result of executing the steps. This could be tailored as per requirement.
-        """
-        results = []
-        for step in steps:
-            result = step.method(*step.args, **step.kwargs)
-            results.append(result)
-        return results
-
-```
-
-```swarmauri/experimental/chains/ChainProcessingStrategyBase.py
-
-from typing import List
-from swarmauri.core.chains.IChainProcessingStrategy import IChainProcessingStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class ChainProcessingStrategyBase(IChainProcessingStrategy):
-    """
-    A base implementation of the IChainProcessingStrategy interface.
-    """
-    
-    def execute_steps(self, steps: List[IChainStep]):
-        """
-        Default implementation which should be overridden by specific processing strategies.
-        """
-        for step in steps:
-            print(step)
-            step.method(*step.args, **step.kwargs)
-
-```
-
-```swarmauri/experimental/chains/IChainOrderStrategy.py
-
-from abc import ABC, abstractmethod
-from typing import List
-from swarmauri.core.chains.IChainStep import IChainStep
-
-# Defines how chain steps are ordered
-class IChainOrderStrategy(ABC):
-    @abstractmethod
-    def order_steps(self, steps: List[IChainStep]) -> List[IChainStep]:
-        pass
-
-```
-
-```swarmauri/experimental/chains/IChainProcessingStrategy.py
-
-from abc import ABC, abstractmethod
-from typing import List
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class IChainProcessingStrategy(ABC):
-    """
-    Interface for defining the strategy to process the execution of chain steps.
-    """
-    
-    @abstractmethod
-    def execute_steps(self, steps: List[IChainStep]):
-        """
-        Executes the given list of ordered chain steps based on the specific strategy.
-        
-        Parameters:
-            steps (List[IChainStep]): The ordered list of chain steps to be executed.
-        """
-        pass
-
-```
-
-```swarmauri/experimental/chains/MatrixOrderStrategy.py
-
-from typing import List
-from swarmauri.core.chains.IChainOrderStrategy import IChainOrderStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class MatrixOrderStrategy(IChainOrderStrategy):
-    def order_steps(self, steps: List[IChainStep]) -> List[IChainStep]:
-        # Assuming 'steps' are already organized in a matrix-like structure
-        ordered_steps = self.arrange_matrix(steps)
-        return ordered_steps
-
-    def arrange_matrix(self, steps_matrix):
-        # Implement the logic to arrange/order steps based on matrix positions.
-        # This is just a placeholder. The actual implementation would depend on the matrix specifications and task dependencies.
-        return steps_matrix
-
-```
-
-```swarmauri/experimental/chains/MatrixProcessingStrategy.py
-
-import asyncio
-from typing import List, Any
-from swarmauri.core.chains.IChainProcessingStrategy import IChainProcessingStrategy
-from swarmauri.core.chains.IChainStep import IChainStep
-
-class MatrixProcessingStrategy(IChainProcessingStrategy):
-    async def execute_steps(self, steps: List[IChainStep]) -> Any:
-        # Launch tasks asynchronously, maintaining the matrix structure
-        results = await self.execute_matrix(steps)
-        return results
-
-    async def execute_matrix(self, matrix):
-        matrix_results = []
-
-        # Example: Execute tasks row by row, waiting for each row to complete before moving on.
-        for row in matrix:
-            row_results = await asyncio.gather(*[step.method(*step.args, **step.kwargs) for step in row])
-            matrix_results.append(row_results)
-            # Optionally, add a call to a row callback here
-
-        # After processing all rows, you may call a final matrix callback
-        # This could be a place for final aggregation or analysis of all results
-        return matrix_results
-
-```
-
 ```swarmauri/experimental/chains/TypeAgnosticCallableChain.py
 
 from typing import Any, Callable, List, Dict, Optional, Tuple, Union
@@ -2049,6 +1876,62 @@ class TypeAgnosticCallableChain:
 ```swarmauri/experimental/chains/__init__.py
 
 #
+
+```
+
+```swarmauri/experimental/chains/IChainScheduler.py
+
+from abc import ABC, abstractmethod
+from core.chains.IChain import IChain
+
+class IChainScheduler(ABC):
+    @abstractmethod
+    def schedule_chain(self, chain: IChain, schedule: str) -> None:
+        """Schedule the execution of the given chain."""
+        pass
+
+```
+
+```swarmauri/experimental/chains/IChainFormatter.py
+
+from abc import ABC, abstractmethod
+from core.chains.IChainStep import IChainStep
+
+class IChainFormatter(ABC):
+    @abstractmethod
+    def format_output(self, step: IChainStep, output: Any) -> str:
+        """Format the output of a specific chain step."""
+        pass
+
+```
+
+```swarmauri/experimental/chains/IChainNotification.py
+
+from abc import ABC, abstractmethod
+
+class IChainNotifier(ABC):
+    @abstractmethod
+    def send_notification(self, message: str) -> None:
+        """Send a notification message based on chain execution results."""
+        pass
+
+```
+
+```swarmauri/experimental/chains/IChainPersistence.py
+
+from abc import ABC, abstractmethod
+from swarmauri.core.chains.IChain import IChain
+
+class IChainPersistence(ABC):
+    @abstractmethod
+    def save_state(self, chain: IChain, state: Dict[str, Any]) -> None:
+        """Save the state of the given chain."""
+        pass
+
+    @abstractmethod
+    def load_state(self, chain_id: str) -> Dict[str, Any]:
+        """Load the state of a chain by its identifier."""
+        pass
 
 ```
 

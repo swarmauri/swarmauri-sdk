@@ -802,6 +802,53 @@ class ITemplate(ABC):
 
 ```
 
+```swarmauri/core/prompts/IPromptMatrix.py
+
+# swarmauri/core/prompts/IPromptMatrix.py
+from abc import ABC, abstractmethod
+from typing import List, Tuple, Optional, Any
+
+class IPromptMatrix(ABC):
+    @property
+    @abstractmethod
+    def matrix(self) -> List[List[Optional[str]]]:
+        """Get the entire prompt matrix."""
+        pass
+
+    @matrix.setter
+    @abstractmethod
+    def matrix(self, value: List[List[Optional[str]]]) -> None:
+        """Set the entire prompt matrix."""
+        pass
+
+    @property
+    @abstractmethod
+    def shape(self) -> Tuple[int, int]:
+        """Get the shape (number of agents, sequence length) of the prompt matrix."""
+        pass
+
+    @abstractmethod
+    def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
+        """Add a new prompt sequence to the matrix."""
+        pass
+
+    @abstractmethod
+    def remove_prompt_sequence(self, index: int) -> None:
+        """Remove a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def get_prompt_sequence(self, index: int) -> List[Optional[str]]:
+        """Get a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def show_matrix(self) -> List[List[Optional[str]]]:
+        """Show the entire prompt matrix."""
+        pass
+
+```
+
 ```swarmauri/core/agents/__init__.py
 
 
@@ -815,7 +862,6 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 
 
 class IAgentToolkit(ABC):
-
 
     @property
     @abstractmethod
@@ -849,25 +895,6 @@ class IAgentConversation(ABC):
     @conversation.setter
     @abstractmethod
     def conversation(self) -> IConversation:
-        pass
-
-```
-
-```swarmauri/core/agents/IAgentRetriever.py
-
-from abc import ABC, abstractmethod
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
-
-class IAgentRetriever(ABC):
-    
-    @property
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
-        pass
-
-    @retriever.setter
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
         pass
 
 ```
@@ -958,6 +985,44 @@ class IAgentVectorStore(ABC):
     @vector_store.setter
     @abstractmethod
     def vector_store(self):
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IAgentRetrieve(ABC):
+
+    @property
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+    @last_retrieved.setter
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentSystemContext.py
+
+from abc import ABC, abstractmethod
+
+class IAgentSystemContext(ABC):
+    
+    @property
+    @abstractmethod
+    def system_context(self):
+        pass
+
+    @system_context.setter
+    @abstractmethod
+    def system_context(self):
         pass
 
 ```
@@ -3113,6 +3178,73 @@ class IChainStep:
 
 ```
 
+```swarmauri/core/chains/IChainContextLoader.py
+
+from abc import ABC, abstractmethod
+from typing import Dict
+
+class IChainContextLoader(ABC):
+    @abstractmethod
+    def load_context(self, context_id: str) -> Dict[str, Any]:
+        """Load the execution context by its identifier."""
+        pass
+
+```
+
+```swarmauri/core/chains/IChainDependencyResolver.py
+
+from abc import ABC, abstractmethod
+from typing import Tuple, Dict, List
+
+class IChainDependencyResolver(ABC):
+    @abstractmethod
+    def build_dependencies(self) -> List[ChainStep]:
+        """
+        Builds the dependencies for a particular sequence in the matrix.
+
+        Args:
+            matrix (List[List[str]]): The prompt matrix.
+            sequence_index (int): The index of the sequence to build dependencies for.
+
+        Returns:
+            Tuple containing indegrees and graph dicts.
+        """
+        pass
+
+    @abstractmethod
+    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+        """
+        Resolves the execution order based on the provided dependencies.
+
+        Args:
+            indegrees (Dict[int, int]): The indegrees of each node.
+            graph (Dict[int, List[int]]): The graph representing dependencies.
+
+        Returns:
+            List[int]: The resolved execution order.
+        """
+        pass
+
+```
+
+```swarmauri/core/chains/IChainContext.py
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+
+class IChainContext(ABC):
+    @property
+    @abstractmethod
+    def context(self) -> Dict[str, Any]:
+        pass
+
+    @context.setter
+    @abstractmethod
+    def context(self, value: Dict[str, Any]) -> None:
+        pass
+
+```
+
 ```swarmauri/core/distances/__init__.py
 
 
@@ -3757,6 +3889,17 @@ from swarmauri.standard.models.base.ModelBase import ModelBase
 
 
 class OpenAIModel(ModelBase, IPredict):
+    allowed_models = ['gpt-4o', 
+    'gpt-4-turbo', 
+    'gpt-4-0125-preview',
+    'gpt-4',
+    'gpt-4-0613',
+    'gpt-4-32k',
+    'gpt-4-32k-0613',
+    'gpt-3.5-turbo-0125',
+    'gpt-3.5-turbo-16k',
+    'gpt-3.5-turbo']
+
     def __init__(self, api_key: str, model_name: str):
         """
         Initialize the OpenAI model with an API key.
@@ -3764,6 +3907,9 @@ class OpenAIModel(ModelBase, IPredict):
         Parameters:
         - api_key (str): Your OpenAI API key.
         """
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
         self.client = OpenAI(api_key=api_key)
         super().__init__(model_name)
         
@@ -3781,8 +3927,6 @@ class OpenAIModel(ModelBase, IPredict):
         Returns:
         - The generated message content.
         """
-        if self.client is None:
-            raise Exception("OpenAI client is not initialized. Call 'load_model' first.")
         
         if enable_json:
             response = self.client.chat.completions.create(
@@ -3855,8 +3999,6 @@ class AzureGPT(ModelBase, IPredict):
         Returns:
         - The generated message content.
         """
-        if self.client is None:
-            raise Exception("OpenAI client is not initialized. Call 'load_model' first.")
         
         if enable_json:
             response = self.client.chat.completions.create(
@@ -3983,10 +4125,12 @@ class GroqModel(ModelBase, IPredict):
         super().__init__(model_name)
         
     
-    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
-        if self.client is None:
-            raise Exception("GroqModel client is not initialized. Call 'load_model' first.")
-        
+    def predict(self, messages, 
+        temperature=0.7, 
+        max_tokens=256, 
+        top_p=1, 
+        enable_json=False, 
+        stop: List[str] = None):
         if enable_json:
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -3994,7 +4138,7 @@ class GroqModel(ModelBase, IPredict):
                 temperature=temperature,
                 response_format={ "type": "json_object" },
                 max_tokens=max_tokens,
-                top_p=1,
+                top_p=top_p,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=stop
@@ -4005,7 +4149,7 @@ class GroqModel(ModelBase, IPredict):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                top_p=1,
+                top_p=top_p,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=stop
@@ -4082,8 +4226,6 @@ class MistralModel(ModelBase, IPredict):
         top_p: int = 1,
         enable_json: bool=False, 
         safe_prompt: bool=False):
-        if self.client is None:
-            raise Exception("GroqAIModel client is not initialized. Call 'load_model' first.")
         
         if enable_json:
             response = self.client.chat(
@@ -4174,9 +4316,6 @@ class CohereModel(ModelBase, IPredict):
         
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
-        if self.client is None:
-            raise Exception("CohereModel client is not initialized. Call 'load_model' first.")
-            
         response = self.client.chat(
             model=self.model_name,
             messages=messages,
@@ -4189,6 +4328,178 @@ class CohereModel(ModelBase, IPredict):
         result = json.loads(response.json())
         message_content = result['choices'][0]['message']['content']
         
+        return message_content
+
+```
+
+```swarmauri/standard/models/concrete/GeminiProModel.py
+
+import json
+from typing import List
+import google.generativeai as genai
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.standard.models.base.ModelBase import ModelBase
+
+
+class GeminiProModel(ModelBase, IPredict):
+    allowed_models = ['gemini-1.5-pro-latest']
+
+    def __init__(self, api_key: str, model_name: str = 'gemini-1.5-pro-latest'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        genai.configure(api_key=api_key)
+        self.safety_settings = [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+        ]
+        self.safety_settings = [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+        ]
+        self.client = None
+        super().__init__(model_name)
+        
+    
+    def predict(self, messages, temperature=0.7, max_tokens=256):
+        generation_config = {
+            "temperature": temperature,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": max_tokens,
+            }
+
+        system_context = None
+        for message in messages:
+
+            # update role naming
+            role = message.pop('role')
+            if role == 'assistant':
+                role = 'model'
+
+            if role == 'system':
+                system_context = message['content']
+
+            # rename role
+            message['role'] = role
+
+            # update content naming
+            message['parts'] = message.pop('content')
+
+        
+        # Remove system instruction from messages
+        sanitized_messages = [message for message in messages if message['role'] != 'system'] 
+
+        # if we remove more than one system message from the array
+        # then we know we were given too many system messages
+        # we raise an error in this scenario.
+        # Examples:
+        # 10 - 1 = 9 so if 9 + 1 < 10  then negative is good
+        # 10 - 2 = 8, so if 8 + 1 < 10 then positive is bad
+        if len(sanitized_messages) + 1 > len(messages):
+            raise ValueError('cannot send an array of conversations containing more than one system instruction.')
+
+
+        next_message = sanitized_messages.pop()
+
+        self.client = genai.GenerativeModel(model_name=self.model_name,
+            safety_settings=self.safety_settings,
+            generation_config=generation_config)
+
+        convo = self.client.start_chat(
+            history=sanitized_messages,
+            )
+
+        convo.send_message(next_message['parts'])
+
+        message_content = convo.last.text
+        
+        return message_content
+
+
+```
+
+```swarmauri/standard/models/concrete/AnthropicModel.py
+
+import json
+from typing import List
+import anthropic
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.standard.models.base.ModelBase import ModelBase
+
+
+class AnthropicModel(ModelBase, IPredict):
+    allowed_models = ['claude-3-opus-20240229', 
+    'claude-3-sonnet-20240229', 
+    'claude-3-haiku-20240307',
+    'claude-2.1',
+    'claude-2.0',
+    'claude-instant-1.2']
+
+    def __init__(self, api_key: str, model_name: str = 'claude-3-haiku-20240307'):
+        if model_name not in self.allowed_models:
+            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
+        
+        self.client = anthropic.Anthropic(api_key=api_key)
+        super().__init__(model_name)
+        
+    
+    def predict(self, messages, temperature=0.7, max_tokens=256):
+
+
+
+        # Get system_context
+        system_context = None
+        for message in messages:
+            if message['role'] == 'system':
+                system_context = message['content']
+
+        # Remove system instruction from messages
+        sanitized_messages = [message for message in messages if message['role'] != 'system'] 
+
+        # we should only remove one message for system instruction
+        if len(sanitized_messages) + 1 > len(messages):
+            raise ValueError('cannot send an array of conversations containing more than one system instruction.')
+
+        # Chat
+        response = self.client.messages.create(
+            model=self.model_name,
+            messages=sanitized_messages,
+            system=system_context,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        
+        
+        message_content = response.content[0].text
         return message_content
 
 ```
@@ -4209,19 +4520,14 @@ class CohereModel(ModelBase, IPredict):
 
 ```swarmauri/standard/agents/base/NamedAgentBase.py
 
-from typing import Any, Optional
 from abc import ABC
 from swarmauri.core.agents.IAgentName import IAgentName
 
 
-class NamedAgentBase(IAgentName,ABC):
-    
+class NamedAgentBase(IAgentName, ABC):
     def __init__(self, name: str):
         self._name = name
 
-    def exec(self, input_str: Optional[Any]) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
-    
     @property
     def name(self) -> str:
         return self._name
@@ -4234,24 +4540,14 @@ class NamedAgentBase(IAgentName,ABC):
 
 ```swarmauri/standard/agents/base/ConversationAgentBase.py
 
-from typing import Any, Optional
 from abc import ABC
 
 from swarmauri.core.agents.IAgentConversation import IAgentConversation
-from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 
-from swarmauri.standard.agents.base.AgentBase import AgentBase
-
-class ConversationAgentBase(AgentBase, IAgentConversation, ABC):
-    def __init__(self, model: IModel, conversation: IConversation):
-        AgentBase.__init__(self, model)
+class ConversationAgentBase(IAgentConversation, ABC):
+    def __init__(self, conversation: IConversation):
         self._conversation = conversation
-
-    
-    def exec(self, input_str: Optional[Any]) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
-      
 
     @property
     def conversation(self) -> IConversation:
@@ -4268,26 +4564,15 @@ class ConversationAgentBase(AgentBase, IAgentConversation, ABC):
 ```swarmauri/standard/agents/base/ToolAgentBase.py
 
 from abc import ABC
-from typing import Any, Optional
-from swarmauri.core.agents.IAgentConversation import IAgentConversation
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.conversations.IConversation import IConversation
+from swarmauri.core.agents.IAgentToolkit import IAgentToolkit
 from swarmauri.core.toolkits.IToolkit import IToolkit
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 
 
-class ToolAgentBase(ConversationAgentBase, IAgentConversation, ABC):
+class ToolAgentBase(IAgentToolkit, ABC):
     
-    def __init__(self, 
-                 model: IModel, 
-                 conversation: IConversation,
-                 toolkit: IToolkit):
-        ConversationAgentBase.__init__(self, model, conversation)
+    def __init__(self, toolkit: IToolkit):
         self._toolkit = toolkit
 
-    def exec(self, input_str: Optional[Any]) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
-    
     @property
     def toolkit(self) -> IToolkit:
         return self._toolkit
@@ -4312,9 +4597,6 @@ class AgentBase(IAgent, ABC):
     def __init__(self, model: IModel):
         self._model = model
 
-    def exec(self, input_str: Optional[Any]) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
-    
     @property
     def model(self) -> IModel:
         return self._model
@@ -4323,6 +4605,8 @@ class AgentBase(IAgent, ABC):
     def model(self, value) -> None:
         self._model = value        
 
+    def exec(self, input_str: Optional[Any]) -> Any:
+        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
     
     def __getattr__(self, name):
         # Example of transforming attribute name from simplified to internal naming convention
@@ -4351,60 +4635,100 @@ class AgentBase(IAgent, ABC):
 
 ```swarmauri/standard/agents/base/VectorStoreAgentBase.py
 
-from typing import Any, Optional
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.conversations.IConversation import IConversation
 from swarmauri.core.agents.IAgentVectorStore import IAgentVectorStore
 from swarmauri.core.vector_stores.IVectorStore import IVectorStore
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 
 
-class VectorStoreAgentBase(ConversationAgentBase, NamedAgentBase, IAgentVectorStore):
-    """
-    Base class for agents that handle and store documents within their processing scope.
-    Extends ConversationAgentBase and NamedAgentBase to utilize conversational context,
-    naming capabilities, and implements IAgentDocumentStore for document storage.
-    """
-
-    def __init__(self, name: str, model: IModel, conversation: IConversation, vector_store: IVectorStore):
-        NamedAgentBase.__init__(self, name=name)  # Initialize name through NamedAgentBase
-        ConversationAgentBase.__init__(self, model, conversation)  # Initialize conversation and model
-        self._vector_store = vector_store  # Document store initialization
+class VectorStoreAgentBase(IAgentVectorStore):
+    def __init__(self, vector_store: IVectorStore):
+        self._vector_store = vector_store  # vector store initialization
 
     @property
-    def vector_store(self) -> Optional[IDocument]:
+    def vector_store(self) -> IVectorStore:
         """
-        Gets the document store associated with this agent.
+        Gets the vector store associated with this agent.
         
         Returns:
-            Optional[IDocument]: The document store of the agent, if any.
+            IVectorStore: The new vector store to be associated with the agent.
         """
         return self._vector_store
 
     @vector_store.setter
-    def vector_store(self, value: IDocument) -> None:
+    def vector_store(self, value: IVectorStore) -> None:
         """
-        Sets the document store for this agent.
+        Sets the vector store for this agent.
 
         Args:
-            value (IDocument): The new document store to be associated with the agent.
+            value (IVectorStore): The new vector store to be associated with the agent.
         """
         self._vector_store = value
     
-    def exec(self, input_data: Optional[Any]) -> Any:
-        """
-        Placeholder method to demonstrate expected behavior of derived classes.
-        Subclasses should implement their specific logic for processing input data and optionally interacting with the document store.
 
-        Args:
-            input_data (Optional[Any]): Input data to process, can be of any format that the agent is designed to handle.
 
-        Returns:
-            Any: The result of processing the input data.
-        """
-        raise NotImplementedError("Subclasses must implement the exec method.")
+```
+
+```swarmauri/standard/agents/base/AgentRetrieveBase.py
+
+from abc import ABC
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.core.agents.IAgentRetrieve import IAgentRetrieve
+
+class AgentRetrieveBase(IAgentRetrieve, ABC):
+
+    def __init__(self):
+        self._last_retrieved = []
+        
+    @property
+    def last_retrieved(self) -> List[IDocument]:
+        return self._last_retrieved
+
+    @last_retrieved.setter
+    def last_retrieved(self, value: List[IDocument]) -> None:
+        self._last_retrieved = value
+
+```
+
+```swarmauri/standard/agents/base/README.md
+
+# Agent Bases
+
+## Mandatory
+- AgentBase is required for an Agent to socially contract
+
+## Mixin Bases
+- AgentRetrieveBase
+- ConversationAgentBase
+- NamedAgentBase
+- ToolAgentBase
+- VectorStoreAgentBase
+
+```
+
+```swarmauri/standard/agents/base/SystemContextAgentBase.py
+
+from typing import Union
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.core.agents.IAgentSystemContext import IAgentSystemContext
+
+
+class SystemContextAgentBase(IAgentSystemContext):
+    def __init__(self, system_context: Union[SystemMessage, str]):
+        if isinstance(system_context, SystemMessage):
+            self._system_context
+        else:    
+            self._system_context = SystemMessage(system_context)
+
+    @property
+    def system_context(self) -> SystemMessage:
+        return self._system_context
+
+    @system_context.setter
+    def system_context(self, value: Union[SystemMessage, str]) -> None:
+        if isinstance(value, SystemMessage):
+            self._system_context
+        else:    
+            self._system_context = SystemMessage(value)
 
 ```
 
@@ -4424,16 +4748,20 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 from swarmauri.core.conversations.IConversation import IConversation
 from swarmauri.core.messages import IMessage
 
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class ToolAgent(ToolAgentBase):
+class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
     def __init__(self, 
                  model: IModel, 
                  conversation: IConversation, 
                  toolkit: IToolkit):
-        super().__init__(model, conversation, toolkit)
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        ToolAgentBase.__init__(self, toolkit=toolkit)
 
     def exec(self, input_data: Union[str, IMessage],  model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -4510,12 +4838,16 @@ from typing import Any, Optional, Union, Dict
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.messages import IMessage
 from swarmauri.core.conversations import IConversation
+from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage
 
-class ChatSwarmAgent(ConversationAgentBase):
-    def __init__(self, model: IModel, conversation: IConversation):
-        super().__init__(model, conversation)
+class ChatSwarmAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
+    def __init__(self, name: str, model: IModel, conversation: IConversation):
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, input_data: Union[str, IMessage], model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -4546,45 +4878,28 @@ class ChatSwarmAgent(ConversationAgentBase):
 
 ```
 
-```swarmauri/standard/agents/concrete/SingleCommandAgent.py
+```swarmauri/standard/agents/concrete/SimpleConversationAgent.py
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
-
-class SingleCommandAgent(AgentBase):
-    def __init__(self, model: IModel, 
-                 conversation: IConversation):
-        super().__init__(model, conversation)
-
-    def exec(self, input_str: Optional[str] = None) -> Any:
-        model = self.model
-        prediction = model.predict(input_str)
-        
-        return prediction
-
-```
-
-```swarmauri/standard/agents/concrete/SimpleSwarmAgent.py
-
-from typing import Any, Optional
-
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.conversations.IConversation import IConversation
-
-
-from swarmauri.standard.agents.base.SwarmAgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage
 
-class SimpleSwarmAgent(AgentBase):
-    def __init__(self, model: IModel, 
-                 conversation: IConversation):
-        super().__init__(model, conversation)
+class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
+    def __init__(self, model: IModel, conversation: IConversation, name: str):
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=str)
 
-    def exec(self, input_str: Optional[str] = None) -> Any:
+    def exec(self, 
+        input_str: Optional[str] = None,
+        model_kwargs: Optional[Dict] = {}
+        ) -> Any:
         conversation = self.conversation
         model = self.model
 
@@ -4594,7 +4909,7 @@ class SimpleSwarmAgent(AgentBase):
             conversation.add_message(human_message)
         
         messages = conversation.as_messages()
-        prediction = model.predict(messages=messages)
+        prediction = model.predict(messages=messages, **model_kwargs)
         return prediction
 
 ```
@@ -4603,21 +4918,23 @@ class SimpleSwarmAgent(AgentBase):
 
 from typing import Any, Optional, Union, Dict
 
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.messages import IMessage
 
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.conversations.concrete.SharedConversation import SharedConversation
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage
 
-class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
-    def __init__(self, 
-                 model: IModel, 
-                 conversation: SharedConversation,
-                 name: str):
-        ConversationAgentBase.__init__(self, model, conversation)
-        NamedAgentBase.__init__(self, name)
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
+
+from swarmauri.core.models.IModel import IModel
+from swarmauri.core.messages import IMessage
+
+
+class MultiPartyChatSwarmAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
+    def __init__(self, name: str, model: IModel, conversation: SharedConversation):
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, input_data: Union[str, IMessage] = "", model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -4632,7 +4949,7 @@ class MultiPartyChatSwarmAgent(ConversationAgentBase, NamedAgentBase):
             raise TypeError("Input data must be a string or an instance of Message.")
 
         if input_data != "":
-            # Add the human message to the conversation
+            # we add the sender's name as the id so we can keep track of who said what in the conversation
             conversation.add_message(human_message, sender_id=self.name)
         
         # Retrieve the conversation history and predict a response
@@ -4659,22 +4976,27 @@ import json
 
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.toolkits.IToolkit import IToolkit
-from swarmauri.core.conversations.IConversation import IConversation
+from swarmauri.standard.conversations.concrete.SharedConversation import SharedConversation
 from swarmauri.core.messages import IMessage
 
 from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
 from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
+class MultiPartyToolAgent(AgentBase, ConversationAgentBase, NamedAgentBase, ToolAgentBase):
     def __init__(self, 
                  model: IModel, 
-                 conversation: IConversation, 
+                 conversation: SharedConversation, 
                  toolkit: IToolkit,
                  name: str):
-        ToolAgentBase.__init__(self, model, conversation, toolkit)
-        NamedAgentBase.__init__(self, name)
+        AgentBase.__init__(self, model=model)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=name)
+        ToolAgentBase.__init__(self, toolkit=toolkit)
+        
 
     def exec(self, input_data: Union[str, IMessage], model_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
@@ -4691,8 +5013,8 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
             raise TypeError("Input data must be a string or an instance of Message.")
 
         if input_data != "":
-            # Add the human message to the conversation
-            conversation.add_message(human_message, sender_id=self.name)
+            # we add the sender's name as the id so we can keep track of who said what in the conversation
+            conversation.add_message(human_message, sender_id=self.name) 
             
         
         # Retrieve the conversation history and predict a response
@@ -4754,156 +5076,142 @@ class MultiPartyToolAgent(ToolAgentBase, NamedAgentBase):
 from typing import Any, Optional, Union, Dict
 from swarmauri.core.messages import IMessage
 from swarmauri.core.models.IModel import IModel
+
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.agents.base.AgentBase import AgentBase
+from swarmauri.standard.agents.base.AgentRetrieveBase import AgentRetrieveBase
+from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
+from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
 from swarmauri.standard.agents.base.VectorStoreAgentBase import VectorStoreAgentBase
+from swarmauri.standard.agents.base.SystemContextAgentBase import SystemContextAgentBase
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-class RagAgent(VectorStoreAgentBase):
+
+class RagAgent(AgentBase, 
+    AgentRetrieveBase,
+    ConversationAgentBase, 
+    NamedAgentBase, 
+    SystemContextAgentBase, 
+    VectorStoreAgentBase):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, vector_store: VectorDocumentStoreRetrieveBase):
-        self.last_similar_documents = []
-        super().__init__(name=name, model=model, conversation=conversation, vector_store=vector_store)
+    def __init__(self, name: str, 
+            system_context: Union[SystemMessage, str], 
+            model: IModel, 
+            conversation: SystemContextBase, 
+            vector_store: VectorDocumentStoreRetrieveBase):
+        AgentBase.__init__(self, model=model)
+        AgentRetrieveBase.__init__(self)
+        ConversationAgentBase.__init__(self, conversation=conversation)
+        NamedAgentBase.__init__(self, name=name)
+        SystemContextAgentBase.__init__(self, system_context=system_context)
+        VectorStoreAgentBase.__init__(self, vector_store=vector_store)
+
+    def _create_preamble_context(self):
+        substr = self.system_context.content
+        substr += '\n\n'
+        substr += '\n'.join([doc.content for doc in self.last_retrieved])
+        return substr
+
+    def _create_post_context(self):
+        substr = '\n'.join([doc.content for doc in self.last_retrieved])
+        substr += '\n\n'
+        substr += self.system_context.content
+        return substr
 
     def exec(self, 
              input_data: Union[str, IMessage], 
              top_k: int = 5, 
+             preamble: bool = True,
+             fixed: bool = False,
              model_kwargs: Optional[Dict] = {}
              ) -> Any:
-        conversation = self.conversation
-        model = self.model
+        try:
+            conversation = self.conversation
+            model = self.model
 
-        # Check if the input is a string, then wrap it in a HumanMessage
-        if isinstance(input_data, str):
-            human_message = HumanMessage(input_data)
-        elif isinstance(input_data, IMessage):
-            human_message = input_data
-        else:
-            raise TypeError("Input data must be a string or an instance of Message.")
-        
-        # Add the human message to the conversation
-        conversation.add_message(human_message)
-        
-        
-        if top_k > 0:
-            similar_documents = self.vector_store.retrieve(query=input_data, top_k=top_k)
-            substr = '\n'.join([doc.content for doc in similar_documents])
-            self.last_similar_documents = similar_documents
-        else:
-            substr = ""
-            self.last_similar_documents = []
-
-        
-        # Use substr to set system context
-        system_context = SystemMessage(substr)
-        conversation.system_context = system_context
-        
-
-        # Retrieve the conversation history and predict a response
-        messages = conversation.as_messages()
-        if model_kwargs:
-            prediction = model.predict(messages=messages, **model_kwargs)
-        else:
-            prediction = model.predict(messages=messages)
+            # Check if the input is a string, then wrap it in a HumanMessage
+            if isinstance(input_data, str):
+                human_message = HumanMessage(input_data)
+            elif isinstance(input_data, IMessage):
+                human_message = input_data
+            else:
+                raise TypeError("Input data must be a string or an instance of Message.")
             
-        # Create an AgentMessage instance with the model's response and update the conversation
-        agent_message = AgentMessage(prediction)
-        conversation.add_message(agent_message)
-        
-        return prediction
-    
-    
-    
+            # Add the human message to the conversation
+            conversation.add_message(human_message)
+
+            # Retrieval and set new substr for system context
+            if top_k > 0:
+                self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
+
+                if preamble:
+                    substr = self._create_preamble_context()
+                else:
+                    substr = self._create_post_context()
+
+            else:
+                if fixed:
+                    if preamble:
+                        substr = self._create_preamble_context()
+                    else:
+                        substr = self._create_post_context()
+                else:
+                    substr = self.system_context.content
+                    self.last_retrieved = []
+                
+                
+
+            
+            # Use substr to set system context
+            system_context = SystemMessage(substr)
+            conversation.system_context = system_context
+            
+
+            # Retrieve the conversation history and predict a response
+            messages = conversation.as_messages()
+            if model_kwargs:
+                prediction = model.predict(messages=messages, **model_kwargs)
+            else:
+                prediction = model.predict(messages=messages)
+                
+            # Create an AgentMessage instance with the model's response and update the conversation
+            agent_message = AgentMessage(prediction)
+            conversation.add_message(agent_message)
+            
+            return prediction
+        except Exception as e:
+            print(f"RagAgent error: {e}")
+            raise e
 
 
 ```
 
-```swarmauri/standard/agents/concrete/GenerativeRagAgent.py
+```swarmauri/standard/agents/concrete/QAAgent.py
 
-from typing import Any, Optional, Union, Dict
-from swarmauri.core.messages import IMessage
+from typing import Any, Optional
+
 from swarmauri.core.models.IModel import IModel
-from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.agents.base.DocumentAgentBase import DocumentAgentBase
-from swarmauri.standard.document_stores.base.DocumentStoreRetrieveBase import DocumentStoreRetrieveBase
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.chunkers.concrete.MdSnippetChunker import MdSnippetChunker
-from swarmauri.standard.messages.concrete import (HumanMessage, 
-                                                  SystemMessage,
-                                                  AgentMessage)
+from swarmauri.core.conversations.IConversation import IConversation
 
-class GenerativeRagAgent(DocumentAgentBase):
-    """
-    RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
-    specialized in retrieving documents based on input queries and generating responses.
-    """
+from swarmauri.standard.agents.base.AgentBase import AgentBase
 
-    def __init__(self, name: str, model: IModel, conversation: SystemContextBase, document_store: DocumentStoreRetrieveBase):
-        super().__init__(name=name, model=model, conversation=conversation, document_store=document_store)
+class QAAgent(AgentBase):
+    def __init__(self, model: IModel):
+        AgentBase.__init__(self, model=model)
 
-    def exec(self, 
-             input_data: Union[str, IMessage], 
-             top_k: int = 5, 
-             model_kwargs: Optional[Dict] = {}
-             ) -> Any:
-        conversation = self.conversation
+    def exec(self, input_str: Optional[str] = None) -> Any:
         model = self.model
-
-        # Check if the input is a string, then wrap it in a HumanMessage
-        if isinstance(input_data, str):
-            human_message = HumanMessage(input_data)
-        elif isinstance(input_data, IMessage):
-            human_message = input_data
-        else:
-            raise TypeError("Input data must be a string or an instance of Message.")
-        
-        # Add the human message to the conversation
-        conversation.add_message(human_message)
-        
-        
-        
-        similar_documents = self.document_store.retrieve(query=input_data, top_k=top_k)
-        substr = '\n'.join([doc.content for doc in similar_documents])
-        
-        # Use substr to set system context
-        system_context = SystemMessage(substr)
-        conversation.system_context = system_context
-        
-
-        # Retrieve the conversation history and predict a response
-        messages = conversation.as_messages()
-        if model_kwargs:
-            prediction = model.predict(messages=messages, **model_kwargs)
-        else:
-            prediction = model.predict(messages=messages)
-            
-        # Create an AgentMessage instance with the model's response and update the conversation
-        agent_message = AgentMessage(prediction)
-        conversation.add_message(agent_message)
-        
-        chunker = MdSnippetChunker()
-        
-        new_documents = [Document(doc_id=self.document_store.document_count()+1,
-                                     content=each[2], 
-                                     metadata={"source": "RagSaverAgent", 
-                                               "language": each[1],
-                                               "comments": each[0]})
-                     for each in chunker.chunk_text(prediction)]
-
-        self.document_store.add_documents(new_documents)
+        prediction = model.predict(input_str)
         
         return prediction
-    
-    
-    
-
 
 ```
 
@@ -4985,6 +5293,170 @@ def get_class_hash(cls):
     # Return the hexadecimal digest of the hash
     return hash_obj.hexdigest()
 
+
+```
+
+```swarmauri/standard/utils/sql_log.py
+
+import sqlite3
+from datetime import datetime
+import asyncio
+
+
+def sql_log(self, db_path: str, conversation_id, model_name, prompt, response, start_datetime, end_datetime):
+    try:
+        duration = (end_datetime - start_datetime).total_seconds()
+        start_datetime = start_datetime.isoformat()
+        end_datetime = end_datetime.isoformat()
+        conversation_id = conversation_id
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS conversations
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                        conversation_id TEXT, 
+                        model_name TEXT, 
+                        prompt TEXT, 
+                        response TEXT, 
+                        start_datetime TEXT, 
+                        end_datetime TEXT,
+                        duration NUMERIC)''')
+        cursor.execute('''INSERT INTO conversations (
+                        conversation_id, 
+                        model_name, 
+                        prompt, 
+                        response, 
+                        start_datetime, 
+                        end_datetime,
+                        duration) VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                       (conversation_id, 
+                        model_name, 
+                        prompt, 
+                        response, 
+                        start_datetime, 
+                        end_datetime, 
+                        duration))
+        conn.commit()
+        conn.close()
+    except:
+        raise
+
+
+
+def sql_log_decorator(func):
+    async def wrapper(self, *args, **kwargs):
+        start_datetime = datetime.now()
+        try:
+            # Execute the function
+            result = await func(self, *args, **kwargs)
+        except Exception as e:
+            # Handle errors within the decorated function
+            self.agent.conversation._history.pop(0)
+            print(f"chatbot_function error: {e}")
+            return "", [], kwargs['history']  
+
+        end_datetime = datetime.now()
+        
+        # SQL logging
+        # Unpacking the history and other required parameters from kwargs if they were used
+        history = kwargs.get('history', [])
+        message = kwargs.get('message', '')
+        response = result[1]  # Assuming the response is the second item in the returned tuple
+        model_name = kwargs.get('model_name', '')
+        conversation_id = str(self.agent.conversation.id)
+        sql_log(conversation_id, model_name, message, response, start_datetime, end_datetime)
+        return result
+    return wrapper
+
+
+class SqlLogMeta(type):
+    def __new__(cls, name, bases, dct):
+        for key, value in dct.items():
+            if callable(value) and not key.startswith('__'):
+                dct[key] = sql_log(value)
+        return super().__new__(cls, name, bases, dct)
+
+```
+
+```swarmauri/standard/utils/memoize.py
+
+def memoize(func):
+    cache = {}
+    def memoized_func(*args):
+        if args in cache:
+            return cache[args]
+        result = func(*args)
+        cache[args] = result
+        return result
+    return memoized_func
+    
+class MemoizingMeta(type):
+    def __new__(cls, name, bases, dct):
+        for key, value in dct.items():
+            if callable(value) and not key.startswith('__'):
+                dct[key] = memoize(value)
+        return super().__new__(cls, name, bases, dct)
+
+
+```
+
+```swarmauri/standard/utils/apply_metaclass.py
+
+def apply_metaclass_to_cls(cls, metaclass):
+    # Create a new class using the metaclass, with the same name, bases, and attributes as the original class
+    new_class = metaclass(cls.__name__, cls.__bases__, dict(cls.__dict__))
+    return new_class
+
+
+```
+
+```swarmauri/standard/utils/decorate.py
+
+def decorate_cls(cls, decorator_fn):
+    import types
+    for attr_name in dir(cls):
+        attr = getattr(cls, attr_name)
+        if isinstance(attr, types.FunctionType):
+            setattr(cls, attr_name, decorator_fn(attr))
+    return cls
+
+def decorate_instance(instance, decorator_fn):
+    import types
+    for attr_name in dir(instance):
+        attr = getattr(instance, attr_name)
+        if isinstance(attr, types.MethodType):
+            setattr(instance, attr_name, decorator_fn(attr.__func__).__get__(instance))
+
+def decorate_instance_method(instance, method_name, decorator_fn):
+    # Get the method from the instance
+    original_method = getattr(instance, method_name)
+    
+    # Decorate the method
+    decorated_method = decorator_fn(original_method)
+    
+    # Rebind the decorated method to the instance
+    setattr(instance, method_name, decorated_method.__get__(instance, instance.__class__))
+
+```
+
+```swarmauri/standard/utils/json_validator.py
+
+# swarmauri/standard/utils/json_validator.py
+import json
+import jsonschema
+from jsonschema import validate
+
+def load_json_file(file_path: str) -> dict:
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
+def validate_json(data: dict, schema_file: str) -> bool:
+    schema = load_json_file(schema_file)
+    try:
+        validate(instance=data, schema=schema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(f"JSON validation error: {err.message}")
+        return False
+    return True
 
 ```
 
@@ -5541,7 +6013,7 @@ from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 class SessionCacheConversation(SystemContextBase, IMaxSize):
@@ -5598,16 +6070,43 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
 
     @property
     def history(self) -> List[IMessage]:
-        res = [] 
+        """
+        Get the conversation history, ensuring it starts with a 'user' message and alternates correctly between 'user' and 'assistant' roles.
+        """
+        res = []  # Start with an empty list to build the proper history
+
+        # Attempt to find the first 'user' message in the history.
+        user_start_index = -1
+        for index, message in enumerate(self._history):
+            if isinstance(message, HumanMessage):  # Identify user message
+                user_start_index = index
+                break
+
+        # If no 'user' message is found, just return the system context.
+        if user_start_index == -1:
+            return [self.system_context]
+
+        # Build history from the first 'user' message ensuring alternating roles.
         res.append(self.system_context)
-        res.extend(self._history[-self._max_size:])
+        alternating = True
+        for message in self._history[user_start_index:user_start_index + 2 * self._max_size]:
+            if alternating and isinstance(message, HumanMessage) or not alternating and isinstance(message, AgentMessage):
+                res.append(message)
+                alternating = not alternating
+            elif not alternating and isinstance(message, HumanMessage):
+                # If we find two 'user' messages in a row when expecting an 'assistant' message, we skip this 'user' message.
+                continue
+            else:
+                # If there is no valid alternate message to append, break the loop
+                break
+
         return res
 
     def session_to_dict(self) -> List[dict]:
         """
         Converts session messages to a list of dictionaries.
         """
-        return [message.to_dict() for message in self.session]
+        return [message.as_dict() for message in self.session]
 
     @property
     def session(self) -> List[IMessage]:
@@ -6727,6 +7226,52 @@ class BERTEmbeddingParser(IParser):
 
 ```
 
+```swarmauri/standard/prompts/base/BasePromptMatrix.py
+
+# swarmauri/standard/prompts/base/BasePromptMatrix.py
+from typing import List, Tuple, Optional, Any
+from core.prompts.IPromptMatrix import IPromptMatrix
+
+class BasePromptMatrix(IPromptMatrix):
+    def __init__(self):
+        self._matrix = []
+
+    @property
+    def matrix(self) -> List[List[Optional[str]]]:
+        return self._matrix
+
+    @matrix.setter
+    def matrix(self, value: List[List[Optional[str]]]) -> None:
+        self._matrix = value
+
+    def get_shape(self) -> Tuple[int, int]:
+        if self._matrix:
+            return len(self._matrix), len(self._matrix[0])
+        return 0, 0
+
+    def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
+        if not self._matrix or (self._matrix and len(sequence) == len(self._matrix[0])):
+            self._matrix.append(sequence)
+        else:
+            raise ValueError("Sequence length does not match the prompt matrix dimensions.")
+
+    def remove_prompt_sequence(self, index: int) -> None:
+        if 0 <= index < len(self._matrix):
+            self._matrix.pop(index)
+        else:
+            raise IndexError("Index out of range.")
+
+    def get_prompt_sequence(self, index: int) -> List[Optional[str]]:
+        if 0 <= index < len(self._matrix):
+            return self._matrix[index]
+        else:
+            raise IndexError("Index out of range.")
+
+    def show_matrix(self) -> List[List[Optional[str]]]:
+        return self._matrix
+
+```
+
 ```swarmauri/standard/prompts/concrete/__init__.py
 
 
@@ -6903,6 +7448,17 @@ class PromptGenerator(IPrompt, ITemplate):
         for variables_set in self._variables_list:
             yield self.generate_prompt(**variables_set)
         self._variables_list = []  # Reset the list after all prompts have been generated.
+
+```
+
+```swarmauri/standard/prompts/concrete/PromptMatrix.py
+
+# swarmauri/standard/prompts/concrete/PromptMatrix.py
+from standard.prompts.base.BasePromptMatrix import BasePromptMatrix
+
+class PromptMatrix(BasePromptMatrix):
+    # If any additional methods or overrides are needed, they can be added here.
+    pass
 
 ```
 
@@ -7312,7 +7868,7 @@ class WeatherTool(ToolBase):
 
 from typing import Optional, List, Any
 import json
-from ....core.tools.IParameter import IParameter
+from swarmauri.core.tools.IParameter import IParameter
 
 class Parameter(IParameter):
     """
@@ -7453,6 +8009,223 @@ class AdditionTool(ToolBase):
         - int: The sum of x and y.
         """
         return x + y
+
+```
+
+```swarmauri/standard/tools/concrete/CodeInterpreterTool.py
+
+import sys
+import io
+from swarmauri.standard.tools.base.ToolBase import ToolBase  # Adjust the import path as necessary
+from swarmauri.standard.tools.concrete.Parameter import Parameter  # Assuming a parameter structure is used
+
+class CodeInterpreterTool(ToolBase):
+    def __init__(self):
+        # Example of initializing the tool with parameters if necessary
+        parameters = [
+            Parameter(
+                name="user_code",
+                type="string",
+                description=("Executes the provided Python code snippet in a secure sandbox environment. "
+                             "This tool is designed to interpret the execution of the python code snippet."
+                             "Returns the output"),
+                required=True
+            )
+        ]
+        super().__init__(name="CodeInterpreterTool", 
+                         description="Executes provided Python code and captures its output.",
+                         parameters=parameters)
+
+    def __call__(self, user_code: str) -> str:
+        """
+        Executes the provided user code and captures its stdout output.
+        
+        Parameters:
+            user_code (str): Python code to be executed.
+        
+        Returns:
+            str: Captured output or error message from the executed code.
+        """
+        return self.execute_code(user_code)
+    
+    def execute_code(self, user_code: str) -> str:
+        """
+        Executes the provided user code and captures its stdout output.
+
+        Args:
+            user_code (str): Python code to be executed.
+
+        Returns:
+            str: Captured output or error message from the executed code.
+        """
+        old_stdout = sys.stdout
+        redirected_output = sys.stdout = io.StringIO()
+
+        try:
+            # Note: Consider security implications of using 'exec'
+            builtins = globals().copy()
+            exec(user_code, builtins)
+            sys.stdout = old_stdout
+            captured_output = redirected_output.getvalue()
+            return str(captured_output)
+        except Exception as e:
+            sys.stdout = old_stdout
+            return f"An error occurred: {str(e)}"
+
+```
+
+```swarmauri/standard/tools/concrete/CalculatorTool.py
+
+from swarmauri.standard.tools.base.ToolBase import ToolBase  # Adjust the import path as necessary
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
+class CalculatorTool(ToolBase):
+    def __init__(self):
+        parameters = [
+            Parameter(
+                name="operation",
+                type="string",
+                description="The arithmetic operation to perform ('add', 'subtract', 'multiply', 'divide').",
+                required=True,
+                enum=["add", "subtract", "multiply", "divide"]
+            ),
+            Parameter(
+                name="x",
+                type="number",
+                description="The left operand for the operation.",
+                required=True
+            ),
+            Parameter(
+                name="y",
+                type="number",
+                description="The right operand for the operation.",
+                required=True
+            )
+        ]
+        super().__init__(name="CalculatorTool", 
+                         description="Performs basic arithmetic operations.",
+                         parameters=parameters)
+
+    def __call__(self, operation: str, x: float, y: float) -> str:
+        """
+        Executes the specified arithmetic operation on the given operands.
+        
+        Parameters:
+            operation (str): The arithmetic operation to perform.
+            x (float): The left operand.
+            y (float): The right operand.
+        
+        Returns:
+            str: Result of the arithmetic operation.
+        """
+        try:
+            if operation == "add":
+                result = x + y
+            elif operation == "subtract":
+                result = x - y
+            elif operation == "multiply":
+                result = x * y
+            elif operation == "divide":
+                if y == 0:
+                    return "Error: Division by zero."
+                result = x / y
+            else:
+                return "Error: Unknown operation."
+            return str(result)
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+
+```
+
+```swarmauri/standard/tools/concrete/ImportMemoryModuleTool.py
+
+# standard/tools/concrete/ImportMemoryModuleTool.py
+import sys
+import types
+import importlib
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
+
+class ImportMemoryModuleTool(ToolBase):
+    def __init__(self):
+        # Define the parameters required by the tool
+        parameters = [
+            Parameter(
+                name="name",
+                type="string",
+                description="Name of the new module.",
+                required=True
+            ),
+            Parameter(
+                name="code",
+                type="string",
+                description="Python code snippet to include in the module.",
+                required=True
+            ),
+            Parameter(
+                name="package_path",
+                type="string",
+                description="Dot-separated package path where the new module should be inserted.",
+                required=True
+            )
+        ]
+        
+        # Call the ToolBase initializer
+        super().__init__(name="ImportMemoryModuleTool", 
+                         description="Dynamically imports a module from memory into a specified package path.",
+                         parameters=parameters)
+
+    def __call__(self, name: str, code: str, package_path: str) -> str:
+        """
+        Dynamically creates a module from a code snippet and inserts it into the specified package path.
+
+        Args:
+            name (str): Name of the new module.
+            code (str): Python code snippet to include in the module.
+            package_path (str): Dot-separated package path where the new module should be inserted.
+        """
+        # Implementation adapted from the provided snippet
+        # Ensure the package structure exists
+        current_package = self.ensure_module(package_path)
+        
+        # Create a new module
+        module = types.ModuleType(name)
+        
+        # Execute code in the context of this new module
+        exec(code, module.__dict__)
+        
+        # Insert the new module into the desired location
+        setattr(current_package, name, module)
+        sys.modules[package_path + '.' + name] = module
+        return f"{name} has been successfully imported into {package_path}"
+
+    @staticmethod
+    def ensure_module(package_path: str):
+        package_parts = package_path.split('.')
+        module_path = ""
+        current_module = None
+
+        for part in package_parts:
+            if module_path:
+                module_path += "." + part
+            else:
+                module_path = part
+                
+            if module_path not in sys.modules:
+                try:
+                    # Try importing the module; if it exists, this will add it to sys.modules
+                    imported_module = importlib.import_module(module_path)
+                    sys.modules[module_path] = imported_module
+                except ImportError:
+                    # If the module doesn't exist, create a new placeholder module
+                    new_module = types.ModuleType(part)
+                    if current_module:
+                        setattr(current_module, part, new_module)
+                    sys.modules[module_path] = new_module
+            current_module = sys.modules[module_path]
+
+        return current_module
 
 ```
 
@@ -9480,6 +10253,191 @@ class ChainStepBase(IChainStep):
 
 ```
 
+```swarmauri/standard/chains/base/ChainContextBase.py
+
+from typing import Any, Callable, Dict, List
+import re
+
+from swarmauri.core.chains.IChainContext import IChainContext
+
+class ChainContextBase(IChainContext):
+    def __init__(self):
+        self._steps = []
+        self._context = {}
+
+    @property
+    def context(self) -> Dict[str, Any]:
+        return self._context
+
+    @context.setter
+    def context(self, value: Dict[str, Any]) -> None:
+        self._context = value
+
+    def update(self, **kwargs):
+        self.state.update(kwargs)
+
+    def get_value(self, key: str) -> Any:
+        return self._context.get(key)
+
+    def _resolve_fstring(self, template: str) -> str:
+        pattern = re.compile(r'{([^}]+)}')
+        def replacer(match):
+            expression = match.group(1)
+            try:
+                return str(eval(expression, {}, self._context))
+            except Exception as e:
+                print(f"Failed to resolve expression: {expression}. Error: {e}")
+                return f"{{{expression}}}"
+        return pattern.sub(replacer, template)
+
+    def _resolve_placeholders(self, value: Any) -> Any:
+        if isinstance(value, str):
+            return self._resolve_fstring(value)
+        elif isinstance(value, dict):
+            return {k: self._resolve_placeholders(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self._resolve_placeholders(v) for v in value]
+        else:
+            return value
+
+    def _resolve_ref(self, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith('$'):
+            placeholder = value[1:]
+            return placeholder
+        return value
+
+```
+
+```swarmauri/standard/chains/base/PromptContextChainBase.py
+
+# swarmaurui/standard/chains/base/PromptStateChainBase.py
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any, Optional
+from collections import defaultdict, deque
+import re
+
+
+from swarmaurui.standard.chains.concrete.ChainStep import ChainStep
+from swarmaurui.standard.chains.base.ChainContextBase import ChainContextBase
+from swarmaurui.standard.chains.base.ChainStateBase import ChainStateBase
+from swarmaurui.core.agents.IAgent import IAgent
+from swarmaurui.core.prompts.IPromptMatrix import IPromptMatrix
+from swarmaurui.core.chains.IChainDependencyResolver import IChainDependencyResolver
+
+class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependencyResolver):
+    def __init__(self, 
+        prompt_matrix: IPromptMatrix, 
+        agents: List[IAgent] = [], 
+        context: Dict = {},
+        model_kwargs: Dict[str, Any] = {}):
+        ChainContextBase.__init__(self)
+        ChainStateBase.__init__(self)
+        self.prompt_matrix = prompt_matrix
+        self.response_matrix = [[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])]
+        self.agents = agents
+        self.context = context 
+        self.model_kwargs = model_kwargs
+
+    @property
+    def context(self) -> Dict[str, Any]:
+        return self._context
+
+    @context.setter
+    def context(self, value: Dict[str, Any]) -> None:
+        self._context = value
+
+    def execute(self) -> None:
+        """
+        Execute the chain of prompts based on the state of the prompt matrix.
+        Iterates through each sequence in the prompt matrix, resolves dependencies, 
+        and executes prompts in the resolved order.
+        """
+        steps = self.build_dependencies()
+        for step in steps:
+            method = step.method
+            args = step.args
+            ref = step.ref
+            result = method(*args)
+            self.context[ref] = result
+            self._update_response_matrix(args[0], result)
+
+    def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
+        """
+        Executes a given prompt using the specified agent and updates the response.
+        """
+        formatted_prompt = prompt.format(**self.context)  # Using context for f-string formatting
+        agent = self.agents[agent_index]
+        response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
+        self.context[ref] = response
+        self._update_response_matrix(agent_index, response)
+        return response
+
+    def _update_response_matrix(self, agent_index: int, response: Any):
+        self.response_matrix[agent_index].append(response)
+    
+    def build_dependencies(self) -> List[ChainStep]:
+        """
+        Build the chain steps in the correct order by resolving dependencies first.
+        """
+        steps = []
+        for i, sequence in enumerate(self.prompt_matrix.matrix):
+            execution_order = self.resolve_dependencies(matrix=self.prompt_matrix.matrix, sequence_index=i)
+            for j in execution_order:
+                prompt = sequence[j]
+                if prompt:
+                    ref = f"Agent_{i}_Step_{j}_response"  # Using a unique reference string
+                    step = ChainStep(
+                        key=f"Agent_{i}_Step_{j}",
+                        method=self._execute_prompt,
+                        args=[i, prompt, ref],
+                        ref=ref
+                    )
+                    steps.append(step)
+        return steps
+
+    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+        """
+        Resolve dependencies within a specific sequence of the prompt matrix.
+        
+        Args:
+            matrix (List[List[Optional[str]]]): The prompt matrix.
+            sequence_index (int): The index of the sequence to resolve dependencies for.
+
+        Returns:
+            List[int]: The execution order of the agents for the given sequence.
+        """
+        indegrees = defaultdict(int)
+        graph = defaultdict(list)
+        for agent_idx, prompt in enumerate(matrix[sequence_index]):
+            if prompt:
+                dependencies = re.findall(r'\$\d+_\d+', prompt)
+                for dep in dependencies:
+                    # Extract index from the matched dependency pattern "$x_y"
+                    x = int(dep[1:])  # Remove leading "$" and convert to int
+                    graph[x].append(agent_idx)
+                    indegrees[agent_idx] += 1
+                if not dependencies:
+                    indegrees[agent_idx] = 0
+            else:
+                indegrees[agent_idx] = 0  # Ensure nodes without dependencies are in the graph
+        
+        queue = deque([idx for idx in indegrees if indegrees[idx] == 0])
+        execution_order = []
+        while queue:
+            current = queue.popleft()
+            execution_order.append(current)
+            for dependent in graph[current]:
+                indegrees[dependent] -= 1
+                if indegrees[dependent] == 0:
+                    queue.append(dependent)
+        if len(execution_order) != len(indegrees):
+            raise RuntimeError("There's a cyclic dependency or unresolved dependency in your prompt matrix.")
+        return execution_order
+
+
+
+```
+
 ```swarmauri/standard/chains/concrete/__init__.py
 
 
@@ -9519,67 +10477,6 @@ class CallableChain(ICallableChain):
 
 ```
 
-```swarmauri/standard/chains/concrete/StateChain.py
-
-from typing import Any, Dict, List, Callable
-from swarmauri.standard.chains.base.ChainStepBase import ChainStepBase
-from swarmauri.core.chains.IChain import IChain
-
-class StateChain(IChain):
-    """
-    Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
-    Implements the IChain interface including get_schema_info and remove_step methods.
-    """
-    def __init__(self):
-        self._steps: List[ChainStepBase] = []
-        self._context: Dict[str, Any] = {}
-    
-    def add_step(self, key: str, method: Callable[..., Any], *args, ref: str = None, **kwargs):
-        # Directly store args, kwargs, and optionally a return_key without resolving them
-        step = ChainStepBase(key, method, args=args, kwargs=kwargs, ref=ref)  # Note the use of 'ref' as 'return_key'
-        self._steps.append(step)
-    
-    def remove_step(self, step: ChainStepBase) -> None:
-        self._steps = [s for s in self._steps if s.key != step.key]
-    
-    def execute(self, *args, **kwargs) -> Any:
-        # Execute the chain and manage result storage based on return_key
-        for step in self._steps:
-            resolved_args = [self._resolve_placeholders(arg) for arg in step.args]
-            resolved_kwargs = {k: self._resolve_placeholders(v) for k, v in step.kwargs.items() if k != 'ref'}
-            result = step.method(*resolved_args, **resolved_kwargs)
-            if step.ref:  # step.ref is used here as the return_key analogy
-                print('step.ref', step.ref)
-                resolved_ref = self._resolve_ref(step.ref)
-                print(resolved_ref)
-                self._context[resolved_ref] = result
-        return self._context  # or any specific result you intend to return
-    
-    def _resolve_ref(self, value: Any) -> Any:
-        if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
-            placeholder = value[2:-1]
-            return placeholder
-        return value
-    
-    def _resolve_placeholders(self, value: Any) -> Any:
-        if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
-            placeholder = value[2:-1]
-            return self._context.get(placeholder)
-        return value
-
-    def set_context(self, **kwargs):
-        self._context.update(kwargs)
-    
-    def get_schema_info(self) -> Dict[str, Any]:
-        # Implementing required method from IChain; 
-        # Adapt the return structure to your needs
-        return {
-            "steps": [step.key for step in self._steps],
-            "context_keys": list(self._context.keys())
-        }
-
-```
-
 ```swarmauri/standard/chains/concrete/ChainStep.py
 
 from typing import Any, Callable, List, Dict
@@ -9613,6 +10510,71 @@ class ChainStep(ChainStepBase):
         self.kwargs = kwargs
         self.ref = ref
         
+
+
+```
+
+```swarmauri/standard/chains/concrete/ContextChain.py
+
+# standard/chains/concrete/ContextChain.py
+from typing import Any, Dict, List, Callable
+from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
+from swarmauri.standard.chains.base.ChainStep import ChainStep
+from swarmauri.core.chains.IChain import IChain
+
+class ContextChain(IChain, ChainContextBase):
+    """
+    Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
+    Implements the IChain interface including get_schema_info and remove_step methods.
+    """
+    def __init__(self):
+        ChainContextBase.__init__(self)
+        self._steps: List[ChainStep] = []
+
+    def add_step(self, key: str, method: Callable[..., Any], *args, ref: str = None, **kwargs):
+        # Directly store args, kwargs, and optionally a return_key without resolving them
+        step = ChainStep(key, method, args=args, kwargs=kwargs, ref=ref)  # Note the use of 'ref' as 'return_key'
+        self._steps.append(step)
+
+    def remove_step(self, step: ChainStep) -> None:
+        self._steps = [s for s in self._steps if s.key != step.key]
+
+    def execute(self, *args, **kwargs) -> Any:
+        # Execute the chain and manage result storage based on return_key
+        for step in self._steps:
+            resolved_args = [self._resolve_placeholders(arg) for arg in step.args]
+            resolved_kwargs = {k: self._resolve_placeholders(v) for k, v in step.kwargs.items() if k != 'ref'}
+            result = step.method(*resolved_args, **resolved_kwargs)
+            if step.ref:  # step.ref is used here as the return_key analogy
+                resolved_ref = self._resolve_ref(step.ref)
+                self.context[resolved_ref] = result
+                self.update(**{resolved_ref: result})  # Update context with new state value
+        return self.context  # or any specific result you intend to return
+
+    def get_schema_info(self) -> Dict[str, Any]:
+        # Implementing required method from IChain; 
+        # Adapt the return structure to your needs
+        return {
+            "steps": [step.key for step in self._steps],
+            "state_keys": list(self.context.keys())
+        }
+
+```
+
+```swarmauri/standard/chains/concrete/PromptContextChain.py
+
+from typing import List, Dict, Any
+from core.prompts.IPromptMatrix import IPromptMatrix
+from standard.chains.base.PromptStateChainBase import PromptStateChainBase
+
+class PromptContextChain(PromptStateChainBase):
+    def __init__(self, prompt_matrix: IPromptMatrix, 
+        agents: List[IAgent] = [], context: Dict = {},
+        model_kwargs: Dict[str, Any] = {}
+        ):
+
+        PromptStateChainBase.__init__(self, prompt_matrix=prompt_matrix, agents=agents, 
+            context=context, model_kwargs=model_kwargs)
 
 
 ```
