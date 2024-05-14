@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
-from core.prompts.IPromptMatrix import IPromptMatrix
-from standard.chains.base.PromptStateChainBase import PromptStateChainBase
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.standard.chains.base.PromptStateChainBase import PromptStateChainBase
 
 class PromptContextChain(PromptStateChainBase):
     def __init__(self, prompt_matrix: IPromptMatrix, 
