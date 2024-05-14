@@ -7,19 +7,17 @@ import re
 
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
-from swarmauri.standard.chains.base.ChainStateBase import ChainStateBase
 from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
-class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependencyResolver):
+class PromptStateChainBase(ABC, ChainContextBase, IChainDependencyResolver):
     def __init__(self, 
         prompt_matrix: IPromptMatrix, 
         agents: List[IAgent] = [], 
         context: Dict = {},
         model_kwargs: Dict[str, Any] = {}):
         ChainContextBase.__init__(self)
-        ChainStateBase.__init__(self)
         self.prompt_matrix = prompt_matrix
         self.response_matrix = [[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])]
         self.agents = agents
