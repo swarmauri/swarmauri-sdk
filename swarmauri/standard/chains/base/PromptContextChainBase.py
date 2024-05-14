@@ -1,16 +1,16 @@
-# swarmaurui/standard/chains/base/PromptStateChainBase.py
+# swarmauri/standard/chains/base/PromptStateChainBase.py
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from collections import defaultdict, deque
 import re
 
 
-from swarmaurui.standard.chains.concrete.ChainStep import ChainStep
-from swarmaurui.standard.chains.base.ChainContextBase import ChainContextBase
-from swarmaurui.standard.chains.base.ChainStateBase import ChainStateBase
-from swarmaurui.core.agents.IAgent import IAgent
-from swarmaurui.core.prompts.IPromptMatrix import IPromptMatrix
-from swarmaurui.core.chains.IChainDependencyResolver import IChainDependencyResolver
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
+from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
+from swarmauri.standard.chains.base.ChainStateBase import ChainStateBase
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
 class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependencyResolver):
     def __init__(self, 
