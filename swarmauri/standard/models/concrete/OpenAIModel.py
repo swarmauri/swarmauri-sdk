@@ -14,6 +14,7 @@ class OpenAIModel(ModelBase, IPredict):
     'gpt-4-32k',
     'gpt-4-32k-0613',
     'gpt-3.5-turbo-0125',
+    'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo']
 
     def __init__(self, api_key: str, model_name: str):
