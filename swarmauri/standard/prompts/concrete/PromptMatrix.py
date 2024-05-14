@@ -1,6 +1,7 @@
 # swarmauri/standard/prompts/concrete/PromptMatrix.py
-from standard.prompts.base.BasePromptMatrix import BasePromptMatrix
+from swarmauri.standard.prompts.base.BasePromptMatrix import BasePromptMatrix
 
 class PromptMatrix(BasePromptMatrix):
-    # If any additional methods or overrides are needed, they can be added here.
-    pass
+    
+    def __init__(self):
+        BasePromptMatrix.__init__(self)

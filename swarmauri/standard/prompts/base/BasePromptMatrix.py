@@ -1,6 +1,6 @@
 # swarmauri/standard/prompts/base/BasePromptMatrix.py
 from typing import List, Tuple, Optional, Any
-from core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 
 class BasePromptMatrix(IPromptMatrix):
     def __init__(self):
