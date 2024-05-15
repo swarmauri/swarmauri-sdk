@@ -20,7 +20,7 @@ class BasePromptMatrix(IPromptMatrix):
         if self._matrix:
             return len(self._matrix), len(self._matrix[0])
         return 0, 0
-        
+
     def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
         if not self._matrix or (self._matrix and len(sequence) == len(self._matrix[0])):
             self._matrix.append(sequence)
@@ -39,5 +39,5 @@ class BasePromptMatrix(IPromptMatrix):
         else:
             raise IndexError("Index out of range.")
 
-    def show_matrix(self) -> List[List[Optional[str]]]:
+    def show(self) -> List[List[Optional[str]]]:
         return self._matrix
