@@ -46,7 +46,7 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
             ref = step.ref
             result = method(*args)
             self.context[ref] = result
-            prompt_index = self.extract_step_number(ref)
+            prompt_index = self._extract_step_number(ref)
             self._update_response_matrix(args[0], prompt_index, result)
 
     def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
@@ -57,7 +57,7 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         agent = self.agents[agent_index]
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
         self.context[ref] = response
-        prompt_index = self.extract_step_number(ref)
+        prompt_index = self._extract_step_number(ref)
         self._update_response_matrix(agent_index, prompt_index, response)
         return response
 
