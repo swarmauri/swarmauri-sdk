@@ -7,6 +7,7 @@ import re
 
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
+from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
 from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
@@ -19,7 +20,7 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         model_kwargs: Dict[str, Any] = {}):
         ChainContextBase.__init__(self)
         self.prompt_matrix = prompt_matrix
-        self.response_matrix = [[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])]
+        self.response_matrix = PromptMatrix(matrix=[[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])])
         self.agents = agents
         self.context = context 
         self.model_kwargs = model_kwargs
@@ -45,7 +46,8 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
             ref = step.ref
             result = method(*args)
             self.context[ref] = result
-            self._update_response_matrix(args[0], result)
+            prompt_index = self.extract_step_number(ref)
+            self._update_response_matrix(args[0], prompt_index, result)
 
     def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
         """
@@ -55,11 +57,21 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         agent = self.agents[agent_index]
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
         self.context[ref] = response
-        self._update_response_matrix(agent_index, response)
+        prompt_index = self.extract_step_number(ref)
+        self._update_response_matrix(agent_index, prompt_index, response)
         return response
 
-    def _update_response_matrix(self, agent_index: int, response: Any):
-        self.response_matrix[agent_index].append(response)
+    def _update_response_matrix(self, agent_index: int, prompt_index: int, response: Any):
+        self.response_matrix.matrix[agent_index][prompt_index] = response
+
+
+    def _extract_step_number(self, ref):
+        # This regex looks for the pattern '_Step_' followed by one or more digits.
+        match = re.search(r"_Step_(\d+)_", ref)
+        if match:
+            return int(match.group(1))  # Convert the extracted digits to an integer
+        else:
+            return None  # If no match is found, return None
     
     def build_dependencies(self) -> List[ChainStep]:
         """
