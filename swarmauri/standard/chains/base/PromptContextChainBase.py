@@ -1,4 +1,4 @@
-# swarmauri/standard/chains/base/PromptStateChainBase.py
+# swarmauri/standard/chains/base/PromptContextChainBase.py
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from collections import defaultdict, deque
@@ -11,7 +11,7 @@ from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
-class PromptStateChainBase(ABC, ChainContextBase, IChainDependencyResolver):
+class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
     def __init__(self, 
         prompt_matrix: IPromptMatrix, 
         agents: List[IAgent] = [], 

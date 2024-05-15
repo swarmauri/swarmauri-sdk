@@ -9,5 +9,5 @@ class PromptContextChain(PromptContextChainBase):
         model_kwargs: Dict[str, Any] = {}
         ):
 
-        PromptContextChainBase.__init__(self, prompt_matrix=prompt_matrix, agents=agents, 
+        PromptContextChainBase().__init__(self, prompt_matrix=prompt_matrix, agents=agents, 
             context=context, model_kwargs=model_kwargs)
