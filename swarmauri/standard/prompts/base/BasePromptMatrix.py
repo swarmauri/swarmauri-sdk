@@ -14,11 +14,13 @@ class BasePromptMatrix(IPromptMatrix):
     def matrix(self, value: List[List[Optional[str]]]) -> None:
         self._matrix = value
 
-    def get_shape(self) -> Tuple[int, int]:
+    @property
+    def shape(self) -> Tuple[int, int]:
+        """Get the shape (number of agents, sequence length) of the prompt matrix."""
         if self._matrix:
             return len(self._matrix), len(self._matrix[0])
         return 0, 0
-
+        
     def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
         if not self._matrix or (self._matrix and len(sequence) == len(self._matrix[0])):
             self._matrix.append(sequence)
