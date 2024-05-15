@@ -3,8 +3,8 @@ from typing import List, Tuple, Optional, Any
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 
 class BasePromptMatrix(IPromptMatrix):
-    def __init__(self):
-        self._matrix = []
+    def __init__(self, matrix: List[List[str]] = []):
+        self._matrix = matrix
 
     @property
     def matrix(self) -> List[List[Optional[str]]]:
