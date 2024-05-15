@@ -9,8 +9,8 @@
 ```swarmauri/experimental/tools/LinkedInArticleTool.py
 
 import requests
-from ...standard.tools.base.ToolBase import ToolBase
-from ...standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class LinkedInArticleTool(ToolBase):
     """
@@ -94,8 +94,8 @@ class LinkedInArticleTool(ToolBase):
 
 from tweepy import Client
 
-from ...standard.tools.base.ToolBase import ToolBase
-from ...standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class TwitterPostTool(ToolBase):
     def __init__(self, bearer_token):
@@ -147,8 +147,8 @@ class TwitterPostTool(ToolBase):
 ```swarmauri/experimental/tools/OutlookSendMailTool.py
 
 import requests
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class OutlookSendMailTool(ToolBase):
@@ -233,10 +233,10 @@ class OutlookSendMailTool(ToolBase):
 
 ```swarmauri/experimental/tools/CypherQueryTool.py
 
-from ..base.ToolBase import ToolBase
-from .Parameter import Parameter
-from neo4j import GraphDatabase
 import json
+from neo4j import GraphDatabase
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class CypherQueryTool(ToolBase):
     def __init__(self, uri: str, user: str, password: str):
@@ -282,8 +282,8 @@ class CypherQueryTool(ToolBase):
 ```swarmauri/experimental/tools/FileDownloaderTool.py
 
 import requests
-from ....core.tools.ToolBase import ToolBase
-from ....core.tools.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class FileDownloaderTool(ToolBase):
@@ -323,8 +323,8 @@ class FileDownloaderTool(ToolBase):
 ```swarmauri/experimental/tools/SQLite3QueryTool.py
 
 import sqlite3
-from ...base.ToolBase import ToolBase
-from ...concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class SQLite3QueryTool(ToolBase):
     def __init__(self, db_name: str):
@@ -1882,7 +1882,7 @@ class TypeAgnosticCallableChain:
 ```swarmauri/experimental/chains/IChainScheduler.py
 
 from abc import ABC, abstractmethod
-from core.chains.IChain import IChain
+from swarmauri.core.chains.IChain import IChain
 
 class IChainScheduler(ABC):
     @abstractmethod
@@ -1895,7 +1895,8 @@ class IChainScheduler(ABC):
 ```swarmauri/experimental/chains/IChainFormatter.py
 
 from abc import ABC, abstractmethod
-from core.chains.IChainStep import IChainStep
+from typing import Any
+from swarmauri.core.chains.IChainStep import IChainStep
 
 class IChainFormatter(ABC):
     @abstractmethod
@@ -1920,6 +1921,7 @@ class IChainNotifier(ABC):
 ```swarmauri/experimental/chains/IChainPersistence.py
 
 from abc import ABC, abstractmethod
+from typing import Dict, Any
 from swarmauri.core.chains.IChain import IChain
 
 class IChainPersistence(ABC):

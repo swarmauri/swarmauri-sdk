@@ -393,6 +393,7 @@ swarmauri/standard/agent_factories/concrete/AgentFactory.py
 swarmauri/standard/agent_factories/concrete/ConfDrivenAgentFactory.py
 swarmauri/standard/agent_factories/concrete/ReflectiveAgentFactory.py
 swarmauri/standard/agent_factories/concrete/__init__.py
+swarmauri/standard/agent_factories/concrete/JsonAgentFactory.py
 swarmauri/standard/exceptions/__init__.py
 swarmauri/standard/exceptions/base/__init__.py
 swarmauri/standard/exceptions/concrete/IndexErrorWithContext.py

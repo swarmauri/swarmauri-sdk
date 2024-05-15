@@ -3181,7 +3181,7 @@ class IChainStep:
 ```swarmauri/core/chains/IChainContextLoader.py
 
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Any
 
 class IChainContextLoader(ABC):
     @abstractmethod
@@ -3194,7 +3194,8 @@ class IChainContextLoader(ABC):
 ```swarmauri/core/chains/IChainDependencyResolver.py
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Optional
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 
 class IChainDependencyResolver(ABC):
     @abstractmethod

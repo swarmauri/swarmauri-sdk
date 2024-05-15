@@ -1112,7 +1112,7 @@ class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
     def __init__(self, model: IModel, conversation: IConversation, name: str):
         AgentBase.__init__(self, model=model)
         ConversationAgentBase.__init__(self, conversation=conversation)
-        NamedAgentBase.__init__(self, name=str)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, 
         input_str: Optional[str] = None,
@@ -3448,11 +3448,11 @@ class BERTEmbeddingParser(IParser):
 
 # swarmauri/standard/prompts/base/BasePromptMatrix.py
 from typing import List, Tuple, Optional, Any
-from core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 
 class BasePromptMatrix(IPromptMatrix):
-    def __init__(self):
-        self._matrix = []
+    def __init__(self, matrix: List[List[str]] = []):
+        self._matrix = matrix
 
     @property
     def matrix(self) -> List[List[Optional[str]]]:
@@ -3462,11 +3462,13 @@ class BasePromptMatrix(IPromptMatrix):
     def matrix(self, value: List[List[Optional[str]]]) -> None:
         self._matrix = value
 
-    def get_shape(self) -> Tuple[int, int]:
+    @property
+    def shape(self) -> Tuple[int, int]:
+        """Get the shape (number of agents, sequence length) of the prompt matrix."""
         if self._matrix:
             return len(self._matrix), len(self._matrix[0])
         return 0, 0
-
+        
     def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
         if not self._matrix or (self._matrix and len(sequence) == len(self._matrix[0])):
             self._matrix.append(sequence)
@@ -3672,11 +3674,13 @@ class PromptGenerator(IPrompt, ITemplate):
 ```swarmauri/standard/prompts/concrete/PromptMatrix.py
 
 # swarmauri/standard/prompts/concrete/PromptMatrix.py
-from standard.prompts.base.BasePromptMatrix import BasePromptMatrix
+from typing import List
+from swarmauri.standard.prompts.base.BasePromptMatrix import BasePromptMatrix
 
 class PromptMatrix(BasePromptMatrix):
-    # If any additional methods or overrides are needed, they can be added here.
-    pass
+
+    def __init__(self, matrix: List[List[str]] = []):
+        BasePromptMatrix.__init__(self, matrix=matrix)
 
 ```
 
@@ -6479,9 +6483,8 @@ import re
 from swarmauri.core.chains.IChainContext import IChainContext
 
 class ChainContextBase(IChainContext):
-    def __init__(self):
-        self._steps = []
-        self._context = {}
+    def __init__(self, context: Dict = {}):
+        self._context = context
 
     @property
     def context(self) -> Dict[str, Any]:
@@ -6492,7 +6495,7 @@ class ChainContextBase(IChainContext):
         self._context = value
 
     def update(self, **kwargs):
-        self.state.update(kwargs)
+        self._context.update(kwargs)
 
     def get_value(self, key: str) -> Any:
         return self._context.get(key)
@@ -6528,30 +6531,29 @@ class ChainContextBase(IChainContext):
 
 ```swarmauri/standard/chains/base/PromptContextChainBase.py
 
-# swarmaurui/standard/chains/base/PromptStateChainBase.py
+# swarmauri/standard/chains/base/PromptContextChainBase.py
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from collections import defaultdict, deque
 import re
 
 
-from swarmaurui.standard.chains.concrete.ChainStep import ChainStep
-from swarmaurui.standard.chains.base.ChainContextBase import ChainContextBase
-from swarmaurui.standard.chains.base.ChainStateBase import ChainStateBase
-from swarmaurui.core.agents.IAgent import IAgent
-from swarmaurui.core.prompts.IPromptMatrix import IPromptMatrix
-from swarmaurui.core.chains.IChainDependencyResolver import IChainDependencyResolver
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
+from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
+from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
-class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependencyResolver):
+class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
     def __init__(self, 
         prompt_matrix: IPromptMatrix, 
         agents: List[IAgent] = [], 
         context: Dict = {},
         model_kwargs: Dict[str, Any] = {}):
         ChainContextBase.__init__(self)
-        ChainStateBase.__init__(self)
         self.prompt_matrix = prompt_matrix
-        self.response_matrix = [[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])]
+        self.response_matrix = PromptMatrix(matrix=[[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])])
         self.agents = agents
         self.context = context 
         self.model_kwargs = model_kwargs
@@ -6577,7 +6579,8 @@ class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependen
             ref = step.ref
             result = method(*args)
             self.context[ref] = result
-            self._update_response_matrix(args[0], result)
+            prompt_index = self._extract_step_number(ref)
+            self._update_response_matrix(args[0], prompt_index, result)
 
     def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
         """
@@ -6587,11 +6590,21 @@ class PromptStateChainBase(ABC, ChainContextBase, ChainStateBase, IChainDependen
         agent = self.agents[agent_index]
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
         self.context[ref] = response
-        self._update_response_matrix(agent_index, response)
+        prompt_index = self._extract_step_number(ref)
+        self._update_response_matrix(agent_index, prompt_index, response)
         return response
 
-    def _update_response_matrix(self, agent_index: int, response: Any):
-        self.response_matrix[agent_index].append(response)
+    def _update_response_matrix(self, agent_index: int, prompt_index: int, response: Any):
+        self.response_matrix.matrix[agent_index][prompt_index] = response
+
+
+    def _extract_step_number(self, ref):
+        # This regex looks for the pattern '_Step_' followed by one or more digits.
+        match = re.search(r"_Step_(\d+)_", ref)
+        if match:
+            return int(match.group(1))  # Convert the extracted digits to an integer
+        else:
+            return None  # If no match is found, return None
     
     def build_dependencies(self) -> List[ChainStep]:
         """
@@ -6782,16 +6795,17 @@ class ContextChain(IChain, ChainContextBase):
 ```swarmauri/standard/chains/concrete/PromptContextChain.py
 
 from typing import List, Dict, Any
-from core.prompts.IPromptMatrix import IPromptMatrix
-from standard.chains.base.PromptStateChainBase import PromptStateChainBase
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri.standard.chains.base.PromptContextChainBase import PromptContextChainBase
 
-class PromptContextChain(PromptStateChainBase):
+class PromptContextChain(PromptContextChainBase):
     def __init__(self, prompt_matrix: IPromptMatrix, 
         agents: List[IAgent] = [], context: Dict = {},
         model_kwargs: Dict[str, Any] = {}
         ):
 
-        PromptStateChainBase.__init__(self, prompt_matrix=prompt_matrix, agents=agents, 
+        PromptContextChainBase.__init__(self, prompt_matrix=prompt_matrix, agents=agents, 
             context=context, model_kwargs=model_kwargs)
 
 
@@ -8052,6 +8066,131 @@ class ReflectiveAgentFactory(IAgentFactory, IExportConf):
 ```swarmauri/standard/agent_factories/concrete/__init__.py
 
 
+
+```
+
+```swarmauri/standard/agent_factories/concrete/JsonAgentFactory.py
+
+import json
+from jsonschema import validate, ValidationError
+from typing import Dict, Any, Callable, Type
+from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.agent_factories.IAgentFactory import IAgentFactory
+from swarmauri.core.agent_factories.IExportConf import IExportConf
+import importlib
+
+class JsonAgentFactory:
+    def __init__(self, config: Dict[str, Any]):
+        self._config = config
+        self._registry: Dict[str, Type[Any]] = {}
+
+        # Load and validate config
+        self._validate_config()
+        self._load_config()
+
+    def _validate_config(self) -> None:
+        """Validates the configuration against the JSON schema."""
+        schema = {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "properties": {
+                "agents": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+                      "type": "object",
+                      "properties": {
+                        "constructor": {
+                          "type": "object",
+                          "required": ["module", "class"]
+                        }
+                      },
+                      "required": ["constructor"]
+                    }
+                  }
+                }
+              },
+              "required": ["agents"]
+            }
+
+        try:
+            validate(instance=self._config, schema=schema)
+        except ValidationError as e:
+            raise ValueError(f"Invalid configuration: {e.message}")
+
+    def _load_config(self):
+        """Loads configuration and registers agents accordingly."""
+        agents_config = self._config.get("agents", {})
+        for agent_type, agent_info in agents_config.items():
+            module_name = agent_info["constructor"]["module"]
+            class_name = agent_info["constructor"]["class"]
+
+            module = importlib.import_module(module_name)
+            cls = getattr(module, class_name)
+
+            self.register_agent(agent_type, cls)
+
+    def create_agent(self, agent_type: str, **kwargs) -> Any:
+        if agent_type not in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is not registered.")
+        
+        constructor = self._registry[agent_type]
+        print(f"Creating instance of {constructor}, with args: {kwargs}")
+        return constructor(**kwargs)
+
+    def register_agent(self, agent_type: str, constructor: Callable[..., Any]) -> None:
+        if agent_type in self._registry:
+            raise ValueError(f"Agent type '{agent_type}' is already registered.")
+        
+        print(f"Registering agent type '{agent_type}' with constructor: {constructor}")
+        self._registry[agent_type] = constructor
+
+    def to_dict(self) -> Dict[str, Any]:
+        return self._config
+
+    def to_json(self) -> str:
+        return json.dumps(self._config, default=str, indent=4)
+
+    def export_to_file(self, file_path: str) -> None:
+        with open(file_path, 'w') as file:
+            file.write(self.to_json())
+
+    @property
+    def id(self) -> int:
+        return self._config.get('id', None)  # Assuming config has an 'id'.
+
+    @id.setter
+    def id(self, value: int) -> None:
+        self._config['id'] = value
+
+    @property
+    def name(self) -> str:
+        return self._config.get('name', 'ConfDrivenAgentFactory')
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._config['name'] = value
+
+    @property
+    def type(self) -> str:
+        return self._config.get('type', 'Configuration-Driven')
+
+    @type.setter
+    def type(self, value: str) -> None:
+        self._config['type'] = value
+
+    @property
+    def date_created(self) -> str:
+        return self._config.get('date_created', None)
+
+    @property
+    def last_modified(self) -> str:
+        return self._config.get('last_modified', None)
+
+    @last_modified.setter
+    def last_modified(self, value: str) -> None:
+        self._config['last_modified'] = value
+        self._config['last_modified'] = value
 
 ```
 
