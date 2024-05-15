@@ -4,9 +4,8 @@ import re
 from swarmauri.core.chains.IChainContext import IChainContext
 
 class ChainContextBase(IChainContext):
-    def __init__(self):
-        self._steps = []
-        self._context = {}
+    def __init__(self, context: Dict = {}):
+        self._context = context
 
     @property
     def context(self) -> Dict[str, Any]:
@@ -17,7 +16,7 @@ class ChainContextBase(IChainContext):
         self._context = value
 
     def update(self, **kwargs):
-        self.state.update(kwargs)
+        self._context.update(kwargs)
 
     def get_value(self, key: str) -> Any:
         return self._context.get(key)
