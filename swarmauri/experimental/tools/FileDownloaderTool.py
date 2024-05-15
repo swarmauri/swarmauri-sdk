@@ -1,6 +1,6 @@
 import requests
-from ....core.tools.ToolBase import ToolBase
-from ....core.tools.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class FileDownloaderTool(ToolBase):
