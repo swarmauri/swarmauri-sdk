@@ -12,7 +12,7 @@ class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
     def __init__(self, model: IModel, conversation: IConversation, name: str):
         AgentBase.__init__(self, model=model)
         ConversationAgentBase.__init__(self, conversation=conversation)
-        NamedAgentBase.__init__(self, name=str)
+        NamedAgentBase.__init__(self, name=name)
 
     def exec(self, 
         input_str: Optional[str] = None,
