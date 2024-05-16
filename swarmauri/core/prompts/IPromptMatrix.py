@@ -37,6 +37,6 @@ class IPromptMatrix(ABC):
         pass
 
     @abstractmethod
-    def show_matrix(self) -> List[List[Optional[str]]]:
+    def show(self) -> List[List[Optional[str]]]:
         """Show the entire prompt matrix."""
         pass
