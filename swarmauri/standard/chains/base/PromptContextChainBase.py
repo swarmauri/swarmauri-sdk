@@ -1,10 +1,3 @@
-# swarmauri/standard/chains/base/PromptContextChainBase.py
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
-from collections import defaultdict, deque
-import re
-
-
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
@@ -54,15 +47,14 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         Executes a given prompt using the specified agent and updates the response.
         """
         formatted_prompt = prompt.format(**self.context)  # Using context for f-string formatting
-        agent = self.agents[agent_index]
         
+        agent = self.agents[agent_index]
         # get the unformatted version
         unformatted_system_context = agent.system_context
-
         # use the formatted version
         agent.system_context = agent.system_context.content.format(**self.context)
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
-
+        #print(f"\nPrompt: \n\t{formatted_prompt}", f"\nResponse: \n\t{response}")        
         # reset back to the unformatted version
         agent.system_context = unformatted_system_context
         self.context[ref] = response
@@ -74,6 +66,16 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         self.response_matrix.matrix[agent_index][prompt_index] = response
 
 
+    def _extract_agent_number(self, text):
+        # Regular expression to match the pattern and capture the agent number
+        match = re.search(r'\{Agent_(\d+)_Step_\d+_response\}', text)
+        if match:
+            # Return the captured group, which is the agent number
+            return int(match.group(1))
+        else:
+            # Return None if no match is found
+            return None
+    
     def _extract_step_number(self, ref):
         # This regex looks for the pattern '_Step_' followed by one or more digits.
         match = re.search(r"_Step_(\d+)_", ref)
@@ -87,22 +89,29 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         Build the chain steps in the correct order by resolving dependencies first.
         """
         steps = []
-        for i, sequence in enumerate(self.prompt_matrix.matrix):
-            execution_order = self.resolve_dependencies(matrix=self.prompt_matrix.matrix, sequence_index=i)
-            for j in execution_order:
-                prompt = sequence[j]
-                if prompt:
-                    ref = f"Agent_{i}_Step_{j}_response"  # Using a unique reference string
-                    step = ChainStep(
-                        key=f"Agent_{i}_Step_{j}",
-                        method=self._execute_prompt,
-                        args=[i, prompt, ref],
-                        ref=ref
-                    )
-                    steps.append(step)
+        print('build dependencies...')
+        for i, _ in enumerate(self.prompt_matrix.matrix):
+            try:
+                sequence = np.array(self.prompt_matrix.matrix)[:,i].tolist()
+                execution_order = self.resolve_dependencies(sequence=sequence)
+                print(f"seq_idx:{i}, sequence: {sequence}, '_': {_}, execution_order: {execution_order}")
+                for j in execution_order:
+                    prompt = sequence[j]
+                    if prompt:
+                        ref = f"Agent_{j}_Step_{i}_response"  # Using a unique reference string
+                        step = ChainStep(
+                            key=f"Agent_{j}_Step_{i}",
+                            method=self._execute_prompt,
+                            args=[j, prompt, ref],
+                            ref=ref
+                        )
+                        print(f"adding {step.key}")
+                        steps.append(step)
+            except Exception as e:
+                print(str(e))
         return steps
 
-    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+    def resolve_dependencies(self, sequence: List[Optional[str]]) -> List[int]:
         """
         Resolve dependencies within a specific sequence of the prompt matrix.
         
@@ -113,31 +122,5 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         Returns:
             List[int]: The execution order of the agents for the given sequence.
         """
-        indegrees = defaultdict(int)
-        graph = defaultdict(list)
-        for agent_idx, prompt in enumerate(matrix[sequence_index]):
-            if prompt:
-                dependencies = re.findall(r'\$\d+_\d+', prompt)
-                for dep in dependencies:
-                    # Extract index from the matched dependency pattern "$x_y"
-                    x = int(dep[1:])  # Remove leading "$" and convert to int
-                    graph[x].append(agent_idx)
-                    indegrees[agent_idx] += 1
-                if not dependencies:
-                    indegrees[agent_idx] = 0
-            else:
-                indegrees[agent_idx] = 0  # Ensure nodes without dependencies are in the graph
         
-        queue = deque([idx for idx in indegrees if indegrees[idx] == 0])
-        execution_order = []
-        while queue:
-            current = queue.popleft()
-            execution_order.append(current)
-            for dependent in graph[current]:
-                indegrees[dependent] -= 1
-                if indegrees[dependent] == 0:
-                    queue.append(dependent)
-        if len(execution_order) != len(indegrees):
-            raise RuntimeError("There's a cyclic dependency or unresolved dependency in your prompt matrix.")
-        return execution_order
-
+        return [x for x in range(0, len(sequence), 1)]
