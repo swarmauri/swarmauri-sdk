@@ -125,17 +125,3 @@ def test_4():
         print(max_size, 'max_size passed test_conversation_eviction_4')
     for max_size in range(0, 7, 1):
         test_conversation_history(max_size)
-
-    
-
-
-    test_conversation_eviction_2(x)
-print('\n')
-
-for x in range(0, 7, 1):
-    test_conversation_eviction_3(x)
-print('\n')
-
-for x in range(0, 7, 1):
-    non_repeating_conversation_messages(x)
-print('\n')
