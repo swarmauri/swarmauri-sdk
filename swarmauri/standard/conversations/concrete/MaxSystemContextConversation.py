@@ -2,7 +2,7 @@ from typing import Optional, Union, List
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 class MaxSystemContextConversation(SystemContextBase, IMaxSize):
@@ -20,15 +20,41 @@ class MaxSystemContextConversation(SystemContextBase, IMaxSize):
     @property
     def history(self) -> List[IMessage]:
         """
-        Provides read-only access to the conversation history.
+        Get the conversation history, ensuring it starts with a 'user' message and alternates correctly between 'user' and 'assistant' roles.
+        The maximum number of messages returned does not exceed max_size + 1.
         """
-        
-        
-        res = [] 
+        res = []  # Start with an empty list to build the proper history
+
+        # Attempt to find the first 'user' message in the history.
+        user_start_index = -1
+        for index, message in enumerate(self._history):
+            if isinstance(message, HumanMessage):  # Identify user message
+                user_start_index = index
+                break
+
+        # If no 'user' message is found, just return the system context.
+        if user_start_index == -1:
+            return [self.system_context]
+
+        # Build history from the first 'user' message ensuring alternating roles.
         res.append(self.system_context)
-        res.extend(self._history)
+        alternating = True
+        count = 0 
+        for message in self._history[user_start_index:]:
+            if count >= self._max_size: # max size
+                break
+            if alternating and isinstance(message, HumanMessage) or not alternating and isinstance(message, AgentMessage):
+                res.append(message)
+                alternating = not alternating
+                count += 1
+            elif not alternating and isinstance(message, HumanMessage):
+                # If we find two 'user' messages in a row when expecting an 'assistant' message, we skip this 'user' message.
+                continue
+            else:
+                # If there is no valid alternate message to append, break the loop
+                break
+
         return res
-        
         
     @property
     def max_size(self) -> int:

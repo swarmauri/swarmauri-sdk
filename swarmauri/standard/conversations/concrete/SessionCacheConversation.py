@@ -62,6 +62,7 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
     def history(self) -> List[IMessage]:
         """
         Get the conversation history, ensuring it starts with a 'user' message and alternates correctly between 'user' and 'assistant' roles.
+        The maximum number of messages returned does not exceed max_size + 1.
         """
         res = []  # Start with an empty list to build the proper history
 
@@ -79,10 +80,14 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
         # Build history from the first 'user' message ensuring alternating roles.
         res.append(self.system_context)
         alternating = True
-        for message in self._history[user_start_index:user_start_index + 2 * self._max_size]:
+        count = 0 
+        for message in self._history[user_start_index:]:
+            if count >= self._max_size: # max size
+                break
             if alternating and isinstance(message, HumanMessage) or not alternating and isinstance(message, AgentMessage):
                 res.append(message)
                 alternating = not alternating
+                count += 1
             elif not alternating and isinstance(message, HumanMessage):
                 # If we find two 'user' messages in a row when expecting an 'assistant' message, we skip this 'user' message.
                 continue
