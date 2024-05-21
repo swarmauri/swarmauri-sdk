@@ -20,10 +20,7 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
             session_cache_max_size (int): The maximum number of messages allowed in the session cache.
         """
         SystemContextBase.__init__(self, system_message_content=system_message_content if system_message_content else "")
-        if max_size % 2:
-            raise ValueError('Must be divisible by 2')
-        else:
-            self._max_size = max_size  # Set the maximum size
+        self._max_size = max_size  # Set the maximum size
         if session_cache_max_size:
             self._session_cache_max_size = session_cache_max_size
         else:
