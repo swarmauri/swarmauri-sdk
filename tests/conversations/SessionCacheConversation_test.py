@@ -2,7 +2,7 @@ from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, Hu
 from swarmauri.standard.conversations.concrete.SessionCacheConversation import SessionCacheConversation
 
 def test_1():
-    def test_conversation_eviction(max_size):
+    def test_conversation_history(max_size):
         try:
             conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
             conv.add_message(HumanMessage('human'))
