@@ -1,3 +1,11 @@
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any, Optional
+from collections import defaultdict, deque
+import re
+import numpy as np
+
+
+
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
@@ -54,7 +62,6 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         # use the formatted version
         agent.system_context = agent.system_context.content.format(**self.context)
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
-        #print(f"\nPrompt: \n\t{formatted_prompt}", f"\nResponse: \n\t{response}")        
         # reset back to the unformatted version
         agent.system_context = unformatted_system_context
         self.context[ref] = response
@@ -90,11 +97,10 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         """
         steps = []
         print('build dependencies...')
-        for i, _ in enumerate(self.prompt_matrix.matrix):
+        for i in range(self.prompt_matrix.shape[1]):
             try:
                 sequence = np.array(self.prompt_matrix.matrix)[:,i].tolist()
                 execution_order = self.resolve_dependencies(sequence=sequence)
-                print(f"seq_idx:{i}, sequence: {sequence}, '_': {_}, execution_order: {execution_order}")
                 for j in execution_order:
                     prompt = sequence[j]
                     if prompt:
@@ -105,7 +111,6 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
                             args=[j, prompt, ref],
                             ref=ref
                         )
-                        print(f"adding {step.key}")
                         steps.append(step)
             except Exception as e:
                 print(str(e))
