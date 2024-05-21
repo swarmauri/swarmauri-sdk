@@ -74,7 +74,7 @@ class RagAgent(AgentBase,
             conversation.add_message(human_message)
 
             # Retrieval and set new substr for system context
-            if top_k > 0:
+            if top_k > 0 and len(self.vector_store.documents) > 0:
                 self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
 
                 if preamble:
