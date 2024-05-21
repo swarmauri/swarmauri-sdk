@@ -1,6 +1,6 @@
 from typing import List, Union
-from ....core.messages.IMessage import IMessage
-from ..base.ConversationBase import ConversationBase
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class SimpleConversation(ConversationBase):
     """

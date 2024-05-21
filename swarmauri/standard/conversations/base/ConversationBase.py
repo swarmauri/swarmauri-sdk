@@ -1,11 +1,10 @@
 import warnings
 import uuid
-from abc import ABC
 from typing import List, Union
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IConversation import IConversation
 
-class ConversationBase(IConversation, ABC):
+class ConversationBase(IConversation):
     """
     Concrete implementation of IConversation, managing conversation history and operations.
     """
