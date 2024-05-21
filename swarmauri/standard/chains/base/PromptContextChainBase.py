@@ -55,7 +55,16 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         """
         formatted_prompt = prompt.format(**self.context)  # Using context for f-string formatting
         agent = self.agents[agent_index]
+        
+        # get the unformatted version
+        unformatted_system_context = agent.system_context
+
+        # use the formatted version
+        agent.system_context = agent.system_context.content.format(**self.context)
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
+
+        # reset back to the unformatted version
+        agent.system_context = unformatted_system_context
         self.context[ref] = response
         prompt_index = self._extract_step_number(ref)
         self._update_response_matrix(agent_index, prompt_index, response)
