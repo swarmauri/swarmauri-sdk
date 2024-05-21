@@ -61,41 +61,33 @@ class SessionCacheConversation(SystemContextBase, IMaxSize):
     @property
     def history(self) -> List[IMessage]:
         """
-        Get the conversation history, ensuring it starts with a 'user' message and alternates correctly between 'user' and 'assistant' roles.
-        The maximum number of messages returned does not exceed max_size + 1.
+        Retrieves the conversation history, ensuring it starts with the system message and alternates correctly.
         """
-        res = []  # Start with an empty list to build the proper history
+        if not self._history:
+            return [self._system_context]
 
-        # Attempt to find the first 'user' message in the history.
-        user_start_index = -1
-        for index, message in enumerate(self._history):
-            if isinstance(message, HumanMessage):  # Identify user message
-                user_start_index = index
+        # Initialize the response starting with the system context
+        res = [self._system_context]
+        max_history_length = self._max_size
+
+        # Scan for alternating messages starting from the last 'user' message
+        last_user_index = None
+        for i in range(len(self._history) - 1, -1, -1):
+            if isinstance(self._history[i], HumanMessage):
+                last_user_index = i
                 break
 
-        # If no 'user' message is found, just return the system context.
-        if user_start_index == -1:
-            return [self.system_context]
+        if last_user_index is not None:
+            alternating = True  # True if expecting HumanMessage, False for AgentMessage
+            for message in reversed(self._history[max(0, last_user_index - self._max_size * 2):last_user_index + 1]):
+                if len(res) >= max_history_length:
+                    break
+                if (alternating and isinstance(message, HumanMessage)) or (not alternating and isinstance(message, AgentMessage)):
+                    res.append(message)
+                    alternating = not alternating
 
-        # Build history from the first 'user' message ensuring alternating roles.
-        res.append(self.system_context)
-        alternating = True
-        count = 0 
-        for message in self._history[user_start_index:]:
-            if count >= self._max_size: # max size
-                break
-            if alternating and isinstance(message, HumanMessage) or not alternating and isinstance(message, AgentMessage):
-                res.append(message)
-                alternating = not alternating
-                count += 1
-            elif not alternating and isinstance(message, HumanMessage):
-                # If we find two 'user' messages in a row when expecting an 'assistant' message, we skip this 'user' message.
-                continue
-            else:
-                # If there is no valid alternate message to append, break the loop
-                break
-
-        return res
+        # Return the conversation history starting from the oldest to newest, excluding the system context for reordering
+        return [res[0]] + list(reversed(res[1:]))
 
     def session_to_dict(self) -> List[dict]:
         """
