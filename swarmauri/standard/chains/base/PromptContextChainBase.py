@@ -88,7 +88,6 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         # use the formatted version
         agent.system_context = agent.system_context.content.format(**self.context)
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
-        info_fn(f"{agent.name} responded.")
         # reset back to the unformatted version
         agent.system_context = unformatted_system_context
 
