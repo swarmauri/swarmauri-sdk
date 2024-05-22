@@ -46,7 +46,7 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
             self.steps = self.build_dependencies()
             self.current_step_index = 0
 
-        if self.current_step_index < len(self.steps):    
+        while self.current_step_index < len(self.steps):
             step = self.steps[self.current_step_index]
             method = step.method
             args = step.args
@@ -88,8 +88,10 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         # use the formatted version
         agent.system_context = agent.system_context.content.format(**self.context)
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
+        info_fn(f"{agent.name} responded.")
         # reset back to the unformatted version
         agent.system_context = unformatted_system_context
+
         self.context[ref] = response
         prompt_index = self._extract_step_number(ref)
         self._update_response_matrix(agent_index, prompt_index, response)
