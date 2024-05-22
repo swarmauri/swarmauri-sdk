@@ -25,6 +25,8 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         self.agents = agents
         self.context = context 
         self.model_kwargs = model_kwargs
+        self.steps = self.build_dependencies()
+        self.current_step_index = 0  # Track the current step in the steps list
 
     @property
     def context(self) -> Dict[str, Any]:
@@ -34,14 +36,18 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
     def context(self, value: Dict[str, Any]) -> None:
         self._context = value
 
-    def execute(self) -> None:
+    def execute(self, build_dependencies=True) -> None:
         """
         Execute the chain of prompts based on the state of the prompt matrix.
         Iterates through each sequence in the prompt matrix, resolves dependencies, 
         and executes prompts in the resolved order.
         """
-        steps = self.build_dependencies()
-        for step in steps:
+        if build_dependencies:
+            self.steps = self.build_dependencies()
+            self.current_step_index = 0
+
+        if self.current_step_index < len(self.steps):    
+            step = self.steps[self.current_step_index]
             method = step.method
             args = step.args
             ref = step.ref
@@ -49,6 +55,26 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
             self.context[ref] = result
             prompt_index = self._extract_step_number(ref)
             self._update_response_matrix(args[0], prompt_index, result)
+            self.current_step_index += 1  # Move to the next step
+        else:
+            print("All steps have been executed.")
+
+    def execute_next_step(self):
+        """
+        Execute the next step in the steps list if available.
+        """
+        if self.current_step_index < len(self.steps):
+            step = self.steps[self.current_step_index]
+            method = step.method
+            args = step.args
+            ref = step.ref
+            result = method(*args)
+            self.context[ref] = result
+            prompt_index = self._extract_step_number(ref)
+            self._update_response_matrix(args[0], prompt_index, result)
+            self.current_step_index += 1  # Move to the next step
+        else:
+            print("All steps have been executed.")
 
     def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
         """
