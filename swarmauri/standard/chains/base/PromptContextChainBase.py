@@ -96,7 +96,7 @@ class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
         Build the chain steps in the correct order by resolving dependencies first.
         """
         steps = []
-        print('build dependencies...')
+        
         for i in range(self.prompt_matrix.shape[1]):
             try:
                 sequence = np.array(self.prompt_matrix.matrix)[:,i].tolist()
