@@ -54,19 +54,4 @@ class IDocument(ABC):
         """
         pass
 
-    # Including the abstract methods __str__ and __repr__ definitions for completeness.
-    @abstractmethod
-    def __str__(self) -> str:
-        pass
 
-    @abstractmethod
-    def __repr__(self) -> str:
-        pass
-    
-    def __setitem__(self, key, value):
-        """Allow setting items like a dict for metadata."""
-        self.metadata[key] = value
-
-    def __getitem__(self, key):
-        """Allow getting items like a dict for metadata."""
-        return self.metadata.get(key)

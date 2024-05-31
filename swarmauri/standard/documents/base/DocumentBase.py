@@ -70,3 +70,11 @@ class DocumentBase(IDocument, ABC):
     def from_dict(cls, data):
         data.pop("type", None)
         return cls(**data)
+
+    def __setitem__(self, key, value):
+        """Allow setting items like a dict for metadata."""
+        self.metadata[key] = value
+
+    def __getitem__(self, key):
+        """Allow getting items like a dict for metadata."""
+        return self.metadata.get(key)
