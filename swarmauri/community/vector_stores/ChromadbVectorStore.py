@@ -5,6 +5,7 @@ from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase impor
 
 from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.documents.concrete.Document import Document
 import chromadb
 
 class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
