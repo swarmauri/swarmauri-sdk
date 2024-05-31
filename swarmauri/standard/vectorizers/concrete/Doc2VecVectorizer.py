@@ -7,8 +7,8 @@ from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
 from swarmauri.core.vectorizers.ISaveModel import ISaveModel
 
 class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
-    def __init__(self):
-        self.model = Doc2Vec(vector_size=2000, window=10, min_count=1, workers=5)
+    def __init__(self, vector_size = 2000):
+        self.model = Doc2Vec(vector_size=vector_size, window=10, min_count=1, workers=5)
 
     def extract_features(self):
         return list(self.model.wv.key_to_index.keys())
