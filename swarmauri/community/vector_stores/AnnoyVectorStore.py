@@ -5,7 +5,7 @@ import tempfile
 from typing import List, Union
 from annoy import AnnoyIndex
 from swarmauri.core.documents.IDocument import IDocument
-
+from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
 from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 

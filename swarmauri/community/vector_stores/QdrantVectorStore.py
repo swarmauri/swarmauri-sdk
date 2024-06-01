@@ -71,7 +71,7 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
         """
         self.vectorizer.fit_transform([doc.content for doc in documents])
         points = [
-            qdrant_models.PointStruct(
+            models.PointStruct(
                 id=doc.id,
                 vector=doc.embedding or self.vectorizer.infer_vector(doc.content).data,
                 payload=doc.metadata
@@ -121,8 +121,8 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
         self.client.upsert(self.collection_name, points=[                           
             models.PointStruct(
                 id=updated_document.id,
-                vector=document.embedding,
-                payload=document.metadata
+                vector=updated_document.embedding,
+                payload=updated_document.metadata
             )
         ])
 
