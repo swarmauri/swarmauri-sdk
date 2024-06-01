@@ -43,7 +43,7 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
         try:
             embedding = document.embedding or self.vectorizer.fit_transform(document.content).data 
             self.client.upsert(self.collection_name, points=[
-                qdrant_models.PointStruct(
+                models.PointStruct(
                     id=document.id,
                     vector=embedding,
                     payload=document.metadata
@@ -53,7 +53,7 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
         except:
             embedding = document.embedding or self.vectorizer.fit_transform(document.content).data 
             self.client.upsert(self.collection_name, points=[
-                qdrant_models.PointStruct(
+                models.PointStruct(
                     id=document.id,
                     vector=embedding,
                     payload=document.metadata
@@ -119,7 +119,7 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
             updated_document (IDocument): The updated document instance.
         """
         self.client.upsert(self.collection_name, points=[                           
-            qdrant_models.PointStruct(
+            models.PointStruct(
                 id=updated_document.id,
                 vector=document.embedding,
                 payload=document.metadata
@@ -131,7 +131,7 @@ class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
         Deletes all documents from the vector store
         """
         self.documents = []
-        self.client.delete(self.collection_name, points_selector=qdrant_models.FilterSelector())
+        self.client.delete(self.collection_name, points_selector=models.FilterSelector())
 
     def document_count(self) -> int:
         """
