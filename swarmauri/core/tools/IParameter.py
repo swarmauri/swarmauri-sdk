@@ -72,7 +72,7 @@ class IParameter(ABC):
 
     @property
     @abstractmethod
-    def enum(self) -> Optional[List[Any]]:
+    def enum(self) -> Union[List[str], None]:
         """
         Abstract property for getting the enum list of the parameter.
         """
@@ -80,7 +80,7 @@ class IParameter(ABC):
 
     @enum.setter
     @abstractmethod
-    def enum(self, value: Optional[List[Any]]):
+    def enum(self, value: List[str]):
         """
         Abstract setter for setting the enum list of the parameter.
         """

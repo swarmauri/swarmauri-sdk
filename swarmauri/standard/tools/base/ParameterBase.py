@@ -1,17 +1,46 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Any
 from swarmauri.core.BaseComponent import BaseComponent
+from swarmauri.core.tools.IParameter import IParameter
 
+@dataclass
 class ParameterBase(IParameter, BaseComponent, ABC):
-    """
-    An abstract class to represent a parameter for a tool.
-    """
-    def __init__(self, name: str, type: str, description: str, required: bool = False, enum: Optional[List[Any]] = None):
-        self._name = name
-        self._type = type
-        self._description = description
-        self._required = required
-        self._enum = enum
+    name: str
+    type: str
+    description: str
+    required: bool = False
+    enum: Optional[List[str]] = None
+
+    id: Optional[str] = None
+    owner: Optional[str] = None
+    host: Optional[str] = None
+    members: List[str] = field(default_factory=list)
+    #resource = None
+
+    
+    def __post_init__(self):
+        print(self.name, type(self.name))
+        if type(self.name) == property:
+            raise ValueError('Name parameter is required.')
+        if type(self.type) == property:
+            raise ValueError('Type parameter is required.')
+        if type(self.description) == property:
+            raise ValueError('Description parameter is required.')
+        if type(self.required) == property:
+            self.required = None
+        if type(self.enum) == property:
+            self.enum = None
+            
+            
+
+        # Assuming BaseComponent initialization if needed
+        BaseComponent.__init__(self, 
+                               id=self.id, 
+                               owner=self.owner, 
+                               name=self.name, 
+                               host=self.host, 
+                               members=self.members, 
+                               resource=ResourceTypes.PARAMETER.value)
         
     @property
     def name(self) -> str:
@@ -46,9 +75,9 @@ class ParameterBase(IParameter, BaseComponent, ABC):
         self._required = value
 
     @property
-    def enum(self) -> Optional[List[Any]]:
+    def enum(self) -> List[str]:
         return self._enum
 
     @enum.setter
-    def enum(self, value: Optional[List[Any]]):
+    def enum(self, value: List[str]):
         self._enum = value
