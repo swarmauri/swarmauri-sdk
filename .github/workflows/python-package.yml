@@ -58,7 +58,7 @@ jobs:
 
     - name: Classify test results
       run: |
-        python ./tests/classify_test_results.py results.xml
+        python tests/classify_test_results.py results.xml
       continue-on-error: true
 
     - name: Proceed if no major failures
