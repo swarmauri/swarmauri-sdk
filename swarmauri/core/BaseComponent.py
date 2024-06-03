@@ -1,8 +1,9 @@
-import hashlib
-from uuid import uuid4
 import inspect
+from dataclasses import dataclass, field
 from typing import Optional, List
 from enum import Enum
+from uuid import uuid4
+import hashlib
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = 'BaseComponent'
@@ -54,7 +55,7 @@ class BaseComponent:
         for attr_name in dir(self):
             attr_value = getattr(self, attr_name)
             if callable(attr_value) and not attr_name.startswith("_"):
-                sig = signature(attr_value)
+                sig = inspect.signature(attr_value)
                 sig_hash.update(str(sig).encode())
         return sig_hash.hexdigest()
 
@@ -219,7 +220,7 @@ class BaseComponent:
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             if callable(attr_value) and not attr_name.startswith("_"):
-                sig = signature(attr_value)
+                sig = inspect.signature(attr_value)
                 sig_hash.update(str(sig).encode())
                 print(sig_hash.hexdigest())
         return sig_hash.hexdigest()
