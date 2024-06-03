@@ -1,9 +1,9 @@
-import inspect
-from dataclasses import dataclass, field
-from typing import Optional, List
-from enum import Enum
-from uuid import uuid4
 import hashlib
+from uuid import uuid4
+from enum import Enum
+from typing import Optional, List
+from dataclasses import dataclass, field
+import inspect
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = 'BaseComponent'
