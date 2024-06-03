@@ -63,15 +63,6 @@ jobs:
     - name: Classify test results
       run: |
         python tests/classify_results.py results.xml
-      continue-on-error: true
-
-    - name: Proceed if no major failures
-      if: ${{ success() }}
-      run: echo "No major failures. Proceeding to the next step."
-
-    - name: Fail if there are major failures
-      if: ${{ failure() }}
-      run: echo "Major failures detected. Failing the workflow."
       continue-on-error: false
 
     - name: Publish to PyPI
