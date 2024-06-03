@@ -5,11 +5,35 @@ from typing import Optional, List
 from enum import Enum
 
 class ResourceTypes(Enum):
-    UNIVERSAL_BASE = "BaseComponent"
-    PARAMETER = "Parameter"
-    TOOL = "Tool"
-    MODEL = "Model"
-    AGENT = "Agent"
+    UNIVERSAL_BASE = 'BaseComponent'
+    #AGENT_API = 'AgentAPI'
+    AGENT = 'Agent'
+    AGENT_FACTORY = 'AgentFactory'
+    CHAIN = 'Chain'
+    CHUNKER = 'Chunker'
+    CONVERASTION = 'Conversation'
+    DISTANCE = 'Distance'
+    DOCUMENT_STORE = 'DocumentStore'
+    DOCUMENT = 'Document'
+    EXCEPTION = 'Exception'
+    MESSAGE = 'Message'
+    METRIC = 'Metric'
+    MODEL = 'Model'
+    PARSER = 'Parser'
+    PROMPT = 'Prompt'
+    STATE = 'State'
+    SWARM = 'Swarm'
+    #SWARM_API = 'SwarmAPI'
+    TOOLKIT = 'Toolkit'
+    TOOL = 'Tool'
+    PARAMETER = 'Parameter'
+    TRACE = 'Trace'
+    UTIL = 'Util'
+    VECTOR_STORE = 'VectorStore'
+    VECTORIZER = 'Vectorizer'
+    VECTOR = 'Vector'
+
+
 
 class BaseComponent:
     version = "0.1.0"
