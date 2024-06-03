@@ -7,6 +7,7 @@ def parse_junit_xml(xml_path):
     unit_failures = 0
     integration_failures = 0
     acceptance_failures = 0
+    test_failures = 0
 
     for testcase in root.findall(".//testcase"):
         for failure in testcase.findall("failure"):
@@ -18,6 +19,7 @@ def parse_junit_xml(xml_path):
             elif '@pytest.mark.acceptance' in failure_text:
                 acceptance_failures += 1
             elif '@pytest.mark.test' in failure_text:
+                print('test failure found')
                 test_failures += 1
 
     return unit_failures, integration_failures, acceptance_failures
