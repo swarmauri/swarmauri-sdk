@@ -1,6 +1,8 @@
 import os
 from swarmauri.standard.models.concrete.AnthropicModel import AnthropicModel
 from swarmauri.standard.conversations.concrete.SimpleConversation import SimpleConversation
+
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
@@ -50,7 +52,7 @@ def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         conversation = SimpleConversation()
-
+        model = AnthropicModel(api_key = API_KEY)
 
         system_context = 'Your name is Jeff'
         human_message = SystemMessage(system_context)
@@ -59,6 +61,10 @@ def test_multiple_system_contexts():
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
+
+
+        prediction = model.predict(messages=conversation.as_messages())
+        conversation.add_message(AgentMessage(prediction))
 
         system_context_2 = 'Your name is Ben'
         human_message = SystemMessage(system_context_2)
