@@ -2,25 +2,33 @@ from typing import Optional, List, Any
 from abc import ABC, abstractmethod
 import json
 from swarmauri.core.tools.ITool import ITool
+from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
         
-class ToolBase(ITool, ABC):
-    
-    @abstractmethod
-    def __init__(self, name, description, parameters=[]):
-        self._name = name
-        self._description = description
-        self._parameters = parameters
-        self.type = "function"
-        self.function = {
-            "name": name,
-            "description": description,
-        }
-        
+@dataclass
+class ToolBase(ITool, BaseComponent, ABC):
+    id: Optional[str] = None
+    owner: Optional[str] = None
+    name: Optional[str] = None
+    host: Optional[str] = None
+    members: List[str] = field(default_factory=list)
+    #resource: Optional[str] = None
+    description: Optional[str] = None
+    parameters: List[Parameter] = field(default_factory=list)
+    type: str = field(init=False, default="function")
+    function: dict = field(init=False)
+
+    def __post_init__(self):
+        if not self.name:
+            self.name = self.__class__.__name__
+            
+        if not self.description:
+            raise ValueError('Tool must have a description.')
+
         # Dynamically constructing the parameters schema
         properties = {}
         required = []
-        
-        for param in parameters:
+
+        for param in self.parameters:
             properties[param.name] = {
                 "type": param.type,
                 "description": param.description,
@@ -30,44 +38,42 @@ class ToolBase(ITool, ABC):
 
             if param.required:
                 required.append(param.name)
-        
-        self.function['parameters'] = {
-            "type": "object",
-            "properties": properties,
+
+        self.function = {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "type": "object",
+                "properties": properties,
+            }
         }
         
         if required:  # Only include 'required' if there are any required parameters
             self.function['parameters']['required'] = required
 
+        # Assuming BaseComponent initialization if needed
+        BaseComponent.__init__(self, 
+                               id=self.id, 
+                               owner=self.owner, 
+                               name=self.name, 
+                               host=self.host, 
+                               members=self.members, 
+                               resource=ResourceTypes.TOOL.value)
 
-    @property
-    def name(self):
-        return self._name
 
-    @property
-    def description(self):
-        return self._description
 
     @property
     def parameters(self):
         return self._parameters
 
-    def __iter__(self):
-        yield ('type', self.type)
-        yield ('function', self.function)
-        
-
-    def as_dict(self):
-        return {'type': self.type, 'function': self.function}
-        # return self.__dict__
-
-    def to_json(obj):
-        return json.dumps(obj, default=lambda obj: obj.__dict__)
-
-    def __getstate__(self):
-        return {'type': self.type, 'function': self.function}
-
-
+    @parameters.setter
+    def parameters(self, value) -> None:
+        self._parameters = value
+    
+    def call(self, *args, **kwargs):
+        return self.__call__(*args, **kwargs)
+    
+    @abstractmethod
     def __call__(self, *args, **kwargs):
         """
         Placeholder method for executing the functionality of the tool.
@@ -77,4 +83,21 @@ class ToolBase(ITool, ABC):
         - *args: Variable length argument list.
         - **kwargs: Arbitrary keyword arguments.
         """
-        raise NotImplementedError("Subclasses must implement the call_function method.")
+        raise NotImplementedError("Subclasses must implement the __call__ method.")
+
+
+    def __getstate__(self):
+        return {'type': self.type, 'function': self.function}
+
+    def __iter__(self):
+        yield ('type', self.type)
+        yield ('function', self.function)
+        
+
+    def as_dict(self):
+        #return asdict(self)
+        return {'type': self.type, 'function': self.function}
+        
+    
+    def to_json(self):
+        return json.dumps(self, default=lambda self: self.__dict__)

@@ -4,9 +4,8 @@ from swarmauri.standard.tools.base.ToolBase import ToolBase  # Adjust the import
 from swarmauri.standard.tools.concrete.Parameter import Parameter  # Assuming a parameter structure is used
 
 class CodeInterpreterTool(ToolBase):
-    def __init__(self):
-        # Example of initializing the tool with parameters if necessary
-        parameters = [
+    version = "1.0.0"
+    parameters: List[Parameter] = field(default_factory=lambda: [
             Parameter(
                 name="user_code",
                 type="string",
@@ -15,10 +14,10 @@ class CodeInterpreterTool(ToolBase):
                              "Returns the output"),
                 required=True
             )
-        ]
-        super().__init__(name="CodeInterpreterTool", 
-                         description="Executes provided Python code and captures its output.",
-                         parameters=parameters)
+        ])
+    description="Executes provided Python code and captures its output."
+    
+
 
     def __call__(self, user_code: str) -> str:
         """

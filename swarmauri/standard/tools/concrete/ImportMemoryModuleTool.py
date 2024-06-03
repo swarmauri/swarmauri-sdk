@@ -7,9 +7,10 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class ImportMemoryModuleTool(ToolBase):
-    def __init__(self):
-        # Define the parameters required by the tool
-        parameters = [
+    version = "1.0.0"
+    
+    # Define the parameters required by the tool
+    parameters: List[Parameter] = field(default_factory=lambda: [
             Parameter(
                 name="name",
                 type="string",
@@ -28,12 +29,10 @@ class ImportMemoryModuleTool(ToolBase):
                 description="Dot-separated package path where the new module should be inserted.",
                 required=True
             )
-        ]
+        ])
         
-        # Call the ToolBase initializer
-        super().__init__(name="ImportMemoryModuleTool", 
-                         description="Dynamically imports a module from memory into a specified package path.",
-                         parameters=parameters)
+    description="Dynamically imports a module from memory into a specified package path."
+    
 
     def __call__(self, name: str, code: str, package_path: str) -> str:
         """

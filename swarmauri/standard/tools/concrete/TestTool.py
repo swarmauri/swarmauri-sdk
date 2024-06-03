@@ -1,23 +1,24 @@
 import json
 import subprocess as sp
-from ..base.ToolBase import ToolBase
-from .Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class TestTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter(
-                name="program",
-                type="string",
-                description="The program that the user wants to open ('notepad' or 'calc' or 'mspaint')",
-                required=True,
-                enum=["notepad", "calc", "mspaint"]
-            )
-        ]
+    version = "1.0.0"
         
-        super().__init__(name="TestTool", 
-                         description="This opens a program based on the user's request.", 
-                         parameters=parameters)
+    # Define the parameters required by the tool
+    parameters: List[Parameter] = field(default_factory=lambda: [
+        Parameter(
+            name="program",
+            type="string",
+            description="The program that the user wants to open ('notepad' or 'calc' or 'mspaint')",
+            required=True,
+            enum=["notepad", "calc", "mspaint"]
+        )
+    ])
+    
+    description="This opens a program based on the user's request."
+
 
     def __call__(self, program) -> str:
         # sp.check_output(program)

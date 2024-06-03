@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
-from ....core.toolkits.IToolkit import IToolkit
-from ....core.tools.ITool import ITool  
+from swarmauri.core.toolkits.IToolkit import IToolkit
+from swarmauri.core.tools.ITool import ITool  
 
 class ToolkitBase(IToolkit, ABC):
     """

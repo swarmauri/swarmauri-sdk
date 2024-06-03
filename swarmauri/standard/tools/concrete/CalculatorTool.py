@@ -1,45 +1,36 @@
-from swarmauri.standard.tools.base.ToolBase import ToolBase  # Adjust the import path as necessary
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+# tools/CalculatorTool.py
 
+from dataclasses import dataclass, field
+from typing import List, Optional
+from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter
+
+@dataclass
 class CalculatorTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter(
-                name="operation",
-                type="string",
-                description="The arithmetic operation to perform ('add', 'subtract', 'multiply', 'divide').",
-                required=True,
-                enum=["add", "subtract", "multiply", "divide"]
-            ),
-            Parameter(
-                name="x",
-                type="number",
-                description="The left operand for the operation.",
-                required=True
-            ),
-            Parameter(
-                name="y",
-                type="number",
-                description="The right operand for the operation.",
-                required=True
-            )
-        ]
-        super().__init__(name="CalculatorTool", 
-                         description="Performs basic arithmetic operations.",
-                         parameters=parameters)
+    version: str = "1.0.0"
+    parameters: List[Parameter] = field(default_factory=lambda: [
+        Parameter(
+            name="operation",
+            type="string",
+            description="The arithmetic operation to perform ('add', 'subtract', 'multiply', 'divide').",
+            required=True,
+            enum=["add", "subtract", "multiply", "divide"]
+        ),
+        Parameter(
+            name="x",
+            type="number",
+            description="The left operand for the operation.",
+            required=True
+        ),
+        Parameter(
+            name="y",
+            type="number",
+            description="The right operand for the operation.",
+            required=True
+        )
+    ])
+    description: str = "Performs basic arithmetic operations."
 
     def __call__(self, operation: str, x: float, y: float) -> str:
-        """
-        Executes the specified arithmetic operation on the given operands.
-        
-        Parameters:
-            operation (str): The arithmetic operation to perform.
-            x (float): The left operand.
-            y (float): The right operand.
-        
-        Returns:
-            str: Result of the arithmetic operation.
-        """
         try:
             if operation == "add":
                 result = x + y

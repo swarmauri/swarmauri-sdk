@@ -1,10 +1,11 @@
-from ..base.ToolBase import ToolBase
-from .Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase 
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
 
 class AdditionTool(ToolBase):
-    
-    def __init__(self):
-        parameters = [
+    version = "0.0.1"
+
+    parameters: List[Parameter] = field(default_factory=lambda: [
             Parameter(
                 name="x",
                 type="integer",
@@ -17,10 +18,10 @@ class AdditionTool(ToolBase):
                 description="The right operand",
                 required=True
             )
-        ]
-        super().__init__(name="TestTool", 
-                         description="This opens a program based on the user's request.", 
-                         parameters=parameters)
+        ])
+
+    description = "This tool has two numbers together"
+
 
     def __call__(self, x: int, y: int) -> int:
         """
@@ -31,6 +32,6 @@ class AdditionTool(ToolBase):
         - y (int): The second number.
 
         Returns:
-        - int: The sum of x and y.
+        - str: The sum of x and y.
         """
-        return x + y
+        return str(x + y)

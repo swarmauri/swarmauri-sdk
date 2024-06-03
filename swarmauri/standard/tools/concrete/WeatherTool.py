@@ -1,26 +1,27 @@
 import json
-from ..base.ToolBase import ToolBase
-from .Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class WeatherTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter(
-                name="location",
-                type="string",
-                description="The location for which to fetch weather information",
-                required=True
-            ),
-            Parameter(
-                name="unit",
-                type="string",
-                description="The unit for temperature ('fahrenheit' or 'celsius')",
-                required=True,
-                enum=["fahrenheit", "celsius"]
-            )
-        ]
-        
-        super().__init__(name="WeatherTool", description="Fetch current weather info for a location", parameters=parameters)
+    version = "0.1.dev1"
+    parameters: List[Parameter] = field(default_factory=lambda: [
+        Parameter(
+            name="location",
+            type="string",
+            description="The location for which to fetch weather information",
+            required=True
+        ),
+        Parameter(
+            name="unit",
+            type="string",
+            description="The unit for temperature ('fahrenheit' or 'celsius')",
+            required=True,
+            enum=["fahrenheit", "celsius"]
+        )
+    ])
+    
+    description="Fetch current weather info for a location"
+
 
     def __call__(self, location, unit="fahrenheit") -> str:
         weather_info = (location, unit)

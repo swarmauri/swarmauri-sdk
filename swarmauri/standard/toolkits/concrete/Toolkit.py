@@ -1,6 +1,6 @@
 from typing import Dict
-from ..base.ToolkitBase import ToolkitBase
-from ....core.tools.ITool import ITool
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.core.tools.ITool import ITool
 
 class Toolkit(ToolkitBase):
     """
