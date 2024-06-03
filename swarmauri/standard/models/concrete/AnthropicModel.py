@@ -25,18 +25,14 @@ class AnthropicModel(ModelBase, IPredict):
 
 
 
-        # Get system_context
+        # Get system_context from last message with system context in it
         system_context = None
         for message in messages:
             if message['role'] == 'system':
                 system_context = message['content']
 
         # Remove system instruction from messages
-        sanitized_messages = [message for message in messages if message['role'] != 'system'] 
-
-        # we should only remove one message for system instruction
-        if len(sanitized_messages) + 1 > len(messages):
-            raise ValueError('cannot send an array of conversations containing more than one system instruction.')
+        sanitized_messages = [message for message in messages if message['role'] != 'system']
 
         # Chat
         response = self.client.messages.create(
