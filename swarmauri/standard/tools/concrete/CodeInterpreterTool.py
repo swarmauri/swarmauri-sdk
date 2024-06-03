@@ -7,7 +7,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @dataclass
 class CodeInterpreterTool(ToolBase):
-    version = "1.0.0"
+    version: str = "1.0.0"
     parameters: List[Parameter] = field(default_factory=lambda: [
             Parameter(
                 name="user_code",
@@ -18,7 +18,7 @@ class CodeInterpreterTool(ToolBase):
                 required=True
             )
         ])
-    description="Executes provided Python code and captures its output."
+    description: str = "Executes provided Python code and captures its output."
     
 
 

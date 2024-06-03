@@ -7,7 +7,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @dataclass
 class TestTool(ToolBase):
-    version = "1.0.0"
+    version: str = "1.0.0"
         
     # Define the parameters required by the tool
     parameters: List[Parameter] = field(default_factory=lambda: [
@@ -20,7 +20,7 @@ class TestTool(ToolBase):
         )
     ])
     
-    description="This opens a program based on the user's request."
+    description: str = "This opens a program based on the user's request."
 
 
     def __call__(self, program) -> str:

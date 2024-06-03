@@ -5,8 +5,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @dataclass
 class AdditionTool(ToolBase):
-    version = "0.0.1"
-
+    version: str = "0.0.1"
     parameters: List[Parameter] = field(default_factory=lambda: [
             Parameter(
                 name="x",
@@ -22,7 +21,7 @@ class AdditionTool(ToolBase):
             )
         ])
 
-    description = "This tool has two numbers together"
+    description: str = "This tool has two numbers together"
 
 
     def __call__(self, x: int, y: int) -> int:

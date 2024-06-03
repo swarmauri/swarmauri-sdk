@@ -6,7 +6,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @dataclass
 class WeatherTool(ToolBase):
-    version = "0.1.dev1"
+    version: str = "0.1.dev1"
     parameters: List[Parameter] = field(default_factory=lambda: [
         Parameter(
             name="location",
@@ -23,7 +23,7 @@ class WeatherTool(ToolBase):
         )
     ])
     
-    description="Fetch current weather info for a location"
+    description: str = "Fetch current weather info for a location"
 
 
     def __call__(self, location, unit="fahrenheit") -> str:
