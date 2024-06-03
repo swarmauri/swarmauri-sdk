@@ -31,6 +31,39 @@ def test_no_system_context():
     test()
 
 @pytest.mark.unit
+def test_nonpreamble_system_context():
+    def test():
+        API_KEY = os.getenv('ANTHROPIC_API_KEY')
+        conversation = SimpleConversation()
+        model = AnthropicModel(api_key = API_KEY)
+
+        # Say hi
+        input_data = "Hi"
+        human_message = HumanMessage(input_data)
+        conversation.add_message(human_message)
+
+        # Get Prediction
+        prediction = model.predict(messages=conversation.as_messages())
+        conversation.add_message(AgentMessage(prediction))
+
+        # Give System Context
+        system_context = 'You only respond with the following phrase, "Jeff"'
+        human_message = SystemMessage(system_context)
+        conversation.add_message(human_message)
+
+        # Prompt
+        input_data = "Hello Again."
+        human_message = HumanMessage(input_data)
+        conversation.add_message(human_message)
+
+        
+        prediction_2 = model.predict(messages=conversation.as_messages())
+        assert type(prediction_2) == str
+        assert 'Jeff' in prediction_2
+    test()
+
+
+@pytest.mark.unit
 def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
