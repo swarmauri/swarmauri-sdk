@@ -9,5 +9,5 @@ def test_call():
     def test():
         test_tool = tTool()
         success_message = 'Program Opened: calc'
-        assert tTool('calc') == success_message
+        assert test_tool('calc') == success_message
     test()
