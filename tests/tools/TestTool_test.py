@@ -1,5 +1,6 @@
 from swarmauri.standard.tools.concrete.TestTool import TestTool as tTool
 
+@pytest.mark.test('unit')
 def test_initialization():
     def test():
         tool = tTool()
@@ -7,6 +8,7 @@ def test_initialization():
         assert type(tool.id) == str
     test()
 
+@pytest.mark.test('unit')
 def test_call():
     def test():
         tool = tTool()

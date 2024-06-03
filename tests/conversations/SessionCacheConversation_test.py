@@ -1,6 +1,7 @@
 from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage, FunctionMessage
 from swarmauri.standard.conversations.concrete.SessionCacheConversation import SessionCacheConversation
 
+@pytest.mark.test('unit')
 def test_1():
     def test_conversation_history(max_size):
         try:
@@ -38,6 +39,7 @@ def test_1():
     for max_size in range(0, 7, 1):
         test_conversation_history(max_size)
 
+@pytest.mark.test('unit')
 def test_2():
     def test_conversation_history(max_size):
             try:
@@ -80,6 +82,7 @@ def test_2():
     for max_size in range(0, 7, 1):
         test_conversation_history(max_size)
 
+@pytest.mark.test('unit')
 def test_3():
     def test_conversation_history(max_size):
         try:
@@ -93,6 +96,7 @@ def test_3():
     for max_size in range(0, 7, 1):
         test_conversation_history(max_size)
 
+@pytest.mark.test('unit')
 def test_4():
     def test_conversation_history(max_size):
         try:

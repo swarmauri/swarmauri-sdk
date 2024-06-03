@@ -12,15 +12,20 @@ def parse_junit_xml(xml_path):
         properties = testcase.find('properties')
         if properties:
             for prop in properties.findall('property'):
-                for failure in testcase.findall("failure"):
-                    if prop.attrib['name'] == 'unit':
-                        unit_failures += 1
+                if prop.attrib['name'] == 'test':
+                    test_type = prop.attrib['value']
 
-                    elif prop.attrib['name'] == 'integration':
-                        integration_failures += 1
+                    if 'unit' in test_type:
+                        for failure in testcase.findall("failure"):
+                            unit_failures += 1
 
-                    elif prop.attrib['name'] == 'acceptance':
-                        acceptance_failures += 1
+                    if 'integration' in test_type:
+                        for failure in testcase.findall("failure"):
+                            integration_failures += 1
+
+                    if 'acceptance' in test_type:
+                        for failure in testcase.findall("failure"):
+                            acceptance_failures += 1
 
     return unit_failures, integration_failures, acceptance_failures
 
