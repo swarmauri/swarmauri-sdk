@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Optional, List, Any
-from swarmauri.core.BaseComponent import BaseComponent
+from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
 from swarmauri.core.tools.IParameter import IParameter
 
 @dataclass
