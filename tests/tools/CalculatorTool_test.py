@@ -1,13 +1,15 @@
 from swarmauri.standard.tools.concrete.CalculatorTool import CalculatorTool
 
-def initialize_test():
-    tool = CalculatorTool()
-    assert tool('add', 2, 3) == str(5)
 
+def test_initialization():
+    def test():
+        tool = CalculatorTool()
+        assert tool('add', 2, 3) == str(5)
+    test()
 
-def assert_call():
-    tool = CalculatorTool()
-    assert tool('add', 2, 3) == str(5)
+def test_call():
+    def test():
+        tool = CalculatorTool()
+        assert tool('add', 2, 3) == str(5)
+    test()
     
-initialize_test()
-assert_call()

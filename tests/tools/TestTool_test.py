@@ -1,13 +1,13 @@
-from swarmauri.standard.tools.concrete.TestTool import TestTool
+from swarmauri.standard.tools.concrete.TestTool import TestTool as tTool
 
-def initialize_test():
-    test_tool = TestTool()
+def test_initialization():
+    def test():
+        test_tool = tTool()
+    test()
 
-def assert_call():
-    test_tool = TestTool()
-    success_message = 'Program Opened: calc'
-    assert test_tool('calc') == success_message
-
-initialize_test()
-assert_call()
-
+def test_call():
+    def test():
+        test_tool = tTool()
+        success_message = 'Program Opened: calc'
+        assert tTool('calc') == success_message
+    test()
