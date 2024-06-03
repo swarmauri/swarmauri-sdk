@@ -16,6 +16,11 @@ jobs:
       matrix:
         python-version: ["3.10"]
 
+
+    env:
+      # Define your environment variables here
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
