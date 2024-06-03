@@ -2,12 +2,14 @@ from swarmauri.standard.tools.concrete.TestTool import TestTool as tTool
 
 def test_initialization():
     def test():
-        test_tool = tTool()
+        tool = tTool()
+        assert type(tool.path) == str
+        assert type(tool.id) == str
     test()
 
 def test_call():
     def test():
-        test_tool = tTool()
+        tool = tTool()
         success_message = 'Program Opened: calc'
-        assert test_tool('calc') == success_message
+        assert tool('calc') == success_message
     test()

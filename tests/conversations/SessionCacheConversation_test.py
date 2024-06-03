@@ -6,21 +6,13 @@ def test_1():
         try:
             conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
             conv.add_message(HumanMessage('human'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(AgentMessage('agent'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(HumanMessage('human2'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(AgentMessage('agent2'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(HumanMessage('human3'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(AgentMessage('agent3'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(HumanMessage('human4'))
-            print([(each.role, each.content) for each in conv.history])
             conv.add_message(AgentMessage('agent4'))
-            print([(each.role, each.content) for each in conv.history])
             assert conv.history[0].content == 'systest'
             if max_size > 1:
                 assert conv.history[1].role != 'human'
@@ -51,17 +43,12 @@ def test_2():
             try:
                 conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
                 conv.add_message(HumanMessage('human'))
-                print([(each.role, each.content) for each in conv.history])
                 conv.add_message(AgentMessage('agent'))
-                print([(each.role, each.content) for each in conv.history])
                 conv.add_message(HumanMessage('human2'))
-                print([(each.role, each.content) for each in conv.history])
                 conv.add_message(AgentMessage('agent2'))
-                print([(each.role, each.content) for each in conv.history])
                 conv.add_message(HumanMessage('human3'))
-                print([(each.role, each.content) for each in conv.history])
                 conv.add_message(AgentMessage('agent3'))
-                print([(each.role, each.content) for each in conv.history])
+                 
                 assert conv.history[0].content == 'systest'
                 if max_size > 1:
                     assert conv.history[1].role != 'human'
