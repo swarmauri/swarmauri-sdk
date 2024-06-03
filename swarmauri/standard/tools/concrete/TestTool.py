@@ -1,10 +1,11 @@
+from typing import List
+from dataclasses import dataclass, field
 import json
 import subprocess as sp
-from typing import List
-from dataclasses import field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
+@dataclass
 class TestTool(ToolBase):
     version = "1.0.0"
         

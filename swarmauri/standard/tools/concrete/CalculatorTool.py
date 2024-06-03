@@ -1,5 +1,3 @@
-# tools/CalculatorTool.py
-
 from dataclasses import dataclass, field
 from typing import List, Optional
 from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter

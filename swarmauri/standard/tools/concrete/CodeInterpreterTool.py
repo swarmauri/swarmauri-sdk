@@ -1,10 +1,11 @@
 import sys
 import io
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import List
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
+@dataclass
 class CodeInterpreterTool(ToolBase):
     version = "1.0.0"
     parameters: List[Parameter] = field(default_factory=lambda: [

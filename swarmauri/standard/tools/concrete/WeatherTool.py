@@ -1,9 +1,10 @@
-from dataclasses import field
 from typing import List
+from dataclasses import dataclass, field
 import json
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
+@dataclass
 class WeatherTool(ToolBase):
     version = "0.1.dev1"
     parameters: List[Parameter] = field(default_factory=lambda: [

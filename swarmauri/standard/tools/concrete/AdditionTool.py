@@ -1,8 +1,9 @@
 from typing import List
-from dataclasses import field
+from dataclasses import dataclass, field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
+@dataclass
 class AdditionTool(ToolBase):
     version = "0.0.1"
 
