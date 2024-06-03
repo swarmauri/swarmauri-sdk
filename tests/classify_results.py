@@ -9,15 +9,18 @@ def parse_junit_xml(xml_path):
     acceptance_failures = 0
 
     for testcase in root.findall(".//testcase"):
-        classname = testcase.attrib.get('classname', '').lower()
-        name = testcase.attrib.get('name', '').lower()
-        for failure in testcase.findall("failure"):
-            if 'unit' in classname or 'unit' in name:
-                unit_failures += 1
-            elif 'integration' in classname or 'integration' in name:
-                integration_failures += 1
-            elif 'acceptance' in classname or 'acceptance' in name:
-                acceptance_failures += 1
+        properties = testcase.find('properties')
+        if properties:
+            for prop in properties.findall('property'):
+                for failure in testcase.findall("failure"):
+                    if prop.attrib['name'] == 'unit':
+                        unit_failures += 1
+
+                    elif prop.attrib['name'] == 'integration':
+                        integration_failures += 1
+
+                    elif prop.attrib['name'] == 'acceptance':
+                        acceptance_failures += 1
 
     return unit_failures, integration_failures, acceptance_failures
 
@@ -28,7 +31,11 @@ if __name__ == "__main__":
     print(f"Integration Failures: {integration_failures}")
     print(f"Acceptance Failures: {acceptance_failures}")
 
-    if acceptance_failures > 0:
+    if acceptance_failures > 5:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
+    elif integration_failures > 0:
+        sys.exit(2)  # Exit with code 2 to indicate integration test failures
+    elif unit_failures > 0:
+        sys.exit(3)  # Exit with code 3 to indicate unit test failures
     else:
-        sys.exit(0)  # Exit with code 0 to indicate no acceptance test failures
+        sys.exit(0)  # Exit with code 0 to indicate no failures

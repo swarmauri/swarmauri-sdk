@@ -56,6 +56,10 @@ jobs:
       run: |
         pytest -v --junitxml=results.xml
 
+    - name: Output test results for debugging
+      run: |
+        cat results.xml
+
     - name: Classify test results
       run: |
         python tests/classify_results.py results.xml
