@@ -27,6 +27,6 @@ if __name__ == "__main__":
     print(f"Acceptance Failures: {acceptance_failures}")
 
     if unit_failures + integration_failures > 0:
-        sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
+        sys.exit(1)  # Exit with code 1 to indicate unit and integration test failures
     else:
-        sys.exit(0)  # Exit with code 0 to indicate no acceptance test failures
+        sys.exit(0)  # Exit with code 0 to indicate no unit and integration test failures
