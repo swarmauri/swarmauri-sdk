@@ -5,14 +5,14 @@ from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 
 def test_initialization():
     def test():
-        GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-        model = GroqModel(api_key = GROQ_API_KEY)
+        API_KEY = os.getenv('GROQ_API_KEY')
+        model = GroqModel(api_key = API_KEY)
         assert model.model_name == 'mixtral-8x7b-32768'
     test()
 
 def test_call():
     def test():
-        GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+        API_KEY = os.getenv('GROQ_API_KEY')
         conversation = SimpleConversation()
 
 
@@ -20,6 +20,6 @@ def test_call():
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        model = GroqModel(api_key = GROQ_API_KEY)
+        model = GroqModel(api_key = API_KEY)
         assert type(model.predict(messages=conversation.as_messages())) == str
     test()
