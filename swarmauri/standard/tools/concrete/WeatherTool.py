@@ -1,6 +1,7 @@
+from dataclasses import field
 import json
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase 
+from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
 class WeatherTool(ToolBase):
     version = "0.1.dev1"

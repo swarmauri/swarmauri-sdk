@@ -2,8 +2,9 @@
 import sys
 import types
 import importlib
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from dataclasses import field
+from swarmauri.standard.tools.base.ToolBase import ToolBase 
+from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
 
 class ImportMemoryModuleTool(ToolBase):

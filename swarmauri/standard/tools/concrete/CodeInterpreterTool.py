@@ -1,7 +1,8 @@
 import sys
 import io
-from swarmauri.standard.tools.base.ToolBase import ToolBase  # Adjust the import path as necessary
-from swarmauri.standard.tools.concrete.Parameter import Parameter  # Assuming a parameter structure is used
+from dataclasses import field
+from swarmauri.standard.tools.base.ToolBase import ToolBase 
+from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
 class CodeInterpreterTool(ToolBase):
     version = "1.0.0"

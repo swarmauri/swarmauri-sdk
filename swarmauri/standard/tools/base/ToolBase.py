@@ -1,5 +1,6 @@
-from typing import Optional, List, Any
 from abc import ABC, abstractmethod
+from typing import Optional, List, Any
+from dataclasses import dataclass, field, asdict
 import json
 from swarmauri.core.tools.ITool import ITool
 from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
@@ -12,6 +13,7 @@ class ToolBase(ITool, BaseComponent, ABC):
     host: Optional[str] = None
     members: List[str] = field(default_factory=list)
     #resource: Optional[str] = None
+    
     description: Optional[str] = None
     parameters: List[Parameter] = field(default_factory=list)
     type: str = field(init=False, default="function")
