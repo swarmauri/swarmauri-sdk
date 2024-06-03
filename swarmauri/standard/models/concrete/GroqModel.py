@@ -22,6 +22,17 @@ class GroqModel(ModelBase, IPredict):
         top_p=1, 
         enable_json=False, 
         stop: List[str] = None):
+
+        # Get system_context from last message with system context in it
+        system_context = None
+        for message in messages:
+            if message['role'] == 'system':
+                system_context = message
+
+        
+        # Remove system instruction from messages
+        sanitized_messages = [system_context].extend([message for message in messages if message['role'] != 'system'])
+
         if enable_json:
             response = self.client.chat.completions.create(
                 model=self.model_name,
