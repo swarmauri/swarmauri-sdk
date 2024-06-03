@@ -20,12 +20,13 @@ def test_no_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         conversation = SimpleConversation()
+        model = GroqModel(api_key = API_KEY)
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        model = GroqModel(api_key = API_KEY)
+        
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
     test()

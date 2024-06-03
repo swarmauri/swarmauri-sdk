@@ -9,6 +9,7 @@ def parse_junit_xml(xml_path):
     acceptance_failures = 0
 
     for testcase in root.findall(".//testcase"):
+        print(f"TestCase: {testcase}")
         properties = testcase.find('properties')
         if properties:
             for prop in properties.findall('property'):
