@@ -2,8 +2,7 @@ import requests
 import hashlib
 from functools import wraps
 from uuid import uuid4
-from inspect import signature, isfunction
-
+import inspect
 
 def remote_local_transport(cls):
     original_init = cls.__init__
@@ -70,7 +69,7 @@ class RemoteLocalMeta(type):
         sig_hash = hashlib.sha256()
         for attr_name, attr_value in cls.__dict__.items():
             if callable(attr_value) and not attr_name.startswith("_"):
-                sig = signature(attr_value)
+                sig = inspect.signature(attr_value)
                 sig_hash.update(str(sig).encode())
         return sig_hash.hexdigest()
     

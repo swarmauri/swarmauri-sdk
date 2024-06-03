@@ -4,7 +4,8 @@ from dataclasses import dataclass, field, asdict
 import json
 from swarmauri.core.tools.ITool import ITool
 from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
-        
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
 @dataclass
 class ToolBase(ITool, BaseComponent, ABC):
     id: Optional[str] = None

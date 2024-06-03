@@ -174,7 +174,7 @@ class BaseComponent:
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             if callable(attr_value) and not attr_name.startswith("_"):
-                sig = signature(attr_value)
+                sig = inspect.signature(attr_value)
                 sig_hash.update(str(sig).encode())
                 print(sig_hash.hexdigest())
         return sig_hash.hexdigest()

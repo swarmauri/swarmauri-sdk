@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Any
 import json
-
+from swarmauri.core.BaseComponent import BaseComponent
 from swarmauri.standard.tools.base.ParameterBase import ParameterBase
 
 @dataclass
