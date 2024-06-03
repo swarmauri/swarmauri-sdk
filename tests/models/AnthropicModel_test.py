@@ -18,7 +18,6 @@ def test_no_system_context():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         conversation = SimpleConversation()
 
-
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
@@ -32,7 +31,6 @@ def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         conversation = SimpleConversation()
-
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
@@ -62,7 +60,6 @@ def test_multiple_system_contexts():
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-
         prediction = model.predict(messages=conversation.as_messages())
         conversation.add_message(AgentMessage(prediction))
 
@@ -74,7 +71,6 @@ def test_multiple_system_contexts():
         human_message = HumanMessage(input_data_2)
         conversation.add_message(human_message)
 
-        model = AnthropicModel(api_key = API_KEY)
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
         assert 'Ben' in prediction

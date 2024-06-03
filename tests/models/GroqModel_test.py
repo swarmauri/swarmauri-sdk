@@ -1,7 +1,10 @@
 import os
 from swarmauri.standard.models.concrete.GroqModel import GroqModel
 from swarmauri.standard.conversations.concrete.SimpleConversation import SimpleConversation
+
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 def test_initialization():
     def test():
@@ -10,16 +13,65 @@ def test_initialization():
         assert model.model_name == 'mixtral-8x7b-32768'
     test()
 
-def test_call():
+def test_no_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         conversation = SimpleConversation()
-
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
         model = GroqModel(api_key = API_KEY)
-        assert type(model.predict(messages=conversation.as_messages())) == str
+        prediction = model.predict(messages=conversation.as_messages())
+        assert type(prediction) == str
+    test()
+
+def test_preamble_system_context():
+    def test():
+        API_KEY = os.getenv('GROQ_API_KEY')
+        conversation = SimpleConversation()
+
+        system_context = 'You only respond with the following phrase, "Jeff"'
+        human_message = SystemMessage(system_context)
+        conversation.add_message(human_message)
+
+        input_data = "Hi"
+        human_message = HumanMessage(input_data)
+        conversation.add_message(human_message)
+
+        model = GroqModel(api_key = API_KEY)
+        prediction = model.predict(messages=conversation.as_messages())
+        assert type(prediction) == str
+        assert 'Jeff' in prediction
+    test()
+
+def test_multiple_system_contexts():
+    def test():
+        API_KEY = os.getenv('GROQ_API_KEY')
+        conversation = SimpleConversation()
+        model = GroqModel(api_key = API_KEY)
+
+        system_context = 'You only respond with the following phrase, "Jeff"'
+        human_message = SystemMessage(system_context)
+        conversation.add_message(human_message)
+
+        input_data = "Hi"
+        human_message = HumanMessage(input_data)
+        conversation.add_message(human_message)
+
+        prediction = model.predict(messages=conversation.as_messages())
+        conversation.add_message(AgentMessage(prediction))
+
+        system_context_2 = 'You only respond with the following phrase, "Ben"'
+        human_message = SystemMessage(system_context_2)
+        conversation.add_message(human_message)
+
+        input_data_2 = "Hey"
+        human_message = HumanMessage(input_data_2)
+        conversation.add_message(human_message)
+
+        prediction = model.predict(messages=conversation.as_messages())
+        assert type(prediction) == str
+        assert 'Ben' in prediction
     test()
