@@ -38,6 +38,10 @@ class ITool(ABC):
     def parameters(self, value)  -> None:
         pass
     
+    @property
+    def function(self):
+        pass
+
     
     @abstractmethod
     def as_dict(self):
