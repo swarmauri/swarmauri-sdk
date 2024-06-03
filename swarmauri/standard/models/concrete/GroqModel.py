@@ -29,9 +29,10 @@ class GroqModel(ModelBase, IPredict):
             if message['role'] == 'system':
                 system_context = message
 
-        
-        # Remove system instruction from messages
-        sanitized_messages = [system_context].extend([message for message in messages if message['role'] != 'system'])
+        if system_context:
+            sanitized_messages = [system_context].extend([message for message in messages if message['role'] != 'system'])
+        else:
+            sanitized_messages = [message for message in messages if message['role'] != 'system']
 
         if enable_json:
             response = self.client.chat.completions.create(

@@ -7,7 +7,7 @@ from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_initialization():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
@@ -15,7 +15,7 @@ def test_initialization():
         assert model.model_name == 'claude-3-haiku-20240307'
     test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_no_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
@@ -30,7 +30,7 @@ def test_no_system_context():
         assert type(prediction) == str
     test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
@@ -63,7 +63,7 @@ def test_nonpreamble_system_context():
     test()
 
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
@@ -83,7 +83,7 @@ def test_preamble_system_context():
         assert 'Jeff' in prediction
     test()
 
-@pytest.mark.test('acceptance')
+@pytest.mark.acceptance
 def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
