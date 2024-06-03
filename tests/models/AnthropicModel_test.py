@@ -33,7 +33,7 @@ def test_preamble_system_context():
 
 
         system_context = 'Your name is Jeff'
-        human_message = SystemMessage(input_data)
+        human_message = SystemMessage(system_context)
         conversation.add_message(human_message)
 
         input_data = "Hello, what is your name?"
@@ -53,19 +53,19 @@ def test_multiple_system_contexts():
 
 
         system_context = 'Your name is Jeff'
-        human_message = SystemMessage(input_data)
+        human_message = SystemMessage(system_context)
         conversation.add_message(human_message)
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        system_context = 'Your name is Ben'
-        human_message = SystemMessage(input_data)
+        system_context_2 = 'Your name is Ben'
+        human_message = SystemMessage(system_context_2)
         conversation.add_message(human_message)
 
-        input_data = "What is your name?"
-        human_message = HumanMessage(input_data)
+        input_data_2 = "What is your name?"
+        human_message = HumanMessage(input_data_2)
         conversation.add_message(human_message)
 
         model = AnthropicModel(api_key = API_KEY)
