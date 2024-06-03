@@ -13,7 +13,7 @@ def test_initialization():
         assert model.model_name == 'claude-3-haiku-20240307'
     test()
 
-def test_call():
+def test_no_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         conversation = SimpleConversation()
@@ -34,11 +34,11 @@ def test_preamble_system_context():
         conversation = SimpleConversation()
 
 
-        system_context = 'Your name is Jeff'
+        system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
         conversation.add_message(human_message)
 
-        input_data = "Hello, what is your name?"
+        input_data = "Hi"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
@@ -54,11 +54,11 @@ def test_multiple_system_contexts():
         conversation = SimpleConversation()
         model = AnthropicModel(api_key = API_KEY)
 
-        system_context = 'Your name is Jeff'
+        system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
         conversation.add_message(human_message)
 
-        input_data = "Hello"
+        input_data = "Hi"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
@@ -66,11 +66,11 @@ def test_multiple_system_contexts():
         prediction = model.predict(messages=conversation.as_messages())
         conversation.add_message(AgentMessage(prediction))
 
-        system_context_2 = 'Your name is Ben'
+        system_context_2 = 'You only respond with the following phrase, "Ben"'
         human_message = SystemMessage(system_context_2)
         conversation.add_message(human_message)
 
-        input_data_2 = "What is your name?"
+        input_data_2 = "Hey"
         human_message = HumanMessage(input_data_2)
         conversation.add_message(human_message)
 
