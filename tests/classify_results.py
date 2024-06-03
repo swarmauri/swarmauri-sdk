@@ -34,8 +34,8 @@ if __name__ == "__main__":
     if acceptance_failures > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
     elif integration_failures > 0:
-        sys.exit(2)  # Exit with code 2 to indicate integration test failures
+        sys.exit(1)  # Exit with code 1 to indicate integration test failures
     elif unit_failures > 0:
-        sys.exit(3)  # Exit with code 3 to indicate unit test failures
+        sys.exit(1)  # Exit with code 1 to indicate unit test failures
     else:
         sys.exit(0)  # Exit with code 0 to indicate no failures

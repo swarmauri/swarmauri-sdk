@@ -30,7 +30,7 @@ def test_no_system_context():
         assert type(prediction) == str
     test()
 
-@pytest.mark.unit
+@pytest.mark.acceptance
 def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
