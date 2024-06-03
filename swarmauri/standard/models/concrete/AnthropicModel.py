@@ -1,9 +1,9 @@
 import json
 from typing import List
 import anthropic
+import logging
 from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
-
 
 class AnthropicModel(ModelBase, IPredict):
     allowed_models = ['claude-3-opus-20240229', 
@@ -23,26 +23,32 @@ class AnthropicModel(ModelBase, IPredict):
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
 
-
-
         # Get system_context from last message with system context in it
         system_context = None
         for message in messages:
             if message['role'] == 'system':
                 system_context = message['content']
+                logging.info(f'Setting system to {system_context}.')
 
+        
         # Remove system instruction from messages
         sanitized_messages = [message for message in messages if message['role'] != 'system']
 
-        # Chat
-        response = self.client.messages.create(
-            model=self.model_name,
-            messages=sanitized_messages,
-            system=system_context,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-        
+        if system_context:
+            response = self.client.messages.create(
+                model=self.model_name,
+                messages=sanitized_messages,
+                system=system_context,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+        else:
+            response = self.client.messages.create(
+                model=self.model_name,
+                messages=sanitized_messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
         
         message_content = response.content[0].text
         return message_content
