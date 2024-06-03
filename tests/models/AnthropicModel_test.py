@@ -19,13 +19,13 @@ def test_initialization():
 def test_no_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
+        model = AnthropicModel(api_key = API_KEY)
         conversation = SimpleConversation()
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        model = AnthropicModel(api_key = API_KEY)
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
     test()
@@ -34,8 +34,8 @@ def test_no_system_context():
 def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
-        conversation = SimpleConversation()
         model = AnthropicModel(api_key = API_KEY)
+        conversation = SimpleConversation()
 
         # Say hi
         input_data = "Hi"
@@ -67,6 +67,7 @@ def test_nonpreamble_system_context():
 def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
+        model = AnthropicModel(api_key = API_KEY)
         conversation = SimpleConversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
@@ -77,7 +78,6 @@ def test_preamble_system_context():
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        model = AnthropicModel(api_key = API_KEY)
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
         assert 'Jeff' in prediction
@@ -87,8 +87,8 @@ def test_preamble_system_context():
 def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
-        conversation = SimpleConversation()
         model = AnthropicModel(api_key = API_KEY)
+        conversation = SimpleConversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)

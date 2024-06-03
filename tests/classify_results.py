@@ -9,24 +9,16 @@ def parse_junit_xml(xml_path):
     acceptance_failures = 0
 
     for testcase in root.findall(".//testcase"):
-        print(f"TestCase: {testcase}")
-        properties = testcase.find('properties')
-        if properties:
-            for prop in properties.findall('property'):
-                if prop.attrib['name'] == 'test':
-                    test_type = prop.attrib['value']
-
-                    if 'unit' in test_type:
-                        for failure in testcase.findall("failure"):
-                            unit_failures += 1
-
-                    if 'integration' in test_type:
-                        for failure in testcase.findall("failure"):
-                            integration_failures += 1
-
-                    if 'acceptance' in test_type:
-                        for failure in testcase.findall("failure"):
-                            acceptance_failures += 1
+        for failure in testcase.findall("failure"):
+            failure_text = failure.text.lower()
+            if '@pytest.mark.unit' in failure_text:
+                unit_failures += 1
+            elif '@pytest.mark.integration' in failure_text:
+                integration_failures += 1
+            elif '@pytest.mark.acceptance' in failure_text:
+                acceptance_failures += 1
+            elif '@pytest.mark.test' in failure_text:
+                test_failures += 1
 
     return unit_failures, integration_failures, acceptance_failures
 
@@ -37,7 +29,7 @@ if __name__ == "__main__":
     print(f"Integration Failures: {integration_failures}")
     print(f"Acceptance Failures: {acceptance_failures}")
 
-    if acceptance_failures > 5:
+    if acceptance_failures > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
     elif integration_failures > 0:
         sys.exit(2)  # Exit with code 2 to indicate integration test failures

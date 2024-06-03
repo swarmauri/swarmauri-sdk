@@ -7,7 +7,7 @@ from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_initialization():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
@@ -15,28 +15,27 @@ def test_initialization():
         assert model.model_name == 'mixtral-8x7b-32768'
     test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_no_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
-        conversation = SimpleConversation()
         model = GroqModel(api_key = API_KEY)
+        conversation = SimpleConversation()
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
-
         
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
     test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
-        conversation = SimpleConversation()
         model = GroqModel(api_key = API_KEY)
+        conversation = SimpleConversation()
 
         # Say hi
         input_data = "Hi"
@@ -63,10 +62,11 @@ def test_nonpreamble_system_context():
         assert 'Jeff' in prediction_2
     test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
+        model = GroqModel(api_key = API_KEY)
         conversation = SimpleConversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
@@ -77,18 +77,17 @@ def test_preamble_system_context():
         human_message = HumanMessage(input_data)
         conversation.add_message(human_message)
 
-        model = GroqModel(api_key = API_KEY)
         prediction = model.predict(messages=conversation.as_messages())
         assert type(prediction) == str
         assert 'Jeff' in prediction
     test()
 
-@pytest.mark.test('acceptance')
+@pytest.mark.acceptance
 def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
-        conversation = SimpleConversation()
         model = GroqModel(api_key = API_KEY)
+        conversation = SimpleConversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
