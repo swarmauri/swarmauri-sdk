@@ -35,31 +35,63 @@ class ResourceTypes(Enum):
 
 
 
+def generate_id() -> str:
+    return str(uuid4())
+
+@dataclass
 class BaseComponent:
-    version = "0.1.0"
-    
-    def __init__(self, id: Optional[str] = None, 
-                 owner: Optional[str] = None, 
-                 name: Optional[str] = "",
-                 host: Optional[str] = None,
-                 members: List[str] = [],
-                 resource: Optional[str] = None):
-        self._id = id or str(uuid4())
-        self._owner = owner
-        self._name = name
-        self._class_name = self.__class__.__name__
-        self._host = host
-        self._members = members
-        if not resource and self.__class__.__name__ != 'BaseComponent':
-            raise ValueError('must explicitly define resource')
-        self.resource = resource if resource else ResourceTypes.UNIVERSAL_BASE.value
-        self._path = f"{self._host if self._host else ''}/{self._owner}/{self.resource}/{self._name}/{self._id}"
-        self._class_hash = self._calculate_class_hash()
+    _name: Optional[str] = None
+    _id: str = field(default_factory=generate_id)
+    _members: List[str] = field(default_factory=list)
+    _owner: Optional[str] = None
+    _host: Optional[str] = None
+    _resource: Optional[str] = field(default="BaseComponent")
+    version: str = "0.1.0"
+
+
+    def _calculate_class_hash(self):
+        sig_hash = hashlib.sha256()
+        for attr_name in dir(self):
+            attr_value = getattr(self, attr_name)
+            if callable(attr_value) and not attr_name.startswith("_"):
+                sig = signature(attr_value)
+                sig_hash.update(str(sig).encode())
+        return sig_hash.hexdigest()
+
+    @classmethod
+    def public_interfaces(cls):
+        methods = []
+        for attr_name in dir(cls):
+            attr_value = getattr(cls, attr_name)
+            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(attr_value, property):
+                methods.append(attr_name)
+        return methods
+
+    @classmethod
+    def is_method_registered(cls, method_name: str):
+        return method_name in cls.public_interfaces()
+
+    @classmethod
+    def method_with_signature(cls, input_signature):
+        for method_name in cls.public_interfaces():
+            method = getattr(cls, method_name)
+            if callable(method):
+                sig = str(inspect.signature(method))
+                if sig == input_signature:
+                    return True
+        return False
+
 
     @property
     def id(self):
         return self._id
 
+    @id.setter
+    def id(self, value):
+        if not isinstance(value, str):
+            raise ValueError("id must be a string.")
+        self._id = value
+    
     @property
     def owner(self):
         return self._owner
@@ -119,8 +151,21 @@ class BaseComponent:
     
     @property
     def path(self):
-        return self._path
+        if self.host and self.owner:
+            return f"{self.host}/{self.owner}/{self.resource}/{self.name}/{self.id}"
+        if self.resource and self.name:
+            return f"/{self.resource}/{self.name}/{self.id}"
+        
+        return f"/{self.resource}/{self.id}"
 
+    @property
+    def class_name(self):
+        return self.__class__.__name__
+
+    @property
+    def class_hash(self):
+        self._calculate_class_hash()
+    
     @property
     def is_remote(self):
         return bool(self._host)
@@ -174,7 +219,7 @@ class BaseComponent:
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             if callable(attr_value) and not attr_name.startswith("_"):
-                sig = inspect.signature(attr_value)
+                sig = signature(attr_value)
                 sig_hash.update(str(sig).encode())
                 print(sig_hash.hexdigest())
         return sig_hash.hexdigest()

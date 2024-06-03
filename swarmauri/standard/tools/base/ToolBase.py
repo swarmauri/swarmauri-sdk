@@ -8,16 +8,11 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @dataclass
 class ToolBase(ITool, BaseComponent, ABC):
-    id: Optional[str] = None
-    owner: Optional[str] = None
-    name: Optional[str] = None
-    host: Optional[str] = None
-    members: List[str] = field(default_factory=list)
-    #resource: Optional[str] = None
     description: Optional[str] = None
     parameters: List[Parameter] = field(default_factory=list)
     type: str = field(init=False, default="function")
-    #function: dict = field(init=False)
+    
+    resource: Optional[str] =  field(default=ResourceTypes.TOOL.value)
 
     def __post_init__(self):
         if not self.name:
@@ -25,17 +20,6 @@ class ToolBase(ITool, BaseComponent, ABC):
             
         if not self.description:
             raise ValueError('Tool must have a description.')
-
-
-
-        # Assuming BaseComponent initialization if needed
-        BaseComponent.__init__(self, 
-                               id=self.id, 
-                               owner=self.owner, 
-                               name=self.name, 
-                               host=self.host, 
-                               members=self.members, 
-                               resource=ResourceTypes.TOOL.value)
 
 
 
@@ -52,16 +36,7 @@ class ToolBase(ITool, BaseComponent, ABC):
     
     @abstractmethod
     def __call__(self, *args, **kwargs):
-        """
-        Placeholder method for executing the functionality of the tool.
-        Subclasses should override this method to define specific tool behaviors.
-
-        Parameters:
-        - *args: Variable length argument list.
-        - **kwargs: Arbitrary keyword arguments.
-        """
         raise NotImplementedError("Subclasses must implement the __call__ method.")
-
 
 
     def __getstate__(self):

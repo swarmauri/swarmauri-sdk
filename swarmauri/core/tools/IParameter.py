@@ -1,26 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any, Union
+from typing import List, Union
 
 class IParameter(ABC):
     """
     An abstract class to represent a parameter for a tool.
     """
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """
-        Abstract property for getting the name of the parameter.
-        """
-        pass
-
-    @name.setter
-    @abstractmethod
-    def name(self, value: str):
-        """
-        Abstract setter for setting the name of the parameter.
-        """
-        pass
 
     @property
     @abstractmethod
@@ -32,7 +16,7 @@ class IParameter(ABC):
 
     @type.setter
     @abstractmethod
-    def type(self, value: str):
+    def type(self, value: str) -> None:
         """
         Abstract setter for setting the type of the parameter.
         """
@@ -48,7 +32,7 @@ class IParameter(ABC):
 
     @description.setter
     @abstractmethod
-    def description(self, value: str):
+    def description(self, value: str) -> None:
         """
         Abstract setter for setting the description of the parameter.
         """
@@ -64,7 +48,7 @@ class IParameter(ABC):
 
     @required.setter
     @abstractmethod
-    def required(self, value: bool):
+    def required(self, value: bool)  -> None:
         """
         Abstract setter for setting the required status of the parameter.
         """
@@ -80,7 +64,7 @@ class IParameter(ABC):
 
     @enum.setter
     @abstractmethod
-    def enum(self, value: List[str]):
+    def enum(self, value: List[str]) -> None:
         """
         Abstract setter for setting the enum list of the parameter.
         """

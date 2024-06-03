@@ -4,6 +4,7 @@ from typing import Optional, List, Any
 from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
 from swarmauri.core.tools.IParameter import IParameter
 
+
 @dataclass
 class ParameterBase(IParameter, BaseComponent, ABC):
     name: str
@@ -16,7 +17,7 @@ class ParameterBase(IParameter, BaseComponent, ABC):
     owner: Optional[str] = None
     host: Optional[str] = None
     members: List[str] = field(default_factory=list)
-    #resource = None
+    resource: Optional[str] =  field(default=ResourceTypes.PARAMETER.value)
 
     
     def __post_init__(self):
@@ -32,25 +33,6 @@ class ParameterBase(IParameter, BaseComponent, ABC):
         if type(self.enum) == property:
             self.enum = None
             
-            
-
-        # Assuming BaseComponent initialization if needed
-        BaseComponent.__init__(self, 
-                               id=self.id, 
-                               owner=self.owner, 
-                               name=self.name, 
-                               host=self.host, 
-                               members=self.members, 
-                               resource=ResourceTypes.PARAMETER.value)
-        
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, value: str):
-        self._name = value
-
     @property
     def type(self) -> str:
         return self._type
