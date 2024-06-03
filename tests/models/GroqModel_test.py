@@ -1,3 +1,4 @@
+import pytest
 import os
 from swarmauri.standard.models.concrete.GroqModel import GroqModel
 from swarmauri.standard.conversations.concrete.SimpleConversation import SimpleConversation
@@ -6,6 +7,7 @@ from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
+@pytest.mark.major
 def test_initialization():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
@@ -13,6 +15,7 @@ def test_initialization():
         assert model.model_name == 'mixtral-8x7b-32768'
     test()
 
+@pytest.mark.major
 def test_no_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
@@ -27,6 +30,7 @@ def test_no_system_context():
         assert type(prediction) == str
     test()
 
+@pytest.mark.major
 def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
@@ -46,6 +50,7 @@ def test_preamble_system_context():
         assert 'Jeff' in prediction
     test()
 
+@pytest.mark.minor
 def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
