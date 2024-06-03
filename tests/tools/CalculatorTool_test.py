@@ -1,6 +1,8 @@
+import pytest
 from swarmauri.standard.tools.concrete.CalculatorTool import CalculatorTool
 
 
+@pytest.mark.unit
 def test_initialization():
     def test():
         tool = CalculatorTool()
@@ -9,6 +11,8 @@ def test_initialization():
 
     test()
 
+
+@pytest.mark.unit
 def test_call():
     def test():
         tool = CalculatorTool()

@@ -54,7 +54,7 @@ jobs:
     - name: Run tests
       continue-on-error: true
       run: |
-        pytest --junitxml=results.xml
+        pytest -v --junitxml=results.xml
 
     - name: Classify test results
       run: |
