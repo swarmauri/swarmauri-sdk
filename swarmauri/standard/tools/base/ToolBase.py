@@ -3,8 +3,8 @@ from typing import Optional, List, Any
 from dataclasses import dataclass, field, asdict
 import json
 from swarmauri.core.tools.ITool import ITool
-from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
 from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
 
 @dataclass
 class ToolBase(ITool, BaseComponent, ABC):
@@ -20,8 +20,6 @@ class ToolBase(ITool, BaseComponent, ABC):
             
         if not self.description:
             raise ValueError('Tool must have a description.')
-
-
 
     @property
     def parameters(self):
