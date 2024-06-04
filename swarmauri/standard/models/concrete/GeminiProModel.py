@@ -1,18 +1,19 @@
 import json
 from typing import List
+from dataclasses import dataclass
 import google.generativeai as genai
-from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
-
-class GeminiProModel(ModelBase, IPredict):
+@dataclass
+class GeminiProModel(ModelBase):
     allowed_models = ['gemini-1.5-pro-latest']
+    api_key: str = ""
+    model_name: str = "gemini-1.5-pro-latest"
 
-    def __init__(self, api_key: str, model_name: str = 'gemini-1.5-pro-latest'):
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
-        genai.configure(api_key=api_key)
+
+    def __post_init__(self):
+        self._validate_model_name()
+        genai.configure(api_key=self.api_key)
         self.safety_settings = [
           {
             "category": "HARM_CATEGORY_HARASSMENT",
@@ -50,8 +51,11 @@ class GeminiProModel(ModelBase, IPredict):
           },
         ]
         self.client = None
-        super().__init__(model_name)
-        
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
+
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
         generation_config = {

@@ -28,7 +28,7 @@ class OpenAIModel(ModelBase):
 
     def __post_init__(self):
         self._validate_model_name()
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(api_key=self.api_key)
 
     def _validate_model_name(self):
         if self.model_name not in self.allowed_models:
