@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union
+from typing import Any, Union, Optional
+from dataclasses import dataclass, field
 from swarmauri.core.models.IModel import IModel
 from swarmauri.core.models.IPredict import IPredict
 from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes

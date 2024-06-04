@@ -3,7 +3,7 @@ from groq import Groq
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
 @dataclass
-class GroqToolModel(ModelBase, IPredict):
+class GroqToolModel(ModelBase):
     allowed_models = ['llama3-8b-8192', 
     'llama3-70b-8192', 
     'mixtral-8x7b-32768', 
