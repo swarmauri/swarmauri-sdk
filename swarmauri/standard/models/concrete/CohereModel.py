@@ -1,23 +1,26 @@
 import json
 from typing import List
+from dataclasses import dataclass
 import cohere
-from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
-
-class CohereModel(ModelBase, IPredict):
+@dataclass
+class CohereModel(ModelBase):
     allowed_models = ['command-light',
     'command', 
     'command-r',
     'command-r-plus']
+    api_key: str = ""
+    model_name: str = "command-light"
 
-    def __init__(self, api_key: str, model_name: str = 'command-light'):
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
+    def __post_init__(self):
+        self._validate_model_name()
         self.client = cohere.Client(api_key=api_key)
-        super().__init__(model_name)
-        
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
+
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
         response = self.client.chat(

@@ -1,20 +1,25 @@
 import json
 from typing import List
+from dataclasses import dataclass
 from groq import Groq
-from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
+@dataclass
+class GroqModel(ModelBase):
+    allowed_models = ['llama3-8b-8192', 
+    'llama3-70b-8192', 
+    'mixtral-8x7b-32768', 
+    'gemma-7b-it']
+    api_key: str = ""
+    model_name: str = "mixtral-8x7b-32768"
 
-class GroqModel(ModelBase, IPredict):
-    allowed_models = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
-
-    def __init__(self, api_key: str, model_name: str = 'mixtral-8x7b-32768'):
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
+    def __post_init__(self):
+        self._validate_model_name()
         self.client = Groq(api_key=api_key)
-        super().__init__(model_name)
-        
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
     
     def predict(self, messages, 
         temperature=0.7, 

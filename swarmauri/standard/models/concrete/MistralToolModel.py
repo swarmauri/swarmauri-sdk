@@ -1,19 +1,24 @@
+import json
+from typing import List
+from dataclasses import dataclass
 from mistralai.client import MistralClient
 from swarmauri.standard.models.base.ModelBase import ModelBase
-from swarmauri.core.models.IPredict import IPredict
 
-class MistralToolModel(ModelBase, IPredict):
+class MistralModel(ModelBase):
     allowed_models = ['open-mixtral-8x22b', 
     'mistral-small-latest',
     'mistral-large-latest',
     ]
+    api_key: str = ""
+    model_name: str = "open-mixtral-8x22b"
 
-    def __init__(self, api_key: str, model_name: str = 'open-mixtral-8x22b'):
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
-        self.client = MistralClient(api_key=api_key)
-        super().__init__(model_name)
+    def __post_init__(self):
+        self._validate_model_name()
+        self.client =  MistralClient(api_key=api_key)
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
         
 
     def predict(self, messages, tools=None, tool_choice=None, temperature=0.7, 

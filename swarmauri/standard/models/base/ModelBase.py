@@ -1,22 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Union
 from swarmauri.core.models.IModel import IModel
+from swarmauri.core.models.IPredict import IPredict
+from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
 
-class ModelBase(IModel, ABC):
-    """
-    Concrete implementation of the IModel abstract base class.
-    This version includes managing the model name through a property and a setter.
-    """
-    @abstractmethod
-    def __init__(self, model_name: str):
-        self._model_name = model_name
-    
+@dataclass
+class ModelBase(IPredict, IModel, BaseComponent):
+    model_name: Optional[str] = None
+    resource: Optional[str] =  field(default=ResourceTypes.MODEL.value)
+
+    def __post_init__(self):
+        if not self.model_name:
+            raise ValueError('Must define model_name.')
+            
     @property
     def model_name(self):
         return self._model_name
     
     @model_name.setter
-    def model_name(self, value: str) -> None:
+    def model_name(self, value: Union[str, None]) -> None:
         """
         Property setter that sets the name of the model.
 
@@ -24,5 +26,3 @@ class ModelBase(IModel, ABC):
         - value (str): The new name of the model.
         """
         self._model_name = value
-       
-    

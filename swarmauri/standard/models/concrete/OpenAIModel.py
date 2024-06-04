@@ -1,36 +1,38 @@
 import json
 from typing import List
+from dataclasses import dataclass
 from openai import OpenAI
-from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
-
-class OpenAIModel(ModelBase, IPredict):
+@dataclass
+class OpenAIModel(ModelBase):
     allowed_models = ['gpt-4o', 
+    'gpt-4o-2024-05-13',
     'gpt-4-turbo', 
+    'gpt-4-turbo-2024-04-09',
+    'gpt-4-turbo-preview',
     'gpt-4-0125-preview',
+    'gpt-4-1106-preview',
     'gpt-4',
     'gpt-4-0613',
     'gpt-4-32k',
     'gpt-4-32k-0613',
     'gpt-3.5-turbo-0125',
+    'gpt-3.5-turbo-1106',
+    'gpt-3.5-turbo-0613',
     'gpt-3.5-turbo-16k-0613',
     'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo']
+    api_key: str = ""
+    model_name: str = "gpt-3.5-turbo-16k"
 
-    def __init__(self, api_key: str, model_name: str):
-        """
-        Initialize the OpenAI model with an API key.
-
-        Parameters:
-        - api_key (str): Your OpenAI API key.
-        """
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
+    def __post_init__(self):
+        self._validate_model_name()
         self.client = OpenAI(api_key=api_key)
-        super().__init__(model_name)
-        
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
     
     def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
         """

@@ -1,25 +1,28 @@
 import json
 from typing import List
+from dataclasses import dataclass
 import anthropic
-import logging
-from swarmauri.core.models.IPredict import IPredict
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
-class AnthropicModel(ModelBase, IPredict):
+@dataclass
+class AnthropicModel(ModelBase):
     allowed_models = ['claude-3-opus-20240229', 
     'claude-3-sonnet-20240229', 
     'claude-3-haiku-20240307',
     'claude-2.1',
     'claude-2.0',
     'claude-instant-1.2']
+    api_key: str = ""
+    model_name: str = "claude-3-haiku-20240307"
 
-    def __init__(self, api_key: str, model_name: str = 'claude-3-haiku-20240307'):
-        if model_name not in self.allowed_models:
-            raise ValueError(f"Model name '{model_name}' is not supported. Choose from {self.allowed_models}")
-        
+    def __post_init__(self):
+        self._validate_model_name()
         self.client = anthropic.Anthropic(api_key=api_key)
-        super().__init__(model_name)
-        
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
+
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
 
@@ -28,7 +31,6 @@ class AnthropicModel(ModelBase, IPredict):
         for message in messages:
             if message['role'] == 'system':
                 system_context = message['content']
-                logging.info(f'Setting system to {system_context}.')
 
         
         # Remove system instruction from messages

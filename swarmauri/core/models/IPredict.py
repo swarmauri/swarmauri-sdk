@@ -6,7 +6,7 @@ class IPredict(ABC):
     """
 
     @abstractmethod
-    def predict(self, input_data) -> any:
+    def predict(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """

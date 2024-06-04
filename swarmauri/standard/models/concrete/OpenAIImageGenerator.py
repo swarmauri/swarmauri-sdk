@@ -1,20 +1,21 @@
 import json
+from dataclasses import dataclass
 from openai import OpenAI
-from ..base.ModelBase import ModelBase
-from ....core.models.IPredict import IPredict
+from swarmauri.core.models.base.ModelBase import ModelBase
 
-class OpenAIImageGenerator(ModelBase, IPredict):
-    def __init__(self, api_key: str, model_name: str = "dall-e"):
-        """
-        Initializes the OpenAI image generator model.
+@dataclass
+class OpenAIImageGenerator(ModelBase):
+    allowed_models = ['dall-e']
+    api_key: str = ""
+    model_name: str = "dall-e"
 
-        Parameters:
-        - api_key (str): The API key provided by OpenAI for access to their services.
-        - model_name (str): Name of the image generation model provided by OpenAI.
-                            Defaults to "dall-e" for DALL·E, their image generation model.
-        """
-        self.client = OpenAI(api_key=api_key)
-        super().__init__(model_name)
+    def __post_init__(self):
+        self._validate_model_name()
+        self.client =  OpenAI(api_key=api_key)
+
+    def _validate_model_name(self):
+        if self.model_name not in self.allowed_models:
+            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
 
     def predict(self, prompt: str, size: str = "1024x1024", 
                 quality: str = "standard", n: int = 1) -> str:
