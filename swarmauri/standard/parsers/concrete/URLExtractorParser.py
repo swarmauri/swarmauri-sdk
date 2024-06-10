@@ -1,11 +1,11 @@
 from typing import List, Union, Any
 from urllib.parse import urlparse
 import re
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
 
-class URLExtractorParser(IParser):
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
+
+class URLExtractorParser(ParserBase):
     """
     A concrete implementation of IParser that extracts URLs from text.
     
@@ -14,13 +14,8 @@ class URLExtractorParser(IParser):
     to identify URLs within the given text.
     """
 
-    def __init__(self):
-        """
-        Initializes the URLExtractorParser.
-        """
-        super().__init__()
     
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parse input data (string) and extract URLs, each URL is then represented as a document.
         
@@ -40,6 +35,6 @@ class URLExtractorParser(IParser):
         urls = re.findall(url_regex, data)
         
         # Create a document for each extracted URL
-        documents = [Document(doc_id=str(i), content=url, metadata={"source": "URLExtractor"}) for i, url in enumerate(urls)]
+        documents = [Document(id=str(i), content=url, metadata={"source": "URLExtractor"}) for i, url in enumerate(urls)]
         
         return documents

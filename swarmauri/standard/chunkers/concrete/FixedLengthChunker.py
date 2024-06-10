@@ -1,23 +1,15 @@
 from typing import List, Union, Any
-from swarmauri.core.chunkers.IChunker import IChunker
+from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
-class FixedLengthChunker(IChunker):
+class FixedLengthChunker(ChunkerBase):
     """
-    Concrete implementation of IChunker that divides text into fixed-length chunks.
+    Concrete implementation of ChunkerBase that divides text into fixed-length chunks.
     
     This chunker breaks the input text into chunks of a specified size, making sure 
     that each chunk has exactly the number of characters specified by the chunk size, 
     except for possibly the last chunk.
     """
-
-    def __init__(self, chunk_size: int):
-        """
-        Initializes a new instance of the FixedLengthChunker class with a specific chunk size.
-
-        Parameters:
-        - chunk_size (int): The fixed size (number of characters) for each chunk.
-        """
-        self.chunk_size = chunk_size
+    chunk_size: int = 256
 
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[str]:
         """

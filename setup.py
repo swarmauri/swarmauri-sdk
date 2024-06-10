@@ -14,7 +14,8 @@ setup(
     packages=find_packages(include=['swarmauri*']),  # Include packages in your_package and libs directories
     install_requires=[
         'numpy',  # Common dependencies for all distributions
-        'requests'
+        'requests',
+        'pydantic'
     ],
     extras_require={
         'standard': [

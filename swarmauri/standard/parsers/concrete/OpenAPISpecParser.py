@@ -1,17 +1,17 @@
 from typing import List, Union, Any
 import yaml
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
 
-class OpenAPISpecParser(IParser):
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
+
+class OpenAPISpecParser(ParserBase):
     """
     A parser that processes OpenAPI Specification files (YAML or JSON format)
     and extracts information into structured Document instances. 
     This is useful for building documentation, APIs inventory, or analyzing the API specification.
     """
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses an OpenAPI Specification from a YAML or JSON string into a list of Document instances.
 
@@ -39,7 +39,7 @@ class OpenAPISpecParser(IParser):
                     "method": method.upper(),
                     "operationId": operation.get("operationId", "")
                 }
-                document = Document(doc_id=doc_id, content=content, metadata=metadata)
+                document = Document(id=doc_id, content=content, metadata=metadata)
                 documents.append(document)
 
         return documents

@@ -1,16 +1,15 @@
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
 import html
 import re
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class HTMLTagStripParser(IParser):
+class HTMLTagStripParser(ParserBase):
     """
     A concrete parser that removes HTML tags and unescapes HTML content,
     leaving plain text.
     """
 
-    def parse(self, data):
+    def parse(self, data: str):
         """
         Strips HTML tags from input data and unescapes HTML content.
         

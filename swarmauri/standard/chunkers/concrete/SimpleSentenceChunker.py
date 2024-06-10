@@ -1,9 +1,9 @@
 import re
-from swarmauri.core.chunkers.IChunker import IChunker
+from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
-class SimpleSentenceChunker(IChunker):
+class SimpleSentenceChunker(ChunkerBase):
     """
-    A simple implementation of the IChunker interface to chunk text into sentences.
+    A simple implementation of the ChunkerBase to chunk text into sentences.
     
     This class uses basic punctuation marks (., !, and ?) as indicators for sentence boundaries.
     """

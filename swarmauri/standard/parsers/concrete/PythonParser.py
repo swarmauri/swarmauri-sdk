@@ -1,11 +1,10 @@
 from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
 import ast
-import uuid
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class PythonParser(IParser):
+
+class PythonParser(ParserBase):
     """
     A parser that processes Python source code to extract structural elements
     such as functions, classes, and their docstrings.
@@ -36,9 +35,6 @@ class PythonParser(IParser):
                 element_name = node.name
                 docstring = ast.get_docstring(node)
                 
-                # Generate a unique ID for each element
-                doc_id = str(uuid.uuid4())
-                
                 # Create a metadata dictionary
                 metadata = {
                     "type": "function" if isinstance(node, ast.FunctionDef) else "class",
@@ -47,7 +43,7 @@ class PythonParser(IParser):
                 }
                 
                 # Create a Document for each structural element
-                document = Document(doc_id=doc_id, content=docstring, metadata=metadata)
+                document = Document(id=1, content=docstring, metadata=metadata)
                 documents.append(document)
                 
         return documents
