@@ -8,14 +8,5 @@ class HumanMessage(MessageBase):
     interface. It contains the message content and assigns the type "HumanMessage" to distinguish it from
     other types of messages.
     """
-
-    def __init__(self, content, name=None):
-        """
-        Initializes a new instance of HumanMessage with specified content.
-
-        Args:
-            content (str): The text content of the human-created message.
-            name (str, optional): The name of the human sender.
-        """
-        super().__init__(role='user', content=content)
-
+    content: str
+    _role: str ='user'

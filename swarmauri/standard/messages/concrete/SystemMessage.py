@@ -10,7 +10,5 @@ class SystemMessage(MessageBase):
     Attributes:
         content (str): The content of the system message.
     """
-    
-    def __init__(self, content):
-        super().__init__(role='system', content=content)
-    
+    content: str
+    _role: str ='system'

@@ -3,7 +3,10 @@ from swarmauri.standard.messages.base.MessageBase import MessageBase
 
 
 class AgentMessage(MessageBase):
-    def __init__(self, content, tool_calls: Optional[Any] = None):
-        super().__init__(role='assistant', content=content)
-        if tool_calls:
-            self.tool_calls = tool_calls
+    content: str
+    tool_calls: Optional[Any] = None
+    _role: str ='assistant'
+
+    @property
+    def role(self) -> str:
+        return self._role
