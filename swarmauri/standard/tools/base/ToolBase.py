@@ -1,33 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Any
-from dataclasses import dataclass, field, asdict
-import json
-from swarmauri.core.tools.ITool import ITool
+from pydantic import Field
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.tools.concrete.Parameter import Parameter
-from swarmauri.core.BaseComponent import BaseComponent, ResourceTypes
+from swarmauri.core.tools.ITool import ITool
 
-@dataclass
-class ToolBase(ITool, BaseComponent, ABC):
+
+class ToolBase(ITool, ComponentBase, ABC):
     description: Optional[str] = None
-    parameters: List[Parameter] = field(default_factory=list)
-    type: str = field(init=False, default="function")
+    parameters: List[Parameter] = Field(default_factory=list)
+    type: str = Field(init=False, default="function")
     
-    resource: Optional[str] =  field(default=ResourceTypes.TOOL.value)
+    resource: Optional[str] =  Field(default=ResourceTypes.TOOL.value)
 
-    def __post_init__(self):
-        if not self.name:
-            self.name = self.__class__.__name__
-            
-        if not self.description:
-            raise ValueError('Tool must have a description.')
-
-    @property
-    def parameters(self):
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, value) -> None:
-        self._parameters = value
     
     def call(self, *args, **kwargs):
         return self.__call__(*args, **kwargs)
@@ -39,7 +24,6 @@ class ToolBase(ITool, BaseComponent, ABC):
 
     def __getstate__(self):
         return {'type': self.type, 'function': self.function}
-
 
 
     def __iter__(self):
@@ -79,7 +63,3 @@ class ToolBase(ITool, BaseComponent, ABC):
     def as_dict(self):
         #return asdict(self)
         return {'type': self.type, 'function': self.function}
-
-    
-    def to_json(self):
-        return json.dumps(self, default=lambda self: self.__dict__)

@@ -1,18 +1,18 @@
-import hashlib
+from typing import Optional, List
 from uuid import uuid4
 from enum import Enum
-from typing import Optional, List
-from dataclasses import dataclass, field
 import inspect
+import hashlib
+from pydantic import BaseModel, ValidationError, Field, field_validator, PrivateAttr
 
 class ResourceTypes(Enum):
-    UNIVERSAL_BASE = 'BaseComponent'
+    UNIVERSAL_BASE = 'ComponentBase'
     #AGENT_API = 'AgentAPI'
     AGENT = 'Agent'
     AGENT_FACTORY = 'AgentFactory'
     CHAIN = 'Chain'
     CHUNKER = 'Chunker'
-    CONVERASTION = 'Conversation'
+    CONVERSATION = 'Conversation'
     DISTANCE = 'Distance'
     DOCUMENT_STORE = 'DocumentStore'
     DOCUMENT = 'Document'
@@ -23,6 +23,7 @@ class ResourceTypes(Enum):
     PARSER = 'Parser'
     PROMPT = 'Prompt'
     STATE = 'State'
+    CHAINSTEP = 'ChainStep'
     SWARM = 'Swarm'
     #SWARM_API = 'SwarmAPI'
     TOOLKIT = 'Toolkit'
@@ -34,19 +35,17 @@ class ResourceTypes(Enum):
     VECTORIZER = 'Vectorizer'
     VECTOR = 'Vector'
 
-
-
 def generate_id() -> str:
     return str(uuid4())
 
-@dataclass
-class BaseComponent:
-    _name: Optional[str] = None
-    _id: str = field(default_factory=generate_id)
-    _members: List[str] = field(default_factory=list)
-    _owner: Optional[str] = None
-    _host: Optional[str] = None
-    _resource: Optional[str] = field(default="BaseComponent")
+
+class ComponentBase(BaseModel):
+    name: Optional[str] = None
+    id: str = Field(default_factory=generate_id)
+    members: List[str] = Field(default_factory=list)
+    owner: Optional[str] = None
+    host: Optional[str] = None
+    resource: str = Field(default="BaseComponent")
     version: str = "0.1.0"
 
 
@@ -83,72 +82,6 @@ class BaseComponent:
         return False
 
 
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, value):
-        if not isinstance(value, str):
-            raise ValueError("id must be a string.")
-        self._id = value
-    
-    @property
-    def owner(self):
-        return self._owner
-
-    @owner.setter
-    def owner(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Owner must be a string.")
-        self._owner = value
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Name must be a string.")
-        self._name = value
-
-    @property
-    def classname(self):
-        return self._class_name
-
-    @property
-    def host(self):
-        return self._host
-
-    @host.setter
-    def host(self, value):
-        if not isinstance(value, str):
-            raise ValueError("Host must be a string.")
-        self._host = value
-
-    @property
-    def members(self):
-        return self._members
-
-    @members.setter
-    def members(self, value: List[str]):
-        if not isinstance(value, list):
-            raise ValueError("Members must be a list of strings.")
-        self._members = value
-
-    @property
-    def resource(self):
-        return self._resource
-
-    @resource.setter
-    def resource(self, value):
-        # Ensure value is string and valid ResourceType
-        if not isinstance(value, str):
-            raise ValueError("Resource must be a string.")
-        if value not in ResourceTypes._value2member_map_:
-            raise ValueError(f"Resource must be one of {[e.value for e in ResourceTypes]}.")
-        self._resource = value
     
     @property
     def path(self):
@@ -217,6 +150,8 @@ class BaseComponent:
     def _calculate_class_hash(cls):
         sig_hash = hashlib.sha256()
         for attr_name in dir(cls):
+            if attr_name in ['classh_hash']:
+                continue
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             if callable(attr_value) and not attr_name.startswith("_"):

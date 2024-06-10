@@ -5,7 +5,7 @@ import anthropic
 from swarmauri.standard.models.base.ModelBase import ModelBase
 
 @dataclass
-class AnthropicModel(ModelBase):
+class AnthropicModel(BaseLLM):
     allowed_models = ['claude-3-opus-20240229', 
     'claude-3-sonnet-20240229', 
     'claude-3-haiku-20240307',

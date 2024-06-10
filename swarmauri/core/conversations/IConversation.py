@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from ..messages.IMessage import IMessage
+from swarmauri.core.messages.IMessage import IMessage
 
 class IConversation(ABC):
     """

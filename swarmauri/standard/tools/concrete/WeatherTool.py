@@ -1,13 +1,11 @@
 from typing import List
-from dataclasses import dataclass, field
-import json
+from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
-@dataclass
 class WeatherTool(ToolBase):
     version: str = "0.1.dev1"
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
             name="location",
             type="string",

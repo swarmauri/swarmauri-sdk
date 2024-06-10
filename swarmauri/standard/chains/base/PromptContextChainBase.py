@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 
-
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
@@ -13,28 +13,22 @@ from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
-class PromptContextChainBase(ChainContextBase, IChainDependencyResolver):
-    def __init__(self, 
-        prompt_matrix: IPromptMatrix, 
-        agents: List[IAgent] = [], 
-        context: Dict = {},
-        model_kwargs: Dict[str, Any] = {}):
-        ChainContextBase.__init__(self)
-        self.prompt_matrix = prompt_matrix
-        self.response_matrix = PromptMatrix(matrix=[[None for _ in range(prompt_matrix.shape[1])] for _ in range(prompt_matrix.shape[0])])
-        self.agents = agents
-        self.context = context 
-        self.model_kwargs = model_kwargs
-        self.steps = self.build_dependencies()
-        self.current_step_index = 0  # Track the current step in the steps list
 
-    @property
-    def context(self) -> Dict[str, Any]:
-        return self._context
+class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
+    prompt_matrix: IPromptMatrix
+    agents: List[IAgent] = Field(default_factory=list)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    llm_kwargs: Dict[str, Any] = Field(default_factory=dict)
+    response_matrix: Optional[PromptMatrix] = None
+    current_step_index: int = 0
+    steps: List[Any] = Field(default_factory=list)
+    resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
 
-    @context.setter
-    def context(self, value: Dict[str, Any]) -> None:
-        self._context = value
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        # Now that the instance is created, we can safely access `prompt_matrix.shape`
+        self.response_matrix = PromptMatrix(matrix=[[None for _ in range(self.prompt_matrix.shape[1])] 
+                                                    for _ in range(self.prompt_matrix.shape[0])])
 
     def execute(self, build_dependencies=True) -> None:
         """

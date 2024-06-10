@@ -4,22 +4,17 @@ from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
+from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
 from swarmauri.standard.messages.concrete import HumanMessage
 
-class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
-    def __init__(self, model: IModel, conversation: IConversation, name: str):
-        AgentBase.__init__(self, model=model)
-        ConversationAgentBase.__init__(self, conversation=conversation)
-        NamedAgentBase.__init__(self, name=name)
+class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     def exec(self, 
         input_str: Optional[str] = None,
-        model_kwargs: Optional[Dict] = {}
+        llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
         conversation = self.conversation
-        model = self.model
+        llm = self.llm
 
         # Construct a new human message (for example purposes)
         if input_str:
@@ -27,5 +22,5 @@ class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
             conversation.add_message(human_message)
         
         messages = conversation.as_messages()
-        prediction = model.predict(messages=messages, **model_kwargs)
+        prediction = model.predict(messages=messages, **llm_kwargs)
         return prediction

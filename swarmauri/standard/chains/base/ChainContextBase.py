@@ -1,25 +1,22 @@
 from typing import Any, Callable, Dict, List
+from pydantic import Field, ConfigDict
 import re
-
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChainContext import IChainContext
+from swarmauri.core.chains.IChainStep import IChainStep
 
-class ChainContextBase(IChainContext):
-    def __init__(self, context: Dict = {}):
-        self._context = context
 
-    @property
-    def context(self) -> Dict[str, Any]:
-        return self._context
-
-    @context.setter
-    def context(self, value: Dict[str, Any]) -> None:
-        self._context = value
+class ChainContextBase(IChainContext, ComponentBase):
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    steps: List[IChainStep] = []
+    context: Dict = {}
+    resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
 
     def update(self, **kwargs):
-        self._context.update(kwargs)
+        self.context.update(kwargs)
 
     def get_value(self, key: str) -> Any:
-        return self._context.get(key)
+        return self.context.get(key)
 
     def _resolve_fstring(self, template: str) -> str:
         pattern = re.compile(r'{([^}]+)}')

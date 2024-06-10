@@ -1,17 +1,14 @@
 import sys
 import types
 import importlib
-from dataclasses import dataclass, field
 from typing import List
+from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
-@dataclass
 class ImportMemoryModuleTool(ToolBase):
     version: str = "1.0.0"
-    
-    # Define the parameters required by the tool
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
             Parameter(
                 name="name",
                 type="string",

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class IPredict(ABC):
     """
-    Interface for making predictions with models.
+    Interface focusing on the basic properties and settings essential for defining models.
     """
 
     @abstractmethod

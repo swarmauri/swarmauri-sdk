@@ -1,19 +1,7 @@
-# swarmauri/core/prompts/IPromptMatrix.py
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Optional, Any
 
 class IPromptMatrix(ABC):
-    @property
-    @abstractmethod
-    def matrix(self) -> List[List[Optional[str]]]:
-        """Get the entire prompt matrix."""
-        pass
-
-    @matrix.setter
-    @abstractmethod
-    def matrix(self, value: List[List[Optional[str]]]) -> None:
-        """Set the entire prompt matrix."""
-        pass
 
     @property
     @abstractmethod
