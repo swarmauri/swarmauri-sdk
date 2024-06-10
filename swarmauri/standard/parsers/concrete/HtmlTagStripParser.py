@@ -31,6 +31,6 @@ class HTMLTagStripParser(ParserBase):
         text = html.unescape(text)
 
         # Wrap the cleaned text into a Document and return it in a list
-        document = Document(doc_id="1", content=text, metadata={"original_length": len(data)})
+        document = Document(content=text, metadata={"original_length": len(data)})
         
         return [document]

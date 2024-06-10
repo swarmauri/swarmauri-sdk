@@ -43,7 +43,7 @@ class PythonParser(ParserBase):
                 }
                 
                 # Create a Document for each structural element
-                document = Document(id=1, content=docstring, metadata=metadata)
+                document = Document(content=docstring, metadata=metadata)
                 documents.append(document)
                 
         return documents

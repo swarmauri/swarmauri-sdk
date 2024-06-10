@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from typing import List, Union, Any
 
 from swarmauri.standard.documents.concrete.Document import Document
-#from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
 class XMLParser(ParserBase):
     """
@@ -36,7 +36,7 @@ class XMLParser(ParserBase):
             metadata = {child.tag: child.text for child in element}  # Extract child elements as metadata
 
             # Create a Document instance for each element
-            doc = Document(id=None, content=content, metadata=metadata)
+            doc = Document(content=content, metadata=metadata)
             documents.append(doc)
 
         return documents

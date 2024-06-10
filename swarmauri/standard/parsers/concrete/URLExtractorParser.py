@@ -35,6 +35,6 @@ class URLExtractorParser(ParserBase):
         urls = re.findall(url_regex, data)
         
         # Create a document for each extracted URL
-        documents = [Document(id=str(i), content=url, metadata={"source": "URLExtractor"}) for i, url in enumerate(urls)]
+        documents = [Document(content=url, metadata={"source": "URLExtractor"}) for i, url in enumerate(urls)]
         
         return documents

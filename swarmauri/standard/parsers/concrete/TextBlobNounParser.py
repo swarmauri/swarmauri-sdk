@@ -35,6 +35,6 @@ class TextBlobNounParser(ParserBase):
         
         # Example: Wrap the extracted noun phrases into an IDocument instance
         # In real scenarios, you might want to include more details, like sentiment, POS tags, etc.
-        document = Document(id="0", content=data, metadata={"noun_phrases": noun_phrases})
+        document = Document(content=data, metadata={"noun_phrases": noun_phrases})
         
         return [document]

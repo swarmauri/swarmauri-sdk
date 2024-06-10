@@ -32,14 +32,13 @@ class OpenAPISpecParser(ParserBase):
         for path, path_item in spec_dict.get("paths", {}).items():
             for method, operation in path_item.items():
                 # Create a Document instance for each operation
-                doc_id = f"{path}_{method}"
                 content = yaml.dump(operation)
                 metadata = {
                     "path": path,
                     "method": method.upper(),
                     "operationId": operation.get("operationId", "")
                 }
-                document = Document(id=doc_id, content=content, metadata=metadata)
+                document = Document(content=content, metadata=metadata)
                 documents.append(document)
 
         return documents

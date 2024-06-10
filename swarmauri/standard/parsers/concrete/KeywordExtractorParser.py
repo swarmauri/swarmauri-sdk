@@ -41,6 +41,6 @@ class KeywordExtractorParser(ParserBase):
         keywords = self._kw_extractor.extract_keywords(text)
 
         # Create Document instances for each keyword
-        documents = [Document(id=str(index), content=keyword, metadata={"score": score}) for index, (keyword, score) in enumerate(keywords)]
+        documents = [Document(content=keyword, metadata={"score": score}) for index, (keyword, score) in enumerate(keywords)]
         
         return documents

@@ -1,24 +1,15 @@
 import re
 from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class RegExParser(IParser):
+class RegExParser(ParserBase):
     """
     A parser that uses a regular expression to extract information from text.
     """
-
-    def __init__(self, pattern: str):
-        """
-        Initializes the RegExParser with a specific regular expression pattern.
-
-        Parameters:
-        - pattern (str): The regular expression pattern used for parsing the text.
-        """
-        self.pattern = pattern
-
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    pattern: str
+    
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data using the specified regular expression pattern and
         returns a list of IDocument instances containing the extracted information.
@@ -38,6 +29,6 @@ class RegExParser(IParser):
         matches = re.findall(self.pattern, data)
 
         # Create a Document for each match and collect them into a list
-        documents = [Document(doc_id=str(i+1), content=match, metadata={}) for i, match in enumerate(matches)]
+        documents = [Document(content=match, metadata={}) for i, match in enumerate(matches)]
 
         return documents

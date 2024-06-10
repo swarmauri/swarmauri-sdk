@@ -28,6 +28,6 @@ class PhoneNumberExtractorParser(ParserBase):
         phone_numbers = re.findall(phone_regex, str(data))
 
         # Create a new IDocument for each phone number found
-        documents = [Document(id=str(index), content=phone_number, metadata={}) for index, phone_number in enumerate(phone_numbers)]
+        documents = [Document(content=phone_number, metadata={}) for index, phone_number in enumerate(phone_numbers)]
 
         return documents

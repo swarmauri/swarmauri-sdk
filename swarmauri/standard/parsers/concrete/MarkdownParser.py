@@ -37,6 +37,6 @@ class MarkdownParser(ParserBase):
         documents = []
         for pattern, repl in self.rules:
             data = re.sub(pattern, repl, data)
-        documents.append( Document(id=1, content=data, metadata={} ))
+        documents.append( Document(content=data, metadata={} ))
         
         return documents
