@@ -18,9 +18,10 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
         # Construct a new human message (for example purposes)
         if input_str:
-            human_message = HumanMessage(input_str)
+            human_message = HumanMessage(content=input_str)
             conversation.add_message(human_message)
         
         messages = conversation.as_messages()
         prediction = model.predict(messages=messages, **llm_kwargs)
+        conversation.add_message(AgentMessage(content=prediction))
         return prediction

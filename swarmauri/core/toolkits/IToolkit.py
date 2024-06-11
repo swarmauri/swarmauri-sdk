@@ -1,20 +1,12 @@
 from typing import Dict
 from abc import ABC, abstractmethod
-from ..tools.ITool import ITool  # Ensure Tool is correctly imported from your tools package
+from swarmauri.core.tools.ITool import ITool
 
 class IToolkit(ABC):
     """
     A class representing a toolkit used by Swarm Agents.
     Tools are maintained in a dictionary keyed by the tool's name.
     """
-
-    @property
-    @abstractmethod
-    def tools(self) -> Dict[str, ITool]:
-        """
-        An abstract property that should be implemented by subclasses to return the tools dictionary
-        """
-        pass
 
     @abstractmethod
     def add_tools(self, tools: Dict[str, ITool]):

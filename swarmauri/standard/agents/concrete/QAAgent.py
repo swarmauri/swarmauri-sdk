@@ -1,16 +1,17 @@
-from typing import Any, Optional
-
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.conversations.IConversation import IConversation
-
+from typing import Any, Optional, Dict
+from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 
 class QAAgent(AgentBase):
-    def __init__(self, model: IModel):
-        AgentBase.__init__(self, model=model)
 
-    def exec(self, input_str: Optional[str] = None) -> Any:
-        model = self.model
-        prediction = model.predict(input_str)
+    def exec(self, 
+        input_str: Optional[str] = None,
+        llm_kwargs: Optional[Dict] = {} 
+        ) -> Any:
+        
+        llm = self.llm
+        included_fields = {"role", "content"}
+        messages = [HumanMessage(content=input_str).dict(include=included_fields)]
+        prediction = llm.predict(messages=messages, **llm_kwargs)
         
         return prediction
