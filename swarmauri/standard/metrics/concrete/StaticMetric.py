@@ -1,6 +1,6 @@
 from swarmauri.standard.metrics.base.MetricBase import MetricBase
 
-class FirstImpressionMetric(MetricBase):
+class StaticMetric(MetricBase):
     """
     Metric for capturing the first impression score from a set of scores.
     """

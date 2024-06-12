@@ -1,6 +1,8 @@
-from swarmauri.standard.metrics.base.AggregateMetricBase import AggregateMetricBase
+from swarmauri.standard.metrics.base.MetricBase import MetricBase
+from swarmauri.standard.metrics.base.MetricCalculateMixin import MetricCalculateMixin
+from swarmauri.standard.metrics.base.MetricAggregateMixin import MetricAggregateMixin
 
-class MeanMetric(AggregateMetricBase):
+class MeanMetric(MetricAggregateMixin, MetricCalculateMixin, MetricBase):
     """
     A metric that calculates the mean (average) of a list of numerical values.
 
@@ -10,18 +12,8 @@ class MeanMetric(AggregateMetricBase):
         _value (float): The calculated mean of the measurements.
         _measurements (list): A list of measurements (numerical values) to average.
     """
-    def __init__(self, name: str, unit: str):
-        """
-        Initialize the MeanMetric with its name and unit.
-
-        Args:
-            name (str): The name identifier for the metric.
-            unit (str): The unit of measurement for the mean.
-        """
-        # Calling the constructor of the base class
-        super().__init__(name, unit)
     
-    def add_measurement(self, measurement) -> None:
+    def add_measurement(self, measurement: int) -> None:
         """
         Adds a measurement to the internal list of measurements.
 
@@ -29,7 +21,7 @@ class MeanMetric(AggregateMetricBase):
             measurement (float): A numerical value to be added to the list of measurements.
         """
         # Append the measurement to the internal list
-        self._measurements.append(measurement)
+        self.measurements.append(measurement)
 
     def calculate(self) -> float:
         """
@@ -38,10 +30,10 @@ class MeanMetric(AggregateMetricBase):
         Returns:
             float: The mean of the measurements or None if no measurements have been added.
         """
-        if not self._measurements:
+        if not self.measurements:
             return None  # Return None if there are no measurements
         # Calculate the mean
-        mean = sum(self._measurements) / len(self._measurements)
+        mean = sum(self.measurements) / len(self.measurements)
         # Update the metric's value
         self.update(mean)
         # Return the calculated mean

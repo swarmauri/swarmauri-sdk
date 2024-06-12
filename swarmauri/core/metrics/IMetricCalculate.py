@@ -1,7 +1,7 @@
 from typing import Any
 from abc import ABC, abstractmethod
 
-class ICalculateMetric(ABC):
+class IMetricCalculate(ABC):
 
     @abstractmethod
     def calculate(self, **kwargs) -> Any:
@@ -27,4 +27,4 @@ class ICalculateMetric(ABC):
             This method is intended for internal use and should not be publicly accessible.
         """
         pass
-
+        

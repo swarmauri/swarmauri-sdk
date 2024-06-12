@@ -1,20 +1,10 @@
 from typing import List, Any
 from abc import ABC, abstractmethod
 
-class IAggMeasurements(ABC):
+class IMetricAggregate(ABC):
 
     @abstractmethod
     def add_measurement(self, measurement: Any) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def measurements(self) -> List[Any]:
-        pass
-
-    @measurements.setter
-    @abstractmethod
-    def measurements(self, value) -> None:
         pass
 
     @abstractmethod
