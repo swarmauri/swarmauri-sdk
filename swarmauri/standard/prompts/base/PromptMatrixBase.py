@@ -16,13 +16,13 @@ class PromptMatrixBase(IPromptMatrix, ComponentBase):
         return 0, 0
 
     def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
-        if not self._matrix or (self._matrix and len(sequence) == len(self._matrix[0])):
+        if not self.matrix or (self.matrix and len(sequence) == len(self.matrix[0])):
             self.matrix.append(sequence)
         else:
             raise ValueError("Sequence length does not match the prompt matrix dimensions.")
 
     def remove_prompt_sequence(self, index: int) -> None:
-        if 0 <= index < len(self._matrix):
+        if 0 <= index < len(self.matrix):
             self.matrix.pop(index)
         else:
             raise IndexError("Index out of range.")
