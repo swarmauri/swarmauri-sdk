@@ -2,12 +2,13 @@ from typing import Optional, Union, List
 from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
-from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.standard.conversations.base.ConversationSystemContextMixin import ConversationSystemContextMixin
 from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage, FunctionMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
 
-class SessionCacheConversation(IMaxSize, SystemContextMixin, ConversationBase):
+class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):
     max_size: int = Field(default=2, gt=1)
     system_context: Optional[SystemMessage] = None
     session_max_size: int = Field(default=-1)

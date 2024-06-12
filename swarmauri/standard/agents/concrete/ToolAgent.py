@@ -1,35 +1,28 @@
 from typing import Any, Optional, Union, Dict
 import json
 
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.toolkits.IToolkit import IToolkit
-from swarmauri.core.conversations.IConversation import IConversation
 from swarmauri.core.messages import IMessage
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.ToolAgentBase import ToolAgentBase
+from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
+from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
-class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
-    def __init__(self, 
-                 model: IModel, 
-                 conversation: IConversation, 
-                 toolkit: IToolkit):
-        AgentBase.__init__(self, model=model)
-        ConversationAgentBase.__init__(self, conversation=conversation)
-        ToolAgentBase.__init__(self, toolkit=toolkit)
+class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
-    def exec(self, input_data: Union[str, IMessage],  model_kwargs: Optional[Dict] = {}) -> Any:
+
+    def exec(self, 
+        input_data: Union[str, IMessage],  
+        llm_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
-        model = self.model
+        llm = self.llm
         toolkit = self.toolkit
         
 
         # Check if the input is a string, then wrap it in a HumanMessage
         if isinstance(input_data, str):
-            human_message = HumanMessage(input_data)
+            human_message = HumanMessage(content=input_data)
         elif isinstance(input_data, IMessage):
             human_message = input_data
         else:
@@ -44,9 +37,9 @@ class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
         messages = conversation.as_messages()
         
         prediction = model.predict(messages=messages, 
-                                   tools=toolkit.tools, 
+                                   tools=toolkit.list_tools(), 
                                    tool_choice="auto", 
-                                   **model_kwargs)
+                                   **llm_kwargs)
         
         prediction_message = prediction.choices[0].message
         
@@ -66,7 +59,7 @@ class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
                 func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
                 
-                func_message = FunctionMessage(func_result, 
+                func_message = FunctionMessage(content=func_result, 
                                                name=func_name, 
                                                tool_call_id=tool_call.id)
                 conversation.add_message(func_message)
@@ -81,9 +74,8 @@ class ToolAgent(AgentBase, ConversationAgentBase, ToolAgentBase):
             prediction_message = rag_prediction.choices[0].message
             
             agent_response = prediction_message.content
-            agent_message = AgentMessage(agent_response)
+            agent_message = AgentMessage(content=agent_response)
             conversation.add_message(agent_message)
             prediction = rag_prediction
             
         return agent_response 
-    

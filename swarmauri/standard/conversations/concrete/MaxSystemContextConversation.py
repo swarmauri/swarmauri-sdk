@@ -1,11 +1,12 @@
 from typing import Optional, Union, List
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
-from swarmauri.standard.conversations.base.SystemContextBase import SystemContextBase
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.standard.conversations.base.ConversationSystemContextMixin import ConversationSystemContextMixin
 from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage
 from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
 
-class MaxSystemContextConversation(IMaxSize, SystemContextMixin, ConversationBase):
+class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):
     system_context: Optional[SystemMessage] = SystemMessage(content="")
     max_size: int = Field(default=2, gt=1)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
