@@ -10,7 +10,7 @@ class IVectorize(ABC):
     and other vector-based operations.
     """
     @abstractmethod
-    def fit(self, data: Union[str, Any]) -> List[IVector]:
+    def fit(self, data: Union[str, Any]) -> None:
         pass
     
     @abstractmethod
@@ -23,4 +23,4 @@ class IVectorize(ABC):
 
     @abstractmethod
     def infer_vector(self, data: Union[str, Any], *args, **kwargs) -> IVector:
-        pass
+        pass 

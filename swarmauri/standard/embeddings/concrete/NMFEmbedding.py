@@ -1,21 +1,26 @@
 import joblib
-
+from typing import List, Any
+from pydantic import PrivateAttr
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from swarmauri.core.embeddings.IVectorize import IVectorize
-from swarmauri.core.embeddings.IFeature import IFeature
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
-from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
-class NMFVectorizer(IVectorize, IFeature, ISaveModel):
-    def __init__(self, n_components=10):
+class NmfEmbedding(EmbeddingBase):
+    _tfidf_vectorizer = PrivateAttr()
+    _model = PrivateAttr()
+    _feature_names: List[Any] = PrivateAttr(default_factory=list)
+    
+    def __init__(self, 
+        n_components=10, 
+        **kwargs):
+
+        super().__init__(**kwargs)
         # Initialize TF-IDF Vectorizer
-        self.tfidf_vectorizer = TfidfVectorizer()
+        self._tfidf_vectorizer = TfidfVectorizer()
         # Initialize NMF with the desired number of components
-        self.model = NMF(n_components=n_components)
-        self.feature_names = []
+        self._model = NMF(n_components=n_components)
+        self._feature_names = []
 
     def fit(self, data):
         """
@@ -25,11 +30,11 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
             data (Union[str, Any]): The text data to fit.
         """
         # Transform data into TF-IDF matrix
-        tfidf_matrix = self.tfidf_vectorizer.fit_transform(data)
+        tfidf_matrix = self._tfidf_vectorizer.fit_transform(data)
         # Fit the NMF model
-        self.model.fit(tfidf_matrix)
+        self._model.fit(tfidf_matrix)
         # Store feature names
-        self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
+        self._feature_names = self._tfidf_vectorizer.get_feature_names_out()
 
     def transform(self, data):
         """
@@ -42,12 +47,12 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
             List[IVector]: A list of vectors representing the transformed data.
         """
         # Transform data into TF-IDF matrix
-        tfidf_matrix = self.tfidf_vectorizer.transform(data)
+        tfidf_matrix = self._tfidf_vectorizer.transform(data)
         # Transform TF-IDF matrix into NMF space
-        nmf_features = self.model.transform(tfidf_matrix)
+        nmf_features = self._model.transform(tfidf_matrix)
 
         # Wrap NMF features in SimpleVector instances and return
-        return [SimpleVector(features.tolist()) for features in nmf_features]
+        return [Vector(features.tolist()) for features in nmf_features]
 
     def fit_transform(self, data):
         """
@@ -81,7 +86,7 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         Returns:
             The feature names.
         """
-        return self.feature_names
+        return self._feature_names.tolist()
 
     def save_model(self, path: str) -> None:
         """
@@ -89,14 +94,14 @@ class NMFVectorizer(IVectorize, IFeature, ISaveModel):
         """
         # It might be necessary to save both tfidf_vectorizer and model
         # Consider using a directory for 'path' or appended identifiers for each model file
-        joblib.dump(self.tfidf_vectorizer, f"{path}_tfidf.joblib")
-        joblib.dump(self.model, f"{path}_nmf.joblib")
+        joblib.dump(self._tfidf_vectorizer, f"{path}_tfidf.joblib")
+        joblib.dump(self._model, f"{path}_nmf.joblib")
 
     def load_model(self, path: str) -> None:
         """
         Loads the NMF model and TF-IDF vectorizer from paths using joblib.
         """
-        self.tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
-        self.model = joblib.load(f"{path}_nmf.joblib")
+        self._tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
+        self._model = joblib.load(f"{path}_nmf.joblib")
         # Dependending on your implementation, you might need to refresh the feature_names
-        self.feature_names = self.tfidf_vectorizer.get_feature_names_out()
+        self._feature_names = self._tfidf_vectorizer.get_feature_names_out()
