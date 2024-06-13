@@ -3,11 +3,11 @@ import joblib
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.embeddings.IVectorize import IVectorize
+from swarmauri.core.embeddings.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 class NMFVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self, n_components=10):

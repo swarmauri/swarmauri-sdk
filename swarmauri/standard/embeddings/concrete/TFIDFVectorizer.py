@@ -1,11 +1,11 @@
 from typing import List, Union, Any
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.embeddings.IVectorize import IVectorize
+from swarmauri.core.embeddings.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 
 class TFIDFVectorizer(IVectorize, IFeature, ISaveModel):
@@ -33,8 +33,8 @@ class TFIDFVectorizer(IVectorize, IFeature, ISaveModel):
         
         self.fit_matrix = self.model.fit_transform(data)
 
-        # Convert the sparse matrix rows into SimpleVector instances
-        vectors = [SimpleVector(vector.toarray().flatten()) for vector in self.fit_matrix]
+        # Convert the sparse matrix rows into Vector instances
+        vectors = [Vector(vector.toarray().flatten()) for vector in self.fit_matrix]
 
         return vectors
 
@@ -46,8 +46,8 @@ class TFIDFVectorizer(IVectorize, IFeature, ISaveModel):
 
         transform_matrix = self.model.fit_transform(documents)
 
-        # Convert the sparse matrix rows into SimpleVector instances
-        vectors = [SimpleVector(vector.toarray().flatten()) for vector in transform_matrix]
+        # Convert the sparse matrix rows into Vector instances
+        vectors = [Vector(vector.toarray().flatten()) for vector in transform_matrix]
         return vectors
     
     def transform(self, data: Union[str, Any], documents) -> List[IVector]:

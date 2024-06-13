@@ -1,10 +1,10 @@
 from typing import List, Union, Any
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.embeddings.IVectorize import IVectorize
+from swarmauri.core.embeddings.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
     def __init__(self, vector_size = 2000):
@@ -22,7 +22,7 @@ class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
 
     def transform(self, documents: List[str]) -> List[IVector]:
         vectors = [self.model.infer_vector(doc.split()) for doc in documents]
-        return [SimpleVector(vector) for vector in vectors]
+        return [Vector(vector) for vector in vectors]
 
     def fit_transform(self, documents: List[Union[str, Any]], **kwargs) -> List[IVector]:
         """
@@ -33,7 +33,7 @@ class Doc2VecVectorizer(IVectorize, IFeature, ISaveModel):
 
     def infer_vector(self, data: str) -> IVector:
         vector = self.model.infer_vector(data.split())
-        return SimpleVector(vector.squeeze().tolist())
+        return Vector(vector.squeeze().tolist())
 
     def save_model(self, path: str) -> None:
         """

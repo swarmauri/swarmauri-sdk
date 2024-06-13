@@ -4,11 +4,11 @@ import torch
 from torch import nn
 from transformers import BertTokenizer, BertModel
 
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.embeddings.IVectorize import IVectorize
+from swarmauri.core.embeddings.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 
 class SpatialDocVectorizer(IVectorize, ISaveModel, IFeature):
@@ -66,7 +66,7 @@ class SpatialDocVectorizer(IVectorize, ISaveModel, IFeature):
 
     def vectorize(self, text):
         inputs = self.tokenize_and_encode(text)
-        return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
+        return Vector(data=inputs.cpu().detach().numpy().tolist())
 
     def fit(self, data):
         # Although this vectorizer might not need to be fitted in the traditional sense,
@@ -99,5 +99,5 @@ class SpatialDocVectorizer(IVectorize, ISaveModel, IFeature):
 
     def extract_features(self, text):
         inputs = self.tokenize_and_encode(text)
-        return SimpleVector(data=inputs.cpu().detach().numpy().tolist())
+        return Vector(data=inputs.cpu().detach().numpy().tolist())
 

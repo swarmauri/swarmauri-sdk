@@ -7,11 +7,11 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectorizers.IFeature import IFeature
+from swarmauri.core.embeddings.IVectorize import IVectorize
+from swarmauri.core.embeddings.IFeature import IFeature
 from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.core.vectorizers.ISaveModel import ISaveModel
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 class MLMVectorizer(IVectorize, IFeature, ISaveModel):
     """
@@ -125,7 +125,7 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
                 # Fallback or corrected attribute access
                 embedding = outputs['logits'].mean(1)
             embedding = embedding.cpu().numpy()
-            embedding_list.append(SimpleVector(embedding.squeeze().tolist()))
+            embedding_list.append(Vector(embedding.squeeze().tolist()))
 
         return embedding_list
 
@@ -161,7 +161,7 @@ class MLMVectorizer(IVectorize, IFeature, ISaveModel):
         # Move the embeddings back to CPU for compatibility with downstream tasks if necessary
         embedding = embedding.cpu().numpy()
 
-        return SimpleVector(embedding.squeeze().tolist())
+        return Vector(embedding.squeeze().tolist())
 
     def save_model(self, path: str) -> None:
         """
