@@ -1,7 +1,8 @@
 from typing import List
 import numpy as np
-from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+
 
 class LevenshteinDistance(DistanceBase):
     """

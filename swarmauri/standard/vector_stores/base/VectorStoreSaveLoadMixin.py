@@ -1,21 +1,18 @@
 from typing import List
 import os
+from pydantic import BaseModel
 import json
 import glob
 import importlib 
 from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
-from swarmauri.standard.documents import DocumentBase
-from swarmauri.core.vectorizers.IVectorize import IVectorize
+from swarmauri.standard.documents.concrete.Document import Document
 
-class SaveLoadStoreBase(ISaveLoadStore):
+class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
     """
     Base class for vector stores with built-in support for saving and loading
     the vectorizer's model and the documents.
     """
     
-    def __init__(self, vectorizer: IVectorize, documents: List[DocumentBase]):
-        self.vectorizer = vectorizer
-        self.documents = documents
     
     def save_store(self, directory_path: str) -> None:
         """
@@ -26,8 +23,8 @@ class SaveLoadStoreBase(ISaveLoadStore):
             os.makedirs(directory_path)
             
         # Save the vectorizer model
-        model_path = os.path.join(directory_path, "vectorizer_model")
-        self.vectorizer.save_model(model_path)
+        model_path = os.path.join(directory_path, "embedding_model")
+        self._vectorizer.save_model(model_path)
         
         # Save documents
         documents_path = os.path.join(directory_path, "documents.json")
@@ -43,7 +40,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         Loads both the vectorizer's model and the documents.
         """
         # Load the vectorizer model
-        model_path = os.path.join(directory_path, "vectorizer_model")
+        model_path = os.path.join(directory_path, "embedding_model")
         self.vectorizer.load_model(model_path)
         
         # Load documents
@@ -66,7 +63,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         Splits the file into parts if it's too large and saves those parts individually.
         """
         file_number = 1
-        model_path = os.path.join(directory_path, "vectorizer_model")
+        model_path = os.path.join(directory_path, "embedding_model")
         parts_directory = os.path.join(directory_path, "parts")
         
         if not os.path.exists(parts_directory):
@@ -132,7 +129,7 @@ class SaveLoadStoreBase(ISaveLoadStore):
         """
         Combines file parts from a directory back into a single file and loads it.
         """
-        model_path = os.path.join(directory_path, "vectorizer_model")
+        model_path = os.path.join(directory_path, "embedding_model")
         parts_directory = os.path.join(directory_path, "parts")
         output_file_path = os.path.join(model_path, "model.safetensors")
 
@@ -143,8 +140,8 @@ class SaveLoadStoreBase(ISaveLoadStore):
                     output_file.write(file_part.read())
 
         # Load the combined_model now        
-        model_path = os.path.join(directory_path, "vectorizer_model")
-        self.vectorizer.load_model(model_path)
+        model_path = os.path.join(directory_path, "embedding_model")
+        self._vectorizer.load_model(model_path)
 
         # Load document files
         self._load_documents(directory_path)

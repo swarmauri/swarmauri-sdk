@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from swarmauri.core.documents.IDocument import IDocument
 
-class IVectorRetrieve(ABC):
+class IVectorStoreRetrieve(ABC):
     """
     Abstract base class for document retrieval operations.
     
@@ -23,3 +23,4 @@ class IVectorRetrieve(ABC):
             List[Document]: A list of the top_k most relevant documents.
         """
         pass
+

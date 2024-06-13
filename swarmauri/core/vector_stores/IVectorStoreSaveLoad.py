@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class ISaveLoadStore(ABC):
+class IVectorStoreSaveLoad(ABC):
     """
     Interface to abstract the ability to save and load the state of a vector store.
     This includes saving/loading the vectorizer's model as well as the documents or vectors.

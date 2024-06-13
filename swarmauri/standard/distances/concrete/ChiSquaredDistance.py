@@ -1,13 +1,14 @@
 from typing import List
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
 
-class ChiSquaredDistance(IDistanceSimilarity):
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+
+class ChiSquaredDistance(DistanceBase):
     """
     Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
     """
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Chi-squared distance between two vectors.
         """
@@ -21,16 +22,17 @@ class ChiSquaredDistance(IDistanceSimilarity):
 
         return 0.5 * chi_squared_distance
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute the similarity between two vectors based on the Chi-squared distance.
         """
         return 1 / (1 + self.distance(vector_a, vector_b))
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities
+

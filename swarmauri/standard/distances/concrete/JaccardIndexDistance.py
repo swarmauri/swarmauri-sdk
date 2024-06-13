@@ -1,6 +1,7 @@
 from typing import List
-from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+
 
 class JaccardIndexDistance(DistanceBase):
     """

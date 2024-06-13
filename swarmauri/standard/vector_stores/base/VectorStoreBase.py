@@ -1,19 +1,22 @@
 import json
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
+from pydantic import Field
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.standard.documents.concrete.Document import Document
 
-class VectorDocumentStoreBase(IVectorStore, ABC):
+class VectorStoreBase(IVectorStore, ComponentBase):
     """
     Abstract base class for document stores, implementing the IVectorStore interface.
 
     This class provides a standard API for adding, updating, getting, and deleting documents in a vector store.
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
+    documents: List[Document] = []
+    resource: Optional[str] =  Field(default=ResourceTypes.VECTOR_STORE.value)
 
     @abstractmethod
-    def add_document(self, document: IDocument) -> None:
+    def add_document(self, document: Document) -> None:
         """
         Add a single document to the document store.
 
@@ -23,7 +26,7 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         pass
 
     @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         """
         Add multiple documents to the document store in a batch operation.
 
@@ -33,7 +36,7 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         pass
 
     @abstractmethod
-    def get_document(self, doc_id: str) -> Optional[IDocument]:
+    def get_document(self, id: str) -> Optional[Document]:
         """
         Retrieve a single document by its identifier.
 
@@ -46,7 +49,7 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         pass
 
     @abstractmethod
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> List[Document]:
         """
         Retrieve all documents stored in the document store.
 
@@ -56,7 +59,7 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         pass
 
     @abstractmethod
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+    def update_document(self, id: str, updated_document: Document) -> None:
         """
         Update a document in the document store.
 
@@ -67,7 +70,7 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         pass
 
     @abstractmethod
-    def delete_document(self, doc_id: str) -> None:
+    def delete_document(self, id: str) -> None:
         """
         Delete a document from the document store by its identifier.
 
@@ -87,9 +90,15 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
         return len(self.documents)
     
     def document_dumps(self) -> str:
+        """
+        Placeholder
+        """
         return json.dumps([each.to_dict() for each in self.documents])
 
     def document_dump(self, file_path: str) -> None:
+        """
+        Placeholder
+        """
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump([each.to_dict() for each in self.documents], 
                 f,
@@ -97,9 +106,15 @@ class VectorDocumentStoreBase(IVectorStore, ABC):
                 indent=4)  
 
     def document_loads(self, json_data: str) -> None:
+        """
+        Placeholder
+        """
         self.documents = [globals()[each['type']].from_dict(each) for each in json.loads(json_data)]
 
     def document_load(self, file_path: str) -> None:
+        """
+        Placeholder
+        """
         with open(file_path, 'r', encoding='utf-8') as f:
             self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]
 
