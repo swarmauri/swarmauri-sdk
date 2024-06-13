@@ -1,69 +1,44 @@
 import json
 from typing import List
-from dataclasses import dataclass
 import google.generativeai as genai
-from swarmauri.standard.models.base.ModelBase import ModelBase
-
-@dataclass
-class GeminiProModel(ModelBase):
-    allowed_models = ['gemini-1.5-pro-latest']
-    api_key: str = ""
-    model_name: str = "gemini-1.5-pro-latest"
+from swarmauri.standard.models.base.LLMBase import LLMBase
 
 
-    def __post_init__(self):
-        self._validate_model_name()
-        genai.configure(api_key=self.api_key)
-        self.safety_settings = [
-          {
-            "category": "HARM_CATEGORY_HARASSMENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_HATE_SPEECH",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-        ]
-        self.safety_settings = [
-          {
-            "category": "HARM_CATEGORY_HARASSMENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_HATE_SPEECH",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-          },
-        ]
-        self.client = None
-
-    def _validate_model_name(self):
-        if self.model_name not in self.allowed_models:
-            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
+class GeminiProModel(LLMBase):
+    api_key: str
+    allowed_models: List[str] = ['gemini-1.5-pro-latest']
+    name: str = "gemini-1.5-pro-latest"
 
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
+        genai.configure(api_key=self.api_key)
         generation_config = {
             "temperature": temperature,
             "top_p": 0.95,
             "top_k": 0,
             "max_output_tokens": max_tokens,
             }
+
+
+        self.safety_settings = [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+        ]
+
 
         system_context = None
         for message in messages:
@@ -98,11 +73,11 @@ class GeminiProModel(ModelBase):
 
         next_message = sanitized_messages.pop()
 
-        self.client = genai.GenerativeModel(model_name=self.model_name,
+        client = genai.GenerativeModel(model_name=self.name,
             safety_settings=self.safety_settings,
             generation_config=generation_config)
 
-        convo = self.client.start_chat(
+        convo = client.start_chat(
             history=sanitized_messages,
             )
 

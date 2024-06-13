@@ -2,10 +2,11 @@ import json
 from typing import List
 from dataclasses import dataclass
 from mistralai.client import MistralClient
-from swarmauri.standard.models.base.ModelBase import ModelBase
+from swarmauri.standard.models.base.LLMBase import LLMBase
 
-class MistralModel(ModelBase):
-    allowed_models = ['open-mistral-7b', 
+class MistralModel(LLMBase):
+    api_key: str
+    allowed_models: List[str] = ['open-mistral-7b', 
     'open-mixtral-8x7b', 
     'open-mixtral-8x22b', 
     'mistral-small-latest',
@@ -13,16 +14,7 @@ class MistralModel(ModelBase):
     'mistral-large-latest',
     'codestral'
     ]
-    api_key: str = ""
-    model_name: str = "open-mixtral-8x7b"
-
-    def __post_init__(self):
-        self._validate_model_name()
-        self.client =  MistralClient(api_key=self.api_key)
-
-    def _validate_model_name(self):
-        if self.model_name not in self.allowed_models:
-            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
+    name: str = "open-mixtral-8x7b"
 
 
     def predict(self, messages, 
@@ -32,9 +24,10 @@ class MistralModel(ModelBase):
         enable_json: bool=False, 
         safe_prompt: bool=False):
         
+        client =  MistralClient(api_key=self.api_key)        
         if enable_json:
-            response = self.client.chat(
-                model=self.model_name,
+            response = client.chat(
+                model=self.name,
                 messages=messages,
                 temperature=temperature,
                 response_format={ "type": "json_object" },
@@ -43,8 +36,8 @@ class MistralModel(ModelBase):
                 safe_prompt=safe_prompt
             )
         else:
-            response = self.client.chat(
-                model=self.model_name,
+            response = client.chat(
+                model=self.name,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,

@@ -1,15 +1,17 @@
 import json
-from typing import List, Optional
-from pydantic import BaseModel, Field, PrivateAttr, ConfigDict, validator, ValidationError
+from typing import List, Optional, Dict
 from groq import Groq
 from swarmauri.standard.models.base.LLMBase import LLMBase
 
 class GroqModel(LLMBase):
     api_key: str
-    allowed_models: List[str] = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it']
+    allowed_models: List[str] = ['llama3-8b-8192', 
+    'llama3-70b-8192', 
+    'mixtral-8x7b-32768', 
+    'gemma-7b-it']
     name: str = "mixtral-8x7b-32768"
 
-    def predict(self, messages: List[dict], 
+    def predict(self, messages: List[Dict], 
                 temperature: float = 0.7, 
                 max_tokens: int = 256, 
                 top_p: float = 1.0, 

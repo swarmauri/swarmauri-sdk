@@ -1,21 +1,12 @@
 import json
-from dataclasses import dataclass
 from openai import OpenAI
-from swarmauri.core.models.base.ModelBase import ModelBase
+from swarmauri.core.models.base.LLMBase import LLMBase
 
-@dataclass
-class OpenAIImageGenerator(ModelBase):
+class OpenAIImageGenerator(LLMBase):
+    api_key: str
     allowed_models = ['dall-e']
-    api_key: str = ""
-    model_name: str = "dall-e"
+    name: str = "dall-e"
 
-    def __post_init__(self):
-        self._validate_model_name()
-        self.client =  OpenAI(api_key=self.api_key)
-
-    def _validate_model_name(self):
-        if self.model_name not in self.allowed_models:
-            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
 
     def predict(self, prompt: str, size: str = "1024x1024", 
                 quality: str = "standard", n: int = 1) -> str:
@@ -30,8 +21,9 @@ class OpenAIImageGenerator(ModelBase):
         - str: A URL or identifier for the generated image.
         """
         try:
-            response = self.client.images.generate(
-                model=self.model_name,
+            client =  OpenAI(api_key=self.api_key)
+            response = client.images.generate(
+                model=self.name,
                 prompt=prompt,
                 size=size,
                 quality=quality,

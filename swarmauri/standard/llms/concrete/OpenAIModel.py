@@ -2,11 +2,12 @@ import json
 from typing import List
 from dataclasses import dataclass
 from openai import OpenAI
-from swarmauri.standard.models.base.ModelBase import ModelBase
+from swarmauri.standard.models.base.LLMBase import LLMBase
 
 @dataclass
-class OpenAIModel(ModelBase):
-    allowed_models = ['gpt-4o', 
+class OpenAIModel(LLMBase):
+    api_key: str
+    allowed_models: List[str] = ['gpt-4o', 
     'gpt-4o-2024-05-13',
     'gpt-4-turbo', 
     'gpt-4-turbo-2024-04-09',
@@ -23,16 +24,8 @@ class OpenAIModel(ModelBase):
     'gpt-3.5-turbo-16k-0613',
     'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo']
-    api_key: str = ""
-    model_name: str = "gpt-3.5-turbo-16k"
+    name: str = "gpt-3.5-turbo-16k"
 
-    def __post_init__(self):
-        self._validate_model_name()
-        self.client = OpenAI(api_key=self.api_key)
-
-    def _validate_model_name(self):
-        if self.model_name not in self.allowed_models:
-            raise ValueError(f"Invalid model name: {self.model_name}. Allowed models are: {self.allowed_models}")
     
     def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
         """
@@ -47,6 +40,7 @@ class OpenAIModel(ModelBase):
         Returns:
         - The generated message content.
         """
+        client = OpenAI(api_key=self.api_key)
         
         if enable_json:
             response = self.client.chat.completions.create(
