@@ -1,13 +1,13 @@
 from typing import List
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+from swarmauri.standard.vectors.concrete.Vector import Vector
 
-class JaccardIndexDistance(IDistanceSimilarity):
+class JaccardIndexDistance(DistanceBase):
     """
     A class implementing Jaccard Index as a similarity and distance metric between two vectors.
     """
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Jaccard distance between two vectors.
 
@@ -16,14 +16,14 @@ class JaccardIndexDistance(IDistanceSimilarity):
         1 - (the intersection of the sets divided by the union of the sets).
 
         Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector.
+            vector_a (Vector): The first vector.
+            vector_b (Vector): The second vector.
 
         Returns:
             float: The Jaccard distance between vector_a and vector_b.
         """
-        set_a = set(vector_a.data)
-        set_b = set(vector_b.data)
+        set_a = set(vector_a.value)
+        set_b = set(vector_b.value)
 
         # Calculate the intersection and union of the two sets.
         intersection = len(set_a.intersection(set_b))
@@ -37,19 +37,19 @@ class JaccardIndexDistance(IDistanceSimilarity):
         jaccard_similarity = intersection / union
         return 1 - jaccard_similarity
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Jaccard similarity between two vectors.
 
         Args:
-            vector_a (IVector): The first vector.
-            vector_b (IVector): The second vector.
+            vector_a (Vector): The first vector.
+            vector_b (Vector): The second vector.
 
         Returns:
             float: Jaccard similarity score between vector_a and vector_b.
         """
-        set_a = set(vector_a.data)
-        set_b = set(vector_b.data)
+        set_a = set(vector_a.value)
+        set_b = set(vector_b.value)
 
         # Calculate the intersection and union of the two sets.
         intersection = len(set_a.intersection(set_b))
@@ -62,10 +62,10 @@ class JaccardIndexDistance(IDistanceSimilarity):
         # Compute and return Jaccard similarity.
         return intersection / union
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

@@ -1,39 +1,38 @@
 from math import sqrt
 from typing import List
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-
-
-class EuclideanDistance(IDistanceSimilarity):
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+from swarmauri.standard.vectors.concrete.Vector import Vector
+class EuclideanDistance(DistanceBase):
     """
     Class to compute the Euclidean distance between two vectors.
     Implements the IDistanceSimiliarity interface.
     """
+    resource: Optional[str] =  Field(default=ResourceTypes.DISTANCE.value, frozen=True)
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Euclidean distance between two vectors.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
 
         Returns:
             float: The computed Euclidean distance between vector_a and vector_b.
         """
-        if len(vector_a.data) != len(vector_b.data):
+        if len(vector_a.value) != len(vector_b.value):
             raise ValueError("Vectors do not have the same dimensionality.")
         
-        distance = sqrt(sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data)))
+        distance = sqrt(sum((a - b) ** 2 for a, b in zip(vector_a.value, vector_b.value)))
         return distance
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the similarity score as the inverse of the Euclidean distance between two vectors.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
 
         Returns:
             float: The similarity score between vector_a and vector_b.
@@ -41,10 +40,10 @@ class EuclideanDistance(IDistanceSimilarity):
         distance = self.distance(vector_a, vector_b)
         return 1 / (1 + distance)
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

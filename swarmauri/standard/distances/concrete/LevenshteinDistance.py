@@ -1,16 +1,16 @@
 from typing import List
 import numpy as np
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+from swarmauri.standard.vectors.concrete.Vector import Vector
 
-class LevenshteinDistance(IDistanceSimilarity):
+class LevenshteinDistance(DistanceBase):
     """
     Implements the IDistance interface to calculate the Levenshtein distance between two vectors.
     The Levenshtein distance between two strings is given by the minimum number of operations needed to transform
     one string into the other, where an operation is an insertion, deletion, or substitution of a single character.
     """
     
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute the Levenshtein distance between two vectors.
 
@@ -25,8 +25,8 @@ class LevenshteinDistance(IDistanceSimilarity):
         Returns:
            float: The computed Levenshtein distance between vector_a and vector_b.
         """
-        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
-        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
+        string_a = ''.join([chr(int(round(value))) for value in vector_a.value])
+        string_b = ''.join([chr(int(round(value))) for value in vector_b.value])
         
         return self.levenshtein(string_a, string_b)
     
@@ -59,15 +59,15 @@ class LevenshteinDistance(IDistanceSimilarity):
         
         return matrix[size_x - 1, size_y - 1]
     
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
-        string_a = ''.join([chr(int(round(value))) for value in vector_a.data])
-        string_b = ''.join([chr(int(round(value))) for value in vector_b.data])
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
+        string_a = ''.join([chr(int(round(value))) for value in vector_a.value])
+        string_b = ''.join([chr(int(round(value))) for value in vector_b.value])
         return 1 - self.levenshtein(string_a, string_b) / max(len(vector_a), len(vector_b))
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities
