@@ -42,7 +42,7 @@ class Doc2VecEmbedding(EmbeddingBase):
 
     def infer_vector(self, data: str) -> Vector:
         vector = self._model.infer_vector(data.split())
-        return Vector(vector.squeeze().tolist())
+        return Vector(value=vector.squeeze().tolist())
 
     def save_model(self, path: str) -> None:
         """

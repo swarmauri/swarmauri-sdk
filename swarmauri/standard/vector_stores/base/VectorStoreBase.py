@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
 class VectorStoreBase(IVectorStore, ComponentBase):
     """
@@ -13,7 +14,13 @@ class VectorStoreBase(IVectorStore, ComponentBase):
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
     documents: List[Document] = []
+    _vectorizer = PrivateAttr()
+    _distance = PrivateAttr()
     resource: Optional[str] =  Field(default=ResourceTypes.VECTOR_STORE.value)
+
+    @property
+    def vectorizer(self):
+        return self._vectorizer
 
     @abstractmethod
     def add_document(self, document: Document) -> None:
@@ -117,4 +124,3 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         """
         with open(file_path, 'r', encoding='utf-8') as f:
             self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]
-

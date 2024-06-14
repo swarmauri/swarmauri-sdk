@@ -16,14 +16,14 @@ class VectorProductMixin(IVectorProduct, BaseModel):
         a = np.array(vector_a.value)
         b = np.array(vector_b.value)
         cross = np.cross(a, b)
-        return Vector(cross.tolist())
+        return Vector(value=cross.tolist())
     
     def vector_triple_product(self, vector_a: Vector, vector_b: Vector, vector_c: Vector) -> Vector:
         a = np.array(vector_a.value)
         b = np.array(vector_b.value)
         c = np.array(vector_c.value)
         result = np.cross(a, np.cross(b, c))
-        return Vector(result.tolist())
+        return Vector(value=result.tolist())
     
     def scalar_triple_product(self, vector_a: Vector, vector_b: Vector, vector_c: Vector) -> float:
         a = np.array(vector_a.value)

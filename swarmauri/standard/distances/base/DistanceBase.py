@@ -4,9 +4,10 @@ from typing import List, Optional
 from pydantic import Field
 from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.vectors.concrete.VectorProductMixin import VectorProductMixin
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 
-class DistanceBase(IDistanceSimilarity, ComponentBase):
+class DistanceBase(IDistanceSimilarity, VectorProductMixin, ComponentBase):
     """
     Implements cosine distance calculation as an IDistanceSimiliarity interface.
     Cosine distance measures the cosine of the angle between two non-zero vectors
@@ -31,3 +32,4 @@ class DistanceBase(IDistanceSimilarity, ComponentBase):
     @abstractmethod
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         pass
+        

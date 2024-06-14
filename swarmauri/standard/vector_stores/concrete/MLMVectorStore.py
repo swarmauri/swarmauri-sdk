@@ -1,24 +1,26 @@
 from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase    
 
-class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
-    def __init__(self):
-        self.vectorizer = MLMVectorizer()  # Assuming this is already implemented
-        self.metric = CosineDistance()
-        self.documents: List[EmbeddedDocument] = []
-        SaveLoadStoreBase.__init__(self, self.vectorizer, self.documents)      
+from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
-    def add_document(self, document: IDocument) -> None:
+class MLMVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+                       
+        self._embedding = MLMVectorizer()
+        self._distance = CosineDistance()
+        self.documents: List[Document] = []   
+
+    def add_document(self, document: Document) -> None:
         self.documents.append(document)
         documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
+        embeddings = self._embedding.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(id=_d.id, 
+        embedded_documents = [Document(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count])
@@ -27,12 +29,12 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
 
         self.documents = embedded_documents
 
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         self.documents.extend(documents)
         documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self.vectorizer.fit_transform(documents_text)
+        embeddings = self._embedding.fit_transform(documents_text)
 
-        embedded_documents = [EmbeddedDocument(id=_d.id, 
+        embedded_documents = [Document(id=_d.id, 
             content=_d.content, 
             metadata=_d.metadata, 
             embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
@@ -40,28 +42,27 @@ class MLMVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
 
         self.documents = embedded_documents
 
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+    def get_document(self, id: str) -> Union[Document, None]:
         for document in self.documents:
             if document.id == doc_id:
                 return document
         return None
         
-    def get_all_documents(self) -> List[EmbeddedDocument]:
+    def get_all_documents(self) -> List[Document]:
         return self.documents
 
-    def delete_document(self, doc_id: str) -> None:
+    def delete_document(self, id: str) -> None:
         self.documents = [_d for _d in self.documents if _d.id != doc_id]
 
-    def update_document(self, doc_id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on BERTDocumentStore class.')
+    def update_document(self, id: str) -> None:
+        raise NotImplementedError('Update_document not implemented on MLMVectorStore class.')
         
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
-        query_vector = self.vectorizer.infer_vector(query)
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
+        query_vector = self._embedding.infer_vector(query)
         document_vectors = [_d.embedding for _d in self.documents if _d.content]
-        distances = self.metric.distances(query_vector, document_vectors)
+        distances = self._distance.distances(query_vector, document_vectors)
         
         # Get the indices of the top_k most similar documents
         top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
         
         return [self.documents[i] for i in top_k_indices]
-
