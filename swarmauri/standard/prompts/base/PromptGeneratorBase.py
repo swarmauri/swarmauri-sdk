@@ -1,4 +1,4 @@
-from typing import Dict, List, Generator
+from typing import Dict, List, Generator, Any
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.prompts.IPrompt import IPrompt
 from swarmauri.core.prompts.ITemplate import ITemplate
@@ -11,17 +11,17 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """
 
     template: str = ""
-    variables: Union[List[Dict[str, str]], Dict[str,str]] = {}
+    variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
     resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value, frozen=True)
 
 
     def set_template(self, template: str) -> None:
         self.template = template
 
-    def set_variables(self, variables: List[Dict[str, str]]) -> None:
+    def set_variables(self, variables: List[Dict[str, Any]]) -> None:
         self.variables = variables
 
-    def generate_prompt(self, variables: Dict[str, str]) -> str:
+    def generate_prompt(self, variables: Dict[str, Any]) -> str:
         """
         Generates a prompt using the provided variables if any
         else uses the next variables set in the list.
@@ -35,5 +35,5 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
         each set of variables in the variables list.
         """
         for variables_set in self.variables:
-            yield self.generate_prompt(**variables_set)
+            yield self.generate_prompt(variables_set)
         self.variables = []

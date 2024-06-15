@@ -20,7 +20,7 @@ class ITemplate(ABC):
 
     @abstractmethod
     def set_variables(self, 
-                      variables: Union[List[Dict[str, str]], Dict[str,str]] = {}) -> None:
+                      variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}) -> None:
         """
         Sets or updates the variables to be substituted into the template.
 

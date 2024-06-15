@@ -7,3 +7,4 @@ def test_1():
 		embedder = Doc2VecEmbedding()
 		embedder.fit_transform(['test', 'test1', 'test2'])
 		assert ['test2', 'test1', 'test'] == embedder.extract_features()
+	test()
