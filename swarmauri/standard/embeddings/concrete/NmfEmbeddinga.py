@@ -52,7 +52,7 @@ class NmfEmbedding(EmbeddingBase):
         nmf_features = self._model.transform(tfidf_matrix)
 
         # Wrap NMF features in SimpleVector instances and return
-        return [Vector(features.tolist()) for features in nmf_features]
+        return [Vector(value=features.tolist()) for features in nmf_features]
 
     def fit_transform(self, data):
         """

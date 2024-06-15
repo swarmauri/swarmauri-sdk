@@ -11,7 +11,7 @@ from torch.utils.data import Dataset
 from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
-class MLMEmbedding(EmbeddingBase):
+class MlmEmbedding(EmbeddingBase):
     """
     EmbeddingBase implementation that fine-tunes a Masked Language Model (MLM).
     """

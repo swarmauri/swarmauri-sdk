@@ -1,6 +1,6 @@
 from typing import List, Union
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
+from swarmauri.standard.vectorizers.concrete.MlmEmbedding import MlmEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
@@ -11,7 +11,7 @@ class MLMVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorS
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
                        
-        self._embedding = MLMVectorizer()
+        self._embedding = MlmEmbedding()
         self._distance = CosineDistance()
         self.documents: List[Document] = []   
 
