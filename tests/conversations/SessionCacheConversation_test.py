@@ -3,6 +3,14 @@ from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, Hu
 from swarmauri.standard.conversations.concrete.SessionCacheConversation import SessionCacheConversation
 
 @pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), 
+            max_size=4)
+        assert conv.resource == 'Conversation'
+    test()
+
+@pytest.mark.unit
 def test_1():
     def test_conversation_history(max_size):
         try:

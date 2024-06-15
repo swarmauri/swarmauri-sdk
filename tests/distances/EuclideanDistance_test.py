@@ -1,4 +1,11 @@
+import pytest
 from swarmauri.standard.prompts.concrete.EuclideanDistance import EuclideanDistance
+
+@pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        assert EuclideanDistance().resource == 'Distance'
+    test()
 
 @pytest.mark.unit
 def test_1():

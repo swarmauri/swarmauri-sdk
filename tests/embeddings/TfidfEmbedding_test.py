@@ -2,6 +2,12 @@ import pytest
 from swarmauri.standard.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
 
 @pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        assert TfidfEmbedding().resource == 'Embedding'
+    test()
+
+@pytest.mark.unit
 def test_1():
 	def test():
 		embedder = TfidfEmbedding()

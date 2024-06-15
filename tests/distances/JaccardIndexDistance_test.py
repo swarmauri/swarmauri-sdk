@@ -1,4 +1,11 @@
+import pytest
 from swarmauri.standard.prompts.concrete.JaccardIndexDistance import JaccardIndexDistance
+
+@pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        assert JaccardIndexDistance().resource == 'Distance'
+    test()
 
 @pytest.mark.unit
 def test_1():

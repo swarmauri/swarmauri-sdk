@@ -2,6 +2,12 @@ import pytest
 from swarmauri.standard.embeddings.concrete.NmfEmbedding import NmfEmbedding
 
 @pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        assert NmfEmbedding().resource == 'Embedding'
+    test()
+
+@pytest.mark.unit
 def test_1():
 	def test():
 		embedder = NmfEmbedding()

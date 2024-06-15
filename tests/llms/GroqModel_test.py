@@ -8,6 +8,14 @@ from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 @pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        API_KEY = os.getenv('GROQ_API_KEY')
+        llm = GroqModel(api_key = API_KEY)
+        assert llm.resource == 'LLM'
+    test()
+
+@pytest.mark.unit
 def test_initialization():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')

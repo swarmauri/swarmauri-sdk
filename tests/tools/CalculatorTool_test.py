@@ -1,8 +1,14 @@
 import pytest
 from swarmauri.standard.tools.concrete.CalculatorTool import CalculatorTool
 
+@pytest.mark.unit
+def ubc_initialization_test():
+    def test():
+        tool = CalculatorTool()
+        assert tool.resource == 'Tool'
+    test()
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_initialization():
     def test():
         tool = CalculatorTool()
@@ -12,7 +18,7 @@ def test_initialization():
     test()
 
 
-@pytest.mark.test('unit')
+@pytest.mark.unit
 def test_call():
     def test():
         tool = CalculatorTool()
