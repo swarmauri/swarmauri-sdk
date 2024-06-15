@@ -12,11 +12,11 @@ class ChiSquaredDistance(DistanceBase):
         """
         Computes the Chi-squared distance between two vectors.
         """
-        if len(vector_a.data) != len(vector_b.data):
+        if len(vector_a.value) != len(vector_b.value):
             raise ValueError("Vectors must have the same dimensionality.")
 
         chi_squared_distance = 0
-        for a, b in zip(vector_a.data, vector_b.data):
+        for a, b in zip(vector_a.value, vector_b.value):
             if (a + b) != 0:
                 chi_squared_distance += (a - b) ** 2 / (a + b)
 
