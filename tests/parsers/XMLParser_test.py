@@ -1,5 +1,4 @@
 import pytest
-from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.concrete.XMLParser import XMLParser
 
 @pytest.mark.unit
