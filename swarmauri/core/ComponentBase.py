@@ -16,6 +16,7 @@ class ResourceTypes(Enum):
     DISTANCE = 'Distance'
     DOCUMENT_STORE = 'DocumentStore'
     DOCUMENT = 'Document'
+    EMBEDDING = 'Embedding'
     EXCEPTION = 'Exception'
     MESSAGE = 'Message'
     METRIC = 'Metric'
@@ -32,7 +33,6 @@ class ResourceTypes(Enum):
     TRACE = 'Trace'
     UTIL = 'Util'
     VECTOR_STORE = 'VectorStore'
-    VECTORIZER = 'Vectorizer'
     VECTOR = 'Vector'
 
 def generate_id() -> str:
