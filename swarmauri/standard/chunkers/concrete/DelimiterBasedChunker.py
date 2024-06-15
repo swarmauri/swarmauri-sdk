@@ -4,7 +4,7 @@ from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
 class DelimiterBasedChunker(ChunkerBase):
     """
-    A concrete implementation of ChunkerBase that splits text into chunks based on specified delimiters.
+    A concrete implementation of IChunker that splits text into chunks based on specified delimiters.
     """
     delimiters: List[str] = ['.', '!', '?']   
     
@@ -24,6 +24,6 @@ class DelimiterBasedChunker(ChunkerBase):
         chunks = re.split(delimiter_pattern, text)
         # Combine delimiters with the preceding text chunk since re.split() separates them
         combined_chunks = []
-        for i in range(0, len(chunks) - 1, 2):  # Step by 2 to process text chunk with its following delimiter
+        for i in range(0, len(chunks), 2):  # Step by 2 to process text chunk with its following delimiter
             combined_chunks.append(chunks[i] + (chunks[i + 1] if i + 1 < len(chunks) else ''))
         return combined_chunks
