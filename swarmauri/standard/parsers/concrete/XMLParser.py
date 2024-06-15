@@ -24,13 +24,11 @@ class XMLParser(ParserBase):
         """
         if isinstance(data, str):
             root = ET.fromstring(data)  # Parse the XML string into an ElementTree element
-            print(root)
         else:
             raise TypeError("Data for XMLParser must be a string containing valid XML.")
 
         documents = []
         for element in root.findall(self.element_tag):
-            print(element)
             # Extracting content and metadata from each element
             content = "".join(element.itertext())  # Get text content
             metadata = {child.tag: child.text for child in element}  # Extract child elements as metadata
