@@ -6,7 +6,7 @@ from swarmauri.core.models.IPredict import IPredict
 
 class LLMBase(IPredict, ComponentBase):
     allowed_models: List[str] = []
-    resource: Optional[str] =  Field(default=ResourceTypes.MODEL.value)
+    resource: Optional[str] =  Field(default=ResourceTypes.LLM.value, frozen=True)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     @model_validator(mode='after')
