@@ -7,7 +7,7 @@ from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBas
 from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
-class MLMVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
                        

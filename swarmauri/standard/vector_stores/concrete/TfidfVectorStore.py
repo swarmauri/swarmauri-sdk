@@ -7,7 +7,7 @@ from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBas
 from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
-class TFIDFVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     
     def __init__(self, **kwargs):
         super().__init__(self, **kwargs)
@@ -50,8 +50,10 @@ class TFIDFVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         self._embedding.fit([doc.content for doc in self.documents])
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        transform_matrix = self._embedding.fit_transform(query, self.documents)
-
+        documents = [query]
+        documents.extend([doc.content for doc in self.documents])
+        transform_matrix = self._embedder.fit_transform(documents)
+        
         # The inferred vector is the last vector in the transformed_matrix
         # The rest of the matrix is what we are comparing
         distances = self._distance.distances(transform_matrix[-1], transform_matrix[:-1])  
