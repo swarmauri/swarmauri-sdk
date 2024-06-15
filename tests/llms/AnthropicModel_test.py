@@ -23,7 +23,7 @@ def test_no_system_context():
         conversation = Conversation()
 
         input_data = "Hello"
-        human_message = HumanMessage(input_data)
+        human_message = HumanMessage(content=input_data)
         conversation.add_message(human_message)
 
         prediction = model.predict(messages=conversation.as_messages())
@@ -39,21 +39,21 @@ def test_nonpreamble_system_context():
 
         # Say hi
         input_data = "Hi"
-        human_message = HumanMessage(input_data)
+        human_message = HumanMessage(content=input_data)
         conversation.add_message(human_message)
 
         # Get Prediction
         prediction = model.predict(messages=conversation.as_messages())
-        conversation.add_message(AgentMessage(prediction))
+        conversation.add_message(AgentMessage(content=prediction))
 
         # Give System Context
         system_context = 'You only respond with the following phrase, "Jeff"'
-        human_message = SystemMessage(system_context)
+        human_message = SystemMessage(content=system_context)
         conversation.add_message(human_message)
 
         # Prompt
         input_data = "Hello Again."
-        human_message = HumanMessage(input_data)
+        human_message = HumanMessage(content=input_data)
         conversation.add_message(human_message)
 
         
@@ -71,11 +71,11 @@ def test_preamble_system_context():
         conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
-        human_message = SystemMessage(system_context)
+        human_message = SystemMessage(content=system_context)
         conversation.add_message(human_message)
 
         input_data = "Hi"
-        human_message = HumanMessage(input_data)
+        human_message = HumanMessage(content=input_data)
         conversation.add_message(human_message)
 
         prediction = model.predict(messages=conversation.as_messages())
@@ -91,22 +91,22 @@ def test_multiple_system_contexts():
         conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
-        human_message = SystemMessage(system_context)
+        human_message = SystemMessage(content=system_context)
         conversation.add_message(human_message)
 
         input_data = "Hi"
-        human_message = HumanMessage(input_data)
+        human_message = HumanMessage(content=input_data)
         conversation.add_message(human_message)
 
         prediction = model.predict(messages=conversation.as_messages())
-        conversation.add_message(AgentMessage(prediction))
+        conversation.add_message(AgentMessage(content=prediction))
 
         system_context_2 = 'You only respond with the following phrase, "Ben"'
-        human_message = SystemMessage(system_context_2)
+        human_message = SystemMessage(content=system_context_2)
         conversation.add_message(human_message)
 
         input_data_2 = "Hey"
-        human_message = HumanMessage(input_data_2)
+        human_message = HumanMessage(content=input_data_2)
         conversation.add_message(human_message)
 
         prediction = model.predict(messages=conversation.as_messages())

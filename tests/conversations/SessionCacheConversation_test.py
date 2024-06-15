@@ -6,15 +6,15 @@ from swarmauri.standard.conversations.concrete.SessionCacheConversation import S
 def test_1():
     def test_conversation_history(max_size):
         try:
-            conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
-            conv.add_message(HumanMessage('human'))
-            conv.add_message(AgentMessage('agent'))
-            conv.add_message(HumanMessage('human2'))
-            conv.add_message(AgentMessage('agent2'))
-            conv.add_message(HumanMessage('human3'))
-            conv.add_message(AgentMessage('agent3'))
-            conv.add_message(HumanMessage('human4'))
-            conv.add_message(AgentMessage('agent4'))
+            conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+            conv.add_message(HumanMessage(content='human'))
+            conv.add_message(AgentMessage(content='agent'))
+            conv.add_message(HumanMessage(content='human2'))
+            conv.add_message(AgentMessage(content='agent2'))
+            conv.add_message(HumanMessage(content='human3'))
+            conv.add_message(AgentMessage(content='agent3'))
+            conv.add_message(HumanMessage(content='human4'))
+            conv.add_message(AgentMessage(content='agent4'))
             assert conv.history[0].content == 'systest'
             if max_size > 1:
                 assert conv.history[1].role != 'human'
@@ -44,13 +44,13 @@ def test_1():
 def test_2():
     def test_conversation_history(max_size):
             try:
-                conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
-                conv.add_message(HumanMessage('human'))
-                conv.add_message(AgentMessage('agent'))
-                conv.add_message(HumanMessage('human2'))
-                conv.add_message(AgentMessage('agent2'))
-                conv.add_message(HumanMessage('human3'))
-                conv.add_message(AgentMessage('agent3'))
+                conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+                conv.add_message(HumanMessage(content='human'))
+                conv.add_message(AgentMessage(content='agent'))
+                conv.add_message(HumanMessage(content='human2'))
+                conv.add_message(AgentMessage(content='agent2'))
+                conv.add_message(HumanMessage(content='human3'))
+                conv.add_message(AgentMessage(content='agent3'))
                  
                 assert conv.history[0].content == 'systest'
                 if max_size > 1:
@@ -87,9 +87,9 @@ def test_2():
 def test_3():
     def test_conversation_history(max_size):
         try:
-            conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
+            conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
             try:
-                conv.add_message(AgentMessage('agent'))
+                conv.add_message(AgentMessage(content='agent'))
             except Exception as e:     
                 assert str(e) == "The first message in the history must be an HumanMessage."
         except Exception as e:
@@ -101,12 +101,12 @@ def test_3():
 def test_4():
     def test_conversation_history(max_size):
         try:
-            conv = SessionCacheConversation(system_message_content=SystemMessage('systest'), max_size=max_size)
+            conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
             try:
-                conv.add_message(HumanMessage('human'))
-                conv.add_message(AgentMessage('agent'))
-                conv.add_message(HumanMessage('human'))
-                conv.add_message(HumanMessage('human'))
+                conv.add_message(HumanMessage(content='human'))
+                conv.add_message(AgentMessage(content='agent'))
+                conv.add_message(HumanMessage(content='human'))
+                conv.add_message(HumanMessage(content='human'))
             except Exception as e:     
                 print(str(e))
                 assert str(e) == "Cannot have two repeating HumanMessages."
