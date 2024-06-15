@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.prompts.concrete.LevenshteinDistance import LevenshteinDistance
+from swarmauri.standard.distances.concrete.LevenshteinDistance import LevenshteinDistance
 
 @pytest.mark.unit
 def ubc_initialization_test():

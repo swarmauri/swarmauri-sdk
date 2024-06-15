@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.prompts.concrete.ChiSquaredDistance import ChiSquaredDistance
+from swarmauri.standard.distances.concrete.ChiSquaredDistance import ChiSquaredDistance
 
 @pytest.mark.unit
 def ubc_initialization_test():

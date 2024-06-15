@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.prompts.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 @pytest.mark.unit
 def ubc_initialization_test():

@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.prompts.concrete.EuclideanDistance import EuclideanDistance
+from swarmauri.standard.distances.concrete.EuclideanDistance import EuclideanDistance
 
 @pytest.mark.unit
 def ubc_initialization_test():
