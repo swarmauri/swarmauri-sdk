@@ -1,7 +1,7 @@
 import pytest
 import os
-from swarmauri.standard.models.concrete.AnthropicModel import AnthropicModel
-from swarmauri.standard.conversations.concrete.SimpleConversation import SimpleConversation
+from swarmauri.standard.llms.concrete.AnthropicModel import AnthropicModel
+from swarmauri.standard.conversations.concrete.Conversation import Conversation
 
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
@@ -12,7 +12,7 @@ def test_initialization():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         model = AnthropicModel(api_key = API_KEY)
-        assert model.model_name == 'claude-3-haiku-20240307'
+        assert model.name == 'claude-3-haiku-20240307'
     test()
 
 @pytest.mark.unit
@@ -20,7 +20,7 @@ def test_no_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         model = AnthropicModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
@@ -35,7 +35,7 @@ def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         model = AnthropicModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         # Say hi
         input_data = "Hi"
@@ -68,7 +68,7 @@ def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         model = AnthropicModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
@@ -88,7 +88,7 @@ def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
         model = AnthropicModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)

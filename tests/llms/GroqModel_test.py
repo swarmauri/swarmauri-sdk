@@ -1,7 +1,7 @@
 import pytest
 import os
-from swarmauri.standard.models.concrete.GroqModel import GroqModel
-from swarmauri.standard.conversations.concrete.SimpleConversation import SimpleConversation
+from swarmauri.standard.llms.concrete.GroqModel import GroqModel
+from swarmauri.standard.conversations.concrete.Conversation import Conversation
 
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
@@ -20,7 +20,7 @@ def test_no_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         model = GroqModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         input_data = "Hello"
         human_message = HumanMessage(input_data)
@@ -35,7 +35,7 @@ def test_nonpreamble_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         model = GroqModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         # Say hi
         input_data = "Hi"
@@ -67,7 +67,7 @@ def test_preamble_system_context():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         model = GroqModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
@@ -87,7 +87,7 @@ def test_multiple_system_contexts():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         model = GroqModel(api_key = API_KEY)
-        conversation = SimpleConversation()
+        conversation = Conversation()
 
         system_context = 'You only respond with the following phrase, "Jeff"'
         human_message = SystemMessage(system_context)
