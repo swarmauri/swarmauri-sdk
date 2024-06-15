@@ -1,5 +1,4 @@
 import pytest
-from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.concrete.TextBlobNounParser import TextBlobNounParser
 
 @pytest.mark.unit
