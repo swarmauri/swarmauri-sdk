@@ -8,7 +8,7 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
-def test_1():
+def test_fit_transform():
 	def test():
 		embedder = MlmEmbedding()
 		embedder.fit_transform(['test', 'test1', 'test2'])

@@ -9,7 +9,7 @@ def test_ubc_resource():
 	test()
 
 @pytest.mark.unit
-def chunk_text_test():
+def test_chunk_text():
 	def test():
 		unchunked_text = 'A walk in the park is a nice start. After the walk, let us talk.'
 		chunks = ['A walk in the park is a nice start.', 'After the walk, let us talk.']

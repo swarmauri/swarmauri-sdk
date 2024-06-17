@@ -14,7 +14,7 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
-def chain_execute_return_value_test():
+def test_chain_execute_return_value():
     def test():
         def func(*args, **kwargs):
             return ('test_response', args, kwargs)
@@ -28,7 +28,7 @@ def chain_execute_return_value_test():
     test()
 
 @pytest.mark.unit
-def chain_execute_state_test():
+def test_chain_execute_state():
     def test():
         ref = "test_result"
         args = [1,2,3]
@@ -45,7 +45,7 @@ def chain_execute_state_test():
     test()
 
 @pytest.mark.unit
-def chain_json_test():
+def test_chain_json():
     def test():
         ref = "test_result"
         args = [1,2,3]

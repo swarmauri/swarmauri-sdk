@@ -8,7 +8,7 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
-def test_1():
+def test_metric_value():
 	def test():
 		metric = MeanMetric(unit='average test score')
 		metric.add_measurement(10)
@@ -16,5 +16,13 @@ def test_1():
 		
 		assert metric() == 55.0
 		assert metric.value == 55.0
+	test()
+
+@pytest.mark.unit
+def test_metric_unit():
+	def test():
+		metric = MeanMetric(unit='average test score')
+		metric.add_measurement(10)
+		metric.add_measurement(100)
 		assert metric.unit == 'average test score'
 	test()

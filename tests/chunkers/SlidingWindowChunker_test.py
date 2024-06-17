@@ -9,7 +9,7 @@ def test_ubc_resource():
 	test()
 
 @pytest.mark.unit
-def chunk_text_test():
+def test_chunk_text():
 	def test():
 		unchunked_text = 'abcdefghijklmnopqsrtuvwxyz012345 '
 		assert len(SlidingWindowChunker().chunk_text(unchunked_text*512)) == 2
@@ -17,7 +17,7 @@ def chunk_text_test():
 
 
 @pytest.mark.unit
-def chunk_text_test_overlap():
+def test_chunk_text_overlap():
 	def test():
 		unchunked_text = 'abcdefghijklmnopqsrtuvwxyz012345 '
 		assert len(SlidingWindowChunker(overlap=True, 

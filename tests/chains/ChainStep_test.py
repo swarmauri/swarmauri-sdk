@@ -12,7 +12,7 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_method_call():
     def test():
         def func(*args, **kwargs):
             return (args, kwargs)

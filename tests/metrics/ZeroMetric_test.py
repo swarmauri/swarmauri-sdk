@@ -8,9 +8,14 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
-def test_1():
+def test_metric_value():
     def test():
         assert ZeroMetric()() == 0
         assert ZeroMetric().value == 0
+    test()
+
+@pytest.mark.unit
+def test_metric_unit():
+    def test():
         assert ZeroMetric().unit == 'unitless'
     test()

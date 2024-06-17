@@ -9,7 +9,7 @@ def test_ubc_resource():
 	test()
 
 @pytest.mark.unit
-def chunk_text_test():
+def test_chunk_text():
 	def test():
 		unchunked_text = """
 ```python
@@ -37,7 +37,7 @@ Here we have some text:
 	test()
 
 @pytest.mark.unit
-def chunk_text_test_2():
+def test_chunk_text_2():
 	def test():
 		unchunked_text = """
 ```python

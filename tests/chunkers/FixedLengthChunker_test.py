@@ -9,7 +9,7 @@ def test_ubc_resource():
 	test()
 
 @pytest.mark.unit
-def chunk_text_test():
+def test_chunk_text():
 	def test():
 		assert len(FixedLengthChunker().chunk_text('ab '*512)) == 6
 	test()

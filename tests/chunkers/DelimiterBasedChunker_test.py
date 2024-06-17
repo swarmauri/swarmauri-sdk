@@ -9,7 +9,7 @@ def test_ubc_resource():
 	test()
 
 @pytest.mark.unit
-def chunk_text_test():
+def test_chunk_text():
 	def test():
 		unchunked_text = 'test? test2! question. test'
 		chunks = ['question?', 'test!', 'period.', 'run on']
