@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 from pydantic import Field, ConfigDict
 import re
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes

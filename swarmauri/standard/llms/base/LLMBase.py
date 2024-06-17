@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, Optional
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from typing import Any, Union, Optional, List
+from pydantic import BaseModel, ConfigDict, ValidationError, model_validator, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.models.IPredict import IPredict
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import json
 import glob
 import importlib 
-from swarmauri.core.vector_stores.ISaveLoadStore import ISaveLoadStore
+from swarmauri.core.vector_stores.IVectorStoreSaveLoad import IVectorStoreSaveLoad
 from swarmauri.standard.documents.concrete.Document import Document
 
 class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):

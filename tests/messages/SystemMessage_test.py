@@ -4,7 +4,7 @@ from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 @pytest.mark.unit
 def ubc_initialization_test():
     def test():
-    	message = SystemMessage(content='test')
+        message = SystemMessage(content='test')
         assert message.resource == 'Message'
     test()
 

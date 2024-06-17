@@ -1,4 +1,5 @@
-from typing import Dict, List, Generator, Any
+from typing import Dict, List, Generator, Any, Union, Optional
+from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.prompts.IPrompt import IPrompt
 from swarmauri.core.prompts.ITemplate import ITemplate

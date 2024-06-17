@@ -1,8 +1,9 @@
-from typing import Any, Callable, List, Dict
+from typing import Any, Callable, List, Dict, Optional
+from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChainStep import IChainStep
 
-class ChainStepBase(IChainStep, ComponentBase, ABC):
+class ChainStepBase(IChainStep, ComponentBase):
     """
     Represents a single step within an execution chain.
     """

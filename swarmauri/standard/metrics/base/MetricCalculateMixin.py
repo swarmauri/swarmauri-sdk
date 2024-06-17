@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Any
 from pydantic import BaseModel
 from swarmauri.core.metrics.IMetricCalculate import IMetricCalculate

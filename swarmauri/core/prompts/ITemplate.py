@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
 
 

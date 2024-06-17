@@ -1,4 +1,5 @@
 from typing import Optional, Union, List
+from pydantic import Field, ConfigDict, field_validator
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase

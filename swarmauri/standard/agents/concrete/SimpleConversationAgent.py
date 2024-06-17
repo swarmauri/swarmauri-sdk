@@ -5,7 +5,8 @@ from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
-from swarmauri.standard.messages.concrete import HumanMessage
+from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
+
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
@@ -22,6 +23,6 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
             conversation.add_message(human_message)
         
         messages = conversation.as_messages()
-        prediction = model.predict(messages=messages, **llm_kwargs)
+        prediction = llm.predict(messages=messages, **llm_kwargs)
         conversation.add_message(AgentMessage(content=prediction))
         return prediction

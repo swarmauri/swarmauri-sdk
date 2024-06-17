@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Callable
+from typing import Any, Dict, List, Callable, Optional
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.standard.chains.base.ChainStep import ChainStep
 from swarmauri.core.chains.IChain import IChain

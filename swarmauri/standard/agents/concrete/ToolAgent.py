@@ -36,7 +36,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         # Retrieve the conversation history and predict a response
         messages = conversation.as_messages()
         
-        prediction = model.predict(messages=messages, 
+        prediction = llm.predict(messages=messages, 
                                    tools=toolkit.list_tools(), 
                                    tool_choice="auto", 
                                    **llm_kwargs)
@@ -66,10 +66,10 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
             
             
             messages = conversation.as_messages()
-            rag_prediction = model.predict(messages=messages, 
+            rag_prediction = llm.predict(messages=messages, 
                                            tools=toolkit.tools, 
                                            tool_choice="none",
-                                           **model_kwargs)
+                                           **llm_kwargs)
             
             prediction_message = rag_prediction.choices[0].message
             

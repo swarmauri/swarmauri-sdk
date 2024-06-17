@@ -1,11 +1,11 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import Field, ConfigDict
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.core.chains.IChainStep import IChainStep
 
 
-class ChainBase(IChain, ComponentBase, ABC):
+class ChainBase(IChain, ComponentBase):
     """
     A base implementation of the IChain interface.
     """

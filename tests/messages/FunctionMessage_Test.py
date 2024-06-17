@@ -7,7 +7,7 @@ def ubc_initialization_test():
         message = FunctionMessage(name="test_name", content='test', tool_call_id="test_tool_call_id")
         assert message.resource == 'Message'
     test()
-tool_call_id
+    
 @pytest.mark.unit
 def name_test():
     def test():

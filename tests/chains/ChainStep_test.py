@@ -7,7 +7,7 @@ def ubc_initialization_test():
     def test():
         def func(*args, **kwargs):
             return (args, kwargs)
-    	step = ChainStep(key='test', method=func, args=[1,2], kwargs={"item": "value"}, ref=None)
+        step = ChainStep(key='test', method=func, args=[1,2], kwargs={"item": "value"}, ref=None)
         assert step.resource == 'ChainStep'
     test()
 

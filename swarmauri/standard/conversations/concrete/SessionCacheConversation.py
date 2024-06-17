@@ -1,4 +1,5 @@
 from typing import Optional, Union, List
+from pydantic import Field
 from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize

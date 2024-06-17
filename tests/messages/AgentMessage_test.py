@@ -4,7 +4,7 @@ from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 @pytest.mark.unit
 def ubc_initialization_test():
     def test():
-    	message = AgentMessage(content='test')
+        message = AgentMessage(content='test')
         assert message.resource == 'Message'
     test()
 

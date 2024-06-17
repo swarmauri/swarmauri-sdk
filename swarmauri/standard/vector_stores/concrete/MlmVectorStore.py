@@ -44,7 +44,7 @@ class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorS
 
     def get_document(self, id: str) -> Union[Document, None]:
         for document in self.documents:
-            if document.id == doc_id:
+            if document.id == id:
                 return document
         return None
         
@@ -52,7 +52,7 @@ class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorS
         return self.documents
 
     def delete_document(self, id: str) -> None:
-        self.documents = [_d for _d in self.documents if _d.id != doc_id]
+        self.documents = [_d for _d in self.documents if _d.id != id]
 
     def update_document(self, id: str) -> None:
         raise NotImplementedError('Update_document not implemented on MLMVectorStore class.')

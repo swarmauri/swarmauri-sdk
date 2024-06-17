@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.Groqmodel import Groqmodel
+from swarmauri.standard.llms.concrete.GroqModel import GroqModel
 from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool

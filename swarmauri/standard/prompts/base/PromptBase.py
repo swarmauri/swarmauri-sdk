@@ -1,6 +1,7 @@
-from swarmauri.core.prompts.IPrompt import IPrompt
+from typing import Optional
 from pydantic import ConfigDict, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.core.prompts.IPrompt import IPrompt
 
 class PromptBase(IPrompt, ComponentBase):
     """

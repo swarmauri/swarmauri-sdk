@@ -4,7 +4,7 @@ from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 @pytest.mark.unit
 def ubc_initialization_test():
     def test():
-    	message = HumanMessage(content='test')
+        message = HumanMessage(content='test')
         assert message.resource == 'Message'
     test()
 

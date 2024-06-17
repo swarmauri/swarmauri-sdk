@@ -1,6 +1,6 @@
 from typing import List, Union
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vectorizers.concrete.MLMVectorizer import MLMVectorizer
+from swarmauri.standard.embeddings.concrete.SpatialDocEmbedding import SpatialDocEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
@@ -11,7 +11,7 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 class SpatialDocVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     def __init__(self, **kwargs):
         super().__init__(self, **kwargs)
-        self._embedding = SpatialDocVectorizer()  # Assuming this is already implemented
+        self._embedding = SpatialDocEmbedding()  # Assuming this is already implemented
         self._distance = CosineDistance()
         self.documents: List[Document] = []
 

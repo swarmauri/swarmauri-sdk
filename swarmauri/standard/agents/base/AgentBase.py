@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from pydantic import ConfigDict, Field, field_validator
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 

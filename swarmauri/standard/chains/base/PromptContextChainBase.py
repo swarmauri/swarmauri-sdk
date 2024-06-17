@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
+from pydantic import Field
 from collections import defaultdict, deque
 import re
 import numpy as np
@@ -15,7 +16,7 @@ from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResol
 
 
 class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
-    prompt_matrix: IPromptMatrix
+    prompt_matrix: PromptMatrix
     agents: List[IAgent] = Field(default_factory=list)
     context: Dict[str, Any] = Field(default_factory=dict)
     llm_kwargs: Dict[str, Any] = Field(default_factory=dict)

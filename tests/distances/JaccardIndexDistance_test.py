@@ -1,5 +1,6 @@
 import pytest
 from swarmauri.standard.distances.concrete.JaccardIndexDistance import JaccardIndexDistance
+from swarmauri.standard.vectors.concrete.Vector import Vector
 
 @pytest.mark.unit
 def ubc_initialization_test():

@@ -11,16 +11,17 @@ def ubc_initialization_test():
 @pytest.mark.unit
 def chunk_text_test():
 	def test():
-		chunk_text = 'abcdefghijklmnopqsrtuvwxyz012345 '
-		assert len(SlidingWindowChunker().chunk_text(chunk_text*512)) == 2
+		unchunked_text = 'abcdefghijklmnopqsrtuvwxyz012345 '
+		assert len(SlidingWindowChunker().chunk_text(unchunked_text*512)) == 2
 	test()
 
 
 @pytest.mark.unit
 def chunk_text_test_overlap():
 	def test():
+		unchunked_text = 'abcdefghijklmnopqsrtuvwxyz012345 '
 		assert len(SlidingWindowChunker(overlap=True, 
-			step_size=21).chunk_text(chunk_text*512)) == 13
+			step_size=21).chunk_text(unchunked_text*512)) == 13
 	test()
 
 

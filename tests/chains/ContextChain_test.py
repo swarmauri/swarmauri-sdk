@@ -7,7 +7,7 @@ from swarmauri.standard.chains.concrete.ContextChain import ContextChain
 def ubc_initialization_test():
     def test():
         def func(*args, **kwargs):
-            return ('test_response', *args, **kwargs)
+            return ('test_response', args, kwargs)
 
         chain = ContextChain()
         assert chain.resource == 'Chain'

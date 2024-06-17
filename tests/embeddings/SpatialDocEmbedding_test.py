@@ -12,5 +12,5 @@ def test_1():
 	def test():
 		embedder = SpatialDocEmbedding()
 		embedder.fit_transform(['test', 'test1', 'test2'])
-		assert type(infer_vector('poop1')) == float
+		assert type(embedder.infer_vector('test4')) == float
 	test()
