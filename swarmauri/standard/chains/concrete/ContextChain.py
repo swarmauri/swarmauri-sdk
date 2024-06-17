@@ -8,7 +8,7 @@ class ContextChain(IChain, ChainContextBase):
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
     Implements the IChain interface including get_schema_info and remove_step methods.
     """
-    def add_step(self, key: str, method: Callable[..., Any], *args, ref: str = None, **kwargs):
+    def add_step(self, key: str, method: Callable[..., Any], args: List[Any], kwargs: Dict[str, Any], ref: Optional[str] = None):
         # Directly store args, kwargs, and optionally a return_key without resolving them
         step = ChainStep(key=key, method=method, args=args, kwargs=kwargs, ref=ref)  # Note the use of 'ref' as 'return_key'
         self.steps.append(step)
