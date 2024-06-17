@@ -4,39 +4,42 @@ import sys
 def parse_junit_xml(xml_path):
     tree = ET.parse(xml_path)
     root = tree.getroot()
-    unit_failures = 0
-    integration_failures = 0
-    acceptance_failures = 0
-    collection_failures = 0
-    error_failures = 0
+    results = {}
+    results['total_cases'] = 0
+    results['unit_failures'] = 0
+    results['integration_failures'] = 0
+    results['acceptance_failures'] = 0
+    results['collection_failures'] = 0
+    results['error_failures'] = 0
 
     for testcase in root.findall(".//testcase"):
+        results['total_cases'] += 1
         for failure in testcase.findall("failure"):
             failure_text = failure.text.lower() if failure.text else ""
             if '@pytest.mark.unit' in failure_text:
-                unit_failures += 1
+                results['unit_failures'] += 1
             elif '@pytest.mark.integration' in failure_text:
-                integration_failures += 1
+                results['integration_failures'] += 1
             elif '@pytest.mark.acceptance' in failure_text:
-                acceptance_failures += 1
+                results['acceptance_failures'] += 1
 
         for error in testcase.findall("error"):
             error_message = error.get('message', '').lower()
             error_text = error.text.lower() if error.text else ""
             if 'collection failure' in error_message:
-                collection_failures += 1
+                results['collection_failures'] += 1
             else:
-                error_failures += 1
-    return unit_failures, integration_failures, acceptance_failures, collection_failures, error_failures
+                results['error_failures'] += 1
+    return results
 
 if __name__ == "__main__":
     xml_path = sys.argv[1]
-    unit_failures, integration_failures, acceptance_failures, collection_failures, error_failures = parse_junit_xml(xml_path)
-    print(f"Unit Failures: {unit_failures}")
-    print(f"Integration Failures: {integration_failures}")
-    print(f"Acceptance Failures: {acceptance_failures}")
-    print(f"Collection Failures: {collection_failures}")
-    print(f"Other Error Failures: {error_failures}")
+    results = parse_junit_xml(xml_path)
+    print(f"Unit Failures: {results['unit_failures']}/{results['total_cases']}")
+    print(f"Integration Failures: {results['integration_failures']}/{results['total_cases']}")
+    print(f"Acceptance Failures: {results['acceptance_failures']}/{results['total_cases']}")
+    print(f"Collection Failures: {results['collection_failures']}/{results['total_cases']}")
+    print(f"Other Error Failures: {results['error_failures']}/{results['total_cases']}")
 
     if acceptance_failures > 5:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
