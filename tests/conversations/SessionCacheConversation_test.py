@@ -38,7 +38,7 @@ def test_1():
             assert conv.history[3].content == 'human3'
             assert conv.history[4].content == 'agent3'
             assert conv.history[5].content == 'human4'
-                assert conv.history[6].content == 'agent4'
+            assert conv.history[6].content == 'agent4'
 
         print(max_size, 'max_size passed')
 
