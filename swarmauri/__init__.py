@@ -1,4 +1,4 @@
-__version__ = "0.3.3.dev49"
+__version__ = "0.3.3.dev50"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -6,17 +6,18 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 
 ## Core 
-- ABCs
-- Utilities
+- Core Interfaces
 
 ## Standard
+- Base Classes
+- Mixins
 - Concrete Classes
 
 ## Community
 - Concrete Classes that utilize third party plug-ins
 
 ## Experimental
-- Tools in development
+- Components in development
 
 
 """
