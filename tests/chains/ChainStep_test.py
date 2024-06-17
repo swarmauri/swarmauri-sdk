@@ -14,6 +14,8 @@ def ubc_initialization_test():
 @pytest.mark.unit
 def ubc_initialization_test():
     def test():
+        def func(*args, **kwargs):
+            return (args, kwargs)
         args = [1,2]
         kwargs={"item": "value"}
         step = ChainStep(key='test', method=func, args=args, kwargs=kwargs, ref=None)
