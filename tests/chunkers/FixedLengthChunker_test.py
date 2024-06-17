@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.chunkers.concrete.FixedLengthChunker import FixedLengthChunker
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		chunker = FixedLengthChunker()
 		assert chunker.resource == 'Chunker'

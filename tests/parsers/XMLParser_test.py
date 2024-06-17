@@ -2,14 +2,14 @@ import pytest
 from swarmauri.standard.parsers.concrete.XMLParser import XMLParser
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         parser = XMLParser()
         assert parser.resource == 'Parser'
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse():
     def test():
         documents = XMLParser(element_tag='project').parse('<root><project>stuff inside project</project><project>test</project></root>')
         assert len(documents) == 1

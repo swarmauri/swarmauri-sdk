@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.chunkers.concrete.MdSnippetChunker import MdSnippetChunker
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		chunker = MdSnippetChunker()
 		assert chunker.resource == 'Chunker'

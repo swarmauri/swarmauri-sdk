@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.parsers.concrete.RegExParser import RegExParser
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         # Define a pattern to match email addresses
         email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
@@ -13,7 +13,7 @@ def ubc_initialization_test():
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse():
     def test():
         # Define a pattern to match email addresses
         email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"

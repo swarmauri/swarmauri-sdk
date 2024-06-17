@@ -2,14 +2,14 @@ import pytest
 from swarmauri.standard.parsers.concrete.URLExtractorParser import URLExtractorParser
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         parser = URLExtractorParser()
         assert parser.resource == 'Parser'
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse():
     def test():
         documents = URLExtractorParser().parse('https://www.swarmauri.com, swarmauri.app, and swarmauri agents.')
         assert len(documents) == 1

@@ -8,7 +8,7 @@ from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.documents.concrete.Document import Document
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
@@ -31,7 +31,7 @@ def ubc_initialization_test():
     test()
 
 @pytest.mark.integration
-def agent_exec_test():
+def test_agent_exec():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)

@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
     	prompt_matrix = PromptMatrix(matrix=[["1","2"],["3","4"]])
     	assert prompt_matrix.resource == 'Prompt'

@@ -2,14 +2,14 @@ import pytest
 from swarmauri.standard.parsers.concrete.PythonParser import PythonParser
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         parser = PythonParser()
         assert parser.resource == 'Parser'
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse():
     def test():
         python_code = """
         class ExampleClass:
@@ -35,7 +35,7 @@ def parser_test():
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse_2():
     def test():
         python_code = """
         class ExampleClass:

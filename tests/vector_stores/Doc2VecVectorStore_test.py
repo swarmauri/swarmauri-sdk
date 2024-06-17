@@ -3,7 +3,7 @@ from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.vector_stores.concrete.Doc2VecVectorStore import Doc2VecVectorStore
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		vs = Doc2VecVectorStore()
 		assert vs.embedder.resource == 'Embedding'

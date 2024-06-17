@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.chunkers.concrete.SentenceChunker import SentenceChunker
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		chunker = SentenceChunker()
 		assert chunker.resource == 'Chunker'

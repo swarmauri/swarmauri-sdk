@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.metrics.concrete.FirstImpressionMetric import FirstImpressionMetric
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert FirstImpressionMetric(unit='points', value=10).resource == 'Metric'
     test()

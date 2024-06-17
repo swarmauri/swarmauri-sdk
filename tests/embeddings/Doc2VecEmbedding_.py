@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert Doc2VecEmbedding().resource == 'Embedding'
     test()

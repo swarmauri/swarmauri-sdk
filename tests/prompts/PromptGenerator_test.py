@@ -3,7 +3,7 @@ from swarmauri.standard.prompts.concrete.PromptGenerator import PromptGenerator
 
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
     	variables_list = [{"number": 100}, {"number": 200}, {"number": -1}]
     	pg = PromptGenerator(template="We have {number} items", variables=variables_list)
@@ -11,7 +11,7 @@ def ubc_initialization_test():
     test()
 
 @pytest.mark.unit
-def test_1():
+def test_calls():
 	def test():
 		variables_list = [{"number": 100}, {"number": 200}, {"number": -1}]
 		pg = PromptGenerator(template="We have {number} items", variables=variables_list)

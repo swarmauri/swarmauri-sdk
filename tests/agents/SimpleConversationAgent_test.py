@@ -6,7 +6,7 @@ from swarmauri.standard.agents.concrete.SimpleConversationAgent import SimpleCon
 
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
@@ -18,7 +18,7 @@ def ubc_initialization_test():
     test()
 
 @pytest.mark.unit
-def agent_exec_test():
+def test_agent_exec():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)

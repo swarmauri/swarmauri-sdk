@@ -2,7 +2,7 @@ import pytest
 from swarmauri.experimental.embeddings.SpatialDocEmbedding import SpatialDocEmbedding
 
 @pytest.mark.acceptance
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert SpatialDocEmbedding().resource == 'Embedding'
     test()

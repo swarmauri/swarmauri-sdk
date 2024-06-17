@@ -8,7 +8,7 @@ from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         API_KEY = os.getenv('COHERE_API_KEY')
         llm = LLM(api_key = API_KEY)
@@ -16,7 +16,7 @@ def ubc_initialization_test():
     test()
 
 @pytest.mark.unit
-def test_initialization():
+def test_default_name():
     def test():
         API_KEY = os.getenv('COHERE_API_KEY')
         model = LLM(api_key = API_KEY)

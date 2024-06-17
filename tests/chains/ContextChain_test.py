@@ -4,7 +4,7 @@ from swarmauri.standard.chains.concrete.ContextChain import ContextChain
 
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         def func(*args, **kwargs):
             return ('test_response', args, kwargs)

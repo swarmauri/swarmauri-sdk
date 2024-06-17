@@ -3,7 +3,7 @@ from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         def func(*args, **kwargs):
             return (args, kwargs)

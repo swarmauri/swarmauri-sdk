@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.metrics.concrete.MeanMetric import MeanMetric
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert MeanMetric(unit='average test score').resource == 'Metric'
     test()

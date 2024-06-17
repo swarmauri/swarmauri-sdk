@@ -2,14 +2,14 @@ import pytest
 from swarmauri.standard.parsers.concrete.MarkdownParser import MarkdownParser
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         parser = MarkdownParser()
         assert parser.resource == 'Parser'
     test()
 
 @pytest.mark.unit
-def parser_test():
+def test_parse():
     def test():
         string_to_parse = '''# test \n\n # TEST ## teset \n ## sdfsdf # dsf \n # test \n # TEST ## teset \n ## sdfsdf # dsf'''
         assert MarkdownParser().parse(string_to_parse)[0].resource == 'Document'

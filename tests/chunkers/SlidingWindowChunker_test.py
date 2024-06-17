@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.chunkers.concrete.SlidingWindowChunker import SlidingWindowChunker
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		chunker = SlidingWindowChunker()
 		assert chunker.resource == 'Chunker'

@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.metrics.concrete.StaticMetric import StaticMetric
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert StaticMetric(unit='jar of honey', value=10).resource == 'Metric'
     test()
