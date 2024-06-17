@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Union, Optional, List
 from pydantic import BaseModel, ConfigDict, ValidationError, model_validator, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.models.IPredict import IPredict
+from swarmauri.core.llms.IPredict import IPredict
 
 class LLMBase(IPredict, ComponentBase):
     allowed_models: List[str] = []
