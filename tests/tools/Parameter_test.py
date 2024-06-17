@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         parameter = Parameter(
             name="program",

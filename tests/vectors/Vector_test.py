@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
 	def test():
 		vector = Vector(value=[1,2])
 		assert vector.resource == 'Vector'
@@ -11,7 +11,7 @@ def ubc_initialization_test():
 
 
 @pytest.mark.unit
-def test_2():
+def test_value_assertion():
 	def test():
 		vector = Vector(value=[1,2])
 		assert vector.value == [1,2]

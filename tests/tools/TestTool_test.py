@@ -2,7 +2,7 @@ import pytest
 from swarmauri.standard.tools.concrete.TestTool import TestTool as Tool
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         tool = Tool()
         assert tool.resource == 'Tool'

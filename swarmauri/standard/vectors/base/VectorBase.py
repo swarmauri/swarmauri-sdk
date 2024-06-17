@@ -7,7 +7,7 @@ from swarmauri.core.vectors.IVector import IVector
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 
 class VectorBase(IVector, ComponentBase):
-    data: List[float]
+    value: List[float]
     resource: Optional[str] =  Field(default=ResourceTypes.VECTOR.value, frozen=True)
 
     def to_numpy(self) -> np.ndarray:
