@@ -6,9 +6,9 @@ from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.llms.IPredict import IPredict
 
 class AgentBase(IAgent, ComponentBase):
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     llm: IPredict
     resource: ResourceTypes =  Field(default=ResourceTypes.AGENT.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     @field_validator('llm')
     @classmethod

@@ -10,13 +10,6 @@ from swarmauri.standard.messages.concrete import (HumanMessage,
                                                   SystemMessage,
                                                   AgentMessage)
 
-
-# This is a placeholder
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-
-
-
-
 class RagAgent(AgentRetrieveMixin, 
                AgentVectorStoreMixin, 
                AgentSystemContextMixin, 
