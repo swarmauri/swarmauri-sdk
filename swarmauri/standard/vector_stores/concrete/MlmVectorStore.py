@@ -10,15 +10,14 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-                       
-        self._embedding = MlmEmbedding()
+        self._embedder = MlmEmbedding()
         self._distance = CosineDistance()
         self.documents: List[Document] = []   
 
     def add_document(self, document: Document) -> None:
         self.documents.append(document)
         documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self._embedding.fit_transform(documents_text)
+        embeddings = self._embedder.fit_transform(documents_text)
 
         embedded_documents = [Document(id=_d.id, 
             content=_d.content, 
@@ -32,7 +31,7 @@ class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorS
     def add_documents(self, documents: List[Document]) -> None:
         self.documents.extend(documents)
         documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self._embedding.fit_transform(documents_text)
+        embeddings = self._embedder.fit_transform(documents_text)
 
         embedded_documents = [Document(id=_d.id, 
             content=_d.content, 
@@ -58,7 +57,7 @@ class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorS
         raise NotImplementedError('Update_document not implemented on MLMVectorStore class.')
         
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        query_vector = self._embedding.infer_vector(query)
+        query_vector = self._embedder.infer_vector(query)
         document_vectors = [_d.embedding for _d in self.documents if _d.content]
         distances = self._distance.distances(query_vector, document_vectors)
         

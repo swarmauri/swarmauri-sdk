@@ -10,8 +10,8 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     
     def __init__(self, **kwargs):
-        super().__init__(self, **kwargs)
-        self._embedding = TfidfEmbedding()
+        super().__init__(**kwargs)
+        self._embedder = TfidfEmbedding()
         self._distance = CosineDistance()
         self.documents = []
       
@@ -19,12 +19,12 @@ class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
     def add_document(self, document: Document) -> None:
         self.documents.append(document)
         # Recalculate TF-IDF matrix for the current set of documents
-        self._embedding.fit([doc.content for doc in self.documents])
+        self._embedder.fit([doc.content for doc in self.documents])
 
     def add_documents(self, documents: List[Document]) -> None:
         self.documents.extend(documents)
         # Recalculate TF-IDF matrix for the current set of documents
-        self._embedding.fit([doc.content for doc in self.documents])
+        self._embedder.fit([doc.content for doc in self.documents])
 
     def get_document(self, id: str) -> Union[Document, None]:
         for document in self.documents:
@@ -38,7 +38,7 @@ class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
     def delete_document(self, id: str) -> None:
         self.documents = [doc for doc in self.documents if doc.id != id]
         # Recalculate TF-IDF matrix for the current set of documents
-        self._embedding.fit([doc.content for doc in self.documents])
+        self._embedder.fit([doc.content for doc in self.documents])
 
     def update_document(self, id: str, updated_document: Document) -> None:
         for i, document in enumerate(self.documents):
@@ -47,7 +47,7 @@ class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                 break
 
         # Recalculate TF-IDF matrix for the current set of documents
-        self._embedding.fit([doc.content for doc in self.documents])
+        self._embedder.fit([doc.content for doc in self.documents])
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         documents = [query]

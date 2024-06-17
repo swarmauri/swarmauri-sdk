@@ -7,7 +7,3 @@ class AgentMessage(MessageBase):
     content: str
     tool_calls: Optional[Any] = None
     role: str = Field(default='assistant')
-
-    @property
-    def role(self) -> str:
-        return self._role

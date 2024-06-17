@@ -10,8 +10,8 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 
 class SpatialDocVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     def __init__(self, **kwargs):
-        super().__init__(self, **kwargs)
-        self._embedding = SpatialDocEmbedding()  # Assuming this is already implemented
+        super().__init__(**kwargs)
+        self._embedder = SpatialDocEmbedding()  # Assuming this is already implemented
         self._distance = CosineDistance()
         self.documents: List[Document] = []
 
@@ -34,7 +34,7 @@ class SpatialDocVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, 
         } for doc in documents]
 
         # Use vectorize_document to process all documents with their corresponding metadata
-        embeddings = self._embedding.vectorize_document(chunks, metadata_list=metadata_list)
+        embeddings = self._embedder.vectorize_document(chunks, metadata_list=metadata_list)
         
         # Create Document instances for each document with the generated embeddings
         for doc, embedding in zip(documents, embeddings):
@@ -62,7 +62,7 @@ class SpatialDocVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, 
         raise NotImplementedError('Update_document not implemented on SpatialDocVectorStore class.')
         
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        query_vector = self._embedding.infer_vector(query)
+        query_vector = self._embedder.infer_vector(query)
         document_vectors = [_d.embedding for _d in self.documents if _d.content]
         distances = self._distance.distances(query_vector, document_vectors)
         
