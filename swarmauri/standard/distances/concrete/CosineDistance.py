@@ -1,10 +1,9 @@
 from numpy.linalg import norm
 from typing import List
 from swarmauri.standard.vectors.concrete.Vector import Vector
-from swarmauri.standard.vectors.concrete.VectorProductMixin import VectorProductMixin
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class CosineDistance(VectorProductMixin, DistanceBase):
+class CosineDistance(DistanceBase):
     """
     Implements cosine distance calculation as an IDistanceSimiliarity interface.
     Cosine distance measures the cosine of the angle between two non-zero vectors

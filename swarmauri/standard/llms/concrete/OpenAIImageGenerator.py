@@ -1,7 +1,7 @@
 import json
 from typing import List
 from openai import OpenAI
-from swarmauri.core.models.base.LLMBase import LLMBase
+from swarmauri.core.llms.base.LLMBase import LLMBase
 
 class OpenAIImageGenerator(LLMBase):
     api_key: str

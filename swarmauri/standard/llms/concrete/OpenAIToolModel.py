@@ -1,6 +1,6 @@
 from typing import List
 from openai import OpenAI
-from swarmauri.standard.models.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class OpenAIToolModel(LLMBase):
     api_key: str

@@ -1,7 +1,7 @@
 import json
 from typing import List
 import cohere
-from swarmauri.standard.models.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class CohereModel(LLMBase):
     api_key: str

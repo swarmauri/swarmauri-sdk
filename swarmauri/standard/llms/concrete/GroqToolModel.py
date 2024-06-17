@@ -1,6 +1,6 @@
 from typing import List
 from groq import Groq
-from swarmauri.standard.models.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class GroqToolModel(LLMBase):
     api_key: str

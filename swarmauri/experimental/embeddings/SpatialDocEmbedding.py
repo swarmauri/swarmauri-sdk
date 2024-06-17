@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from transformers import BertTokenizer, BertModel
 
-from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class SpatialDocEmbedding(EmbeddingBase):

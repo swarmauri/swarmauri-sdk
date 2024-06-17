@@ -1,7 +1,7 @@
 import json
 from typing import List
 import anthropic
-from swarmauri.standard.models.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class AnthropicModel(LLMBase):
     api_key: str

@@ -1,7 +1,7 @@
 from typing import List, Union, Any
 from pydantic import PrivateAttr
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class Doc2VecEmbedding(EmbeddingBase):

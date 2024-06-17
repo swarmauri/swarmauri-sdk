@@ -3,7 +3,7 @@ from typing import List, Any
 from pydantic import PrivateAttr
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
-from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class NmfEmbedding(EmbeddingBase):

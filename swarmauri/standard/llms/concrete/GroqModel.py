@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional, Dict
 from groq import Groq
-from swarmauri.standard.models.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class GroqModel(LLMBase):
     api_key: str

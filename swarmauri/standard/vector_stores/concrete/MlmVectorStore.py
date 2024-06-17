@@ -1,6 +1,6 @@
 from typing import List, Union
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vectorizers.concrete.MlmEmbedding import MlmEmbedding
+from swarmauri.standard.embeddings.concrete.MlmEmbedding import MlmEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase

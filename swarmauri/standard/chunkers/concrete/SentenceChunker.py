@@ -1,7 +1,7 @@
 import re
 from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
-class SimpleSentenceChunker(ChunkerBase):
+class SentenceChunker(ChunkerBase):
     """
     A simple implementation of the ChunkerBase to chunk text into sentences.
     

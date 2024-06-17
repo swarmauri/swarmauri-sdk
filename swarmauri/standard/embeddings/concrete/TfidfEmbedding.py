@@ -3,7 +3,7 @@ import joblib
 from pydantic import PrivateAttr
 from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
 
-from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class TfidfEmbedding(EmbeddingBase):

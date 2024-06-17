@@ -1,4 +1,4 @@
-from swarmauri.stadnard.prompts.base.PromptTemplateBase import PromptTemplateBase
+from swarmauri.standard.prompts.base.PromptTemplateBase import PromptTemplateBase
 
 class PromptTemplate(PromptTemplateBase):
     pass

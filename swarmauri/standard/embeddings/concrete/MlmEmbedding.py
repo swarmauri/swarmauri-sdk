@@ -8,7 +8,7 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
-from swarmauri.standard.embeddings.concrete.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class MlmEmbedding(EmbeddingBase):
