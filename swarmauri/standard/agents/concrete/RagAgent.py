@@ -1,7 +1,5 @@
 from typing import Any, Optional, Union, Dict
 from swarmauri.core.messages import IMessage
-from swarmauri.core.models.IModel import IModel
-
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin

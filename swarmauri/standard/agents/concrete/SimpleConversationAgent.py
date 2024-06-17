@@ -1,6 +1,5 @@
 from typing import Any, Optional, Dict
 
-from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase

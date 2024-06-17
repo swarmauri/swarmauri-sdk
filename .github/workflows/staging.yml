@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ "dev", "dev-py-0.4" ]
+    branches: [ "dev-py-0.4" ]
 
 jobs:
   build:
@@ -70,9 +70,3 @@ jobs:
         python tests/classify_results.py results.xml
       continue-on-error: false
 
-#    - name: Publish to PyPI
-#      if: success() && github.event_name == 'push' && startsWith(github.ref, 'refs/heads/dev')
-#      uses: pypa/gh-action-pypi-publish@v1.4.2
-#      with:
-#        user: cobycloud
-#        password: ${{ secrets.PYPI_API_TOKEN }}

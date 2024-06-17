@@ -1,13 +1,13 @@
 import pytest
-from swarmauri.standard.embeddings.concrete.SpatialDocEmbedding import SpatialDocEmbedding
+from swarmauri.experimental.embeddings.SpatialDocEmbedding import SpatialDocEmbedding
 
-@pytest.mark.unit
+@pytest.mark.acceptance
 def ubc_initialization_test():
     def test():
         assert SpatialDocEmbedding().resource == 'Embedding'
     test()
 
-@pytest.mark.unit
+@pytest.mark.acceptance
 def test_1():
 	def test():
 		embedder = SpatialDocEmbedding()

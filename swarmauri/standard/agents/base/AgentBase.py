@@ -3,7 +3,7 @@ from pydantic import ConfigDict, Field, field_validator
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 
 from swarmauri.core.agents.IAgent import IAgent
-from swarmauri.core.models.IPredict import IPredict
+from swarmauri.core.llms.IPredict import IPredict
 
 class AgentBase(IAgent, ComponentBase):
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
