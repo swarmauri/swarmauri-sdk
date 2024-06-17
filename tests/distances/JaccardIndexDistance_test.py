@@ -3,13 +3,13 @@ from swarmauri.standard.distances.concrete.JaccardIndexDistance import JaccardIn
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 @pytest.mark.unit
-def ubc_initialization_test():
+def test_ubc_resource():
     def test():
         assert JaccardIndexDistance().resource == 'Distance'
     test()
 
 @pytest.mark.unit
-def test_1():
+def test_distance():
     def test():
         assert JaccardIndexDistance().distance(
             Vector(value=[1,2]), 
