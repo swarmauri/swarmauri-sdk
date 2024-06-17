@@ -1,10 +1,11 @@
 import json
+from typing import List
 from openai import OpenAI
 from swarmauri.core.models.base.LLMBase import LLMBase
 
 class OpenAIImageGenerator(LLMBase):
     api_key: str
-    allowed_models = ['dall-e']
+    allowed_models: List[str] = ['dall-e']
     name: str = "dall-e"
 
 

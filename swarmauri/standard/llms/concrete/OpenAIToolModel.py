@@ -2,8 +2,6 @@ from typing import List
 from openai import OpenAI
 from swarmauri.standard.models.base.LLMBase import LLMBase
 
-
-
 class OpenAIToolModel(LLMBase):
     api_key: str
     allowed_models: List[str] = ['gpt-4o', 
@@ -20,9 +18,6 @@ class OpenAIToolModel(LLMBase):
     'gpt-3.5-turbo-1106',
     'gpt-3.5-turbo-0613']
     name: str = "gpt-3.5-turbo-0125"
-
-    
-
 
     def predict(self, messages, tools=None, tool_choice=None, temperature=0.7, max_tokens=1024):
         client = OpenAI(api_key=self.api_key)

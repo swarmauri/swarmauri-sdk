@@ -1,10 +1,8 @@
 import json
 from typing import List
-from dataclasses import dataclass
 from openai import OpenAI
 from swarmauri.standard.models.base.LLMBase import LLMBase
 
-@dataclass
 class OpenAIModel(LLMBase):
     api_key: str
     allowed_models: List[str] = ['gpt-4o', 
@@ -43,8 +41,8 @@ class OpenAIModel(LLMBase):
         client = OpenAI(api_key=self.api_key)
         
         if enable_json:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
+            response = client.chat.completions.create(
+                model=self.name,
                 messages=messages,
                 temperature=temperature,
                 response_format={ "type": "json_object" },
@@ -55,8 +53,8 @@ class OpenAIModel(LLMBase):
                 stop=stop
             )
         else:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
+            response = client.chat.completions.create(
+                model=self.name,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
