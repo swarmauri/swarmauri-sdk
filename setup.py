@@ -61,11 +61,9 @@ setup(
             'lightgbm'
         ],
         'full': [
-            'openai',
             'transformers',
             #'accelerate',
             'tensorflow',
-            'scipy',
             'typing_extensions',
             #'redisearch',
             'google-api-python-client',
@@ -85,11 +83,13 @@ setup(
             #'sentencepiece',
             'gradio',
             'websockets',
+            'openai',
             'groq',
             'mistralai',
             'cohere',
             'google-generativeai',
-            'anthropic'
+            'anthropic',
+            'scipy',
 
         ]},
     classifiers=[
