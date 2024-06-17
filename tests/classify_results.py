@@ -20,7 +20,7 @@ def parse_junit_xml(xml_path):
                 results['unit_failures'] += 1
             elif '@pytest.mark.integration' in failure_text:
                 results['integration_failures'] += 1
-            elif '@pytest.mark.acceptance' in failure_text:
+            elif '@pytest.mark.acceptance' in failure_text: 
                 results['acceptance_failures'] += 1
 
         for error in testcase.findall("error"):
@@ -41,15 +41,15 @@ if __name__ == "__main__":
     print(f"Collection Failures: {results['collection_failures']}/{results['total_cases']}")
     print(f"Other Error Failures: {results['error_failures']}/{results['total_cases']}")
 
-    if acceptance_failures > 5:
+    if results['unit_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
-    elif integration_failures > 0:
+    elif results['integration_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate integration test failures
-    elif unit_failures > 0:
+    elif results['acceptance_failures'] > 5:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
-    elif collection_failures > 0:
+    elif results['collection_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
-    elif error_failures > 0:
+    elif results['error_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
     else:
         sys.exit(0)  # Exit with code 0 to indicate no failures
