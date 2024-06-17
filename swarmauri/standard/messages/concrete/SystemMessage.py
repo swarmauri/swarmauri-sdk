@@ -1,3 +1,4 @@
+from pydantic import Field
 from swarmauri.standard.messages.base.MessageBase import MessageBase
 
 class SystemMessage(MessageBase):
@@ -11,4 +12,4 @@ class SystemMessage(MessageBase):
         content (str): The content of the system message.
     """
     content: str
-    _role: str ='system'
+    role: str = Field(default='system')

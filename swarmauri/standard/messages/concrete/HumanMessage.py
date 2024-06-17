@@ -1,3 +1,4 @@
+from pydantic import Field
 from swarmauri.standard.messages.base.MessageBase import MessageBase
 
 class HumanMessage(MessageBase):
@@ -9,4 +10,4 @@ class HumanMessage(MessageBase):
     other types of messages.
     """
     content: str
-    _role: str ='user'
+    role: str = Field(default='user')

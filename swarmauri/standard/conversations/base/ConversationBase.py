@@ -31,4 +31,5 @@ class ConversationBase(IConversation, ComponentBase):
         self._history.clear()
 
     def as_messages(self) -> List[dict]:
-        return [message.as_dict() for message in self.history]
+        message_include=['role', 'content', 'tool_call_id', 'tool_calls', 'name']
+        return [message.dict(include=message_include) for message in self.history]
