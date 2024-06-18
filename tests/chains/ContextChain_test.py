@@ -62,7 +62,7 @@ def test_chain_json():
         # Importing BaseModel makes the function serializable by pydantic
         class func(BaseModel):
             def __call__(*args, **kwargs):
-                return ('test_response', args, kwargs)
+                return ('test_response', args[1:], kwargs)
 
         chain = ContextChain()
         # We must initialize the class
