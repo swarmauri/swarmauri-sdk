@@ -19,8 +19,7 @@ class AnthropicModel(LLMBase):
         message_properties = ["content", "role"]
 
         # Exclude FunctionMessages
-        messages = [message.dict(include=message_properties) 
-            if message.role != 'tool' for message in messages]
+        messages = [message.dict(include=message_properties) for message in messages if message.role != 'tool']
 
         # Create client
         client = anthropic.Anthropic(api_key=self.api_key)
