@@ -12,7 +12,7 @@ class CohereModel(LLMBase):
     'command-r-plus']
     name: str = "command-light"
     
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str,str]:
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str,str]]:
         """
         Cohere utilizes the following roles: CHATBOT, SYSTEM, TOOL, USER
         """
