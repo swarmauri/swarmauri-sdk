@@ -14,7 +14,7 @@ class GeminiProModel(LLMBase):
         # Remove system instruction from messages
         message_properties = ['content', 'role']
         sanitized_messages = [message.dict(include=message_properties) for message in messages 
-            if message['role'] != 'system']
+            if message.role != 'system']
 
         for message in sanitized_messages:
             if message['role'] == 'assistant':
