@@ -10,7 +10,7 @@ class ContextChain(IChain, ChainContextBase):
     """
     def add_step(self, key: str, method: Callable[..., Any], args: List[Any], kwargs: Dict[str, Any], ref: Optional[str] = None):
         # Directly store args, kwargs, and optionally a return_key without resolving them
-        step = ChainStep(key=key, method=method, args=args, kwargs=kwargs, ref=ref)  # Note the use of 'ref' as 'return_key'
+        step = ChainStep(key=key, method=method, args=args, kwargs=kwargs, ref=ref)
         self.steps.append(step)
 
     def remove_step(self, step: ChainStep) -> None:
