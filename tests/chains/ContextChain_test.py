@@ -71,5 +71,5 @@ def test_chain_json():
         assert chain.context['test_result'][0] == 'test_response'
         assert chain.context['test_result'][1] == args
         assert chain.context['test_result'][2] == kwargs
-        assert chain.id == ContextChain.parse_sraw(chain.json()).id
+        assert chain.id == ContextChain.parse_raw(chain.json()).id
     test()
