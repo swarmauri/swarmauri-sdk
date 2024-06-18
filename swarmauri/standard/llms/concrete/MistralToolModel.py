@@ -1,6 +1,7 @@
 import json
 from typing import List
 from mistralai.client import MistralClient
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class MistralModel(LLMBase):

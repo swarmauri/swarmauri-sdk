@@ -1,5 +1,6 @@
 from typing import List
 from groq import Groq
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class GroqToolModel(LLMBase):

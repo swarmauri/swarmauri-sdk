@@ -1,5 +1,6 @@
 from typing import List
 from openai import OpenAI
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class OpenAIToolModel(LLMBase):
@@ -24,7 +25,7 @@ class OpenAIToolModel(LLMBase):
         tool_choice=None, 
         temperature=0.7, 
         max_tokens=1024):
-    
+
         client = OpenAI(api_key=self.api_key)
         if tools and not tool_choice:
             tool_choice = "auto"
