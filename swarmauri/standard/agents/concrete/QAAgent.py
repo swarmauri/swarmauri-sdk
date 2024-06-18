@@ -5,12 +5,11 @@ from swarmauri.standard.agents.base.AgentBase import AgentBase
 class QAAgent(AgentBase):
 
     def exec(self, 
-        input_str: Optional[str] = None,
+        input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
         
         llm = self.llm
-        included_fields = {"role", "content"}
         messages = [HumanMessage(content=input_str)]
         prediction = llm.predict(messages=messages, **llm_kwargs)
         

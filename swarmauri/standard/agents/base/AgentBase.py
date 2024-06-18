@@ -1,7 +1,7 @@
 from typing import Any, Optional, Dict
 from pydantic import ConfigDict, Field, field_validator
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.llms.IPredict import IPredict
 
@@ -17,5 +17,5 @@ class AgentBase(IAgent, ComponentBase):
             raise TypeError('model must be an instance of IPredict or its subclass')
         return value
 
-    def exec(self, input_str: Optional[Any], llm_kwargs: Optional[Dict] = {}) -> Any:
+    def exec(self, input_str: Optional[Union[str, IMessage]] = "", llm_kwargs: Optional[Dict] = {}) -> Any:
         raise NotImplementedError('The `exec` function has not been implemeneted on this class.')

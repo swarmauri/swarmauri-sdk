@@ -10,7 +10,7 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, Fun
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     def exec(self, 
-        input_str: Optional[str] = None,
+        input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
         conversation = self.conversation

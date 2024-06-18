@@ -13,7 +13,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
 
     def exec(self, 
-        input_data: Union[str, IMessage],  
+        input_data: Optional[Union[str, IMessage]] = "",  
         llm_kwargs: Optional[Dict] = {}) -> Any:
         conversation = self.conversation
         llm = self.llm
