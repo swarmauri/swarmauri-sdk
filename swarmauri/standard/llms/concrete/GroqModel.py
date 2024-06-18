@@ -13,16 +13,23 @@ class GroqModel(LLMBase):
     name: str = "mixtral-8x7b-32768"
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
-        message_properties = ['content', 'role']
-        return [message.dict(include=['content', 'role', 'name']) for message in messages]
+        message_properties = ['content', 'role', 'name']
+        list_of_msg_dicts = [message.dict(include=message_properties) for message in messages]
+        sanitized_messages = [
+            {key: value for key, value in m.items() if value is not None}
+            for m in list_of_msg_dicts
+        ]
+        return sanitized_messages
 
 
-    def predict(self, messages: List[Dict], 
+    def predict(self, messages: List[IMessage], 
                 temperature: float = 0.7, 
                 max_tokens: int = 256, 
                 top_p: float = 1.0, 
                 enable_json: bool = False, 
                 stop: Optional[List[str]] = None) -> str:
+
+        formatted_messages = self._format_messages(messages)
 
         client = Groq(api_key=self.api_key)
         stop = stop or []
