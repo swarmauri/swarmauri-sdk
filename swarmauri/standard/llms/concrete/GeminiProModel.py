@@ -20,7 +20,7 @@ class GeminiProModel(LLMBase):
             }
 
 
-        self.safety_settings = [
+        safety_settings = [
           {
             "category": "HARM_CATEGORY_HARASSMENT",
             "threshold": "BLOCK_MEDIUM_AND_ABOVE"
@@ -74,7 +74,7 @@ class GeminiProModel(LLMBase):
         next_message = sanitized_messages.pop()
 
         client = genai.GenerativeModel(model_name=self.name,
-            safety_settings=self.safety_settings,
+            safety_settings=safety_settings,
             generation_config=generation_config)
 
         convo = client.start_chat(
