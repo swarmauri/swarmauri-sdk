@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Dict
 import anthropic
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -20,8 +20,8 @@ class AnthropicModel(LLMBase):
         message_properties = ["content", "role"]
 
         # Exclude FunctionMessages
-        messages = [message.dict(include=message_properties) for message in messages if message.role != 'system']
-        return sanitized_messages
+        formatted_messages = [message.dict(include=message_properties) for message in messages if message.role != 'system']
+        return formatted_messages
 
     def _get_system_context(self, messages: List[IMessage]) -> str:
         system_context = None
