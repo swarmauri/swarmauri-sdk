@@ -14,33 +14,38 @@ class AnthropicModel(LLMBase):
     'claude-instant-1.2']
     name: str = "claude-3-haiku-20240307"
 
+
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+       # Get only the properties that we require
+        message_properties = ["content", "role"]
+
+        # Exclude FunctionMessages
+        messages = [message.dict(include=message_properties) for message in messages if message.role != 'system']
+        return sanitized_messages
+
+    def _get_system_context(self, messages: List[IMessage]) -> str:
+        system_context = None
+        for message in messages:
+            if message.role == 'system':
+                system_context = message.content
+        return system_context
+
     
     def predict(self, messages: List[IMessage], 
         temperature=0.7, 
         max_tokens=256):
-        # Get only the properties that we require
-        message_properties = ["content", "role"]
-
-        # Exclude FunctionMessages
-        messages = [message.dict(include=message_properties) for message in messages if message.role != 'tool']
 
         # Create client
         client = anthropic.Anthropic(api_key=self.api_key)
         
         # Get system_context from last message with system context in it
-        system_context = None
-        for message in messages:
-            if message['role'] == 'system':
-                system_context = message['content']
-
-        
-        # Remove system instruction from messages
-        sanitized_messages = [message for message in messages if message['role'] != 'system']
+        system_context = self._get_system_context(messages)
+        formatted_messages = self._format_messages(messages)
 
         if system_context:
             response = client.messages.create(
                 model=self.name,
-                messages=sanitized_messages,
+                messages=formatted_messages,
                 system=system_context,
                 temperature=temperature,
                 max_tokens=max_tokens
@@ -48,7 +53,7 @@ class AnthropicModel(LLMBase):
         else:
             response = client.messages.create(
                 model=self.name,
-                messages=sanitized_messages,
+                messages=formatted_messages,
                 temperature=temperature,
                 max_tokens=max_tokens
             )
