@@ -22,8 +22,12 @@ class DelimiterBasedChunker(ChunkerBase):
         
         # Split the text based on the delimiter pattern, including the delimiters in the result
         chunks = re.split(delimiter_pattern, text)
+        
         # Combine delimiters with the preceding text chunk since re.split() separates them
         combined_chunks = []
         for i in range(0, len(chunks), 2):  # Step by 2 to process text chunk with its following delimiter
             combined_chunks.append(chunks[i] + (chunks[i + 1] if i + 1 < len(chunks) else ''))
+
+        # Remove whitespace
+        combined_chunks = [chunk.strip() for chunk in combined_chunks]
         return combined_chunks
