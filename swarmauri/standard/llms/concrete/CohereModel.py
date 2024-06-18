@@ -28,17 +28,17 @@ class CohereModel(LLMBase):
 
     def predict(self, messages, temperature=0.7, max_tokens=256):
         # Get next message
-        message = messages[-1].content
+        next_message = messages.pop()
 
         # Format chat_history
-        messages = self._format_messages(messages[:-1])
+        messages = self._format_messages(messages)
 
 
         client = cohere.Client(api_key=self.api_key)
         response = client.chat(
             model=self.name,
             chat_history=messages,
-            message=message,
+            message=next_message,
             temperature=temperature,
             max_tokens=max_tokens,
             prompt_truncation='OFF',
@@ -46,6 +46,7 @@ class CohereModel(LLMBase):
         )
         
         result = json.loads(response.json())
-        message_content = result['choices'][0]['message']['content']
+        print(result, result.keys())
+        message_content = result['text']
         
         return message_content
