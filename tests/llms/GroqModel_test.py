@@ -20,7 +20,7 @@ def test_default_name():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
         model = GroqModel(api_key = API_KEY)
-        assert model.model_name == 'mixtral-8x7b-32768'
+        assert model.name == 'mixtral-8x7b-32768'
     test()
 
 @pytest.mark.unit
