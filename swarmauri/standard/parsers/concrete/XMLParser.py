@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from typing import List, Union, Any
 
+from pydantic import Field
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -9,8 +10,7 @@ class XMLParser(ParserBase):
     A parser that extracts information from XML data and converts it into IDocument objects.
     This parser assumes a simple use-case where each targeted XML element represents a separate document.
     """
-
-    element_tag: str
+    element_tag: str = Field(default="root")
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
