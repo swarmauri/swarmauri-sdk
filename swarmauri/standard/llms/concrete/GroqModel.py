@@ -21,7 +21,6 @@ class GroqModel(LLMBase):
         ]
         return sanitized_messages
 
-
     def predict(self, messages: List[IMessage], 
                 temperature: float = 0.7, 
                 max_tokens: int = 256, 
@@ -37,7 +36,7 @@ class GroqModel(LLMBase):
         response_format = {"type": "json_object"} if enable_json else None
         response = client.chat.completions.create(
             model=self.name,
-            messages=messages,
+            messages=formatted_messages,
             temperature=temperature,
             response_format=response_format,
             max_tokens=max_tokens,
