@@ -21,5 +21,5 @@ def test_call():
     def test():
         python_code = "print('hello world')"
         tool = Tool()
-        assert tool(python_code) == 'hello world'
+        assert tool(python_code) == 'hello world\n'
     test()
