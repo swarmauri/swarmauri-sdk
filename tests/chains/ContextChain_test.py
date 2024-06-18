@@ -16,19 +16,27 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_chain_execute_return_value():
     def test():
+        # define func
         def func(*args, **kwargs):
             return ('test_response', args, kwargs)
 
+        # declare chain, args, kwargs
         chain = ContextChain()
-        chain.add_step(key='key_1', method=func, args=[1,2,3], kwargs={"test":123123123}, ref="test_result")
+        args = (1,2,3)
+        kwargs = {"test":123123123}
+        
+        # operate
+        chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref="test_result")
         result = chain.execute()
+
+        # assert
         assert result[0] == 'test_response'
-        assert result[1] == [1,2,3]
-        assert result[2] == {"test":123123123}
+        assert result[1] == args
+        assert result[2] == kwargs
     test()
 
 @pytest.mark.unit
-def test_chain_execute_state():
+def test_chain_execute_return_state():
     def test():
         ref = "test_result"
         args = [1,2,3]
