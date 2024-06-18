@@ -5,3 +5,4 @@ class HumanMessage(MessageBase):
     content: str
     name: str = Field(default='user')
     role: str = Field(default='user')
+    tool_calls: Optional[Any] = None
