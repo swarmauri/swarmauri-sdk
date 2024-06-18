@@ -1,6 +1,7 @@
 import json
-from typing import List
+from typing import List, Dict
 import cohere
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class CohereModel(LLMBase):
@@ -11,7 +12,7 @@ class CohereModel(LLMBase):
     'command-r-plus']
     name: str = "command-light"
     
-    def _format_messages(self, messages):
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str,str]:
         """
         Cohere utilizes the following roles: CHATBOT, SYSTEM, TOOL, USER
         """

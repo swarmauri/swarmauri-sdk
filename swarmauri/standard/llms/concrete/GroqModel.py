@@ -1,6 +1,7 @@
 import json
 from typing import List, Optional, Dict
 from groq import Groq
+from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class GroqModel(LLMBase):
@@ -10,6 +11,11 @@ class GroqModel(LLMBase):
     'mixtral-8x7b-32768', 
     'gemma-7b-it']
     name: str = "mixtral-8x7b-32768"
+
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+        message_properties = ['content', 'role']
+        return [message.dict(include=['content', 'role', 'name']) for message in messages]
+
 
     def predict(self, messages: List[Dict], 
                 temperature: float = 0.7, 

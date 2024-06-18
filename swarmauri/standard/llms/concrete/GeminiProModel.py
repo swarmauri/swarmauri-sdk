@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Dict
 import google.generativeai as genai
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
