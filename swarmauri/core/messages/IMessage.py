@@ -8,9 +8,3 @@ class IMessage(ABC):
     messages should have, including type, name, and content, 
     and requires subclasses to implement representation and formatting methods.
     """
-    @property
-    @abstractmethod
-    def role(self) -> str:
-        pass
-    
-
