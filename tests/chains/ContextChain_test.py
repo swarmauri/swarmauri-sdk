@@ -39,7 +39,7 @@ def test_chain_execute_return_value():
 def test_chain_execute_return_state():
     def test():
         ref = "test_result"
-        args = [1,2,3]
+        args = (1,2,3)
         kwargs = {"test":123123123}
         def func(*args, **kwargs):
             return ('test_response', args, kwargs)
@@ -56,7 +56,7 @@ def test_chain_execute_return_state():
 def test_chain_json():
     def test():
         ref = "test_result"
-        args = [1,2,3]
+        args = (1,2,3)
         kwargs = {"test":123123123}
 
         # Importing BaseModel makes the function serializable by pydantic
