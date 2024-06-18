@@ -49,6 +49,7 @@ if __name__ == "__main__":
     print(f"Other Error Failures: {results['error_failures']}/{results['total_cases']}")
     print()
     print(f"Results: {failures}/{results['total_cases']}")
+    print(f"Pass Rate: {int(failures)/int(results['total_cases'])}%")
 
     if results['unit_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
