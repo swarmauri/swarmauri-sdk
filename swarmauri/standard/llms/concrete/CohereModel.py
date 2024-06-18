@@ -31,7 +31,7 @@ class CohereModel(LLMBase):
         message = messages[-1].content
 
         # Format chat_history
-        messages = _format_messages(messages[:-1])
+        messages = self._format_messages(messages[:-1])
 
 
         client = cohere.Client(api_key=self.api_key)
