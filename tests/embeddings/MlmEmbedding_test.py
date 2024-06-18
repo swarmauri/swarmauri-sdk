@@ -11,6 +11,7 @@ def test_ubc_resource():
 def test_fit_transform():
 	def test():
 		embedder = MlmEmbedding()
-		embedder.fit_transform(['test', 'test1', 'test2'])
-		assert ['test2', 'test1', 'test'] == embedder.extract_features()
+		documents = ['test', 'test1', 'test2']
+		embedder.fit_transform(documents)
+		assert documents == embedder.extract_features()
 	test()
