@@ -19,7 +19,6 @@ class GeminiProModel(LLMBase):
             "max_output_tokens": max_tokens,
             }
 
-
         safety_settings = [
           {
             "category": "HARM_CATEGORY_HARASSMENT",

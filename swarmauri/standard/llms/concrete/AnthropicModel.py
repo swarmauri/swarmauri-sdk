@@ -15,6 +15,14 @@ class AnthropicModel(LLMBase):
 
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
+        # Get only the properties that we require
+        message_properties = ["content", "role"]
+
+        # Exclude FunctionMessages
+        messages = [message.dict(include=message_properties) 
+            if message.role != 'tool' for message in messages]
+
+        # Create client
         client = anthropic.Anthropic(api_key=self.api_key)
         
         # Get system_context from last message with system context in it

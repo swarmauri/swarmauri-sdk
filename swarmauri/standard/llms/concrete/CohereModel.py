@@ -10,13 +10,15 @@ class CohereModel(LLMBase):
     'command-r',
     'command-r-plus']
     name: str = "command-light"
-
     
     def predict(self, messages, temperature=0.7, max_tokens=256):
+        message = messages[0].content
+        messages = messages[0:]
         client = cohere.Client(api_key=self.api_key)
         response = client.chat(
             model=self.name,
-            messages=messages,
+            chat_history=messages,
+            message=message,
             temperature=temperature,
             max_tokens=max_tokens,
             prompt_truncation='OFF',
