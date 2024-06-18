@@ -89,7 +89,7 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.13.0',
+            'scipy==1.10.0',
 
         ]},
     classifiers=[
