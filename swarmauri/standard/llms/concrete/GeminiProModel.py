@@ -41,20 +41,15 @@ class GeminiProModel(LLMBase):
 
         system_context = None
         for message in messages:
-
             # update role naming
-            role = message.pop('role')
-            if role == 'assistant':
-                role = 'model'
+            if message.role == 'assistant':
+                message.role = 'model'
 
-            if role == 'system':
-                system_context = message['content']
-
-            # rename role
-            message['role'] = role
+            if message.role == 'system':
+                system_context = message.content
 
             # update content naming
-            message['parts'] = message.pop('content')
+            message['parts'] = message.content
 
         
         # Remove system instruction from messages
