@@ -11,7 +11,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_chunk_text():
 	def test():
-		unchunked_text = 'test? test2! question. test'
+		unchunked_text = 'question? test! period. run on'
 		chunks = ['question?', 'test!', 'period.', 'run on']
 		assert DelimiterBasedChunker().chunk_text(unchunked_text) == chunks
 	test()
