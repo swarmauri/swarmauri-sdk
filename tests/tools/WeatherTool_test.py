@@ -11,8 +11,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_call():
     def test():
+        tool = Tool()
         location = 'Dallas'
-        tool = Tool(location)
-        print(tool())
-        assert tool() == 'Weather Info: ("Dallas", "fahrenheit")'
+        assert tool(location) == 'Weather Info: ("Dallas", "fahrenheit")'
     test()
