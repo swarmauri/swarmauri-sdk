@@ -25,6 +25,14 @@ class OpenAIModel(LLMBase):
     'gpt-3.5-turbo']
     name: str = "gpt-3.5-turbo-16k"
 
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+        message_properties = ['content', 'role', 'name']
+        list_of_msg_dicts = [message.dict(include=message_properties) for message in messages]
+        formatted_messages = [
+            {key: value for key, value in m.items() if value is not None}
+            for m in list_of_msg_dicts
+        ]
+        return formatted_messages
     
     def predict(self, messages: List[IMessage], 
         temperature=0.7, 
@@ -43,12 +51,13 @@ class OpenAIModel(LLMBase):
         Returns:
         - The generated message content.
         """
+        formatted_messages = self._format_messages(messages)
         client = OpenAI(api_key=self.api_key)
         
         if enable_json:
             response = client.chat.completions.create(
                 model=self.name,
-                messages=messages,
+                messages=formatted_messages,
                 temperature=temperature,
                 response_format={ "type": "json_object" },
                 max_tokens=max_tokens,
@@ -60,7 +69,7 @@ class OpenAIModel(LLMBase):
         else:
             response = client.chat.completions.create(
                 model=self.name,
-                messages=messages,
+                messages=formatted_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=1,
