@@ -11,7 +11,12 @@ class GroqToolModel(LLMBase):
     name: str = "mixtral-8x7b-32768"
 
 
-    def predict(self, messages, tools=None, tool_choice=None, temperature=0.7, max_tokens=1024):
+    def predict(self, 
+        messages: List[IMessage], 
+        tools=None, 
+        tool_choice=None, 
+        temperature=0.7, 
+        max_tokens=1024):
         client = Groq(api_key=self.api_key)
         if tools and not tool_choice:
             tool_choice = "auto"

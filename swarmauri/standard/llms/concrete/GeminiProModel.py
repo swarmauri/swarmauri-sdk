@@ -25,14 +25,14 @@ class GeminiProModel(LLMBase):
 
         return sanitized_messages
 
-    def _get_system_context(self, messages:List[IMessage]) -> str:
+    def _get_system_context(self, messages: List[IMessage]) -> str:
         system_context = None
         for message in messages:
             if message.role == 'system':
                 system_context = message.content
         return system_context
     
-    def predict(self, messages, temperature=0.7, max_tokens=256):
+    def predict(self, messages: List[IMessage], temperature=0.7, max_tokens=256):
         genai.configure(api_key=self.api_key)
         generation_config = {
             "temperature": temperature,

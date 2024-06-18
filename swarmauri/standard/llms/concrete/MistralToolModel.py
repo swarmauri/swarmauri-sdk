@@ -12,7 +12,7 @@ class MistralModel(LLMBase):
     name: str = "open-mixtral-8x22b"
 
     def predict(self, 
-        messages, 
+        messages: List[IMessage], 
         tools=None, 
         tool_choice=None, 
         temperature=0.7, 

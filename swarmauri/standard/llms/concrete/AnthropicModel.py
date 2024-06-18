@@ -14,7 +14,9 @@ class AnthropicModel(LLMBase):
     name: str = "claude-3-haiku-20240307"
 
     
-    def predict(self, messages, temperature=0.7, max_tokens=256):
+    def predict(self, messages: List[IMessage], 
+        temperature=0.7, 
+        max_tokens=256):
         # Get only the properties that we require
         message_properties = ["content", "role"]
 

@@ -25,7 +25,7 @@ class OpenAIModel(LLMBase):
     name: str = "gpt-3.5-turbo-16k"
 
     
-    def predict(self, messages, temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
+    def predict(self, messages: List[IMessage], temperature=0.7, max_tokens=256, enable_json=False, stop: List[str] = None):
         """
         Generate predictions using the OpenAI model.
 

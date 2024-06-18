@@ -27,10 +27,13 @@ class CohereModel(LLMBase):
         return messages
 
 
-    def predict(self, messages, temperature=0.7, max_tokens=256):
+    def predict(self, 
+        messages: List[IMessage], 
+        temperature=0.7, 
+        max_tokens=256):
         # Get next message
         next_message = messages.pop().content
-        
+
         # Format chat_history
         messages = self._format_messages(messages)
 
