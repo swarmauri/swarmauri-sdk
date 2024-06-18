@@ -12,7 +12,7 @@ def test_ubc_resource():
 def test_name():
     def test():
         message = FunctionMessage(name="test_name", content='test', tool_call_id="test_tool_call_id")
-        assert message.name == 'test'
+        assert message.name == 'test_name'
     test()
 
 @pytest.mark.unit
