@@ -30,9 +30,9 @@ def test_chain_execute_return_value():
         result = chain.execute()
 
         # assert
-        assert result[0] == 'test_response'
-        assert result[1] == args
-        assert result[2] == kwargs
+        assert result['test_result'][0] == 'test_response'
+        assert result['test_result'][1] == args
+        assert result['test_result'][2] == kwargs
     test()
 
 @pytest.mark.unit
@@ -47,9 +47,9 @@ def test_chain_execute_return_state():
         chain = ContextChain()
         chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref=ref)
         chain.execute()
-        assert chain.context['test_result'] == 'test_response'
-        assert chain.context['test_result'] == args
-        assert chain.context['test_result'] == kwargs
+        assert chain.context['test_result'][0] == 'test_response'
+        assert chain.context['test_result'][1] == args
+        assert chain.context['test_result'][2] == kwargs
     test()
 
 @pytest.mark.unit
@@ -68,8 +68,8 @@ def test_chain_json():
         # We must initialize the class
         chain.add_step(key='key_1', method=func(), args=args, kwargs=kwargs, ref=ref)
         chain.execute()
-        assert chain.context['test_result'] == 'test_response'
-        assert chain.context['test_result'] == args
-        assert chain.context['test_result'] == kwargs
-        assert chain.id == ContextChain.parse_raw(chain.json()).id
+        assert chain.context['test_result'][0] == 'test_response'
+        assert chain.context['test_result'][1] == args
+        assert chain.context['test_result'][2] == kwargs
+        assert chain.id == ContextChain.parse_sraw(chain.json()).id
     test()
