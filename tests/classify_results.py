@@ -35,11 +35,20 @@ def parse_junit_xml(xml_path):
 if __name__ == "__main__":
     xml_path = sys.argv[1]
     results = parse_junit_xml(xml_path)
+    failures = 0
+    failures += results['unit_failures'] 
+    failures += results['integration_failures']
+    failures += results['acceptance_failures']
+    failures += results['collection_failures']
+    failures += results['error_failures']
+
     print(f"Unit Failures: {results['unit_failures']}/{results['total_cases']}")
     print(f"Integration Failures: {results['integration_failures']}/{results['total_cases']}")
     print(f"Acceptance Failures: {results['acceptance_failures']}/{results['total_cases']}")
     print(f"Collection Failures: {results['collection_failures']}/{results['total_cases']}")
     print(f"Other Error Failures: {results['error_failures']}/{results['total_cases']}")
+    print()
+    print(f"Results: {failures}/{results['total_cases']}")
 
     if results['unit_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
