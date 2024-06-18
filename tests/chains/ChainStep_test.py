@@ -16,7 +16,7 @@ def test_method_call():
     def test():
         def func(*args, **kwargs):
             return (args, kwargs)
-        args = [1,2]
+        args = (1,2)
         kwargs={"item": "value"}
         step = ChainStep(key='test', method=func, args=args, kwargs=kwargs, ref=None)
         result = step.method(*step.args, **step.kwargs)
