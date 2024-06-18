@@ -20,7 +20,7 @@ def test_chain_execute_return_value():
             return ('test_response', args, kwargs)
 
         chain = ContextChain()
-        chain.add_step(key='key_1', method=test, args=[1,2,3], kwargs={"test":123123123}, ref="test_result")
+        chain.add_step(key='key_1', method=func, args=[1,2,3], kwargs={"test":123123123}, ref="test_result")
         result = chain.execute()
         assert result[0] == 'test_response'
         assert result[1] == [1,2,3]
@@ -37,7 +37,7 @@ def test_chain_execute_state():
             return ('test_response', args, kwargs)
 
         chain = ContextChain()
-        chain.add_step(key='key_1', method=test, args=args, kwargs=kwargs, ref=ref)
+        chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref=ref)
         chain.execute()
         assert chain.context['test_result'] == 'test_response'
         assert chain.context['test_result'] == args
@@ -51,11 +51,13 @@ def test_chain_json():
         args = [1,2,3]
         kwargs = {"test":123123123}
 
+        # Importing BaseModel makes the function serializable by pydantic
         class func(BaseModel):
             def __call__(*args, **kwargs):
                 return ('test_response', args, kwargs)
 
         chain = ContextChain()
+        # We must initialize the class
         chain.add_step(key='key_1', method=func(), args=args, kwargs=kwargs, ref=ref)
         chain.execute()
         assert chain.context['test_result'] == 'test_response'

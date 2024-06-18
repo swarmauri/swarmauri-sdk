@@ -20,6 +20,6 @@ def test_method_call():
         kwargs={"item": "value"}
         step = ChainStep(key='test', method=func, args=args, kwargs=kwargs, ref=None)
         result = step.method(*step.args, **step.kwargs)
-        assert step.result[0] == args
-        assert step.result[1] == kwargs
+        assert result[0] == args
+        assert result[1] == kwargs
     test()
