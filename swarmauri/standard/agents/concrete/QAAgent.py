@@ -11,7 +11,7 @@ class QAAgent(AgentBase):
         
         llm = self.llm
         included_fields = {"role", "content"}
-        messages = [HumanMessage(content=input_str).dict(include=included_fields)]
+        messages = [HumanMessage(content=input_str)]
         prediction = llm.predict(messages=messages, **llm_kwargs)
         
         return prediction
