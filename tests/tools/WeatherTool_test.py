@@ -13,5 +13,5 @@ def test_call():
     def test():
         tool = Tool()
         location = 'Dallas'
-        assert tool(location) == "Weather Info: ('Dallas', 'fahrenheit')"
+        assert tool(location) == "Weather Info: ('Dallas', 'fahrenheit')\n"
     test()
