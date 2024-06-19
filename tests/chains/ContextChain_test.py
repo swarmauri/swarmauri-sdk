@@ -61,7 +61,7 @@ def test_chain_json():
         kwargs = {"test":123123123}
 
         # Declare test func
-        class func(*args, **kwargs):
+        def func(*args, **kwargs):
             return ('test_response', args[1:], kwargs)
 
         # Initialize ContextChain, Add Step, and Execute
