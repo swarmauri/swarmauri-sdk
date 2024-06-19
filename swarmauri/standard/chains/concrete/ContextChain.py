@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Callable, Optional
+from typing import Any, Dict, List, Callable, Optional, Tuple, Union
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.core.chains.IChain import IChain
@@ -8,7 +8,13 @@ class ContextChain(IChain, ChainContextBase):
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
     Implements the IChain interface including get_schema_info and remove_step methods.
     """
-    def add_step(self, key: str, method: Callable[..., Any], args: List[Any], kwargs: Dict[str, Any], ref: Optional[str] = None):
+    def add_step(self, 
+        key: str, 
+        method: Union[ImportString, Callable[..., Any]],
+        args: Tuple = (), 
+        kwargs: Dict[str, Any] = {}, 
+        ref: Optional[str] = None):
+
         # Directly store args, kwargs, and optionally a return_key without resolving them
         step = ChainStep(key=key, method=method, args=args, kwargs=kwargs, ref=ref)
         self.steps.append(step)
