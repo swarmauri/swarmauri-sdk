@@ -62,7 +62,7 @@ def test_chain_json():
 
         # Declare test func
         def func(*args, **kwargs):
-            return ('test_response', args[1:], kwargs)
+            return ('test_response', args, kwargs)
 
         # Initialize ContextChain, Add Step, and Execute
         chain = ContextChain()
