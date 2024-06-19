@@ -5,14 +5,14 @@ from swarmauri.standard.conversations.concrete.SessionCacheConversation import S
 @pytest.mark.unit
 def test_ubc_resource():
     def test():
-        conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=4)
+        conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
         assert conv.resource == 'Conversation'
     test()
 
 @pytest.mark.unit
-def test_1():
-    def test_conversation_history(max_size):
-        conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+def test_standard_alternating_agent_ending():
+    def test(max_size):
+        conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=max_size)
         conv.add_message(HumanMessage(content='human'))
         conv.add_message(AgentMessage(content='agent'))
         conv.add_message(HumanMessage(content='human2'))
@@ -40,16 +40,13 @@ def test_1():
             assert conv.history[5].content == 'human4'
             assert conv.history[6].content == 'agent4'
 
-        print(max_size, 'max_size passed')
-
     for max_size in range(2, 7, 1):
-        test_conversation_history(max_size)
+        test(max_size)
 
 @pytest.mark.unit
-def test_2():
-    def test_conversation_history(max_size):
-
-            conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+def test_standard_alternating_human_ending():
+    def test(max_size):
+            conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=max_size)
             conv.add_message(HumanMessage(content='human'))
             conv.add_message(AgentMessage(content='agent'))
             conv.add_message(HumanMessage(content='human2'))
@@ -83,30 +80,29 @@ def test_2():
                 assert conv.history[6].content == 'agent3'
 
     for max_size in range(2, 7, 1):
-        test_conversation_history(max_size)
+        test(max_size)
 
 @pytest.mark.unit
-def test_3():
-    def test_conversation_history(max_size):
-        conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+def test_agent_message_first():
+    def test(max_size):
+        conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=max_size)
         try:
             conv.add_message(AgentMessage(content='agent'))
         except Exception as e:     
             assert str(e) == "The first message in the history must be an HumanMessage."
     for max_size in range(2, 7, 1):
-        test_conversation_history(max_size)
+        test(max_size)
 
 @pytest.mark.unit
-def test_4():
-    def test_conversation_history(max_size):
-        conv = SessionCacheConversation(system_message_content=SystemMessage(content='systest'), max_size=max_size)
+def test_consecutive_human_messages():
+    def test(max_size):
+        conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=max_size)
         try:
             conv.add_message(HumanMessage(content='human'))
             conv.add_message(AgentMessage(content='agent'))
             conv.add_message(HumanMessage(content='human'))
             conv.add_message(HumanMessage(content='human'))
         except Exception as e:     
-            print(str(e))
             assert str(e) == "Cannot have two repeating HumanMessages."
     for max_size in range(2, 7, 1):
-        test_conversation_history(max_size)
+        test(max_size)
