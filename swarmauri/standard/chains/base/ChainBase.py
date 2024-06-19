@@ -2,28 +2,27 @@ from typing import List, Dict, Any, Optional
 from pydantic import Field, ConfigDict
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChain import IChain
-from swarmauri.core.chains.IChainStep import IChainStep
-
+from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
 
 class ChainBase(IChain, ComponentBase):
     """
     A base implementation of the IChain interface.
     """
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    steps: List[IChainStep] = []
+    steps: List[ChainStep] = []
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
     configs: Dict
 
-    def add_step(self, step: IChainStep) -> None:
+    def add_step(self, step: ChainStep) -> None:
         self.steps.append(step)
 
-    def remove_step(self, step: IChainStep) -> None:
+    def remove_step(self, step: ChainStep) -> None:
         """
         Removes an existing step from the chain. This alters the chain's execution sequence
         by excluding the specified step from subsequent executions of the chain.
 
         Parameters:
-            step (IChainStep): The Callable representing the step to remove from the chain.
+            step (ChainStep): The Callable representing the step to remove from the chain.
         """
 
         raise NotImplementedError('This is not yet implemented')

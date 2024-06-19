@@ -1,16 +1,16 @@
 from typing import Any, Callable, Dict, List, Optional
 from pydantic import Field, ConfigDict
 import re
+from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChainContext import IChainContext
-from swarmauri.core.chains.IChainStep import IChainStep
 
 
 class ChainContextBase(IChainContext, ComponentBase):
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    steps: List[IChainStep] = []
+    steps: List[ChainStep] = []
     context: Dict = {}
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     def update(self, **kwargs):
         self.context.update(kwargs)
@@ -23,7 +23,7 @@ class ChainContextBase(IChainContext, ComponentBase):
         def replacer(match):
             expression = match.group(1)
             try:
-                return str(eval(expression, {}, self._context))
+                return str(eval(expression, {}, self.context))
             except Exception as e:
                 print(f"Failed to resolve expression: {expression}. Error: {e}")
                 return f"{{{expression}}}"

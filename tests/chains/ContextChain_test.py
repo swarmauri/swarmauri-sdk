@@ -55,19 +55,21 @@ def test_chain_execute_return_state():
 @pytest.mark.unit
 def test_chain_json():
     def test():
+        # Declare vars
         ref = "test_result"
         args = (1,2,3)
         kwargs = {"test":123123123}
 
-        # Importing BaseModel makes the function serializable by pydantic
-        class func(BaseModel):
-            def __call__(*args, **kwargs):
-                return ('test_response', args[1:], kwargs)
+        # Declare test func
+        class func(*args, **kwargs):
+            return ('test_response', args[1:], kwargs)
 
+        # Initialize ContextChain, Add Step, and Execute
         chain = ContextChain()
-        # We must initialize the class
-        chain.add_step(key='key_1', method=func(), args=args, kwargs=kwargs, ref=ref)
+        chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref=ref)
         chain.execute()
+
+        # Assert
         assert chain.context['test_result'][0] == 'test_response'
         assert chain.context['test_result'][1] == args
         assert chain.context['test_result'][2] == kwargs
