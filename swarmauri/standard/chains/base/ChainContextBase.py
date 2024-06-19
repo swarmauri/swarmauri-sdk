@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 from pydantic import Field, ConfigDict
 import re
-from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChainContext import IChainContext
 
