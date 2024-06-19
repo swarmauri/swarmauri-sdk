@@ -1,5 +1,5 @@
 from typing import Optional, Union, List
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
@@ -13,6 +13,7 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
     max_size: int = Field(default=2, gt=1)
     system_context: Optional[SystemMessage] = None
     session_max_size: int = Field(default=-1)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     def __init__(self, **data):
         super().__init__(**data)
