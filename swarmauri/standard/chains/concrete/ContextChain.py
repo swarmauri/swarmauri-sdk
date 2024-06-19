@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Callable, Optional, Tuple, Union
+from pydantic import ImportString
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.core.chains.IChain import IChain
