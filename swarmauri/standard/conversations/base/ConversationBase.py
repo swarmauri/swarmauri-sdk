@@ -1,14 +1,15 @@
 from typing import List, Union
 from pydantic import Field, PrivateAttr
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IConversation import IConversation
 
 class ConversationBase(IConversation, ComponentBase):
     """
     Concrete implementation of IConversation, managing conversation history and operations.
     """
-    _history: List[IMessage] = PrivateAttr(default_factory=list)
+    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
     resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
 
     
@@ -19,10 +20,10 @@ class ConversationBase(IConversation, ComponentBase):
         """
         return self._history
     
-    def add_message(self, message: IMessage):
+    def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
 
-    def get_last(self) -> Union[IMessage, None]:
+    def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
         if self._history:
             return self._history[-1]
         return None

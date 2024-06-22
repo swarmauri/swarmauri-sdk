@@ -7,6 +7,7 @@ from swarmauri.core.tools.ITool import ITool
 
 
 class ToolBase(ITool, ComponentBase, ABC):
+    name: str
     description: Optional[str] = None
     parameters: List[Parameter] = Field(default_factory=list)
     type: str = Field(init=False, default="function")

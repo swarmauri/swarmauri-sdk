@@ -4,6 +4,7 @@ from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
+
 class DocumentBase(IDocument, ComponentBase):
     content: str
     metadata: Dict = {}

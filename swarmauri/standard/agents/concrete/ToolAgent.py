@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, Dict
+from typing import Any, Optional, Union, Dict, Literal
 import json
 
 from swarmauri.core.messages import IMessage
@@ -10,7 +10,7 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, Fun
 
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
-
+    type: Literal['ToolAgent'] = 'ToolAgent'
 
     def exec(self, 
         input_data: Optional[Union[str, IMessage]] = "",  

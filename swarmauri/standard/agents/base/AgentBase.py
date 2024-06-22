@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict, Union
+from typing import Any, Optional, Dict, Union, Literal
 from pydantic import ConfigDict, Field, field_validator
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.messages.IMessage import IMessage
@@ -9,6 +9,7 @@ class AgentBase(IAgent, ComponentBase):
     llm: IPredict
     resource: ResourceTypes =  Field(default=ResourceTypes.AGENT.value)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['AgentBase'] = 'AgentBase'
 
     @field_validator('llm')
     @classmethod

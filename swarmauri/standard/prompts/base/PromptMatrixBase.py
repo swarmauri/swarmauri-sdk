@@ -7,7 +7,6 @@ class PromptMatrixBase(IPromptMatrix, ComponentBase):
     matrix: List[List[str]] = []
     resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value)
 
-
     @property
     def shape(self) -> Tuple[int, int]:
         """Get the shape (number of agents, sequence length) of the prompt matrix."""

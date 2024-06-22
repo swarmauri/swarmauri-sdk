@@ -11,7 +11,7 @@ class ContextChain(IChain, ChainContextBase):
     """
     def add_step(self, 
         key: str, 
-        method: Union[ImportString, Callable[..., Any]],
+        method: Union[Callable[..., Any], ImportString],
         args: Tuple = (), 
         kwargs: Dict[str, Any] = {}, 
         ref: Optional[str] = None):

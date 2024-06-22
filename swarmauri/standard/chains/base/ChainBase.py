@@ -1,17 +1,18 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pydantic import Field, ConfigDict
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChain import IChain
 from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
+from swarmauri.core.typing import SubclassUnion
 
 class ChainBase(IChain, ComponentBase):
     """
     A base implementation of the IChain interface.
     """
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     steps: List[ChainStep] = []
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
-    configs: Dict
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ChainBase'] = 'ChainBase'
 
     def add_step(self, step: ChainStep) -> None:
         self.steps.append(step)

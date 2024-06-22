@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Optional
 from pydantic import Field, ConfigDict
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.toolkits.IToolkit import IToolkit
-from swarmauri.core.tools.ITool import ITool  
+
+
 
 class ToolkitBase(IToolkit, ComponentBase):
     """
@@ -11,14 +14,33 @@ class ToolkitBase(IToolkit, ComponentBase):
     Tools are maintained in a dictionary keyed by the tool's name.
     """
 
-    tools: Dict[str, ITool] = {}
+    tools: Dict[str, SubclassUnion[ToolBase]] = {}
     resource: Optional[str] =  Field(default=ResourceTypes.TOOLKIT.value, frozen=True)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
-    def list_tools(self) -> Dict[str, ITool]:
-        return [self.tools[tool].as_dict() for tool in self.tools]
+    def get_tools(self, 
+                   include: Optional[List[str]] = None, 
+                   exclude: Optional[List[str]] = None,
+                   by_alias: bool = False, 
+                   exclude_unset: bool = False,
+                   exclude_defaults: bool = False, 
+                   exclude_none: bool = False
+                   ) -> Dict[str, ITool]:
+            """
+            List all tools in the toolkit with options to include or exclude specific fields.
+    
+            Parameters:
+                include (List[str], optional): Fields to include in the returned dictionary.
+                exclude (List[str], optional): Fields to exclude from the returned dictionary.
+    
+            Returns:
+                Dict[str, ITool]: A dictionary of tools with specified fields included or excluded.
+            """
+            return [tool.dict(include=include, exclude=exclude, by_alias=by_alias,
+                                   exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, 
+                                    exclude_none=exclude_none) for name, tool in self.tools.items()]
 
-    def add_tools(self, tools: Dict[str, ITool]):
+    def add_tools(self, tools: Dict[str, SubclassUnion[ToolBase]]) -> None:
         """
         Add multiple tools to the toolkit.
 
@@ -27,7 +49,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         """
         self.tools.update(tools)
 
-    def add_tool(self, tool: ITool):
+    def add_tool(self, tool: SubclassUnion[ToolBase])  -> None:
         """
         Add a single tool to the toolkit.
 
@@ -36,7 +58,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         """
         self.tools[tool.function['name']] = tool
 
-    def remove_tool(self, tool_name: str):
+    def remove_tool(self, tool_name: str) -> None:
         """
         Remove a tool from the toolkit by name.
 
@@ -48,7 +70,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         else:
             raise ValueError(f"Tool '{tool_name}' not found in the toolkit.")
 
-    def get_tool_by_name(self, tool_name: str) -> ITool:
+    def get_tool_by_name(self, tool_name: str) -> 'ToolBase'
         """
         Get a tool from the toolkit by name.
 

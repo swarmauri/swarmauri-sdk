@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pydantic import Field
 from collections import defaultdict, deque
 import re
@@ -14,7 +14,6 @@ from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
-
 class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
     prompt_matrix: PromptMatrix
     agents: List[IAgent] = Field(default_factory=list)
@@ -24,7 +23,8 @@ class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, Compone
     current_step_index: int = 0
     steps: List[Any] = Field(default_factory=list)
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
-
+    type: Literal['PromptContextChainBase'] = 'PromptContextChainBase'
+    
     def __init__(self, **data: Any):
         super().__init__(**data)
         # Now that the instance is created, we can safely access `prompt_matrix.shape`

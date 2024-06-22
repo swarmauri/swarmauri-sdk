@@ -159,3 +159,12 @@ class ComponentBase(BaseModel):
                 sig_hash.update(str(sig).encode())
                 print(sig_hash.hexdigest())
         return sig_hash.hexdigest()
+
+    @classmethod
+    def get_subclasses(cls, recursive=True):
+        if recursive:
+            # Using a dictionary to avoid duplicates by name
+            subclasses_dict = {subclass.__name__: subclass for subclass in cls.__subclasses__()}
+            return set(subclasses_dict.values())
+        else:
+            return cls.__subclasses__()
