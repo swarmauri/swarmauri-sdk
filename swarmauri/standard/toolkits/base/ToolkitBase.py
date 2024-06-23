@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from pydantic import Field, ConfigDict
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.tools.base.ToolBase import ToolBase
@@ -25,7 +25,7 @@ class ToolkitBase(IToolkit, ComponentBase):
                    exclude_unset: bool = False,
                    exclude_defaults: bool = False, 
                    exclude_none: bool = False
-                   ) -> Dict[str, ITool]:
+                   ) -> Dict[str, SubclassUnion[ToolBase]]:
             """
             List all tools in the toolkit with options to include or exclude specific fields.
     
@@ -70,7 +70,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         else:
             raise ValueError(f"Tool '{tool_name}' not found in the toolkit.")
 
-    def get_tool_by_name(self, tool_name: str) -> SubunionClass[ToolBase]:
+    def get_tool_by_name(self, tool_name: str) -> SubclassUnion[ToolBase]:
         """
         Get a tool from the toolkit by name.
 
