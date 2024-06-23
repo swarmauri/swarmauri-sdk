@@ -24,7 +24,7 @@ class OpenAIModel(LLMBase):
     'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo']
     name: str = "gpt-3.5-turbo-16k"
-
+    
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name']
         list_of_msg_dicts = [message.dict(include=message_properties) for message in messages]

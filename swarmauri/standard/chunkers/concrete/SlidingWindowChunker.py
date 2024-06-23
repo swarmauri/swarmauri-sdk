@@ -10,7 +10,6 @@ class SlidingWindowChunker(ChunkerBase):
     window_size: int = 256
     step_size: int = 256
     overlap: bool = False
-
            
     def chunk_text(self, text: str, *args, **kwargs) -> List[str]:
         """

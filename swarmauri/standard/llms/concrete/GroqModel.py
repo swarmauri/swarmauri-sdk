@@ -11,7 +11,7 @@ class GroqModel(LLMBase):
     'mixtral-8x7b-32768', 
     'gemma-7b-it']
     name: str = "mixtral-8x7b-32768"
-
+    
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name']
         list_of_msg_dicts = [message.dict(include=message_properties, exclude_none=True) for message in messages]

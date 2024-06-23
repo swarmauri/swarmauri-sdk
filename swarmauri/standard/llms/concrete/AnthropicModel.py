@@ -14,7 +14,6 @@ class AnthropicModel(LLMBase):
     'claude-instant-1.2']
     name: str = "claude-3-haiku-20240307"
 
-
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
        # Get only the properties that we require
         message_properties = ["content", "role"]

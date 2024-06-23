@@ -11,7 +11,6 @@ class GroqToolModel(LLMBase):
     'gemma-7b-it']
     name: str = "mixtral-8x7b-32768"
 
-
     def predict(self, 
         messages: List[IMessage], 
         tools=None, 

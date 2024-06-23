@@ -6,7 +6,7 @@ from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 class JaccardIndexDistance(DistanceBase):
     """
     A class implementing Jaccard Index as a similarity and distance metric between two vectors.
-    """
+    """    
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

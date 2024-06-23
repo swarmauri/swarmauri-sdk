@@ -8,7 +8,6 @@ class OpenAIImageGenerator(LLMBase):
     allowed_models: List[str] = ['dall-e']
     name: str = "dall-e"
 
-
     def predict(self, prompt: str, size: str = "1024x1024", 
                 quality: str = "standard", n: int = 1) -> str:
         """

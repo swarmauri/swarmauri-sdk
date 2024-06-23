@@ -1,10 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import TypeVar, Generic, Union, Annotated, Type
-from swarmauri.core.ComponentBase import ComponentBase
+from swarmauri.core.ComponentBase import ComponentBase, ComponentType
 
-T = TypeVar('T', bound=ComponentBase)
-
-class SubclassUnionModel(Generic[T]):
+class SubclassUnion(Generic[ComponentType]):
     @staticmethod
     def __get_validators__():
         yield SubclassUnionModel.validate
@@ -32,10 +30,10 @@ class SubclassUnionModel(Generic[T]):
             'oneOf': [{'type': 'object', '$ref': f'#/definitions/{sub.__name__}'} for sub in subclasses]
         }
 
-    def __class_getitem__(cls, item: Type[T]):
+    def __class_getitem__(cls, item: Type[ComponentType]):
         return Annotated[
             Union[tuple(item.get_subclasses())],
             Field(discriminator='type')
         ]
 
-SubclassUnion = SubclassUnionModel()
+SubclassUnion = SubclassUnionModel

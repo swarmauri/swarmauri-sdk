@@ -11,7 +11,7 @@ class MistralModel(LLMBase):
     'mistral-large-latest',
     ]
     name: str = "open-mixtral-8x22b"
-
+    
     def predict(self, 
         messages: List[IMessage], 
         tools=None, 

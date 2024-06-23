@@ -15,4 +15,3 @@ class ChainStepBase(IChainStep, ComponentBase):
     kwargs: Dict[str, Any] = Field(default_factory=dict)
     ref: Optional[str] =  Field(default=None)
     resource: Optional[str] =  Field(default=ResourceTypes.CHAINSTEP.value)
-    type: Literal['ChainStepBase'] = 'ChainStepBase'

@@ -6,7 +6,8 @@ from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class Doc2VecEmbedding(EmbeddingBase):
     _model = PrivateAttr()
-    
+        
+
     def __init__(self, 
                  vector_size: int = 2000, 
                  window: int = 10,

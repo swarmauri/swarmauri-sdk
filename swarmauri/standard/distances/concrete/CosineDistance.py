@@ -10,6 +10,7 @@ class CosineDistance(DistanceBase):
     of an inner product space, capturing the orientation rather than the magnitude 
     of these vectors.
     """
+    
        
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """ 

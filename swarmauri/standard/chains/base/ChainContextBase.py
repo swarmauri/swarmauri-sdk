@@ -10,7 +10,6 @@ class ChainContextBase(IChainContext, ComponentBase):
     context: Dict = {}
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['ChainContextBase'] = 'ChainContextBase'
     
     def update(self, **kwargs):
         self.context.update(kwargs)

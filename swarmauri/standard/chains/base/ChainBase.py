@@ -12,7 +12,6 @@ class ChainBase(IChain, ComponentBase):
     steps: List[ChainStep] = []
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['ChainBase'] = 'ChainBase'
 
     def add_step(self, step: ChainStep) -> None:
         self.steps.append(step)

@@ -11,6 +11,7 @@ class CohereModel(LLMBase):
     'command-r',
     'command-r-plus']
     name: str = "command-light"
+
     
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str,str]]:
         """

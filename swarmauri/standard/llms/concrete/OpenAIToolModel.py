@@ -19,7 +19,7 @@ class OpenAIToolModel(LLMBase):
     'gpt-3.5-turbo-1106',
     'gpt-3.5-turbo-0613']
     name: str = "gpt-3.5-turbo-0125"
-
+    
     def predict(self, messages: List[IMessage], 
         tools=None, 
         tool_choice=None, 

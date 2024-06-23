@@ -6,8 +6,8 @@ class DelimiterBasedChunker(ChunkerBase):
     """
     A concrete implementation of IChunker that splits text into chunks based on specified delimiters.
     """
-    delimiters: List[str] = ['.', '!', '?']   
-    
+    delimiters: List[str] = ['.', '!', '?']
+
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[str]:
         """
         Chunks the given text based on the delimiters specified during initialization.

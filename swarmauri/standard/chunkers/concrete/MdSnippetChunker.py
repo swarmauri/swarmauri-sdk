@@ -4,7 +4,7 @@ from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
 class MdSnippetChunker(ChunkerBase):
     language: Optional[str] = None
-    
+
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[tuple]:
         """
         Extracts paired comments and code blocks from Markdown content based on the 

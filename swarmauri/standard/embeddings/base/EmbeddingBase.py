@@ -7,3 +7,4 @@ from swarmauri.core.embeddings.ISaveModel import ISaveModel
 
 class EmbeddingBase(IVectorize, IFeature, ISaveModel, ComponentBase):
     resource: Optional[str] =  Field(default=ResourceTypes.EMBEDDING.value, frozen=True)
+        

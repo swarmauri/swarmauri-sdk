@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Literal, TypeVar, Type
 from uuid import uuid4
 from enum import Enum
 import inspect
@@ -38,6 +38,7 @@ class ResourceTypes(Enum):
 def generate_id() -> str:
     return str(uuid4())
 
+ComponentType = TypeVar('ComponentType', bound='ComponentBase')
 
 class ComponentBase(BaseModel):
     name: Optional[str] = None
@@ -47,7 +48,12 @@ class ComponentBase(BaseModel):
     host: Optional[str] = None
     resource: str = Field(default="BaseComponent")
     version: str = "0.1.0"
+    type: Literal['ComponentBase'] = 'ComponentBase'
 
+    @classmethod
+    def __init_subclass__(cls: Type[ComponentType], **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.type = cls.__name__
 
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()
@@ -81,8 +87,6 @@ class ComponentBase(BaseModel):
                     return True
         return False
 
-
-    
     @property
     def path(self):
         if self.host and self.owner:

@@ -6,7 +6,7 @@ from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 class ChiSquaredDistance(DistanceBase):
     """
     Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
-    """
+    """    
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

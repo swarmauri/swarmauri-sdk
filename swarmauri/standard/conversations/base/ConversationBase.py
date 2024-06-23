@@ -11,7 +11,6 @@ class ConversationBase(IConversation, ComponentBase):
     """
     _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
     resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
-
     
     @property
     def history(self) -> List[IMessage]:

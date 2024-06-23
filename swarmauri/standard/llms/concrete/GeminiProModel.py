@@ -9,7 +9,7 @@ class GeminiProModel(LLMBase):
     api_key: str
     allowed_models: List[str] = ['gemini-1.5-pro-latest']
     name: str = "gemini-1.5-pro-latest"
-
+    
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         # Remove system instruction from messages
         message_properties = ['content', 'role']

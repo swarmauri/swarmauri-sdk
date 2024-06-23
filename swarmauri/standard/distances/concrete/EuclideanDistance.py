@@ -7,7 +7,7 @@ class EuclideanDistance(DistanceBase):
     """
     Class to compute the Euclidean distance between two vectors.
     Implements the IDistanceSimiliarity interface.
-    """
+    """    
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

@@ -10,21 +10,21 @@ from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
 from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
 from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
-from swarmauri.core.agents.IAgent import IAgent
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
 
 class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
     prompt_matrix: PromptMatrix
-    agents: List[IAgent] = Field(default_factory=list)
+    agents: List[SubclassUnion[AgentBase]] = Field(default_factory=list)
     context: Dict[str, Any] = Field(default_factory=dict)
     llm_kwargs: Dict[str, Any] = Field(default_factory=dict)
     response_matrix: Optional[PromptMatrix] = None
     current_step_index: int = 0
     steps: List[Any] = Field(default_factory=list)
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
-    type: Literal['PromptContextChainBase'] = 'PromptContextChainBase'
-    
+
     def __init__(self, **data: Any):
         super().__init__(**data)
         # Now that the instance is created, we can safely access `prompt_matrix.shape`

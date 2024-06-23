@@ -26,7 +26,7 @@ class MlmEmbedding(EmbeddingBase):
     _tokenizer = PrivateAttr()
     _model = PrivateAttr()
     _device = PrivateAttr()
-    _mask_token_id = PrivateAttr()
+    _mask_token_id = PrivateAttr()        
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
