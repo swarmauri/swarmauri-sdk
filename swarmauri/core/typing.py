@@ -5,7 +5,7 @@ from swarmauri.core.ComponentBase import ComponentBase, ComponentType
 class SubclassUnion(Generic[ComponentType]):
     @staticmethod
     def __get_validators__():
-        yield SubclassUnionModel.validate
+        yield SubclassUnion.validate
 
     @classmethod
     def validate(cls, v, field):
