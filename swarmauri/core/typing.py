@@ -35,5 +35,3 @@ class SubclassUnion(Generic[ComponentType]):
             Union[tuple(item.get_subclasses())],
             Field(discriminator='type')
         ]
-
-SubclassUnion = SubclassUnionModel
