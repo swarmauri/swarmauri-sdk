@@ -13,7 +13,7 @@ class ConversationBase(IConversation, ComponentBase):
     resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
     
     @property
-    def history(self) -> List[IMessage]:
+    def history(self) -> List[SubclassUnion[MessageBase]]:
         """
         Provides read-only access to the conversation history.
         """
@@ -29,7 +29,3 @@ class ConversationBase(IConversation, ComponentBase):
 
     def clear_history(self):
         self._history.clear()
-
-    def as_messages(self) -> List[dict]:
-        message_include=['role', 'content', 'tool_call_id', 'tool_calls', 'name']
-        return [message.dict(include=message_include) for message in self.history]

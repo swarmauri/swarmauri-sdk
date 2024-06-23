@@ -70,7 +70,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         else:
             raise ValueError(f"Tool '{tool_name}' not found in the toolkit.")
 
-    def get_tool_by_name(self, tool_name: str) -> 'ToolBase'
+    def get_tool_by_name(self, tool_name: str): -> SubunionClass[ToolBase]
         """
         Get a tool from the toolkit by name.
 
