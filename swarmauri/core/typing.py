@@ -32,6 +32,6 @@ class SubclassUnion(Generic[ComponentType]):
 
     def __class_getitem__(cls, item: Type[ComponentType]):
         return Annotated[
-            Union[tuple(item.get_subclasses())],
+            Union[tuple([item] + item.get_subclasses())],
             Field(discriminator='type')
         ]
