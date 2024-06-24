@@ -4,7 +4,7 @@ from uuid import uuid4
 from enum import Enum
 import inspect
 import hashlib
-from pydantic import BaseModel, ValidationError, Field, field_validator, PrivateAttr
+from pydantic import BaseModel, ValidationError, Field, field_validator, PrivateAttr, ConfigDict
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -61,6 +61,7 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
     resource: str = Field(default="BaseComponent")
     version: str = "0.1.0"
     type: Literal['ComponentBase'] == 'ComponentBase'
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     @classmethod
     def __init_subclass__(cls: Type[ComponentType], **kwargs):
