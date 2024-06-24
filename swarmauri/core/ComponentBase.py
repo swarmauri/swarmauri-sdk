@@ -165,8 +165,5 @@ class ComponentBase(BaseModel):
         return sig_hash.hexdigest()
 
     @classmethod
-    def get_subclasses(cls):
-        subclasses_dict = {subclass.__name__: subclass for subclass in cls.__subclasses__()}
-        subclasses = list(set(subclasses_dict))
-        subclasses = [cls.__name__] + subclasses
-        return subclasses
+    def get_subclasses(cls) -> set:
+        return {subclass for cls in {cls} for subclass in cls.__subclasses__() + [cls] if cls is not subclass}
