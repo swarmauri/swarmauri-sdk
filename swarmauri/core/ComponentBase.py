@@ -60,7 +60,7 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
     host: Optional[str] = None
     resource: str = Field(default="BaseComponent")
     version: str = "0.1.0"
-    type: Literal['ComponentBase'] == 'ComponentBase'
+    type: Literal['ComponentBase'] = 'ComponentBase'
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
 
     @classmethod
