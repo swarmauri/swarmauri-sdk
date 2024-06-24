@@ -7,6 +7,7 @@ from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
+
 @pytest.mark.unit
 def test_ubc_resource():
     def test():
@@ -21,6 +22,16 @@ def test_ubc_type():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
         assert llm.type == 'GroqModel'
+    test()
+
+@pytest.mark.unit
+def test_subclass_union():
+    def test():
+        from swarmauri.core.typing import SubclassUnion
+        from swarmauri.core.typing import LLMBase
+        API_KEY = os.getenv('GROQ_API_KEY')
+        llm = GroqModel(api_key = API_KEY)
+        assert SubclassUnion(LLMBase)
     test()
 
 @pytest.mark.unit
