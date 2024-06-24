@@ -10,8 +10,6 @@ class ToolBase(ITool, ComponentBase, ABC):
     name: str
     description: Optional[str] = None
     parameters: List[Parameter] = Field(default_factory=list)
-    type: str = Field(init=False, default="function")
-    
     resource: Optional[str] =  Field(default=ResourceTypes.TOOL.value)
 
     
@@ -23,44 +21,44 @@ class ToolBase(ITool, ComponentBase, ABC):
         raise NotImplementedError("Subclasses must implement the __call__ method.")
 
 
-    def __getstate__(self):
-        return {'type': self.type, 'function': self.function}
+   # #def __getstate__(self):
+        # return {'type': self.type, 'function': self.function}
 
 
-    def __iter__(self):
-        yield ('type', self.type)
-        yield ('function', self.function)
+    #def __iter__(self):
+    #    yield ('type', self.type)
+    #    yield ('function', self.function)
 
-    @property
-    def function(self):
-        # Dynamically constructing the parameters schema
-        properties = {}
-        required = []
+    # @property
+    # def function(self):
+    #     # Dynamically constructing the parameters schema
+    #     properties = {}
+    #     required = []
 
-        for param in self.parameters:
-            properties[param.name] = {
-                "type": param.type,
-                "description": param.description,
-            }
-            if param.enum:
-                properties[param.name]['enum'] = param.enum
+    #     for param in self.parameters:
+    #         properties[param.name] = {
+    #             "type": param.type,
+    #             "description": param.description,
+    #         }
+    #         if param.enum:
+    #             properties[param.name]['enum'] = param.enum
 
-            if param.required:
-                required.append(param.name)
+    #         if param.required:
+    #             required.append(param.name)
 
-        function = {
-            "name": self.name,
-            "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": properties,
-            }
-        }
+    #     function = {
+    #         "name": self.name,
+    #         "description": self.description,
+    #         "parameters": {
+    #             "type": "object",
+    #             "properties": properties,
+    #         }
+    #     }
         
-        if required:  # Only include 'required' if there are any required parameters
-            function['parameters']['required'] = required
-        return function
+    #     if required:  # Only include 'required' if there are any required parameters
+    #         function['parameters']['required'] = required
+    #     return function
 
-    def as_dict(self):
-        #return asdict(self)
-        return {'type': self.type, 'function': self.function}
+   # def as_dict(self):
+    #    #return asdict(self)
+   #     return {'type': self.type, 'function': self.function}
