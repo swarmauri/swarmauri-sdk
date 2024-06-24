@@ -48,7 +48,7 @@ class ComponentBase(BaseModel):
     host: Optional[str] = None
     resource: str = Field(default="BaseComponent")
     version: str = "0.1.0"
-    type: Literal['ComponentBase'] = 'ComponentBase'
+    type: str
 
     @classmethod
     def __init_subclass__(cls: Type[ComponentType], **kwargs):
