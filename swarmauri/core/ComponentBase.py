@@ -166,4 +166,4 @@ class ComponentBase(BaseModel):
 
     @classmethod
     def get_subclasses(cls) -> set:
-        return {subclass for cls in {cls} for subclass in cls.__subclasses__() + [cls] if cls is not subclass}
+        return {cls}.union(set(cls.__subclasses__()).union(*(subclass.get_subclasses() for subclass in cls.__subclasses__())))
