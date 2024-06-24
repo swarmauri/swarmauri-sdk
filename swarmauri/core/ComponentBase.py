@@ -168,4 +168,5 @@ class ComponentBase(BaseModel):
     def get_subclasses(cls):
         subclasses_dict = {subclass.__name__: subclass for subclass in cls.__subclasses__()}
         subclasses = list(set(subclasses_dict))
+        subclasses = [cls.__name__] + subclasses
         return subclasses
