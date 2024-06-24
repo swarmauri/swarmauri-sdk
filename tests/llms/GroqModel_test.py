@@ -31,7 +31,7 @@ def test_subclass_union():
         from swarmauri.core.typing import LLMBase
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
-        assert SubclassUnion(LLMBase)
+        assert 'GroqModel' in SubclassUnion(LLMBase)
     test()
 
 @pytest.mark.unit
