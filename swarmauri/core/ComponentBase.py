@@ -59,8 +59,7 @@ class ComponentBase(BaseModel):
     def get_subclasses(cls) -> set:
         def is_excluded_module(module_name: str) -> bool:
             # Exclude '__main__' and any modules that are functionally generated
-            return (module_name == '__main__' or 
-                    module_name.startswith('<') or 
+            return (not module_name.startswith('<') or 
                     module_name == 'builtins' or 
                     module_name == 'types')
 
@@ -70,6 +69,7 @@ class ComponentBase(BaseModel):
                 subclasses_dict.update({subclass.__name__: subclass for subclass in subclass.get_subclasses() 
                     if not is_excluded_module(subclass.__module__)})
         return set(subclasses_dict.values())
+
 
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()
