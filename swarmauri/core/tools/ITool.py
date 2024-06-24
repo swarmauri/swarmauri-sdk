@@ -10,7 +10,3 @@ class ITool(ABC):
     def __call__(self, *args, **kwargs):
         pass
 
-    @property
-    @abstractmethod
-    def function(self):
-        pass
