@@ -55,6 +55,16 @@ class ComponentBase(BaseModel):
         super().__init_subclass__(**kwargs)
         cls.type = cls.__name__
 
+    @classmethod
+    def get_subclasses(cls) -> set:
+        subclasses_dict = {cls.__name__: cls}
+        for subclass in cls.__subclasses__():
+            if subclass.__module__ == '__main__':
+                subclasses_dict.update({subclass.__name__: subclass for subclass in subclass.get_subclasses() 
+                    if subclass.__module__ == '__main__'})
+        return set(subclasses_dict.values())
+
+
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()
         for attr_name in dir(self):
@@ -164,12 +174,3 @@ class ComponentBase(BaseModel):
                 print(sig_hash.hexdigest())
         return sig_hash.hexdigest()
 
-    @classmethod
-    def get_subclasses(cls) -> set:
-        print(cls)
-        subclasses_dict = {cls.__name__: cls}
-        for subclass in cls.__subclasses__():
-            print(subclass)
-            subclasses_dict.update({subclass.__name__: subclass for subclass in subclass.get_subclasses()})
-        print(subclasses_dict.values())
-        return set(subclasses_dict.values())
