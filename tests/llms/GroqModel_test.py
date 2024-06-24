@@ -16,6 +16,14 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
+def test_ubc_type():
+    def test():
+        API_KEY = os.getenv('GROQ_API_KEY')
+        llm = GroqModel(api_key = API_KEY)
+        assert llm.type == 'GroqModel'
+    test()
+
+@pytest.mark.unit
 def test_default_name():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
