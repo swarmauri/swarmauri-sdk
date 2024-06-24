@@ -54,16 +54,22 @@ class ComponentBase(BaseModel):
     def __init_subclass__(cls: Type[ComponentType], **kwargs):
         super().__init_subclass__(**kwargs)
         cls.type = cls.__name__
-
+    
     @classmethod
     def get_subclasses(cls) -> set:
+        def is_excluded_module(module_name: str) -> bool:
+            # Exclude '__main__' and any modules that are functionally generated
+            return (module_name == '__main__' or 
+                    module_name.startswith('<') or 
+                    module_name == 'builtins' or 
+                    module_name == 'types')
+
         subclasses_dict = {cls.__name__: cls}
         for subclass in cls.__subclasses__():
-            if subclass.__module__ == '__main__':
+            if not is_excluded_module(subclass.__module__):
                 subclasses_dict.update({subclass.__name__: subclass for subclass in subclass.get_subclasses() 
-                    if subclass.__module__ == '__main__'})
+                    if not is_excluded_module(subclass.__module__)})
         return set(subclasses_dict.values())
-
 
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()

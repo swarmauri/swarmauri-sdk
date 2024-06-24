@@ -19,7 +19,6 @@ class RagAgent(AgentRetrieveMixin,
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
-    type: Literal['RagAgent'] = 'RagAgent'
     
     def _create_preamble_context(self):
         substr = self.system_context.content
