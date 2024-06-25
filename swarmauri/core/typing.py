@@ -1,3 +1,4 @@
+import logging
 from pydantic import BaseModel, Field
 from typing import TypeVar, Generic, Union, Annotated, Type
 from swarmauri.core.ComponentBase import ComponentBase, ComponentType
@@ -32,7 +33,7 @@ class SubclassUnion(Generic[ComponentType]):
 
             
         mappings = {sub['name']: sub['module_path'] for sub in subclasses_list}
-        debug.info(mappings)
+        logging.info(mappings)
         return {
             'type': 'object',
             'discriminator': {
@@ -48,9 +49,6 @@ class SubclassUnion(Generic[ComponentType]):
 
         subclasses_list = []
         for each in subclasses:
-            print(each)
-            print(each.__name__)
-            print(each.__module__)
 
             tmp_obj = {"name": each.__name__, 
                    "module_path": each, 
