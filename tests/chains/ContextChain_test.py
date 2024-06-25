@@ -68,6 +68,6 @@ def test_chain_json():
         chain.execute()
 
         # Assert
-        assert chain.context['test_result'][0] == '3'
+        assert chain.context['test_result'] == '3'
         assert chain.id == ContextChain.model_validate_json(chain.json()).id
     test()
