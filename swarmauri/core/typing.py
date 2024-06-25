@@ -41,15 +41,7 @@ class SubclassUnion(Generic[ComponentType]):
         }
 
     def __class_getitem__(cls, item: Type[ComponentType]):
-        subclasses = item.get_subclasses()
-
-        subclasses_list = []
-        for each in subclasses:
-            tmp_obj = {"name": each.__name__, "module_path": each, "type": each.type}
-            subclasses_list.append(tmp_obj)
-
-        logging.debug(subclasses_list)
         return Annotated[
-            Union[tuple(*(_s['module_path'] for _s in subclasses_list))],
+            Union[tuple(item.get_subclasses())],
             Field(discriminator='type')
         ]
