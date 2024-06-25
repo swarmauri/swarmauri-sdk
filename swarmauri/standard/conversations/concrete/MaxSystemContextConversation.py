@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Literal
 from pydantic import Field, ConfigDict, field_validator
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
@@ -11,7 +11,8 @@ class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, Con
     system_context: Optional[SystemMessage] = SystemMessage(content="")
     max_size: int = Field(default=2, gt=1)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-
+    type: Literal['MaxSystemContextConversation'] = 'MaxSystemContextConversation'
+    
     @field_validator('system_context', mode='before')
     def set_system_context(cls, value: Union[str, SystemMessage]) -> SystemMessage:
         if isinstance(value, str):

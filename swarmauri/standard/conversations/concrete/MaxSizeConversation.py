@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic import Field
 from swarmauri.converastions.base.ConversationBase import ConversationBase
 from swarmauri.core.messages.IMessage import IMessage
@@ -5,6 +6,7 @@ from swarmauri.core.conversations.IMaxSize import IMaxSize
 
 class MaxSizeConversation(IMaxSize, ConversationBase):
     max_size: int = Field(default=2, gt=1)
+    type: Literal['MaxSizeConversation'] = 'MaxSizeConversation'
 
     def add_message(self, message: IMessage):
         """Adds a message and ensures the conversation does not exceed the max size."""

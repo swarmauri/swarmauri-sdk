@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from pydantic import Field, PrivateAttr
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -11,7 +11,8 @@ class ConversationBase(IConversation, ComponentBase):
     """
     _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
     resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
-    
+    type: Literal['ConversationBase'] = 'ConversationBase'
+
     @property
     def history(self) -> List[SubclassUnion[MessageBase]]:
         """

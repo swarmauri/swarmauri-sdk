@@ -1,3 +1,4 @@
+from typing import Literal
 import re
 from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
@@ -7,6 +8,7 @@ class SentenceChunker(ChunkerBase):
     
     This class uses basic punctuation marks (., !, and ?) as indicators for sentence boundaries.
     """
+    type: Literal['SentenceChunker'] = 'SentenceChunker'
     
     def chunk_text(self, text, *args, **kwargs):
         """

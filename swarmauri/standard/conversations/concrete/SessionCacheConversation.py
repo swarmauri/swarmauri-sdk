@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Literal
 from pydantic import Field, ConfigDict
 from collections import deque
 from swarmauri.core.messages.IMessage import IMessage
@@ -14,6 +14,7 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
     system_context: Optional[SystemMessage] = None
     session_max_size: int = Field(default=-1)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['SessionCacheConversation'] = 'SessionCacheConversation'
 
     def __init__(self, **data):
         super().__init__(**data)

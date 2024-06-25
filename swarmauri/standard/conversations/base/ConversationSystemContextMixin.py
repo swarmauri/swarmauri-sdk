@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Optional
+from typing import Optional, Literal
 from swarmauri.core.conversations.ISystemContext import ISystemContext
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
 
@@ -10,7 +10,8 @@ class SlidingWindowChunker(ChunkerBase):
     window_size: int = 256
     step_size: int = 256
     overlap: bool = False
-           
+    type: Literal['SlidingWindowChunker'] = 'SlidingWindowChunker'
+         
     def chunk_text(self, text: str, *args, **kwargs) -> List[str]:
         """
         Splits the input text into chunks based on the sliding window technique.
