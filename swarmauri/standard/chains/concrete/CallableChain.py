@@ -3,7 +3,6 @@ from swarmauri.core.chains.ICallableChain import ICallableChain, CallableDefinit
 
 
 class CallableChain(ICallableChain):
-    type: Literal['ChainBase'] = 'ChainBase'
     
     def __init__(self, callables: Optional[List[CallableDefinition]] = None):
         
