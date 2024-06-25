@@ -25,10 +25,7 @@ class SubclassUnion(Generic[ComponentType]):
 
         subclasses_list = []
         for each in subclasses:
-            tmp_obj = {"name": each.__name__, 
-                   "module_path": each, 
-                   "type": each.type}
-            
+            tmp_obj = {"name": each.__name__, "module_path": each, "type": each.type}
             subclasses_list.append(tmp_obj)
 
             
@@ -49,16 +46,10 @@ class SubclassUnion(Generic[ComponentType]):
 
         subclasses_list = []
         for each in subclasses:
-
-            tmp_obj = {"name": each.__name__, 
-                   "module_path": each, 
-                   "type": each.type}
-            
+            tmp_obj = {"name": each.__name__, "module_path": each, "type": each.type}
             subclasses_list.append(tmp_obj)
 
-
-        print(*(subclass['name'] for subclass in subclasses_list))
         return Annotated[
-            Union[tuple((subclass['module_path'] for subclass in subclasses_list))],
+            Union[tuple(subclass['module_path'] for subclass in subclasses_list)],
             Field(discriminator='type')
         ]
