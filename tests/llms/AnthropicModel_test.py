@@ -16,6 +16,14 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
+def test_ubc_type():
+    def test():
+        API_KEY = os.getenv('ANTHROPIC_API_KEY')
+        llm = AnthropicModel(api_key = API_KEY)
+        assert llm.type == 'AnthropicModel'
+    test()
+
+@pytest.mark.unit
 def test_default_name():
     def test():
         API_KEY = os.getenv('ANTHROPIC_API_KEY')
