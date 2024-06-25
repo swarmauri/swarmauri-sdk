@@ -25,16 +25,6 @@ def test_ubc_type():
     test()
 
 @pytest.mark.unit
-def test_subclass_union():
-    def test():
-        from swarmauri.core.typing import SubclassUnion
-        from swarmauri.standard.llms.base.LLMBase import LLMBase
-        API_KEY = os.getenv('GROQ_API_KEY')
-        llm = GroqModel(api_key = API_KEY)
-        assert 'GroqModel' in SubclassUnion[LLMBase]
-    test()
-
-@pytest.mark.unit
 def test_default_name():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')

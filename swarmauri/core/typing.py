@@ -21,17 +21,46 @@ class SubclassUnion(Generic[ComponentType]):
     def __get_pydantic_json_schema__(cls, core_schema, model):
         obj = model.__args__[0]
         subclasses = obj.get_subclasses() if obj and issubclass(obj, ComponentBase) else []
+
+        subclasses_list = []
+        for each in subclasses:
+            tmp_obj = {"name": each.__name__, 
+                   "module_path": each, 
+                   "type": each.type}
+            
+            subclasses_list.append(tmp_obj)
+
+            
+        mappings = {sub['name']: sub['module_path'] for sub in subclasses_list}
+        debug.info(mappings)
         return {
             'type': 'object',
             'discriminator': {
                 'propertyName': 'type',
-                'mapping': {sub.__name__: sub for sub in subclasses}
+                'mapping': mappings
             },
             'oneOf': [{'type': 'object', '$ref': f'#/definitions/{sub.__name__}'} for sub in subclasses]
         }
 
     def __class_getitem__(cls, item: Type[ComponentType]):
+        subclasses = item.get_subclasses()
+
+
+        subclasses_list = []
+        for each in subclasses:
+            print(each)
+            print(each.__name__)
+            print(each.__module__)
+
+            tmp_obj = {"name": each.__name__, 
+                   "module_path": each, 
+                   "type": each.type}
+            
+            subclasses_list.append(tmp_obj)
+
+
+        print(*(subclass['name'] for subclass in subclasses_list))
         return Annotated[
-            Union[tuple(item.get_subclasses())],
+            Union[tuple((subclass['module_path'] for subclass in subclasses_list))],
             Field(discriminator='type')
         ]

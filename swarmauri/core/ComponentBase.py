@@ -1,17 +1,16 @@
-from typing import Optional, List, Literal, TypeVar, Type
+from typing import Optional, List, Literal, TypeVar, Type, Union, Annotated, Generic, ClassVar
 from uuid import uuid4
 from enum import Enum
 import inspect
 import hashlib
-from pydantic import BaseModel, ValidationError, Field, field_validator, PrivateAttr, ConfigDict
-
+from pydantic import BaseModel, Field, field_validator
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = 'ComponentBase'
-    #AGENT_API = 'AgentAPI'
     AGENT = 'Agent'
     AGENT_FACTORY = 'AgentFactory'
     CHAIN = 'Chain'
+    CHAIN_METHOD = 'ChainMethod'
     CHUNKER = 'Chunker'
     CONVERSATION = 'Conversation'
     DISTANCE = 'Distance'
@@ -27,7 +26,6 @@ class ResourceTypes(Enum):
     STATE = 'State'
     CHAINSTEP = 'ChainStep'
     SWARM = 'Swarm'
-    #SWARM_API = 'SwarmAPI'
     TOOLKIT = 'Toolkit'
     TOOL = 'Tool'
     PARAMETER = 'Parameter'
@@ -44,7 +42,7 @@ ComponentType = TypeVar('ComponentType', bound='ComponentBase')
 class ComponentMeta(type(BaseModel)):
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
-        cls.type = f"{cls.__module__}.{cls.__name__}"
+        cls.type = name
 
 class ComponentBase(BaseModel, metaclass=ComponentMeta):
     name: Optional[str] = None
@@ -52,31 +50,34 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
     members: List[str] = Field(default_factory=list)
     owner: Optional[str] = None
     host: Optional[str] = None
-    resource: str = Field(default="BaseComponent")
+    resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
     type: Literal['ComponentBase'] = 'ComponentBase'
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-
+    
+    @field_validator('type')
+    def set_type(cls, v, values):
+        if v == 'ComponentBase' and cls.__name__ != 'ComponentBase':
+            return cls.__name__
+        return v
+    
     @classmethod
-    def __init_subclass__(cls: Type[ComponentType], **kwargs):
+    def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.type = cls.__name__
-    
+
     @classmethod
     def get_subclasses(cls) -> set:
         def is_excluded_module(module_name: str) -> bool:
-            # Exclude '__main__' and any modules that are functionally generated
-            return (not '<locals>' in module_name or 
-                    module_name == 'builtins' or 
+            return (module_name == 'builtins' or 
                     module_name == 'types')
 
         subclasses_dict = {cls.__name__: cls}
         for subclass in cls.__subclasses__():
             if not is_excluded_module(subclass.__module__):
-                subclasses_dict.update({subclass.__name__: subclass for subclass in subclass.get_subclasses() 
-                    if not is_excluded_module(subclass.__module__)})
-        return set(subclasses_dict.values())
+                subclasses_dict.update({_s.__name__: _s for _s in subclass.get_subclasses() 
+                    if not is_excluded_module(_s.__module__)})
 
+        return set(subclasses_dict.values())
 
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()
@@ -116,7 +117,6 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
             return f"{self.host}/{self.owner}/{self.resource}/{self.name}/{self.id}"
         if self.resource and self.name:
             return f"/{self.resource}/{self.name}/{self.id}"
-        
         return f"/{self.resource}/{self.id}"
 
     @property
@@ -125,65 +125,8 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
 
     @property
     def class_hash(self):
-        self._calculate_class_hash()
-    
+        return self._calculate_class_hash()
+
     @property
     def is_remote(self):
-        return bool(self._host)
-    
-
-    @classmethod
-    def public_interfaces(cls):
-        methods = []
-        for attr_name in dir(cls):
-            # Retrieve the attribute
-            attr_value = getattr(cls, attr_name)
-            # Check if it's callable or a property and not a private method
-            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(attr_value, property):
-                methods.append(attr_name)
-        return methods
-
-    @classmethod
-    def is_method_registered(cls, method_name: str):
-        """
-        Checks if a public method with the given name is registered on the class.
-        Args:
-            method_name (str): The name of the method to check.
-        Returns:
-            bool: True if the method is registered, False otherwise.
-        """
-        return method_name in cls.public_interfaces()
-
-    @classmethod
-    def method_with_signature(cls, input_signature):
-        """
-        Checks if there is a method with the given signature available in the class.
-        
-        Args:
-            input_signature (str): The string representation of the method signature to check.
-        
-        Returns:
-            bool: True if a method with the input signature exists, False otherwise.
-        """
-        for method_name in cls.public_interfaces():
-            method = getattr(cls, method_name)
-            if callable(method):
-                sig = str(inspect.signature(method))
-                if sig == input_signature:
-                    return True
-        return False
-
-    @classmethod
-    def _calculate_class_hash(cls):
-        sig_hash = hashlib.sha256()
-        for attr_name in dir(cls):
-            if attr_name in ['classh_hash']:
-                continue
-            # Retrieve the attribute
-            attr_value = getattr(cls, attr_name)
-            if callable(attr_value) and not attr_name.startswith("_"):
-                sig = inspect.signature(attr_value)
-                sig_hash.update(str(sig).encode())
-                print(sig_hash.hexdigest())
-        return sig_hash.hexdigest()
-
+        return bool(self.host)
