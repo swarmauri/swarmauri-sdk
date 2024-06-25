@@ -5,4 +5,4 @@ class Conversation(ConversationBase):
     """
     Concrete implementation of ConversationBase, managing conversation history and operations.
     """    
-    type: Literal['Conversation'] = 'Conversation
+    type: Literal['Conversation'] = 'Conversation'
