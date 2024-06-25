@@ -1,7 +1,7 @@
 import sys
 import types
 import importlib
-from typing import List
+from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
@@ -30,7 +30,7 @@ class ImportMemoryModuleTool(ToolBase):
         ])
         
     description: str = "Dynamically imports a module from memory into a specified package path."
-    
+    type: Literal['ImportMemoryModuleTool'] = 'ImportMemoryModuleTool'
 
     def __call__(self, name: str, code: str, package_path: str) -> str:
         """

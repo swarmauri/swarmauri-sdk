@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel
 from swarmauri.standard.chains.concrete.ContextChain import ContextChain
-
+from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -57,21 +57,17 @@ def test_chain_json():
     def test():
         # Declare vars
         ref = "test_result"
-        args = (1,2,3)
-        kwargs = {"test":123123123}
+        args = (1,2)
+        kwargs = {}
 
-        # Declare test func
-        def func(*args, **kwargs):
-            return ('test_response', args, kwargs)
+        tool = AdditionTool(name='AdditionTool')
 
         # Initialize ContextChain, Add Step, and Execute
         chain = ContextChain()
-        chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref=ref)
+        chain.add_step(key='key_1', method=tool, args=args, kwargs=kwargs, ref=ref)
         chain.execute()
 
         # Assert
-        assert chain.context['test_result'][0] == 'test_response'
-        assert chain.context['test_result'][1] == args
-        assert chain.context['test_result'][2] == kwargs
+        assert chain.context['test_result'][0] == '3'
         assert chain.id == ContextChain.model_validate_json(chain.json()).id
     test()

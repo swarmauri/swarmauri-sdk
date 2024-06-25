@@ -1,5 +1,6 @@
+from typing import Literal
 from swarmauri.standard.tools.base.ParameterBase import ParameterBase
 
 
 class Parameter(ParameterBase):
-    pass
+    type: Literal['Parameter'] = 'Parameter'

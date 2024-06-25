@@ -8,6 +8,7 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, Fun
 
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
+    type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
     
     def exec(self, 
         input_str: Optional[str] = "",

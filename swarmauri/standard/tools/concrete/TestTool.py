@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from pydantic import Field
 import subprocess as sp
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
@@ -19,7 +19,7 @@ class TestTool(ToolBase):
     ])
     
     description: str = "This opens a program based on the user's request."
-
+    type: Literal['TestTool'] = 'TestTool'
 
     def __call__(self, program) -> str:
         # sp.check_output(program)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal
 from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -11,7 +11,7 @@ class ToolBase(ITool, ComponentBase, ABC):
     description: Optional[str] = None
     parameters: List[Parameter] = Field(default_factory=list)
     resource: Optional[str] =  Field(default=ResourceTypes.TOOL.value)
-
+    type: Literal['ToolBase'] = 'ToolBase'
     
     def call(self, *args, **kwargs):
         return self.__call__(*args, **kwargs)

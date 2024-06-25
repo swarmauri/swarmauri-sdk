@@ -10,7 +10,8 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, Fun
 
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
-
+    type: Literal['ToolAgent'] = 'ToolAgent'
+    
     def exec(self, 
         input_data: Optional[Union[str, IMessage]] = "",  
         llm_kwargs: Optional[Dict] = {}) -> Any:

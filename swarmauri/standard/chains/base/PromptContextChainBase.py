@@ -24,7 +24,8 @@ class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, Compone
     current_step_index: int = 0
     steps: List[Any] = Field(default_factory=list)
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
-
+    type: Literal['PromptContextChainBase'] = 'PromptContextChainBase'
+    
     def __init__(self, **data: Any):
         super().__init__(**data)
         # Now that the instance is created, we can safely access `prompt_matrix.shape`

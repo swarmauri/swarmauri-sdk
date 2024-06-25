@@ -1,6 +1,6 @@
 import sys
 import io
-from typing import List
+from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
@@ -19,7 +19,7 @@ class CodeInterpreterTool(ToolBase):
             )
         ])
     description: str = "Executes provided Python code and captures its output."
-    
+    type: Literal['CodeInterpreterTool'] = 'CodeInterpreterTool'
 
 
     def __call__(self, user_code: str) -> str:

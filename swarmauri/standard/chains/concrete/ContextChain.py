@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Callable, Optional, Tuple, Union
+from typing import Any, Dict, List, Callable, Optional, Tuple, Union, Literal
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.chains.concrete.ChainStep import ChainStep
@@ -10,6 +10,8 @@ class ContextChain(IChain, ChainContextBase):
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
     Implements the IChain interface including get_schema_info and remove_step methods.
     """
+    type: Literal['ContextChain'] = 'ContextChain'
+
     def add_step(self, 
         key: str, 
         method: SubclassUnion[ToolBase],

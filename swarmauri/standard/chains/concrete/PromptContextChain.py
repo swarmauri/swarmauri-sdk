@@ -1,4 +1,5 @@
+from typing import Literal
 from swarmauri.standard.chains.base.PromptContextChainBase import PromptContextChainBase
 
 class PromptContextChain(PromptContextChainBase):
-    pass
+    type: Literal['PromptContextChain'] = 'PromptContextChain'

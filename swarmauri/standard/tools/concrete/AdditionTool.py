@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -21,6 +21,7 @@ class AdditionTool(ToolBase):
         ])
 
     description: str = "This tool has two numbers together"
+    type: Literal['AdditionTool'] = 'AdditionTool'
 
 
     def __call__(self, x: int, y: int) -> int:

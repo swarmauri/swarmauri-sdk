@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -27,6 +27,7 @@ class CalculatorTool(ToolBase):
         )
     ])
     description: str = "Performs basic arithmetic operations."
+    type: Literal['CalculatorTool'] = 'CalculatorTool'
 
     def __call__(self, operation: str, x: float, y: float) -> str:
         try:

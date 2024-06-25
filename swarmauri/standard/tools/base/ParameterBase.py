@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal
 from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.tools.IParameter import IParameter
@@ -11,3 +11,4 @@ class ParameterBase(IParameter, ComponentBase):
     required: bool = False
     enum: Optional[List[str]] = None
     resource: Optional[str] =  Field(default=ResourceTypes.PARAMETER.value)
+    type: Literal['ParameterBase'] = 'ParameterBase'
