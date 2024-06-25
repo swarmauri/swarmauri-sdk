@@ -1,15 +1,9 @@
-import logging
 from typing import Optional, List, Literal, TypeVar, Type
 from uuid import uuid4
 from enum import Enum
 import inspect
 import hashlib
 from pydantic import BaseModel, ValidationError, Field, field_validator, PrivateAttr, ConfigDict
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 
 
 class ResourceTypes(Enum):
@@ -67,7 +61,6 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
     def __init_subclass__(cls: Type[ComponentType], **kwargs):
         super().__init_subclass__(**kwargs)
         cls.type = cls.__name__
-        logger.debug(f"Initializing subclass {cls.__name__} with type {cls.type}")
     
     @classmethod
     def get_subclasses(cls) -> set:
