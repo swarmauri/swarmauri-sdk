@@ -28,7 +28,7 @@ def test_ubc_type():
 def test_subclass_union():
     def test():
         from swarmauri.core.typing import SubclassUnion
-        from swarmauri.core.typing import LLMBase
+        from swarmauri.standard.llms.base.LLMBase import LLMBase
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
         assert 'GroqModel' in SubclassUnion(LLMBase)
