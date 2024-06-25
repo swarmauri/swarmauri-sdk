@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Literal
 import cohere
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -11,7 +11,7 @@ class CohereModel(LLMBase):
     'command-r',
     'command-r-plus']
     name: str = "command-light"
-
+    type: Literal['CohereModel'] = 'CohereModel'
     
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str,str]]:
         """

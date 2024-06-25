@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Literal
 import google.generativeai as genai
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -9,6 +9,7 @@ class GeminiProModel(LLMBase):
     api_key: str
     allowed_models: List[str] = ['gemini-1.5-pro-latest']
     name: str = "gemini-1.5-pro-latest"
+    type: Literal['GeminiProModel'] = 'GeminiProModel'
     
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         # Remove system instruction from messages

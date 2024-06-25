@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Literal
 from mistralai.client import MistralClient
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -15,6 +15,7 @@ class MistralModel(LLMBase):
     'codestral'
     ]
     name: str = "open-mixtral-8x7b"
+    type: Literal['MistralModel'] = 'MistralModel'
 
     def predict(self, 
         messages: List[IMessage], 

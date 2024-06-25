@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from openai import OpenAI
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -19,6 +19,7 @@ class OpenAIToolModel(LLMBase):
     'gpt-3.5-turbo-1106',
     'gpt-3.5-turbo-0613']
     name: str = "gpt-3.5-turbo-0125"
+    type: Literal['OpenAIToolModel'] = 'OpenAIToolModel'
     
     def predict(self, messages: List[IMessage], 
         tools=None, 

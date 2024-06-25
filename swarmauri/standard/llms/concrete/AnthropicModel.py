@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Literal
 import anthropic
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -13,6 +13,7 @@ class AnthropicModel(LLMBase):
     'claude-2.0',
     'claude-instant-1.2']
     name: str = "claude-3-haiku-20240307"
+    type: Literal['AnthropicModel'] = 'AnthropicModel'
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
        # Get only the properties that we require

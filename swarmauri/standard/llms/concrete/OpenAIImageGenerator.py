@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Literal
 from openai import OpenAI
 from swarmauri.core.llms.base.LLMBase import LLMBase
 
@@ -7,6 +7,7 @@ class OpenAIImageGenerator(LLMBase):
     api_key: str
     allowed_models: List[str] = ['dall-e']
     name: str = "dall-e"
+    type: Literal['OpenAIImageGenerator'] = 'OpenAIImageGenerator'
 
     def predict(self, prompt: str, size: str = "1024x1024", 
                 quality: str = "standard", n: int = 1) -> str:

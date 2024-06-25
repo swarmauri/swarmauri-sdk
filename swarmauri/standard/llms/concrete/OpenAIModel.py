@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Literal
 from openai import OpenAI
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -24,6 +24,7 @@ class OpenAIModel(LLMBase):
     'gpt-3.5-turbo-16k',
     'gpt-3.5-turbo']
     name: str = "gpt-3.5-turbo-16k"
+    type: Literal['OpenAIModel'] = 'OpenAIModel'
     
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name']

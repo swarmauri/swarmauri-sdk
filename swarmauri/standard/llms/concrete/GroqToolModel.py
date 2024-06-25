@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from groq import Groq
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -10,7 +10,8 @@ class GroqToolModel(LLMBase):
     'mixtral-8x7b-32768', 
     'gemma-7b-it']
     name: str = "mixtral-8x7b-32768"
-
+    type: Literal['GroqToolModel'] = 'GroqToolModel'
+    
     def predict(self, 
         messages: List[IMessage], 
         tools=None, 
