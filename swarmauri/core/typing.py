@@ -48,7 +48,8 @@ class SubclassUnion(Generic[ComponentType]):
             tmp_obj = {"name": each.__name__, "module_path": each, "type": each.type}
             subclasses_list.append(tmp_obj)
 
+        logging.debug(subclasses_list)
         return Annotated[
-            Union[tuple(*(subclass['module_path'] for subclass in subclasses_list))],
+            Union[tuple(*(_s['module_path'] for _s in subclasses_list))],
             Field(discriminator='type')
         ]
