@@ -20,6 +20,7 @@ class AdditionTool(ToolBase):
             )
         ])
 
+    name: str = 'AdditionTool'
     description: str = "This tool has two numbers together"
     type: Literal['AdditionTool'] = 'AdditionTool'
 

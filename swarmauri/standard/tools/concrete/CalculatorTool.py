@@ -26,6 +26,7 @@ class CalculatorTool(ToolBase):
             required=True
         )
     ])
+    name: str = 'CalculatorTool'
     description: str = "Performs basic arithmetic operations."
     type: Literal['CalculatorTool'] = 'CalculatorTool'
 

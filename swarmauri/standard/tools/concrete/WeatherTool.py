@@ -20,7 +20,7 @@ class WeatherTool(ToolBase):
             enum=["fahrenheit", "celsius"]
         )
     ])
-    
+    name: str = 'WeatherTool'
     description: str = "Fetch current weather info for a location"
     type: Literal['WeatherTool'] = 'WeatherTool'
 

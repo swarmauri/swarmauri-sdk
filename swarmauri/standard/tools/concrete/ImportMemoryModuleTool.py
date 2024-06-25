@@ -28,7 +28,8 @@ class ImportMemoryModuleTool(ToolBase):
                 required=True
             )
         ])
-        
+    
+    name: str = 'ImportMemoryModuleTool'
     description: str = "Dynamically imports a module from memory into a specified package path."
     type: Literal['ImportMemoryModuleTool'] = 'ImportMemoryModuleTool'
 

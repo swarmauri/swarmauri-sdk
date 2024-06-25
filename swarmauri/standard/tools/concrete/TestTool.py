@@ -17,7 +17,7 @@ class TestTool(ToolBase):
             enum=["notepad", "calc", "mspaint"]
         )
     ])
-    
+    name: str = 'TestTool'
     description: str = "This opens a program based on the user's request."
     type: Literal['TestTool'] = 'TestTool'
 

@@ -18,9 +18,9 @@ class CodeInterpreterTool(ToolBase):
                 required=True
             )
         ])
+    name: str = 'CodeInterpreterTool'
     description: str = "Executes provided Python code and captures its output."
     type: Literal['CodeInterpreterTool'] = 'CodeInterpreterTool'
-
 
     def __call__(self, user_code: str) -> str:
         """
