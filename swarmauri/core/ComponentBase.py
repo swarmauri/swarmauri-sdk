@@ -44,7 +44,7 @@ ComponentType = TypeVar('ComponentType', bound='ComponentBase')
 class ComponentMeta(type(BaseModel)):
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
-        cls.type = cls.__name__
+        cls.type = f"{cls.__module__}.{cls.__name__}"
 
 class ComponentBase(BaseModel, metaclass=ComponentMeta):
     name: Optional[str] = None
@@ -66,7 +66,7 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
     def get_subclasses(cls) -> set:
         def is_excluded_module(module_name: str) -> bool:
             # Exclude '__main__' and any modules that are functionally generated
-            return (module_name.startswith('<') or 
+            return (not '<locals>' in module_name or 
                     module_name == 'builtins' or 
                     module_name == 'types')
 
