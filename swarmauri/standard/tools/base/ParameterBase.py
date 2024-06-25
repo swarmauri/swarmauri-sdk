@@ -11,4 +11,3 @@ class ParameterBase(IParameter, ComponentBase):
     required: bool = False
     enum: Optional[List[str]] = None
     resource: Optional[str] =  Field(default=ResourceTypes.PARAMETER.value)
-    type: Literal['ParameterBase'] = 'ParameterBase'
