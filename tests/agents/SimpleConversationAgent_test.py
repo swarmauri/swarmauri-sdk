@@ -4,6 +4,8 @@ from swarmauri.standard.llms.concrete.GroqModel import GroqModel
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.agents.concrete.SimpleConversationAgent import SimpleConversationAgent
 
+from swarmauri.standard.conversations.concrete.ConversationBase import ConversationBase
+from swarmauri.core.typing import SubclassUnion
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -11,7 +13,7 @@ def test_ubc_resource():
         API_KEY = os.getenv('GROQ_API_KEY')
         llm = GroqModel(api_key = API_KEY)
         conversation=Conversation()
-
+        logging.info(str(SubclassUnion[ConversationBase]))
         agent = SimpleConversationAgent(conversation=conversation, 
                                         llm=llm)
         assert agent.resource == 'Agent'
