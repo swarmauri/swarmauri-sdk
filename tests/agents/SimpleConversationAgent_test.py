@@ -5,7 +5,7 @@ from swarmauri.standard.llms.concrete.GroqModel import GroqModel
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.agents.concrete.SimpleConversationAgent import SimpleConversationAgent
 
-from swarmauri.standard.conversations.concrete.ConversationBase import ConversationBase
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 from swarmauri.core.typing import SubclassUnion
 
 @pytest.mark.unit
