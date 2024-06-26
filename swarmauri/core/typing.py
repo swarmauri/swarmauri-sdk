@@ -41,6 +41,10 @@ class SubclassUnion(Generic[ComponentType]):
         }
 
     def __class_getitem__(cls, item: Type[ComponentType]):
+        logging.info(Annotated[
+            Union[tuple(item.get_subclasses())],
+            Field(discriminator='type')
+        ])
         return Annotated[
             Union[tuple(item.get_subclasses())],
             Field(discriminator='type')
