@@ -39,12 +39,7 @@ def generate_id() -> str:
 
 ComponentType = TypeVar('ComponentType', bound='ComponentBase')
 
-class ComponentMeta(type(BaseModel)):
-    def __init__(cls, name, bases, dct):
-        super().__init__(name, bases, dct)
-        cls.type = name
-
-class ComponentBase(BaseModel, metaclass=ComponentMeta):
+class ComponentBase(BaseModel):
     name: Optional[str] = None
     id: str = Field(default_factory=generate_id)
     members: List[str] = Field(default_factory=list)
@@ -59,11 +54,6 @@ class ComponentBase(BaseModel, metaclass=ComponentMeta):
         if v == 'ComponentBase' and cls.__name__ != 'ComponentBase':
             return cls.__name__
         return v
-    
-    @classmethod
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls.type = cls.__name__
 
     @classmethod
     def get_subclasses(cls) -> set:
