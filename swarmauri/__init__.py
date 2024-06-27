@@ -1,4 +1,4 @@
-__version__ = "0.3.4.dev54"
+__version__ = "0.3.4.dev55"
 __long_desc__ = """
 # swarmaURI sdk
 

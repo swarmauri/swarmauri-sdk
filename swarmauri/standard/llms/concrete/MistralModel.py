@@ -1,5 +1,5 @@
 import json
-from typing import List, Literal
+from typing import List, Literal, Dict
 from mistralai.client import MistralClient
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -17,6 +17,15 @@ class MistralModel(LLMBase):
     name: str = "open-mixtral-8x7b"
     type: Literal['MistralModel'] = 'MistralModel'
 
+    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+        message_properties = ['content', 'role', 'name']
+        list_of_msg_dicts = [message.dict(include=message_properties, exclude_none=True) for message in messages]
+        sanitized_messages = [
+            {key: value for key, value in m.items() if value is not None}
+            for m in list_of_msg_dicts
+        ]
+        return sanitized_messages
+
     def predict(self, 
         messages: List[IMessage], 
         temperature: int = 0.7, 
@@ -25,11 +34,13 @@ class MistralModel(LLMBase):
         enable_json: bool=False, 
         safe_prompt: bool=False):
         
+        formatted_messages = self._format_messages(messages)
+
         client =  MistralClient(api_key=self.api_key)        
         if enable_json:
             response = client.chat(
                 model=self.name,
-                messages=messages,
+                messages=formatted_messages,
                 temperature=temperature,
                 response_format={ "type": "json_object" },
                 max_tokens=max_tokens,
@@ -39,7 +50,7 @@ class MistralModel(LLMBase):
         else:
             response = client.chat(
                 model=self.name,
-                messages=messages,
+                messages=formatted_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,                
