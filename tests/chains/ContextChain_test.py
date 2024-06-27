@@ -24,7 +24,7 @@ def test_chain_execute_return_value():
     tool = AdditionTool()
 
     # operate
-    chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref="test_result")
+    chain.add_step(key='key_1', method=tool, args=args, kwargs=kwargs, ref="test_result")
     result = chain.execute()
     
     # assert
@@ -39,7 +39,7 @@ def test_chain_execute_return_state():
     kwargs = {}
 
     tool = AdditionTool()
-    chain.add_step(key='key_1', method=func, args=args, kwargs=kwargs, ref=ref)
+    chain.add_step(key='key_1', method=tool, args=args, kwargs=kwargs, ref=ref)
     chain.execute()
     assert chain.context['test_result'] == '3'
 
