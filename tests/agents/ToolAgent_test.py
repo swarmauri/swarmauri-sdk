@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.GroqModel import GroqModel
+from swarmauri.standard.llms.concrete.GroqToolModel import GroqToolModel
 from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
@@ -10,7 +10,7 @@ from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
 def test_ubc_resource():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
-        llm = GroqModel(api_key = API_KEY)
+        llm = GroqToolModel(api_key = API_KEY)
         conversation = Conversation()
         toolkit = Toolkit()
         tool = AdditionTool()
@@ -26,7 +26,7 @@ def test_ubc_resource():
 def test_agent_exec():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
-        llm = GroqModel(api_key = API_KEY)
+        llm = GroqToolModel(api_key = API_KEY)
         conversation = Conversation()
         toolkit = Toolkit()
         tool = AdditionTool()

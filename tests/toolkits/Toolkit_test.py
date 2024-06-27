@@ -15,5 +15,5 @@ def test_add_tool():
         toolkit = Toolkit()
         tool = Tool()
         toolkit.add_tool(tool)
-        assert len(toolkit.list_tools()) == 1
+        assert len(toolkit.get_tools()) == 1
     test()

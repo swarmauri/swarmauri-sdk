@@ -43,7 +43,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         messages = conversation.as_messages()
         
         prediction = llm.predict(messages=messages, 
-                                   tools=toolkit.list_tools(), 
+                                   tools=toolkit.get_tools(), 
                                    tool_choice="auto", 
                                    **llm_kwargs)
         
@@ -73,7 +73,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
             
             messages = conversation.as_messages()
             rag_prediction = llm.predict(messages=messages, 
-                                           tools=toolkit.tools, 
+                                           tools=toolkit.get_tools(), 
                                            tool_choice="none",
                                            **llm_kwargs)
             
