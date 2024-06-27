@@ -6,6 +6,10 @@ from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.agents.IAgent import IAgent
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
+
+from swarmauri.core.typing import SubclassUnion # 🚧  Placeholder
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase # 🚧  Placeholder
+
 class AgentBase(IAgent, ComponentBase):
     llm: SubclassUnion[LLMBase]
     conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
