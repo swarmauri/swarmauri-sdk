@@ -1,10 +1,10 @@
 import pytest
 import os
 from swarmauri.standard.llms.concrete.GroqToolModel import GroqToolModel
-from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 
 @pytest.mark.unit
 def test_ubc_resource():

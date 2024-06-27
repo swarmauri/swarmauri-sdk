@@ -2,15 +2,15 @@ from typing import Any, Optional, Union, Dict, Literal
 import json
 from pydantic import ConfigDict
 from swarmauri.core.messages import IMessage
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
 from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     toolkit: SubclassUnion[ToolkitBase]

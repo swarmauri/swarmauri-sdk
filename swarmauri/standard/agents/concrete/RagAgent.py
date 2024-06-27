@@ -1,8 +1,6 @@
 from typing import Any, Optional, Union, Dict, Literal
 from swarmauri.core.messages import IMessage
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
-from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
@@ -12,6 +10,10 @@ from swarmauri.standard.agents.base.AgentSystemContextMixin import AgentSystemCo
 from swarmauri.standard.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
+
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
 
 class RagAgent(AgentRetrieveMixin, 
                AgentVectorStoreMixin, 
