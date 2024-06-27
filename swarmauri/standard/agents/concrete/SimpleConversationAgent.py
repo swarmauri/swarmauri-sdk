@@ -6,7 +6,7 @@ from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
-
+from swarmauri.core.typing import SubclassUnion # 🚧  Placeholder
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase # 🚧  Placeholder
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
