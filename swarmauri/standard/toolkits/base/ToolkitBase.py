@@ -56,7 +56,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         Parameters:
             tool (Tool): The tool instance to be added to the toolkit.
         """
-        self.tools[tool.function['name']] = tool
+        self.tools[tool.name] = tool
 
     def remove_tool(self, tool_name: str) -> None:
         """
