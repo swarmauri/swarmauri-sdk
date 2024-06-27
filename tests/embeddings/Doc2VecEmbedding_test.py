@@ -11,7 +11,7 @@ def test_ubc_resource():
 def test_fit_transform():
 	def test():
 		embedder = Doc2VecEmbedding()
-		documents = ['test', 'test1', 'test2']
+		documents = ['test', 'cat', 'banana']
 		embedder.fit_transform(documents)
 		assert documents == embedder.extract_features()
 	test()
