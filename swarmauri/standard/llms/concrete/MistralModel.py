@@ -18,7 +18,7 @@ class MistralModel(LLMBase):
     type: Literal['MistralModel'] = 'MistralModel'
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
-        message_properties = ['content', 'role', 'name']
+        message_properties = ['content', 'role']
         list_of_msg_dicts = [message.dict(include=message_properties, exclude_none=True) for message in messages]
         sanitized_messages = [
             {key: value for key, value in m.items() if value is not None}
