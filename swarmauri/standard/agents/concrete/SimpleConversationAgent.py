@@ -7,7 +7,10 @@ from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversat
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase # 🚧  Placeholder
+
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
+    conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
     type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
     
     def exec(self, 
