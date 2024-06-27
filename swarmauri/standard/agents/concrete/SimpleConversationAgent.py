@@ -17,7 +17,7 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
-        conversation = self.conversationrr
+        conversation = self.conversation
         llm = self.llm
 
         # Construct a new human message (for example purposes)
