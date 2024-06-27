@@ -1,5 +1,8 @@
 from typing import Any, Optional, Union, Dict, Literal
 from swarmauri.core.messages import IMessage
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
@@ -19,6 +22,9 @@ class RagAgent(AgentRetrieveMixin,
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
+
+    conversation: SubclassUnion[ConversationBase]
+    vector_store: SubclassUnion[VectorStoreBase]
     type: Literal['RagAgent'] = 'RagAgent'
     
     def _create_preamble_context(self):
