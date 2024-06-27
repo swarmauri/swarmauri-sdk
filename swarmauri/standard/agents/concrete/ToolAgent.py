@@ -1,7 +1,10 @@
 from typing import Any, Optional, Union, Dict, Literal
 import json
-
+from pydantic import ConfigDict
 from swarmauri.core.messages import IMessage
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
@@ -10,6 +13,9 @@ from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, Fun
 
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
+    toolkit: SubclassUnion[ToolkitBase]
+    conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     type: Literal['ToolAgent'] = 'ToolAgent'
     
     def exec(self, 
