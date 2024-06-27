@@ -7,7 +7,7 @@ def test_type():
 	assert type(SubclassUnion) == type
 
 @pytest.mark.unit
-def test_():
+def test_subclasses():
 	assert type(SubclassUnion[ComponentBase])
 
     
