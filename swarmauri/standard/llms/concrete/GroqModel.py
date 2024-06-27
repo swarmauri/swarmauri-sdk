@@ -10,7 +10,7 @@ class GroqModel(LLMBase):
     'llama3-70b-8192', 
     'mixtral-8x7b-32768', 
     'gemma-7b-it']
-    name: str = "mixtral-8x7b-32768"
+    name: str = "gemma-7b-it"
     type: Literal['GroqModel'] = 'GroqModel'
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
