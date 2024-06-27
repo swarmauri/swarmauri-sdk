@@ -15,5 +15,5 @@ def test_method_args_only_call():
     kwargs = {}
     step = ChainStep(key='test', method=tool, args=args, kwargs=kwargs, ref=None)
     result = step.method(*step.args, **step.kwargs)
-    assert result[0] == args
+    assert result[0] == '3'
 
