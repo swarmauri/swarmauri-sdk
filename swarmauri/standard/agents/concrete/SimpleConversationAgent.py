@@ -17,7 +17,7 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
-        conversation = self.conversation
+        conversation = self.conversationrr
         llm = self.llm
 
         # Construct a new human message (for example purposes)
@@ -25,7 +25,6 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
             human_message = HumanMessage(content=input_str)
             conversation.add_message(human_message)
         
-        messages = conversation.history
-        prediction = llm.predict(messages=messages, **llm_kwargs)
+        prediction = llm.predict(messages=conversation.history, **llm_kwargs)
         conversation.add_message(AgentMessage(content=prediction))
         return prediction
