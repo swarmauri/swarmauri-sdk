@@ -14,7 +14,7 @@ class GeminiProModel(LLMBase):
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         # Remove system instruction from messages
         message_properties = ['content', 'role']
-        sanitized_messages = [message.dict(include=message_properties) for message in messages 
+        sanitized_messages = [message.model_dump(include=message_properties) for message in messages 
             if message.role != 'system']
 
         for message in sanitized_messages:

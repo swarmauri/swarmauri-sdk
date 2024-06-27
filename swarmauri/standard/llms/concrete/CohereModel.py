@@ -19,7 +19,7 @@ class CohereModel(LLMBase):
         """
         message_properties = ['content', 'role']
 
-        messages = [message.dict(include=message_properties) for message in messages]
+        messages = [message.model_dump(include=message_properties) for message in messages]
         for message in messages:
             message['message'] = message.pop('content')
             if message.get('role') == 'assistant':
