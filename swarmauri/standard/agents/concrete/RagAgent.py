@@ -24,8 +24,9 @@ class RagAgent(AgentRetrieveMixin,
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
     specialized in retrieving documents based on input queries and generating responses.
     """
-
+    llm: SubclassUnion[LLMBase]
     conversation: SubclassUnion[ConversationBase]
+    system_context:  Union[SystemMessage, str]
     vector_store: SubclassUnion[VectorStoreBase]
     type: Literal['RagAgent'] = 'RagAgent'
     
