@@ -26,7 +26,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         conversation = self.conversation
         llm = self.llm
         toolkit = self.toolkit
-        
 
         # Check if the input is a string, then wrap it in a HumanMessage
         if isinstance(input_data, str):
@@ -39,12 +38,8 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         # Add the human message to the conversation
         conversation.add_message(human_message)
 
-            
-        
-        # Retrieve the conversation history and predict a response
-        messages = conversation.as_messages()
-        
-        prediction = llm.predict(messages=messages, 
+        #predict a response        
+        prediction = llm.predict(messages=conversation.history, 
                                    tools=toolkit.get_tools(), 
                                    tool_choice="auto", 
                                    **llm_kwargs)
@@ -73,8 +68,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
                 conversation.add_message(func_message)
             
             
-            messages = conversation.as_messages()
-            rag_prediction = llm.predict(messages=messages, 
+            rag_prediction = llm.predict(messages=conversation.history, 
                                            tools=toolkit.get_tools(), 
                                            tool_choice="none",
                                            **llm_kwargs)
