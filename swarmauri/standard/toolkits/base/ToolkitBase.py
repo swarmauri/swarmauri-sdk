@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Literal
 from pydantic import Field, ConfigDict
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.tools.base.ToolBase import ToolBase
@@ -17,6 +17,7 @@ class ToolkitBase(IToolkit, ComponentBase):
     tools: Dict[str, SubclassUnion[ToolBase]] = {}
     resource: Optional[str] =  Field(default=ResourceTypes.TOOLKIT.value, frozen=True)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ToolkitBase'] = 'ToolkitBase'
 
     def get_tools(self, 
                    include: Optional[List[str]] = None, 
@@ -34,7 +35,7 @@ class ToolkitBase(IToolkit, ComponentBase):
                 exclude (List[str], optional): Fields to exclude from the returned dictionary.
     
             Returns:
-                Dict[str, ITool]: A dictionary of tools with specified fields included or excluded.
+                Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with specified fields included or excluded.
             """
             return [tool.dict(include=include, exclude=exclude, by_alias=by_alias,
                                    exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, 

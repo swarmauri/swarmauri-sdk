@@ -18,7 +18,7 @@ def test_ubc_resource():
 
         agent = ToolAgent(llm=llm, 
             conversation=conversation,
-            tools=toolkit)
+            toolkit=toolkit)
         assert agent.resource == 'Agent'
     test()
 
@@ -34,7 +34,7 @@ def test_agent_exec():
 
         agent = ToolAgent(llm=llm, 
             conversation=conversation,
-            tools=toolkit)
+            toolkit=toolkit)
         result = agent.exec('Add 512+671')
         assert type(result) == str
     test()
