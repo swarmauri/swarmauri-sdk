@@ -37,7 +37,7 @@ class ToolkitBase(IToolkit, ComponentBase):
             Returns:
                 Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with specified fields included or excluded.
             """
-            return [tool.dict(include=include, exclude=exclude, by_alias=by_alias,
+            return [tool.model_dump(include=include, exclude=exclude, by_alias=by_alias,
                                    exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, 
                                     exclude_none=exclude_none) for name, tool in self.tools.items()]
 
