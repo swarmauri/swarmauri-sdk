@@ -13,5 +13,5 @@ def test_fit_transform():
 		embedder = Doc2VecEmbedding()
 		documents = ['test', 'cat', 'banana']
 		embedder.fit_transform(documents)
-		assert documents == embedder.extract_features()
+		assert ['banana', 'cat', 'test'] == embedder.extract_features()
 	test()
