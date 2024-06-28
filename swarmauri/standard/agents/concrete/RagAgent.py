@@ -12,6 +12,7 @@ from swarmauri.standard.messages.concrete import (HumanMessage,
                                                   AgentMessage)
 
 from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
 
@@ -26,8 +27,8 @@ class RagAgent(AgentRetrieveMixin,
     """
     llm: SubclassUnion[LLMBase]
     conversation: SubclassUnion[ConversationBase]
-    system_context:  Union[SystemMessage, str]
     vector_store: SubclassUnion[VectorStoreBase]
+    system_context:  Union[SystemMessage, str]
     type: Literal['RagAgent'] = 'RagAgent'
     
     def _create_preamble_context(self):
