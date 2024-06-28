@@ -3,6 +3,7 @@ import json
 from pydantic import ConfigDict
 from swarmauri.core.messages import IMessage
 
+from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
 from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
@@ -13,6 +14,7 @@ from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
+    llm: SubclassUnion[LLMBase]
     toolkit: SubclassUnion[Toolkit]
     conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
