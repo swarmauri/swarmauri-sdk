@@ -1,4 +1,4 @@
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 from pydantic import PrivateAttr
 import numpy as np
 import torch
@@ -16,6 +16,7 @@ class MlmEmbedding(EmbeddingBase):
     EmbeddingBase implementation that fine-tunes a Masked Language Model (MLM).
     """
 
+    type: Literal['MlmEmbedding'] = 'MlmEmbedding'
     embedding_name: str = 'bert-base-uncased'
     batch_size: int = 32
     learning_rate: float = 5e-5

@@ -1,5 +1,5 @@
 import joblib
-from typing import List, Any
+from typing import List, Any, Literal
 from pydantic import PrivateAttr
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -11,6 +11,7 @@ class NmfEmbedding(EmbeddingBase):
     _model = PrivateAttr()
     _feature_names: List[Any] = PrivateAttr(default_factory=list)
     
+    type: Literal['NmfEmbedding'] = 'NmfEmbedding'
     def __init__(self, 
         n_components=10, 
         **kwargs):

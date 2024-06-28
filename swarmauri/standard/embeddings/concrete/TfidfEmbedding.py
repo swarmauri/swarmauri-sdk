@@ -1,4 +1,4 @@
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 import joblib
 from pydantic import PrivateAttr
 from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
@@ -9,7 +9,8 @@ from swarmauri.standard.vectors.concrete.Vector import Vector
 class TfidfEmbedding(EmbeddingBase):
     _model = PrivateAttr()
     _fit_matrix = PrivateAttr()
-
+    type: Literal['TfidfEmbedding'] = 'TfidfEmbedding'
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._model = SklearnTfidfVectorizer()

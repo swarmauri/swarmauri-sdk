@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.embeddings.concrete.MlmEmbedding import MlmEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
@@ -8,6 +8,8 @@ from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import Vecto
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
 class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    type: Literal['MlmVectorStore'] = 'MlmVectorStore'
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = MlmEmbedding()

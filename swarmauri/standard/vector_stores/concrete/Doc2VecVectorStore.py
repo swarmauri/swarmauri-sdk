@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from pydantic import PrivateAttr
 
 from swarmauri.standard.documents.concrete.Document import Document
@@ -11,6 +11,8 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 
 
 class Doc2VecVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    type: Literal['Doc2VecVectorStore'] = 'Doc2VecVectorStore'
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = TfidfEmbedding()

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.embeddings.concrete.SpatialDocEmbedding import SpatialDocEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
@@ -9,6 +9,8 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 
 
 class SpatialDocVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    type: Literal['SpatialDocVectorStore'] = 'SpatialDocVectorStore'
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = SpatialDocEmbedding()  # Assuming this is already implemented

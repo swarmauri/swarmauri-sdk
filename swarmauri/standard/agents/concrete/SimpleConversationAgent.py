@@ -27,4 +27,4 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         
         prediction = llm.predict(messages=conversation.history, **llm_kwargs)
         conversation.add_message(AgentMessage(content=prediction))
-        return prediction
+        return prediction 

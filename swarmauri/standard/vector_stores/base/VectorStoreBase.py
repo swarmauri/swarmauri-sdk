@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import Field, PrivateAttr
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.documents.concrete.Document import Document
@@ -17,7 +17,8 @@ class VectorStoreBase(IVectorStore, ComponentBase):
     _embedder = PrivateAttr()
     _distance = PrivateAttr()
     resource: Optional[str] =  Field(default=ResourceTypes.VECTOR_STORE.value)
-
+    type: Literal['VectorStoreBase'] = 'VectorStoreBase'
+    
     @property
     def embedder(self):
         return self._embedder

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
@@ -8,6 +8,7 @@ from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import Vecto
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
 class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    type: Literal['TfidfVectorStore'] = 'TfidfVectorStore'
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
