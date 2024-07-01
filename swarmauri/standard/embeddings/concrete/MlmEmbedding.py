@@ -16,7 +16,6 @@ class MlmEmbedding(EmbeddingBase):
     EmbeddingBase implementation that fine-tunes a Masked Language Model (MLM).
     """
 
-    type: Literal['MlmEmbedding'] = 'MlmEmbedding'
     embedding_name: str = 'bert-base-uncased'
     batch_size: int = 32
     learning_rate: float = 5e-5
@@ -28,6 +27,7 @@ class MlmEmbedding(EmbeddingBase):
     _model = PrivateAttr()
     _device = PrivateAttr()
     _mask_token_id = PrivateAttr()        
+    type: Literal['MlmEmbedding'] = 'MlmEmbedding'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

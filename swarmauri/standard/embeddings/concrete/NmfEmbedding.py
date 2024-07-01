@@ -7,21 +7,19 @@ from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
 class NmfEmbedding(EmbeddingBase):
+    n_components: int = 10
     _tfidf_vectorizer = PrivateAttr()
     _model = PrivateAttr()
-    _feature_names: List[Any] = PrivateAttr(default_factory=list)
+    feature_names: List[Any] = []
     
     type: Literal['NmfEmbedding'] = 'NmfEmbedding'
-    def __init__(self, 
-        n_components=10, 
-        **kwargs):
+    def __init__(self,**kwargs):
 
         super().__init__(**kwargs)
         # Initialize TF-IDF Vectorizer
         self._tfidf_vectorizer = TfidfVectorizer()
         # Initialize NMF with the desired number of components
         self._model = NMF(n_components=n_components)
-        self._feature_names = []
 
     def fit(self, data):
         """
@@ -35,7 +33,7 @@ class NmfEmbedding(EmbeddingBase):
         # Fit the NMF model
         self._model.fit(tfidf_matrix)
         # Store feature names
-        self._feature_names = self._tfidf_vectorizer.get_feature_names_out()
+        self.feature_names = self._tfidf_vectorizer.get_feature_names_out()
 
     def transform(self, data):
         """
@@ -87,7 +85,7 @@ class NmfEmbedding(EmbeddingBase):
         Returns:
             The feature names.
         """
-        return self._feature_names.tolist()
+        return self.feature_names.tolist()
 
     def save_model(self, path: str) -> None:
         """
@@ -105,4 +103,4 @@ class NmfEmbedding(EmbeddingBase):
         self._tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
         self._model = joblib.load(f"{path}_nmf.joblib")
         # Dependending on your implementation, you might need to refresh the feature_names
-        self._feature_names = self._tfidf_vectorizer.get_feature_names_out()
+        self.feature_names = self._tfidf_vectorizer.get_feature_names_out()
