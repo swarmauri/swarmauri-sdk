@@ -2,14 +2,14 @@ import pytest
 from swarmauri.standard.chunkers.concrete.FixedLengthChunker import FixedLengthChunker
 
 @pytest.mark.unit
-def test_ubc_resource():
+def test_ubc_resource():	
 	chunker = FixedLengthChunker()
 	assert chunker.resource == 'Chunker'
 
 @pytest.mark.unit
 def test_ubc_type():
-    chain = FixedLengthChunker()
-    assert chunker.type == 'FixedLengthChunker'
+	chain = FixedLengthChunker()
+	assert chunker.type == 'FixedLengthChunker'
 
 @pytest.mark.unit
 def test_chunk_text():
@@ -18,4 +18,4 @@ def test_chunk_text():
 @pytest.mark.unit
 def test_serialization():
 	chunker = FixedLengthChunker()
-    assert chunker.id == FixedLengthChunker.model_validate_json(chunker.json()).id
+	assert chunker.id == FixedLengthChunker.model_validate_json(chunker.json()).id

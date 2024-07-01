@@ -10,7 +10,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	chunker = MdSnippetChunker()
-    assert chunker.type == 'MdSnippetChunker'
+	assert chunker.type == 'MdSnippetChunker'
 
 
 @pytest.mark.unit
@@ -72,4 +72,4 @@ Here we have some text:
 @pytest.mark.unit
 def test_serialization():
 	chunker = MdSnippetChunker()
-    assert chunker.id == MdSnippetChunker.model_validate_json(chunker.json()).id
+	assert chunker.id == MdSnippetChunker.model_validate_json(chunker.json()).id

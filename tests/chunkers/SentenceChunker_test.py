@@ -9,7 +9,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	chunker = SentenceChunker()
-    assert chunker.type == 'SentenceChunker'
+	assert chunker.type == 'SentenceChunker'
 
 @pytest.mark.unit
 def test_chunk_text():
@@ -20,4 +20,4 @@ def test_chunk_text():
 @pytest.mark.unit
 def test_serialization():
 	chunker = SentenceChunker()
-    assert chunker.id == SentenceChunker.model_validate_json(chunker.json()).id
+	assert chunker.id == SentenceChunker.model_validate_json(chunker.json()).id
