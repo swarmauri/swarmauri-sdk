@@ -25,6 +25,7 @@ class ResourceTypes(Enum):
     PROMPT = 'Prompt'
     STATE = 'State'
     CHAINSTEP = 'ChainStep'
+    SCHEMA_CONVERTER = 'SchemaConverter'
     SWARM = 'Swarm'
     TOOLKIT = 'Toolkit'
     TOOL = 'Tool'

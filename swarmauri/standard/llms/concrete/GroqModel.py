@@ -15,12 +15,8 @@ class GroqModel(LLMBase):
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name']
-        list_of_msg_dicts = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
-        sanitized_messages = [
-            {key: value for key, value in m.items() if value is not None}
-            for m in list_of_msg_dicts
-        ]
-        return sanitized_messages
+        formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
+        return formatted_messages
 
     def predict(self, messages: List[IMessage], 
                 temperature: float = 0.7, 
