@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from numpy.linalg import norm
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import Field
 from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri.standard.vectors.concrete.Vector import Vector
@@ -15,7 +15,7 @@ class DistanceBase(IDistanceSimilarity, VectorProductMixin, ComponentBase):
     of these vectors.
     """
     resource: Optional[str] =  Field(default=ResourceTypes.DISTANCE.value, frozen=True)
-    
+    type: Literal['DistanceBase'] = 'DistanceBase'
     @abstractmethod
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         pass

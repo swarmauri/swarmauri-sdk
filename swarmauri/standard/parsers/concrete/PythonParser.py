@@ -1,5 +1,5 @@
-from typing import List, Union, Any
 import ast
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 from swarmauri.core.documents.IDocument import IDocument
@@ -12,6 +12,7 @@ class PythonParser(ParserBase):
     This parser utilizes the `ast` module to parse the Python code into an abstract syntax tree (AST)
     and then walks the tree to extract relevant information.
     """
+    type: Literal['PythonParser'] = 'PythonParser'
     
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """

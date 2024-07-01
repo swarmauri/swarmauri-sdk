@@ -1,4 +1,4 @@
-from typing import Dict, List, Generator, Any, Union, Optional
+from typing import Dict, List, Generator, Any, Union, Optional, Literal
 from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.prompts.IPrompt import IPrompt
@@ -14,7 +14,7 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     template: str = ""
     variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
     resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value, frozen=True)
-
+    type: Literal['PromptGeneratorBase'] = 'PromptGeneratorBase'
 
     def set_template(self, template: str) -> None:
         self.template = template

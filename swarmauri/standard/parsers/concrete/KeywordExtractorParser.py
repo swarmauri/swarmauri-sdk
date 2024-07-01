@@ -1,5 +1,5 @@
 import yake
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 from pydantic import ConfigDict, PrivateAttr
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
@@ -12,7 +12,8 @@ class KeywordExtractorParser(ParserBase):
     num_keywords: int = 10
     _kw_extractor: yake.KeywordExtractor = PrivateAttr(default=None)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-
+    type: Literal['KeywordExtractorParser'] = 'KeywordExtractorParser'
+    
     def __init__(self, **data):
         super().__init__(**data)
         self._kw_extractor = yake.KeywordExtractor(lan=self.lang,

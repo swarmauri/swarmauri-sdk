@@ -1,6 +1,5 @@
-from typing import List, Union, Any
 import yaml
-
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -10,7 +9,8 @@ class OpenAPISpecParser(ParserBase):
     and extracts information into structured Document instances. 
     This is useful for building documentation, APIs inventory, or analyzing the API specification.
     """
-
+    type: Literal['OpenAPISpecParser'] = 'OpenAPISpecParser'
+    
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses an OpenAPI Specification from a YAML or JSON string into a list of Document instances.

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, Literal
 from pydantic import Field, ConfigDict
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
@@ -6,6 +6,7 @@ from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
 class PromptMatrixBase(IPromptMatrix, ComponentBase):
     matrix: List[List[str]] = []
     resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value)
+    type: Literal['PromptMatrixBase'] = 'PromptMatrixBase'    
 
     @property
     def shape(self) -> Tuple[int, int]:

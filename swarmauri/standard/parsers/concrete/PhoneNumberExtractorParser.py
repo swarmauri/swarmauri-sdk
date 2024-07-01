@@ -1,5 +1,5 @@
 import re
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -8,7 +8,8 @@ class PhoneNumberExtractorParser(ParserBase):
     A parser that extracts phone numbers from the input text.
     Utilizes regular expressions to identify phone numbers in various formats.
     """
-
+    type: Literal['PhoneNumberExtractorParser'] = 'PhoneNumberExtractorParser'
+    
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data, looking for phone numbers employing a regular expression.

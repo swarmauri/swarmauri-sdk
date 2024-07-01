@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import ConfigDict, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.prompts.IPrompt import IPrompt
@@ -12,6 +12,7 @@ class PromptBase(IPrompt, ComponentBase):
     """
     prompt: str = ""
     resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    type: Literal['PromptBase'] = 'PromptBase'
 
     def __call__(self):
         """

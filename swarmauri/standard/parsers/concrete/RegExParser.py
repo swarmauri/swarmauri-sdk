@@ -1,5 +1,5 @@
 import re
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -8,6 +8,7 @@ class RegExParser(ParserBase):
     A parser that uses a regular expression to extract information from text.
     """
     pattern: str
+    type: Literal['RegExParser'] = 'RegExParser'
     
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """

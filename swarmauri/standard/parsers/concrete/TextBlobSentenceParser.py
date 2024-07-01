@@ -1,5 +1,5 @@
-from typing import List, Union, Any
 from textblob import TextBlob
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -11,7 +11,8 @@ class TextBlobParser(ParserBase):
     This parser uses the natural language processing capabilities of TextBlob
     to accurately identify sentence boundaries within large blocks of text.
     """
-
+    type: Literal['TextBlobParser'] = 'TextBlobParser'
+    
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input text into sentence-based document chunks using TextBlob.

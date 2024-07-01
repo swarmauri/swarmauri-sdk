@@ -1,6 +1,5 @@
-from typing import List, Tuple
 import re
-
+from typing import List, Tuple, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -27,11 +26,7 @@ class MarkdownParser(ParserBase):
             (r'\n\n', r'<p>'),
             (r'\n', r'<br>'),
         ]
-
-    def parse(self, text):
-        for pattern, repl in self.rules:
-            text = re.sub(pattern, repl, text)
-        return text
+    type: Literal['MarkdownParser'] = 'MarkdownParser'
 
     def parse(self, data: str) -> List[Document]:
         documents = []

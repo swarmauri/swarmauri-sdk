@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Any
+from typing import Optional, Union, List, Any, Literal
 from pydantic import Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.documents.IDocument import IDocument
@@ -13,7 +13,8 @@ class ParserBase(ComponentBase, ABC):
     chunking algorithms.
     """
     resource: Optional[str] =  Field(default=ResourceTypes.PARSER.value)
-
+    type: Literal['ParserBase'] = 'ParserBase'
+    
     @abstractmethod
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """

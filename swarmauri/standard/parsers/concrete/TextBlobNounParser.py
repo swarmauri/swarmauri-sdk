@@ -1,5 +1,5 @@
-from typing import List, Union, Any
 from textblob import TextBlob
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -10,7 +10,8 @@ class TextBlobNounParser(ParserBase):
     This parser leverages TextBlob's functionalities such as noun phrase extraction, 
     sentiment analysis, classification, language translation, and more for parsing texts.
     """
-    
+     type: Literal['TextBlobNounParser'] = 'TextBlobNounParser'
+     
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data using TextBlob to perform basic NLP tasks 

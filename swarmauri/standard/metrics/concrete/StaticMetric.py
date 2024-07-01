@@ -1,10 +1,11 @@
-from typing import Any
+from typing import Any, Literal
 from swarmauri.standard.metrics.base.MetricBase import MetricBase
 
 class StaticMetric(MetricBase):
     """
     Metric for capturing the first impression score from a set of scores.
     """
+    type: Literal['StaticMetric'] = 'StaticMetric'
 
     def __call__(self, **kwargs) -> Any:
         """

@@ -1,28 +1,33 @@
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
 from transformers import BertTokenizer, BertModel
 import torch
-from swarmauri.core.parsers.IParser import IParser
+from pydantic import PrivateAttr
 from swarmauri.core.documents.IDocument import IDocument
 from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class BERTEmbeddingParser(IParser):
+class BERTEmbeddingParser(ParserBase):
     """
     A parser that transforms input text into document embeddings using BERT.
     
     This parser tokenizes the input text, passes it through a pre-trained BERT model,
     and uses the resulting embeddings as the document content.
     """
+    parser_model_name: str = 'bert-base-uncased'
+    _model: Any = PrivateAttr()
+    type: Literal['BERTEmbeddingParser'] = 'BERTEmbeddingParser'
 
-    def __init__(self, model_name: str = 'bert-base-uncased'):
+    def __init__(self, **kwargs):
         """
         Initializes the BERTEmbeddingParser with a specific BERT model.
         
         Parameters:
         - model_name (str): The name of the pre-trained BERT model to use.
         """
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
-        self.model = BertModel.from_pretrained(model_name)
-        self.model.eval()  # Set model to evaluation mode
+        super().__init__(**kwargs)
+        self.tokenizer = BertTokenizer.from_pretrained(self.parser_model_name)
+        self._model = BertModel.from_pretrained(self.parser_model_name)
+        self._model.eval()  # Set model to evaluation mode
 
     
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
@@ -41,7 +46,7 @@ class BERTEmbeddingParser(IParser):
 
         # Generate embeddings
         with torch.no_grad():
-            outputs = self.model(**inputs)
+            outputs = self._model(**inputs)
 
         # Use the last hidden state as document embeddings (batch_size, sequence_length, hidden_size)
         embeddings = outputs.last_hidden_state

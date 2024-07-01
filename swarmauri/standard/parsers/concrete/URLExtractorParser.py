@@ -1,7 +1,6 @@
-from typing import List, Union, Any
-from urllib.parse import urlparse
 import re
-
+from urllib.parse import urlparse
+from typing import List, Union, Any, Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -13,8 +12,8 @@ class URLExtractorParser(ParserBase):
     documents for each extracted URL. It utilizes regular expressions
     to identify URLs within the given text.
     """
+    type: Literal['URLExtractorParser'] = 'URLExtractorParser'
 
-    
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parse input data (string) and extract URLs, each URL is then represented as a document.

@@ -1,5 +1,6 @@
 import html
 import re
+from typing import Literal
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -8,6 +9,7 @@ class HTMLTagStripParser(ParserBase):
     A concrete parser that removes HTML tags and unescapes HTML content,
     leaving plain text.
     """
+    type: Literal['HTMLTagStripParser'] = 'HTMLTagStripParser'
 
     def parse(self, data: str):
         """

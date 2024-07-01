@@ -1,3 +1,4 @@
+from typing import Literal
 from swarmauri.standard.metrics.base.MetricBase import MetricBase
 from swarmauri.standard.metrics.base.MetricCalculateMixin import MetricCalculateMixin
 from swarmauri.standard.metrics.base.MetricAggregateMixin import MetricAggregateMixin
@@ -12,7 +13,8 @@ class MeanMetric(MetricAggregateMixin, MetricCalculateMixin, MetricBase):
         _value (float): The calculated mean of the measurements.
         _measurements (list): A list of measurements (numerical values) to average.
     """
-    
+    type: Literal['MeanMetric'] = 'MeanMetric'
+
     def add_measurement(self, measurement: int) -> None:
         """
         Adds a measurement to the internal list of measurements.

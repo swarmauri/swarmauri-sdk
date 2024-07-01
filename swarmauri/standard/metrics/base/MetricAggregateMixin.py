@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Literal
 from pydantic import BaseModel
 from swarmauri.core.metrics.IMetricAggregate import IMetricAggregate
 

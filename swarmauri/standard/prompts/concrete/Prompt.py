@@ -1,4 +1,5 @@
+from typing import Literal
 from swarmauri.standard.prompts.base.PromptBase import PromptBase
 
 class Prompt(PromptBase):
-    pass
+    type: Literal['Prompt'] = 'Prompt'

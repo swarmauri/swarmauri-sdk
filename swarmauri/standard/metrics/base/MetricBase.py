@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.metrics.IMetric import IMetric
@@ -11,6 +11,7 @@ class MetricBase(IMetric, ComponentBase):
     unit: str
     value: Any = None
     resource: Optional[str] =  Field(default=ResourceTypes.METRIC.value, frozen=True)
+    type: Literal['MetricBase'] = 'MetricBase'
 
     def __call__(self, **kwargs) -> Any:
         """
