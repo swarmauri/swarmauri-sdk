@@ -1,7 +1,7 @@
 import pytest
 import os
 from swarmauri.standard.llms.concrete.GroqModel import GroqModel
-from swarmauri.standard.conversations.concrete.Conversation import Conversation
+from swarmauri.standard.conversations.concrete.MaxSystemContextConversation import MaxSystemContextConversation
 from swarmauri.standard.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.standard.documents.concrete.Document import Document
@@ -11,8 +11,8 @@ from swarmauri.standard.agents.concrete.RagAgent import RagAgent
 def test_ubc_resource():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = GroqModel(api_key = API_KEY)
-    conversation = Conversation()
     system_context = SystemMessage(content='Your name is Jeff.')
+    conversation = MaxSystemContextConversation(system_context=system_context, max_size=4)
     vector_store = TfidfVectorStore()
     documents = [Document(content="Their sister's name is Jane."),
          Document(content="Their mother's name is Jean."),
@@ -32,8 +32,8 @@ def test_ubc_resource():
 def test_agent_exec():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = GroqModel(api_key = API_KEY)
-    conversation = Conversation()
     system_context = SystemMessage(content='Your name is Jeff.')
+    conversation = MaxSystemContextConversation(system_context=system_context, max_size=4)
     vector_store = TfidfVectorStore()
     documents = [Document(content="Their sister's name is Jane."),
          Document(content="Their mother's name is Jean."),
