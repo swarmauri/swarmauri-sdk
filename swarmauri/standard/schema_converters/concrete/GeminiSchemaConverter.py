@@ -7,39 +7,39 @@ from swarmauri.standard.schema_converters.base.SchemaConverterBase import Schema
 class GeminiSchemaConverter(SchemaConverterBase):
     type: Literal['GeminiSchemaConverter'] = 'GeminiSchemaConverter'
 
-    def convert(self, tool: SubclassUnion[ToolBase]) -> genai.FunctionDeclaration:
+    def convert(self, tool: SubclassUnion[ToolBase]) -> genai.protos.FunctionDeclaration:
         properties = {}
         required = []
 
         for param in tool.parameters:
-            properties[param.name] = genai.Schema(
+            properties[param.name] = genai.protos.Schema(
                 type=self.convert_type(param.type),
                 description=param.description
             )
             if param.required:
                 required.append(param.name)
 
-        schema = genai.Schema(
-            type=genai.Type.OBJECT,
+        schema = genai.protos.Schema(
+            type=genai.protos.Type.OBJECT,
             properties=properties,
             required=required
         )
 
-        return genai.FunctionDeclaration(
+        return genai.protos.FunctionDeclaration(
             name=tool.name,
             description=tool.description,
             parameters=schema
         )
 
-    def convert_type(self, param_type: str) -> genai.Type:
+    def convert_type(self, param_type: str) -> genai.protos.Type:
         type_mapping = {
-            "string": genai.Type.STRING,
-            "str": genai.Type.STRING,
-            "integer": genai.Type.INTEGER,
-            "int": genai.Type.INTEGER,
-            "boolean": genai.Type.BOOLEAN,
-            "bool": genai.Type.BOOLEAN,
-            "array": genai.Type.ARRAY,
-            "object": genai.Type.OBJECT
+            "string": genai.protos.Type.STRING,
+            "str": genai.protos.Type.STRING,
+            "integer": genai.protos.Type.INTEGER,
+            "int": genai.protos.Type.INTEGER,
+            "boolean": genai.protos.Type.BOOLEAN,
+            "bool": genai.protos.Type.BOOLEAN,
+            "array": genai.protos.Type.ARRAY,
+            "object": genai.protos.Type.OBJECT
         }
-        return type_mapping.get(param_type, genai.Type.STRING)
+        return type_mapping.get(param_type, genai.protos.Type.STRING)
