@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-	chain = FixedLengthChunker()
+	chunker = FixedLengthChunker()
 	assert chunker.type == 'FixedLengthChunker'
 
 @pytest.mark.unit

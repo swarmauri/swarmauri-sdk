@@ -7,7 +7,7 @@ def test_ubc_resource():
 	assert chunker.resource == 'Chunker'
 
 @pytest.mark.unit
-	def test_ubc_type():
+def test_ubc_type():
 	chunker = DelimiterBasedChunker()
 	assert chunker.type == 'DelimiterBasedChunker'
 
