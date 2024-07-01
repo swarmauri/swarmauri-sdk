@@ -9,12 +9,12 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	prompt_matrix = PromptMatrix(matrix=[["1","2"],["3","4"]])
-    assert prompt_matrix.type == 'PromptMatrix'
+	assert prompt_matrix.type == 'PromptMatrix'
 
 @pytest.mark.unit
 def test_serialization():
 	prompt_matrix = PromptMatrix(matrix=[["1","2"],["3","4"]])
-    assert prompt_matrix.id == PromptMatrix.model_validate_json(prompt_matrix.model_dump()).id
+	assert prompt_matrix.id == PromptMatrix.model_validate_json(prompt_matrix.model_dump()).id
 
 @pytest.mark.unit
 def shape_interface_test():
