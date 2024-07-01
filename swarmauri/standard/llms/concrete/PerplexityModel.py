@@ -31,7 +31,7 @@ class PerplexityModel(LLMBase):
         max_tokens=256, 
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
-        return_citations: bool = False,
+        return_citations: Optional[bool] = False,
         presence_penalty: Optional[float] = None,
         frequency_penalty: Optional[float] = None
         ):
