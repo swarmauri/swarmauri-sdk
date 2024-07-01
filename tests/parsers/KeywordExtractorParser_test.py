@@ -1,16 +1,22 @@
 import pytest
-from swarmauri.standard.parsers.concrete.KeywordExtractorParser import KeywordExtractorParser
+from swarmauri.standard.parsers.concrete.KeywordExtractorParser import KeywordExtractorParser as Parser
 
 @pytest.mark.unit
 def test_ubc_resource():
-	def test():
-		parser = KeywordExtractorParser()
-		assert parser.resource == 'Parser'
-	test()
+	parser = Parser()
+	assert parser.resource == 'Parser'
+
+@pytest.mark.unit
+def test_ubc_type():
+    parser = Parser()
+    assert parser.type == 'KeywordExtractorParser'
+
+@pytest.mark.unit
+def test_serialization():
+    parser = Parser()
+    assert parser.id == Parser.model_validate_json(parser.json()).id
 
 @pytest.mark.unit
 def test_parse():
-	def test():
-		assert KeywordExtractorParser().parse('test two burgers')[2].resource == 'Document'
-		assert KeywordExtractorParser().parse('test two burgers')[2].content == 'burgers'
-	test()
+	assert Parser().parse('test two burgers')[2].resource == 'Document'
+	assert Parser().parse('test two burgers')[2].content == 'burgers'

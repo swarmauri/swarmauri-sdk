@@ -1,18 +1,24 @@
 import pytest
-from swarmauri.standard.parsers.concrete.TextBlobNounParser import TextBlobNounParser
+from swarmauri.standard.parsers.concrete.TextBlobNounParser import TextBlobNounParser as Parser
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        parser = TextBlobNounParser()
-        assert parser.resource == 'Parser'
-    test()
+    parser = Parser()
+    assert parser.resource == 'Parser'
+
+@pytest.mark.unit
+def test_ubc_type():
+    parser = Parser()
+    assert parser.type == 'TextBlobNounParser'
+
+@pytest.mark.unit
+def test_serialization():
+    parser = Parser()
+    assert parser.id == Parser.model_validate_json(parser.json()).id
 
 @pytest.mark.unit
 def test_parse():
-    def test():
-        documents = TextBlobNounParser().parse('One more large chapula please.')
-        assert documents[0].resource == 'Document'
-        assert documents[0].content == 'One more large chapula please.'
-        assert documents[0].metadata['noun_phrases'] == ['large chapula']
-    test()
+    documents = Parser().parse('One more large chapula please.')
+    assert documents[0].resource == 'Document'
+    assert documents[0].content == 'One more large chapula please.'
+    assert documents[0].metadata['noun_phrases'] == ['large chapula']

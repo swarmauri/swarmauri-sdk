@@ -5,7 +5,6 @@ from swarmauri.standard.metrics.concrete.MeanMetric import MeanMetric as Metric
 def test_ubc_resource():
 	assert Metric(unit='average test score').resource == 'Metric'
 
-
 @pytest.mark.unit
 def test_ubc_type():
     metric = Metric(unit='average test score')

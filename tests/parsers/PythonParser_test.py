@@ -1,17 +1,24 @@
 import pytest
-from swarmauri.standard.parsers.concrete.PythonParser import PythonParser
+from swarmauri.standard.parsers.concrete.PythonParser import PythonParser as Parser
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        parser = PythonParser()
-        assert parser.resource == 'Parser'
-    test()
+    parser = Parser()
+    assert parser.resource == 'Parser'
+
+@pytest.mark.unit
+def test_ubc_type():
+    parser = Parser()
+    assert parser.type == 'PythonParser'
+
+@pytest.mark.unit
+def test_serialization():
+    parser = Parser()
+    assert parser.id == Parser.model_validate_json(parser.json()).id
 
 @pytest.mark.unit
 def test_parse():
-    def test():
-        python_code = """
+    python_code = """
 class ExampleClass:
     \"\"\"
     This is an example class.
@@ -29,15 +36,13 @@ def example_function():
     \"\"\"
     pass
         """
-        assert PythonParser().parse(python_code)[0].content == 'This is an example class.'
-        assert PythonParser().parse(python_code)[1].content == 'This is an example function.'
-        assert PythonParser().parse(python_code)[2].content == 'This is an example method.'
-    test()
+    assert Parser().parse(python_code)[0].content == 'This is an example class.'
+    assert Parser().parse(python_code)[1].content == 'This is an example function.'
+    assert Parser().parse(python_code)[2].content == 'This is an example method.'
 
 @pytest.mark.unit
 def test_parse_2():
-    def test():
-        python_code = """
+    python_code = """
 class ExampleClass:
     \"\"\"
     This is an example class.
@@ -76,7 +81,6 @@ def example_function():
     \"\"\"
     pass
             """
-        assert PythonParser().parse(python_code)[0].metadata['source_code'] == result_1
-        assert PythonParser().parse(python_code)[1].metadata['source_code'] == result_2
-        assert PythonParser().parse(python_code)[1].resource == 'Document'
-    test()
+    assert Parser().parse(python_code)[0].metadata['source_code'] == result_1
+    assert Parser().parse(python_code)[1].metadata['source_code'] == result_2
+    assert Parser().parse(python_code)[1].resource == 'Document'
