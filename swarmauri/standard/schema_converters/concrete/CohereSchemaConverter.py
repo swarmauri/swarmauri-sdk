@@ -1,7 +1,7 @@
 from typing import Dict, Any, Literal
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.base.SchemaConverterBase import SchemaConverterBase
+from swarmauri.standard.schema_converters.base.SchemaConverterBase import SchemaConverterBase
 
 class CohereSchemaConverter(SchemaConverterBase):
     type: Literal['CohereSchemaConverter'] = 'CohereSchemaConverter'
