@@ -48,7 +48,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         
         agent_response = prediction_message.content
         
-        agent_message = AgentMessage(content=prediction_message.content, 
+        agent_message = AgentMessage(content=prediction_message, 
                                      tool_calls=prediction_message.tool_calls)
         conversation.add_message(agent_message)
         

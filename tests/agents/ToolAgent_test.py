@@ -35,6 +35,20 @@ def test_ubc_type():
     assert agent.type == 'ToolAgent'
 
 @pytest.mark.unit
+def test_serialization():
+    API_KEY = os.getenv('GROQ_API_KEY')
+    llm = GroqToolModel(api_key = API_KEY)
+    conversation = Conversation()
+    toolkit = Toolkit()
+    tool = AdditionTool()
+    toolkit.add_tool(tool)
+
+    agent = ToolAgent(llm=llm, 
+        conversation=conversation,
+        toolkit=toolkit)
+    assert agent.id == ToolAgent.model_validate_json(agent.json()).id
+
+@pytest.mark.unit
 def test_agent_exec():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = GroqToolModel(api_key = API_KEY)
@@ -49,16 +63,3 @@ def test_agent_exec():
     result = agent.exec('Add 512+671')
     assert type(result) == str
 
-@pytest.mark.unit
-def test_serialization():
-    API_KEY = os.getenv('GROQ_API_KEY')
-    llm = GroqToolModel(api_key = API_KEY)
-    conversation = Conversation()
-    toolkit = Toolkit()
-    tool = AdditionTool()
-    toolkit.add_tool(tool)
-
-    agent = ToolAgent(llm=llm, 
-        conversation=conversation,
-        toolkit=toolkit)
-    assert agent.id == ToolAgent.model_validate_json(agent.json()).id
