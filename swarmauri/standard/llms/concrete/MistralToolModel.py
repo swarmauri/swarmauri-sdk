@@ -21,7 +21,6 @@ class MistralToolModel(LLMBase):
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
-
     
     def predict(self, 
         messages: List[IMessage], 
@@ -34,7 +33,7 @@ class MistralToolModel(LLMBase):
         client =  MistralClient(api_key=self.api_key)
         formatted_messages = self._format_messages(messages)
 
-        if tools and not tool_choice:
+        if toolkit and not tool_choice:
             tool_choice = "auto"
             
         response = client.chat.completions.create(
@@ -42,7 +41,7 @@ class MistralToolModel(LLMBase):
             messages=formatted_messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            tools=self._schema_convert_tools(tools),
+            tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
             safe_prompt=safe_prompt
         )

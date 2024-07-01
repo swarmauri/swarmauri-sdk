@@ -39,7 +39,7 @@ class OpenAIToolModel(LLMBase):
         formatted_messages = self._format_messages(messages)
 
         client = OpenAI(api_key=self.api_key)
-        if tools and not tool_choice:
+        if toolkit and not tool_choice:
             tool_choice = "auto"
 
         response = client.chat.completions.create(
@@ -47,7 +47,7 @@ class OpenAIToolModel(LLMBase):
             messages=formatted_messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            tools=self._schema_convert_tools(tools),
+            tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
         return response

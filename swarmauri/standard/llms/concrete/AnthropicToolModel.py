@@ -31,7 +31,7 @@ class AnthropicToolModel(LLMBase):
         formatted_messages = self._format_messages(messages)
 
         client = anthropic.Anthropic(api_key=self.api_key)
-        if tools and not tool_choice:
+        if toolkit and not tool_choice:
             tool_choice = "auto"
 
         response = client.messages.create(
