@@ -11,12 +11,12 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	vs = TfidfVectorStore()
-    assert vs.type == 'TfidfVectorStore'
+	assert vs.type == 'TfidfVectorStore'
 
 @pytest.mark.unit
 def test_serialization():
-    vs = TfidfVectorStore()
-    assert vs.id == TfidfVectorStore.model_validate_json(vs.model_dump()).id
+	vs = TfidfVectorStore()
+	assert vs.id == TfidfVectorStore.model_validate_json(vs.model_dump()).id
 
 @pytest.mark.unit
 def top_k_test():

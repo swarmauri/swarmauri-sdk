@@ -9,12 +9,12 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	vector = Vector(value=[1,2])
-    assert vector.type == 'Vector'
+	assert vector.type == 'Vector'
 
 @pytest.mark.unit
 def test_serialization():
 	vector = Vector(value=[1,2])
-    assert vector.id == Vector.model_validate_json(vector.model_dump()).id
+	assert vector.id == Vector.model_validate_json(vector.model_dump()).id
 
 @pytest.mark.unit
 def test_value_assertion():

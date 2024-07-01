@@ -19,7 +19,7 @@ class NmfEmbedding(EmbeddingBase):
         # Initialize TF-IDF Vectorizer
         self._tfidf_vectorizer = TfidfVectorizer()
         # Initialize NMF with the desired number of components
-        self._model = NMF(n_components=n_components)
+        self._model = NMF(n_components=self.n_components)
 
     def fit(self, data):
         """

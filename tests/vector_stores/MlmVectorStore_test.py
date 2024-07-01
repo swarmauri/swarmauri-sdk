@@ -11,12 +11,12 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	vs = MlmVectorStore()
-    assert vs.type == 'MlmVectorStore'
+	assert vs.type == 'MlmVectorStore'
 
 @pytest.mark.unit
 def test_serialization():
-    vs = MlmVectorStore()
-    assert vs.id == MlmVectorStore.model_validate_json(vs.model_dump()).id
+	vs = MlmVectorStore()
+	assert vs.id == MlmVectorStore.model_validate_json(vs.model_dump()).id
 
 @pytest.mark.unit
 def top_k_test():

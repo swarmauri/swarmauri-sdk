@@ -10,8 +10,8 @@ class TextBlobNounParser(ParserBase):
     This parser leverages TextBlob's functionalities such as noun phrase extraction, 
     sentiment analysis, classification, language translation, and more for parsing texts.
     """
-     type: Literal['TextBlobNounParser'] = 'TextBlobNounParser'
-     
+    type: Literal['TextBlobNounParser'] = 'TextBlobNounParser'
+
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data using TextBlob to perform basic NLP tasks 

@@ -11,12 +11,12 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
 	vs = Doc2VecVectorStore()
-    assert vs.type == 'Doc2VecVectorStore'
+	assert vs.type == 'Doc2VecVectorStore'
 
 @pytest.mark.unit
 def test_serialization():
-    vs = Doc2VecVectorStore()
-    assert vs.id == Doc2VecVectorStore.model_validate_json(vs.model_dump()).id
+	vs = Doc2VecVectorStore()
+	assert vs.id == Doc2VecVectorStore.model_validate_json(vs.model_dump()).id
 
 
 @pytest.mark.unit
