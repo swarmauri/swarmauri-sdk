@@ -15,7 +15,7 @@ class MistralToolModel(LLMBase):
     type: Literal['MistralToolModel'] = 'MistralToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [MistralSchemaConverter().convert(tool) for tool in tools]
+        return [MistralSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
@@ -25,7 +25,7 @@ class MistralToolModel(LLMBase):
     
     def predict(self, 
         messages: List[IMessage], 
-        tools=None, 
+        toolkit=None, 
         tool_choice=None, 
         temperature=0.7, 
         max_tokens=1024, 

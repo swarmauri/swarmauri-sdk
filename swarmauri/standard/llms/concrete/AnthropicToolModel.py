@@ -14,7 +14,7 @@ class AnthropicToolModel(LLMBase):
     type: Literal['AnthropicToolModel'] = 'AnthropicToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [AnthropicSchemaConverter().convert(tool) for tool in tools]
+        return [AnthropicSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
@@ -23,7 +23,7 @@ class AnthropicToolModel(LLMBase):
 
     def predict(self, 
         messages: List[IMessage], 
-        tools=None, 
+        toolkit=None, 
         tool_choice=None, 
         temperature=0.7, 
         max_tokens=1024):
@@ -39,7 +39,7 @@ class AnthropicToolModel(LLMBase):
             messages=formatted_messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            tools=self._schema_convert_tools(tools),
+            tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
         return response

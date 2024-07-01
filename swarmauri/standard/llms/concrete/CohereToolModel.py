@@ -17,7 +17,7 @@ class CohereToolModel(LLMBase):
     type: Literal['CohereToolModel'] = 'CohereToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [CohereSchemaConverter().convert(tool) for tool in tools]
+        return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
@@ -26,7 +26,7 @@ class CohereToolModel(LLMBase):
 
     def predict(self, 
         messages: List[IMessage], 
-        tools=None, 
+        toolkit=None, 
         force_single_step = False,
         max_tokens=1024):
 
@@ -40,7 +40,7 @@ class CohereToolModel(LLMBase):
             model=self.model, 
             message=formatted_messages[-1], 
             force_single_step=False, 
-            tools=self._schema_convert_tools(tools)
+            tools=self._schema_convert_tools(toolkit.tools)
         )
 
         # as long as the model sends back tool_calls,
@@ -62,7 +62,7 @@ class CohereToolModel(LLMBase):
             chat_history=response.chat_history,
             message="",
             force_single_step=force_single_step,
-            tools=self._schema_convert_tools(tools),
+            tools=self._schema_convert_tools(toolkit.tools),
             tool_results=tool_results
           )
 
