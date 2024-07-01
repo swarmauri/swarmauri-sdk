@@ -4,17 +4,22 @@ from swarmauri.standard.vectors.concrete.Vector import Vector
 
 @pytest.mark.unit
 def test_ubc_resource():
-	def test():
-		assert CosineDistance().resource == 'Distance'
-	test()
+	assert CosineDistance().resource == 'Distance'
+
+@pytest.mark.unit
+def test_ubc_type():
+	assert CosineDistance().type == 'CosineDistance'
+
+@pytest.mark.unit
+def test_serialization():
+    distance = CosineDistance()
+    assert distance.id == CosineDistance.model_validate_json(distance.json()).id
 
 @pytest.mark.unit
 def test_distance():
-	def test():
-		# Floating-Point Precision Epsilon
-		assert CosineDistance().distance(
-			Vector(value=[1,2]), 
-			Vector(value=[1,2])
-			) == 2.220446049250313e-16
-	test()
+	# Floating-Point Precision Epsilon
+	assert CosineDistance().distance(
+		Vector(value=[1,2]), 
+		Vector(value=[1,2])
+		) == 2.220446049250313e-16
 

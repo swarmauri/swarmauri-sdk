@@ -4,10 +4,18 @@ from swarmauri.standard.conversations.concrete.SessionCacheConversation import S
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        conv = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
-        assert conv.resource == 'Conversation'
-    test()
+    conversation = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
+    assert conversation.resource == 'Conversation'
+
+@pytest.mark.unit
+def test_ubc_type():
+    conversation = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
+    assert conversation.type == 'SessionCacheConversation'
+
+@pytest.mark.unit
+def test_serialization():
+    conversation = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
+    assert conversation.id == SessionCacheConversation.model_validate_json(conversation.json()).id
 
 @pytest.mark.unit
 def test_standard_alternating_agent_ending():
