@@ -1,5 +1,5 @@
 from typing import Dict, Any, Literal
-import genai.protos as genai
+import google.generativeai as genai
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.schema_converters.base.SchemaConverterBase import SchemaConverterBase
