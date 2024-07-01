@@ -1,6 +1,7 @@
 import logging
 import json
 from typing import List, Literal
+from typing import List, Dict, Any, Literal
 import cohere
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -13,7 +14,7 @@ class CohereToolModel(LLMBase):
     type: Literal['CohereToolModel'] = 'CohereToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [CohereSchemaConverter().convert(tool) for each in tools]
+        return [CohereSchemaConverter().convert(tool) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
@@ -50,7 +51,9 @@ class CohereToolModel(LLMBase):
           for call in response.tool_calls:
             logging.debug(call)
             # use the `web_search` tool with the search query the model sent back
-            results = {"call": call, "outputs": fail(call.parameters["query"])} # 🚧  Placeholder to determine how to find function and call it
+            def fn(value):
+                return value
+            results = {"call": call, "outputs": fn(call.parameters["query"])} # 🚧  Placeholder to determine how to find function and call it
             tool_results.append(results)
             
           # call chat again with tool results

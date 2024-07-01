@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Literal
+from typing import List, Dict, Literal, Any
 import anthropic
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -12,7 +12,7 @@ class AnthropicToolModel(LLMBase):
     type: Literal['AnthropicToolModel'] = 'AnthropicToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [AnthropicSchemaConverter().convert(tool) for each in tools]
+        return [AnthropicSchemaConverter().convert(tool) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']

@@ -14,7 +14,7 @@ class GroqToolModel(LLMBase):
     type: Literal['GroqToolModel'] = 'GroqToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [GroqSchemaConverter().convert(tool) for each in tools]
+        return [GroqSchemaConverter().convert(tool) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']

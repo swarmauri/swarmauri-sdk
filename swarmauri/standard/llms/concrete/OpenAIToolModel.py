@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Dict, Any
 from openai import OpenAI
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -23,7 +23,7 @@ class OpenAIToolModel(LLMBase):
     type: Literal['OpenAIToolModel'] = 'OpenAIToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        return [OpenAISchemaConverter().convert(tool) for each in tools]
+        return [OpenAISchemaConverter().convert(tool) for tool in tools]
 
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
