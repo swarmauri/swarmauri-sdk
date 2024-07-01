@@ -28,7 +28,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv('COHERE_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == ''
+    assert model.name == 'command-light'
 
 @pytest.mark.unit
 def test_agent_exec():

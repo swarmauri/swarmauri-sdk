@@ -28,7 +28,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv('GEMINI_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == ''
+    assert model.name == 'gemini-1.5-pro-latest'
 
 @pytest.mark.unit
 def test_agent_exec():
