@@ -1,5 +1,5 @@
 import json
-from typing import List, Literal, Dict
+from typing import List, Literal, Dict, Any
 import google.generativeai as genai
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -26,4 +26,4 @@ class GeminiToolModel(LLMBase):
         force_single_step = False,
         max_tokens=1024):
 
-        raise NotImplemenetedError('🚧 Placeholder')
+        raise NotImplementedError('🚧 Placeholder')
