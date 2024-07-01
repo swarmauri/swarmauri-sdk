@@ -15,15 +15,15 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    API_KEY = os.getenv('MISTRAL_API_KEY')
-    llm = MistralToolModel(api_key = API_KEY)
-    assert llm.type == 'MistralToolModel'
+    API_KEY = os.getenv('PERPLEXITY_API_KEY')
+    llm = LLM(api_key = API_KEY)
+    assert llm.type == 'PerplexityModel'
 
 @pytest.mark.unit
 def test_serialization():
-    API_KEY = os.getenv('ANTHROPIC_API_KEY')
-    llm = AnthropicToolModel(api_key = API_KEY)
-    assert llm.id == AnthropicToolModel.model_validate_json(llm.json()).id
+    API_KEY = os.getenv('PERPLEXITY_API_KEY')
+    llm = LLM(api_key = API_KEY)
+    assert llm.id == LLM.model_validate_json(llm.json()).id
 
 @pytest.mark.unit
 def test_default_name():
