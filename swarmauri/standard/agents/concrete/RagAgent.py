@@ -90,11 +90,10 @@ class RagAgent(AgentRetrieveMixin,
             
 
             # Retrieve the conversation history and predict a response
-            messages = conversation.as_messages()
             if llm_kwargs:
-                prediction = llm.predict(messages=messages, **llm_kwargs)
+                prediction = llm.predict(messages=conversation.history, **llm_kwargs)
             else:
-                prediction = llm.predict(messages=messages)
+                prediction = llm.predict(messages=conversation.history)
                 
             # Create an AgentMessage instance with the model's response and update the conversation
             agent_message = AgentMessage(content=prediction)
