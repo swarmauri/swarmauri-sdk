@@ -8,12 +8,12 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Document(content="test").type == 'Document'
+	assert Document(content="test").type == 'Document'
 
 @pytest.mark.unit
 def test_serialization():
 	document = Document(content="test")
-    assert document.id == Document.model_validate_json(document.json()).id
+	assert document.id == Document.model_validate_json(document.json()).id
 
 @pytest.mark.unit
 def content_test():
