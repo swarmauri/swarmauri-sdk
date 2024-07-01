@@ -12,7 +12,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
     chain = ContextChain()
-    assert chain.type == 'Chain'
+    assert chain.type == 'ContextChain'
 
 @pytest.mark.unit
 def test_chain_execute_return_value():
