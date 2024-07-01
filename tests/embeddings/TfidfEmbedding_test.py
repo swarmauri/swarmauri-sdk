@@ -9,7 +9,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-	assert TfidfEmbedding().type == 'Doc2VecEmbedding'
+	assert TfidfEmbedding().type == 'TfidfEmbedding'
 
 @pytest.mark.unit
 def test_serialization():
