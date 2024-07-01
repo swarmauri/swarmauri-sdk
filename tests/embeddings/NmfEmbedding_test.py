@@ -3,15 +3,20 @@ from swarmauri.standard.embeddings.concrete.NmfEmbedding import NmfEmbedding
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        assert NmfEmbedding().resource == 'Embedding'
-    test()
+	assert NmfEmbedding().resource == 'Embedding'
+
+@pytest.mark.unit
+def test_ubc_type():
+	assert NmfEmbedding().type == 'NmfEmbedding'
+
+@pytest.mark.unit
+def test_serialization():
+	embedder = NmfEmbedding()
+	assert embedder.id == NmfEmbedding.model_validate_json(embedder.json()).id
 
 @pytest.mark.unit
 def test_fit_transform():
-	def test():
-		embedder = NmfEmbedding()
-		documents = ['test', 'test1', 'test2']
-		embedder.fit_transform(documents)
-		assert documents == embedder.extract_features()
-	test()
+	embedder = NmfEmbedding()
+	documents = ['test', 'test1', 'test2']
+	embedder.fit_transform(documents)
+	assert documents == embedder.extract_features()
