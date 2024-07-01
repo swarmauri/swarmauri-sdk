@@ -1,8 +1,9 @@
-import numpy as np
-from pydantic import PrivateAttr
 import torch
-from torch import nn
 from transformers import BertTokenizer, BertModel
+from torch import nn
+import numpy as np
+from typing import Literal
+from pydantic import PrivateAttr
 
 from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
@@ -12,7 +13,7 @@ class SpatialDocEmbedding(EmbeddingBase):
     _tokenizer = PrivateAttr()
     _model = PrivateAttr()
     _device = PrivateAttr()
-    
+    type: Literal['SpatialDocEmbedding'] = 'SpatialDocEmbedding'
     
     def __init__(self, special_tokens_dict=None, **kwargs):
         super().__init__(**kwargs)
