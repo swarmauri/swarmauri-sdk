@@ -3,15 +3,21 @@ from swarmauri.standard.chunkers.concrete.DelimiterBasedChunker import Delimiter
 
 @pytest.mark.unit
 def test_ubc_resource():
-	def test():
-		chunker = DelimiterBasedChunker()
-		assert chunker.resource == 'Chunker'
-	test()
+	chunker = DelimiterBasedChunker()
+	assert chunker.resource == 'Chunker'
+
+@pytest.mark.unit
+def test_ubc_type():
+	chunker = DelimiterBasedChunker()
+    assert chunker.type == 'DelimiterBasedChunker'
 
 @pytest.mark.unit
 def test_chunk_text():
-	def test():
-		unchunked_text = 'question? test! period. run on'
-		chunks = ['question?', 'test!', 'period.', 'run on']
-		assert DelimiterBasedChunker().chunk_text(unchunked_text) == chunks
-	test()
+	unchunked_text = 'question? test! period. run on'
+	chunks = ['question?', 'test!', 'period.', 'run on']
+	assert DelimiterBasedChunker().chunk_text(unchunked_text) == chunks
+
+@pytest.mark.unit
+def test_serialization():
+	chunker = DelimiterBasedChunker()
+    assert chunker.id == DelimiterBasedChunker.model_validate_json(chunker.json()).id

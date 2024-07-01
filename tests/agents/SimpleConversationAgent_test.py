@@ -21,6 +21,16 @@ def test_ubc_resource():
     test()
 
 @pytest.mark.unit
+def test_ubc_type():
+    API_KEY = os.getenv('GROQ_API_KEY')
+    llm = GroqModel(api_key = API_KEY)
+    conversation=Conversation()
+    logging.info(str(SubclassUnion[ConversationBase]))
+    agent = SimpleConversationAgent(conversation=conversation, 
+                                    llm=llm)
+    assert agent.type == 'SimpleConversationAgent'
+
+@pytest.mark.unit
 def test_agent_exec():
     def test():
         API_KEY = os.getenv('GROQ_API_KEY')
@@ -32,3 +42,11 @@ def test_agent_exec():
         assert type(result) == str
     test()
 
+@pytest.mark.unit
+def test_serialization():
+    API_KEY = os.getenv('GROQ_API_KEY')
+    llm = GroqModel(api_key = API_KEY)
+    conversation=Conversation()
+    agent = SimpleConversationAgent(conversation=conversation, 
+                                        llm=llm)
+    assert agent.id == SimpleConversationAgent.model_validate_json(agent.json()).id

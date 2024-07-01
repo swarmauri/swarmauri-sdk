@@ -3,13 +3,19 @@ from swarmauri.standard.chunkers.concrete.FixedLengthChunker import FixedLengthC
 
 @pytest.mark.unit
 def test_ubc_resource():
-	def test():
-		chunker = FixedLengthChunker()
-		assert chunker.resource == 'Chunker'
-	test()
+	chunker = FixedLengthChunker()
+	assert chunker.resource == 'Chunker'
+
+@pytest.mark.unit
+def test_ubc_type():
+    chain = FixedLengthChunker()
+    assert chunker.type == 'FixedLengthChunker'
 
 @pytest.mark.unit
 def test_chunk_text():
-	def test():
-		assert len(FixedLengthChunker().chunk_text('ab '*512)) == 6
-	test()
+	assert len(FixedLengthChunker().chunk_text('ab '*512)) == 6
+
+@pytest.mark.unit
+def test_serialization():
+	chunker = FixedLengthChunker()
+    assert chunker.id == FixedLengthChunker.model_validate_json(chunker.json()).id

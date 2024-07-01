@@ -5,13 +5,14 @@ from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        def func(*args, **kwargs):
-            return ('test_response', args, kwargs)
+    # declare chain, args, kwargs
+    chain = ContextChain()
+    assert chain.resource == 'Chain'
 
-        chain = ContextChain()
-        assert chain.resource == 'Chain'
-    test()
+@pytest.mark.unit
+def test_ubc_type():
+    chain = ContextChain()
+    assert chain.type == 'Chain'
 
 @pytest.mark.unit
 def test_chain_execute_return_value():
@@ -45,21 +46,19 @@ def test_chain_execute_return_state():
 
 
 @pytest.mark.unit
-def test_chain_json():
-    def test():
-        # Declare vars
-        ref = "test_result"
-        args = (1,2)
-        kwargs = {}
+def test_serialization():
+    # Declare vars
+    ref = "test_result"
+    args = (1,2)
+    kwargs = {}
 
-        tool = AdditionTool(name='AdditionTool')
+    tool = AdditionTool(name='AdditionTool')
 
-        # Initialize ContextChain, Add Step, and Execute
-        chain = ContextChain()
-        chain.add_step(key='key_1', method=tool, args=args, kwargs=kwargs, ref=ref)
-        chain.execute()
+    # Initialize ContextChain, Add Step, and Execute
+    chain = ContextChain()
+    chain.add_step(key='key_1', method=tool, args=args, kwargs=kwargs, ref=ref)
+    chain.execute()
 
-        # Assert
-        assert chain.context['test_result'] == '3'
-        assert chain.id == ContextChain.model_validate_json(chain.json()).id
-    test()
+    # Assert
+    assert chain.context['test_result'] == '3'
+    assert chain.id == ContextChain.model_validate_json(chain.json()).id

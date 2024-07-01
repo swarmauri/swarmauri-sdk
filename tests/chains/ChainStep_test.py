@@ -8,6 +8,13 @@ def test_ubc_resource():
     step = ChainStep(key='test', method=tool, args=(1,2), kwargs={}, ref=None)
     assert step.resource == 'ChainStep'
 
+
+@pytest.mark.unit
+def test_ubc_type():
+    tool = AdditionTool()
+    step = ChainStep(key='test', method=tool, args=(1,2), kwargs={}, ref=None)
+    assert step.type == 'ChainStep'
+
 @pytest.mark.unit
 def test_method_args_only_call():
     tool = AdditionTool()
@@ -17,3 +24,10 @@ def test_method_args_only_call():
     result = step.method(*step.args, **step.kwargs)
     assert result[0] == '3'
 
+@pytest.mark.unit
+def test_serialization():
+    tool = AdditionTool()
+    args = (1,2)
+    kwargs = {}
+    step = ChainStep(key='test', method=tool, args=args, kwargs=kwargs, ref=None)
+    assert step.id == ChainStep.model_validate_json(step.json()).id

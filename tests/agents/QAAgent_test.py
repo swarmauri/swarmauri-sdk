@@ -24,4 +24,10 @@ def test_agent_exec():
     result = agent.exec('hello')
     assert type(result) == str
 
-
+@pytest.mark.unit
+def test_serialization():
+    API_KEY = os.getenv('GROQ_API_KEY')
+    llm = GroqModel(api_key = API_KEY)
+    
+    agent = QAAgent(llm=llm)
+    assert agent.id == QAAgent.model_validate_json(agent.json()).id
