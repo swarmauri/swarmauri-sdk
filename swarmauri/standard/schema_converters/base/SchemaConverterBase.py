@@ -1,4 +1,5 @@
-from typing import Optional, Dict, Any
+from abc import abstractmethod
+from typing import Optional, Dict, Any, Literal
 from pydantic import ConfigDict, Field
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.schema_converters.ISchemaConvert import ISchemaConvert

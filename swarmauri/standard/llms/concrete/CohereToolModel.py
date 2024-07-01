@@ -30,9 +30,6 @@ class CohereToolModel(LLMBase):
         formatted_messages = self._format_messages(messages)
 
         client = cohere.Client(api_key=self.api_key)
-        if tools and not tool_choice:
-            tool_choice = "auto"
-
         preamble = "" # 🚧  Placeholder for implementation logic
 
         response = client.chat(
