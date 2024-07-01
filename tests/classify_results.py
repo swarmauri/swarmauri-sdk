@@ -50,7 +50,6 @@ if __name__ == "__main__":
     print()
     print(f"Failures: {failures}/{results['total_cases']}")
     print(f"Passing: {results['total_cases'] - failures}/{results['total_cases']}")
-    print()
     print(f"Pass Rate: {1 - int(failures) / int(results['total_cases']):.2f}%")
 
     if results['unit_failures'] > 0:
