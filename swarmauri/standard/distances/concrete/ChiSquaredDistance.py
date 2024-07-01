@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
@@ -7,6 +7,7 @@ class ChiSquaredDistance(DistanceBase):
     """
     Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
     """    
+    type: Literal['ChiSquaredDistance'] = 'ChiSquaredDistance'
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

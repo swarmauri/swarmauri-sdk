@@ -1,5 +1,5 @@
 from math import sqrt
-from typing import List
+from typing import List, Literal
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
@@ -8,7 +8,8 @@ class EuclideanDistance(DistanceBase):
     Class to compute the Euclidean distance between two vectors.
     Implements the IDistanceSimiliarity interface.
     """    
-
+    type: Literal['EuclideanDistance'] = 'EuclideanDistance'
+    
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Euclidean distance between two vectors.

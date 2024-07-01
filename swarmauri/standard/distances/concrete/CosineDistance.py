@@ -1,5 +1,5 @@
 from numpy.linalg import norm
-from typing import List
+from typing import List, Literal
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
@@ -10,7 +10,7 @@ class CosineDistance(DistanceBase):
     of an inner product space, capturing the orientation rather than the magnitude 
     of these vectors.
     """
-    
+    type: Literal['CosineDistance'] = 'CosineDistance'   
        
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """ 

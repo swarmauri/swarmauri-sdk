@@ -1,5 +1,5 @@
-from typing import List
 import numpy as np
+from typing import List, Literal
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
@@ -10,6 +10,7 @@ class LevenshteinDistance(DistanceBase):
     The Levenshtein distance between two strings is given by the minimum number of operations needed to transform
     one string into the other, where an operation is an insertion, deletion, or substitution of a single character.
     """
+    type: Literal['LevenshteinDistance'] = 'LevenshteinDistance'   
     
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

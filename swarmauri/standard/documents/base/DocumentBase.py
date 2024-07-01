@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Literal
 from pydantic import Field, ConfigDict
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.documents.IDocument import IDocument
@@ -11,3 +11,4 @@ class DocumentBase(IDocument, ComponentBase):
     embedding: Optional[Vector] = None
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     resource: Optional[str] =  Field(default=ResourceTypes.DOCUMENT.value, frozen=True)
+    type: Literal['DocumentBase'] = 'DocumentBase'
