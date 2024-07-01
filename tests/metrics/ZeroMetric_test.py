@@ -3,7 +3,7 @@ from swarmauri.standard.metrics.concrete.ZeroMetric import ZeroMetric as Metric
 
 @pytest.mark.unit
 def test_ubc_resource():
-    assert ZeroMetric().resource == 'Metric'
+    assert Metric().resource == 'Metric'
 
 @pytest.mark.unit
 def test_ubc_type():

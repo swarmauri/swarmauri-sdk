@@ -34,8 +34,7 @@ def example_function():
     \"\"\"
     This is an example function.
     \"\"\"
-    pass
-        """
+    pass"""
     assert Parser().parse(python_code)[0].content == 'This is an example class.'
     assert Parser().parse(python_code)[1].content == 'This is an example function.'
     assert Parser().parse(python_code)[2].content == 'This is an example method.'
@@ -58,10 +57,9 @@ def example_function():
     \"\"\"
     This is an example function.
     \"\"\"
-    pass
-        """
+    pass"""
 
-        result_1 = """
+    result_1 = """
 class ExampleClass:
     \"\"\"
     This is an example class.
@@ -74,13 +72,12 @@ class ExampleClass:
         print('example method')
                 """
 
-        result_2 = """
+    result_2 = """
 def example_function():
     \"\"\"
     This is an example function.
     \"\"\"
-    pass
-            """
+    pass"""
     assert Parser().parse(python_code)[0].metadata['source_code'] == result_1
     assert Parser().parse(python_code)[1].metadata['source_code'] == result_2
     assert Parser().parse(python_code)[1].resource == 'Document'
