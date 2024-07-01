@@ -29,7 +29,7 @@ class PerplexityModel(LLMBase):
     def predict(self, messages: List[IMessage], 
         temperature=0.7, 
         max_tokens=256, 
-        top_p=Optional[float] = None,
+        top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         return_citations: bool = False,
         presence_penalty: Optional[float] = None,
