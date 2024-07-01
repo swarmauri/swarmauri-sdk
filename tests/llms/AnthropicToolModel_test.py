@@ -24,7 +24,6 @@ def test_serialization():
     llm = LLM(api_key = API_KEY)
     assert llm.id == LLM.model_validate_json(llm.json()).id
 
-
 @pytest.mark.unit
 def test_default_name():
     API_KEY = os.getenv('ANTHROPIC_API_KEY')
