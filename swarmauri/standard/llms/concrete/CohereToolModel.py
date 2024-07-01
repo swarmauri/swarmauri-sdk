@@ -22,8 +22,7 @@ class CohereToolModel(LLMBase):
     def predict(self, 
         messages: List[IMessage], 
         tools=None, 
-        tool_choice=None, 
-        temperature=0.7, 
+        force_single_step = False,
         max_tokens=1024):
 
         formatted_messages = self._format_messages(messages)
@@ -32,12 +31,35 @@ class CohereToolModel(LLMBase):
         if tools and not tool_choice:
             tool_choice = "auto"
 
+        preamble = "" # 🚧  Placeholder for implementation logic
+
         response = client.chat(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=self._schema_convert_tools(tools),
-            tool_choice=tool_choice,
+            chat_history=formatted_messages[:-1],
+            model=self.model, 
+            message=formatted_messages[-1], 
+            force_single_step=False, 
+            tools=self._schema_convert_tools(tools)
         )
-        return response
+
+        # as long as the model sends back tool_calls,
+        # keep invoking tools and sending the results back to the model
+        while response.tool_calls:
+          logging.debug(response.text) # This will be an observation and a plan with next steps
+          tool_results = []
+          for call in response.tool_calls:
+            logging.debug(call)
+            # use the `web_search` tool with the search query the model sent back
+            results = {"call": call, "outputs": fail(call.parameters["query"])} # 🚧  Placeholder to determine how to find function and call it
+            tool_results.append(results)
+            
+          # call chat again with tool results
+          response = client.chat(
+            model=self.name,
+            chat_history=response.chat_history,
+            message="",
+            force_single_step=force_single_step,
+            tools=self._schema_convert_tools(tools),
+            tool_results=tool_results
+          )
+
+        return response.text
