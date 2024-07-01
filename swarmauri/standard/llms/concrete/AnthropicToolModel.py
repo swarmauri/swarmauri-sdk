@@ -7,8 +7,10 @@ from swarmauri.standard.schema_converters.concrete.AnthropicSchemaConverter impo
 
 class AnthropicToolModel(LLMBase):
     api_key: str
-    allowed_models: List[str] = ['']
-    name: str = "command-light"
+    allowed_models: List[str] = ['claude-3-haiku-20240307',
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229']
+    name: str = "claude-3-haiku-20240307"
     type: Literal['AnthropicToolModel'] = 'AnthropicToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:

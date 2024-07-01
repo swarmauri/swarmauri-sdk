@@ -9,7 +9,10 @@ from swarmauri.standard.schema_converters.concrete.CohereSchemaConverter import 
 
 class CohereToolModel(LLMBase):
     api_key: str
-    allowed_models: List[str] = ['']
+    allowed_models: List[str] = ['command-light',
+    'command', 
+    'command-r',
+    'command-r-plus']
     name: str = "command-light"
     type: Literal['CohereToolModel'] = 'CohereToolModel'
     
