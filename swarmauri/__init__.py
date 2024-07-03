@@ -1,4 +1,4 @@
-__version__ = "0.3.7.dev8"
+__version__ = "0.3.7.dev9"
 __long_desc__ = """
 # swarmaURI sdk
 
@@ -19,5 +19,11 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 ## Experimental
 - Components in development
 
+# Features
+
+- Polymorphism
+- Discriminated Unions
+- Serialization
+- Intensional and Extensional Programming
 
 """

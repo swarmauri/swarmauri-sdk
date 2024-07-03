@@ -6,7 +6,7 @@ from typing import TypeVar, Generic, Union, Annotated, Type
 class SubclassUnion(Generic[ComponentType]):
 
     @classmethod
-    def __class_getitem__(cls, baseclass:):
+    def __class_getitem__(cls, baseclass):
         subclasses = cls.__swm__get_subclasses__(baseclass)
         return Union[tuple(subclasses)]
 
