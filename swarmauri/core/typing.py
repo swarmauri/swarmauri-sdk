@@ -40,12 +40,7 @@ class SubclassUnion(Generic[ComponentType]):
             'oneOf': [{'type': 'object', '$ref': f'#/definitions/{sub.__name__}'} for sub in subclasses]
         }
 
-    def __class_getitem__(cls, item: Type[ComponentType]):
-        logging.info(Annotated[
-            Union[tuple(item.get_subclasses())],
-            Field(discriminator='type')
-        ])
-        return Annotated[
-            Union[tuple(item.get_subclasses())],
-            Field(discriminator='type')
-        ]
+    @classmethod
+    def __class_getitem__(cls, baseclass: Type[ComponentType]):
+        subclasses = baseclass.__swm__get_subclasses__()
+        return Union[tuple(subclasses)]

@@ -1,9 +1,22 @@
-from typing import Optional, List, Literal, TypeVar, Type, Union, Annotated, Generic, ClassVar
+from typing import (
+    Optional, 
+    List,
+    Literal, 
+    TypeVar, 
+    Type, 
+    Union, 
+    Annotated, 
+    Generic, 
+    ClassVar, 
+    Set,
+    get_args)
+
 from uuid import uuid4
 from enum import Enum
 import inspect
 import hashlib
 from pydantic import BaseModel, Field, field_validator
+import logging
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = 'ComponentBase'
@@ -48,16 +61,17 @@ class ComponentBase(BaseModel):
     host: Optional[str] = None
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
+    __swm_subclasses__: ClassVar[Set[Type['BaseComponent']]] = set()
     type: Literal['ComponentBase'] = 'ComponentBase'
     
-    @field_validator('type')
-    def set_type(cls, v, values):
-        if v == 'ComponentBase' and cls.__name__ != 'ComponentBase':
-            return cls.__name__
-        return v
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        BaseComponent.__swm_register_subclass__(cls)
+    
     @classmethod
-    def get_subclasses(cls) -> set:
+    def __swm__get_subclasses__(cls) -> set:
+        logging.debug('__swm__get_subclasses__ executed\n')
         def is_excluded_module(module_name: str) -> bool:
             return (module_name == 'builtins' or 
                     module_name == 'types')
@@ -65,10 +79,55 @@ class ComponentBase(BaseModel):
         subclasses_dict = {cls.__name__: cls}
         for subclass in cls.__subclasses__():
             if not is_excluded_module(subclass.__module__):
-                subclasses_dict.update({_s.__name__: _s for _s in subclass.get_subclasses() 
+                subclasses_dict.update({_s.__name__: _s for _s in subclass.__swm__get_subclasses__() 
                     if not is_excluded_module(_s.__module__)})
 
         return set(subclasses_dict.values())
+    
+    @classmethod
+    def __swm_register_subclass__(cls, subclass):
+        logging.debug('__swm_register_subclass__ executed\n')
+        
+        sub_type = subclass.__annotations__['type']
+        if sub_type not in [subclass.__annotations__['type'] for subclass in cls.__swm_subclasses__]:
+            cls.__swm_subclasses__.add(subclass)
+
+        # [subclass.__swm_reset_class__()  for subclass in cls.__swm_subclasses__ 
+        #  if hasattr(subclass, '__swm_reset_class__')]
+    
+    
+    @classmethod
+    def __swm_reset_class__(cls):
+        logging.debug('__swm_reset_class__ executed\n')
+        for each in cls.__fields__:
+            logging.debug(each, cls.__fields__[each].discriminator)
+            if (cls.__fields__[each].discriminator and each in cls.__annotations__
+               ):
+                if len(get_args(cls.__fields__[each].annotation)) > 0:
+                    for x in range(0, len(get_args(cls.__fields__[each].annotation))):
+                        if hasattr(get_args(cls.__fields__[each].annotation)[x], '__base__'):
+                            if (hasattr(get_args(cls.__fields__[each].annotation)[x].__base__, '__swm_subclasses__') and
+                            not get_args(cls.__fields__[each].annotation)[x].__base__.__name__ == 'ComponentBase'):
+
+                                baseclass = get_args(cls.__fields__[each].annotation)[x].__base__
+         
+                                sc = SubclassUnion[baseclass]
+                                
+                                cls.__annotations__[each] = sc
+                                cls.__fields__[each].annotation = sc
+
+        
+        # This is not necessary as the model_rebuild address forward_refs 
+        # https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel.model_post_init
+        # cls.update_forward_refs() 
+        cls.model_rebuild(force=True)
+
+
+    @field_validator('type')
+    def set_type(cls, v, values):
+        if v == 'ComponentBase' and cls.__name__ != 'ComponentBase':
+            return cls.__name__
+        return v
 
     def _calculate_class_hash(self):
         sig_hash = hashlib.sha256()
