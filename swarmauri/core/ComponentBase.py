@@ -61,13 +61,13 @@ class ComponentBase(BaseModel):
     host: Optional[str] = None
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
-    __swm_subclasses__: ClassVar[Set[Type['BaseComponent']]] = set()
+    __swm_subclasses__: ClassVar[Set[Type['ComponentBase']]] = set()
     type: Literal['ComponentBase'] = 'ComponentBase'
     
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        BaseComponent.__swm_register_subclass__(cls)
+        ComponentBase.__swm_register_subclass__(cls)
     
     @classmethod
     def __swm__get_subclasses__(cls) -> set:
