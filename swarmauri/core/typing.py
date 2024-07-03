@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import TypeVar, Generic, Union, Annotated, Type
 
 
-class SubclassUnion(Generic[ComponentType]):
+class SubclassUnion:
 
     @classmethod
     def __class_getitem__(cls, baseclass):
