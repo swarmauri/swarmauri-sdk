@@ -39,45 +39,8 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         conversation.add_message(human_message)
 
         #predict a response        
-        prediction = llm.predict(messages=conversation.history, 
+        agent_response = llm.predict(messages=conversation.history, 
                                    toolkit=toolkit, 
                                    tool_choice="auto", 
                                    **llm_kwargs)
-        
-        prediction_message = prediction.choices[0].message
-        
-        agent_response = prediction_message.content
-        
-        agent_message = AgentMessage(content=prediction_message, 
-                                     tool_calls=prediction_message.tool_calls)
-        conversation.add_message(agent_message)
-        
-        tool_calls = prediction.choices[0].message.tool_calls
-        if tool_calls:
-        
-            for tool_call in tool_calls:
-                func_name = tool_call.function.name
-                
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call.function.arguments)
-                func_result = func_call(**func_args)
-                
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call.id)
-                conversation.add_message(func_message)
-            
-            
-            rag_prediction = llm.predict(messages=conversation.history, 
-                                           toolkit=toolkit, 
-                                           tool_choice="none",
-                                           **llm_kwargs)
-            
-            prediction_message = rag_prediction.choices[0].message
-            
-            agent_response = prediction_message.content
-            agent_message = AgentMessage(content=agent_response)
-            conversation.add_message(agent_message)
-            prediction = rag_prediction
-            
-        return agent_response 
+        return agent_response
