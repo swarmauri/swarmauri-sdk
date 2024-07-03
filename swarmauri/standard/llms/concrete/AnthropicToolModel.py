@@ -2,7 +2,11 @@ import json
 from typing import List, Dict, Literal, Any
 import logging
 import anthropic
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.standard.messages.concrete.FunctionMessage import FunctionMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.AnthropicSchemaConverter import AnthropicSchemaConverter
 
@@ -22,7 +26,7 @@ class AnthropicToolModel(LLMBase):
         logging.info(schema_result)
         return schema_result
 
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
@@ -48,7 +52,7 @@ class AnthropicToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
-        
+
         agent_message = AgentMessage(content=tool_response.choices[0].message.content, 
                                      tool_calls=tool_response.choices[0].message.tool_calls)
         conversation.add_message(agent_message)
