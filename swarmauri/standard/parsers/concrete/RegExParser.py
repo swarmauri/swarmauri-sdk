@@ -1,5 +1,5 @@
 import re
-from typing import List, Union, Any, Literal
+from typing import List, Union, Any, Literal, Pattern
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
@@ -7,7 +7,7 @@ class RegExParser(ParserBase):
     """
     A parser that uses a regular expression to extract information from text.
     """
-    pattern: str
+    pattern: Pattern = re.compile(r'\d+')
     type: Literal['RegExParser'] = 'RegExParser'
     
     def parse(self, data: Union[str, Any]) -> List[Document]:
@@ -27,7 +27,7 @@ class RegExParser(ParserBase):
             data = str(data)
 
         # Use the regular expression pattern to find all matches in the text
-        matches = re.findall(self.pattern, data)
+        matches = self.pattern.findall(data)
 
         # Create a Document for each match and collect them into a list
         documents = [Document(content=match, metadata={}) for i, match in enumerate(matches)]
