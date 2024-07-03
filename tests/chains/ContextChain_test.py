@@ -61,4 +61,4 @@ def test_serialization():
 
     # Assert
     assert chain.context['test_result'] == '3'
-    assert chain.id == ContextChain.model_validate_json(chain.json()).id
+    assert chain.id == ContextChain.model_validate_json(chain.model_dump_json()).id

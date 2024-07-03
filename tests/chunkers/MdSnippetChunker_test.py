@@ -72,4 +72,4 @@ Here we have some text:
 @pytest.mark.unit
 def test_serialization():
 	chunker = MdSnippetChunker()
-	assert chunker.id == MdSnippetChunker.model_validate_json(chunker.json()).id
+	assert chunker.id == MdSnippetChunker.model_validate_json(chunker.model_dump_json()).id

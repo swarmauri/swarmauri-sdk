@@ -13,7 +13,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     distance = JaccardIndexDistance()
-    assert distance.id == JaccardIndexDistance.model_validate_json(distance.json()).id
+    assert distance.id == JaccardIndexDistance.model_validate_json(distance.model_dump_json()).id
 
 @pytest.mark.unit
 def test_distance():

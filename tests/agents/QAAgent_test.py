@@ -33,4 +33,4 @@ def test_serialization():
     llm = GroqModel(api_key = API_KEY)
     
     agent = QAAgent(llm=llm)
-    assert agent.id == QAAgent.model_validate_json(agent.json()).id
+    assert agent.id == QAAgent.model_validate_json(agent.model_dump_json()).id

@@ -30,4 +30,4 @@ def test_serialization():
     args = (1,2)
     kwargs = {}
     step = ChainStep(key='test', method=tool, args=args, kwargs=kwargs, ref=None)
-    assert step.id == ChainStep.model_validate_json(step.json()).id
+    assert step.id == ChainStep.model_validate_json(step.model_dump_json()).id

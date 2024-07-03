@@ -27,7 +27,7 @@ def test_serialization():
 	step_size = 21
 	overlap = True
 	chunker = SlidingWindowChunker(overlap=overlap, step_size=step_size)
-	assert chunker.id == SlidingWindowChunker.model_validate_json(chunker.json()).id
+	assert chunker.id == SlidingWindowChunker.model_validate_json(chunker.model_dump_json()).id
 	assert chunker.step_size == step_size
 	assert chunker.overlap == overlap
 

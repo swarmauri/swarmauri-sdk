@@ -46,7 +46,7 @@ def test_serialization():
     agent = ToolAgent(llm=llm, 
         conversation=conversation,
         toolkit=toolkit)
-    assert agent.id == ToolAgent.model_validate_json(agent.json()).id
+    assert agent.id == ToolAgent.model_validate_json(agent.model_dump_json()).id
 
 @pytest.mark.unit
 def test_agent_exec():

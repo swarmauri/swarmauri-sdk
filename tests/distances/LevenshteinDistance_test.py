@@ -13,7 +13,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     distance = LevenshteinDistance()
-    assert distance.id == LevenshteinDistance.model_validate_json(distance.json()).id
+    assert distance.id == LevenshteinDistance.model_validate_json(distance.model_dump_json()).id
 
 @pytest.mark.unit
 def test_distance():

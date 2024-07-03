@@ -69,7 +69,7 @@ def test_serialization():
         system_context=system_context,
         vector_store=vector_store
         )
-    assert agent.id == RagAgent.model_validate_json(agent.json()).id
+    assert agent.id == RagAgent.model_validate_json(agent.model_dump_json()).id
 
 @pytest.mark.integration
 def test_agent_exec():

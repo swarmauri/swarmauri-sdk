@@ -14,7 +14,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
 	vector = Vector(value=[1,2])
-	assert vector.id == Vector.model_validate_json(vector.model_dump()).id
+	assert vector.id == Vector.model_validate_json(vector.model_dump_json()).id
 
 @pytest.mark.unit
 def test_value_assertion():

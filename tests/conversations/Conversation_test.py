@@ -15,4 +15,4 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     conversation = Conversation()
-    assert conversation.id == Conversation.model_validate_json(conversation.json()).id
+    assert conversation.id == Conversation.model_validate_json(conversation.model_dump_json()).id

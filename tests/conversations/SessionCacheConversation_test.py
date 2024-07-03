@@ -15,7 +15,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     conversation = SessionCacheConversation(system_context=SystemMessage(content='systest'), max_size=4)
-    assert conversation.id == SessionCacheConversation.model_validate_json(conversation.json()).id
+    assert conversation.id == SessionCacheConversation.model_validate_json(conversation.model_dump_json()).id
 
 @pytest.mark.unit
 def test_standard_alternating_agent_ending():

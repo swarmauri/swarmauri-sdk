@@ -14,7 +14,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
 	prompt_matrix = PromptMatrix(matrix=[["1","2"],["3","4"]])
-	assert prompt_matrix.id == PromptMatrix.model_validate_json(prompt_matrix.model_dump()).id
+	assert prompt_matrix.id == PromptMatrix.model_validate_json(prompt_matrix.model_dump_json()).id
 
 @pytest.mark.unit
 def shape_interface_test():

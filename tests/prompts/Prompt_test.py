@@ -13,7 +13,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     prompt = Prompt(prompt='test')
-    assert prompt.id == Prompt.model_validate_json(prompt.model_dump()).id
+    assert prompt.id == Prompt.model_validate_json(prompt.model_dump_json()).id
 
 @pytest.mark.unit
 def test_call():

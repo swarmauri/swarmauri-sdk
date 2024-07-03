@@ -17,7 +17,7 @@ def test_ubc_type():
 def test_serialization():
 	variables_list = [{"number": 100}, {"number": 200}, {"number": -1}]
 	pg = PromptGenerator(template="We have {number} items", variables=variables_list)
-	assert pg.id == PromptGenerator.model_validate_json(pg.model_dump()).id
+	assert pg.id == PromptGenerator.model_validate_json(pg.model_dump_json()).id
 	assert pg.variables == variables_list
 
 @pytest.mark.unit

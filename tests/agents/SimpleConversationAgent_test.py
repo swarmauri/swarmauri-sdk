@@ -31,7 +31,7 @@ def test_serialization():
     conversation=Conversation()
     agent = SimpleConversationAgent(conversation=conversation, 
                                         llm=llm)
-    assert agent.id == SimpleConversationAgent.model_validate_json(agent.json()).id
+    assert agent.id == SimpleConversationAgent.model_validate_json(agent.model_dump_json()).id
 
 @pytest.mark.unit
 def test_agent_exec():

@@ -12,7 +12,8 @@ class ChunkerBase(ComponentBase, ABC):
     chunking algorithms.
     """
     resource: Optional[str] =  Field(default=ResourceTypes.CHUNKER.value)
-
+    type: Literal['ChunkerBase'] = 'ChunkerBase'
+    
     @abstractmethod
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[Any]:
         pass

@@ -12,7 +12,7 @@ def test_ubc_resource():
 def test_initialization():
     def test():
         tool = CalculatorTool()
-        assert type(tool.path) == str
+        assert type(tool.swm_path) == str
         assert type(tool.id) == str
 
     test()

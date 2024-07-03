@@ -24,7 +24,7 @@ def test_ubc_type():
 def test_serialization():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     llm = LLM(api_key = API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.json()).id
+    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
 
 @pytest.mark.unit
 def test_default_name():

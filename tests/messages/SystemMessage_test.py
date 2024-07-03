@@ -14,7 +14,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     message = SystemMessage(content='test')
-    assert message.id == SystemMessage.model_validate_json(message.json()).id
+    assert message.id == SystemMessage.model_validate_json(message.model_dump_json()).id
 
 @pytest.mark.unit
 def test_content():

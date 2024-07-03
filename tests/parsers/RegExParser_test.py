@@ -24,7 +24,7 @@ def test_serialization():
 
     # Create an instance of RegExParser with the email pattern
     parser = Parser(pattern=email_pattern)
-    assert parser.id == Parser.model_validate_json(parser.json()).id
+    assert parser.id == Parser.model_validate_json(parser.model_dump_json()).id
 
 @pytest.mark.unit
 def test_parse():

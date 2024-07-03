@@ -12,7 +12,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
 	embedder = Doc2VecEmbedding()
-	assert embedder.id == Doc2VecEmbedding.model_validate_json(embedder.json()).id
+	assert embedder.id == Doc2VecEmbedding.model_validate_json(embedder.model_dump_json()).id
 
 @pytest.mark.unit
 def test_fit_transform():

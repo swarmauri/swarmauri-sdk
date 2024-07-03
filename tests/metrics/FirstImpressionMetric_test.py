@@ -14,7 +14,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     metric = Metric(unit='points', value=10)
-    assert metric.id == Metric.model_validate_json(metric.json()).id
+    assert metric.id == Metric.model_validate_json(metric.model_dump_json()).id
 
 @pytest.mark.unit
 def test_metric_value():

@@ -15,7 +15,7 @@ def test_ubc_type():
 def test_serialization():
     element_tag = 'test'
     parser = Parser(element_tag=element_tag)
-    assert parser.id == Parser.model_validate_json(parser.json()).id
+    assert parser.id == Parser.model_validate_json(parser.model_dump_json()).id
     assert parser.element_tag == element_tag
 
 @pytest.mark.unit
