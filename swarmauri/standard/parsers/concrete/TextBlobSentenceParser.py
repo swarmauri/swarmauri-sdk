@@ -13,6 +13,11 @@ class TextBlobSentenceParser(ParserBase):
     """
     type: Literal['TextBlobSentenceParser'] = 'TextBlobSentenceParser'
     
+    def __init__(self, **kwargs):
+        import nltk
+        nltk.download('punkt')
+        super().__init__(**kwargs)
+
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input text into sentence-based document chunks using TextBlob.

@@ -11,10 +11,12 @@ class TextBlobNounParser(ParserBase):
     sentiment analysis, classification, language translation, and more for parsing texts.
     """
     type: Literal['TextBlobNounParser'] = 'TextBlobNounParser'
+    
     def __init__(self, **kwargs):
         import nltk
-        nltk.download('brown')
+        nltk.download('punkt')
         super().__init__(**kwargs)
+        
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data using TextBlob to perform basic NLP tasks 
