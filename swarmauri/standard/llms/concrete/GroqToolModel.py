@@ -6,6 +6,9 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.GroqSchemaConverter import GroqSchemaConverter
 
 class GroqToolModel(LLMBase):
+    """
+    Provider Documentation: https://console.groq.com/docs/tool-use#models
+    """
     api_key: str
     allowed_models: List[str] = ['llama3-8b-8192', 
     'llama3-70b-8192', 
