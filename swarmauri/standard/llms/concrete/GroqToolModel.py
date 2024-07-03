@@ -1,6 +1,8 @@
 from groq import Groq
 import json
 from typing import List, Literal, Dict, Any
+from swarmauri.core.typing import SubclassUnion
+
 from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.FunctionMessage import FunctionMessage
