@@ -17,6 +17,7 @@ import inspect
 import hashlib
 from pydantic import BaseModel, Field, field_validator
 import logging
+from swarmauri.core.typing import SubclassUnion
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = 'ComponentBase'
