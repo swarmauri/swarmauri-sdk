@@ -43,6 +43,4 @@ class GroqToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
-        result = json.loads(response.json())
-        message_content = result['choices'][0]['message']['content']
-        return message_content
+        return response

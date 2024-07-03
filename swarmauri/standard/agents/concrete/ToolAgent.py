@@ -41,6 +41,5 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         #predict a response        
         agent_response = llm.predict(messages=conversation.history, 
                                    toolkit=toolkit, 
-                                   tool_choice="auto", 
                                    **llm_kwargs)
         return agent_response

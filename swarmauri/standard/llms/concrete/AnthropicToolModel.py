@@ -6,6 +6,9 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.AnthropicSchemaConverter import AnthropicSchemaConverter
 
 class AnthropicToolModel(LLMBase):
+    """
+    Provider resources: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+    """
     api_key: str
     allowed_models: List[str] = ['claude-3-haiku-20240307',
     'claude-3-opus-20240229',
@@ -32,7 +35,7 @@ class AnthropicToolModel(LLMBase):
 
         client = anthropic.Anthropic(api_key=self.api_key)
         if toolkit and not tool_choice:
-            tool_choice = "auto"
+            tool_choice = {"type":"auto"}
 
         response = client.messages.create(
             model=self.name,
