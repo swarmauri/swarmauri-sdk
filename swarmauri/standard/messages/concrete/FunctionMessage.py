@@ -1,11 +1,11 @@
-from typing import Literal
+from typing import Literal, Optional, Any
 from pydantic import Field
 from swarmauri.standard.messages.base.MessageBase import MessageBase
-
 
 class FunctionMessage(MessageBase):
     content: str
     role: str = Field(default='tool')
     tool_call_id: str
     name: str
-    type: Literal['FunctionMessage'] = 'FunctionMessage'    
+    type: Literal['FunctionMessage'] = 'FunctionMessage'
+    usage: Optional[Any] = None # 🚧 Placeholder for CompletionUsage(input_tokens, output_tokens, completion time, etc)

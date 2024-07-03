@@ -8,4 +8,4 @@ class MessageBase(IMessage, ComponentBase):
     role: str
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     resource: Optional[str] =  Field(default=ResourceTypes.MESSAGE.value, frozen=True)
-    type: Literal['MessageBase'] = 'MessageBase'    
+    type: Literal['MessageBase'] = 'MessageBase'

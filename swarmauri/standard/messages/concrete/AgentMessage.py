@@ -6,4 +6,5 @@ class AgentMessage(MessageBase):
     content: str
     role: str = Field(default='assistant')
     tool_calls: Optional[Any] = None
-    type: Literal['AgentMessage'] = 'AgentMessage'    
+    type: Literal['AgentMessage'] = 'AgentMessage'
+    usage: Optional[Any] = None # 🚧 Placeholder for CompletionUsage(input_tokens, output_tokens, completion time, etc)
