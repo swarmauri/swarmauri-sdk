@@ -20,4 +20,4 @@ def test_serialization():
 def test_fit_transform():
 	embedder = SpatialDocEmbedding()
 	embedder.fit_transform(['test', 'test1', 'test2'])
-	assert type(embedder.infer_vector('test4')) == float
+	assert embedder.infer_vector('test4').resource == 'Vector'
