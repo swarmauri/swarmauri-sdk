@@ -87,9 +87,13 @@ class ComponentBase(BaseModel):
     def __swm_register_subclass__(cls, subclass):
         logging.debug('__swm_register_subclass__ executed\n')
         
-        sub_type = subclass.__annotations__['type']
-        if sub_type not in [subclass.__annotations__['type'] for subclass in cls.__swm_subclasses__]:
-            cls.__swm_subclasses__.add(subclass)
+        if 'type' in subclass.__annotations__:
+            sub_type = subclass.__annotations__['type']
+            if sub_type not in [subclass.__annotations__['type'] for subclass in cls.__swm_subclasses__]:
+                cls.__swm_subclasses__.add(subclass)
+        else:
+            logging.warning(f'Subclass {subclass.__name__} does not have a type annotation')
+
 
         # [subclass.__swm_reset_class__()  for subclass in cls.__swm_subclasses__ 
         #  if hasattr(subclass, '__swm_reset_class__')]
