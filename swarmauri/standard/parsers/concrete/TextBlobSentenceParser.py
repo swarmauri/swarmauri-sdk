@@ -4,14 +4,14 @@ from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
 
-class TextBlobParser(ParserBase):
+class TextBlobSentenceParser(ParserBase):
     """
     A parser that leverages TextBlob to break text into sentences.
 
     This parser uses the natural language processing capabilities of TextBlob
     to accurately identify sentence boundaries within large blocks of text.
     """
-    type: Literal['TextBlobParser'] = 'TextBlobParser'
+    type: Literal['TextBlobSentenceParser'] = 'TextBlobSentenceParser'
     
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
@@ -33,7 +33,7 @@ class TextBlobParser(ParserBase):
 
         # Create a document instance for each sentence
         documents = [
-            Document(content=str(sentence), metadata={'parser': 'TextBlobParser'})
+            Document(content=str(sentence), metadata={'parser': 'TextBlobSentenceParser'})
             for index, sentence in enumerate(sentences)
         ]
 
