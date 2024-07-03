@@ -12,13 +12,8 @@ class PerplexityModel(LLMBase):
         'llama-3-sonar-large-32k-online',
         'llama-3-8b-instruct',
         'llama-3-70b-instruct',
-        'mixtral-8x7b-instruct',
-        'pplx-7b-online',
-        'pplx-70b-online',
-        'nemotron-4-340b-instruct',
-        'gemma-2-9b-it',
-        'gemma-2-27b-it']
-    name: str = "pplx-7b-online"
+        'mixtral-8x7b-instruct']
+    name: str = "mixtral-8x7b-instruct"
     type: Literal['PerplexityModel'] = 'PerplexityModel'
     
     def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
