@@ -39,7 +39,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         conversation.add_message(human_message)
 
         #predict a response        
-        agent_response = llm.predict(messages=conversation.history, 
-                                   toolkit=toolkit, 
-                                   **llm_kwargs)
-        return agent_response
+        llm.predict(conversation=conversation, toolkit=toolkit, **llm_kwargs)
+
+        return conversation.get_last().content
