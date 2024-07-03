@@ -9,7 +9,8 @@ from typing import (
     Generic, 
     ClassVar, 
     Set,
-    get_args)
+    get_args,
+    ForwardRef)
 
 from uuid import uuid4
 from enum import Enum
@@ -112,7 +113,7 @@ class ComponentBase(BaseModel):
 
                                 baseclass = get_args(cls.__fields__[each].annotation)[x].__base__
          
-                                sc = SubclassUnion[baseclass]
+                                sc = ForwardRef('SubclassUnion')[baseclass]
                                 
                                 cls.__annotations__[each] = sc
                                 cls.__fields__[each].annotation = sc
@@ -130,7 +131,7 @@ class ComponentBase(BaseModel):
             return cls.__name__
         return v
 
-    def _calculate_class_hash(self):
+    def __swm_class_hash__(self):
         sig_hash = hashlib.sha256()
         for attr_name in dir(self):
             attr_value = getattr(self, attr_name)
@@ -140,7 +141,7 @@ class ComponentBase(BaseModel):
         return sig_hash.hexdigest()
 
     @classmethod
-    def public_interfaces(cls):
+    def swm_public_interfaces(cls):
         methods = []
         for attr_name in dir(cls):
             attr_value = getattr(cls, attr_name)
@@ -149,11 +150,11 @@ class ComponentBase(BaseModel):
         return methods
 
     @classmethod
-    def is_method_registered(cls, method_name: str):
+    def swm_ismethod_registered(cls, method_name: str):
         return method_name in cls.public_interfaces()
 
     @classmethod
-    def method_with_signature(cls, input_signature):
+    def swm_method_signature(cls, input_signature):
         for method_name in cls.public_interfaces():
             method = getattr(cls, method_name)
             if callable(method):
@@ -163,7 +164,7 @@ class ComponentBase(BaseModel):
         return False
 
     @property
-    def path(self):
+    def swm_path(self):
         if self.host and self.owner:
             return f"{self.host}/{self.owner}/{self.resource}/{self.name}/{self.id}"
         if self.resource and self.name:
@@ -171,13 +172,5 @@ class ComponentBase(BaseModel):
         return f"/{self.resource}/{self.id}"
 
     @property
-    def class_name(self):
-        return self.__class__.__name__
-
-    @property
-    def class_hash(self):
-        return self._calculate_class_hash()
-
-    @property
-    def is_remote(self):
+    def swm_is_remote(self):
         return bool(self.host)
