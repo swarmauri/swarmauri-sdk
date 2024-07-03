@@ -38,7 +38,7 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7, 
         max_tokens=1024):
 
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         client = anthropic.Anthropic(api_key=self.api_key)
         if toolkit and not tool_choice:
