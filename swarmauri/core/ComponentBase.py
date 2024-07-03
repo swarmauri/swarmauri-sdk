@@ -9,8 +9,7 @@ from typing import (
     Generic, 
     ClassVar, 
     Set,
-    get_args,
-    ForwardRef)
+    get_args)
 
 from uuid import uuid4
 from enum import Enum
@@ -111,7 +110,7 @@ class ComponentBase(BaseModel):
 
                                 baseclass = get_args(cls.__fields__[each].annotation)[x].__base__
          
-                                sc = ForwardRef('SubclassUnion')[baseclass]
+                                sc = SubclassUnion[baseclass]
                                 
                                 cls.__annotations__[each] = sc
                                 cls.__fields__[each].annotation = sc
