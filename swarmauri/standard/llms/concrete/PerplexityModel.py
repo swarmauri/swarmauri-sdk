@@ -1,7 +1,9 @@
 import json
 from typing import List, Dict, Literal, Optional
 import requests
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class PerplexityModel(LLMBase):
@@ -16,12 +18,13 @@ class PerplexityModel(LLMBase):
     name: str = "mixtral-8x7b-instruct"
     type: Literal['PerplexityModel'] = 'PerplexityModel'
     
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
     
-    def predict(self, messages: List[IMessage], 
+    def predict(self, 
+        conversation, 
         temperature=0.7, 
         max_tokens=256, 
         top_p: Optional[float] = None,
@@ -36,7 +39,7 @@ class PerplexityModel(LLMBase):
             raise ValueError('Do not set top_p and top_k')
 
 
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         url = "https://api.perplexity.ai/chat/completions"
 

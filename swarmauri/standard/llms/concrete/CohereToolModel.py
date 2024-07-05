@@ -27,12 +27,12 @@ class CohereToolModel(LLMBase):
         return formatted_messages
 
     def predict(self, 
-        messages: List[IMessage], 
+        conversation, 
         toolkit=None, 
         force_single_step = False,
         max_tokens=1024):
 
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         client = cohere.Client(api_key=self.api_key)
         preamble = "" # 🚧  Placeholder for implementation logic

@@ -1,7 +1,9 @@
 import json
 from typing import List, Dict, Literal
 import anthropic
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class AnthropicModel(LLMBase):
@@ -15,7 +17,7 @@ class AnthropicModel(LLMBase):
     name: str = "claude-3-haiku-20240307"
     type: Literal['AnthropicModel'] = 'AnthropicModel'
 
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
        # Get only the properties that we require
         message_properties = ["content", "role"]
 
@@ -23,7 +25,7 @@ class AnthropicModel(LLMBase):
         formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
         return formatted_messages
 
-    def _get_system_context(self, messages: List[IMessage]) -> str:
+    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
         system_context = None
         for message in messages:
             if message.role == 'system':
@@ -31,7 +33,8 @@ class AnthropicModel(LLMBase):
         return system_context
 
     
-    def predict(self, messages: List[IMessage], 
+    def predict(self, 
+        conversation, 
         temperature=0.7, 
         max_tokens=256):
 
@@ -39,8 +42,8 @@ class AnthropicModel(LLMBase):
         client = anthropic.Anthropic(api_key=self.api_key)
         
         # Get system_context from last message with system context in it
-        system_context = self._get_system_context(messages)
-        formatted_messages = self._format_messages(messages)
+        system_context = self._get_system_context(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
 
         if system_context:
             response = client.messages.create(

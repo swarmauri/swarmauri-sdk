@@ -1,7 +1,9 @@
 import json
 from typing import List, Dict, Literal
 import google.generativeai as genai
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 
@@ -11,7 +13,7 @@ class GeminiProModel(LLMBase):
     name: str = "gemini-1.5-pro-latest"
     type: Literal['GeminiProModel'] = 'GeminiProModel'
     
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         # Remove system instruction from messages
         message_properties = ['content', 'role']
         sanitized_messages = [message.model_dump(include=message_properties) for message in messages 
@@ -26,14 +28,17 @@ class GeminiProModel(LLMBase):
 
         return sanitized_messages
 
-    def _get_system_context(self, messages: List[IMessage]) -> str:
+    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
         system_context = None
         for message in messages:
             if message.role == 'system':
                 system_context = message.content
         return system_context
     
-    def predict(self, messages: List[IMessage], temperature=0.7, max_tokens=256):
+    def predict(self, 
+        conversation, 
+        temperature=0.7, 
+        max_tokens=256):
         genai.configure(api_key=self.api_key)
         generation_config = {
             "temperature": temperature,
@@ -62,8 +67,8 @@ class GeminiProModel(LLMBase):
         ]
 
 
-        system_context = self._get_system_context(messages)
-        formatted_messages = self._format_messages(messages)
+        system_context = self._get_system_context(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
 
 
         next_message = formatted_messages.pop()

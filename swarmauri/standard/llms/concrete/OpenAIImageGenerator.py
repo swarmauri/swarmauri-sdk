@@ -9,8 +9,11 @@ class OpenAIImageGenerator(LLMBase):
     name: str = "dall-e"
     type: Literal['OpenAIImageGenerator'] = 'OpenAIImageGenerator'
 
-    def predict(self, prompt: str, size: str = "1024x1024", 
-                quality: str = "standard", n: int = 1) -> str:
+    def predict(self, 
+        prompt: str, 
+        size: str = "1024x1024", 
+        quality: str = "standard", 
+        n: int = 1) -> str:
         """
         Generates an image based on the given prompt and other parameters.
 
