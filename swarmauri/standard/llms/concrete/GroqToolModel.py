@@ -77,10 +77,8 @@ class GroqToolModel(LLMBase):
             agent_response = client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
-                temperature=temperature,
                 max_tokens=max_tokens,
-                tools=self._schema_convert_tools(toolkit.tools),
-                tool_choice=tool_choice,
+                temperature=temperature
             )
             logging.info(agent_response)
             agent_message = AgentMessage(content=agent_response.choices[0].message.content)
