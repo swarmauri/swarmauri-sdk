@@ -36,10 +36,10 @@ class CohereModel(LLMBase):
         temperature=0.7, 
         max_tokens=256):
         # Get next message
-        next_message = messages.pop().content
+        next_messgae = conversation.history[-1]
 
         # Format chat_history
-        messages = self._format_messages(conversation.history)
+        messages = self._format_messages(conversation.history[:-1])
 
 
         client = cohere.Client(api_key=self.api_key)
