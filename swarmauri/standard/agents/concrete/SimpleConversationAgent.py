@@ -17,14 +17,10 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
-        conversation = self.conversation
-        llm = self.llm
-
-        # Construct a new human message (for example purposes)
+        
         if input_str:
             human_message = HumanMessage(content=input_str)
             conversation.add_message(human_message)
         
-        prediction = llm.predict(messages=conversation.history, **llm_kwargs)
-        conversation.add_message(AgentMessage(content=prediction))
-        return prediction 
+        self.llm.predict(conversatoin = self.conversation, **llm_kwargs)
+        return self.conversation.get_last().content
