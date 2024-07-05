@@ -60,7 +60,7 @@ class RagAgent(AgentRetrieveMixin,
                 raise TypeError("Input data must be a string or an instance of Message.")
             
             # Add the human message to the conversation
-            conversation.add_message(human_message)
+            self.conversation.add_message(human_message)
 
             # Retrieval and set new substr for system context
             if top_k > 0 and len(self.vector_store.documents) > 0:

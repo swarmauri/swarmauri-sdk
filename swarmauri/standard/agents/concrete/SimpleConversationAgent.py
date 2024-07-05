@@ -20,7 +20,7 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         
         if input_str:
             human_message = HumanMessage(content=input_str)
-            conversation.add_message(human_message)
+            self.conversation.add_message(human_message)
         
         self.llm.predict(conversatoin = self.conversation, **llm_kwargs)
         return self.conversation.get_last().content
