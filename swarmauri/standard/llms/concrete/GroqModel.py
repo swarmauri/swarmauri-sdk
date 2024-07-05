@@ -28,7 +28,7 @@ class GroqModel(LLMBase):
         enable_json: bool = False, 
         stop: Optional[List[str]] = None) -> str:
 
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         client = Groq(api_key=self.api_key)
         stop = stop or []

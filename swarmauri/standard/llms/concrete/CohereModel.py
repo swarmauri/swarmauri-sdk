@@ -36,7 +36,7 @@ class CohereModel(LLMBase):
         temperature=0.7, 
         max_tokens=256):
         # Get next message
-        next_messgae = conversation.history[-1]
+        next_message = conversation.history[-1].content
 
         # Format chat_history
         messages = self._format_messages(conversation.history[:-1])
