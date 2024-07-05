@@ -51,9 +51,6 @@ class RagAgent(AgentRetrieveMixin,
              llm_kwargs: Optional[Dict] = {}
              ) -> Any:
         try:
-            conversation = self.conversation
-            llm = self.llm
-
             # Check if the input is a string, then wrap it in a HumanMessage
             if isinstance(input_data, str):
                 human_message = HumanMessage(content=input_data)
@@ -86,20 +83,17 @@ class RagAgent(AgentRetrieveMixin,
                 
             # Use substr to set system context
             system_context = SystemMessage(content=substr)
-            conversation.system_context = system_context
+            self.conversation.system_context = system_context
             
 
             # Retrieve the conversation history and predict a response
             if llm_kwargs:
-                prediction = llm.predict(messages=conversation.history, **llm_kwargs)
+                self.llm.predict(conversation=self.conversation, **llm_kwargs)
             else:
-                prediction = llm.predict(messages=conversation.history)
+                self.llm.predict(conversation=self.conversation)
                 
-            # Create an AgentMessage instance with the model's response and update the conversation
-            agent_message = AgentMessage(content=prediction)
-            conversation.add_message(agent_message)
-            
-            return prediction
+            return self.conversation.get_last().content
+
         except Exception as e:
             print(f"RagAgent error: {e}")
             raise e
