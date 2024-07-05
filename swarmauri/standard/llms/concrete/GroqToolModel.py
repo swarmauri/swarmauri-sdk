@@ -1,6 +1,7 @@
 from groq import Groq
 import json
 from typing import List, Literal, Dict, Any
+import logging
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -50,6 +51,7 @@ class GroqToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
+        logging.info(tool_response)
 
         agent_message = AgentMessage(content=tool_response.choices[0].message.content, 
                                      tool_calls=tool_response.choices[0].message.tool_calls)
@@ -80,6 +82,7 @@ class GroqToolModel(LLMBase):
                 tools=self._schema_convert_tools(toolkit.tools),
                 tool_choice=tool_choice,
             )
+            logging.info(agent_response)
             agent_message = AgentMessage(content=agent_response.choices[0].message.content)
             conversation.add_message(agent_message)
         return conversation

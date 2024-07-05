@@ -1,6 +1,7 @@
+from pydantic import ConfigDict
 from typing import Any, Optional, Union, Dict, Literal
 import json
-from pydantic import ConfigDict
+import logging
 from swarmauri.core.messages import IMessage
 
 from swarmauri.standard.llms.base.LLMBase import LLMBase
@@ -23,9 +24,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     def exec(self, 
         input_data: Optional[Union[str, IMessage]] = "",  
         llm_kwargs: Optional[Dict] = {}) -> Any:
-        conversation = self.conversation
-        llm = self.llm
-        toolkit = self.toolkit
 
         # Check if the input is a string, then wrap it in a HumanMessage
         if isinstance(input_data, str):
@@ -36,9 +34,14 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
             raise TypeError("Input data must be a string or an instance of Message.")
 
         # Add the human message to the conversation
-        conversation.add_message(human_message)
+        self.conversation.add_message(human_message)
 
         #predict a response        
-        llm.predict(conversation=conversation, toolkit=toolkit, **llm_kwargs)
+        self.conversation = self.llm.predict(
+            conversation=self.conversation, 
+            toolkit=self.toolkit, 
+            **llm_kwargs)
 
-        return conversation.get_last().content
+        logging.info(self.conversation.get_last().content)
+
+        return self.conversation.get_last().content
