@@ -3,7 +3,9 @@ import json
 from typing import List, Literal
 from typing import List, Dict, Any, Literal
 import cohere
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.CohereSchemaConverter import CohereSchemaConverter
 
@@ -19,7 +21,7 @@ class CohereToolModel(LLMBase):
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages

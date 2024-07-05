@@ -1,6 +1,8 @@
 from typing import List, Literal, Dict, Any
 from openai import OpenAI
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.OpenAISchemaConverter import OpenAISchemaConverter
 
@@ -25,18 +27,19 @@ class OpenAIToolModel(LLMBase):
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
     
-    def predict(self, messages: List[IMessage], 
+    def predict(self, 
+        conversation, 
         toolkit=None, 
         tool_choice=None, 
         temperature=0.7, 
         max_tokens=1024):
 
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         client = OpenAI(api_key=self.api_key)
         if toolkit and not tool_choice:

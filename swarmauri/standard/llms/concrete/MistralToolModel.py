@@ -1,7 +1,9 @@
 import json
 from typing import List, Literal, Dict, Any
 from mistralai.client import MistralClient
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.core.typing import SubclassUnion
+
+from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.MistralSchemaConverter import MistralSchemaConverter
 
@@ -17,13 +19,13 @@ class MistralToolModel(LLMBase):
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [MistralSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[IMessage]) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
         message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
     
     def predict(self, 
-        messages: List[IMessage], 
+        conversation, 
         toolkit=None, 
         tool_choice=None, 
         temperature=0.7, 
@@ -31,7 +33,7 @@ class MistralToolModel(LLMBase):
         safe_prompt: bool = False):
 
         client =  MistralClient(api_key=self.api_key)
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
