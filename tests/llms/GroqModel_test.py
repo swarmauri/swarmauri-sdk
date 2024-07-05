@@ -42,7 +42,7 @@ def test_no_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(messages=conversation.history)
+    prediction = model.predict(conversation=conversation)
     assert type(prediction) == str
 
 @pytest.mark.acceptance
@@ -57,7 +57,7 @@ def test_nonpreamble_system_context():
     conversation.add_message(human_message)
 
     # Get Prediction
-    prediction = model.predict(messages=conversation.history)
+    prediction = model.predict(conversation=conversation)
     conversation.add_message(AgentMessage(content=prediction))
 
     # Give System Context
@@ -71,7 +71,7 @@ def test_nonpreamble_system_context():
     conversation.add_message(human_message)
 
 
-    prediction_2 = model.predict(messages=conversation.history)
+    prediction_2 = model.predict(conversation=conversation)
     assert type(prediction_2) == str
     assert 'Jeff' in prediction_2
 
@@ -89,7 +89,7 @@ def test_preamble_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(messages=conversation.history)
+    prediction = model.predict(conversation=conversation)
     assert type(prediction) == str
     assert 'Jeff' in prediction
 
@@ -107,7 +107,7 @@ def test_multiple_system_contexts():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(messages=conversation.history)
+    prediction = model.predict(conversation=conversation)
     conversation.add_message(AgentMessage(content=prediction))
 
     system_context_2 = 'You only respond with the following phrase, "Ben"'
@@ -118,6 +118,6 @@ def test_multiple_system_contexts():
     human_message = HumanMessage(content=input_data_2)
     conversation.add_message(human_message)
 
-    prediction = model.predict(messages=conversation.history)
+    prediction = model.predict(conversation=conversation)
     assert type(prediction) == str
     assert 'Ben' in prediction
