@@ -72,7 +72,7 @@ class GroqToolModel(LLMBase):
                                                tool_call_id=tool_call.id)
                 conversation.add_message(func_message)
             
-            
+            logging.info(conversation.history)
             formatted_messages = self._format_messages(conversation.history)
             agent_response = client.chat.completions.create(
                 model=self.name,
