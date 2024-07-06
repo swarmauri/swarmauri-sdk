@@ -41,7 +41,8 @@ def test_no_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
     assert type(prediction) == str
 
 @pytest.mark.acceptance
@@ -56,8 +57,7 @@ def test_nonpreamble_system_context():
     conversation.add_message(human_message)
 
     # Get Prediction
-    prediction = model.predict(conversation=conversation)
-    conversation.add_message(AgentMessage(content=prediction))
+    model.predict(conversation=conversation)
 
     # Give System Context
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -70,9 +70,9 @@ def test_nonpreamble_system_context():
     conversation.add_message(human_message)
 
 
-    prediction_2 = model.predict(conversation=conversation)
-    assert type(prediction_2) == str
-    assert 'Jeff' in prediction_2
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
+    assert 'Jeff' in prediction
 
 
 @pytest.mark.unit
@@ -89,7 +89,8 @@ def test_preamble_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
     assert type(prediction) == str
     assert 'Jeff' in prediction
 
@@ -108,7 +109,6 @@ def test_multiple_system_contexts():
     conversation.add_message(human_message)
 
     prediction = model.predict(conversation=conversation)
-    conversation.add_message(AgentMessage(content=prediction))
 
     system_context_2 = 'You only respond with the following phrase, "Ben"'
     human_message = SystemMessage(content=system_context_2)
@@ -118,6 +118,7 @@ def test_multiple_system_contexts():
     human_message = HumanMessage(content=input_data_2)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
     assert type(prediction) == str
     assert 'Ben' in prediction

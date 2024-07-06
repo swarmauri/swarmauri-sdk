@@ -41,7 +41,7 @@ def test_no_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    prediction = model.predict(conversation=conversation).get_last().content
     assert type(prediction) == str
 
 @pytest.mark.acceptance
@@ -55,10 +55,6 @@ def test_nonpreamble_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    # Get Prediction
-    prediction = model.predict(conversation=conversation)
-    conversation.add_message(AgentMessage(content=prediction))
-
     # Give System Context
     system_context = 'You only respond with the following phrase, "Jeff"'
     human_message = SystemMessage(content=system_context)
@@ -70,7 +66,7 @@ def test_nonpreamble_system_context():
     conversation.add_message(human_message)
 
 
-    prediction_2 = model.predict(conversation=conversation)
+    prediction_2 = model.predict(conversation=conversation).get_last().content
     assert type(prediction_2) == str
     assert 'Jeff' in prediction_2
 
