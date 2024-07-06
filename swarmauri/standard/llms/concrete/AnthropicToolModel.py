@@ -53,35 +53,35 @@ class AnthropicToolModel(LLMBase):
             tool_choice=tool_choice,
         )
 
-        agent_message = AgentMessage(content=tool_response.choices[0].message.content, 
+        agent_message = AgentMessage(content=tool_response.content[0].text, 
                                      tool_calls=tool_response.choices[0].message.tool_calls)
         conversation.add_message(agent_message)
 
 
-        tool_calls = tool_response.choices[0].message.tool_calls
-        if tool_calls:
-            for tool_call in tool_calls:
-                func_name = tool_call.function.name
+        # tool_calls = tool_response.choices[0].message.tool_calls
+        # if tool_calls:
+        #     for tool_call in tool_calls:
+        #         func_name = tool_call.function.name
                 
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call.function.arguments)
-                func_result = func_call(**func_args)
+        #         func_call = toolkit.get_tool_by_name(func_name)
+        #         func_args = json.loads(tool_call.function.arguments)
+        #         func_result = func_call(**func_args)
                 
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call.id)
-                conversation.add_message(func_message)
+        #         func_message = FunctionMessage(content=func_result, 
+        #                                        name=func_name, 
+        #                                        tool_call_id=tool_call.id)
+        #         conversation.add_message(func_message)
             
             
-        formatted_messages = self._format_messages(conversation.history)
-        agent_response = client.messages.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=self._schema_convert_tools(toolkit.tools),
-            tool_choice=tool_choice,
-        )
-        agent_message = AgentMessage(content=agent_response.content[0].text)
-        conversation.add_message(agent_message)
+        # formatted_messages = self._format_messages(conversation.history)
+        # agent_response = client.messages.create(
+        #     model=self.name,
+        #     messages=formatted_messages,
+        #     temperature=temperature,
+        #     max_tokens=max_tokens,
+        #     tools=self._schema_convert_tools(toolkit.tools),
+        #     tool_choice=tool_choice,
+        # )
+        # agent_message = AgentMessage(content=agent_response.content[0].text)
+        # conversation.add_message(agent_message)
         return conversation
