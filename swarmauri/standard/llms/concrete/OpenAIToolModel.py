@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List, Literal, Dict, Any
 from openai import OpenAI
 from swarmauri.core.typing import SubclassUnion
