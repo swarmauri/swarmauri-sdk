@@ -58,8 +58,9 @@ class OpenAIToolModel(LLMBase):
             tool_choice=tool_choice,
         )
 
-        agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
-                                     #tool_calls=tool_response.choices[0].message.tool_calls)
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content if 
+            tool_response.choices[0].message.content else "")
+            #tool_calls=tool_response.choices[0].message.tool_calls)
         conversation.add_message(agent_message)
 
 
