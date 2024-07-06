@@ -57,7 +57,7 @@ class OpenAIToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
-
+        logging.info(tool_response)
         messages = [tool_response]
 
         tool_calls = tool_response.choices[0].message.tool_calls

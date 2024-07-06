@@ -67,6 +67,8 @@ class MistralToolModel(LLMBase):
                 
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = tool_call.function.arguments
+                logging.info(type(func_args))
+                logging.info(func_args)
                 func_result = func_call(**func_args)
                 
                 # func_message = FunctionMessage(content=func_result, 
