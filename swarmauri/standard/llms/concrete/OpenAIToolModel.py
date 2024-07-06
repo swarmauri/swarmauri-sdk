@@ -47,7 +47,7 @@ class OpenAIToolModel(LLMBase):
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        response = client.chat.completions.create(
+        tool_response = client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -55,4 +55,35 @@ class OpenAIToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
-        return response
+
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
+                                     #tool_calls=tool_response.choices[0].message.tool_calls)
+        conversation.add_message(agent_message)
+
+
+        tool_calls = tool_response.choices[0].message.tool_calls
+        if tool_calls:
+            for tool_call in tool_calls:
+                func_name = tool_call.function.name
+                
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = json.loads(tool_call.function.arguments)
+                func_result = func_call(**func_args)
+                
+                func_message = FunctionMessage(content=func_result, 
+                                               name=func_name, 
+                                               tool_call_id=tool_call.id)
+                conversation.add_message(func_message)
+            
+        logging.info(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        logging.info(agent_response)
+        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
+        conversation.add_message(agent_message)
+        return conversation
