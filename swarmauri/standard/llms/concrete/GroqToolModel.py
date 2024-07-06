@@ -53,8 +53,8 @@ class GroqToolModel(LLMBase):
         )
         logging.info(tool_response)
 
-        agent_message = AgentMessage(content=tool_response.choices[0].message.content, 
-                                     tool_calls=tool_response.choices[0].message.tool_calls)
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
+                                     #tool_calls=tool_response.choices[0].message.tool_calls)
         conversation.add_message(agent_message)
 
 
@@ -72,15 +72,15 @@ class GroqToolModel(LLMBase):
                                                tool_call_id=tool_call.id)
                 conversation.add_message(func_message)
             
-            logging.info(conversation.history)
-            formatted_messages = self._format_messages(conversation.history)
-            agent_response = client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            logging.info(agent_response)
-            agent_message = AgentMessage(content=agent_response.choices[0].message.content)
-            conversation.add_message(agent_message)
+        logging.info(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        logging.info(agent_response)
+        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
+        conversation.add_message(agent_message)
         return conversation

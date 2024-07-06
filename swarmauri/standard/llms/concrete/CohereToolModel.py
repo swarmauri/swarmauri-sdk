@@ -72,5 +72,4 @@ class CohereToolModel(LLMBase):
 
         message_content = response.text
         conversation.add_message(AgentMessage(content=message_content))
-
         return conversation
