@@ -69,7 +69,6 @@ def test_nonpreamble_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert 'Jeff' in prediction
