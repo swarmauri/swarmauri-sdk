@@ -70,9 +70,9 @@ class OpenAIToolModel(LLMBase):
                 func_result = func_call(**func_args)
                 
 
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call.id)
+                # func_message = FunctionMessage(content=func_result, 
+                #                                name=func_name, 
+                #                                tool_call_id=tool_call.id)
                 messages.append(
                     {
                         "tool_call_id": tool_call.id,
@@ -81,9 +81,8 @@ class OpenAIToolModel(LLMBase):
                         "content": func_result,
                     }
                 )
-            
+        logging.debug(messages)
         logging.info(conversation.history)
-        formatted_messages = self._format_messages(conversation.history)
         agent_response = client.chat.completions.create(
             model=self.name,
             messages=messages,

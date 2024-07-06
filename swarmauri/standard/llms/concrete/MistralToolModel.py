@@ -54,9 +54,10 @@ class MistralToolModel(LLMBase):
 
         logging.info(tool_response)
 
-        agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
+        messages = [tool_response]
+        #agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
                                      #tool_calls=tool_response.choices[0].message.tool_calls)
-        conversation.add_message(agent_message)
+        #conversation.add_message(agent_message)
 
 
         tool_calls = tool_response.choices[0].message.tool_calls
@@ -68,16 +69,24 @@ class MistralToolModel(LLMBase):
                 func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
                 
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call.id)
-                conversation.add_message(func_message)
-            
+                # func_message = FunctionMessage(content=func_result, 
+                #                                name=func_name, 
+                #                                tool_call_id=tool_call.id)
+
+                #conversation.add_message(func_message)
+                messages.append(
+                    {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": func_name,
+                        "content": func_result,
+                    }
+                )
+        logging.debug(messages)
         logging.info(conversation.history)
-        formatted_messages = self._format_messages(conversation.history)
         agent_response = client.chat(
             model=self.name,
-            messages=formatted_messages,
+            messages=messages,
             max_tokens=max_tokens,
             temperature=temperature,
             safe_prompt=safe_prompt
