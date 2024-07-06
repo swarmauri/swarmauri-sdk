@@ -73,15 +73,15 @@ class AnthropicToolModel(LLMBase):
                 conversation.add_message(func_message)
             
             
-            formatted_messages = self._format_messages(conversation.history)
-            agent_response = client.messages.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                tools=self._schema_convert_tools(toolkit.tools),
-                tool_choice=tool_choice,
-            )
-            agent_message = AgentMessage(content=agent_response.choices[0].message.content)
-            conversation.add_message(agent_message)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.messages.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+        )
+        agent_message = AgentMessage(content=agent_response.content[0].text)
+        conversation.add_message(agent_message)
         return conversation
