@@ -23,7 +23,8 @@ class MistralToolModel(LLMBase):
         return [MistralSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
-        message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
+        message_properties = ['content', 'role', 'tool_call_id']
+        #message_properties = ['content', 'role', 'tool_call_id', 'tool_calls']
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
     
