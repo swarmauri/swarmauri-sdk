@@ -56,8 +56,10 @@ class AnthropicToolModel(LLMBase):
         agent_message = AgentMessage(content=tool_response.content[0].text)
         conversation.add_message(agent_message)
 
+        logging.debug(conversation)
 
         tool_calls = tool_response.content[0].text
+
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call.name
