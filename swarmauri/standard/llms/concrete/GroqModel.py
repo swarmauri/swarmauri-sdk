@@ -4,6 +4,7 @@ from groq import Groq
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class GroqModel(LLMBase):
@@ -48,5 +49,5 @@ class GroqModel(LLMBase):
         
         result = json.loads(response.json())
         message_content = result['choices'][0]['message']['content']
-        
-        return message_content
+        conversation.add_message(AgentMessage(content=message_content))
+        return conversation

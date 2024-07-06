@@ -4,6 +4,8 @@ from mistralai.client import MistralClient
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.standard.messages.concrete.FunctionMessage import FunctionMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 from swarmauri.standard.schema_converters.concrete.MistralSchemaConverter import MistralSchemaConverter
 
@@ -47,4 +49,5 @@ class MistralToolModel(LLMBase):
             tool_choice=tool_choice,
             safe_prompt=safe_prompt
         )
+
         return response

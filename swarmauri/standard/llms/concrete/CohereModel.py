@@ -4,6 +4,7 @@ import cohere
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class CohereModel(LLMBase):
@@ -54,7 +55,6 @@ class CohereModel(LLMBase):
         )
         
         result = json.loads(response.json())
-        print(result, result.keys())
         message_content = result['text']
-        
-        return message_content
+        conversation.add_message(AgentMessage(content=message_content))
+        return conversation

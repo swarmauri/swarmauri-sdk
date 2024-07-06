@@ -4,6 +4,7 @@ from openai import OpenAI
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class OpenAIModel(LLMBase):
@@ -80,5 +81,6 @@ class OpenAIModel(LLMBase):
         
         result = json.loads(response.json())
         message_content = result['choices'][0]['message']['content']
+        conversation.add_message(AgentMessage(content=message_content))
         
-        return message_content
+        return conversation

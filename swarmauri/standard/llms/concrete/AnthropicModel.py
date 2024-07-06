@@ -4,6 +4,7 @@ import anthropic
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 class AnthropicModel(LLMBase):
@@ -62,4 +63,6 @@ class AnthropicModel(LLMBase):
             )
         
         message_content = response.content[0].text
-        return message_content
+        conversation.add_message(AgentMessage(content=message_content))
+        
+        return conversation
