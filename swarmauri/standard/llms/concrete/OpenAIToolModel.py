@@ -57,16 +57,13 @@ class OpenAIToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
             tool_choice=tool_choice,
         )
-        logging.info(tool_response)
-        messages = [tool_response]
-
+        logging.info(f"tool_response: {tool_response}")
+        messages = [formatted_messages[-1], tool_response.choices[0].message.content]
         tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call.function.name
-                
                 func_call = toolkit.get_tool_by_name(func_name)
-c
                 func_result = func_call(**func_args)
                 
 
@@ -89,7 +86,8 @@ c
             max_tokens=max_tokens,
             temperature=temperature
         )
-        logging.info(agent_response)
+        logging.info(f"agent_response: {agent_response}")
         agent_message = AgentMessage(content=agent_response.choices[0].message.content)
         conversation.add_message(agent_message)
+        logging.info(f"conversation: {conversation}")
         return conversation
