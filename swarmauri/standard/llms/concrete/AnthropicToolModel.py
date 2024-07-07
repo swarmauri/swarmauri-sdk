@@ -54,29 +54,23 @@ class AnthropicToolModel(LLMBase):
         )
 
         logging.info(f"tool_response: {tool_response}")
-        messages = [formatted_messages[-1], tool_response.content[0].text]
-        tool_calls = tool_response.content[0].text
-        logging.info(f"tool_calls: {tool_calls}")
-        if tool_calls:
-            for tool_call in tool_calls:
 
-                func_name = tool_call.name
-                
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call.input)
-                func_result = func_call(**func_args)
+        messages = [formatted_messages[-1], tool_response.content[0].text] 
+        tool_calls = tool_response.content[0].text
+
+        logging.info(f"tool_calls: {tool_calls}")
+
+        if tool_calls:
+            func_name = tool_response.content[1].name
+            
+            func_call = toolkit.get_tool_by_name(func_name)
+            func_args = json.loads(tool_response.content[1].input)
+            func_result = func_call(**func_args)
             
         logging.info(f"messages: {messages}")
-        agent_response = client.messages.create(
-            model=self.name,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=self._schema_convert_tools(toolkit.tools),
-            tool_choice=tool_choice,
-        )
-        logging.info(f"agent_response: {agent_response}")
-        agent_message = AgentMessage(content=agent_response.content[0].text)
+        
+        agent_response = f"{tool_calls} {func_result}"
+        agent_message = AgentMessage(content=agent_response)
         conversation.add_message(agent_message)
         logging.info(f"conversation: {conversation}")
         return conversation
