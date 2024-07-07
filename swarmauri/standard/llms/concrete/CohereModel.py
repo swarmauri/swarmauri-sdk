@@ -29,7 +29,6 @@ class CohereModel(LLMBase):
             if message.get('role') == 'assistant':
                 message['role'] = 'chatbot'
             message['role'] = message['role'].upper()
-            del message['content']
         logging.info(messages)
         return messages
 
