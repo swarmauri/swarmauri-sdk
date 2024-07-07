@@ -42,7 +42,8 @@ def test_no_system_context():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
     assert type(prediction) == str
 
 @pytest.mark.acceptance
@@ -108,7 +109,7 @@ def test_multiple_system_contexts():
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    prediction = model.predict(conversation=conversation)
+    model.predict(conversation=conversation)
 
     system_context_2 = 'You only respond with the following phrase, "Ben"'
     human_message = SystemMessage(content=system_context_2)

@@ -52,7 +52,7 @@ class MistralToolModel(LLMBase):
             safe_prompt=safe_prompt
         )
 
-        logging.info(tool_response)
+        logging.info(f"tool_response: {tool_response}")
 
         messages = [formatted_messages[-1], tool_response]
         #agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
@@ -84,7 +84,7 @@ class MistralToolModel(LLMBase):
                         "content": func_result,
                     }
                 )
-        logging.info(messages)
+        logging.info(f"messages: {messages}")
 
         agent_response = client.chat(
             model=self.name,
@@ -93,8 +93,8 @@ class MistralToolModel(LLMBase):
             temperature=temperature,
             safe_prompt=safe_prompt
         )
-        logging.info(agent_response)
+        logging.info(f"agent_response: {agent_response}")
         agent_message = AgentMessage(content=agent_response.choices[0].message.content)
         conversation.add_message(agent_message)
-        logging.info(conversation.history)        
+        logging.info(f"conversation: {conversation}")      
         return conversation

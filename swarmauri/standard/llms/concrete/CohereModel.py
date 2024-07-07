@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List, Dict, Literal
 import cohere
 from swarmauri.core.typing import SubclassUnion
@@ -28,7 +29,8 @@ class CohereModel(LLMBase):
             if message.get('role') == 'assistant':
                 message['role'] = 'chatbot'
             message['role'] = message['role'].upper()
-        print(messages)
+            del message['content']
+        logging.info(messages)
         return messages
 
 
