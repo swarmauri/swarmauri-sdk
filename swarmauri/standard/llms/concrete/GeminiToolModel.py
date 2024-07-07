@@ -63,7 +63,7 @@ class GeminiToolModel(LLMBase):
             system_instruction=system_context)
 
         formatted_messages = self._format_messages(conversation.history)
-        response = model.generate_content(
+        response = client.generate_content(
             formatted_messages[-1].content,
             tools=self._schema_convert_tools(toolkit.tools),
         )
