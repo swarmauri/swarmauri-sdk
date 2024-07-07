@@ -33,7 +33,7 @@ class GeminiToolModel(LLMBase):
         formatted_messages = self._format_messages(conversation.history)
         response = model.generate_content(
             formatted_messages[-1].content,
-            tools=self._schema_convert_tools(toolkit.tools),,
+            tools=self._schema_convert_tools(toolkit.tools),
         )
         conversation.add_message(AgentMessage(content=response.text))
         return conversation
