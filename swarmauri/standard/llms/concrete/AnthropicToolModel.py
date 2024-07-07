@@ -64,11 +64,11 @@ class AnthropicToolModel(LLMBase):
             func_name = tool_response.content[1].name
             
             func_call = toolkit.get_tool_by_name(func_name)
-            func_args = json.loads(tool_response.content[1].input)
+            func_args = tool_response.content[1].input
             func_result = func_call(**func_args)
             
         logging.info(f"messages: {messages}")
-        
+
         agent_response = f"{tool_calls} {func_result}"
         agent_message = AgentMessage(content=agent_response)
         conversation.add_message(agent_message)
