@@ -54,12 +54,7 @@ class MistralToolModel(LLMBase):
 
         logging.info(f"tool_response: {tool_response}")
 
-        messages = [formatted_messages[-1], tool_response.choices[0].message.content]
-        #agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
-                                     #tool_calls=tool_response.choices[0].message.tool_calls)
-        #conversation.add_message(agent_message)
-
-
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
