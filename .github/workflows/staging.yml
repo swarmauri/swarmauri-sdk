@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        python -m pip install flake8 pytest pytest-cov
+        python -m pip install flake8 pytest pytest-cov coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Lint with flake8
@@ -60,7 +60,7 @@ jobs:
     - name: Get test coverage measurement
       continue-on-error: true
       run: |
-        pytest --cov=swarmauri tests/
+        pytest --cov-report json --cov=swarmauri tests
 
     - name: Run tests
       continue-on-error: true
