@@ -60,12 +60,12 @@ jobs:
     - name: Get test coverage measurement
       continue-on-error: true
       run: |
-        pytest -v --junitxml=results.xml --cov=swarmauri --cov-report=json tests 
+        pytest -v --junitxml=results.xml --cov=swarmauri tests 
 
-    - name: Run tests
-      continue-on-error: true
-      run: |
-        pytest -v --junitxml=results.xml
+    # - name: Run tests
+    #   continue-on-error: true
+    #   run: |
+    #     pytest -v --junitxml=results.xml
 
     - name: Output test results for debugging
       run: |
