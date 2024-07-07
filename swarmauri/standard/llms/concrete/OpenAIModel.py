@@ -79,7 +79,7 @@ class OpenAIModel(LLMBase):
                 stop=stop
             )
         
-        result = json.loads(response.json())
+        result = json.loads(response.model_dump_json())
         message_content = result['choices'][0]['message']['content']
         conversation.add_message(AgentMessage(content=message_content))
         
