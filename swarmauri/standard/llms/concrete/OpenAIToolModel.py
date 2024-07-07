@@ -62,9 +62,6 @@ class OpenAIToolModel(LLMBase):
         tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
-                logging.info(type(tool_call.function.arguments))
-                logging.info(tool_call.function.arguments)
-                
                 func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call.function.arguments)
