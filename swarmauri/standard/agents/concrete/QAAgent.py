@@ -1,8 +1,11 @@
 from typing import Any, Optional, Dict, Literal
+
+from swarmauri.standard.conversations.concrete.MaxSizeConversation import MaxSizeConversation
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 
 class QAAgent(AgentBase):
+    conversation: MaxSizeConversation = MaxSizeConversation(max_size=2)
     type: Literal['QAAgent'] = 'QAAgent'
     
     def exec(self, 
@@ -10,8 +13,8 @@ class QAAgent(AgentBase):
         llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
         
-        llm = self.llm
-        messages = [HumanMessage(content=input_str)]
-        prediction = llm.predict(messages=messages, **llm_kwargs)
         
-        return prediction
+        self.conversation.add_message(HumanMessage(content=input_str))
+        self.llm.predict(conversation=self.conversation, **llm_kwargs)
+        
+        return self.conversation.get_last().content
