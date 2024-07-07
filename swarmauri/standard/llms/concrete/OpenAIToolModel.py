@@ -58,7 +58,7 @@ class OpenAIToolModel(LLMBase):
             tool_choice=tool_choice,
         )
         logging.info(f"tool_response: {tool_response}")
-        messages = [formatted_messages[-1], tool_response.choices[0].message.content]
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
@@ -77,8 +77,7 @@ class OpenAIToolModel(LLMBase):
                         "content": func_result,
                     }
                 )
-        logging.debug(messages)
-        logging.info(conversation.history)
+        logging.info(f'messages: {messages}')
         agent_response = client.chat.completions.create(
             model=self.name,
             messages=messages,
