@@ -25,7 +25,7 @@ class GeminiProModel(LLMBase):
                 message['role'] = 'model'
 
             # update content naming
-            message['parts'] = message['content']
+            message['parts'] = message.pop('content')
 
         return sanitized_messages
 
