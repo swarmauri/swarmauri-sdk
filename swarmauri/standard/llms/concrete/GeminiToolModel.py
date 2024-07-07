@@ -27,8 +27,40 @@ class GeminiToolModel(LLMBase):
 
     def predict(self, 
         conversation, 
-        toolkit=None):
+        toolkit=None, 
+        temperature=0.7, 
+        max_tokens=256):
         genai.configure(api_key=self.api_key)
+        generation_config = {
+            "temperature": temperature,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": max_tokens,
+            }
+
+        safety_settings = [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+          },
+        ]
+
+        client = genai.GenerativeModel(model_name=self.name,
+            safety_settings=safety_settings,
+            generation_config=generation_config,
+            system_instruction=system_context)
 
         formatted_messages = self._format_messages(conversation.history)
         response = model.generate_content(
