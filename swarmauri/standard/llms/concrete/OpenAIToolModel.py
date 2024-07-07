@@ -68,7 +68,7 @@ class OpenAIToolModel(LLMBase):
                 func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call.function.arguments)
-                func_result = func_call(**func_args)                           tool_call_id=tool_call.id)
+                func_result = func_call(**func_args)
                 messages.append(
                     {
                         "tool_call_id": tool_call.id,
