@@ -57,15 +57,15 @@ jobs:
         LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
         python -m pip install "$LATEST_WHL"[full]
 
-    - name: Get test coverage measurement
-      continue-on-error: true
-      run: |
-        pytest -v --junitxml=results.xml --cov=swarmauri tests 
-
-    # - name: Run tests
+    # - name: Get test coverage measurement
     #   continue-on-error: true
     #   run: |
-    #     pytest -v --junitxml=results.xml
+    #     pytest -v --junitxml=results.xml --cov=swarmauri tests 
+
+    - name: Run tests
+      continue-on-error: true
+      run: |
+        pytest -v --junitxml=results.xml
 
     - name: Output test results for debugging
       run: |
