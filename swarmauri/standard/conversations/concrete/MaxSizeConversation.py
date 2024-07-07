@@ -1,6 +1,6 @@
 from typing import Literal
 from pydantic import Field
-from swarmauri.converasations.base.ConversationBase import ConversationBase
+from swarmauri.conversations.base.ConversationBase import ConversationBase
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 
