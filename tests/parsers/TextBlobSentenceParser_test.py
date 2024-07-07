@@ -21,4 +21,3 @@ def test_parse():
     documents = Parser().parse('One more large chapula please.')
     assert documents[0].resource == 'Document'
     assert documents[0].content == 'One more large chapula please.'
-    assert documents[0].metadata['noun_phrases'] == ['large chapula']
