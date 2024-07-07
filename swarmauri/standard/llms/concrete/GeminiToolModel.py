@@ -59,8 +59,7 @@ class GeminiToolModel(LLMBase):
 
         client = genai.GenerativeModel(model_name=self.name,
             safety_settings=safety_settings,
-            generation_config=generation_config,
-            system_instruction=system_context)
+            generation_config=generation_config)
 
         formatted_messages = self._format_messages(conversation.history)
         response = client.generate_content(

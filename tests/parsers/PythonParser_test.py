@@ -79,7 +79,7 @@ def example_function():
     This is an example function.
     \"\"\"
     pass"""
-    logging.info(Parser().parse(python_code)[0].metadata))
+    logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[0].metadata['source_code'] == result_1
     assert Parser().parse(python_code)[1].metadata['source_code'] == result_2
     assert Parser().parse(python_code)[1].resource == 'Document'
