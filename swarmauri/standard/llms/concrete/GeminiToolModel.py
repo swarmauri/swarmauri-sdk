@@ -85,7 +85,7 @@ class GeminiToolModel(LLMBase):
         )
         logging.info(f'tool_response: {tool_response}')
 
-        tool_calls = tool_response.candidates[0].content.parts
+        tool_calls = tool_response.candidates[0]['content']['parts']
         for tool_call in tool_calls:
             func_name = tool_call['name']
             func_args = tool_call['args']
