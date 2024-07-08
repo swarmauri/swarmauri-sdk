@@ -90,7 +90,7 @@ class GeminiToolModel(LLMBase):
         )
         logging.info(f'tool_response: {tool_response}')
 
-        formatted_messages.append({"role": "model", "parts": tool_response.candidates[0].content.parts})
+        formatted_messages.append(tool_response.candidates[0].content)
 
         try:
             logging.info(f'tool_response.result: {tool_response.result}')
@@ -106,7 +106,6 @@ class GeminiToolModel(LLMBase):
             logging.info(f"tool_response.candidates: {tool_response.candidates}")
         except:
             pass
-
 
         try:
             logging.info(f"tool_response.candidates[0]: {tool_response.candidates[0]}")
@@ -157,15 +156,16 @@ class GeminiToolModel(LLMBase):
             func_result = func_call(**func_args)
             logging.info(f"func_result: {func_result}")
 
-            tool_results.append({
-                "functionResponse": {
-                    "name": func_name,
-                    "response": func_result
-                }
-            })
+            formatted_messages.append(genai.Content(
+            parts=[
+                genai.Part.from_function_response(
+                    name=function_name,
+                    response={
+                        "content": api_response,  # Return the API response to Gemini
+                    },
+                )])
+            )
 
-
-        formatted_messages.append({"role":"user", "parts": tool_results})
         logging.info(f'formatted_messages: {formatted_messages}')
 
         agent_response = client.generate_content(formatted_messages,
