@@ -51,7 +51,7 @@ class CohereToolModel(LLMBase):
         else:
             tool_response = client.chat(
                 model=self.name, 
-                message=formatted_messages[-1].content,
+                message=formatted_messages[-1]['content'],
                 tools=self._schema_convert_tools(toolkit.tools)
             )
 
