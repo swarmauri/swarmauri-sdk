@@ -90,6 +90,8 @@ class GeminiToolModel(LLMBase):
         )
         logging.info(f'tool_response: {tool_response}')
 
+        formatted_messages.append(tool_response.candidates[0])
+
         try:
             logging.info(f'tool_response.result: {tool_response.result}')
         except:
@@ -141,7 +143,9 @@ class GeminiToolModel(LLMBase):
         except:
             pass
 
+
         tool_calls = tool_response.candidates[0].content.parts
+
         tool_results = []
         for tool_call in tool_calls:
             func_name = tool_call.function_call.name
@@ -162,7 +166,9 @@ class GeminiToolModel(LLMBase):
 
 
         formatted_messages.append({"role":"user", "parts": tool_results})
-        agent_response = client.generate_content(formatted_messages)
+        agent_response = client.generate_content(formatted_messages,
+            tools=self._schema_convert_tools(toolkit.tools),
+            )
 
         logging.info(f'agent_response: {agent_response}')
         conversation.add_message(AgentMessage(content=agent_response.text))
