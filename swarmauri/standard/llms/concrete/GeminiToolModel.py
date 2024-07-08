@@ -84,8 +84,17 @@ class GeminiToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
         )
         logging.info(f'tool_response: {tool_response}')
+        try:
+            logging.info(f'tool_response.result: {tool_response.result}')
+        except:
+            pass
 
-        tool_calls = tool_response.candidates[0]['content']['parts']
+        try:
+            logging.info(f'tool_response[\'candidates\']: {tool_response['candidates']}')
+        except:
+            pass
+
+        tool_calls = tool_response['candidates'][0]['content']['parts']
         for tool_call in tool_calls:
             func_name = tool_call['name']
             func_args = tool_call['args']
