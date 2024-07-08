@@ -72,8 +72,7 @@ class AnthropicToolModel(LLMBase):
         if tool_text_response:
             agent_response = f"{tool_calls} {func_result}"
         else:
-            agent_message = AgentMessage(content=func_result)    
-            agent_response = f"{func result}"
+            agent_response = f"{func_result}"
         
         conversation.add_message(agent_message)
         logging.info(f"conversation: {conversation}")
