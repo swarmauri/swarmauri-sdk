@@ -61,10 +61,17 @@ class GeminiToolModel(LLMBase):
             safety_settings=safety_settings,
             generation_config=generation_config)
 
+
+
         formatted_messages = self._format_messages(conversation.history)
+        logging.info(f'formatted_messages: {formatted_messages}')
+
         response = client.generate_content(
             formatted_messages[-1].content,
             tools=self._schema_convert_tools(toolkit.tools),
         )
+        logging.info(f'response.text: {response.text}')
         conversation.add_message(AgentMessage(content=response.text))
+        
+        logging.info(f'conversation: {conversation}')
         return conversation
