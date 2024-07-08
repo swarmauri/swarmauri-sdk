@@ -47,19 +47,16 @@ class CohereToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools)
         )
 
+        formatted_messages.append(tool_response)
+
         logging.info(f"tool_response: {tool_response}")
         # as long as the model sends back tool_calls,
-        # keep invoking tools and sending the results back to the model
-        while tool_response.tool_calls:
-          tool_results = []
-          for call in response.tool_calls:
-            results = {"call": call, "outputs": fn(call.parameters["query"])} # 🚧  Placeholder to determine how to find function and call it
-            tool_results.append(results)
-            
+        # 🚧 Placeholder for tool_call execution 
+        
 
         agent_response = client.chat(
             model=self.name,
-            chat_history=response.chat_history,
+            chat_history=,
             message="",
             force_single_step=force_single_step,
             tools=self._schema_convert_tools(toolkit.tools),
