@@ -10,16 +10,13 @@ class CohereSchemaConverter(SchemaConverterBase):
         properties = {}
         required = []
 
-        for param_name, param_details in tool.parameter_definitions.items():
-            properties[param_name] = {
-                "type": param_details['type'],
-                "description": param_details['description'],
+        for param in tool.parameters:
+            properties[param.name] = {
+                "type": param.type,
+                "description": param.description,
             }
-            if 'enum' in param_details:
-                properties[param_name]['enum'] = param_details['enum']
-
-            if param_details['required']:
-                required.append(param_name)
+            if param.required:
+                required.append(param.name)
 
         return {
             "name": tool.name,
