@@ -40,7 +40,7 @@ class CohereToolModel(LLMBase):
 
         logging.info(f"_schema_convert_tools: {self._schema_convert_tools(toolkit.tools)}")
         logging.info(f"message: {formatted_messages[-1]}")
-        logging.info(f"chat_history: {formatted_messages[:-1]}")
+        logging.info(f"formatted_messages: {formatted_messages}")
         if len(formatted_messages) > 1:
             tool_response = client.chat(
                 model=self.name, 
