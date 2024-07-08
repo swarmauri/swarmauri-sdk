@@ -26,6 +26,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
 
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -37,6 +38,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install flake8 pytest
+        python -m pip install textblob
+        python -m textblob.download_corpora
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Lint with flake8
@@ -55,6 +58,10 @@ jobs:
       run: |
         LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
         python -m pip install "$LATEST_WHL"[full]
+
+    - name: Get pip freeze
+      run: |
+        pip freeze
 
     - name: Run tests
       continue-on-error: true
