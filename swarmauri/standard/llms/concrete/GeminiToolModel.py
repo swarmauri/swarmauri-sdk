@@ -100,6 +100,22 @@ class GeminiToolModel(LLMBase):
         except:
             pass
 
+        try:
+            logging.info(f"tool_response.candidates: {tool_response.candidates}")
+        except:
+            pass
+
+
+        try:
+            logging.info(f"tool_response.candidates[0]: {tool_response.candidates[0]}")
+        except:
+            pass
+
+        try:
+            logging.info(f"tool_response.candidates[0]['content']: {tool_response.candidates[0]['content']}")
+        except:
+            pass
+
         tool_calls = tool_response['candidates'][0]['content']['parts']
         for tool_call in tool_calls:
             func_name = tool_call['name']
