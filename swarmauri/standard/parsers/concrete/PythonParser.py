@@ -36,11 +36,15 @@ class PythonParser(ParserBase):
                 element_name = node.name
                 docstring = ast.get_docstring(node)
                 
+                # Get the source code snippet
+                source_code = ast.get_source_segment(data, node)
+                
                 # Create a metadata dictionary
                 metadata = {
                     "type": "function" if isinstance(node, ast.FunctionDef) else "class",
                     "name": element_name,
-                    "docstring": docstring
+                    "docstring": docstring,
+                    "source_code": source_code
                 }
                 
                 # Create a Document for each structural element
