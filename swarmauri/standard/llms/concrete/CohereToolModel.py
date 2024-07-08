@@ -41,16 +41,23 @@ class CohereToolModel(LLMBase):
         logging.info(f"_schema_convert_tools: {self._schema_convert_tools(toolkit.tools)}")
         logging.info(f"message: {formatted_messages[-1]}")
         logging.info(f"chat_history: {formatted_messages[:-1]}")
-        tool_response = client.chat(
-            model=self.name, 
-            message=formatted_messages[-1], 
-            chat_history=formatted_messages[:-1],
-            tools=self._schema_convert_tools(toolkit.tools)
-        )
+        if len(formatted_messages) > 1:
+            tool_response = client.chat(
+                model=self.name, 
+                message=formatted_messages[-1], 
+                chat_history=formatted_messages[:-1],
+                tools=self._schema_convert_tools(toolkit.tools)
+            )
+        else:
+            tool_response = client.chat(
+                model=self.name, 
+                message=formatted_messages[-1],
+                tools=self._schema_convert_tools(toolkit.tools)
+            )
 
         formatted_messages.append(tool_response)
 
-
+        logging.info(f"formatted_messages: {formatted_messages}")
         logging.info(f"tool_response: {tool_response}")
         # as long as the model sends back tool_calls,
         # 🚧 Placeholder for tool_call execution 
