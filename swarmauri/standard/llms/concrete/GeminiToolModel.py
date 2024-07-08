@@ -70,11 +70,16 @@ class GeminiToolModel(LLMBase):
           },
         ]
 
+        tool_config = "tool_config": {
+              "function_calling_config": {
+                "mode": "ANY"
+              },
+            }
+
         client = genai.GenerativeModel(model_name=self.name,
             safety_settings=safety_settings,
-            generation_config=generation_config)
-
-
+            generation_config=generation_config,
+            tool_config=tool_config)
 
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f'formatted_messages: {formatted_messages}')

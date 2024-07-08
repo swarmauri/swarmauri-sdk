@@ -39,6 +39,8 @@ class CohereToolModel(LLMBase):
         client = cohere.Client(api_key=self.api_key)
         preamble = "" # 🚧  Placeholder for implementation logic
 
+        logging.info(f"_schema_convert_tools: {self._schema_convert_tools(toolkit.tools)}")
+        
         tool_response = client.chat(
             chat_history=formatted_messages[:-1],
             model=self.name, 
@@ -48,6 +50,7 @@ class CohereToolModel(LLMBase):
         )
 
         formatted_messages.append(tool_response)
+
 
         logging.info(f"tool_response: {tool_response}")
         # as long as the model sends back tool_calls,
