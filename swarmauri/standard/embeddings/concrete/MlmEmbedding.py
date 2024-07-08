@@ -1,4 +1,5 @@
 from typing import List, Union, Any, Literal
+import logging
 from pydantic import PrivateAttr
 import numpy as np
 import torch
@@ -37,8 +38,20 @@ class MlmEmbedding(EmbeddingBase):
         self._model.to(self._device)
         self._mask_token_id = self._tokenizer.convert_tokens_to_ids([self._tokenizer.mask_token])[0]
 
-    def extract_features(self):
-        raise NotImplementedError('Extract_features not implemented on MLMVectorizer.')
+    def extract_features(self) -> List[str]:
+        """
+        Extracts the tokens from the vocabulary of the fine-tuned MLM.
+
+        Returns:
+        - List[str]: A list of token strings in the model's vocabulary.
+        """
+        # Get the vocabulary size
+        vocab_size = len(self._tokenizer)
+        
+        # Retrieve the token strings for each id in the vocabulary
+        token_strings = [self._tokenizer.convert_ids_to_tokens(i) for i in range(vocab_size)]
+        
+        return token_strings
 
     def _mask_tokens(self, encodings):
         input_ids = encodings.input_ids.to(self._device)
@@ -71,7 +84,7 @@ class MlmEmbedding(EmbeddingBase):
             if new_tokens:
                 num_added_toks = self._tokenizer.add_tokens(new_tokens)
                 if num_added_toks > 0:
-                    print(f"Added {num_added_toks} new tokens.")
+                    logging.info(f"Added {num_added_toks} new tokens.")
                     self.model.resize_token_embeddings(len(self._tokenizer))
 
         encodings = self._tokenizer(documents, return_tensors='pt', padding=True, truncation=True, max_length=512)
@@ -89,7 +102,7 @@ class MlmEmbedding(EmbeddingBase):
             loss.backward()
             optimizer.step()
         self.epochs += 1
-        print(f"Epoch {self.epochs} complete. Loss {loss.item()}")
+        logging.info(f"Epoch {self.epochs} complete. Loss {loss.item()}")
 
     def find_new_tokens(self, documents):
         # Identify unique words in documents that are not in the tokenizer's vocabulary
