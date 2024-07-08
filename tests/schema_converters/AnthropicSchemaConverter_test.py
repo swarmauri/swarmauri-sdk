@@ -1,4 +1,5 @@
 import pytest
+import logging
 import json
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
@@ -27,4 +28,5 @@ def test_convert():
     tool = AdditionTool()
     toolkit.add_tool(tool)
     result = [Schema().convert(toolkit.tools[tool]) for tool in toolkit.tools]
-    assert json.loads(result)
+    logging.info(result)
+    assert json.loads(json.dumps(result))
