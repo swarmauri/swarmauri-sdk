@@ -1,3 +1,4 @@
+import logging
 import json
 from typing import List, Literal, Dict, Any
 import google.generativeai as genai
@@ -72,6 +73,6 @@ class GeminiToolModel(LLMBase):
         )
         logging.info(f'response.text: {response.text}')
         conversation.add_message(AgentMessage(content=response.text))
-        
+
         logging.info(f'conversation: {conversation}')
         return conversation
