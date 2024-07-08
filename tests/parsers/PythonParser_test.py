@@ -67,15 +67,9 @@ def example_function():
         \"\"\"
         This is an example method.
         \"\"\"
-        print('example method')
-                """
+        print('example method')"""
 
-    result_2 = """
-def example_function():
-    \"\"\"
-    This is an example function.
-    \"\"\"
-    pass"""
+
     logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[0].metadata['source_code'] == result_1
 
@@ -98,17 +92,6 @@ def example_function():
     \"\"\"
     pass"""
 
-    result_1 = """class ExampleClass:
-    \"\"\"
-    This is an example class.
-    \"\"\"
-    
-    def example_method(self):
-        \"\"\"
-        This is an example method.
-        \"\"\"
-        print('example method')
-                """
 
     result_2 = """def example_function():
     \"\"\"
@@ -137,22 +120,5 @@ def example_function():
     \"\"\"
     pass"""
 
-    result_1 = """class ExampleClass:
-    \"\"\"
-    This is an example class.
-    \"\"\"s
-    
-    def example_method(self):
-        \"\"\"
-        This is an example method.
-        \"\"\"
-        print('example method')
-                """
-
-    result_2 = """def example_function():
-    \"\"\"
-    This is an example function.
-    \"\"\"
-    pass"""
     logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[1].resource == 'Document'
