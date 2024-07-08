@@ -84,13 +84,14 @@ class GeminiToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
         )
         logging.info(f'tool_response: {tool_response}')
+
         try:
             logging.info(f'tool_response.result: {tool_response.result}')
         except:
             pass
 
         try:
-            logging.info(f'tool_response[\'candidates\']: {tool_response['candidates']}')
+            logging.info('tool_response candidates: {tool_response['candidates']}')
         except:
             pass
 
