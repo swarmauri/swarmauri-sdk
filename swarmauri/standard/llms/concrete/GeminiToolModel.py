@@ -159,9 +159,9 @@ class GeminiToolModel(LLMBase):
             formatted_messages.append(genai.Content(
             parts=[
                 genai.Part.from_function_response(
-                    name=function_name,
+                    name=func_name,
                     response={
-                        "content": api_response,  # Return the API response to Gemini
+                        "content": func_result,  # Return the API response to Gemini
                     },
                 )])
             )
