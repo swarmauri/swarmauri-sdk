@@ -67,6 +67,7 @@ class CohereToolModel(LLMBase):
             message=formatted_messages[-1]['content'],
             chat_history=formatted_messages[:-1],
             tools=self._schema_convert_tools(toolkit.tools),
+            force_single_step=True,
             tool_results=tool_results,
             temperature=temperature
         )
