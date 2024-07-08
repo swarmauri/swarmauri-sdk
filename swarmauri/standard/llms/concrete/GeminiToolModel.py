@@ -68,7 +68,7 @@ class GeminiToolModel(LLMBase):
         logging.info(f'formatted_messages: {formatted_messages}')
 
         response = client.generate_content(
-            formatted_messages[-1].content,
+            formatted_messages[-1]['content'],
             tools=self._schema_convert_tools(toolkit.tools),
         )
         logging.info(f'response.text: {response.text}')
