@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
 
 
@@ -7,43 +7,7 @@ class ITemplate(ABC):
     Interface for template-based prompt generation within the SwarmAURI framework.
     Defines standard operations and attributes for managing and utilizing templates.
     """
-
-    @property
-    @abstractmethod
-    def template(self) -> str:
-        """
-        Abstract property to get the current template string.
-        """
-        pass
-
-    @template.setter
-    @abstractmethod
-    def template(self, value: str) -> None:
-        """
-        Abstract property setter to set or update the current template string.
-
-        Args:
-            value (str): The new template string to be used for generating prompts.
-        """
-        pass
-
-
-    @property
-    @abstractmethod
-    def variables(self) -> List[Dict[str, str]]:
-        """
-        Abstract property to get the current set of variables for the template.
-        """
-        pass
-
-    @variables.setter
-    @abstractmethod
-    def variables(self, value: List[Dict[str, str]]) -> None:
-        """
-        Abstract property setter to set or update the variables for the template.
-        """
-        pass
-
+    
     @abstractmethod
     def set_template(self, template: str) -> None:
         """
@@ -55,7 +19,8 @@ class ITemplate(ABC):
         pass
 
     @abstractmethod
-    def set_variables(self, variables: List[Dict[str, str]]) -> None:
+    def set_variables(self, 
+                      variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}) -> None:
         """
         Sets or updates the variables to be substituted into the template.
 

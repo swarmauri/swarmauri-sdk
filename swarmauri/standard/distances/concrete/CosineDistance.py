@@ -1,31 +1,31 @@
 from numpy.linalg import norm
-from typing import List
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.VectorProduct import VectorProduct
+from typing import List, Literal
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class CosineDistance(IDistanceSimilarity, VectorProduct):
+class CosineDistance(DistanceBase):
     """
     Implements cosine distance calculation as an IDistanceSimiliarity interface.
     Cosine distance measures the cosine of the angle between two non-zero vectors
     of an inner product space, capturing the orientation rather than the magnitude 
     of these vectors.
     """
+    type: Literal['CosineDistance'] = 'CosineDistance'   
        
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """ 
         Computes the cosine distance between two vectors: 1 - cosine similarity.
     
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
     
         Returns:
             float: The computed cosine distance between vector_a and vector_b.
                    It ranges from 0 (completely similar) to 2 (completely dissimilar).
         """
-        norm_a = norm(vector_a.data)
-        norm_b = norm(vector_b.data)
+        norm_a = norm(vector_a.value)
+        norm_b = norm(vector_b.value)
     
         # Check if either of the vector norms is close to zero
         if norm_a < 1e-10 or norm_b < 1e-10:
@@ -39,23 +39,23 @@ class CosineDistance(IDistanceSimilarity, VectorProduct):
     
         return cos_distance
     
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the cosine similarity between two vectors.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
 
         Returns:
             float: The cosine similarity between vector_a and vector_b.
         """
         return 1 - self.distance(vector_a, vector_b)
 
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

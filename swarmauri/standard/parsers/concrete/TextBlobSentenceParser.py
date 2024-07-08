@@ -1,18 +1,24 @@
 from textblob import TextBlob
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
-from typing import List, Union, Any
+from typing import List, Union, Any, Literal
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class TextBlobParser(IParser):
+
+class TextBlobSentenceParser(ParserBase):
     """
     A parser that leverages TextBlob to break text into sentences.
 
     This parser uses the natural language processing capabilities of TextBlob
     to accurately identify sentence boundaries within large blocks of text.
     """
+    type: Literal['TextBlobSentenceParser'] = 'TextBlobSentenceParser'
+    
+    def __init__(self, **kwargs):
+        import nltk
+        nltk.download('punkt')
+        super().__init__(**kwargs)
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input text into sentence-based document chunks using TextBlob.
 
@@ -32,7 +38,7 @@ class TextBlobParser(IParser):
 
         # Create a document instance for each sentence
         documents = [
-            Document(doc_id=str(index), content=str(sentence), metadata={'parser': 'TextBlobParser'})
+            Document(content=str(sentence), metadata={'parser': 'TextBlobSentenceParser'})
             for index, sentence in enumerate(sentences)
         ]
 

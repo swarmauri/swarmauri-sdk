@@ -1,31 +1,26 @@
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Literal
 
-from swarmauri.core.models.IModel import IModel
 from swarmauri.core.conversations.IConversation import IConversation
 
 from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.ConversationAgentBase import ConversationAgentBase
-from swarmauri.standard.agents.base.NamedAgentBase import NamedAgentBase
-from swarmauri.standard.messages.concrete import HumanMessage
+from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
+from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
-class SimpleConversationAgent(AgentBase, ConversationAgentBase, NamedAgentBase):
-    def __init__(self, model: IModel, conversation: IConversation, name: str):
-        AgentBase.__init__(self, model=model)
-        ConversationAgentBase.__init__(self, conversation=conversation)
-        NamedAgentBase.__init__(self, name=name)
+from swarmauri.core.typing import SubclassUnion # 🚧  Placeholder
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase # 🚧  Placeholder
 
+class SimpleConversationAgent(AgentConversationMixin, AgentBase):
+    conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
+    type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
+    
     def exec(self, 
-        input_str: Optional[str] = None,
-        model_kwargs: Optional[Dict] = {}
+        input_str: Optional[str] = "",
+        llm_kwargs: Optional[Dict] = {} 
         ) -> Any:
-        conversation = self.conversation
-        model = self.model
-
-        # Construct a new human message (for example purposes)
-        if input_str:
-            human_message = HumanMessage(input_str)
-            conversation.add_message(human_message)
         
-        messages = conversation.as_messages()
-        prediction = model.predict(messages=messages, **model_kwargs)
-        return prediction
+        if input_str:
+            human_message = HumanMessage(content=input_str)
+            self.conversation.add_message(human_message)
+        
+        self.llm.predict(conversation=self.conversation, **llm_kwargs)
+        return self.conversation.get_last().content

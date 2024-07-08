@@ -1,14 +1,14 @@
 import sys
 import io
-from dataclasses import dataclass, field
-from typing import List
+from typing import List, Literal
+from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
-@dataclass
+
 class CodeInterpreterTool(ToolBase):
     version: str = "1.0.0"
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
             Parameter(
                 name="user_code",
                 type="string",
@@ -18,9 +18,9 @@ class CodeInterpreterTool(ToolBase):
                 required=True
             )
         ])
+    name: str = 'CodeInterpreterTool'
     description: str = "Executes provided Python code and captures its output."
-    
-
+    type: Literal['CodeInterpreterTool'] = 'CodeInterpreterTool'
 
     def __call__(self, user_code: str) -> str:
         """

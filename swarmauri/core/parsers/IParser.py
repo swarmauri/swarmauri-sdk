@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
-from ..documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IParser(ABC):
     """
@@ -17,4 +17,3 @@ class IParser(ABC):
         implemented by subclasses to define specific parsing logic.
         """
         pass
-

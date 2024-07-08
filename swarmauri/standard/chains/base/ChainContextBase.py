@@ -1,32 +1,29 @@
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional, Literal
+from pydantic import Field, ConfigDict
 import re
-
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChainContext import IChainContext
 
-class ChainContextBase(IChainContext):
-    def __init__(self, context: Dict = {}):
-        self._context = context
-
-    @property
-    def context(self) -> Dict[str, Any]:
-        return self._context
-
-    @context.setter
-    def context(self, value: Dict[str, Any]) -> None:
-        self._context = value
+class ChainContextBase(IChainContext, ComponentBase):
+    steps: List[ChainStep] = []
+    context: Dict = {}
+    resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ChainContextBase'] = 'ChainContextBase'
 
     def update(self, **kwargs):
-        self._context.update(kwargs)
+        self.context.update(kwargs)
 
     def get_value(self, key: str) -> Any:
-        return self._context.get(key)
+        return self.context.get(key)
 
     def _resolve_fstring(self, template: str) -> str:
         pattern = re.compile(r'{([^}]+)}')
         def replacer(match):
             expression = match.group(1)
             try:
-                return str(eval(expression, {}, self._context))
+                return str(eval(expression, {}, self.context))
             except Exception as e:
                 print(f"Failed to resolve expression: {expression}. Error: {e}")
                 return f"{{{expression}}}"

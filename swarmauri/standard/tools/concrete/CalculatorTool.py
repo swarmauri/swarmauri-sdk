@@ -1,11 +1,11 @@
-from dataclasses import dataclass, field
-from typing import List, Optional
-from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter
+from typing import List, Literal
+from pydantic import Field
+from swarmauri.standard.tools.base.ToolBase import ToolBase 
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
-@dataclass
 class CalculatorTool(ToolBase):
     version: str = "1.0.0"
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
             name="operation",
             type="string",
@@ -26,7 +26,9 @@ class CalculatorTool(ToolBase):
             required=True
         )
     ])
+    name: str = 'CalculatorTool'
     description: str = "Performs basic arithmetic operations."
+    type: Literal['CalculatorTool'] = 'CalculatorTool'
 
     def __call__(self, operation: str, x: float, y: float) -> str:
         try:

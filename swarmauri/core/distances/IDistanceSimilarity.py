@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from ..vectors.IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
 
 class IDistanceSimilarity(ABC):
     """

@@ -1,11 +1,10 @@
-from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
 import ast
-import uuid
+from typing import List, Union, Any, Literal
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri.core.documents.IDocument import IDocument
 
-class PythonParser(IParser):
+class PythonParser(ParserBase):
     """
     A parser that processes Python source code to extract structural elements
     such as functions, classes, and their docstrings.
@@ -13,6 +12,7 @@ class PythonParser(IParser):
     This parser utilizes the `ast` module to parse the Python code into an abstract syntax tree (AST)
     and then walks the tree to extract relevant information.
     """
+    type: Literal['PythonParser'] = 'PythonParser'
     
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """
@@ -36,18 +36,19 @@ class PythonParser(IParser):
                 element_name = node.name
                 docstring = ast.get_docstring(node)
                 
-                # Generate a unique ID for each element
-                doc_id = str(uuid.uuid4())
+                # Get the source code snippet
+                source_code = ast.get_source_segment(data, node)
                 
                 # Create a metadata dictionary
                 metadata = {
                     "type": "function" if isinstance(node, ast.FunctionDef) else "class",
                     "name": element_name,
-                    "docstring": docstring
+                    "docstring": docstring,
+                    "source_code": source_code
                 }
                 
                 # Create a Document for each structural element
-                document = Document(doc_id=doc_id, content=docstring, metadata=metadata)
+                document = Document(content=docstring, metadata=metadata)
                 documents.append(document)
                 
         return documents

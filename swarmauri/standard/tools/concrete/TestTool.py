@@ -1,16 +1,14 @@
-from typing import List
-from dataclasses import dataclass, field
-import json
+from typing import List, Literal
+from pydantic import Field
 import subprocess as sp
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
-@dataclass
 class TestTool(ToolBase):
     version: str = "1.0.0"
         
     # Define the parameters required by the tool
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
             name="program",
             type="string",
@@ -19,9 +17,9 @@ class TestTool(ToolBase):
             enum=["notepad", "calc", "mspaint"]
         )
     ])
-    
+    name: str = 'TestTool'
     description: str = "This opens a program based on the user's request."
-
+    type: Literal['TestTool'] = 'TestTool'
 
     def __call__(self, program) -> str:
         # sp.check_output(program)

@@ -1,6 +1,5 @@
+from typing import Literal
 from swarmauri.standard.documents.base.DocumentBase import DocumentBase
 
 class Document(DocumentBase):
-    pass
-    
-        
+    type: Literal['Document'] = 'Document'

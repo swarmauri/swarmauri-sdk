@@ -1,30 +1,12 @@
-from swarmauri.converastions.base.ConversationBase import ConversationBase
+from typing import Literal
+from pydantic import Field
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 from swarmauri.core.messages.IMessage import IMessage
 from swarmauri.core.conversations.IMaxSize import IMaxSize
 
-class MaxSizeConversation(ConversationBase, IMaxSize):
-    def __init__(self, max_size: int):
-        super().__init__()
-
-        self._max_size = max_size
-        
-    @property
-    def max_size(self) -> int:
-        """
-        Provides read-only access to the conversation history.
-        """
-        return self._max_size
-    
-    @max_size.setter
-    def max_size(self, new_max_size: int) -> int:
-        """
-        Provides read-only access to the conversation history.
-        """
-        if new_max_size > 0:
-            self._max_size = int
-        else:
-            raise ValueError('Cannot set conversation size to 0.')
-
+class MaxSizeConversation(IMaxSize, ConversationBase):
+    max_size: int = Field(default=2, gt=1)
+    type: Literal['MaxSizeConversation'] = 'MaxSizeConversation'
 
     def add_message(self, message: IMessage):
         """Adds a message and ensures the conversation does not exceed the max size."""

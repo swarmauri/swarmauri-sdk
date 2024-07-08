@@ -1,16 +1,20 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict, Literal
 
-from swarmauri.core.models.IModel import IModel
-from swarmauri.core.conversations.IConversation import IConversation
-
+from swarmauri.standard.conversations.concrete.MaxSizeConversation import MaxSizeConversation
+from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.agents.base.AgentBase import AgentBase
 
 class QAAgent(AgentBase):
-    def __init__(self, model: IModel):
-        AgentBase.__init__(self, model=model)
-
-    def exec(self, input_str: Optional[str] = None) -> Any:
-        model = self.model
-        prediction = model.predict(input_str)
+    conversation: MaxSizeConversation = MaxSizeConversation(max_size=2)
+    type: Literal['QAAgent'] = 'QAAgent'
+    
+    def exec(self, 
+        input_str: Optional[str] = "",
+        llm_kwargs: Optional[Dict] = {} 
+        ) -> Any:
         
-        return prediction
+        
+        self.conversation.add_message(HumanMessage(content=input_str))
+        self.llm.predict(conversation=self.conversation, **llm_kwargs)
+        
+        return self.conversation.get_last().content

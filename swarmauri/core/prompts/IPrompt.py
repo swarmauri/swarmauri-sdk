@@ -10,7 +10,7 @@ class IPrompt(ABC):
     """
 
     @abstractmethod
-    def __call__(self, prompt: Optional[Any]) -> str:
+    def __call__(self, **kwargs) -> str:
         """
         Abstract method that subclasses must implement to define the behavior of the prompt when called.
 

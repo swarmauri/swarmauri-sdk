@@ -1,18 +1,23 @@
-from typing import List, Union, Any
 from textblob import TextBlob
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from typing import List, Union, Any, Literal
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class TextBlobNounParser(IParser):
+class TextBlobNounParser(ParserBase):
     """
     A concrete implementation of IParser using TextBlob for Natural Language Processing tasks.
     
     This parser leverages TextBlob's functionalities such as noun phrase extraction, 
     sentiment analysis, classification, language translation, and more for parsing texts.
     """
+    type: Literal['TextBlobNounParser'] = 'TextBlobNounParser'
     
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def __init__(self, **kwargs):
+        import nltk
+        nltk.download('punkt')
+        super().__init__(**kwargs)
+        
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data using TextBlob to perform basic NLP tasks 
         and returns a list of documents with the parsed information.
@@ -36,6 +41,6 @@ class TextBlobNounParser(IParser):
         
         # Example: Wrap the extracted noun phrases into an IDocument instance
         # In real scenarios, you might want to include more details, like sentiment, POS tags, etc.
-        document = Document(doc_id="0", content=data, metadata={"noun_phrases": noun_phrases})
+        document = Document(content=data, metadata={"noun_phrases": noun_phrases})
         
         return [document]

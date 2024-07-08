@@ -25,10 +25,6 @@ class IChain(ABC):
     """
 
     @abstractmethod
-    def __init__(self, steps: List[IChainStep] = None, **configs):
-        pass
-
-    @abstractmethod
     def add_step(self, step: IChainStep, **kwargs) -> None:
         """
         Adds a new step to the chain. Steps are executed in the order they are added.
@@ -75,8 +71,4 @@ class IChain(ABC):
                  step, a collection of outputs from multiple steps, or any other result type as
                  determined by the specific chain implementation.
         """
-        pass
-
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
         pass

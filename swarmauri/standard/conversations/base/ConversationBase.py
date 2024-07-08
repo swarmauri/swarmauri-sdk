@@ -1,62 +1,33 @@
-import warnings
-import uuid
-from typing import List, Union
-from swarmauri.core.messages.IMessage import IMessage
+from typing import List, Union, Literal
+from pydantic import Field, PrivateAttr, ConfigDict
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.conversations.IConversation import IConversation
 
-class ConversationBase(IConversation):
+class ConversationBase(IConversation, ComponentBase):
     """
     Concrete implementation of IConversation, managing conversation history and operations.
     """
-    
-    def __init__(self):
-        self._history: List[IMessage] = []
-        self._id = uuid.uuid4()  # Assign a unique UUID to each instance
+    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
+    resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ConversationBase'] = 'ConversationBase'
 
     @property
-    def id(self) -> str:
-        return self._id
-
-    @id.setter
-    def id(self, value: str) -> None:
-        self._id = value
-
-    @property
-    def history(self) -> List[IMessage]:
+    def history(self) -> List[SubclassUnion[MessageBase]]:
         """
         Provides read-only access to the conversation history.
         """
         return self._history
     
-    def add_message(self, message: IMessage):
+    def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
 
-    def get_last(self) -> Union[IMessage, None]:
+    def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
         if self._history:
             return self._history[-1]
         return None
 
     def clear_history(self):
         self._history.clear()
-
-    def as_messages(self) -> List[dict]:
-        return [message.as_dict() for message in self.history]
-
-    def as_dict(self) -> List[dict]:
-        print('USE TO_DICT NOW')
-        warnings.warn("""This function is deprecated and will be removed in a future version.
-            USE .to_dict() now
-            """,
-                  DeprecationWarning, stacklevel=2)
-        return [message.as_dict() for message in self.history]
-    
-    def to_dict(self) -> List[dict]:
-        # We will need to update this to enable the ability to export and import functions
-        # We need to use a new interface besides to_dict() that enables conversations
-        return [message.as_dict() for message in self.history]
-
-    @classmethod
-    def from_dict(cls, data):
-        #data.pop("type", None)
-        #return cls(**data)
-        raise NotImplementedError('from_dict load not implemented on this class yet')

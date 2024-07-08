@@ -1,12 +1,11 @@
-from typing import List
-from dataclasses import dataclass, field
+from typing import List, Literal
+from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
-@dataclass
 class AdditionTool(ToolBase):
     version: str = "0.0.1"
-    parameters: List[Parameter] = field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(default_factory=lambda: [
             Parameter(
                 name="x",
                 type="integer",
@@ -21,7 +20,9 @@ class AdditionTool(ToolBase):
             )
         ])
 
+    name: str = 'AdditionTool'
     description: str = "This tool has two numbers together"
+    type: Literal['AdditionTool'] = 'AdditionTool'
 
 
     def __call__(self, x: int, y: int) -> int:
