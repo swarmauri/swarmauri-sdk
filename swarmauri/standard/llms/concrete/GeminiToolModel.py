@@ -91,7 +91,7 @@ class GeminiToolModel(LLMBase):
             pass
 
         try:
-            logging.info(f'tool_response candidates: {tool_response['candidates']}')
+            logging.info(f"tool_response candidates: {tool_response['candidates']}")
         except:
             pass
 
