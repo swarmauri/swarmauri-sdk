@@ -44,7 +44,7 @@ class CohereToolModel(LLMBase):
         if len(formatted_messages) > 1:
             tool_response = client.chat(
                 model=self.name, 
-                message=formatted_messages[-1].content, 
+                message=formatted_messages[-1]['content'], 
                 chat_history=formatted_messages[:-1],
                 tools=self._schema_convert_tools(toolkit.tools)
             )
