@@ -52,11 +52,18 @@ class CohereToolModel(LLMBase):
         logging.info(f"tool_response: {tool_response}")
         # as long as the model sends back tool_calls,
         # 🚧 Placeholder for tool_call execution 
-        
+        while tool_response.tool_calls:
+          logging.info(tool_response.text) 
+          tool_results = []
+          for call in tool_response.tool_calls:
+            # use the `web_search` tool with the search query the model sent back
+            # web_search_results = {"call": call, "outputs": web_search(call.parameters["query"])}
+            # tool_results.append(web_search_results)
+            ...
 
         agent_response = client.chat(
             model=self.name,
-            chat_history=,
+            chat_history=tool_response.chat_history,
             message="",
             force_single_step=force_single_step,
             tools=self._schema_convert_tools(toolkit.tools),
