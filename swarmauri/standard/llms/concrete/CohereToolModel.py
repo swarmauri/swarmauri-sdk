@@ -31,7 +31,6 @@ class CohereToolModel(LLMBase):
     def predict(self, 
         conversation, 
         toolkit=None, 
-        force_single_step = False,
         max_tokens=1024):
 
         formatted_messages = self._format_messages(conversation.history)
@@ -40,15 +39,15 @@ class CohereToolModel(LLMBase):
         preamble = "" # 🚧  Placeholder for implementation logic
 
         logging.info(f"_schema_convert_tools: {self._schema_convert_tools(toolkit.tools)}")
-
+        logging.info(f"message: {formatted_messages[-1]}")
+        logging.info(f"chat_history: {formatted_messages[:-1]}")
         tool_response = client.chat(
             model=self.name, 
             message=formatted_messages[-1], 
             chat_history=formatted_messages[:-1],
-            force_single_step=False,
             tools=self._schema_convert_tools(toolkit.tools)
         )
-        
+
         formatted_messages.append(tool_response)
 
 
@@ -66,9 +65,8 @@ class CohereToolModel(LLMBase):
 
         agent_response = client.chat(
             model=self.name,
-            chat_history=tool_response.chat_history,
             message="",
-            force_single_step=force_single_step,
+            chat_history=tool_response.chat_history,
             tools=self._schema_convert_tools(toolkit.tools),
             tool_results=tool_results
         )
