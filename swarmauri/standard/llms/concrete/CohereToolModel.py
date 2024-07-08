@@ -49,7 +49,6 @@ class CohereToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools)
         )
 
-
         logging.info(f"tool_response: {tool_response}")
         logging.info(tool_response.text) 
         tool_results = []
@@ -64,7 +63,7 @@ class CohereToolModel(LLMBase):
         logging.info(f"tool_results: {tool_results}")
         agent_response = client.chat(
             model=self.name,
-            message="",
+            message=formatted_messages[-1]['content'],
             chat_history=formatted_messages[:-1],
             tools=self._schema_convert_tools(toolkit.tools),
             force_single_step=True,
