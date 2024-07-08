@@ -67,8 +67,21 @@ class GeminiToolModel(LLMBase):
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f'formatted_messages: {formatted_messages}')
 
-        response = client.generate_content(
-            formatted_messages[-1]['content'],
+        tool_response = client.generate_content(
+            formatted_messages,
+            tools=self._schema_convert_tools(toolkit.tools),
+        )
+
+        tool_calls = tool_response.candidates[0].content.parts
+        for tool_call in tool_calls:
+            func_name = tool_call['name']
+            func_args = tool_call['args']
+            func_call = toolkit.get_tool_by_name(func_name)
+            func_result = func_call(**func_args)
+
+        formatted_messages.append({"role":"tool", "parts": func_result})
+        tool_response = client.generate_content(
+            formatted_messages,
             tools=self._schema_convert_tools(toolkit.tools),
         )
 
