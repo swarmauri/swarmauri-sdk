@@ -113,7 +113,7 @@ class GeminiToolModel(LLMBase):
             func_call = toolkit.get_tool_by_name(func_name)
             func_result = func_call(**func_args)
             logging.info(f"func_result: {func_result}")
-            tools_results[func_name] = func_result
+            tool_results[func_name] = func_result
 
         formatted_messages.append(genai.protos.Content(role="function",
             parts=[
