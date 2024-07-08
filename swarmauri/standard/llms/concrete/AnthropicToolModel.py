@@ -57,8 +57,7 @@ class AnthropicToolModel(LLMBase):
         logging.info(f"tool_response: {tool_response}")
         if tool_response.content[0].type =='text':
             tool_text_response = tool_response.content[0].text
-
-        logging.info(f"tool_text_response: {tool_text_response}")
+            logging.info(f"tool_text_response: {tool_text_response}")
 
         for tool_call in tool_response.content:
             if tool_call.type == 'tool_use':
