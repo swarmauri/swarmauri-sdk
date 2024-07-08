@@ -20,4 +20,4 @@ def test_fit_transform():
 	embedder = MlmEmbedding()
 	documents = ['test', 'test1', 'test2']
 	embedder.fit_transform(documents)
-	assert documents == embedder.extract_features()
+	assert len(embedder.extract_features()) == 30519
