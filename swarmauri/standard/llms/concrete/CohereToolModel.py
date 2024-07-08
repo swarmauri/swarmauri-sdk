@@ -50,12 +50,7 @@ class CohereToolModel(LLMBase):
         )
 
 
-        formatted_messages.append(tool_response)
-
-        logging.info(f"formatted_messages: {formatted_messages}")
         logging.info(f"tool_response: {tool_response}")
-        # as long as the model sends back tool_calls,
-        # 🚧 Placeholder for tool_call execution 
         while tool_response.tool_calls:
           logging.info(tool_response.text) 
           tool_results = []
