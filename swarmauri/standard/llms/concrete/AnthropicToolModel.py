@@ -58,7 +58,7 @@ class AnthropicToolModel(LLMBase):
         if tool_response.content[0].type =='text':
             tool_text_response = tool_response.content[0].content
 
-        logging.info(f"tool_calls: {tool_calls}")
+        logging.info(f"tool_text_response: {tool_text_response}")
 
         for tool_call in tool_response.content:
             if tool_call.type == 'tool_use':
@@ -66,11 +66,10 @@ class AnthropicToolModel(LLMBase):
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = tool_call.input
                 func_result = func_call(**func_args)
-            
-        logging.info(f"messages: {messages}")
+
 
         if tool_text_response:
-            agent_response = f"{tool_calls} {func_result}"
+            agent_response = f"{tool_text_response} {func_result}"
         else:
             agent_response = f"{func_result}"
         
