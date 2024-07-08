@@ -19,8 +19,7 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_parse():
-    python_code = """
-class ExampleClass:
+    python_code = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -42,8 +41,7 @@ def example_function():
 
 @pytest.mark.unit
 def test_parse_class_into_metadata():
-    python_code = """
-class ExampleClass:
+    python_code = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -60,8 +58,7 @@ def example_function():
     \"\"\"
     pass"""
 
-    result_1 = """
-class ExampleClass:
+    result_1 = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -84,8 +81,7 @@ def example_function():
 
 @pytest.mark.unit
 def test_parse_function_into_metadata():
-    python_code = """
-class ExampleClass:
+    python_code = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -102,8 +98,7 @@ def example_function():
     \"\"\"
     pass"""
 
-    result_1 = """
-class ExampleClass:
+    result_1 = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -115,8 +110,7 @@ class ExampleClass:
         print('example method')
                 """
 
-    result_2 = """
-def example_function():
+    result_2 = """def example_function():
     \"\"\"
     This is an example function.
     \"\"\"
@@ -126,8 +120,7 @@ def example_function():
 
 @pytest.mark.unit
 def test_parse_function_into_document_resource():
-    python_code = """
-class ExampleClass:
+    python_code = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"
@@ -144,8 +137,7 @@ def example_function():
     \"\"\"
     pass"""
 
-    result_1 = """
-class ExampleClass:
+    result_1 = """class ExampleClass:
     \"\"\"
     This is an example class.
     \"\"\"s
@@ -157,8 +149,7 @@ class ExampleClass:
         print('example method')
                 """
 
-    result_2 = """
-def example_function():
+    result_2 = """def example_function():
     \"\"\"
     This is an example function.
     \"\"\"
