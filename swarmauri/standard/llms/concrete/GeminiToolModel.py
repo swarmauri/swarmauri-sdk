@@ -12,6 +12,9 @@ from swarmauri.standard.schema_converters.concrete.GeminiSchemaConverter import 
 import google.generativeai as genai
 
 class GeminiToolModel(LLMBase):
+    """
+    3rd Party's Resources: https://ai.google.dev/api/python/google/generativeai/protos/
+    """
     api_key: str
     allowed_models: List[str] = ['gemini-1.5-pro-latest']
     name: str = "gemini-1.5-pro-latest"
@@ -92,60 +95,15 @@ class GeminiToolModel(LLMBase):
 
         formatted_messages.append(tool_response.candidates[0].content)
 
-        try:
-            logging.info(f'tool_response.result: {tool_response.result}')
-        except:
-            pass
 
-        try:
-            logging.info(f"tool_response candidates: {tool_response['candidates']}")
-        except:
-            pass
+        logging.info(f"tool_response.candidates[0].content: {tool_response.candidates[0].content}")
 
-        try:
-            logging.info(f"tool_response.candidates: {tool_response.candidates}")
-        except:
-            pass
 
-        try:
-            logging.info(f"tool_response.candidates[0]: {tool_response.candidates[0]}")
-        except:
-            pass
-
-        try:
-            logging.info(f"tool_response.candidates[0]['content']: {tool_response.candidates[0]['content']}")
-        except:
-            pass
-
-        try:
-            logging.info(f"tool_response.candidates[0]['content']: {tool_response.candidates[0]['content']}")
-        except:
-            pass
-
-        try:
-            logging.info(f"tool_response.candidates[0]['content']: {tool_response.candidates[0]['content']}")
-        except:
-            pass
-
-        try:
-            logging.info(f"tool_response.candidates[0].content: {tool_response.candidates[0].content}")
-        except:
-            pass   
-
-        try:
-            logging.info(f"tool_response.candidates[0].content['parts']: {tool_response.candidates[0].content['parts']}")
-        except:
-            pass   
-
-        try:
-            logging.info(f"tool_response.candidates[0].content.parts[0]: {tool_response.candidates[0].content.parts[0]}")
-        except:
-            pass
 
 
         tool_calls = tool_response.candidates[0].content.parts
 
-        tool_results = []
+        tool_results = {}
         for tool_call in tool_calls:
             func_name = tool_call.function_call.name
             func_args = tool_call.function_call.args
@@ -155,16 +113,17 @@ class GeminiToolModel(LLMBase):
             func_call = toolkit.get_tool_by_name(func_name)
             func_result = func_call(**func_args)
             logging.info(f"func_result: {func_result}")
+            tools_results[func_name] = func_result
 
-            formatted_messages.append(genai.protos.Content(
+        formatted_messages.append(genai.protos.Content(role="function",
             parts=[
-                genai.protos.Part.from_function_response(
-                    name=func_name,
+                genai.protos.Part(function_response=genai.protos.FunctionResponse(
+                    name=fn,
                     response={
-                        "content": func_result,  # Return the API response to Gemini
+                        "result": val,  # Return the API response to Gemini
                     },
-                )])
-            )
+                )) for fn, val in tool_results.items()]
+            ))
 
         logging.info(f'formatted_messages: {formatted_messages}')
 
