@@ -71,7 +71,8 @@ class GeminiToolModel(LLMBase):
             formatted_messages[-1]['content'],
             tools=self._schema_convert_tools(toolkit.tools),
         )
-        logging.info(f'response.text: {response.text}')
+
+        logging.info(f'response: {response}')
         conversation.add_message(AgentMessage(content=response.text))
 
         logging.info(f'conversation: {conversation}')
