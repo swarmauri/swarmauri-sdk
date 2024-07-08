@@ -11,10 +11,20 @@ class CohereSchemaConverter(SchemaConverterBase):
 
         for param in tool.parameters:
             properties[param.name] = {
-                "type": param.type,
                 "description": param.description,
                 "required": param.required
             }
+            if param.type == 'string':
+                _type = 'string'
+            elif param.type == 'float':
+                _type = 'number'
+            elif param.type == 'integer':
+                _type = 'number'
+            elif param.type == 'boolean':
+                _type = 'boolean'
+            else:
+                raise NotImplementedError(f'🚧 Support for missing type pending https://docs.cohere.com/docs/parameter-types-in-tool-use\n: Missing Type: {param.type}')
+            properties[param.name].update({'type': _type})
 
         return {
             "name": tool.name,

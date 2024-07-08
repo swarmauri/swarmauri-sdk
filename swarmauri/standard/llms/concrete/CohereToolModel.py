@@ -40,15 +40,15 @@ class CohereToolModel(LLMBase):
         preamble = "" # 🚧  Placeholder for implementation logic
 
         logging.info(f"_schema_convert_tools: {self._schema_convert_tools(toolkit.tools)}")
-        
+
         tool_response = client.chat(
-            chat_history=formatted_messages[:-1],
             model=self.name, 
             message=formatted_messages[-1], 
-            force_single_step=False, 
+            chat_history=formatted_messages[:-1],
+            force_single_step=False,
             tools=self._schema_convert_tools(toolkit.tools)
         )
-
+        
         formatted_messages.append(tool_response)
 
 
