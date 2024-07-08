@@ -59,6 +59,11 @@ jobs:
         LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
         python -m pip install "$LATEST_WHL"[full]
 
+
+    - name: Get pip freeze
+      run: |
+        pip freeze
+
     # - name: Get test coverage measurement
     #   continue-on-error: true
     #   run: |
