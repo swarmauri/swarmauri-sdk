@@ -156,9 +156,9 @@ class GeminiToolModel(LLMBase):
             func_result = func_call(**func_args)
             logging.info(f"func_result: {func_result}")
 
-            formatted_messages.append(genai.Content(
+            formatted_messages.append(genai.protos.Content(
             parts=[
-                genai.Part.from_function_response(
+                genai.protos.Part.from_function_response(
                     name=func_name,
                     response={
                         "content": func_result,  # Return the API response to Gemini
