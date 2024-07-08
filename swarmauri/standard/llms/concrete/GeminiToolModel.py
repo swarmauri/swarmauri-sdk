@@ -25,6 +25,23 @@ class GeminiToolModel(LLMBase):
         formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
         return formatted_messages
 
+    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
+        # Remove system instruction from messages
+        message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
+        sanitized_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages 
+            if message.role != 'system']
+
+        for message in sanitized_messages:
+            if message['role'] == 'assistant':
+                message['role'] = 'model'
+
+            if message['role'] == 'tool':
+                message['role'] == 'user'
+
+            # update content naming
+            message['parts'] = message.pop('content')
+
+        return sanitized_messages
 
     def predict(self, 
         conversation, 
@@ -71,6 +88,7 @@ class GeminiToolModel(LLMBase):
             formatted_messages,
             tools=self._schema_convert_tools(toolkit.tools),
         )
+        logging.info(f'tool_response: {tool_response}')
 
         tool_calls = tool_response.candidates[0].content.parts
         for tool_call in tool_calls:
@@ -79,14 +97,14 @@ class GeminiToolModel(LLMBase):
             func_call = toolkit.get_tool_by_name(func_name)
             func_result = func_call(**func_args)
 
-        formatted_messages.append({"role":"tool", "parts": func_result})
-        tool_response = client.generate_content(
+        formatted_messages.append({"role":"user", "parts": func_result})
+        agent_response = client.generate_content(
             formatted_messages,
             tools=self._schema_convert_tools(toolkit.tools),
         )
 
-        logging.info(f'tool_response: {tool_response}')
-        conversation.add_message(AgentMessage(content=tool_response.text))
+        logging.info(f'agent_response: {agent_response}')
+        conversation.add_message(AgentMessage(content=agent_response.text))
 
         logging.info(f'conversation: {conversation}')
         return conversation
