@@ -49,13 +49,12 @@ class CohereToolModel(LLMBase):
 
 
         logging.info(f"tool_response: {tool_response}")
+        logging.info(tool_response.text) 
         tool_results = []
-        for tool_call in tool_response.tool_calls:
-            logging.info(tool_response.text) 
+        for call in tool_response.tool_calls:
             logging.info(f"call: {call}")
             tmp_results = {"call": call, "outputs": ""}
             tool_results.append(tmp_results)
-            
             # use the `web_search` tool with the search query the model sent back
             # web_search_results = {"call": call, "outputs": web_search(call.parameters["query"])}
             # tool_results.append(web_search_results)
