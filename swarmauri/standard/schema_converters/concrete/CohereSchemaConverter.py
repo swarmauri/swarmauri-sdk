@@ -15,13 +15,13 @@ class CohereSchemaConverter(SchemaConverterBase):
                 "required": param.required
             }
             if param.type == 'string':
-                _type = 'string'
+                _type = 'str'
             elif param.type == 'float':
-                _type = 'number'
+                _type = 'float'
             elif param.type == 'integer':
-                _type = 'number'
+                _type = 'int'
             elif param.type == 'boolean':
-                _type = 'boolean'
+                _type = 'bool'
             else:
                 raise NotImplementedError(f'🚧 Support for missing type pending https://docs.cohere.com/docs/parameter-types-in-tool-use\n: Missing Type: {param.type}')
             properties[param.name].update({'type': _type})
