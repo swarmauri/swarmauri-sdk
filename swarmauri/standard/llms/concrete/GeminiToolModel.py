@@ -143,8 +143,8 @@ class GeminiToolModel(LLMBase):
 
         tool_calls = tool_response['candidates'][0].content.parts
         for tool_call in tool_calls:
-            func_name = tool_call['name']
-            func_args = tool_call['args']
+            func_name = tool_call.function_call.name
+            func_args = tool_call.function_call.args
             logging.info(f"func_name: {func_name}")
             logging.info(f"func_args: {func_args}")
             func_call = toolkit.get_tool_by_name(func_name)
