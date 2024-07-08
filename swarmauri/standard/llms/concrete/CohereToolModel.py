@@ -29,6 +29,7 @@ class CohereToolModel(LLMBase):
     def predict(self, 
         conversation, 
         toolkit=None, 
+        temperature=0.3,
         max_tokens=1024):
 
         formatted_messages = self._format_messages(conversation.history)
@@ -63,9 +64,9 @@ class CohereToolModel(LLMBase):
         agent_response = client.chat(
             model=self.name,
             message="",
-            chat_history=tool_response.chat_history,
             tools=self._schema_convert_tools(toolkit.tools),
-            tool_results=tool_results
+            tool_results=tool_results,
+            temperature=temperature
         )
 
         logging.info(f"agent_response: {agent_response}")
