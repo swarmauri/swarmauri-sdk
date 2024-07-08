@@ -59,7 +59,7 @@ class CohereToolModel(LLMBase):
             func_call = toolkit.get_tool_by_name(func_name)
             func_args = tool_call.parameters
             func_results = func_call(**func_args)
-            tool_results.append({"call": tool_call, "outputs": [func_results]})
+            tool_results.append({"call": tool_call, "outputs": [{'result': func_results}]})
 
         logging.info(f"tool_results: {tool_results}")
         agent_response = client.chat(
