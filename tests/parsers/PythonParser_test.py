@@ -41,7 +41,7 @@ def example_function():
     assert Parser().parse(python_code)[2].content == 'This is an example method.'
 
 @pytest.mark.unit
-def test_parse_2():
+def test_parse_class_into_metadata():
     python_code = """
 class ExampleClass:
     \"\"\"
@@ -81,5 +81,87 @@ def example_function():
     pass"""
     logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[0].metadata['source_code'] == result_1
+
+@pytest.mark.unit
+def test_parse_function_into_metadata():
+    python_code = """
+class ExampleClass:
+    \"\"\"
+    This is an example class.
+    \"\"\"
+    
+    def example_method(self):
+        \"\"\"
+        This is an example method.
+        \"\"\"
+        print('example method')
+
+def example_function():
+    \"\"\"
+    This is an example function.
+    \"\"\"
+    pass"""
+
+    result_1 = """
+class ExampleClass:
+    \"\"\"
+    This is an example class.
+    \"\"\"
+    
+    def example_method(self):
+        \"\"\"
+        This is an example method.
+        \"\"\"
+        print('example method')
+                """
+
+    result_2 = """
+def example_function():
+    \"\"\"
+    This is an example function.
+    \"\"\"
+    pass"""
+    logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[1].metadata['source_code'] == result_2
+
+@pytest.mark.unit
+def test_parse_function_into_document_resource():
+    python_code = """
+class ExampleClass:
+    \"\"\"
+    This is an example class.
+    \"\"\"
+    
+    def example_method(self):
+        \"\"\"
+        This is an example method.
+        \"\"\"
+        print('example method')
+
+def example_function():
+    \"\"\"
+    This is an example function.
+    \"\"\"
+    pass"""
+
+    result_1 = """
+class ExampleClass:
+    \"\"\"
+    This is an example class.
+    \"\"\"s
+    
+    def example_method(self):
+        \"\"\"
+        This is an example method.
+        \"\"\"
+        print('example method')
+                """
+
+    result_2 = """
+def example_function():
+    \"\"\"
+    This is an example function.
+    \"\"\"
+    pass"""
+    logging.info(Parser().parse(python_code)[0].metadata)
     assert Parser().parse(python_code)[1].resource == 'Document'
