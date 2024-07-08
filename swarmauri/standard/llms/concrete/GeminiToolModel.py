@@ -145,8 +145,12 @@ class GeminiToolModel(LLMBase):
         for tool_call in tool_calls:
             func_name = tool_call['name']
             func_args = tool_call['args']
+            logging.info(f"func_name: {func_name}")
+            logging.info(f"func_args: {func_args}")
             func_call = toolkit.get_tool_by_name(func_name)
             func_result = func_call(**func_args)
+            logging.info(f"func_result: {func_result}")
+
 
         formatted_messages.append({"role":"user", "parts": func_result})
         agent_response = client.generate_content(
