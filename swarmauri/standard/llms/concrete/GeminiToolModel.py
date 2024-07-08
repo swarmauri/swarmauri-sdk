@@ -141,12 +141,17 @@ class GeminiToolModel(LLMBase):
         except:
             pass
 
-        tool_calls = tool_response['candidates'][0].content.parts
+        tool_calls = tool_response.candidates[0].content.parts
         for tool_call in tool_calls:
             func_name = tool_call.function_call.name
             func_args = tool_call.function_call.args
             logging.info(f"func_name: {func_name}")
             logging.info(f"func_args: {func_args}")
+            try:
+                logging.info(f"func_args: {tool_response.candidates[0].content.parts[0]}")
+            except:
+                pass
+
             func_call = toolkit.get_tool_by_name(func_name)
             func_result = func_call(**func_args)
             logging.info(f"func_result: {func_result}")
