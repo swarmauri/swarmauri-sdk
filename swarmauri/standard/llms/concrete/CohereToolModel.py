@@ -45,6 +45,7 @@ class CohereToolModel(LLMBase):
             model=self.name, 
             message=formatted_messages[-1]['content'], 
             chat_history=formatted_messages[:-1],
+            force_single_step=True,
             tools=self._schema_convert_tools(toolkit.tools)
         )
 
