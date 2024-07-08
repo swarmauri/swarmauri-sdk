@@ -8,22 +8,16 @@ class CohereSchemaConverter(SchemaConverterBase):
 
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
-        required = []
 
         for param in tool.parameters:
             properties[param.name] = {
                 "type": param.type,
                 "description": param.description,
+                "required": param.required
             }
-            if param.required:
-                required.append(param.name)
 
         return {
             "name": tool.name,
             "description": tool.description,
-            "parameter_definitions": {
-                "type": "object",
-                "properties": properties,
-                "required": required,
-            }
+            "parameter_definitions": properties
         }
