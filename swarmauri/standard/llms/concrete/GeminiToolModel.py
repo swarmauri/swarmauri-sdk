@@ -70,7 +70,7 @@ class GeminiToolModel(LLMBase):
           },
         ]
 
-        tool_config = "tool_config": {
+        tool_config = {
               "function_calling_config": {
                 "mode": "ANY"
               },
