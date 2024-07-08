@@ -39,7 +39,7 @@ class CohereToolModel(LLMBase):
         client = cohere.Client(api_key=self.api_key)
         preamble = "" # 🚧  Placeholder for implementation logic
 
-        response = client.chat(
+        tool_response = client.chat(
             chat_history=formatted_messages[:-1],
             model=self.name, 
             message=formatted_messages[-1], 
@@ -47,22 +47,17 @@ class CohereToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools)
         )
 
-        logging.info(f"response: {response}")
+        logging.info(f"tool_response: {tool_response}")
         # as long as the model sends back tool_calls,
         # keep invoking tools and sending the results back to the model
-        while response.tool_calls:
-          logging.debug(response.text) # This will be an observation and a plan with next steps
+        while tool_response.tool_calls:
           tool_results = []
           for call in response.tool_calls:
-            logging.debug(call)
-            # use the `web_search` tool with the search query the model sent back
-            def fn(value):
-                return value
             results = {"call": call, "outputs": fn(call.parameters["query"])} # 🚧  Placeholder to determine how to find function and call it
             tool_results.append(results)
             
-        # call chat again with tool results
-        response = client.chat(
+
+        agent_response = client.chat(
             model=self.name,
             chat_history=response.chat_history,
             message="",
@@ -71,8 +66,8 @@ class CohereToolModel(LLMBase):
             tool_results=tool_results
         )
 
-        logging.info(f"response: {response}")
-        conversation.add_message(AgentMessage(content=response.text))
+        logging.info(f"agent_response: {agent_response}")
+        conversation.add_message(AgentMessage(content=agent_response.text))
 
         logging.info(f"conversation: {conversation}")
         return conversation
