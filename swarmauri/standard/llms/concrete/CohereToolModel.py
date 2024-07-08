@@ -13,10 +13,9 @@ from swarmauri.standard.schema_converters.concrete.CohereSchemaConverter import 
 
 class CohereToolModel(LLMBase):
     api_key: str
-    allowed_models: List[str] = ['command', 
-    'command-r',
+    allowed_models: List[str] = ['command-r',
     'command-r-plus']
-    name: str = "command"
+    name: str = "command-r"
     type: Literal['CohereToolModel'] = 'CohereToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
