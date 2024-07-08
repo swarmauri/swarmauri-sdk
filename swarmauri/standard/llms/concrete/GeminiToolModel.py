@@ -85,8 +85,8 @@ class GeminiToolModel(LLMBase):
             tools=self._schema_convert_tools(toolkit.tools),
         )
 
-        logging.info(f'response: {response}')
-        conversation.add_message(AgentMessage(content=response.text))
+        logging.info(f'tool_response: {tool_response}')
+        conversation.add_message(AgentMessage(content=tool_response.text))
 
         logging.info(f'conversation: {conversation}')
         return conversation
