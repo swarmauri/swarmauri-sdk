@@ -5,7 +5,7 @@ name: Test Staging
 
 on:
   push:
-    branches: [ "staging", "dev-py-0.4" ]
+    branches: [ "staging" ]
 
 jobs:
   build:
