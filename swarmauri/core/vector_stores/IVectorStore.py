@@ -1,56 +1,88 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Union
-from ..vectors.IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):
     """
-    Interface for a vector store that allows the storage, retrieval,
-    and management of high-dimensional vector data used in search and machine learning applications.
+    Interface for a vector store responsible for storing, indexing, and retrieving documents.
     """
 
     @abstractmethod
-    def add_vector(self, vector_id: str, vector: IVector, metadata: Dict = None) -> None:
+    def add_document(self, document: IDocument) -> None:
         """
-        Store a vector along with its identifier and optional metadata.
+        Stores a single document in the vector store.
 
-        Args:
-            vector_id (str): Unique identifier for the vector.
-            vector (List[float]): The high-dimensional vector to be stored.
-            metadata (Dict, optional): Optional metadata related to the vector.
+        Parameters:
+        - document (IDocument): The document to store.
         """
         pass
 
     @abstractmethod
-    def get_vector(self, vector_id: str) -> Union[List[float], None]:
+    def add_documents(self, documents: List[IDocument]) -> None:
         """
-        Retrieve a vector by its identifier.
+        Stores multiple documents in the vector store.
 
-        Args:
-            vector_id (str): The unique identifier for the vector.
+        Parameters:
+        - documents (List[IDocument]): The list of documents to store.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        """
+        Retrieves a document by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document.
 
         Returns:
-            Union[List[float], None]: The vector associated with the given ID, or None if not found.
+        - Union[IDocument, None]: The requested document, or None if not found.
         """
         pass
 
     @abstractmethod
-    def delete_vector(self, vector_id: str) -> None:
+    def get_all_documents(self) -> List[IDocument]:
         """
-        Delete a vector by its identifier.
+        Retrieves all documents stored in the vector store.
 
-        Args:
-            vector_id (str): The unique identifier for the vector to be deleted.
+        Returns:
+        - List[IDocument]: A list of all documents.
         """
         pass
 
     @abstractmethod
-    def update_vector(self, vector_id: str, new_vector: IVector, new_metadata: Dict = None) -> None:
+    def delete_document(self, doc_id: str) -> None:
         """
-        Update the vector and metadata for a given vector ID.
+        Deletes a document from the vector store by its ID.
 
-        Args:
-            vector_id (str): The unique identifier for the vector to update.
-            new_vector (List[float]): The new vector data to store.
-            new_metadata (Dict, optional): Optional new metadata related to the vector.
+        Parameters:
+        - doc_id (str): The unique identifier of the document to delete.
         """
         pass
+
+    @abstractmethod
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
+        """
+        pass
+
+
+    @abstractmethod
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        """
+        Updates a document in the vector store.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document to update.
+        - updated_document (IDocument): The updated document object.
+
+        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        """
+        pass
+
+    @abstractmethod
+    def document_count(self) -> int:
+        pass 

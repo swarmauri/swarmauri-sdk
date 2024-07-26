@@ -1,38 +1,33 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Literal
+from pydantic import Field, ConfigDict
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.chains.IChain import IChain
-from swarmauri.core.chains.IChainStep import IChainStep
+from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
+from swarmauri.core.typing import SubclassUnion
 
-class ChainBase(IChain):
+class ChainBase(IChain, ComponentBase):
     """
     A base implementation of the IChain interface.
     """
+    steps: List[ChainStep] = []
+    resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ChainBase'] = 'ChainBase'
 
-    def __init__(self, 
-                 steps: List[IChainStep] = None,
-                 **configs):
-        self.steps = steps if steps is not None else []
-        self.configs = configs
-
-    def add_step(self, step: IChainStep) -> None:
+    def add_step(self, step: ChainStep) -> None:
         self.steps.append(step)
 
-    def remove_step(self, step: IChainStep) -> None:
+    def remove_step(self, step: ChainStep) -> None:
         """
         Removes an existing step from the chain. This alters the chain's execution sequence
         by excluding the specified step from subsequent executions of the chain.
 
         Parameters:
-            step (IChainStep): The Callable representing the step to remove from the chain.
+            step (ChainStep): The Callable representing the step to remove from the chain.
         """
 
-        raise NotImplementedError('this is not yet implemented')
+        raise NotImplementedError('This is not yet implemented')
 
     def execute(self, *args, **kwargs) -> Any:
-        raise NotImplementedError('this is not yet implemented')
+        raise NotImplementedError('This is not yet implemented')
 
-    def get_schema_info(self) -> Dict[str, Any]:
-        # Return a serialized version of the Chain instance's configuration
-        return {
-            "steps": [str(step) for step in self.steps],
-            "configs": self.configs
-        }

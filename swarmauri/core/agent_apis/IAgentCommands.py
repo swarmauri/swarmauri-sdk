@@ -50,7 +50,7 @@ class IAgentCommands(ABC):
     async def abatch(self, requests: List[Any]) -> List[Any]:
         """
         Handles batched invocation requests asynchronously.
-        
+
         Parameters:
             requests (List[Any]): A list of incoming request payloads.
 
@@ -63,10 +63,10 @@ class IAgentCommands(ABC):
     def stream(self, request: Any) -> Any:
         """
         Handles streaming requests.
-        
+
         Parameters:
             request (Any): The incoming request payload.
-        
+
         Returns:
             Any: A streaming response.
         """

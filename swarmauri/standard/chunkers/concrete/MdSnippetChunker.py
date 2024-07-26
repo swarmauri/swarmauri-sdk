@@ -1,14 +1,10 @@
-from typing import List, Union, Any, Optional
+from typing import List, Union, Any, Optional, Literal
 import re
-from swarmauri.core.chunkers.IChunker import IChunker
+from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
 
-class MdSnippetChunker(IChunker):
-    def __init__(self, language: Optional[str] = None):
-        """
-        Initializes the MdSnippetChunker with a specific programming language
-        to look for within Markdown fenced code blocks.
-        """
-        self.language = language
+class MdSnippetChunker(ChunkerBase):
+    language: Optional[str] = None
+    type: Literal['MdSnippetChunker'] = 'MdSnippetChunker'
     
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[tuple]:
         """

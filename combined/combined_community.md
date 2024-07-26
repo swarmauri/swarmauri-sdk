@@ -26,8 +26,8 @@
 
 import json
 from transformers import pipeline, logging as hf_logging
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 hf_logging.set_verbosity_error()
 
@@ -170,14 +170,13 @@ class GmailSendTool(ToolBase):
 
 ```swarmauri/community/tools/concrete/GmailReadTool.py
 
-import os
 import base64
 import json
 from googleapiclient import discovery
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class GmailReadTool(ToolBase):
     SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -295,8 +294,8 @@ class GmailReadTool(ToolBase):
 from transformers import pipeline
 from transformers import logging as hf_logging
 
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 hf_logging.set_verbosity_error()
 
@@ -325,8 +324,8 @@ class SentimentAnalysisTool(ToolBase):
 
 import requests
 from bs4 import BeautifulSoup
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class WebScrapingTool(ToolBase):
     def __init__(self):
@@ -382,8 +381,8 @@ class WebScrapingTool(ToolBase):
 import requests
 from typing import Dict
 from pathlib import Path
-from ...standard.tools.base.ToolBase import ToolBase
-from ...standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class DownloadPDFTool(ToolBase):
     def __init__(self):
@@ -448,12 +447,11 @@ class DownloadPDFTool(ToolBase):
 
 ```swarmauri/community/tools/concrete/PaCMAP.py
 
-from ....core.tools.ITool import ITool
-from ....standard.tools.concrete.Parameter import Parameter  # Update import path as necessary
 import numpy as np
 import pacmap  # Ensure pacmap is installed
-
-class PaCMAPTool(ITool):
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+class PaCMAPTool(ToolBase):
     """
     A tool for applying the PaCMAP method for dimensionality reduction.
     """

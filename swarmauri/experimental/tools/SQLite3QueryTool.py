@@ -1,6 +1,6 @@
 import sqlite3
-from ...base.ToolBase import ToolBase
-from ...concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class SQLite3QueryTool(ToolBase):
     def __init__(self, db_name: str):

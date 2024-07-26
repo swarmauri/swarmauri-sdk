@@ -1,7 +1,7 @@
 import json
 from transformers import pipeline, logging as hf_logging
-from ....standard.tools.base.ToolBase import ToolBase
-from ....standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 hf_logging.set_verbosity_error()
 

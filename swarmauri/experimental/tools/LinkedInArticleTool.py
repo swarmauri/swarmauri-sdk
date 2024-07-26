@@ -1,6 +1,6 @@
 import requests
-from ...standard.tools.base.ToolBase import ToolBase
-from ...standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class LinkedInArticleTool(ToolBase):
     """

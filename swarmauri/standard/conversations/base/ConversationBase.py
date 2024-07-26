@@ -1,37 +1,33 @@
-from abc import ABC
-from typing import List, Union
-from ....core.messages.IMessage import IMessage
-from ....core.conversations.IConversation import IConversation
+from typing import List, Union, Literal
+from pydantic import Field, PrivateAttr, ConfigDict
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.core.conversations.IConversation import IConversation
 
-class ConversationBase(IConversation, ABC):
+class ConversationBase(IConversation, ComponentBase):
     """
     Concrete implementation of IConversation, managing conversation history and operations.
     """
-    
-    def __init__(self):
-        self._history: List[IMessage] = []
+    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
+    resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
+    type: Literal['ConversationBase'] = 'ConversationBase'
 
     @property
-    def history(self) -> List[IMessage]:
+    def history(self) -> List[SubclassUnion[MessageBase]]:
         """
         Provides read-only access to the conversation history.
         """
         return self._history
     
-    def add_message(self, message: IMessage):
+    def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
 
-    def get_last(self) -> Union[IMessage, None]:
+    def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
         if self._history:
             return self._history[-1]
         return None
 
     def clear_history(self):
         self._history.clear()
-
-    def as_dict(self) -> List[dict]:
-        return [message.as_dict() for message in self.history] # This must utilize the public self.history
-    
-    
-    # def __repr__(self):
-        # return repr([message.as_dict() for message in self._history])

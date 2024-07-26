@@ -1,7 +1,7 @@
 from tweepy import Client
 
-from ...standard.tools.base.ToolBase import ToolBase
-from ...standard.tools.concrete.Parameter import Parameter
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class TwitterPostTool(ToolBase):
     def __init__(self, bearer_token):

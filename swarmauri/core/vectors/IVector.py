@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
 
 class IVector(ABC):
     """
@@ -8,11 +7,4 @@ class IVector(ABC):
     such as machine learning, information retrieval, and similarity search.
     """
 
-    @property
-    @abstractmethod
-    def data(self) -> List[float]:
-        """
-        The high-dimensional data that the vector represents. It is typically a list of float values.
-        """
-        pass
-
+    pass

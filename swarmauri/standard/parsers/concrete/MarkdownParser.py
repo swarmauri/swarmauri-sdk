@@ -1,40 +1,37 @@
 import re
-from markdown import markdown
-from bs4 import BeautifulSoup
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from typing import List, Tuple, Literal
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class MarkdownParser(IParser):
+
+class MarkdownParser(ParserBase):
     """
     A concrete implementation of the IParser interface that parses Markdown text.
     
     This parser takes Markdown formatted text, converts it to HTML using Python's
     markdown library, and then uses BeautifulSoup to extract plain text content. The
-    resulting plain text is then wrapped into IDocument instances.
+    resulting plain text is then wrapped into Document instances.
     """
-    
-    def parse(self, data: str) -> list[IDocument]:
-        """
-        Parses the input Markdown data into a list of IDocument instances.
-        
-        Parameters:
-        - data (str): The input Markdown formatted text to be parsed.
-        
-        Returns:
-        - list[IDocument]: A list containing a single IDocument instance with the parsed text content.
-        """
-        # Convert Markdown to HTML
-        html_content = markdown(data)
-        
-        # Use BeautifulSoup to extract text content from HTML
-        soup = BeautifulSoup(html_content, features="html.parser")
-        plain_text = soup.get_text(separator=" ", strip=True)
-        
-        # Generate a document ID
-        doc_id = "1"  # For this implementation, a simple fixed ID is used. 
-                      # A more complex system might generate unique IDs for each piece of text.
+    rules: List[Tuple[str, str]] = [
+            (r'###### (.*)', r'<h6>\1</h6>'),
+            (r'##### (.*)', r'<h5>\1</h5>'),
+            (r'#### (.*)', r'<h4>\1</h4>'),
+            (r'### (.*)', r'<h3>\1</h3>'),
+            (r'## (.*)', r'<h2>\1</h2>'),
+            (r'# (.*)', r'<h1>\1</h1>'),
+            (r'\*\*(.*?)\*\*', r'<strong>\1</strong>'),
+            (r'\*(.*?)\*', r'<em>\1</em>'),
+            (r'!\[(.*?)\]\((.*?)\)', r'<img alt="\1" src="\2" />'),
+            (r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>'),
+            (r'\n\n', r'<p>'),
+            (r'\n', r'<br>'),
+        ]
+    type: Literal['MarkdownParser'] = 'MarkdownParser'
 
-        # Create and return a list containing the single extracted plain text document
-        document = Document(doc_id=doc_id, content=plain_text, metadata={"source_format": "markdown"})
-        return [document]
+    def parse(self, data: str) -> List[Document]:
+        documents = []
+        for pattern, repl in self.rules:
+            data = re.sub(pattern, repl, data)
+        documents.append( Document(content=data, metadata={} ))
+        
+        return documents

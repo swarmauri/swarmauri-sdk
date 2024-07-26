@@ -180,7 +180,7 @@ class IAgentCommands(ABC):
     async def abatch(self, requests: List[Any]) -> List[Any]:
         """
         Handles batched invocation requests asynchronously.
-        
+
         Parameters:
             requests (List[Any]): A list of incoming request payloads.
 
@@ -193,10 +193,10 @@ class IAgentCommands(ABC):
     def stream(self, request: Any) -> Any:
         """
         Handles streaming requests.
-        
+
         Parameters:
             request (Any): The incoming request payload.
-        
+
         Returns:
             Any: A streaming response.
         """
@@ -344,9 +344,9 @@ class IConversation(ABC):
         pass
 
     @abstractmethod
-    def as_dict(self) -> List[dict]:
+    def as_messages(self) -> List[dict]:
         """
-        Returns all messages from the conversation history as a list of dictionaries.
+        Returns all messages from the conversation history in chat completion format.
         """
         pass
 
@@ -394,7 +394,7 @@ from typing import Dict
 
 class IDocument(ABC):
     @abstractmethod
-    def __init__(self, doc_id, content, metadata: Dict):
+    def __init__(self, id: str, content: str, metadata: Dict):
         pass
 
     @property
@@ -802,6 +802,53 @@ class ITemplate(ABC):
 
 ```
 
+```swarmauri/core/prompts/IPromptMatrix.py
+
+# swarmauri/core/prompts/IPromptMatrix.py
+from abc import ABC, abstractmethod
+from typing import List, Tuple, Optional, Any
+
+class IPromptMatrix(ABC):
+    @property
+    @abstractmethod
+    def matrix(self) -> List[List[Optional[str]]]:
+        """Get the entire prompt matrix."""
+        pass
+
+    @matrix.setter
+    @abstractmethod
+    def matrix(self, value: List[List[Optional[str]]]) -> None:
+        """Set the entire prompt matrix."""
+        pass
+
+    @property
+    @abstractmethod
+    def shape(self) -> Tuple[int, int]:
+        """Get the shape (number of agents, sequence length) of the prompt matrix."""
+        pass
+
+    @abstractmethod
+    def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
+        """Add a new prompt sequence to the matrix."""
+        pass
+
+    @abstractmethod
+    def remove_prompt_sequence(self, index: int) -> None:
+        """Remove a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def get_prompt_sequence(self, index: int) -> List[Optional[str]]:
+        """Get a prompt sequence from the matrix by index."""
+        pass
+
+    @abstractmethod
+    def show_matrix(self) -> List[List[Optional[str]]]:
+        """Show the entire prompt matrix."""
+        pass
+
+```
+
 ```swarmauri/core/agents/__init__.py
 
 
@@ -815,7 +862,6 @@ from swarmauri.core.toolkits.IToolkit import IToolkit
 
 
 class IAgentToolkit(ABC):
-
 
     @property
     @abstractmethod
@@ -849,25 +895,6 @@ class IAgentConversation(ABC):
     @conversation.setter
     @abstractmethod
     def conversation(self) -> IConversation:
-        pass
-
-```
-
-```swarmauri/core/agents/IAgentRetriever.py
-
-from abc import ABC, abstractmethod
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
-
-class IAgentRetriever(ABC):
-    
-    @property
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
-        pass
-
-    @retriever.setter
-    @abstractmethod
-    def retriever(self) -> IDocumentRetrieve:
         pass
 
 ```
@@ -947,18 +974,55 @@ class IAgent(ABC):
 ```swarmauri/core/agents/IAgentVectorStore.py
 
 from abc import ABC, abstractmethod
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
 class IAgentVectorStore(ABC):
     
     @property
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
         pass
 
     @vector_store.setter
     @abstractmethod
-    def vector_store(self) -> IVectorStore:
+    def vector_store(self):
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IAgentRetrieve(ABC):
+
+    @property
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+    @last_retrieved.setter
+    @abstractmethod
+    def last_retrieved(self) -> List[IDocument]:
+        pass
+
+```
+
+```swarmauri/core/agents/IAgentSystemContext.py
+
+from abc import ABC, abstractmethod
+
+class IAgentSystemContext(ABC):
+    
+    @property
+    @abstractmethod
+    def system_context(self):
+        pass
+
+    @system_context.setter
+    @abstractmethod
+    def system_context(self):
         pass
 
 ```
@@ -2050,70 +2114,182 @@ class IVectorBasisCheck(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/IVectorStore.py
+```swarmauri/core/vector_stores/__init__.py
+
+
+
+```
+
+```swarmauri/core/vector_stores/ISaveLoadStore.py
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Union
-from ..vectors.IVector import IVector
 
-class IVectorStore(ABC):
+class ISaveLoadStore(ABC):
     """
-    Interface for a vector store that allows the storage, retrieval,
-    and management of high-dimensional vector data used in search and machine learning applications.
+    Interface to abstract the ability to save and load the state of a vector store.
+    This includes saving/loading the vectorizer's model as well as the documents or vectors.
     """
 
     @abstractmethod
-    def add_vector(self, vector_id: str, vector: IVector, metadata: Dict = None) -> None:
+    def save_store(self, directory_path: str) -> None:
         """
-        Store a vector along with its identifier and optional metadata.
+        Saves the state of the vector store to the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
 
-        Args:
-            vector_id (str): Unique identifier for the vector.
-            vector (List[float]): The high-dimensional vector to be stored.
-            metadata (Dict, optional): Optional metadata related to the vector.
-        """
-        pass
-
-    @abstractmethod
-    def get_vector(self, vector_id: str) -> Union[List[float], None]:
-        """
-        Retrieve a vector by its identifier.
-
-        Args:
-            vector_id (str): The unique identifier for the vector.
-
-        Returns:
-            Union[List[float], None]: The vector associated with the given ID, or None if not found.
+        Parameters:
+        - directory_path (str): The directory path where the store's state will be saved.
         """
         pass
 
     @abstractmethod
-    def delete_vector(self, vector_id: str) -> None:
+    def load_store(self, directory_path: str) -> None:
         """
-        Delete a vector by its identifier.
+        Loads the state of the vector store from the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
 
-        Args:
-            vector_id (str): The unique identifier for the vector to be deleted.
+        Parameters:
+        - directory_path (str): The directory path from where the store's state will be loaded.
         """
         pass
 
     @abstractmethod
-    def update_vector(self, vector_id: str, new_vector: IVector, new_metadata: Dict = None) -> None:
+    def save_parts(self, directory_path: str, chunk_size: int=10485760) -> None:
         """
-        Update the vector and metadata for a given vector ID.
+        Save the model in parts to handle large files by splitting them.
 
-        Args:
-            vector_id (str): The unique identifier for the vector to update.
-            new_vector (List[float]): The new vector data to store.
-            new_metadata (Dict, optional): Optional new metadata related to the vector.
+        """
+        pass
+
+    @abstractmethod
+    def load_parts(self, directory_path: str, file_pattern: str) -> None:
+        """
+        Load and combine model parts from a directory.
+
         """
         pass
 
 ```
 
-```swarmauri/core/vector_stores/__init__.py
+```swarmauri/core/vector_stores/IVectorStore.py
+
+from abc import ABC, abstractmethod
+from typing import List, Dict, Union
+from swarmauri.core.vectors.IVector import IVector
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorStore(ABC):
+    """
+    Interface for a vector store responsible for storing, indexing, and retrieving documents.
+    """
+
+    @abstractmethod
+    def add_document(self, document: IDocument) -> None:
+        """
+        Stores a single document in the vector store.
+
+        Parameters:
+        - document (IDocument): The document to store.
+        """
+        pass
+
+    @abstractmethod
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Stores multiple documents in the vector store.
+
+        Parameters:
+        - documents (List[IDocument]): The list of documents to store.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        """
+        Retrieves a document by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document.
+
+        Returns:
+        - Union[IDocument, None]: The requested document, or None if not found.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieves all documents stored in the vector store.
+
+        Returns:
+        - List[IDocument]: A list of all documents.
+        """
+        pass
+
+    @abstractmethod
+    def delete_document(self, doc_id: str) -> None:
+        """
+        Deletes a document from the vector store by its ID.
+
+        Parameters:
+        - doc_id (str): The unique identifier of the document to delete.
+        """
+        pass
+
+    @abstractmethod
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+
+        """
+        pass
 
 
+    @abstractmethod
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        """
+        Updates a document in the vector store.
+
+        Parameters:
+        - doc_id (str): The unique identifier for the document to update.
+        - updated_document (IDocument): The updated document object.
+
+        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        """
+        pass
+
+    @abstractmethod
+    def document_count(self) -> int:
+        pass 
+
+```
+
+```swarmauri/core/vector_stores/IVectorRetrieve.py
+
+from abc import ABC, abstractmethod
+from typing import List
+from swarmauri.core.documents.IDocument import IDocument
+
+class IVectorRetrieve(ABC):
+    """
+    Abstract base class for document retrieval operations.
+    
+    This class defines the interface for retrieving documents based on a query or other criteria.
+    Implementations may use various indexing or search technologies to fulfill these retrievals.
+    """
+
+    @abstractmethod
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the most relevant documents based on the given query.
+        
+        Parameters:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+            
+        Returns:
+            List[Document]: A list of the top_k most relevant documents.
+        """
+        pass
 
 ```
 
@@ -2121,7 +2297,7 @@ class IVectorStore(ABC):
 
 from abc import ABC, abstractmethod
 from typing import List, Union
-from ..documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IDocumentStore(ABC):
     """
@@ -2238,13 +2414,6 @@ class IDocumentRetrieve(ABC):
 ```
 
 ```swarmauri/core/chunkers/__init__.py
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 28 20:35:27 2024
-
-@author: bigman
-"""
 
 
 
@@ -2623,6 +2792,41 @@ class IFeature(ABC):
 
 ```
 
+```swarmauri/core/vectorizers/ISaveModel.py
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+class ISaveModel(ABC):
+    """
+    Interface to abstract the ability to save and load models.
+    """
+
+    @abstractmethod
+    def save_model(self, path: str) -> None:
+        """
+        Saves the model to the specified directory.
+
+        Parameters:
+        - path (str): The directory path where the model will be saved.
+        """
+        pass
+
+    @abstractmethod
+    def load_model(self, path: str) -> Any:
+        """
+        Loads a model from the specified directory.
+
+        Parameters:
+        - path (str): The directory path from where the model will be loaded.
+
+        Returns:
+        - Returns an instance of the loaded model.
+        """
+        pass
+
+```
+
 ```swarmauri/core/tracing/__init__.py
 
 
@@ -2971,6 +3175,74 @@ class IChainStep:
         self.args = args if args is not None else []
         self.kwargs = kwargs if kwargs is not None else {}
         self.ref = ref
+
+```
+
+```swarmauri/core/chains/IChainContextLoader.py
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+
+class IChainContextLoader(ABC):
+    @abstractmethod
+    def load_context(self, context_id: str) -> Dict[str, Any]:
+        """Load the execution context by its identifier."""
+        pass
+
+```
+
+```swarmauri/core/chains/IChainDependencyResolver.py
+
+from abc import ABC, abstractmethod
+from typing import Tuple, Dict, List, Optional
+from swarmauri.standard.chains.concrete.ChainStep import ChainStep
+
+class IChainDependencyResolver(ABC):
+    @abstractmethod
+    def build_dependencies(self) -> List[ChainStep]:
+        """
+        Builds the dependencies for a particular sequence in the matrix.
+
+        Args:
+            matrix (List[List[str]]): The prompt matrix.
+            sequence_index (int): The index of the sequence to build dependencies for.
+
+        Returns:
+            Tuple containing indegrees and graph dicts.
+        """
+        pass
+
+    @abstractmethod
+    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+        """
+        Resolves the execution order based on the provided dependencies.
+
+        Args:
+            indegrees (Dict[int, int]): The indegrees of each node.
+            graph (Dict[int, List[int]]): The graph representing dependencies.
+
+        Returns:
+            List[int]: The resolved execution order.
+        """
+        pass
+
+```
+
+```swarmauri/core/chains/IChainContext.py
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+
+class IChainContext(ABC):
+    @property
+    @abstractmethod
+    def context(self) -> Dict[str, Any]:
+        pass
+
+    @context.setter
+    @abstractmethod
+    def context(self, value: Dict[str, Any]) -> None:
+        pass
 
 ```
 

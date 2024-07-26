@@ -1,18 +1,22 @@
 import spacy
-from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from typing import List, Union, Any, Literal
+from pydantic import PrivateAttr
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class EntityRecognitionParser(IParser):
+class EntityRecognitionParser(ParserBase):
     """
     EntityRecognitionParser leverages NER capabilities to parse text and 
     extract entities with their respective tags such as PERSON, LOCATION, ORGANIZATION, etc.
     """
+    _nlp: Any = PrivateAttr()
+    type: Literal['EntityRecognitionParser'] = 'EntityRecognitionParser'
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # Load a SpaCy model. The small model is used for demonstration; larger models provide improved accuracy.
-        self.nlp = spacy.load("en_core_web_sm")
+        self._nlp = spacy.load("en_core_web_sm")
     
     def parse(self, text: Union[str, Any]) -> List[IDocument]:
         """
@@ -29,7 +33,7 @@ class EntityRecognitionParser(IParser):
             text = str(text)
         
         # Apply the NER model
-        doc = self.nlp(text)
+        doc = self._nlp(text)
 
         # Compile identified entities into documents
         entities_docs = []

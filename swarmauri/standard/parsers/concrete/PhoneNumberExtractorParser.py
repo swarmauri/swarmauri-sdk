@@ -1,22 +1,16 @@
 import re
-from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from typing import List, Union, Any, Literal
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class PhoneNumberExtractorParser(IParser):
+class PhoneNumberExtractorParser(ParserBase):
     """
     A parser that extracts phone numbers from the input text.
     Utilizes regular expressions to identify phone numbers in various formats.
     """
-
-    def __init__(self):
-        """
-        Initializes the PhoneNumberExtractorParser.
-        """
-        super().__init__()
-
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    type: Literal['PhoneNumberExtractorParser'] = 'PhoneNumberExtractorParser'
+    
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses the input data, looking for phone numbers employing a regular expression.
         Each phone number found is contained in a separate IDocument instance.
@@ -35,6 +29,6 @@ class PhoneNumberExtractorParser(IParser):
         phone_numbers = re.findall(phone_regex, str(data))
 
         # Create a new IDocument for each phone number found
-        documents = [Document(doc_id=str(index), content=phone_number, metadata={}) for index, phone_number in enumerate(phone_numbers)]
+        documents = [Document(content=phone_number, metadata={}) for index, phone_number in enumerate(phone_numbers)]
 
         return documents

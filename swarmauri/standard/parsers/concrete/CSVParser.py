@@ -1,11 +1,11 @@
 import csv
 from io import StringIO
-from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.Document import Document
+from typing import List, Union, Any, Literal
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
-class CSVParser(IParser):
+class CSVParser(ParserBase):
     """
     Concrete implementation of IParser for parsing CSV formatted text into Document instances.
 
@@ -13,7 +13,8 @@ class CSVParser(IParser):
     represented as a separate Document. Assumes the first row is the header which will
     be used as keys for document metadata.
     """
-
+    type: Literal['CSVParser'] = 'CSVParser'
+    
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """
         Parses the given CSV data into a list of Document instances.

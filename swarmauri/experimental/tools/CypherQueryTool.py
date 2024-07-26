@@ -1,7 +1,7 @@
-from ..base.ToolBase import ToolBase
-from .Parameter import Parameter
-from neo4j import GraphDatabase
 import json
+from neo4j import GraphDatabase
+from swarmauri.standard.tools.concrete.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class CypherQueryTool(ToolBase):
     def __init__(self, uri: str, user: str, password: str):

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from ..messages.IMessage import IMessage
+from swarmauri.core.messages.IMessage import IMessage
 
 class IConversation(ABC):
     """
@@ -36,9 +36,3 @@ class IConversation(ABC):
         """
         pass
 
-    @abstractmethod
-    def as_dict(self) -> List[dict]:
-        """
-        Returns all messages from the conversation history as a list of dictionaries.
-        """
-        pass

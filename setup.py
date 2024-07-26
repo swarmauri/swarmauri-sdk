@@ -14,7 +14,8 @@ setup(
     packages=find_packages(include=['swarmauri*']),  # Include packages in your_package and libs directories
     install_requires=[
         'numpy',  # Common dependencies for all distributions
-        'requests'
+        'requests',
+        'pydantic'
     ],
     extras_require={
         'standard': [
@@ -60,13 +61,11 @@ setup(
             'lightgbm'
         ],
         'full': [
-            'openai',
             'transformers',
-            'accelerate',
+            #'accelerate',
             'tensorflow',
-            'scipy',
             'typing_extensions',
-            'redisearch',
+            #'redisearch',
             'google-api-python-client',
             'google-auth-httplib2',
             'google-auth-oauthlib',
@@ -75,15 +74,23 @@ setup(
             'torch',
             'scikit-learn',
             'gensim',
-            'lightgbm',
-            'rdflib',
+            #'lightgbm',
+            #'rdflib',
             'textblob',
-            'spacy',
+            'spacy==3.7.4',
             'pygments',
-            'stanford_openie',
-            'sentencepiece',
+            #'stanford_openie',
+            #'sentencepiece',
             'gradio',
-            'websockets'
+            'websockets',
+            'openai',
+            'groq',
+            'mistralai',
+            'cohere',
+            'google-generativeai',
+            'anthropic',
+            'scipy==1.10.0',
+
         ]},
     classifiers=[
         'License :: OSI Approved :: MIT License',

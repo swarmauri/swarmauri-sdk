@@ -9,20 +9,9 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def __init__(self, **configs):
-        pass
-
-    @abstractmethod
     def create_chain(self, steps: List[IChainStep] = None) -> IChain:
         pass
     
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
-        pass
-    
-    @abstractmethod
-    def get_chain_info(self) -> Dict[str, Any]:
-        pass
     
     @abstractmethod
     def get_chain(self) -> IChain:
@@ -52,7 +41,6 @@ class IChainFactory(ABC):
     def remove_chain_step(self, key: str):
         pass
     
-    
     @abstractmethod
     def get_configs(self) -> Dict[str, Any]:
         pass
@@ -70,11 +58,4 @@ class IChainFactory(ABC):
     def set_config(self, key: str, value: Any):
         pass
     
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
-        pass
 
-    @abstractmethod
-    def get_chain_info(self) -> Dict[str, Any]:
-        pass    
-    
