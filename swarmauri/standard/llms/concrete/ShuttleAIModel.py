@@ -72,10 +72,10 @@ class ShuttleAIModel(LLMBase):
             'tool_choice': tool_choice, 
         }
 
-        # if system_context: 
-        #     kwargs.update({
-        #         'system': system_context,
-        #     })
+        if system_context: 
+            kwargs.update({
+                'system_fingerprint': system_context,
+            })
 
         response = client.chat.completions.create(**kwargs)
         message_content = response.choices[0].message.content

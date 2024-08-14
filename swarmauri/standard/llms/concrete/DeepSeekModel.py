@@ -40,7 +40,7 @@ class DeepSeekModel(LLMBase):
         stop='\n', 
         stream=False, 
         top_p=1.0, 
-        tools=list(), 
+        tools=None, 
         tool_choice=None): 
 
         # Create client
@@ -54,7 +54,7 @@ class DeepSeekModel(LLMBase):
             response = client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
-                system=system_context,
+                # system=system_context,
                 temperature=temperature,
                 max_tokens=max_tokens, 
                 frequency_penalty=frequency_penalty,  
@@ -80,7 +80,7 @@ class DeepSeekModel(LLMBase):
                 tool_choice=tool_choice
             )
         
-        message_content = response.content[0].text
+        message_content = response.choices[0].message.content
         conversation.add_message(AgentMessage(content=message_content))
         
         return conversation
