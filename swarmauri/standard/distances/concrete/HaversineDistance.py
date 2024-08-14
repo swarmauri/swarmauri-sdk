@@ -12,13 +12,13 @@ class HaversineDistance(DistanceBase):
     longitudes and latitudes. This implementation is particularly useful for geo-spatial data.
     """ 
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Haversine distance between two geo-spatial points.
 
         Args:
-            vector_a (IVector): The first point in the format [latitude, longitude].
-            vector_b (IVector): The second point in the same format [latitude, longitude].
+            vector_a (Vector): The first point in the format [latitude, longitude].
+            vector_b (Vector): The second point in the same format [latitude, longitude].
 
         Returns:
             float: The Haversine distance between vector_a and vector_b in kilometers.
@@ -39,12 +39,12 @@ class HaversineDistance(DistanceBase):
 
         return distance
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         raise NotImplementedError("Similarity not implemented for Haversine distance.")
         
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         raise NotImplementedError("Similarity not implemented for Haversine distance.")

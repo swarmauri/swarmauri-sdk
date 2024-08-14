@@ -11,7 +11,7 @@ class SorensenDiceDistance(DistanceBase):
     The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.
     """
 
-    def distance(self, vector_a: List[float], vector_b: List[float]) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute the Sörensen-Dice distance between two vectors.
         
