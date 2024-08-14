@@ -1,4 +1,4 @@
-# SwarmaURI SDK
+# Swarmauri SDK
 This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
 
 [![Star on GitHub](https://img.shields.io/github/stars/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/stargazers) [![Fork on GitHub](https://img.shields.io/github/forks/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/network/members) [![Watch on GitHub](https://img.shields.io/github/watchers/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/watchers)
