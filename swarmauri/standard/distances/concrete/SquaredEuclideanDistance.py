@@ -1,8 +1,8 @@
 from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class SquaredEuclideanDistance(IDistanceSimilarity):
+class SquaredEuclideanDistance(DistanceBase):
     """
     A concrete class for computing the squared Euclidean distance between two vectors.
     """

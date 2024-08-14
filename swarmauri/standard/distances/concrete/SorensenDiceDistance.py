@@ -2,10 +2,10 @@ import numpy as np
 from typing import List
 from collections import Counter
 
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class SorensenDiceDistance(IDistanceSimilarity):
+class SorensenDiceDistance(DistanceBase):
     """
     Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.
     The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.

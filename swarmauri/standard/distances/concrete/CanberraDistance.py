@@ -1,10 +1,10 @@
 import numpy as np
 from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
 
-class CanberraDistance(IDistanceSimilarity):
+class CanberraDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
     This class now processes IVector instances instead of raw lists.

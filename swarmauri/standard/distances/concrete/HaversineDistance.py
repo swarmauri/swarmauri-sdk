@@ -1,10 +1,10 @@
 from typing import List
 from math import radians, cos, sin, sqrt, atan2
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
 
-class HaversineDistance(IDistanceSimilarity):
+class HaversineDistance(DistanceBase):
     """
     Concrete implementation of IDistanceSimiliarity interface using the Haversine formula.
     

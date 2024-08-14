@@ -1,8 +1,8 @@
 from typing import List
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class ChebyshevDistance(IDistanceSimilarity):
+class ChebyshevDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
     Chebyshev distance is the maximum absolute distance between two vectors' elements.
