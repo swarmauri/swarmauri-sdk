@@ -95,7 +95,7 @@ def test_preamble_system_context():
 
 @pytest.mark.acceptance
 def test_multiple_system_contexts():
-    API_KEY = os.getenv('ANTHROPIC_API_KEY')
+    API_KEY = os.getenv('AI21Studio_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
