@@ -11,7 +11,7 @@ class MinkowskiDistance(DistanceBase):
 
     The class provides methods to compute the Minkowski distance between two vectors.
     """
-
+    type: Literal['MinkowskiDistance'] = 'MinkowskiDistance'   
     def __init__(self, p: int = 2):
         """
         Initializes the MinkowskiDistance calculator with the specified order.

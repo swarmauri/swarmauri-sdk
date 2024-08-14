@@ -1,6 +1,7 @@
 from typing import List
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+
 class ManhattanDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Manhattan distance.
@@ -8,7 +9,7 @@ class ManhattanDistance(DistanceBase):
     The Manhattan distance between two points is the sum of the absolute differences of their Cartesian coordinates.
     This is also known as L1 distance.
     """
-
+    type: Literal['ManhattanDistance'] = 'ManhattanDistance'   
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Manhattan distance between two vectors.

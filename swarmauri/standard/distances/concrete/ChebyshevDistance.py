@@ -7,6 +7,7 @@ class ChebyshevDistance(DistanceBase):
     Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
     Chebyshev distance is the maximum absolute distance between two vectors' elements.
     """
+    type: Literal['ChebyshevDistance'] = 'ChebyshevDistance'   
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """

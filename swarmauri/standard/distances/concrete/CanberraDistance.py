@@ -9,7 +9,8 @@ class CanberraDistance(DistanceBase):
     Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
     This class now processes Vector instances instead of raw lists.
     """
-
+    type: Literal['CanberraDistance'] = 'CanberraDistance'   
+    
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Canberra distance between two Vector instances.

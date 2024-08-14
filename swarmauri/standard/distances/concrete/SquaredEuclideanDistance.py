@@ -6,7 +6,8 @@ class SquaredEuclideanDistance(DistanceBase):
     """
     A concrete class for computing the squared Euclidean distance between two vectors.
     """
-
+    type: Literal['SquaredEuclideanDistance'] = 'SquaredEuclideanDistance'
+    
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the squared Euclidean distance between vectors `vector_a` and `vector_b`.
