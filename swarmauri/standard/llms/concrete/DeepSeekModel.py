@@ -42,13 +42,6 @@ class DeepSeekModel(LLMBase):
         top_p=1.0, 
         tools=list(), 
         tool_choice=None): 
-        ''' 
-        Args: 
-            top_p (0.01 to 1.0)  Limit the pool of next tokens in each step to the top {top_p*100} percentile of possible tokens
-            stop: stop the message when model generates one of these strings. 
-            n: how many chat responses to generate
-            stream: whether or not to stream the result, for long answers. if set to true n must be 1. 
-        '''
 
         # Create client
         client = openai.OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
