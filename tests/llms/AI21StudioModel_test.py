@@ -29,7 +29,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv('AI21Studio_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == 'claude-3-haiku-20240307'
+    assert model.name == 'j2-light'
 
 @pytest.mark.unit
 def test_no_system_context():
