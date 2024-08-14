@@ -22,13 +22,13 @@ class MinkowskiDistance(DistanceBase):
         """
         self.p = p
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Minkowski distance between two vectors.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
 
         Returns:
             float: The computed Minkowski distance between vector_a and vector_b.
@@ -37,21 +37,21 @@ class MinkowskiDistance(DistanceBase):
         if vector_a.dimensions != vector_b.dimensions:
             raise ValueError("Vectors must have the same dimensionality.")
 
-        # Extract data from IVector instances
+        # Extract data from Vector instances
         data_a = vector_a.data
         data_b = vector_b.data
 
         # Calculate and return the Minkowski distance
         return minkowski(data_a, data_b, p=self.p)
 
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute the similarity between two vectors based on the Minkowski distance.
         The similarity is inversely related to the distance.
 
         Args:
-            vector_a (IVector): The first vector to compare for similarity.
-            vector_b (IVector): The second vector to compare with the first vector.
+            vector_a (Vector): The first vector to compare for similarity.
+            vector_b (Vector): The second vector to compare with the first vector.
 
         Returns:
             float: A similarity score between vector_a and vector_b.
@@ -59,10 +59,10 @@ class MinkowskiDistance(DistanceBase):
         dist = self.distance(vector_a, vector_b)
         return 1 / (1 + dist)  # An example similarity score
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities
