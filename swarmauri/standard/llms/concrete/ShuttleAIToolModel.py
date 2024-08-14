@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Literal, Dict, Any
 from shuttleai import ShuttleAI 
-from shuttleai import shuttle 
+from shuttleai import *
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -24,7 +24,7 @@ class ShuttleAIToolModel(LLMBase):
         "gpt-3.5-turbo-0613",
         "gpt-3.5-turbo-0125"
     ]
-    name: str = "shuttle-2-turbo"
+    name: str = "gpt-3.5-turbo"
     type: Literal['ShuttleAIToolModel'] = 'ShuttleAIToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
