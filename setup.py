@@ -90,6 +90,7 @@ setup(
             'google-generativeai',
             'anthropic',
             'scipy==1.10.0',
+            'ai21>=2.2.0'
 
         ]},
     classifiers=[
