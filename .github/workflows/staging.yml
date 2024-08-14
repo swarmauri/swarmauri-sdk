@@ -31,7 +31,6 @@ jobs:
       QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
       QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
 
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -63,7 +62,6 @@ jobs:
       run: |
         LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
         python -m pip install "$LATEST_WHL"[full]
-
 
     - name: Get pip freeze
       run: |
