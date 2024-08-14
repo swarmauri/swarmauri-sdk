@@ -28,6 +28,8 @@ jobs:
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
+      QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
 
 
     steps:
