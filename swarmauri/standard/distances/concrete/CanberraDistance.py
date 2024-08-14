@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Literal
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
@@ -10,7 +10,7 @@ class CanberraDistance(DistanceBase):
     This class now processes Vector instances instead of raw lists.
     """
     type: Literal['CanberraDistance'] = 'CanberraDistance'   
-    
+
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Canberra distance between two Vector instances.

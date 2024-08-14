@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 

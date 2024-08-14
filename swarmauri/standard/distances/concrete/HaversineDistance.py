@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 from math import radians, cos, sin, sqrt, atan2
 from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.distances.base.DistanceBase import DistanceBase
