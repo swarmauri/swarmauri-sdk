@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.parsers.concrete.MarkdownParser import MarkdownParser as Parser
+from swarmauri.standard.parsers.concrete.Md2HtmlParser import Md2HtmlParser as Parser
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -9,7 +9,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
     parser = Parser()
-    assert parser.type == 'MarkdownParser'
+    assert parser.type == 'Md2HtmlParser'
 
 @pytest.mark.unit
 def test_serialization():
