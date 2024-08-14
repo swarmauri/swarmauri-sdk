@@ -19,7 +19,7 @@ class AI21StudioModel(LLMBase):
                                  'j2-jumbo-chat',
                                  'jamba-instruct'
                                  ]
-    name: str = "claude-3-haiku-20240307"
+    name: str = "j2-light"
     type: Literal['AI21StudioModel'] = 'AI21StudioModel'
 
     def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
