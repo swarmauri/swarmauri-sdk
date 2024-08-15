@@ -1,8 +1,7 @@
 import json
 import logging
 from typing import List, Literal, Dict, Any
-from shuttleai import ShuttleAI 
-from shuttleai import *
+import requests 
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -43,26 +42,47 @@ class ShuttleAIToolModel(LLMBase):
         toolkit=None, 
         tool_choice=None, 
         temperature=0.7, 
-        max_tokens=1024):
+        max_tokens=1024, 
+        top_p=1.0, 
+        internet=True, 
+        raw=False, 
+        image=None, 
+        citations=True, 
+        tone='precise'):
 
         formatted_messages = self._format_messages(conversation.history)
 
-        client = ShuttleAI(api_key=self.api_key)
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = shuttle.chat_completion(
-            model=self.name, 
-            messages=formatted_messages, 
-            tools=self._schema_convert_tools(toolkit.tools), 
-            tool_choice=tool_choice, 
-            temperature=temperature, 
-            max_tokens=max_tokens, 
-        )
+        url = "https://api.shuttleai.app/v1/chat/completions"
+        headers = { 
+            "Authorization": f"Bearer {self.api_key}", 
+            "Content-Type": "application/json", 
+        }
 
-        logging.info(f"tool_response: {tool_response}")
-        messages = [formatted_messages[-1], tool_response.choices[0].message]
-        tool_calls = tool_response.choices[0]['message']['tool_calls']
+        formatted_messages = self._format_messages(conversation.history) 
+ 
+        payload = { 
+            "model": self.name, 
+            "messages": formatted_messages, 
+            "max_tokens": max_tokens, 
+            "temperature": temperature, 
+            "top_p": top_p, 
+            "internet": internet, 
+            "raw": raw, 
+            "image": image, 
+            "tool_choice": tool_choice, 
+            "tools": self._schema_convert_tools(toolkit.tools),
+        } 
+
+        if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
+            payload['tone'] = tone 
+            payload['citations'] = citations  
+
+        agent_response = requests.request("POST", url, json=payload, headers=headers) 
+        messages = [formatted_messages[-1], agent_response.json()['choices'][0]['message']['content']]
+        tool_calls = agent_response.json()['choices'][0]['message'].get('tool_calls', None) 
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call['function']['name'] 
@@ -78,14 +98,8 @@ class ShuttleAIToolModel(LLMBase):
                     }
                 )
         logging.info(f'messages: {messages}')
-        agent_response = client.chat.completions.create(
-            model=self.name,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        logging.info(f"agent_response: {agent_response}")
-        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
+        logging.info(f"agent_response: {agent_response.json()}")
+        agent_message = AgentMessage(content=agent_response.json()['choices'][0]['message']['content'])
         conversation.add_message(agent_message)
         logging.info(f"conversation: {conversation}")
         return conversation
