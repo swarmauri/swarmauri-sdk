@@ -1,11 +1,12 @@
 import json
 from typing import List, Dict, Literal
-from shuttleai import ShuttleAI 
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.llms.base.LLMBase import LLMBase
+from swarmauri.standard.llms.base.LLMBase import LLMBase 
+
+import requests 
 
 class ShuttleAIModel(LLMBase):
     api_key: str
@@ -46,26 +47,30 @@ class ShuttleAIModel(LLMBase):
         raw=False, 
         image=None): 
 
-        # Create client
-        client = ShuttleAI(self.api_key) 
-        formatted_messages = self._format_messages(conversation.history)
+        formatted_messages = self._format_messages(conversation.history) 
 
-        kwargs = { 
-            'model': self.name, 
-            'messages': formatted_messages,
-            'temperature': temperature,
-            'max_tokens': max_tokens, 
-            'top_p': top_p, 
-            'internet': internet, 
-            'citations': citations, 
-            'tone': tone, 
-            'raw': raw, 
-            'image': image
+        url = "https://api.shuttleai.app/v1/chat/completions" 
+        payload = { 
+            "model": self.name, 
+            "messages": formatted_messages, 
+            "max_tokens": max_tokens, 
+            "temperature": temperature, 
+            "top_p": top_p, 
+            "internet": internet, 
+            "raw": raw, 
+            "image": image
+        } 
+
+        if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
+            payload['tone'] = tone 
+            payload['citations'] = citations 
+
+        headers = { 
+            "Authorization": f"Bearer {self.api_key}", 
+            "Content-Type": "application/json", 
         }
 
-
-        response = client.chat.completions.create(**kwargs)
-        message_content = response.choices[0].message.content
-        conversation.add_message(AgentMessage(content=message_content))
-        
-        return conversation
+        response = requests.request("POST", url, json=payload, headers=headers) 
+        message_content = response.json()['choices'][0] ['message']['content'] 
+        conversation.add_message(AgentMessage(content=message_content))  
+        return conversation 
