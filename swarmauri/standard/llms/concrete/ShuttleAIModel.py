@@ -56,7 +56,6 @@ class ShuttleAIModel(LLMBase):
             'temperature': temperature,
             'max_tokens': max_tokens, 
             'top_p': top_p, 
-            'top_p': top_p,
             'internet': internet, 
             'citations': citations, 
             'tone': tone, 
