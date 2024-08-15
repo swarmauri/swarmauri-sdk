@@ -17,7 +17,7 @@ def test_ubc_resource():
 def test_ubc_type():
     API_KEY = os.getenv('AI21STUDIO_API_KEY')
     llm = LLM(api_key = API_KEY)
-    assert llm.type == 'AI21Studio'
+    assert llm.type == 'AI21StudioModel'
 
 @pytest.mark.unit
 def test_serialization():
@@ -76,7 +76,7 @@ def test_nonpreamble_system_context():
 
 @pytest.mark.unit
 def test_preamble_system_context():
-    API_KEY = os.getenv('AI21Studio_API_KEY')
+    API_KEY = os.getenv('AI21STUDIO_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
@@ -95,7 +95,7 @@ def test_preamble_system_context():
 
 @pytest.mark.acceptance
 def test_multiple_system_contexts():
-    API_KEY = os.getenv('AI21Studio_API_KEY')
+    API_KEY = os.getenv('AI21STUDIO_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
