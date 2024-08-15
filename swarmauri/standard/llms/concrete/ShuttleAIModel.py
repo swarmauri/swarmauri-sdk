@@ -34,21 +34,12 @@ class ShuttleAIModel(LLMBase):
         formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
-        system_context = None
-        for message in messages:
-            if message.role == 'system':
-                system_context = message.content
-        return system_context
-
     
     def predict(self, 
         conversation, 
         temperature=0.7, 
         max_tokens=256, 
         top_p=1, 
-        tools=list(), 
-        tool_choice=None, 
         internet=True, 
         citations=True, 
         tone='precise', 
@@ -57,9 +48,6 @@ class ShuttleAIModel(LLMBase):
 
         # Create client
         client = ShuttleAI(self.api_key) 
-        
-        # Get system_context from last message with system context in it
-        system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         kwargs = { 
@@ -68,14 +56,13 @@ class ShuttleAIModel(LLMBase):
             'temperature': temperature,
             'max_tokens': max_tokens, 
             'top_p': top_p, 
-            'tools': tools, 
-            'tool_choice': tool_choice, 
+            'internet': internet, 
+            'citations': citations, 
+            'tone': tone, 
+            'raw': raw, 
+            'image': image
         }
 
-        # if system_context: 
-        #     kwargs.update({
-        #         'system': system_context,
-        #     })
 
         response = client.chat.completions.create(**kwargs)
         message_content = response.choices[0].message.content
