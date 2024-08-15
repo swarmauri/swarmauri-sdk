@@ -48,9 +48,6 @@ class ShuttleAIModel(LLMBase):
 
         # Create client
         client = ShuttleAI(self.api_key) 
-        
-        # Get system_context from last message with system context in it
-        system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         kwargs = { 
@@ -59,14 +56,14 @@ class ShuttleAIModel(LLMBase):
             'temperature': temperature,
             'max_tokens': max_tokens, 
             'top_p': top_p, 
-            'tools': tools, 
-            'tool_choice': tool_choice, 
+            'top_p': top_p,
+            'internet': internet, 
+            'citations': citations, 
+            'tone': tone, 
+            'raw': raw, 
+            'image': image
         }
 
-        if system_context: 
-            kwargs.update({
-                'system_fingerprint': system_context,
-            })
 
         response = client.chat.completions.create(**kwargs)
         message_content = response.choices[0].message.content
