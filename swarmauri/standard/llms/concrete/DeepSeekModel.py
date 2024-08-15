@@ -23,14 +23,6 @@ class DeepSeekModel(LLMBase):
         formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
-        system_context = None
-        for message in messages:
-            if message.role == 'system':
-                system_context = message.content
-        return system_context
-
-    
     def predict(self, 
         conversation, 
         temperature=0.7, 
@@ -45,7 +37,6 @@ class DeepSeekModel(LLMBase):
         client = openai.OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
         
         # Get system_context from last message with system context in it
-        system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         response = client.chat.completions.create(
