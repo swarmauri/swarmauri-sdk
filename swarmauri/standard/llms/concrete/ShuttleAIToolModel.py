@@ -14,17 +14,20 @@ from swarmauri.standard.schema_converters.concrete.ShuttleAISchemaConverter impo
 class ShuttleAIToolModel(LLMBase):
     api_key: str
     allowed_models: List[str] = [
-        "shuttle-tools",
-        "gemini-pro",
-        "mixtral-8x7b",
-        "mistral-7b",
-        "gpt-3.5-turbo",
+        "shuttle-2-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4-0125-preview",
+        "gpt-4-1106-preview",
         "gpt-4-0613",
+        "gpt-3.5-turbo-0125",
         "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-0613",
-        "gpt-3.5-turbo-0125"
+        "claude-instant-1.1",
+        "wizardlm-2-8x22b",
+        "mistral-7b-instruct-v0.2",
+        "gemini-1.5-pro-latest",
+        "gemini-1.0-pro-latest"
     ]
-    name: str = "gpt-3.5-turbo"
+    name: str = "shuttle-2-turbo"
     type: Literal['ShuttleAIToolModel'] = 'ShuttleAIToolModel'
     
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
