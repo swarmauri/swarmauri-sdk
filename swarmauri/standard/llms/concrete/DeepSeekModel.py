@@ -39,9 +39,7 @@ class DeepSeekModel(LLMBase):
         presence_penalty=0, 
         stop='\n', 
         stream=False, 
-        top_p=1.0, 
-        tools=None, 
-        tool_choice=None): 
+        top_p=1.0): 
 
         # Create client
         client = openai.OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
@@ -50,35 +48,17 @@ class DeepSeekModel(LLMBase):
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
-        if system_context:
-            response = client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                # system=system_context,
-                temperature=temperature,
-                max_tokens=max_tokens, 
-                frequency_penalty=frequency_penalty,  
-                presence_penalty=presence_penalty, 
-                stop=stop, 
-                stream=stream, 
-                top_p=top_p, 
-                tools=tools, 
-                tool_choice=tool_choice
-            )
-        else:
-            response = client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens, 
-                frequency_penalty=frequency_penalty,  
-                presence_penalty=presence_penalty, 
-                stop=stop, 
-                stream=stream, 
-                top_p=top_p, 
-                tools=tools, 
-                tool_choice=tool_choice
-            )
+        response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens, 
+            frequency_penalty=frequency_penalty,  
+            presence_penalty=presence_penalty, 
+            stop=stop, 
+            stream=stream, 
+            top_p=top_p, 
+        )
         
         message_content = response.choices[0].message.content
         conversation.add_message(AgentMessage(content=message_content))

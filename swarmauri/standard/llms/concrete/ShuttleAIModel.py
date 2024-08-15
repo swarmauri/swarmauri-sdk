@@ -34,21 +34,12 @@ class ShuttleAIModel(LLMBase):
         formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
-        system_context = None
-        for message in messages:
-            if message.role == 'system':
-                system_context = message.content
-        return system_context
-
     
     def predict(self, 
         conversation, 
         temperature=0.7, 
         max_tokens=256, 
         top_p=1, 
-        tools=list(), 
-        tool_choice=None, 
         internet=True, 
         citations=True, 
         tone='precise', 
