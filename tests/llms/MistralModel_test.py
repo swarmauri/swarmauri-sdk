@@ -62,7 +62,7 @@ def test_nonpreamble_system_context():
 
     # Give System Context
     system_context = 'You only respond with the following phrase, "Jeff"'
-    human_message = SystemMessage(content=system_context)
+    human_message = HumanMessage(content=system_context)
     conversation.add_message(human_message)
 
     # Prompt
@@ -83,7 +83,7 @@ def test_preamble_system_context():
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
-    human_message = SystemMessage(content=system_context)
+    human_message = HumanMessage(content=system_context)
     conversation.add_message(human_message)
 
     input_data = "Hi"
@@ -102,7 +102,7 @@ def test_multiple_system_contexts():
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
-    human_message = SystemMessage(content=system_context)
+    human_message = HumanMessage(content=system_context)
     conversation.add_message(human_message)
 
     input_data = "Hi"
@@ -112,7 +112,7 @@ def test_multiple_system_contexts():
     model.predict(conversation=conversation)
 
     system_context_2 = 'You only respond with the following phrase, "Ben"'
-    human_message = SystemMessage(content=system_context_2)
+    human_message = HumanMessage(content=system_context_2)
     conversation.add_message(human_message)
 
     input_data_2 = "Hey"
