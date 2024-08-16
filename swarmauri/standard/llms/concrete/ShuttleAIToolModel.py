@@ -81,21 +81,19 @@ class ShuttleAIToolModel(LLMBase):
             payload['citations'] = citations  
 
         agent_response = requests.request("POST", url, json=payload, headers=headers) 
+        logging.info(agent_response.json()) 
+
         try: 
             messages = [formatted_messages[-1], agent_response.json()['choices'][0]['message']['content']]
         except Exception as error: 
-            print(str(error)) 
-            print(agent_response.json()) 
+            logging.warn(error) 
         tool_calls = agent_response.json()['choices'][0]['message'].get('tool_calls', None) 
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call['function']['name'] 
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call['function']['arguments']) 
-                try: 
-                    func_result = func_call(**func_args)
-                except Exception as error: 
-                    func_result = 'error' 
+                func_result = func_call(**func_args)
                 messages.append(
                     {
                         "tool_call_id": tool_call.id,
