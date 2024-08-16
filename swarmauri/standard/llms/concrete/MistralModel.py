@@ -1,6 +1,6 @@
 import json
 from typing import List, Literal, Dict
-from mistralai.client import MistralClient
+from mistralai import Mistral 
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -35,9 +35,9 @@ class MistralModel(LLMBase):
         
         formatted_messages = self._format_messages(conversation.history)
 
-        client =  MistralClient(api_key=self.api_key)        
+        client =  Mistral(api_key=self.api_key)        
         if enable_json:
-            response = client.chat(
+            response = client.chat.complete(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,
@@ -47,7 +47,7 @@ class MistralModel(LLMBase):
                 safe_prompt=safe_prompt
             )
         else:
-            response = client.chat(
+            response = client.chat.complete(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,
