@@ -15,7 +15,10 @@ class MistralModel(LLMBase):
     'mistral-small-latest',
     'mistral-medium-latest',
     'mistral-large-latest',
-    'codestral'
+    'codestral', 
+    'open-mistral-nemo', 
+    'codestral-latest', 
+    'open-codestral-mamba', 
     ]
     name: str = "open-mixtral-8x7b"
     type: Literal['MistralModel'] = 'MistralModel'
