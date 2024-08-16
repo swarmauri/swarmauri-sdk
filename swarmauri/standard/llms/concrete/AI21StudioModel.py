@@ -1,6 +1,7 @@
 import json
 from typing import List, Dict, Literal
 import ai21 
+from ai21.models.chat import ChatMessage 
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -27,7 +28,7 @@ class AI21StudioModel(LLMBase):
         message_properties = ["content", "role"]
 
         # Exclude FunctionMessages
-        formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
+        formatted_messages = [ChatMessage(content=message.content, role=message.role) for message in messages if message.role != 'system']
         return formatted_messages
 
     def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
