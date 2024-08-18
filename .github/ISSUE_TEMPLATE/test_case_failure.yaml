@@ -1,1 +1,53 @@
+name: "Test Case Failure"
+description: "Related to build failure"
+title: "[Test Case Failure]:  "
+labels: ["testcase-failure"]
+body:
+  - type: input
+    id: test_case_name
+    attributes:
+      label: "Test Case"
+      description: "Provide the file name and test case name of the affected test case."
+      placeholder: "e.g., tests/vectors/Vector_test.py"
+    validations:
+      required: false
+      
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: "Root Cause"
+      description: "Explain why the test case is likely to failing."
+      placeholder: "The build is likely failing due to..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide any suggestions for how the feature could be implemented, if applicable."
+      placeholder: "Possible solution."
+    validations:
+      required: false
 
+  - type: input
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, supporting documentation, or relevant information about the feature."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: test_case_type
+    attributes:
+      label: "Type of Test Case"
+      description: "What is type of test case is this?"
+      options:
+        - "Unit"
+        - "Integration"
+        - "Acceptance"
+    validations:
+      required: true
+ 
