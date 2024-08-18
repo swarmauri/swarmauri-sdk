@@ -63,10 +63,3 @@ body:
         - "Critical"
     validations:
       required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: "Relevant Log Output"
-      description: "Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks."
-      render: shell
