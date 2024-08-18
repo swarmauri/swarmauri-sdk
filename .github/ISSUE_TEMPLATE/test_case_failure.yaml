@@ -1,6 +1,6 @@
 name: "Test Case Failure"
-description: "Related to test case failure"
-title: "[Test Case Failure]:  "
+description: "Report issues related to test case failures, including potential causes and solutions."
+title: "[Test Case Failure]: "
 labels: ["testcase-failure"]
 body:
   - type: input
@@ -11,22 +11,22 @@ body:
       placeholder: "e.g., tests/vectors/Vector_test.py"
     validations:
       required: false
-      
+
   - type: textarea
     id: root_cause
     attributes:
       label: "Root Cause"
-      description: "Explain why the test case is likely to failing."
+      description: "Explain why the test case is likely failing."
       placeholder: "The build is likely failing due to..."
     validations:
       required: true
-      
+
   - type: textarea
     id: potential_solutions
     attributes:
       label: "Potential Solutions"
-      description: "Provide any suggestions for how the feature could be implemented, if applicable."
-      placeholder: "Possible solution."
+      description: "Provide any suggestions for how the issue could be fixed, if applicable."
+      placeholder: "Possible solution..."
     validations:
       required: false
 
@@ -34,7 +34,7 @@ body:
     id: additional_context
     attributes:
       label: "Additional Context (optional)"
-      description: "Include any other context, screenshots, supporting documentation, or relevant information about the feature."
+      description: "Include any other context, screenshots, supporting documentation, or relevant information about the test case."
       placeholder: "Any additional information."
     validations:
       required: false
@@ -43,11 +43,10 @@ body:
     id: test_case_type
     attributes:
       label: "Type of Test Case"
-      description: "What is type of test case is this?"
+      description: "What type of test case is this?"
       options:
         - "Unit"
         - "Integration"
         - "Acceptance"
     validations:
       required: true
- 
