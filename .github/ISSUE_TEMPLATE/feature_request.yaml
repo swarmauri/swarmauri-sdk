@@ -1,50 +1,97 @@
-name: Bug Report
-description: File a bug report.
-title: "[Bug]: "
-labels: ["bug", "triage"]
-assignees:  []
+name: "Feature Request"
+description: "Submit a feature request to enhance the Swarmauri SDK."
+title: "[Feature Request]: "
+labels: ["enhancement", "feature request"]
+assignees: ""
+
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        ## 🚀 Feature Request for Swarmauri SDK
+
+        Thank you for contributing to Swarmauri SDK! Please provide the following details to help us understand the feature you're requesting.
+
   - type: input
-    id: contact
+    id: feature_name
     attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
+      label: "Feature Name"
+      description: "Provide a short name for the feature"
+      placeholder: "e.g., Add new swarm behavior API"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: "Feature Description"
+      description: "A clear and concise description of the feature you're requesting, including any background context."
+      placeholder: "Describe the feature in detail."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain why this feature is necessary or how it will benefit the SDK. What problem does it solve?"
+      placeholder: "Why do you need this feature?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide any suggestions for how the feature could be implemented, if applicable."
+      placeholder: "Possible implementation or approach."
     validations:
       required: false
-  - type: textarea
-    id: what-happened
+
+  - type: input
+    id: additional_context
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, or relevant information about the feature."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: impact_area
+    attributes:
+      label: "Affected Areas"
+      description: "Select the areas of the SDK that may be impacted by this feature."
+      options:
+        - label: "Core SDK"
+          value: core_sdk
+        - label: "API"
+          value: api
+        - label: "Documentation"
+          value: documentation
+        - label: "Performance"
+          value: performance
+        - label: "Other"
+          value: other
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this feature?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
     validations:
       required: true
-  - type: dropdown
-    id: version
+
+  - type: markdown
     attributes:
-      label: Version
-      description: What version of our software are you running?
-      options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
-      default: 0
-    validations:
-      required: true
-  - type: dropdown
-    id: browsers
-    attributes:
-      label: What browsers are you seeing the problem on?
-      multiple: true
-      options:
-        - Firefox
-        - Chrome
-        - Safari
+      value: |
+        ## Thank you for your feature request! 🙌 We appreciate your feedback and contributions to Swarmauri SDK.
+
         - Microsoft Edge
   - type: textarea
     id: logs
