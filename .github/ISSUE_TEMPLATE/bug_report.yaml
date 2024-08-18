@@ -36,7 +36,6 @@ body:
         - <0.4.0
         - 0.4.0
         - 0.4.1
-      default: 0.4.0
     validations:
       required: true
   - type: dropdown
