@@ -1,1 +1,40 @@
+name: "Design Feedback"
+description: "Provide feedback related to UI/UX design aspects or suggest improvements."
+labels: ["design", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Design Feedback Template
 
+        Please provide as much detail as possible about the design feedback or suggestion.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Describe the design issue or suggestion in detail. Be specific about which part of the UI/UX needs attention."
+      placeholder: "Describe the problem or suggestion for improvement..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: "Current Behavior"
+      description: "Explain what the current design is doing. Include any screenshots or design files if applicable."
+      placeholder: "What is the current user experience?"
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: "Expected Behavior"
+      description: "Explain what the expected design outcome or behavior should be."
+      placeholder: "What is the ideal user experience?"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Provide any additional context, references, or resources to better understand the feedback."
+      placeholder: "Add any links, design files, or screenshots that support your feedback."
