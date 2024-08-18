@@ -1,6 +1,6 @@
-name: "3rd Party API Change Request - Standard"
-description: "Submit a change request related to 3rd Party APIs."
-title: "[3rd Party API Change Request - Standard]:  "
+name: "API Change Request - Standard"
+description: "Submit a change request related to third party standard APIs."
+title: "[API Change Request - Standard]:  "
 labels: ["standard"]
 body:
   - type: input
