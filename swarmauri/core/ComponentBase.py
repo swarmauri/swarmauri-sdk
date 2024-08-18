@@ -173,5 +173,5 @@ class ComponentBase(BaseModel):
         return f"/{self.resource}/{self.id}"
 
     @property
-    def swm_is_remote(self):
+    def swm_isremote(self):
         return bool(self.host)

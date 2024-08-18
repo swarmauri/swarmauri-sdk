@@ -48,31 +48,226 @@ See `LICENSE` for more information.
 
 ```
 
-```swarmauri/core/models/__init__.py
+```swarmauri/core/ComponentBase.py
+
+from typing import (
+    Optional, 
+    List,
+    Literal, 
+    TypeVar, 
+    Type, 
+    Union, 
+    Annotated, 
+    Generic, 
+    ClassVar, 
+    Set,
+    get_args)
+
+from uuid import uuid4
+from enum import Enum
+import inspect
+import hashlib
+from pydantic import BaseModel, Field, field_validator
+import logging
+from swarmauri.core.typing import SubclassUnion
+
+class ResourceTypes(Enum):
+    UNIVERSAL_BASE = 'ComponentBase'
+    AGENT = 'Agent'
+    AGENT_FACTORY = 'AgentFactory'
+    CHAIN = 'Chain'
+    CHAIN_METHOD = 'ChainMethod'
+    CHUNKER = 'Chunker'
+    CONVERSATION = 'Conversation'
+    DISTANCE = 'Distance'
+    DOCUMENT_STORE = 'DocumentStore'
+    DOCUMENT = 'Document'
+    EMBEDDING = 'Embedding'
+    EXCEPTION = 'Exception'
+    LLM = 'LLM'
+    MESSAGE = 'Message'
+    METRIC = 'Metric'
+    PARSER = 'Parser'
+    PROMPT = 'Prompt'
+    STATE = 'State'
+    CHAINSTEP = 'ChainStep'
+    SCHEMA_CONVERTER = 'SchemaConverter'
+    SWARM = 'Swarm'
+    TOOLKIT = 'Toolkit'
+    TOOL = 'Tool'
+    PARAMETER = 'Parameter'
+    TRACE = 'Trace'
+    UTIL = 'Util'
+    VECTOR_STORE = 'VectorStore'
+    VECTOR = 'Vector'
+
+def generate_id() -> str:
+    return str(uuid4())
+
+class ComponentBase(BaseModel):
+    name: Optional[str] = None
+    id: str = Field(default_factory=generate_id)
+    members: List[str] = Field(default_factory=list)
+    owner: Optional[str] = None
+    host: Optional[str] = None
+    resource: str = Field(default="ComponentBase")
+    version: str = "0.1.0"
+    __swm_subclasses__: ClassVar[Set[Type['ComponentBase']]] = set()
+    type: Literal['ComponentBase'] = 'ComponentBase'
+    
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        ComponentBase.__swm_register_subclass__(cls)
+    
+    # @classmethod
+    # def __swm__get_subclasses__(cls) -> set:
+    #     logging.debug('__swm__get_subclasses__ executed\n')
+    #     def is_excluded_module(module_name: str) -> bool:
+    #         return (module_name == 'builtins' or 
+    #                 module_name == 'types')
+
+    #     subclasses_dict = {cls.__name__: cls}
+    #     for subclass in cls.__subclasses__():
+    #         if not is_excluded_module(subclass.__module__):
+    #             subclasses_dict.update({_s.__name__: _s for _s in subclass.__swm__get_subclasses__() 
+    #                 if not is_excluded_module(_s.__module__)})
+
+    #     return set(subclasses_dict.values())
+    
+    @classmethod
+    def __swm_register_subclass__(cls, subclass):
+        logging.debug('__swm_register_subclass__ executed\n')
+        
+        if 'type' in subclass.__annotations__:
+            sub_type = subclass.__annotations__['type']
+            if sub_type not in [subclass.__annotations__['type'] for subclass in cls.__swm_subclasses__]:
+                cls.__swm_subclasses__.add(subclass)
+        else:
+            logging.warning(f'Subclass {subclass.__name__} does not have a type annotation')
+
+
+        # [subclass.__swm_reset_class__()  for subclass in cls.__swm_subclasses__ 
+        #  if hasattr(subclass, '__swm_reset_class__')]
+    
+    
+    @classmethod
+    def __swm_reset_class__(cls):
+        logging.debug('__swm_reset_class__ executed\n')
+        for each in cls.__fields__:
+            logging.debug(each, cls.__fields__[each].discriminator)
+            if (cls.__fields__[each].discriminator and each in cls.__annotations__
+               ):
+                if len(get_args(cls.__fields__[each].annotation)) > 0:
+                    for x in range(0, len(get_args(cls.__fields__[each].annotation))):
+                        if hasattr(get_args(cls.__fields__[each].annotation)[x], '__base__'):
+                            if (hasattr(get_args(cls.__fields__[each].annotation)[x].__base__, '__swm_subclasses__') and
+                            not get_args(cls.__fields__[each].annotation)[x].__base__.__name__ == 'ComponentBase'):
+
+                                baseclass = get_args(cls.__fields__[each].annotation)[x].__base__
+         
+                                sc = SubclassUnion[baseclass]
+                                
+                                cls.__annotations__[each] = sc
+                                cls.__fields__[each].annotation = sc
+
+        
+        # This is not necessary as the model_rebuild address forward_refs 
+        # https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel.model_post_init
+        # cls.update_forward_refs() 
+        cls.model_rebuild(force=True)
+
+
+    @field_validator('type')
+    def set_type(cls, v, values):
+        if v == 'ComponentBase' and cls.__name__ != 'ComponentBase':
+            return cls.__name__
+        return v
+
+    def __swm_class_hash__(self):
+        sig_hash = hashlib.sha256()
+        for attr_name in dir(self):
+            attr_value = getattr(self, attr_name)
+            if callable(attr_value) and not attr_name.startswith("_"):
+                sig = inspect.signature(attr_value)
+                sig_hash.update(str(sig).encode())
+        return sig_hash.hexdigest()
+
+    @classmethod
+    def swm_public_interfaces(cls):
+        methods = []
+        for attr_name in dir(cls):
+            attr_value = getattr(cls, attr_name)
+            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(attr_value, property):
+                methods.append(attr_name)
+        return methods
+
+    @classmethod
+    def swm_ismethod_registered(cls, method_name: str):
+        return method_name in cls.public_interfaces()
+
+    @classmethod
+    def swm_method_signature(cls, input_signature):
+        for method_name in cls.public_interfaces():
+            method = getattr(cls, method_name)
+            if callable(method):
+                sig = str(inspect.signature(method))
+                if sig == input_signature:
+                    return True
+        return False
+
+    @property
+    def swm_path(self):
+        if self.host and self.owner:
+            return f"{self.host}/{self.owner}/{self.resource}/{self.name}/{self.id}"
+        if self.resource and self.name:
+            return f"/{self.resource}/{self.name}/{self.id}"
+        return f"/{self.resource}/{self.id}"
+
+    @property
+    def swm_is_remote(self):
+        return bool(self.host)
+
+```
+
+```swarmauri/core/typing.py
+
+import logging
+from pydantic import BaseModel, Field
+from typing import TypeVar, Generic, Union, Annotated, Type
+
+
+class SubclassUnion:
+
+    @classmethod
+    def __class_getitem__(cls, baseclass):
+        subclasses = cls.__swm__get_subclasses__(baseclass)
+        return Union[tuple(subclasses)]
+
+    @classmethod
+    def __swm__get_subclasses__(cls, baseclass) -> set:
+        logging.debug('__swm__get_subclasses__ executed\n')
+        def is_excluded_module(module_name: str) -> bool:
+            return (module_name == 'builtins' or 
+                    module_name == 'types')
+
+        subclasses_dict = {baseclass.__name__: baseclass}
+        for subclass in baseclass.__subclasses__():
+            if not is_excluded_module(subclass.__module__):
+                subclasses_dict.update({_s.__name__: _s for _s in cls.__swm__get_subclasses__(subclass) 
+                    if not is_excluded_module(_s.__module__)})
+
+        return set(subclasses_dict.values())
+
+```
+
+```swarmauri/core/llms/__init__.py
 
 
 
 ```
 
-```swarmauri/core/models/IPredict.py
-
-from abc import ABC, abstractmethod
-
-class IPredict(ABC):
-    """
-    Interface for making predictions with models.
-    """
-
-    @abstractmethod
-    def predict(self, input_data) -> any:
-        """
-        Generate predictions based on the input data provided to the model.
-        """
-        pass
-
-```
-
-```swarmauri/core/models/IFit.py
+```swarmauri/core/llms/IFit.py
 
 from abc import ABC, abstractmethod
 
@@ -90,28 +285,19 @@ class IFit(ABC):
 
 ```
 
-```swarmauri/core/models/IModel.py
+```swarmauri/core/llms/IPredict.py
 
 from abc import ABC, abstractmethod
 
-class IModel(ABC):
+class IPredict(ABC):
     """
     Interface focusing on the basic properties and settings essential for defining models.
     """
 
-    @property
     @abstractmethod
-    def model_name(self) -> str:
+    def predict(self, *args, **kwargs) -> any:
         """
-        Get the name of the model.
-        """
-        pass
-
-    @model_name.setter
-    @abstractmethod
-    def model_name(self, value: str) -> None:
-        """
-        Set the name of the model.
+        Generate predictions based on the input data provided to the model.
         """
         pass
 
@@ -286,20 +472,7 @@ class IAgentRouterCRUD(ABC):
 from abc import ABC, abstractmethod
 
 class IMaxSize(ABC):
-
-    @property
-    @abstractmethod
-    def max_size(self) -> int:
-        """
-        """
-        pass
-
-    @max_size.setter
-    @abstractmethod
-    def max_size(self, new_max_size: int) -> None:
-        """ 
-        """
-        pass
+    pass
 
 ```
 
@@ -307,7 +480,7 @@ class IMaxSize(ABC):
 
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from ..messages.IMessage import IMessage
+from swarmauri.core.messages.IMessage import IMessage
 
 class IConversation(ABC):
     """
@@ -343,41 +516,17 @@ class IConversation(ABC):
         """
         pass
 
-    @abstractmethod
-    def as_messages(self) -> List[dict]:
-        """
-        Returns all messages from the conversation history in chat completion format.
-        """
-        pass
+
 
 ```
 
 ```swarmauri/core/conversations/ISystemContext.py
 
 from abc import ABC, abstractmethod
-from typing import Optional
-from ..messages.IMessage import IMessage
 
 class ISystemContext(ABC):
+    pass
 
-    @property
-    @abstractmethod
-    def system_context(self) -> Optional[IMessage]:
-        """
-        An abstract property to get the system context message.
-        Subclasses must provide an implementation for storing and retrieving system context.
-        """
-        pass
-
-    @system_context.setter
-    @abstractmethod
-    def system_context(self, new_system_message: Optional[IMessage]) -> None:
-        """
-        An abstract property setter to update the system context.
-        Subclasses must provide an implementation for how the system context is updated.
-        This might be a direct string, which is converted to an IMessage instance, or directly an IMessage instance.
-        """
-        pass
 
 ```
 
@@ -389,105 +538,10 @@ class ISystemContext(ABC):
 
 ```swarmauri/core/documents/IDocument.py
 
-from abc import ABC, abstractmethod
-from typing import Dict
+from abc import ABC
 
 class IDocument(ABC):
-    @abstractmethod
-    def __init__(self, id: str, content: str, metadata: Dict):
-        pass
-
-    @property
-    @abstractmethod
-    def id(self) -> str:
-        """
-        Get the document's ID.
-        """
-        pass
-
-    @id.setter
-    @abstractmethod
-    def id(self, value: str) -> None:
-        """
-        Set the document's ID.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def content(self) -> str:
-        """
-        Get the document's content.
-        """
-        pass
-
-    @content.setter
-    @abstractmethod
-    def content(self, value: str) -> None:
-        """
-        Set the document's content.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def metadata(self) -> Dict:
-        """
-        Get the document's metadata.
-        """
-        pass
-
-    @metadata.setter
-    @abstractmethod
-    def metadata(self, value: Dict) -> None:
-        """
-        Set the document's metadata.
-        """
-        pass
-
-    # Including the abstract methods __str__ and __repr__ definitions for completeness.
-    @abstractmethod
-    def __str__(self) -> str:
-        pass
-
-    @abstractmethod
-    def __repr__(self) -> str:
-        pass
-    
-    def __setitem__(self, key, value):
-        """Allow setting items like a dict for metadata."""
-        self.metadata[key] = value
-
-    def __getitem__(self, key):
-        """Allow getting items like a dict for metadata."""
-        return self.metadata.get(key)
-
-```
-
-```swarmauri/core/documents/IEmbed.py
-
-from abc import ABC, abstractmethod
-from typing import Dict
-from swarmauri.core.vectors.IVector import IVector
-
-class IEmbed(ABC):
-    @property
-    @abstractmethod
-    def embedding(self) -> IVector:
-        """
-        Get the document's embedding.
-        """
-        pass
-
-    @embedding.setter
-    @abstractmethod
-    def embedding(self, value: IVector) -> None:
-        """
-        Set the document's embedding.
-        """
-        pass
-
-
+   pass
 
 ```
 
@@ -629,22 +683,7 @@ class IMessage(ABC):
     messages should have, including type, name, and content, 
     and requires subclasses to implement representation and formatting methods.
     """
-    @property
-    @abstractmethod
-    def role(self) -> str:
-        pass
-    
-    @property
-    @abstractmethod
-    def content(self) -> str:
-        pass
 
-    @abstractmethod
-    def as_dict(self) -> dict:
-        """
-        An abstract method that subclasses must implement to return a dictionary representation of the object.
-        """
-        pass
 
 ```
 
@@ -664,7 +703,7 @@ from .IMessage import IMessage
 
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
-from ..documents.IDocument import IDocument
+from swarmauri.core.documents.IDocument import IDocument
 
 class IParser(ABC):
     """
@@ -681,7 +720,6 @@ class IParser(ABC):
         implemented by subclasses to define specific parsing logic.
         """
         pass
-
 
 
 ```
@@ -706,7 +744,7 @@ class IPrompt(ABC):
     """
 
     @abstractmethod
-    def __call__(self, prompt: Optional[Any]) -> str:
+    def __call__(self, **kwargs) -> str:
         """
         Abstract method that subclasses must implement to define the behavior of the prompt when called.
 
@@ -718,7 +756,7 @@ class IPrompt(ABC):
 
 ```swarmauri/core/prompts/ITemplate.py
 
-from typing import Dict, List
+from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
 
 
@@ -727,43 +765,7 @@ class ITemplate(ABC):
     Interface for template-based prompt generation within the SwarmAURI framework.
     Defines standard operations and attributes for managing and utilizing templates.
     """
-
-    @property
-    @abstractmethod
-    def template(self) -> str:
-        """
-        Abstract property to get the current template string.
-        """
-        pass
-
-    @template.setter
-    @abstractmethod
-    def template(self, value: str) -> None:
-        """
-        Abstract property setter to set or update the current template string.
-
-        Args:
-            value (str): The new template string to be used for generating prompts.
-        """
-        pass
-
-
-    @property
-    @abstractmethod
-    def variables(self) -> List[Dict[str, str]]:
-        """
-        Abstract property to get the current set of variables for the template.
-        """
-        pass
-
-    @variables.setter
-    @abstractmethod
-    def variables(self, value: List[Dict[str, str]]) -> None:
-        """
-        Abstract property setter to set or update the variables for the template.
-        """
-        pass
-
+    
     @abstractmethod
     def set_template(self, template: str) -> None:
         """
@@ -775,7 +777,8 @@ class ITemplate(ABC):
         pass
 
     @abstractmethod
-    def set_variables(self, variables: List[Dict[str, str]]) -> None:
+    def set_variables(self, 
+                      variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}) -> None:
         """
         Sets or updates the variables to be substituted into the template.
 
@@ -804,22 +807,10 @@ class ITemplate(ABC):
 
 ```swarmauri/core/prompts/IPromptMatrix.py
 
-# swarmauri/core/prompts/IPromptMatrix.py
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Optional, Any
 
 class IPromptMatrix(ABC):
-    @property
-    @abstractmethod
-    def matrix(self) -> List[List[Optional[str]]]:
-        """Get the entire prompt matrix."""
-        pass
-
-    @matrix.setter
-    @abstractmethod
-    def matrix(self, value: List[List[Optional[str]]]) -> None:
-        """Set the entire prompt matrix."""
-        pass
 
     @property
     @abstractmethod
@@ -843,7 +834,7 @@ class IPromptMatrix(ABC):
         pass
 
     @abstractmethod
-    def show_matrix(self) -> List[List[Optional[str]]]:
+    def show(self) -> List[List[Optional[str]]]:
         """Show the entire prompt matrix."""
         pass
 
@@ -857,23 +848,10 @@ class IPromptMatrix(ABC):
 
 ```swarmauri/core/agents/IAgentToolkit.py
 
-from abc import ABC, abstractmethod
-from swarmauri.core.toolkits.IToolkit import IToolkit
-
+from abc import ABC
 
 class IAgentToolkit(ABC):
-
-    @property
-    @abstractmethod
-    def toolkit(self) -> IToolkit:
-        pass
-    
-    @toolkit.setter
-    @abstractmethod
-    def toolkit(self) -> IToolkit:
-        pass
-    
-
+    pass
 
 ```
 
@@ -883,19 +861,7 @@ from abc import ABC, abstractmethod
 from swarmauri.core.conversations.IConversation import IConversation
 
 class IAgentConversation(ABC):
-    
-    @property
-    @abstractmethod
-    def conversation(self) -> IConversation:
-        """
-        The conversation property encapsulates the agent's ongoing dialogue or interaction context.
-        """
-        pass
-
-    @conversation.setter
-    @abstractmethod
-    def conversation(self) -> IConversation:
-        pass
+    pass
 
 ```
 
@@ -918,94 +884,38 @@ class IAgentParser(ABC):
 
 ```
 
-```swarmauri/core/agents/IAgentName.py
-
-from abc import ABC, abstractmethod
-
-class IAgentName(ABC):
-    
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """
-        The conversation property encapsulates the agent's ongoing dialogue or interaction context.
-        """
-        pass
-
-    @name.setter
-    @abstractmethod
-    def name(self) -> str:
-        pass
-
-```
-
 ```swarmauri/core/agents/IAgent.py
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
-from swarmauri.core.models.IModel import IModel
+from typing import Any, Optional, Dict
 
 class IAgent(ABC):
 
     @abstractmethod
-    def exec(self, input_data: Optional[Any]) -> Any:
+    def exec(self, input_data: Optional[Any], llm_kwargs: Optional[Dict]) -> Any:
         """
         Executive method that triggers the agent's action based on the input data.
         """
         pass
     
-    @property
-    @abstractmethod
-    def model(self) -> IModel:
-        """
-        The model property describes the computational model used by the agent.
-        """
-        pass
-    
-    @model.setter
-    @abstractmethod
-    def model(self) -> IModel:
-
-        pass
-
 
 ```
 
 ```swarmauri/core/agents/IAgentVectorStore.py
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 class IAgentVectorStore(ABC):
-    
-    @property
-    @abstractmethod
-    def vector_store(self):
-        pass
-
-    @vector_store.setter
-    @abstractmethod
-    def vector_store(self):
-        pass
+    pass
 
 ```
 
 ```swarmauri/core/agents/IAgentRetrieve.py
 
-from abc import ABC, abstractmethod
-from typing import List
-from swarmauri.core.documents.IDocument import IDocument
+from abc import ABC
 
 class IAgentRetrieve(ABC):
-
-    @property
-    @abstractmethod
-    def last_retrieved(self) -> List[IDocument]:
-        pass
-
-    @last_retrieved.setter
-    @abstractmethod
-    def last_retrieved(self) -> List[IDocument]:
-        pass
+    pass
 
 ```
 
@@ -1014,16 +924,7 @@ class IAgentRetrieve(ABC):
 from abc import ABC, abstractmethod
 
 class IAgentSystemContext(ABC):
-    
-    @property
-    @abstractmethod
-    def system_context(self):
-        pass
-
-    @system_context.setter
-    @abstractmethod
-    def system_context(self):
-        pass
+    pass
 
 ```
 
@@ -1444,21 +1345,13 @@ class ISwarmChainCRUD(ABC):
 
 from typing import Dict
 from abc import ABC, abstractmethod
-from ..tools.ITool import ITool  # Ensure Tool is correctly imported from your tools package
+from swarmauri.core.tools.ITool import ITool
 
 class IToolkit(ABC):
     """
     A class representing a toolkit used by Swarm Agents.
     Tools are maintained in a dictionary keyed by the tool's name.
     """
-
-    @property
-    @abstractmethod
-    def tools(self) -> Dict[str, ITool]:
-        """
-        An abstract property that should be implemented by subclasses to return the tools dictionary
-        """
-        pass
 
     @abstractmethod
     def add_tools(self, tools: Dict[str, ITool]):
@@ -1508,37 +1401,14 @@ class IToolkit(ABC):
 from abc import ABC, abstractmethod
 
 class ITool(ABC):
-    
-    @property
+        
     @abstractmethod
-    def name(self):
+    def call(self, *args, **kwargs):
         pass
     
-    @property
-    @abstractmethod
-    def description(self):
-        pass
-    
-    @property
-    @abstractmethod
-    def parameters(self):
-        pass
-    
-    @abstractmethod
-    def as_dict(self):
-        pass
-
-    @abstractmethod
-    def to_json(obj):
-        pass
-
     @abstractmethod
     def __call__(self, *args, **kwargs):
         pass
-
-
-
-
 
 
 
@@ -1547,92 +1417,14 @@ class ITool(ABC):
 ```swarmauri/core/tools/IParameter.py
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any
+from typing import List, Union
 
 class IParameter(ABC):
     """
     An abstract class to represent a parameter for a tool.
     """
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """
-        Abstract property for getting the name of the parameter.
-        """
-        pass
-
-    @name.setter
-    @abstractmethod
-    def name(self, value: str):
-        """
-        Abstract setter for setting the name of the parameter.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def type(self) -> str:
-        """
-        Abstract property for getting the type of the parameter.
-        """
-        pass
-
-    @type.setter
-    @abstractmethod
-    def type(self, value: str):
-        """
-        Abstract setter for setting the type of the parameter.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def description(self) -> str:
-        """
-        Abstract property for getting the description of the parameter.
-        """
-        pass
-
-    @description.setter
-    @abstractmethod
-    def description(self, value: str):
-        """
-        Abstract setter for setting the description of the parameter.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def required(self) -> bool:
-        """
-        Abstract property for getting the required status of the parameter.
-        """
-        pass
-
-    @required.setter
-    @abstractmethod
-    def required(self, value: bool):
-        """
-        Abstract setter for setting the required status of the parameter.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def enum(self) -> Optional[List[Any]]:
-        """
-        Abstract property for getting the enum list of the parameter.
-        """
-        pass
-
-    @enum.setter
-    @abstractmethod
-    def enum(self, value: Optional[List[Any]]):
-        """
-        Abstract setter for setting the enum list of the parameter.
-        """
-        pass
+    pass
 
 ```
 
@@ -2120,11 +1912,11 @@ class IVectorBasisCheck(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/ISaveLoadStore.py
+```swarmauri/core/vector_stores/IVectorStoreSaveLoad.py
 
 from abc import ABC, abstractmethod
 
-class ISaveLoadStore(ABC):
+class IVectorStoreSaveLoad(ABC):
     """
     Interface to abstract the ability to save and load the state of a vector store.
     This includes saving/loading the vectorizer's model as well as the documents or vectors.
@@ -2167,6 +1959,7 @@ class ISaveLoadStore(ABC):
 
         """
         pass
+
 
 ```
 
@@ -2263,13 +2056,13 @@ class IVectorStore(ABC):
 
 ```
 
-```swarmauri/core/vector_stores/IVectorRetrieve.py
+```swarmauri/core/vector_stores/IVectorStoreRetrieve.py
 
 from abc import ABC, abstractmethod
 from typing import List
 from swarmauri.core.documents.IDocument import IDocument
 
-class IVectorRetrieve(ABC):
+class IVectorStoreRetrieve(ABC):
     """
     Abstract base class for document retrieval operations.
     
@@ -2290,6 +2083,8 @@ class IVectorRetrieve(ABC):
             List[Document]: A list of the top_k most relevant documents.
         """
         pass
+
+
 
 ```
 
@@ -2530,7 +2325,6 @@ class IVectorTransform(ABC):
 ```swarmauri/core/vectors/IVector.py
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
 
 class IVector(ABC):
     """
@@ -2539,15 +2333,7 @@ class IVector(ABC):
     such as machine learning, information retrieval, and similarity search.
     """
 
-    @property
-    @abstractmethod
-    def data(self) -> List[float]:
-        """
-        The high-dimensional data that the vector represents. It is typically a list of float values.
-        """
-        pass
-
-
+    pass
 
 ```
 
@@ -2740,13 +2526,13 @@ class IAgentRegistrationAPI(ABC):
 
 ```
 
-```swarmauri/core/vectorizers/__init__.py
+```swarmauri/core/embeddings/__init__.py
 
 #
 
 ```
 
-```swarmauri/core/vectorizers/IVectorize.py
+```swarmauri/core/embeddings/IVectorize.py
 
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
@@ -2760,7 +2546,7 @@ class IVectorize(ABC):
     and other vector-based operations.
     """
     @abstractmethod
-    def fit(self, data: Union[str, Any]) -> List[IVector]:
+    def fit(self, data: Union[str, Any]) -> None:
         pass
     
     @abstractmethod
@@ -2773,11 +2559,11 @@ class IVectorize(ABC):
 
     @abstractmethod
     def infer_vector(self, data: Union[str, Any], *args, **kwargs) -> IVector:
-        pass
+        pass 
 
 ```
 
-```swarmauri/core/vectorizers/IFeature.py
+```swarmauri/core/embeddings/IFeature.py
 
 from abc import ABC, abstractmethod
 from typing import List, Any
@@ -2792,7 +2578,7 @@ class IFeature(ABC):
 
 ```
 
-```swarmauri/core/vectorizers/ISaveModel.py
+```swarmauri/core/embeddings/ISaveModel.py
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -3002,10 +2788,6 @@ class IChain(ABC):
     """
 
     @abstractmethod
-    def __init__(self, steps: List[IChainStep] = None, **configs):
-        pass
-
-    @abstractmethod
     def add_step(self, step: IChainStep, **kwargs) -> None:
         """
         Adds a new step to the chain. Steps are executed in the order they are added.
@@ -3054,10 +2836,6 @@ class IChain(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
-        pass
-
 ```
 
 ```swarmauri/core/chains/IChainFactory.py
@@ -3073,20 +2851,9 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def __init__(self, **configs):
-        pass
-
-    @abstractmethod
     def create_chain(self, steps: List[IChainStep] = None) -> IChain:
         pass
     
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
-        pass
-    
-    @abstractmethod
-    def get_chain_info(self) -> Dict[str, Any]:
-        pass
     
     @abstractmethod
     def get_chain(self) -> IChain:
@@ -3116,7 +2883,6 @@ class IChainFactory(ABC):
     def remove_chain_step(self, key: str):
         pass
     
-    
     @abstractmethod
     def get_configs(self) -> Dict[str, Any]:
         pass
@@ -3134,14 +2900,7 @@ class IChainFactory(ABC):
     def set_config(self, key: str, value: Any):
         pass
     
-    @abstractmethod
-    def get_schema_info(self) -> Dict[str, Any]:
-        pass
 
-    @abstractmethod
-    def get_chain_info(self) -> Dict[str, Any]:
-        pass    
-    
 
 
 ```
@@ -3154,27 +2913,7 @@ class IChainStep:
     """
     Represents a single step within an execution chain.
     """
-    def __init__(self, 
-        key: str, 
-        method: Callable, 
-        args: List[Any] = None, 
-        kwargs: Dict[str, Any] = None, 
-        ref: str = None):
-        """
-        Initialize a chain step.
-
-        Args:
-            key (str): Unique key or identifier for the step.
-            method (Callable): The callable object (function or method) to execute in this step.
-            args (List[Any], optional): Positional arguments for the callable.
-            kwargs (Dict[str, Any], optional): Keyword arguments for the callable.
-            ref (str, optional): Reference to another component or context variable, if applicable.
-        """
-        self.key = key
-        self.method = method
-        self.args = args if args is not None else []
-        self.kwargs = kwargs if kwargs is not None else {}
-        self.ref = ref
+    pass
 
 ```
 
@@ -3234,14 +2973,12 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 
 class IChainContext(ABC):
-    @property
+    
     @abstractmethod
-    def context(self) -> Dict[str, Any]:
+    def update(self, **kwargs) -> None:
         pass
 
-    @context.setter
-    @abstractmethod
-    def context(self, value: Dict[str, Any]) -> None:
+    def get_value(self, key: str) -> Any:
         pass
 
 ```
@@ -3256,7 +2993,7 @@ class IChainContext(ABC):
 
 from abc import ABC, abstractmethod
 from typing import List
-from ..vectors.IVector import IVector
+from swarmauri.core.vectors.IVector import IVector
 
 class IDistanceSimilarity(ABC):
     """
@@ -3325,50 +3062,6 @@ class IMetric(ABC):
     machine learning model evaluation metrics.
     """
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """
-        The name identifier for the metric.
-
-        Returns:
-            str: The name of the metric.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def value(self) -> Any:
-        """
-        Current value of the metric.
-
-        Returns:
-            The metric's value. The type depends on the specific metric implementation.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def unit(self) -> str:
-        """
-        The unit of measurement for the metric.
-
-        Returns:
-            str: The unit of measurement (e.g., 'seconds', 'Mbps').
-        """
-        pass
-
-    @unit.setter
-    @abstractmethod
-    def unit(self, value: str) -> None:
-        """
-        Update the unit of measurement for the metric.
-
-        Args:
-            value (str): The new unit of measurement for the metric.
-        """
-        pass
-
     @abstractmethod
     def __call__(self, **kwargs) -> Any:
         """
@@ -3381,12 +3074,12 @@ class IMetric(ABC):
 
 ```
 
-```swarmauri/core/metrics/ICalculateMetric.py
+```swarmauri/core/metrics/IMetricCalculate.py
 
 from typing import Any
 from abc import ABC, abstractmethod
 
-class ICalculateMetric(ABC):
+class IMetricCalculate(ABC):
 
     @abstractmethod
     def calculate(self, **kwargs) -> Any:
@@ -3412,30 +3105,19 @@ class ICalculateMetric(ABC):
             This method is intended for internal use and should not be publicly accessible.
         """
         pass
-
-
+        
 
 ```
 
-```swarmauri/core/metrics/IAggMeasurements.py
+```swarmauri/core/metrics/IMetricAggregate.py
 
 from typing import List, Any
 from abc import ABC, abstractmethod
 
-class IAggMeasurements(ABC):
+class IMetricAggregate(ABC):
 
     @abstractmethod
     def add_measurement(self, measurement: Any) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def measurements(self) -> List[Any]:
-        pass
-
-    @measurements.setter
-    @abstractmethod
-    def measurements(self, value) -> None:
         pass
 
     @abstractmethod
@@ -3453,16 +3135,7 @@ class IAggMeasurements(ABC):
 from abc import ABC, abstractmethod
 
 class IThreshold(ABC):
-    @property
-    @abstractmethod
-    def k(self) -> int:
-        pass
-
-    @k.setter
-    @abstractmethod
-    def k(self, value: int) -> None:
-        pass
-
+    pass
 
 
 ```
@@ -3780,5 +3453,26 @@ class IExportConf(ABC):
             file_path (str): The path to the file where the configuration should be saved.
         """
         pass
+
+```
+
+```swarmauri/core/schema_converters/__init__.py
+
+
+
+```
+
+```swarmauri/core/schema_converters/ISchemaConvert.py
+
+from abc import ABC, abstractmethod
+from typing import Any, Dict
+from swarmauri.core.tools.ITool import ITool
+
+class ISchemaConvert(ABC):
+
+    @abstractmethod
+    def convert(self, tool: ITool) -> Dict[str, Any]:
+        raise NotImplementedError("Subclasses must implement the convert method.")
+
 
 ```

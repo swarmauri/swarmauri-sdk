@@ -1,11 +1,11 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Test Staging
+name: Test and Publish Dev Release
 
 on:
   push:
-    branches: [ "staging", "dev-0.4.1"]
+    branches: [ "dev" ]
 
 jobs:
   build:
@@ -30,6 +30,7 @@ jobs:
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
       QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
       QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+
 
     steps:
     - uses: actions/checkout@v3
@@ -81,3 +82,9 @@ jobs:
         python tests/classify_results.py results.xml
       continue-on-error: false
 
+    - name: Publish to PyPI
+      if: success() && github.event_name == 'push' && startsWith(github.ref, 'refs/heads/dev')
+      uses: pypa/gh-action-pypi-publish@v1.4.2
+      with:
+        user: cobycloud
+        password: ${{ secrets.PYPI_API_TOKEN }}

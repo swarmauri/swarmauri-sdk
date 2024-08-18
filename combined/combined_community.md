@@ -750,3 +750,560 @@ class RedisDocumentStore(DocumentStoreBase):
         self.__dict__.update(state)
 
 ```
+
+```swarmauri/community/vector_stores/ChromadbVectorStore.py
+
+import os
+from typing import List, Union
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+
+from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.standard.documents.concrete.Document import Document
+import chromadb
+
+class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
+    def __init__(self, db_name):
+        self.vectorizer = Doc2VecVectorizer()
+        self.metric = CosineDistance()
+        self.db_name = db_name
+        self.client = chromadb.Client()
+        self.collection = self.client.get_or_create_collection(name=db_name)
+        SaveLoadStoreBase.__init__(self, self.vectorizer, [])
+
+    def add_document(self, document: IDocument) -> None:
+        try:
+            embedding = self.vectorizer.infer_vector(document.content).data
+            self.collection.add(ids=[document.id],
+                    documents=[document.content], 
+                    embeddings=[embedding], 
+                    metadatas=[document.metadata] )
+        except:
+            texts = [document.content]
+            self.vectorizer.fit_transform(texts)
+            embedding = self.vectorizer.infer_vector(document.content).data
+            self.collection.add(ids=[document.id],
+                                documents=[document.content], 
+                                embeddings=[embedding], 
+                                metadatas=[document.metadata] )
+            
+
+    def add_documents(self, documents: List[IDocument]) -> None:
+        ids = [doc.id for doc in documents]
+        texts = [doc.content for doc in documents]
+        embeddings = [self.vectorizer.infer_vector(doc.content).data for doc in documents]
+        metadatas = [doc.metadata for doc in documents]
+        
+        self.collection.add(ids=ids,
+                            documents=texts, 
+                            embeddings=embeddings, 
+                            metadatas=metadatas)
+
+    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+        try:
+            results = self.collection.get(ids=[doc_id])
+            document = Document(id=results['ids'][0],
+                             content=results['documents'][0],
+                                 metadata=results['metadatas'][0])
+        except Exception as e:
+            print(str(e))
+            document = None
+        return document if document else []
+
+    def get_all_documents(self) -> List[IDocument]:
+        try:
+            results = self.collection.get()
+            print(results)
+            return [Document(id=results['ids'][idx],
+                                 content=results['documents'][idx],
+                                 metadata=results['metadatas'][idx])
+                    for idx, value in enumerate(results['ids'])]
+        except Exception as e:
+            print(str(e))
+            document = None
+        return document if document else []
+            
+
+    def delete_document(self, doc_id: str) -> None:
+        self.collection.delete(ids=[doc_id])
+
+    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+        self.delete_document(doc_id)
+        self.add_document(updated_document)
+
+    def clear_documents(self) -> None:
+        self.client.delete_collection(self.db_name)
+
+    def document_count(self) -> int:
+        try:
+            return len(self.get_all_documents())
+        except StopIteration:
+            return 0
+
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        embedding = self.vectorizer.infer_vector(query).data
+        results = self.collection.query(query_embeddings=embedding,
+                                        n_results=top_k)
+        print('retrieve reults', results)
+        print(results['ids'][0])
+        documents = []
+        for idx in range(len(results['ids'])):
+            documents.append(Document(id=results['ids'][idx],
+                             content=results['documents'][idx],
+                             metadata=results['metadatas'][idx]))
+        return documents
+
+```
+
+```swarmauri/community/vector_stores/__init__.py
+
+
+
+```
+
+```swarmauri/community/vector_stores/QdrantVectorStore.py
+
+import os
+import json
+import pickle
+import tempfile
+from typing import List, Union
+from qdrant_client import QdrantClient, models
+
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+
+
+class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
+    """
+    QdrantVectorStore is a concrete implementation that integrates functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
+    """
+
+    def __init__(self, url: str, api_key: str, collection_name: str, vector_size: int):
+        self.vectorizer = Doc2VecVectorizer(vector_size=vector_size)
+        self.metric = CosineDistance()
+        self.client = QdrantClient(url=url, api_key=api_key)
+        self.collection_name = collection_name
+        exists = self.client.collection_exists(collection_name)
+        
+        if not exists:
+            self.client.create_collection(
+                collection_name=collection_name,
+                vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
+            )   
+
+
+    def add_document(self, document: IDocument) -> None:
+        """
+        Add a single document to the document store.
+        
+        Parameters:
+            document (IDocument): The document to be added to the store.
+        """
+        try:
+            embedding = document.embedding or self.vectorizer.fit_transform(document.content).data 
+            self.client.upsert(self.collection_name, points=[
+                models.PointStruct(
+                    id=document.id,
+                    vector=embedding,
+                    payload=document.metadata
+                )
+            ])
+            
+        except:
+            embedding = document.embedding or self.vectorizer.fit_transform(document.content).data 
+            self.client.upsert(self.collection_name, points=[
+                models.PointStruct(
+                    id=document.id,
+                    vector=embedding,
+                    payload=document.metadata
+                )
+            ])
+            
+        
+
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Add multiple documents to the document store in a batch operation.
+        
+        Parameters:
+            documents (List[IDocument]): A list of documents to be added to the store.
+        """
+        self.vectorizer.fit_transform([doc.content for doc in documents])
+        points = [
+            models.PointStruct(
+                id=doc.id,
+                vector=doc.embedding or self.vectorizer.infer_vector(doc.content).data,
+                payload=doc.metadata
+            ) for doc in documents
+        ]
+        self.client.upsert(self.collection_name, points=points)
+
+    def get_document(self, id: str) -> Union[IDocument, None]:
+        """
+        Retrieve a single document by its identifier.
+        
+        Parameters:
+            id (str): The unique identifier of the document to retrieve.
+        
+        Returns:
+            Union[IDocument, None]: The requested document if found; otherwise, None.
+        """
+        
+        raise NotImplementedError('Get document not implemented, use retrieve().')
+
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieve all documents stored in the document store.
+        
+        Returns:
+            List[IDocument]: A list of all documents in the store.
+        """
+        raise NotImplementedError('Get all documents not implemented, use retrieve().')
+
+    def delete_document(self, id: str) -> None:
+        """
+        Delete a document from the document store by its identifier.
+        
+        Parameters:
+            id (str): The unique identifier of the document to delete.
+        """
+        self.client.delete(self.collection_name, points_selector=[id])
+
+    def update_document(self, id: str, updated_document: IDocument) -> None:
+        """
+        Update a document in the document store.
+        
+        Parameters:
+            id (str): The unique identifier of the document to update.
+            updated_document (IDocument): The updated document instance.
+        """
+        self.client.upsert(self.collection_name, points=[                           
+            models.PointStruct(
+                id=updated_document.id,
+                vector=updated_document.embedding,
+                payload=updated_document.metadata
+            )
+        ])
+
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+        """
+        self.documents = []
+        self.client.delete(self.collection_name, points_selector=models.FilterSelector())
+
+    def document_count(self) -> int:
+        """
+        Returns the number of documents in the store.
+        """
+        raise NotImplementedError('Get document not implemeneted, use retrieve().')
+
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the top_k most relevant documents based on the given query.
+        For the purpose of this example, this method performs a basic search.
+        
+        Args:
+            query (str): The query string used for document retrieval. 
+            top_k (int): The number of top relevant documents to retrieve.
+        
+        Returns:
+            List[IDocument]: A list of the top_k most relevant documents.
+        """
+        # This should be modified to a query to the Qdrant service for relevance search
+        query_vector = self.vectorizer.infer_vector(query).data
+        documents = self.client.search(
+            collection_name=self.collection_name,
+            query_vector=query_vector,
+            limit=top_k)
+        
+        matching_documents = [
+            doc.payload for doc in documents
+        ]
+        return matching_documents[:top_k]
+
+
+```
+
+```swarmauri/community/vector_stores/AnnoyVectorStore.py
+
+import os
+import json
+import pickle
+import tempfile
+from typing import List, Union
+from annoy import AnnoyIndex
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
+from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+
+from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+#from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+
+class AnnoyVectorStore(SaveLoadStoreBase, VectorDocumentStoreRetrieveBase):
+    """
+    AnnoyVectorStore is a concrete implementation that integrates functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging Annoy as the backend.
+    """
+
+    def __init__(self, dimension: int, metric='euclidean', num_trees=10):
+        self.dimension = dimension
+        self.vectorizer = Doc2VecVectorizer()
+        self.metric = metric
+        self.num_trees = num_trees
+        self.index = AnnoyIndex(dimension, metric)
+        self.documents = []  # List of documents
+        self.id_to_index = {}  # Mapping from document ID to index in Annoy
+        SaveLoadStoreBase.__init__(self, self.vectorizer, [])
+
+    def get_state(self) -> dict:
+        """
+        Retrieve the internal state of the vector store to be saved.
+        
+        Returns:
+            dict: The internal state of the vector store.
+        """
+        return {
+            'documents': [doc.to_dict() for doc in self.documents],
+            'id_to_index': self.id_to_index
+        }
+
+    def set_state(self, state: dict) -> None:
+        """
+        Set the internal state of the vector store when loading.
+        
+        Parameters:
+            state (dict): The state to set to the vector store.
+        """
+        self.documents = [Document.from_dict(doc_dict) for doc_dict in state.get('documents', [])]
+        self.id_to_index = state['id_to_index']
+        for idx, document in enumerate(self.documents):
+            self.index.add_item(idx, document.content)
+        self.index.build(self.num_trees)
+
+    def add_document(self, document: IDocument) -> None:
+        """
+        Add a single document to the document store.
+        
+        Parameters:
+            document (IDocument): The document to be added to the store.
+        """
+        index = len(self.documents)
+        self.documents.append(document)
+        self.index.add_item(index, document.content)
+        self.id_to_index[document.id] = index
+        try:
+            self.index.build(self.num_trees)
+        except Exception as e:
+            self._rebuild_index()
+
+    def add_documents(self, documents: List[IDocument]) -> None:
+        """
+        Add multiple documents to the document store in a batch operation.
+        
+        Parameters:
+            documents (List[IDocument]): A list of documents to be added to the store.
+        """
+        start_idx = len(self.documents)
+        self.documents.extend(documents)
+        for i, doc in enumerate(documents):
+            idx = start_idx + i
+            self.index.add_item(idx, doc.content)
+            self.id_to_index[doc.id] = idx
+        try:
+            self.index.build(self.num_trees)
+        except Exception as e:
+            self._rebuild_index()
+
+    def get_document(self, id: str) -> Union[IDocument, None]:
+        """
+        Retrieve a single document by its identifier.
+        
+        Parameters:
+            id (str): The unique identifier of the document to retrieve.
+        
+        Returns:
+            Union[IDocument, None]: The requested document if found; otherwise, None.
+        """
+        index = self.id_to_index.get(id)
+        if index is not None:
+            return self.documents[index]
+        return None
+
+    def get_all_documents(self) -> List[IDocument]:
+        """
+        Retrieve all documents stored in the document store.
+        
+        Returns:
+            List[IDocument]: A list of all documents in the store.
+        """
+        return self.documents
+
+    def delete_document(self, id: str) -> None:
+        """
+        Delete a document from the document store by its identifier.
+        
+        Parameters:
+            id (str): The unique identifier of the document to delete.
+        """
+        if id in self.id_to_index:
+            index = self.id_to_index.pop(id)
+            self.documents.pop(index)
+            self._rebuild_index()
+
+    def update_document(self, id: str, updated_document: IDocument) -> None:
+        """
+        Update a document in the document store.
+        
+        Parameters:
+            id (str): The unique identifier of the document to update.
+            updated_document (IDocument): The updated document instance.
+        """
+        if id in self.id_to_index:
+            index = self.id_to_index[id]
+            self.documents[index] = updated_document
+            self._rebuild_index()
+
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+        """
+        self.documents = []
+        self.doc_id_to_index = {}
+        self.index = AnnoyIndex(self.dimension, self.metric)
+
+    def document_count(self) -> int:
+        """
+        Returns the number of documents in the store.
+        """
+        return len(self.documents)
+
+    def retrieve(self, query: List[float], top_k: int = 5) -> List[IDocument]:
+        """
+        Retrieve the top_k most relevant documents based on the given query.
+        
+        Args:
+            query (List[float]): The content of the document for retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+        
+        Returns:
+            List[IDocument]: A list of the top_k most relevant documents.
+        """
+        indices = self.index.get_nns_by_vector(query, top_k, include_distances=False)
+        return [self.documents[idx] for idx in indices]
+
+    def save_store(self, directory_path: str) -> None:
+        """
+        Saves the state of the vector store to the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+            directory_path (str): The directory path where the store's state will be saved.
+        """
+        state = self.get_state()
+        os.makedirs(directory_path, exist_ok=True)
+        state_file = os.path.join(directory_path, 'store_state.json')
+        index_file = os.path.join(directory_path, 'annoy_index.ann')
+
+        with open(state_file, 'w') as f:
+            json.dump(state, f, indent=4)
+        self.index.save(index_file)
+
+    def load_store(self, directory_path: str) -> None:
+        """
+        Loads the state of the vector store from the specified directory. This includes
+        both the vectorizer's model and the stored documents or vectors.
+
+        Parameters:
+            directory_path (str): The directory path from where the store's state will be loaded.
+        """
+        state_file = os.path.join(directory_path, 'store_state.json')
+        index_file = os.path.join(directory_path, 'annoy_index.ann')
+
+        with open(state_file, 'r') as f:
+            state = json.load(f)
+        self.set_state(state)
+        self.index.load(index_file)
+
+    def save_parts(self, directory_path: str, chunk_size: int = 10485760) -> None:
+        """
+        Save the model in parts to handle large files by splitting them.
+        """
+        state = self.get_state()
+        os.makedirs(directory_path, exist_ok=True)
+        temp_state_file = tempfile.NamedTemporaryFile(delete=False)
+
+        try:
+            pickle.dump(state, temp_state_file)
+            temp_state_file.close()
+
+            with open(temp_state_file.name, 'rb') as src:
+                part_num = 0
+                while True:
+                    chunk = src.read(chunk_size)
+                    if not chunk:
+                        break
+                    with open(os.path.join(directory_path, f'state_part_{part_num}.pkl'), 'wb') as dest:
+                        dest.write(chunk)
+                    part_num += 1
+        finally:
+            os.remove(temp_state_file.name)
+
+        index_file = os.path.join(directory_path, 'annoy_index.ann')
+        self.index.save(index_file)
+
+        with open(index_file, 'rb') as src:
+            part_num = 0
+            while True:
+                chunk = src.read(chunk_size)
+                if not chunk:
+                    break
+                with open(os.path.join(directory_path, f'index_part_{part_num}.ann'), 'wb') as dest:
+                    dest.write(chunk)
+                part_num += 1
+
+    def load_parts(self, directory_path: str, state_file_pattern: str, index_file_pattern: str) -> None:
+        """
+        Load and combine model parts from a directory.
+        """
+        temp_state_file = tempfile.NamedTemporaryFile(delete=False)
+        try:
+            with open(temp_state_file.name, 'ab') as dest:
+                part_num = 0
+                while True:
+                    part_file_path = os.path.join(directory_path, state_file_pattern.format(part_num))
+                    if not os.path.isfile(part_file_path):
+                        break
+                    with open(part_file_path, 'rb') as src:
+                        chunk = src.read()
+                        dest.write(chunk)
+                    part_num += 1
+
+            with open(temp_state_file.name, 'rb') as src:
+                state = pickle.load(src)
+            self.set_state(state)
+        finally:
+            os.remove(temp_state_file.name)
+
+        index_file = os.path.join(directory_path, 'annoy_index.ann')
+        self.index.load(index_file)
+
+    def _rebuild_index(self):
+        """
+        Rebuild the Annoy index from the current documents.
+        """
+        self.index = AnnoyIndex(self.dimension, self.metric)
+        for idx, document in enumerate(self.documents):
+            self.index.add_item(idx, document.content)
+        self.index.build(self.num_trees)
+
+```

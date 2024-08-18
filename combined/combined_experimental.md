@@ -6,6 +6,143 @@
 
 ```
 
+```swarmauri/experimental/RemoteUniversalBase.py
+
+import requests
+import hashlib
+from functools import wraps
+from uuid import uuid4
+import inspect
+
+def remote_local_transport(cls):
+    original_init = cls.__init__
+    def init_wrapper(self, *args, **kwargs):
+        host = kwargs.pop('host', None)
+        resource = kwargs.get('resource', cls.__name__)
+        owner = kwargs.get('owner')
+        name = kwargs.get('name')
+        id = kwargs.get('id')
+        #path = kwargs.get('path')
+        if host:
+            #self.is_remote = True
+            self.host = host
+            self.resource = resource
+            self.owner = owner
+            self.id = id
+            #self.path = path
+            url = f"{host}/{owner}/{resource}/{id}"
+            data = {"class_name": cls.__name__, "owner": owner, "name": name, **kwargs}
+            response = requests.post(url, json=data)
+            if not response.ok:
+                raise Exception(f"Failed to initialize remote {cls.__name__}: {response.text}")
+        else:
+            original_init(self, owner, name, **kwargs)  # Ensure proper passing of positional arguments
+
+    setattr(cls, '__init__', init_wrapper)
+
+    for attr_name, attr_value in cls.__dict__.items():
+        if callable(attr_value) and not attr_name.startswith("_"):
+            setattr(cls, attr_name, method_wrapper(attr_value))
+        elif isinstance(attr_value, property):
+            prop_get = attr_value.fget and method_wrapper(attr_value.fget)
+            prop_set = attr_value.fset and method_wrapper(attr_value.fset)
+            prop_del = attr_value.fdel and method_wrapper(attr_value.fdel)
+            setattr(cls, attr_name, property(prop_get, prop_set, prop_del, attr_value.__doc__))
+    return cls
+
+
+def method_wrapper(method):
+    @wraps(method)
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        if getattr(self, 'host'):
+            print('[x] Executing remote call...')
+            url = f"{self.path}".lower()
+            response = requests.post(url, json={"args": args[1:], "kwargs": kwargs})
+            if response.ok:
+                return response.json()
+            else:
+                raise Exception(f"Remote method call failed: {response.text}")
+        else:
+            return method(*args, **kwargs)
+    return wrapper
+
+class RemoteLocalMeta(type):
+    def __new__(metacls, name, bases, class_dict):
+        cls = super().__new__(metacls, name, bases, class_dict)
+        if bases:  # This prevents BaseComponent itself from being decorated
+            cls = remote_local_transport(cls)
+        cls.class_hash = cls._calculate_class_hash()
+        return cls
+
+    def _calculate_class_hash(cls):
+        sig_hash = hashlib.sha256()
+        for attr_name, attr_value in cls.__dict__.items():
+            if callable(attr_value) and not attr_name.startswith("_"):
+                sig = inspect.signature(attr_value)
+                sig_hash.update(str(sig).encode())
+        return sig_hash.hexdigest()
+    
+
+class BaseComponent(metaclass=RemoteLocalMeta):
+    version = "1.0.0"  # Semantic versioning initialized here
+    def __init__(self, owner, name, host=None, members=[], resource=None):
+        self.id = uuid4()
+        self.owner = owner
+        self.name = name
+        self.host = host  
+        #self.is_remote = bool(self.host) 
+        self.members = members
+        self.resource = resource if resource else self.__class__.__name__
+        self.path = f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
+
+    @property
+    def is_remote(self):
+        return bool(self.host)
+
+    @classmethod
+    def public_interfaces(cls):
+        methods = []
+        for attr_name in dir(cls):
+            # Retrieve the attribute
+            attr_value = getattr(cls, attr_name)
+            # Check if it's callable or a property and not a private method
+            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(attr_value, property):
+                methods.append(attr_name)
+        return methods
+
+    @classmethod
+    def is_method_registered(cls, method_name):
+        """
+        Checks if a public method with the given name is registered on the class.
+        Args:
+            method_name (str): The name of the method to check.
+        Returns:
+            bool: True if the method is registered, False otherwise.
+        """
+        return method_name in cls.public_interfaces()
+
+    @classmethod
+    def method_with_signature(cls, input_signature):
+        """
+        Checks if there is a method with the given signature available in the class.
+        
+        Args:
+            input_signature (str): The string representation of the method signature to check.
+        
+        Returns:
+            bool: True if a method with the input signature exists, False otherwise.
+        """
+        for method_name in cls.public_interfaces():
+            method = getattr(cls, method_name)
+            if callable(method):
+                sig = str(inspect.signature(method))
+                if sig == input_signature:
+                    return True
+        return False
+
+```
+
 ```swarmauri/experimental/tools/LinkedInArticleTool.py
 
 import requests
@@ -883,6 +1020,125 @@ print(f"Consensus Reached: {is_agreement}, with agreement on: {agreement_message
 ```
 
 This structure and mechanisms allow agents to make informed decisions based on the context provided, such as proposals made by other agents, and provide a manageable way to parse these decisions to understand voting preferences better. In a real-world scenario, the decision-making process (`decide_vote`) and vote parsing should be enhanced to intelligently analyze the conversation context and proposals to determine the agent's stance accurately.
+
+```
+
+```swarmauri/experimental/conversations/SharedConversation.py
+
+import inspect
+from threading import Lock
+from typing import Optional, Dict, List, Tuple
+from swarmauri.core.messages.IMessage import IMessage
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
+from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+
+class SharedConversation(ConversationBase):
+    """
+    A thread-safe conversation class that supports individual system contexts for each SwarmAgent.
+    """
+    def __init__(self):
+        super().__init__()
+        self._lock = Lock()  # A lock to ensure thread safety
+        self._agent_system_contexts: Dict[str, SystemMessage] = {}  # Store system contexts for each agent
+        self._history: List[Tuple[str, IMessage]] = []  # Stores tuples of (sender_id, IMessage)
+
+
+    @property
+    def history(self):
+        history = []
+        for each in self._history:
+            history.append((each[0], each[1]))
+        return history
+
+    def add_message(self, message: IMessage, sender_id: str):
+        with self._lock:
+            self._history.append((sender_id, message))
+
+    def reset_messages(self) -> None:
+        self._history = []
+        
+
+    def _get_caller_name(self) -> Optional[str]:
+        for frame_info in inspect.stack():
+            # Check each frame for an instance with a 'name' attribute in its local variables
+            local_variables = frame_info.frame.f_locals
+            for var_name, var_value in local_variables.items():
+                if hasattr(var_value, 'name'):
+                    # Found an instance with a 'name' attribute. Return its value.
+                    return getattr(var_value, 'name')
+        # No suitable caller found
+        return None
+
+    def as_dict(self) -> List[Dict]:
+        caller_name = self._get_caller_name()
+        history = []
+
+        with self._lock:
+            # If Caller is not one of the agents, then give history
+            if caller_name not in self._agent_system_contexts.keys():
+                for sender_id, message in self._history:
+                    history.append((sender_id, message.as_dict()))
+                
+                
+            else:
+                system_context = self.get_system_context(caller_name)
+                #print(caller_name, system_context, type(system_context))
+                if type(system_context) == str:
+                    history.append(SystemMessage(system_context).as_dict())
+                else:
+                    history.append(system_context.as_dict())
+                    
+                for sender_id, message in self._history:
+                    #print(caller_name, sender_id, message, type(message))
+                    if sender_id == caller_name:
+                        if message.__class__.__name__ == 'AgentMessage' or 'FunctionMessage':
+                            # The caller is the sender; treat as AgentMessage
+                            history.append(message.as_dict())
+                            
+                            # Print to see content that is empty.
+                            #if not message.content:
+                                #print('\n\t\t\t=>', message, message.content)
+                    else:
+                        if message.content:
+                            # The caller is not the sender; treat as HumanMessage
+                            history.append(HumanMessage(message.content).as_dict())
+        return history
+    
+    def get_last(self) -> IMessage:
+        with self._lock:
+            return super().get_last()
+
+
+    def clear_history(self):
+        with self._lock:
+            super().clear_history()
+
+
+        
+
+    def set_system_context(self, agent_id: str, context: SystemMessage):
+        """
+        Sets the system context for a specific agent.
+
+        Args:
+            agent_id (str): Unique identifier for the agent.
+            context (SystemMessage): The context message to be set for the agent.
+        """
+        with self._lock:
+            self._agent_system_contexts[agent_id] = context
+
+    def get_system_context(self, agent_id: str) -> Optional[SystemMessage]:
+        """
+        Retrieves the system context for a specific agent.
+
+        Args:
+            agent_id (str): Unique identifier for the agent.
+
+        Returns:
+            Optional[SystemMessage]: The context message of the agent, or None if not found.
+        """
+        return self._agent_system_contexts.get(agent_id, None)
 
 ```
 
@@ -1937,65 +2193,125 @@ class IChainPersistence(ABC):
 
 ```
 
-```swarmauri/experimental/vectorizers/DGLVectorizer.py
+```swarmauri/experimental/embeddings/__init__.py
 
-import dgl
-import torch
-import torch.nn.functional as F
-import numpy as np
-from dgl.nn import GraphConv
-from typing import List, Union, Any
-from swarmauri.core.vectorizers.IVectorize import IVectorize
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+# -*- coding: utf-8 -*-
 
-class DGLGraphConv(torch.nn.Module):
-    def __init__(self, in_feats, out_feats, activation=F.relu):
-        super(DGLGraphConv, self).__init__()
-        self.conv1 = GraphConv(in_feats, 128)
-        self.conv2 = GraphConv(128, out_feats)
-        self.activation = activation
 
-    def forward(self, g, inputs):
-        # Apply graph convolution and activation.
-        h = self.conv1(g, inputs)
-        h = self.activation(h)
-        h = self.conv2(g, h)
-        return h
-
-class DGLVectorizer(IVectorize):
-    def __init__(self, in_feats, out_feats, model=None):
-        self.in_feats = in_feats
-        self.out_feats = out_feats
-        self.model = model or DGLGraphConv(in_feats, out_feats)
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        
-    def fit(self, graphs, features, epochs=10, learning_rate=0.01):
-        self.model.to(self.device)
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
-        for epoch in range(epochs):
-            for g, feat in zip(graphs, features):
-                g = g.to(self.device)
-                feat = feat.to(self.device)
-                outputs = self.model(g, feat)
-                loss = F.mse_loss(outputs, feat)  # Example loss; adjust as needed
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-            print(f'Epoch {epoch + 1}, Loss: {loss.item()}')
-    
-    def infer_vector(self, graph, features):
-        graph = graph.to(self.device)
-        features = features.to(self.device)
-        with torch.no_grad():
-            embeddings = self.model(graph, features)
-        return SimpleVector(embeddings.cpu().numpy())
 
 ```
 
-```swarmauri/experimental/vectorizers/__init__.py
+```swarmauri/experimental/embeddings/SpatialDocEmbedding.py
 
-# -*- coding: utf-8 -*-
+import torch
+from transformers import BertTokenizer, BertModel
+from torch import nn
+import numpy as np
+from typing import Literal
+from pydantic import PrivateAttr
+
+from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
+from swarmauri.standard.vectors.concrete.Vector import Vector
+
+class SpatialDocEmbedding(EmbeddingBase):
+    _special_tokens_dict = PrivateAttr()
+    _tokenizer = PrivateAttr()
+    _model = PrivateAttr()
+    _device = PrivateAttr()
+    type: Literal['SpatialDocEmbedding'] = 'SpatialDocEmbedding'
+    
+    def __init__(self, special_tokens_dict=None, **kwargs):
+        super().__init__(**kwargs)
+        self._special_tokens_dict = special_tokens_dict or {
+            'additional_special_tokens': [
+                '[DIR]', '[TYPE]', '[SECTION]', '[PATH]',
+                '[PARAGRAPH]', '[SUBPARAGRAPH]', '[CHAPTER]', '[TITLE]', '[SUBSECTION]'
+            ]
+        }
+        self._tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self._tokenizer.add_special_tokens(self._special_tokens_dict)
+        self._model = BertModel.from_pretrained('bert-base-uncased', return_dict=True)
+        self._model.resize_token_embeddings(len(self._tokenizer))
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model.to(self._device)
+
+    def add_metadata(self, text, metadata_dict):
+        metadata_components = []
+        for key, value in metadata_dict.items():
+            if f"[{key.upper()}]" in self._special_tokens_dict['additional_special_tokens']:
+                token = f"[{key.upper()}={value}]"
+                metadata_components.append(token)
+        metadata_str = ' '.join(metadata_components)
+        return metadata_str + ' ' + text if metadata_components else text
+
+    def tokenize_and_encode(self, text):
+        inputs = self._tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        # Move the input tensors to the same device as the model
+        inputs = {key: value.to(self._device) for key, value in inputs.items()}
+        outputs = self._model(**inputs)
+        return outputs.pooler_output
+
+    def enhance_embedding_with_positional_info(self, embeddings, doc_position, total_docs):
+        position_effect = torch.sin(torch.tensor(doc_position / total_docs, dtype=torch.float))
+        enhanced_embeddings = embeddings + position_effect
+        return enhanced_embeddings
+
+    def vectorize_document(self, chunks, metadata_list=None):
+        all_embeddings = []
+        total_chunks = len(chunks)
+        if not metadata_list:
+            # Default empty metadata if none provided
+            metadata_list = [{} for _ in chunks]
+        
+        for i, (chunk, metadata) in enumerate(zip(chunks, metadata_list)):
+            # Use add_metadata to include any available metadata dynamically
+            embedded_text = self.add_metadata(chunk, metadata)
+            embeddings = self.tokenize_and_encode(embedded_text)
+            enhanced_embeddings = self.enhance_embedding_with_positional_info(embeddings, i, total_chunks)
+            all_embeddings.append(enhanced_embeddings)
+
+        return all_embeddings
+
+
+
+    def fit(self, data):
+        # Although this vectorizer might not need to be fitted in the traditional sense,
+        # this method placeholder allows integration into pipelines that expect a fit method.
+        pass
+
+    def transform(self, data):
+        print(data)
+        if isinstance(data, list):
+            return [self.infer_vector(text).value for text in data]
+        else:
+            return self.infer_vector(data).value
+
+    def fit_transform(self, data):
+        #self.fit(data)
+        return self.transform(data)
+
+    def infer_vector(self, data, *args, **kwargs):
+        print(data)
+        inputs = self.tokenize_and_encode(data)
+        print(inputs)
+        inputs = inputs.cpu().detach().numpy().tolist()
+        print(inputs)
+        return Vector(value=[1,2,3]) # Placeholder
+
+    def save_model(self, path):
+        torch.save({
+            'model_state_dict': self._model.state_dict(),
+            'tokenizer': self._tokenizer
+        }, path)
+    
+    def load_model(self, path):
+        checkpoint = torch.load(path)
+        self._model.load_state_dict(checkpoint['model_state_dict'])
+        self._tokenizer = checkpoint['tokenizer']
+
+    def extract_features(self, text):
+        inputs = self.tokenize_and_encode(text)
+        return Vector(value=inputs.cpu().detach().numpy().tolist())
 
 
 
@@ -2931,5 +3247,13 @@ class CeleryAgentCommands(IAgentCommands):
         Revokes or terminates a command execution by its task ID.
         """
         self.app.control.revoke(task_id, terminate=True)
+
+```
+
+```swarmauri/experimental/vectors/__init__.py
+
+# -*- coding: utf-8 -*-
+
+
 
 ```

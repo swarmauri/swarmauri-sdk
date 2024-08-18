@@ -61,6 +61,8 @@ setup(
             'lightgbm'
         ],
         'full': [
+            'ai21>=2.2.0',
+            "shuttleai",
             'transformers',
             #'accelerate',
             'tensorflow',
@@ -89,11 +91,11 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.10.0',
+            'scipy==1.10.0'
 
         ]},
     classifiers=[
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved ::  Apache Software License',
         'Programming Language :: Python :: 3.10'
     ],
     python_requires='>=3.10',

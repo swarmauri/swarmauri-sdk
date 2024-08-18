@@ -18,7 +18,11 @@ class VectorBase(IVector, ComponentBase):
         Returns:
             np.ndarray: The numpy array representation of the vector.
         """
-        return np.array(self.data)
+        return np.array(self.value)
+
+    @property
+    def shape(self):
+        return self.to_numpy().shape
         
     def __len__(self):
-        return len(self.data)
+        return len(self.value)

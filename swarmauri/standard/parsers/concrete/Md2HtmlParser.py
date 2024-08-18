@@ -4,7 +4,7 @@ from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.parsers.base.ParserBase import ParserBase
 
 
-class MarkdownParser(ParserBase):
+class Md2HtmlParser(ParserBase):
     """
     A concrete implementation of the IParser interface that parses Markdown text.
     
@@ -26,7 +26,7 @@ class MarkdownParser(ParserBase):
             (r'\n\n', r'<p>'),
             (r'\n', r'<br>'),
         ]
-    type: Literal['MarkdownParser'] = 'MarkdownParser'
+    type: Literal['Md2HtmlParser'] = 'Md2HtmlParser'
 
     def parse(self, data: str) -> List[Document]:
         documents = []

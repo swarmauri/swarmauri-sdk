@@ -7,12 +7,12 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    metric = Metric(unit='points', value=10)
+    metric = Metric()
     assert metric.type == 'ZeroMetric'
 
 @pytest.mark.unit
 def test_serialization():
-    metric = Metric(unit='points', value=10)
+    metric = Metric()
     assert metric.id == Metric.model_validate_json(metric.model_dump_json()).id
 
 
