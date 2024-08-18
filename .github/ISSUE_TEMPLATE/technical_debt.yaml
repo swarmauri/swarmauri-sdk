@@ -1,5 +1,5 @@
 name: "Technical Debt"
-description: "For reporting or tracking areas of the code that need improvement or refactoring due to previous shortcuts. It’s about fixing things like overly complex code, poor design decisions, or deprecated technologies that could slow down development or introduce future bugs."
+description: "For reporting or tracking areas of the code that need improvement or refactoring due to previous shortcuts. "
 title: "[Technical Debt]:  "
 body:
   - type: input
