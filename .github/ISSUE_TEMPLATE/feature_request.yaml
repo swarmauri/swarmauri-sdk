@@ -1,7 +1,8 @@
 name: "Feature Request"
 description: "Submit a feature request to enhance the Swarmauri SDK."
-title: "[Feature Request]: "
+title: "[Feature Request]: <title> "
 labels: ["enhancement", "feature request"]
+assignees: "<assignees>"
 body:
   - type: input
     id: feature_name
