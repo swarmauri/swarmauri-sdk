@@ -1,0 +1,82 @@
+name: "GitHub Workflow Failure"
+description: "Submit a report for failures in the GitHub Actions workflow, including dependency download, install, linting, build, testing, or publishing."
+title: "[GitHub Workflow Failure]: "
+labels: ["workflow-failure", "ci"]
+body:
+  - type: dropdown
+    id: failure_type
+    attributes:
+      label: "Failure Type"
+      description: "Select the type of failure encountered in the workflow."
+      options:
+        - "Dependency Download Failure"
+        - "Dependency Install Failure"
+        - "Lint Failure"
+        - "Build Failure"
+        - "Critical Testing Failure"
+        - "Publishing Failure"
+    validations:
+      required: true
+
+  - type: input
+    id: affected_workflow
+    attributes:
+      label: "Affected Workflow"
+      description: "Provide the name or file path of the affected GitHub Actions workflow."
+      placeholder: "e.g., .github/workflows/ci.yml"
+    validations:
+      required: true
+
+  - type: textarea
+    id: failure_description
+    attributes:
+      label: "Failure Description"
+      description: "Describe the failure, including when and how it occurred."
+      placeholder: "Provide details about the failure."
+    validations:
+      required: true
+
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: "Root Cause (if known)"
+      description: "If you know the root cause, describe it here. Otherwise, leave it blank."
+      placeholder: "The failure occurred due to..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Suggest any potential solutions or fixes for the workflow failure."
+      placeholder: "Possible solutions or mitigation strategies."
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Relevant Log Output"
+      description: "Please copy and paste the relevant log output. This will be automatically formatted into code."
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Provide any additional context, screenshots, or information about the failure."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Code of Conduct"
+      description: "By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)."
+      options:
+        - label: "I agree to follow this project's Code of Conduct"
+          required: true
