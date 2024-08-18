@@ -33,17 +33,18 @@ body:
       label: Version
       description: What version of our software are you running?
       options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
-      default: 0
+        - <0.4.0
+        - 0.4.0
+        - 0.4.1
+      default: 0.4.0
     validations:
       required: true
   - type: dropdown
     id: browsers
     attributes:
-      label: What browsers are you seeing the problem on?
+      label: What version of python are you using?
       multiple: true
       options:
-        - Firefox
-        - Chrome
-        - Safari
+        - Python 3.10
+        - Python 3.11
+        - Python 3.12
