@@ -1,0 +1,44 @@
+name: "Documentation Improvement"
+description: "Suggest improvements, corrections, or additions to the project documentation."
+labels: ["documentation", "enhancement", "docs"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Documentation Improvement Template
+
+        Please provide as much detail as possible about the documentation improvement you are suggesting.
+
+  - type: textarea
+    id: section
+    attributes:
+      label: "Documentation Section"
+      description: "Specify which part of the documentation needs improvement (e.g., API docs, setup guide, README, etc.)."
+      placeholder: "Which section of the documentation does this affect?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_issue
+    attributes:
+      label: "Current Issue"
+      description: "Describe the problem with the current documentation. Is something unclear, incorrect, missing, or outdated?"
+      placeholder: "Describe the current issue or problem in the documentation."
+    validations:
+      required: true
+
+  - type: textarea
+    id: improvement_suggestion
+    attributes:
+      label: "Suggested Improvement"
+      description: "Describe what you think should be improved, added, or updated in the documentation."
+      placeholder: "Suggest how to fix or improve the documentation."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Provide any additional context, resources, or links that support your suggestion."
+      placeholder: "Add any helpful links, examples, or files to support your documentation improvement."
