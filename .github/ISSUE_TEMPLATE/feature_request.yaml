@@ -55,7 +55,6 @@ body:
       options:
         - label: "Core SDK"
         - label: "API"
-          value: api
         - label: "Documentation"
         - label: "Performance"
         - label: "Other"
