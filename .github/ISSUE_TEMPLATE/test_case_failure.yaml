@@ -1,5 +1,5 @@
 name: "Test Case Failure"
-description: "Related to build failure"
+description: "Related to test case failure"
 title: "[Test Case Failure]:  "
 labels: ["testcase-failure"]
 body:
