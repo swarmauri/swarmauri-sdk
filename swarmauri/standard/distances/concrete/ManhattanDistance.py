@@ -21,10 +21,10 @@ class ManhattanDistance(DistanceBase):
         Returns:
             float: The Manhattan distance between vector_a and vector_b.
         """
-        if vector_a.dimensions != vector_b.dimensions:
+        if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must have the same dimensionality.")
         
-        return sum(abs(a - b) for a, b in zip(vector_a.data, vector_b.data))
+        return sum(abs(a - b) for a, b in zip(vector_a.value, vector_b.value))
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """

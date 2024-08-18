@@ -19,7 +19,7 @@ class SquaredEuclideanDistance(DistanceBase):
         Returns:
         - float: The computed squared Euclidean distance between vector_a and vector_b.
         """
-        if vector_a.dimensions != vector_b.dimensions:
+        if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must be of the same dimensionality.")
 
         squared_distance = sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data))

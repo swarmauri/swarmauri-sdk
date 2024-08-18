@@ -21,7 +21,7 @@ class ChebyshevDistance(DistanceBase):
             float: The computed Chebyshev distance between vector_a and vector_b.
         """
         max_distance = 0
-        for a, b in zip(vector_a.data, vector_b.data):
+        for a, b in zip(vector_a.value, vector_b.value):
             max_distance = max(max_distance, abs(a - b))
         return max_distance
 

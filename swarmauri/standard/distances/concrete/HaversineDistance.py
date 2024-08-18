@@ -26,8 +26,8 @@ class HaversineDistance(DistanceBase):
         # Earth radius in kilometers
         R = 6371.0
 
-        lat1, lon1 = map(radians, vector_a.data)
-        lat2, lon2 = map(radians, vector_b.data)
+        lat1, lon1 = map(radians, vector_a.value)
+        lat2, lon2 = map(radians, vector_b.value)
 
         dlat = lat2 - lat1
         dlon = lon2 - lon1

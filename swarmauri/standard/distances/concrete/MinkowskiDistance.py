@@ -30,7 +30,7 @@ class MinkowskiDistance(DistanceBase):
             float: The computed Minkowski distance between vector_a and vector_b.
         """
         # Check if both vectors have the same dimensionality
-        if vector_a.dimensions != vector_b.dimensions:
+        if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must have the same dimensionality.")
 
         # Extract data from Vector instances
