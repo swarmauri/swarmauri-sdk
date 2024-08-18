@@ -51,11 +51,11 @@ body:
       label: "Affected Areas"
       description: "Select the areas of the SDK that may be impacted by this feature."
       options:
-        - label: "Core SDK"
-        - label: "API"
-        - label: "Documentation"
-        - label: "Performance"
-        - label: "Other"
+        - label: "Core"
+        - label: "Standard/Base"
+        - label: "Standard/Concrete"
+        - label: "Community"
+        - label: "Experimental"
 
   - type: dropdown
     id: priority
