@@ -1,5 +1,5 @@
 name: "Internal API Change Request"
-description: "Submit a change request related to internal APIs."
+description: "Submit a change request related to refactor internal APIs."
 title: "[Internal API Change Request]:  "
 labels: ["core"]
 body:
