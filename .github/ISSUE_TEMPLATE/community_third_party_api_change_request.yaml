@@ -1,6 +1,6 @@
-name: "3rd Party API Change Request - Community"
-description: "Submit a change request related to 3rd Party APIs."
-title: "[3rd Party API Change Request - Community]:  "
+name: "API Change Request - Community"
+description: "Submit a change request related to third party community APIs."
+title: "[API Change Request - Community]:  "
 labels: ["community"]
 body:
   - type: input
