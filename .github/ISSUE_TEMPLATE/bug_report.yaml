@@ -45,5 +45,5 @@ body:
         - Python 3.10
         - Python 3.11
         - Python 3.12
-  validations:
-    required: true
+    validations:
+      required: true
