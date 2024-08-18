@@ -1,0 +1,81 @@
+name: "Standard - 3rd Party API Change Request"
+description: "Submit a change request related to 3rd Party APIs."
+title: "[Standard - 3rd Party API Change Request]:  "
+labels: ["standard"]
+body:
+  - type: input
+    id: feature_name
+    attributes:
+      label: "Affected component"
+      description: "Provide the file name(s) of the affected model(s)."
+      placeholder: "e.g., standard/concrete/Vector.py"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain why this change request is necessary or how it will benefit the SDK. What problem does it solve?"
+      placeholder: "Why do you need this feature?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide any suggestions for how the feature could be implemented, if applicable."
+      placeholder: "Possible implementation or approach."
+    validations:
+      required: false
+
+  - type: input
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, supporting documentation, or relevant information about the feature."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: impact_area
+    attributes:
+      label: "Affected Areas"
+      description: "Select the areas of the SDK that may be impacted by this feature."
+      options:
+        - label: "Core"
+        - label: "Standard/Base"
+        - label: "Standard/Concrete"
+        - label: "Community"
+        - label: "Experimental"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this feature?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
