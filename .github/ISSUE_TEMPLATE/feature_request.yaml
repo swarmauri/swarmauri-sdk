@@ -5,7 +5,6 @@ labels: ["enhancement", "feature request"]
 assignees: ""
 
 body:
-  - type: markdown
   - type: input
     id: feature_name
     attributes:
