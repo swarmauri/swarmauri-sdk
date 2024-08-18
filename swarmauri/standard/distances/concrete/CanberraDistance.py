@@ -23,8 +23,8 @@ class CanberraDistance(DistanceBase):
             float: The computed Canberra distance between the vectors.
         """
         # Extract data from Vector
-        data_a = np.array(vector_a.data)
-        data_b = np.array(vector_b.data)
+        data_a = np.array(vector_a.content)
+        data_b = np.array(vector_b.content)
 
         # Checking dimensions match
         if data_a.shape != data_b.shape:
