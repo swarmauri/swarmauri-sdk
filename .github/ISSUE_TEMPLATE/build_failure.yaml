@@ -1,14 +1,14 @@
 name: "Build Failure"
-description: "Submit a change request related to 3rd Party APIs."
+description: "Related to build failure"
 title: "[Build Failure]:  "
 labels: ["build-failure"]
 body:
-  - type: input
-    id: feature_name
+  - type: textarea
+    id: root_cause
     attributes:
-      label: "Affected component"
-      description: "Provide the file name(s) of the affected model(s)."
-      placeholder: "e.g., standard/concrete/Vector.py"
+      label: "Root Cause"
+      description: "Explain why the build is likely to fail."
+      placeholder: "The build is likely failing due to..."
     validations:
       required: true
       
@@ -19,23 +19,15 @@ body:
       description: "Provide the file name and test case name of the affected test case."
       placeholder: "e.g., tests/vectors/Vector_test.py"
     validations:
-      required: true
+      required: false
       
-  - type: textarea
-    id: motivation
-    attributes:
-      label: "Motivation"
-      description: "Explain why this change request is necessary or how it will benefit the SDK. What problem does it solve?"
-      placeholder: "Why do you need this feature?"
-    validations:
-      required: true
       
   - type: textarea
     id: potential_solutions
     attributes:
       label: "Potential Solutions"
       description: "Provide any suggestions for how the feature could be implemented, if applicable."
-      placeholder: "Possible implementation or approach."
+      placeholder: "Possible solution."
     validations:
       required: false
 
