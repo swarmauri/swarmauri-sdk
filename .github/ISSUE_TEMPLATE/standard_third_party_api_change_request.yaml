@@ -1,7 +1,7 @@
-name: "3rd Party API Change Request"
+name: "Standard - 3rd Party API Change Request"
 description: "Submit a change request related to 3rd Party APIs."
-title: "[Feature Request]: <title> "
-labels: ["enhancement", "feature request"]
+title: "[Standard - 3rd Party API Change Request]:  "
+labels: ["standard"]
 body:
   - type: input
     id: feature_name
