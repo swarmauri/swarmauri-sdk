@@ -23,7 +23,7 @@ body:
     attributes:
       label: "Affected Workflow"
       description: "Provide the name or file path of the affected GitHub Actions workflow."
-      placeholder: "e.g., .github/workflows/ci.yml"
+      placeholder: "e.g., https://github.com/swarmauri/swarmauri-sdk/actions/runs/10444631651"
     validations:
       required: true
 
