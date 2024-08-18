@@ -6,10 +6,6 @@ assignees: ""
 
 body:
   - type: markdown
-    attributes:
-      value: |
-        ## 🚀 Feature Request for Swarmauri SDK
-        Thank you for contributing to Swarmauri SDK! Please provide the following details to help us understand the feature you're requesting.
   - type: input
     id: feature_name
     attributes:
