@@ -39,7 +39,7 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     id: additional_resources
     attributes:
       label: "Additional Resources (optional)"
