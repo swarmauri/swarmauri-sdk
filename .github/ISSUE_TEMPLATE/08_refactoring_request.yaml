@@ -1,4 +1,4 @@
-name: "Refactoring Request"
+name: "Refactoring Request "
 description: "Submit a change request related to refactoring internal APIs or components."
 title: "[Refactoring Request]: "
 labels: ["refactoring", "core"]
