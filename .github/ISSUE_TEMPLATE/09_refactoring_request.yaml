@@ -43,7 +43,7 @@ body:
     id: impact_area
     attributes:
       label: "Affected Areas"
-      description: "Select the areas of the codebase that may be impacted by this refactoring."
+      description: "Confirm the areas of the codebase have been considered during this refactoring."
       options:
         - label: "Core"
         - label: "Standard/Base"
