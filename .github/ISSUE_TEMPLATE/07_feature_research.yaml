@@ -1,7 +1,7 @@
 name: "Feature Research"
 description: "Capture the details, insights, and findings related to researching potential new features."
 title: "[Feature Research]: "
-labels: ["feature research", "new feature"]
+labels: ["feature research"]
 body:
   - type: input
     id: feature_name
