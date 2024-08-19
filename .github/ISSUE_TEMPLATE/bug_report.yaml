@@ -71,7 +71,7 @@ body:
     attributes:
       label: "Environment Details"
       description: "Describe the environment in which the bug occurred (e.g., OS, cloud platform, dependencies)."
-      placeholder: "e.g., Ubuntu 20.04, AWS EC2, dependencies like NumPy version..."
+      placeholder: "e.g., Ubuntu 20.04, AWS EC2, output of your pip freeze"
     validations:
       required: false
 
