@@ -1,0 +1,61 @@
+name: "Feature Research"
+description: "Capture the details, insights, and findings related to researching potential new features."
+title: "[Feature Research]: "
+labels: ["feature research", "new feature"]
+body:
+  - type: input
+    id: feature_name
+    attributes:
+      label: "Feature Name"
+      description: "Provide the name of the feature being researched."
+      placeholder: "e.g., Real-time notifications"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: "Feature Description"
+      description: "Provide a brief description of the feature and its purpose."
+      placeholder: "This feature would allow users to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: research_findings
+    attributes:
+      label: "Research Findings"
+      description: "Summarize your research, including market analysis, technical feasibility, or any comparable features in other tools."
+      placeholder: "Based on the research, the feature can provide value by..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: potential_impact
+    attributes:
+      label: "Potential Impact"
+      description: "Describe the possible impact of this feature on users, performance, and the product."
+      placeholder: "This feature could impact users by..."
+    validations:
+      required: true
+
+  - type: input
+    id: additional_resources
+    attributes:
+      label: "Additional Resources (optional)"
+      description: "Link or provide references to any supporting materials, documents, or articles related to the feature research."
+      placeholder: "Any links or documents related to the research."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: feature_priority
+    attributes:
+      label: "Feature Priority"
+      description: "What is the priority level for this feature?"
+      options:
+        - "High"
+        - "Medium"
+        - "Low"
+    validations:
+      required: true
