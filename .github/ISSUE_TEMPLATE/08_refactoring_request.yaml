@@ -1,10 +1,10 @@
-name: "Technical Debt"
-description: "For reporting or tracking areas of the code that need improvement or refactoring due to previous shortcuts."
-title: "[Technical Debt]: "
-labels: ["technical-debt"]
+name: "Refactoring Request "
+description: "Submit a change request related to refactoring internal APIs or components."
+title: "[Refactoring Request]: "
+labels: ["refactoring", "core"]
 body:
   - type: input
-    id: feature_name
+    id: component_name
     attributes:
       label: "Affected Component"
       description: "Provide the file name(s) of the affected module(s)."
@@ -16,16 +16,16 @@ body:
     id: motivation
     attributes:
       label: "Motivation"
-      description: "Explain why this technical debt needs to be addressed or how it will benefit the project. What problem does it solve?"
-      placeholder: "Why is this improvement necessary?"
+      description: "Explain why this refactoring request is necessary and how it will improve the codebase. What issues or inefficiencies does it address?"
+      placeholder: "Why is this refactor needed?"
     validations:
       required: true
 
   - type: textarea
     id: potential_solutions
     attributes:
-      label: "Potential Solutions"
-      description: "Provide any suggestions for how this technical debt could be resolved or how the code can be improved."
+      label: "Potential Refactoring Approach"
+      description: "Provide any suggestions for how the code should be refactored, if applicable."
       placeholder: "Possible refactoring approach or solution."
     validations:
       required: false
@@ -34,7 +34,7 @@ body:
     id: additional_context
     attributes:
       label: "Additional Context (optional)"
-      description: "Include any other context, screenshots, or supporting documentation that provides more detail about the issue."
+      description: "Include any additional context, screenshots, supporting documentation, or relevant information related to the refactoring."
       placeholder: "Any additional information."
     validations:
       required: false
@@ -50,3 +50,16 @@ body:
         - label: "Standard/Concrete"
         - label: "Community"
         - label: "Experimental"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this refactoring request?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+    validations:
+      required: true

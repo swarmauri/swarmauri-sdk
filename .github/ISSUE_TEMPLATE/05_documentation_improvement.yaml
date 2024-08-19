@@ -1,4 +1,4 @@
-name: "Documentation Improvement"
+name: "Documentation Improvement "
 description: "Suggest improvements, corrections, or additions to the project documentation."
 labels: ["documentation", "enhancement", "docs"]
 body:

@@ -1,4 +1,4 @@
-name: "Test Case Failure"
+name: "Test Case Failure "
 description: "Report issues related to test case failures, including potential causes and solutions."
 title: "[Test Case Failure]: "
 labels: ["testcase-failure"]
