@@ -1,7 +1,7 @@
 name: "Technical Debt "
 description: "For reporting or tracking areas of the code that need improvement or refactoring due to previous shortcuts."
 title: "[Technical Debt]: "
-labels: ["technical-debt"]
+labels: ["technical debt"]
 body:
   - type: input
     id: feature_name
