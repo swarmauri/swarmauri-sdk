@@ -6,7 +6,7 @@ from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 
 from swarmauri.standard.schema_converters.concrete.GroqSchemaConverter import (
-    CohereSchemaConverter as Schema,
+    GroqSchemaConverter as Schema,
 )
 
 
