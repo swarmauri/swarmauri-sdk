@@ -1,49 +1,107 @@
-name: Bug Report
-description: File a bug report.
+name: "Bug Report"
+description: "Report a bug or unexpected behavior in the software."
 title: "[Bug]: "
 labels: ["bug", "triage"]
-assignees:  []
+assignees: []
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        **Thank you for taking the time to report a bug!**
+        
+        Please fill out the following details to help us diagnose and fix the issue quickly.
+        
   - type: input
     id: contact
     attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
+      label: "Contact Details (Optional)"
+      description: "How can we reach out if more information is needed? (e.g., email or GitHub username)"
+      placeholder: "e.g., email@example.com"
     validations:
       required: false
+
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
-    validations:
+      label: "Describe the Bug"
+      description: "Provide a detailed description of the issue. What did you observe? What did you expect to happen instead?"
+      placeholder: "Describe the bug in detail..."
+      validations:
       required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "List the steps that will help us reproduce the bug. Please be as detailed as possible."
+      placeholder: "1. Go to '...'\n2. Click on '...'\n3. Observe the issue..."
+      validations:
+      required: true
+
   - type: dropdown
     id: version
     attributes:
-      label: Version
-      description: What version of our software are you running?
+      label: "Software Version"
+      description: "Which version of the software are you using when the bug occurred?"
       options:
-        - <0.4.0
-        - 0.4.0
-        - 0.4.1
+        - "<0.4.0"
+        - "0.4.0"
+        - "0.4.1"
+        - "Latest (Nightly Build)"
+        - "Other (specify in additional context)"
     validations:
       required: true
+
   - type: dropdown
-    id: browsers
+    id: python_version
     attributes:
-      label: What version of python are you using?
-      multiple: true
+      label: "Python Version"
+      description: "What version of Python are you using?"
       options:
-        - Python 3.10
-        - Python 3.11
-        - Python 3.12
+        - "Python 3.8"
+        - "Python 3.9"
+        - "Python 3.10"
+        - "Python 3.11"
+        - "Python 3.12"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment Details"
+      description: "Describe the environment in which the bug occurred (e.g., OS, cloud platform, dependencies)."
+      placeholder: "e.g., Ubuntu 20.04, AWS EC2, dependencies like NumPy version..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Relevant Logs or Error Output"
+      description: "Please include any relevant logs or error messages to help us debug the issue."
+      placeholder: "Paste any logs or error messages here."
+      render: shell
+      validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: "Additional Context (Optional)"
+      description: "Provide any extra information, screenshots, or context that might help us understand the issue better."
+      placeholder: "Additional information or screenshots."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: "Confirmation"
+      description: "Please confirm the following before submitting:"
+      options:
+        - label: "I have searched the existing issues for this bug."
+        - label: "I have provided all necessary information to reproduce the bug."
     validations:
       required: true
