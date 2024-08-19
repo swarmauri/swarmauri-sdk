@@ -5,7 +5,7 @@ from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 
-from swarmauri.standard.schema_converters.concrete.CohereSchemaConverter import (
+from swarmauri.standard.schema_converters.concrete.GroqSchemaConverter import (
     CohereSchemaConverter as Schema,
 )
 
@@ -18,7 +18,7 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
     schema = Schema()
-    assert schema.type == "CohereSchemaConverter"
+    assert schema.type == "GroqSchemaConverter"
 
 
 @pytest.mark.unit
