@@ -2,7 +2,6 @@ name: "Bug Report "
 description: "Report a bug or unexpected behavior in the software."
 title: "[Bug]: "
 labels: ["bug", "triage"]
-assignees: []
 body:
   - type: markdown
     attributes:
@@ -10,15 +9,6 @@ body:
         **Thank you for taking the time to report a bug!**
         
         Please fill out the following details to help us diagnose and fix the issue quickly.
-        
-  - type: input
-    id: contact
-    attributes:
-      label: "Contact Details (Optional)"
-      description: "How can we reach out if more information is needed? (e.g., email or GitHub username)"
-      placeholder: "e.g., email@example.com"
-    validations:
-      required: false
 
   - type: textarea
     id: what-happened

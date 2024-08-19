@@ -1,7 +1,7 @@
 name: "GitHub Workflow Failure "
 description: "Submit a report for failures in the GitHub Actions workflow, including dependency download, install, linting, build, testing, or publishing."
 title: "[GitHub Workflow Failure]: "
-labels: ["workflow-failure", "ci"]
+labels: ["workflow failure"]
 body:
   - type: dropdown
     id: failure_type

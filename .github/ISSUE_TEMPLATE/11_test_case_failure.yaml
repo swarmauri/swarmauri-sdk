@@ -1,7 +1,7 @@
 name: "Test Case Failure "
 description: "Report issues related to test case failures, including potential causes and solutions."
 title: "[Test Case Failure]: "
-labels: ["testcase-failure"]
+labels: ["test case failure"]
 body:
   - type: input
     id: test_case_name
@@ -30,7 +30,7 @@ body:
     validations:
       required: false
 
-  - type: input
+  - type: textarea
     id: additional_context
     attributes:
       label: "Additional Context (optional)"

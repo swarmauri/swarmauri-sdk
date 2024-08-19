@@ -1,7 +1,7 @@
 name: "Feature Request "
 description: "Submit a feature request to enhance the Swarmauri SDK."
 title: "[Feature Request]: "
-labels: ["enhancement", "feature request"]
+labels: ["feature request"]
 body:
   - type: input
     id: feature_name
@@ -39,7 +39,7 @@ body:
     validations:
       required: false
 
-  - type: input
+  - type: textarea
     id: additional_context
     attributes:
       label: "Additional Context (optional)"
@@ -48,14 +48,12 @@ body:
     validations:
       required: false
 
-  - type: checkboxes
+  - type: dropdown
     id: impact_area
     attributes:
       label: "Affected Areas"
-      description: "Select the areas of the SDK that may be impacted by this feature."
+      description: "Select the area of the SDK that may be impacted by this feature."
       options:
-        - label: "Core"
-        - label: "Standard/Base"
         - label: "Standard/Concrete"
         - label: "Community"
         - label: "Experimental"
@@ -73,18 +71,3 @@ body:
     validations:
       required: true
       
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
-      
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
-      options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
