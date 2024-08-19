@@ -83,7 +83,7 @@ body:
       description: "Please include any relevant logs or error messages to help us debug the issue."
       placeholder: "Paste any logs or error messages here."
       render: shell
-      validations:
+    validations:
       required: false
 
   - type: textarea
