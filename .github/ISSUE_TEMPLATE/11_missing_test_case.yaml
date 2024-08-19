@@ -1,7 +1,7 @@
 name: "Missing Test Coverage"
 description: "Report issues related to missing test coverage and propose new test cases to fill the gaps."
 title: "[Missing Test Coverage]: "
-labels: ["missing coverage", "new test case"]
+labels: ["missing coverage"]
 body:
   - type: input
     id: missing_area
