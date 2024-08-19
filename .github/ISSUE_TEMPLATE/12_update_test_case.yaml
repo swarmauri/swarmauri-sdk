@@ -1,4 +1,4 @@
-name: "Update Test Case Configuration"
+name: "Test Case Configuration"
 description: "Report issues related to outdated or missing test case configurations and propose updates to ensure coverage and accuracy."
 title: "[Update Test Case Configuration]: "
 labels: ["test case"]

@@ -1,4 +1,4 @@
-name: "Missing Test Coverage"
+'name: "Test Case Coverage"
 description: "Report issues related to missing test coverage and propose new test cases to fill the gaps."
 title: "[Missing Test Coverage]: "
 labels: ["missing coverage"]
@@ -50,3 +50,4 @@ body:
         - "Acceptance"
     validations:
       required: true
+'
