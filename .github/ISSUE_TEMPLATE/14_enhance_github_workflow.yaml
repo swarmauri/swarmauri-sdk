@@ -1,0 +1,40 @@
+name: "Enhance GitHub Workflow"
+description: "Report issues or suggest improvements for existing GitHub workflow configurations to enhance automation, performance, and accuracy."
+title: "[GitHub Workflow Enhancement]: "
+labels: ["github workflow", "enhancement"]
+body:
+  - type: input
+    id: workflow_file
+    attributes:
+      label: "Workflow File"
+      description: "Provide the name of the GitHub Actions workflow file where the enhancement is needed."
+      placeholder: "e.g., .github/workflows/ci.yml"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason_for_enhancement
+    attributes:
+      label: "Reason for Enhancement"
+      description: "Explain why this GitHub workflow requires enhancement or improvement."
+      placeholder: "The workflow needs enhancement because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_workflow_update
+    attributes:
+      label: "Proposed Workflow Update"
+      description: "Provide details of the modifications or new steps needed to enhance the GitHub workflow."
+      placeholder: "Proposed workflow update..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other relevant context, logs, or information to support the workflow enhancement."
+      placeholder: "Any additional information."
+    validations:
+      required: false
