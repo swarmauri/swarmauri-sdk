@@ -1,4 +1,4 @@
-name: "Feature Request"
+name: "Feature Request "
 description: "Submit a feature request to enhance the Swarmauri SDK."
 title: "[Feature Request]: <title> "
 labels: ["enhancement", "feature request"]
