@@ -1,0 +1,52 @@
+name: "Missing Test Coverage"
+description: "Report issues related to missing test coverage and propose new test cases to fill the gaps."
+title: "[Missing Test Coverage]: "
+labels: ["missing coverage", "new test case"]
+body:
+  - type: input
+    id: missing_area
+    attributes:
+      label: "Missing Coverage Area"
+      description: "Provide the file name and specific area where test coverage is lacking."
+      placeholder: "e.g., src/helpers/validation.py"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason_for_missing_coverage
+    attributes:
+      label: "Reason for Missing Coverage"
+      description: "Explain why there is a lack of test coverage in this area."
+      placeholder: "This area is missing test coverage because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_test_cases
+    attributes:
+      label: "Proposed New Test Cases"
+      description: "Provide details of the new test cases needed to address the missing coverage."
+      placeholder: "Suggested test case..."
+    validations:
+      required: true
+
+  - type: input
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, supporting documentation, or relevant information about the missing coverage."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: test_case_type
+    attributes:
+      label: "Type of Test Case"
+      description: "What type of test case is being proposed?"
+      options:
+        - "Unit"
+        - "Integration"
+        - "Acceptance"
+    validations:
+      required: true
