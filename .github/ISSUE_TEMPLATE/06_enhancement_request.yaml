@@ -9,7 +9,7 @@ body:
     attributes:
       label: "Feature/Enhancement Name"
       description: "Provide a short name for the feature or enhancement"
-      placeholder: "e.g., Improve API response time"
+      placeholder: "e.g., Improve implementation logic"
     validations:
       required: true
       
