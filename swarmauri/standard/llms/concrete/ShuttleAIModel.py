@@ -38,45 +38,54 @@ class ShuttleAIModel(LLMBase):
 
     
     def predict(self, 
-        conversation, 
-        temperature=0.7, 
-        max_tokens=256, 
-        top_p=1, 
-        internet=True, 
-        citations=True, 
-        tone='precise', 
-        raw=False, 
-        image=None): 
+            conversation, 
+            temperature=0.7, 
+            max_tokens=256, 
+            top_p=1, 
+            internet=True, 
+            citations=True, 
+            tone='precise', 
+            raw=False, 
+            image=None): 
 
-        formatted_messages = self._format_messages(conversation.history) 
+            formatted_messages = self._format_messages(conversation.history) 
 
-        url = "https://api.shuttleai.app/v1/chat/completions" 
-        payload = { 
-            "model": self.name, 
-            "messages": formatted_messages, 
-            "max_tokens": max_tokens, 
-            "temperature": temperature, 
-            "top_p": top_p, 
-            "internet": internet, 
-            # "raw": raw, 
-            # "image": image
-        } 
+            url = "https://api.shuttleai.app/v1/chat/completions" 
+            payload = { 
+                "model": self.name, 
+                "messages": formatted_messages, 
+                "max_tokens": max_tokens, 
+                "temperature": temperature, 
+                "top_p": top_p, 
+                "internet": bool(internet),  # Convert to bool, handles True/False for JSON
+                "raw": bool(raw),            # Convert to bool for JSON compatibility
+                "image": image if image is not None else None  # Handle None explicitly
+            } 
 
-        if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
-            payload['tone'] = tone 
-            payload['citations'] = citations 
+            if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
+                payload['tone'] = tone 
+                payload['citations'] = bool(citations)  # Handle True/False for JSON
 
-        headers = { 
-            "Authorization": f"Bearer {self.api_key}", 
-            "Content-Type": "application/json", 
-        }
+            headers = { 
+                "Authorization": f"Bearer {self.api_key}", 
+                "Content-Type": "application/json", 
+            }
 
-        response = requests.request("POST", url, json=payload, headers=headers) 
-        message_content = response.json()
-        
-        # Log response
-        logging.info(message_content)
+            # Log payload for debugging
+            logging.info(f"Payload being sent: {payload}")
 
-        # Add to conversation
-        conversation.add_message(AgentMessage(content=message_content))  
-        return conversation 
+            # Send the request
+            response = requests.post(url, json=payload, headers=headers)
+
+            # Log response for debugging
+            logging.info(f"Response received: {response.text}")
+
+            # Parse response JSON safely
+            try:
+                message_content = response.json()['choices'][0]['message']['content']
+            except KeyError as e:
+                logging.info(f"Error parsing response: {response.text}")
+                raise e
+
+            conversation.add_message(AgentMessage(content=message_content))  
+            return conversation
