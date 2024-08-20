@@ -22,7 +22,7 @@ class SquaredEuclideanDistance(DistanceBase):
         if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must be of the same dimensionality.")
 
-        squared_distance = sum((a - b) ** 2 for a, b in zip(vector_a.data, vector_b.data))
+        squared_distance = sum((a - b) ** 2 for a, b in zip(vector_a.value, vector_b.value))
         return squared_distance
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
