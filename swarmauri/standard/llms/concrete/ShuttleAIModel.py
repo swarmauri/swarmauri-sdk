@@ -75,7 +75,7 @@ class ShuttleAIModel(LLMBase):
         message_content = response.json()
         
         # Log response
-        logging.debug(message_content)
+        logging.info(message_content)
 
         # Add to conversation
         conversation.add_message(AgentMessage(content=message_content))  
