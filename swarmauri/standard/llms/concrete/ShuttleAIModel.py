@@ -56,10 +56,14 @@ class ShuttleAIModel(LLMBase):
                 "messages": formatted_messages, 
                 "max_tokens": max_tokens, 
                 "temperature": temperature, 
-                "top_p": top_p, 
-                "internet": bool(internet),  # Convert to bool, handles True/False for JSON
-                "raw": bool(raw)            # Convert to bool for JSON compatibility
+                "top_p": top_p
             } 
+
+            if raw:
+                payload['raw'] = True
+
+            if internet:
+                payload['internet'] = True
 
             # Only include the 'image' field if it's not None
             if image is not None:
@@ -68,7 +72,7 @@ class ShuttleAIModel(LLMBase):
 
             if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
                 payload['tone'] = tone 
-                payload['citations'] = bool(citations)  # Handle True/False for JSON
+                payload['citations'] = bool(citations) 
 
             headers = { 
                 "Authorization": f"Bearer {self.api_key}", 
