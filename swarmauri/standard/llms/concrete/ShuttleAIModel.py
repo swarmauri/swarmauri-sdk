@@ -71,6 +71,6 @@ class ShuttleAIModel(LLMBase):
         }
 
         response = requests.request("POST", url, json=payload, headers=headers) 
-        message_content = response.json()['choices'][0] ['message']['content'] 
+        message_content = response.json()
         conversation.add_message(AgentMessage(content=message_content))  
         return conversation 
