@@ -54,9 +54,9 @@ body:
       label: "Affected Areas"
       description: "Select the area of the SDK that may be impacted by this feature."
       options:
-        - label: "Standard/Concrete"
-        - label: "Community"
-        - label: "Experimental"
+        - "Standard/Concrete"
+        - "Community"
+        - "Experimental"
 
   - type: dropdown
     id: priority
