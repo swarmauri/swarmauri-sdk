@@ -69,10 +69,12 @@ class ShuttleAIModel(LLMBase):
             if image is not None:
                 payload["image"] = image
 
-
             if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
-                payload['tone'] = tone 
-                payload['citations'] = bool(citations) 
+                payload['tone'] = tone
+                
+                # Include citations only if citations is True
+                if citations:
+                    payload['citations'] = True
 
             headers = { 
                 "Authorization": f"Bearer {self.api_key}", 
