@@ -78,12 +78,18 @@ class ShuttleAIToolModel(LLMBase):
             "max_tokens": max_tokens,
             "temperature": temperature,
             "top_p": top_p,
-            "internet": internet,
-            # "raw": raw,
-            # "image": image,
             "tool_choice": tool_choice,
             "tools": self._schema_convert_tools(toolkit.tools),
         }
+
+        if raw:
+            payload["raw"] = True
+
+        if internet:
+            payload["internet"] = True
+
+        if image is not None:
+            payload["image"] = image
 
         if self.name in ["gpt-4-bing", "gpt-4-turbo-bing"]:
             payload["tone"] = tone
