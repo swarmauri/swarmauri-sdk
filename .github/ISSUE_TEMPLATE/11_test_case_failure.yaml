@@ -13,6 +13,16 @@ body:
       required: false
 
   - type: textarea
+    id: logs
+    attributes:
+      label: "Pytest Logs"
+      description: "Provide the pytest logs outputted"
+      placeholder: "tests/llms/ShuttleAIToolModel_test.py::test_agent_exec 
+-------------------------------- live log call ---------------------------------"
+    validations:
+      required: true
+
+  - type: textarea
     id: root_cause
     attributes:
       label: "Root Cause"
