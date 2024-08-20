@@ -59,7 +59,7 @@ class ShuttleAIModel(LLMBase):
                 "top_p": top_p, 
                 "internet": bool(internet),  # Convert to bool, handles True/False for JSON
                 "raw": bool(raw),            # Convert to bool for JSON compatibility
-                "image": image if image is not None else None  # Handle None explicitly
+                "image": image if image is not None else "null"  # Handle None explicitly
             } 
 
             if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
