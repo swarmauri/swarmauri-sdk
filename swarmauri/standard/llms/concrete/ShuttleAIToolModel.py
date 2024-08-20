@@ -93,7 +93,9 @@ class ShuttleAIToolModel(LLMBase):
 
         if self.name in ["gpt-4-bing", "gpt-4-turbo-bing"]:
             payload["tone"] = tone
-            payload["citations"] = citations
+            # Include citations only if citations is True
+            if citations:
+                payload['citations'] = True
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
         logging.info(agent_response.json())
