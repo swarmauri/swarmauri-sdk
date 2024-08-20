@@ -57,8 +57,8 @@ class ShuttleAIModel(LLMBase):
             "temperature": temperature, 
             "top_p": top_p, 
             "internet": internet, 
-            # "raw": raw, 
-            # "image": image
+            "raw": raw, 
+            "image": image
         } 
 
         if self.name in ['gpt-4-bing', 'gpt-4-turbo-bing']: 
