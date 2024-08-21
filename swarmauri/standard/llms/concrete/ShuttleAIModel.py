@@ -33,7 +33,7 @@ class ShuttleAIModel(LLMBase):
         message_properties = ["content", "role"]
 
         # Exclude FunctionMessages
-        formatted_messages = [message.model_dump(include=message_properties) for message in messages if message.role != 'system']
+        formatted_messages = [message.model_dump(include=message_properties) for message]
         return formatted_messages
 
     
