@@ -11,11 +11,13 @@ class TextBlobSentenceParser(ParserBase):
     This parser uses the natural language processing capabilities of TextBlob
     to accurately identify sentence boundaries within large blocks of text.
     """
-    type: Literal['TextBlobSentenceParser'] = 'TextBlobSentenceParser'
-    
+
+    type: Literal["TextBlobSentenceParser"] = "TextBlobSentenceParser"
+
     def __init__(self, **kwargs):
         import nltk
-        nltk.download('punkt')
+
+        nltk.download("punkt_tab")
         super().__init__(**kwargs)
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
@@ -38,7 +40,9 @@ class TextBlobSentenceParser(ParserBase):
 
         # Create a document instance for each sentence
         documents = [
-            Document(content=str(sentence), metadata={'parser': 'TextBlobSentenceParser'})
+            Document(
+                content=str(sentence), metadata={"parser": "TextBlobSentenceParser"}
+            )
             for index, sentence in enumerate(sentences)
         ]
 
