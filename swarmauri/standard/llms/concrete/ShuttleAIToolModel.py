@@ -139,8 +139,10 @@ class ShuttleAIToolModel(LLMBase):
         payload['messages'] = self._format_messages(conversation.history)
 
         logging.info(f"payload: {payload}")
-        agent_response = requests.request("POST", url, json=payload, headers=headers)
 
+        agent_response = requests.request("POST", url, json=payload, headers=headers)
+        logging.info(f"agent response {agent_response.json()}")
+        
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]
         )
