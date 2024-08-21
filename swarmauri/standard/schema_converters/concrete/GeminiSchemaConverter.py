@@ -7,7 +7,7 @@ from swarmauri.standard.schema_converters.base.SchemaConverterBase import Schema
 class GeminiSchemaConverter(SchemaConverterBase):
     type: Literal['GeminiSchemaConverter'] = 'GeminiSchemaConverter'
 
-    def convert(self, tool: SubclassUnion[ToolBase]) -> genai.protos.FunctionDeclaration:
+    def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
         required = []
 
@@ -25,11 +25,13 @@ class GeminiSchemaConverter(SchemaConverterBase):
             required=required
         )
 
-        return genai.protos.FunctionDeclaration(
+        function_declaration = genai.protos.FunctionDeclaration(
             name=tool.name,
             description=tool.description,
             parameters=schema
         )
+
+        return self.to_serializable(function_declaration)
 
     def convert_type(self, param_type: str) -> genai.protos.Type:
         type_mapping = {
@@ -43,3 +45,20 @@ class GeminiSchemaConverter(SchemaConverterBase):
             "object": genai.protos.Type.OBJECT
         }
         return type_mapping.get(param_type, genai.protos.Type.STRING)
+
+    def to_serializable(self, function_declaration: genai.protos.FunctionDeclaration) -> Dict[str, Any]:
+        """Converts FunctionDeclaration to a serializable dictionary."""
+        return {
+            "name": function_declaration.name,
+            "description": function_declaration.description,
+            "parameters": {
+                "type": function_declaration.parameters.type,
+                "properties": {
+                    k: {
+                        "type": v.type,
+                        "description": v.description
+                    } for k, v in function_declaration.parameters.properties.items()
+                },
+                "required": function_declaration.parameters.required
+            }
+        }
