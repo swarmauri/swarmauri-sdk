@@ -1,3 +1,4 @@
+import logging
 import json
 from typing import List, Dict, Literal
 import ai21
@@ -60,7 +61,6 @@ class AI21StudioModel(LLMBase):
         client = ai21.AI21Client(api_key=self.api_key)
 
         # Get system_context from last message with system context in it
-        system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         parameters = {
@@ -75,6 +75,7 @@ class AI21StudioModel(LLMBase):
         }
 
         response = client.chat.completions.create(**parameters)
+        logging.info(f"response: {response}")
 
         message_content = response.choices[0].message.content
         conversation.add_message(AgentMessage(content=message_content))
