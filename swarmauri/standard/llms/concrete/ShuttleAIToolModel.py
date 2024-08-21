@@ -132,12 +132,13 @@ class ShuttleAIToolModel(LLMBase):
 
 
 
-        logging.info(f"conversation: {conversation}")
-        logging.info(f"agent_response: {agent_response.json()}")
+        logging.info(f"conversation: {conversation.history}")
 
 
         # After executing the functions, we present the results to the Agent
         payload['messages'] = self._format_messages(conversation.history)
+
+        logging.info(f"payload: {payload}")
         agent_response = requests.request("POST", url, json=payload, headers=headers)
 
         agent_message = AgentMessage(
@@ -145,5 +146,5 @@ class ShuttleAIToolModel(LLMBase):
         )
 
         conversation.add_message(agent_message)
-        logging.info(f"conversation: {conversation}")
+        logging.info(f"conversation: {conversation.history}")
         return conversation
