@@ -68,7 +68,7 @@ def test_nonpreamble_system_context():
     model.predict(conversation=conversation)
 
     # Give System Context
-    system_context = 'You only respond with the following phrase, "Bonjour"'
+    system_context = 'You only respond with the following phrase, "Jeff"'
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
@@ -79,7 +79,7 @@ def test_nonpreamble_system_context():
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert "Bonjour" in prediction.lower()
+    assert "Jeff" in prediction
 
 
 @pytest.mark.unit
@@ -88,7 +88,7 @@ def test_preamble_system_context():
     model = LLM(api_key=API_KEY)
     conversation = Conversation()
 
-    system_context = 'You only respond with the following phrase, "Bonjour"'
+    system_context = 'You only respond with the following phrase, "Jeff"'
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
@@ -99,7 +99,7 @@ def test_preamble_system_context():
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert "bonjour" in prediction.lower()
+    assert "Jeff" in prediction
 
 
 @pytest.mark.acceptance
@@ -108,7 +108,7 @@ def test_multiple_system_contexts():
     model = LLM(api_key=API_KEY)
     conversation = Conversation()
 
-    system_context = 'You only respond with the following phrase, "Bonjour"'
+    system_context = 'You only respond with the following phrase, "Jeff"'
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
@@ -118,7 +118,7 @@ def test_multiple_system_contexts():
 
     prediction = model.predict(conversation=conversation)
 
-    system_context_2 = 'You only respond with the following phrase, "Aloha"'
+    system_context_2 = 'You only respond with the following phrase, "Ben"'
     human_message = SystemMessage(content=system_context_2)
     conversation.add_message(human_message)
 
@@ -129,4 +129,4 @@ def test_multiple_system_contexts():
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert "aloha" in prediction.lower()
+    assert "Ben" in prediction
