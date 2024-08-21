@@ -97,8 +97,13 @@ class ShuttleAIToolModel(LLMBase):
             if citations:
                 payload['citations'] = True
 
+
+        logging.info(f"payload: {payload}")
+        
+        # First we ask agent to give us a response
         agent_response = requests.request("POST", url, json=payload, headers=headers)
-        logging.info(agent_response.json())
+
+        logging.info(f"agent response {agent_response.json()}")
 
         try:
             messages = [
@@ -107,28 +112,38 @@ class ShuttleAIToolModel(LLMBase):
             ]
         except Exception as error:
             logging.warn(error)
+
         tool_calls = agent_response.json()["choices"][0]["message"].get(
             "tool_calls", None
         )
+
+
+        # If agent responds with tool call, then we execute the functions
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call["function"]["name"]
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call["function"]["arguments"])
                 func_result = func_call(**func_args)
-                messages.append(
-                    {
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": func_name,
-                        "content": func_result,
-                    }
-                )
-        logging.info(f"messages: {messages}")
+                func_message = FunctionMessage(content=func_result, 
+                                               name=func_name, 
+                                               tool_call_id=tool_call.id)
+                conversation.add_message(func_message)
+
+
+
+        logging.info(f"conversation: {conversation}")
         logging.info(f"agent_response: {agent_response.json()}")
+
+
+        # After executing the functions, we present the results to the Agent
+        payload['messages'] = self._format_messages(conversation.history)
+        agent_response = requests.request("POST", url, json=payload, headers=headers)
+
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]
         )
+
         conversation.add_message(agent_message)
         logging.info(f"conversation: {conversation}")
         return conversation
