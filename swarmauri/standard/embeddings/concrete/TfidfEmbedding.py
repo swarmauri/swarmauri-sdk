@@ -6,15 +6,16 @@ from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVecto
 from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.standard.vectors.concrete.Vector import Vector
 
+
 class TfidfEmbedding(EmbeddingBase):
     _model = PrivateAttr()
     _fit_matrix = PrivateAttr()
-    type: Literal['TfidfEmbedding'] = 'TfidfEmbedding'
-    
+    type: Literal["TfidfEmbedding"] = "TfidfEmbedding"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._model = SklearnTfidfVectorizer()
-    
+
     def extract_features(self):
         return self._model.get_feature_names_out().tolist()
 
@@ -24,15 +25,17 @@ class TfidfEmbedding(EmbeddingBase):
     def fit_transform(self, documents: List[str]) -> List[Vector]:
         self._fit_matrix = self._model.fit_transform(documents)
         # Convert the sparse matrix rows into Vector instances
-        vectors = [Vector(value=vector.toarray().flatten()) for vector in self._fit_matrix]
+        vectors = [
+            Vector(value=vector.toarray().flatten()) for vector in self._fit_matrix
+        ]
         return vectors
-    
+
     def transform(self, data: Union[str, Any], documents: List[str]) -> List[Vector]:
-        raise NotImplementedError('Transform not implemented on TFIDFVectorizer.')
+        raise NotImplementedError("Transform not implemented on TFIDFVectorizer.")
 
     def infer_vector(self, data: str, documents: List[str]) -> Vector:
         documents.append(data)
-        tmp_tfidf_matrix = self.transform(documents)
+        tmp_tfidf_matrix = self.fit_transform(documents)
         query_vector = tmp_tfidf_matrix[-1]
         return query_vector
 
@@ -41,7 +44,7 @@ class TfidfEmbedding(EmbeddingBase):
         Saves the TF-IDF model to the specified path using joblib.
         """
         joblib.dump(self._model, path)
-    
+
     def load_model(self, path: str) -> None:
         """
         Loads a TF-IDF model from the specified path using joblib.
