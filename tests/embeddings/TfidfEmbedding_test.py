@@ -28,5 +28,5 @@ def test_infer_vector():
 	embedder = TfidfEmbedding()
 	documents = ['test', 'test1', 'test2']
 	embedder.fit_transform(documents)
-	assert embedder.infer_vector('hi', documents) == [1.0, 0.0, 0.0, 0.0]
+	assert embedder.infer_vector('hi', documents).value == [1.0, 0.0, 0.0, 0.0]
 	 
