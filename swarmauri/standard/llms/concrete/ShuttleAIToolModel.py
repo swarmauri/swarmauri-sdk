@@ -127,7 +127,7 @@ class ShuttleAIToolModel(LLMBase):
                 func_result = func_call(**func_args)
                 func_message = FunctionMessage(content=func_result, 
                                                name=func_name, 
-                                               tool_call_id=tool_call.id)
+                                               tool_call_id=tool_call['id'])
                 conversation.add_message(func_message)
 
 
