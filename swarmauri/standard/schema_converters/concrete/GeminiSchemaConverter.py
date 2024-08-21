@@ -12,53 +12,36 @@ class GeminiSchemaConverter(SchemaConverterBase):
         required = []
 
         for param in tool.parameters:
-            properties[param.name] = genai.protos.Schema(
-                type=self.convert_type(param.type),
-                description=param.description
-            )
+            properties[param.name] = {
+                "type": self.convert_type(param.type),
+                "description": param.description
+            }
             if param.required:
                 required.append(param.name)
 
-        schema = genai.protos.Schema(
-            type=genai.protos.Type.OBJECT,
-            properties=properties,
-            required=required
-        )
+        schema = {
+            "type": "object",
+            "properties": properties,
+            "required": required
+        }
 
-        function_declaration = genai.protos.FunctionDeclaration(
-            name=tool.name,
-            description=tool.description,
-            parameters=schema
-        )
+        function_declaration = {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": schema
+        }
 
-        return self.to_serializable(function_declaration)
+        return function_declaration
 
-    def convert_type(self, param_type: str) -> genai.protos.Type:
+    def convert_type(self, param_type: str) -> str:
         type_mapping = {
-            "string": genai.protos.Type.STRING,
-            "str": genai.protos.Type.STRING,
-            "integer": genai.protos.Type.INTEGER,
-            "int": genai.protos.Type.INTEGER,
-            "boolean": genai.protos.Type.BOOLEAN,
-            "bool": genai.protos.Type.BOOLEAN,
-            "array": genai.protos.Type.ARRAY,
-            "object": genai.protos.Type.OBJECT
+            "string": "string",
+            "str": "string",
+            "integer": "integer",
+            "int": "integer",
+            "boolean": "boolean",
+            "bool": "boolean",
+            "array": "array",
+            "object": "object"
         }
-        return type_mapping.get(param_type, genai.protos.Type.STRING)
-
-    def to_serializable(self, function_declaration: genai.protos.FunctionDeclaration) -> Dict[str, Any]:
-        """Converts FunctionDeclaration to a serializable dictionary."""
-        return {
-            "name": function_declaration.name,
-            "description": function_declaration.description,
-            "parameters": {
-                "type": function_declaration.parameters.type,
-                "properties": {
-                    k: {
-                        "type": v.type,
-                        "description": v.description
-                    } for k, v in function_declaration.parameters.properties.items()
-                },
-                "required": function_declaration.parameters.required
-            }
-        }
+        return type_mapping.get(param_type, "string")
