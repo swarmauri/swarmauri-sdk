@@ -33,16 +33,10 @@ class AI21StudioModel(LLMBase):
         formatted_messages = [
             ChatMessage(content=message.content, role=message.role)
             for message in messages
-            if message.role != "system"
         ]
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
-        system_context = None
-        for message in messages:
-            if message.role == "system":
-                system_context = message.content
-        return system_context
+
 
     def predict(
         self,
@@ -79,9 +73,6 @@ class AI21StudioModel(LLMBase):
             "n": n,
             "stream": stream,
         }
-
-        if system_context:
-            parameters["system"] = system_context
 
         response = client.chat.completions.create(**parameters)
 
