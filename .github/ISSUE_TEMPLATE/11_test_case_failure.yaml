@@ -13,6 +13,15 @@ body:
       required: false
 
   - type: textarea
+    id: logs
+    attributes:
+      label: "Logs"
+      description: "Provide relevant logs"
+      placeholder: "FAILED tests/parsers/TextBlobNounParser_test.py::test_parse - LookupError: "
+    validations:
+      required: true
+
+  - type: textarea
     id: root_cause
     attributes:
       label: "Root Cause"
