@@ -42,8 +42,8 @@ class ShuttleAIModel(LLMBase):
             temperature=0.7, 
             max_tokens=256, 
             top_p=1, 
-            internet=True, 
-            citations=True, 
+            internet=False, 
+            citations=False, 
             tone='precise', 
             raw=False, 
             image=None): 
