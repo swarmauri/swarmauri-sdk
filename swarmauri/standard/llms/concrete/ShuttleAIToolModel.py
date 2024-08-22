@@ -49,14 +49,14 @@ class ShuttleAIToolModel(LLMBase):
         self,
         conversation,
         toolkit=None,
-        tool_choice=None,
+        tool_choice="auto",
         temperature=0.7,
         max_tokens=1024,
         top_p=1.0,
-        internet=False,
+        internet=None,
         raw=False,
         image=None,
-        citations=False,
+        citations=None,
         tone="precise",
     ):
         formatted_messages = self._format_messages(conversation.history)
