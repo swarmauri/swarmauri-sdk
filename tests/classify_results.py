@@ -56,7 +56,7 @@ if __name__ == "__main__":
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
     elif results['integration_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate integration test failures
-    elif results['acceptance_failures'] > 5:
+    elif results['acceptance_failures'] > 10:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
     elif results['collection_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures

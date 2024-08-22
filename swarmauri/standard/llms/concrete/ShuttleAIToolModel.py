@@ -53,10 +53,10 @@ class ShuttleAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
         top_p=1.0,
-        internet=True,
+        internet=False,
         raw=False,
         image=None,
-        citations=True,
+        citations=False,
         tone="precise",
     ):
         formatted_messages = self._format_messages(conversation.history)
@@ -94,6 +94,7 @@ class ShuttleAIToolModel(LLMBase):
         if self.name in ["gpt-4-bing", "gpt-4-turbo-bing"]:
             payload["tone"] = tone
             # Include citations only if citations is True
+            
             if citations:
                 payload['citations'] = True
 
