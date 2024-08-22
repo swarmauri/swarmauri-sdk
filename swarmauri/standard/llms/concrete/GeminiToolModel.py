@@ -85,11 +85,15 @@ class GeminiToolModel(LLMBase):
             tool_config=tool_config)
 
         formatted_messages = self._format_messages(conversation.history)
+        tools = self._schema_convert_tools(toolkit.tools)
+
+        
         logging.info(f'formatted_messages: {formatted_messages}')
+        logging.info(f'tools: {tools}')
 
         tool_response = client.generate_content(
             formatted_messages,
-            tools=self._schema_convert_tools(toolkit.tools),
+            tools=tools,
         )
         logging.info(f'tool_response: {tool_response}')
 
