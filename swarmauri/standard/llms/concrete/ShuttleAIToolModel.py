@@ -53,10 +53,10 @@ class ShuttleAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
         top_p=1.0,
-        internet=None,
+        internet=True,
         raw=False,
         image=None,
-        citations=None,
+        citations=True,
         tone="precise",
     ):
         formatted_messages = self._format_messages(conversation.history)
