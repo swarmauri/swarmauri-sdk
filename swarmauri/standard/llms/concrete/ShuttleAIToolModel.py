@@ -80,13 +80,11 @@ class ShuttleAIToolModel(LLMBase):
             "top_p": top_p,
             "tool_choice": tool_choice,
             "tools": self._schema_convert_tools(toolkit.tools),
+            "internet": internet
         }
 
         if raw:
             payload["raw"] = True
-
-        if internet:
-            payload["internet"] = True
 
         if image is not None:
             payload["image"] = image
@@ -94,10 +92,8 @@ class ShuttleAIToolModel(LLMBase):
         if self.name in ["gpt-4-bing", "gpt-4-turbo-bing"]:
             payload["tone"] = tone
             # Include citations only if citations is True
+            payload['citations'] = citations
             
-            if citations:
-                payload['citations'] = True
-
 
         logging.info(f"payload: {payload}")
         
