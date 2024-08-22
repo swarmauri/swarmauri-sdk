@@ -53,7 +53,7 @@ class ShuttleAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
         top_p=1.0,
-        internet=True,
+        internet=False,
         raw=False,
         image=None,
         citations=True,
