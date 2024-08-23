@@ -9,9 +9,9 @@ def parse_junit_xml(xml_path):
     results['unit_failures'] = 0
     results['integration_failures'] = 0
     results['acceptance_failures'] = 0
-    results['collection_failures'] = 0
-    results['collection_failures'] = 0
     results['experimental_failures'] = 0
+    results['collection_failures'] = 0
+    results['error_failures'] = 0
 
     for testcase in root.findall(".//testcase"):
         results['total_cases'] += 1
@@ -78,6 +78,6 @@ if __name__ == "__main__":
 
     elif results['error_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
-        
+
     else:
         sys.exit(0)  # Exit with code 0 to indicate no failures
