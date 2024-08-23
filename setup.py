@@ -46,7 +46,7 @@ setup(
             'scipy==1.10.0'
         ]},
     classifiers=[
-        'License :: OSI Approved ::  Apache Software License',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11'
     ],
