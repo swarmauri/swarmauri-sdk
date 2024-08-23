@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.ShuttleAIModel import ShuttleAIModel as LLM 
+from swarmauri.experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM 
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
@@ -31,7 +31,7 @@ def test_default_name():
     model = LLM(api_key = API_KEY)
     assert model.name == 'shuttle-2-turbo'
 
-@pytest.mark.unit
+@pytest.mark.experimental
 def test_no_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -45,7 +45,7 @@ def test_no_system_context():
     prediction = conversation.get_last().content
     assert type(prediction) == str
 
-@pytest.mark.acceptance
+@pytest.mark.experimental
 def test_nonpreamble_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -74,7 +74,7 @@ def test_nonpreamble_system_context():
     assert 'Jeff' in prediction
 
 
-@pytest.mark.unit
+@pytest.mark.experimental
 def test_preamble_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -93,7 +93,7 @@ def test_preamble_system_context():
     assert type(prediction) == str
     assert 'Jeff' in prediction
 
-@pytest.mark.acceptance
+@pytest.mark.experimental
 def test_multiple_system_contexts():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
     model = LLM(api_key = API_KEY)

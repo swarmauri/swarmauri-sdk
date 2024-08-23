@@ -24,4 +24,4 @@ def test_value():
 @pytest.mark.unit
 def test_shape():
 	vector = Vector(value=[1,2])
-	assert vector.shape == (1,)
+	assert vector.shape == (2,)

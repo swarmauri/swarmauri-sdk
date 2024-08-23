@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.ShuttleAIToolModel import ShuttleAIToolModel as LLM
+from swarmauri.experimental.llms.ShuttleAIToolModel import ShuttleAIToolModel as LLM
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
@@ -30,7 +30,7 @@ def test_default_name():
     model = LLM(api_key = API_KEY)
     assert model.name == 'shuttle-2-turbo'
 
-@pytest.mark.unit
+@pytest.mark.experimental
 def test_agent_exec():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
     llm = LLM(api_key = API_KEY)
