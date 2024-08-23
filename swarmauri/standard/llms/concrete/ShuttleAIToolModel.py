@@ -56,7 +56,7 @@ class ShuttleAIToolModel(LLMBase):
         internet=False,
         raw=False,
         image=None,
-        citations=True,
+        citations=False,
         tone="precise",
     ):
         formatted_messages = self._format_messages(conversation.history)
