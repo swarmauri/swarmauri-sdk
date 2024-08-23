@@ -18,7 +18,10 @@ body:
       label: "Pytest Logs"
       description: "Provide the pytest logs outputted"
       placeholder: "tests/llms/ShuttleAIToolModel_test.py::test_agent_exec 
--------------------------------- live log call ---------------------------------"
+      label: "Logs"
+      description: "Provide relevant logs"
+      placeholder: "FAILED tests/parsers/TextBlobNounParser_test.py::test_parse - LookupError: "
+
     validations:
       required: true
 
