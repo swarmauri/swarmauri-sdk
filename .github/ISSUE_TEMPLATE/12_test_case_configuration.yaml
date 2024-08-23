@@ -1,0 +1,41 @@
+name: "Test Case Configuration"
+description: "Report issues related to outdated or missing test case configurations and propose updates to ensure coverage and accuracy."
+title: "[Update Test Case Configuration]: "
+labels: ["test case"]
+body:
+  - type: input
+    id: outdated_test_area
+    attributes:
+      label: "Outdated/Incorrect Configuration Area"
+      description: "Provide the file name and specific area where the test case configuration needs to be updated."
+      placeholder: "e.g., pytest.ini"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason_for_update
+    attributes:
+      label: "Reason for Update"
+      description: "Explain why this test case configuration requires updating."
+      placeholder: "The test case configuration needs updating because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_configuration_update
+    attributes:
+      label: "Proposed Configuration Update"
+      description: "Provide details of the new configuration or modifications needed to ensure the test case works as expected."
+      placeholder: "Proposed configuration update..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other relevant context, screenshots, supporting documentation, or information related to the configuration update."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+

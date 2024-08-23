@@ -81,18 +81,18 @@ def test_preamble_system_context():
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
-    system_context = 'You only respond with the following phrase, "Jeff"'
+    system_context = 'Jane knows Martin.'
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
-    input_data = "Hi"
+    input_data = "Who does Jane know?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert 'Jeff' in prediction
+    assert 'martin' in prediction.lower()
 
 @pytest.mark.acceptance
 def test_multiple_system_contexts():

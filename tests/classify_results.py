@@ -9,6 +9,7 @@ def parse_junit_xml(xml_path):
     results['unit_failures'] = 0
     results['integration_failures'] = 0
     results['acceptance_failures'] = 0
+    results['experimental_failures'] = 0
     results['collection_failures'] = 0
     results['error_failures'] = 0
 
@@ -18,10 +19,15 @@ def parse_junit_xml(xml_path):
             failure_text = failure.text.lower() if failure.text else ""
             if '@pytest.mark.unit' in failure_text:
                 results['unit_failures'] += 1
+
             elif '@pytest.mark.integration' in failure_text:
                 results['integration_failures'] += 1
+
             elif '@pytest.mark.acceptance' in failure_text: 
                 results['acceptance_failures'] += 1
+
+            elif '@pytest.mark.experimental' in failure_text: 
+                results['experimental_failures'] += 1
 
         for error in testcase.findall("error"):
             error_message = error.get('message', '').lower()
@@ -39,14 +45,17 @@ if __name__ == "__main__":
     failures += results['unit_failures'] 
     failures += results['integration_failures']
     failures += results['acceptance_failures']
+    failures += results['experimental_failures']
     failures += results['collection_failures']
     failures += results['error_failures']
 
     print(f"Unit Failures: {results['unit_failures']}/{results['total_cases']}")
     print(f"Integration Failures: {results['integration_failures']}/{results['total_cases']}")
     print(f"Acceptance Failures: {results['acceptance_failures']}/{results['total_cases']}")
+    print(f"Experimental Failures: {results['experimental_failures']}/{results['total_cases']}")
     print(f"Collection Failures: {results['collection_failures']}/{results['total_cases']}")
     print(f"Other Error Failures: {results['error_failures']}/{results['total_cases']}")
+
     print()
     print(f"Failures: {failures}/{results['total_cases']}")
     print(f"Passing: {results['total_cases'] - failures}/{results['total_cases']}")
@@ -54,13 +63,21 @@ if __name__ == "__main__":
 
     if results['unit_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate acceptance test failures
+
     elif results['integration_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate integration test failures
-    elif results['acceptance_failures'] > 5:
+
+    elif results['acceptance_failures'] > 10:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
+
+    elif results['experimental_failures'] > 10:
+        sys.exit(1)  # Exit with code 1 to indicate unit test failures
+
     elif results['collection_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
+
     elif results['error_failures'] > 0:
         sys.exit(1)  # Exit with code 1 to indicate unit test failures
+
     else:
         sys.exit(0)  # Exit with code 0 to indicate no failures

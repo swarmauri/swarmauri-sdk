@@ -1,0 +1,73 @@
+name: "Feature Request "
+description: "Submit a feature request to enhance the Swarmauri SDK."
+title: "[Feature Request]: "
+labels: ["feature request"]
+body:
+  - type: input
+    id: feature_name
+    attributes:
+      label: "Feature Name"
+      description: "Provide a short name for the feature"
+      placeholder: "e.g., Add new feature"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: "Feature Description"
+      description: "A clear and concise description of the feature you're requesting, including any background context."
+      placeholder: "Describe the feature in detail."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain why this feature is necessary or how it will benefit the SDK. What problem does it solve?"
+      placeholder: "Why do you need this feature?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide any suggestions for how the feature could be implemented, if applicable."
+      placeholder: "Possible implementation or approach."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, or relevant information about the feature."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: impact_area
+    attributes:
+      label: "Affected Areas"
+      description: "Select the area of the SDK that may be impacted by this feature."
+      options:
+        - "Standard/Concrete"
+        - "Community"
+        - "Experimental"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this feature?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+    validations:
+      required: true
+      

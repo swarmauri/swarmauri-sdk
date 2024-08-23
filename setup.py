@@ -18,54 +18,12 @@ setup(
         'pydantic'
     ],
     extras_require={
-        'standard': [
-            'openai',
-            'transformers',
-            'accelerate',
-            'tensorflow',
-            'scipy',
-            'typing_extensions',
-            'scikit-learn',
-            'gensim',
-            'rdflib',
-            'pygments',
-            'stanford_openie',
-            'sentencepiece',
-            'gradio',
-            'websockets'
-        ],
-        'community': [
-            'openai',
-            'transformers',
-            'accelerate',
-            'tensorflow',
-            'scipy',
-            'typing_extensions',
-            'redisearch',
-            'google-api-python-client',
-            'google-auth-httplib2',
-            'google-auth-oauthlib',
-            'boto3'
-        ],
-        'experimental': [
-            'openai',
-            'transformers',
-            'accelerate',
-            'tensorflow',
-            'scipy',
-            'typing_extensions',
-            'google-api-python-client',
-            'google-auth-httplib2',
-            'google-auth-oauthlib',
-            'boto3',
-            'lightgbm'
-        ],
         'full': [
+            'ai21>=2.2.0',
+            "shuttleai",
             'transformers',
-            #'accelerate',
             'tensorflow',
             'typing_extensions',
-            #'redisearch',
             'google-api-python-client',
             'google-auth-httplib2',
             'google-auth-oauthlib',
@@ -74,13 +32,9 @@ setup(
             'torch',
             'scikit-learn',
             'gensim',
-            #'lightgbm',
-            #'rdflib',
             'textblob',
             'spacy==3.7.4',
             'pygments',
-            #'stanford_openie',
-            #'sentencepiece',
             'gradio',
             'websockets',
             'openai',
@@ -89,12 +43,12 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.10.0',
-
+            'scipy==1.10.0'
         ]},
     classifiers=[
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.10'
+        'License :: OSI Approved ::  Apache Software License',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
     ],
     python_requires='>=3.10',
     setup_requires=["wheel"]

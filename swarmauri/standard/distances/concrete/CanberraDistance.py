@@ -1,29 +1,30 @@
 import numpy as np
-from typing import List
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from typing import List, Literal
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
 
-class CanberraDistance(IDistanceSimilarity):
+class CanberraDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
-    This class now processes IVector instances instead of raw lists.
+    This class now processes Vector instances instead of raw lists.
     """
+    type: Literal['CanberraDistance'] = 'CanberraDistance'   
 
-    def distance(self, vector_a: IVector, vector_b: IVector) -> float:
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Computes the Canberra distance between two IVector instances.
+        Computes the Canberra distance between two Vector instances.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector in the comparison.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector in the comparison.
 
         Returns:
             float: The computed Canberra distance between the vectors.
         """
-        # Extract data from IVector
-        data_a = np.array(vector_a.data)
-        data_b = np.array(vector_b.data)
+        # Extract data from Vector
+        data_a = np.array(vector_a.value)
+        data_b = np.array(vector_b.value)
 
         # Checking dimensions match
         if data_a.shape != data_b.shape:
@@ -35,15 +36,15 @@ class CanberraDistance(IDistanceSimilarity):
         distance = np.nan_to_num(distance)
         return distance
     
-    def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
+    def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute similarity using the Canberra distance. Since this distance metric isn't
         directly interpretable as a similarity, a transformation is applied to map the distance
         to a similarity score.
 
         Args:
-            vector_a (IVector): The first vector in the comparison.
-            vector_b (IVector): The second vector to compare with the first vector.
+            vector_a (Vector): The first vector in the comparison.
+            vector_b (Vector): The second vector to compare with the first vector.
 
         Returns:
             float: A similarity score between vector_a and vector_b.
@@ -58,10 +59,10 @@ class CanberraDistance(IDistanceSimilarity):
 
         return similarity
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

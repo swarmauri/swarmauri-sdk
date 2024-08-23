@@ -53,8 +53,7 @@ class GroqToolModel(LLMBase):
         )
         logging.info(tool_response)
 
-        agent_message = AgentMessage(content=tool_response.choices[0].message.content) 
-                                     #tool_calls=tool_response.choices[0].message.tool_calls)
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content)
         conversation.add_message(agent_message)
 
 

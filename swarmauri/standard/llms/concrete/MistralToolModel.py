@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import List, Literal, Dict, Any
-from mistralai.client import MistralClient
+from mistralai import Mistral 
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -36,13 +36,13 @@ class MistralToolModel(LLMBase):
         max_tokens=1024, 
         safe_prompt: bool = False):
 
-        client =  MistralClient(api_key=self.api_key)
+        client =  Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
             
-        tool_response = client.chat(
+        tool_response = client.chat.complete(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -76,7 +76,7 @@ class MistralToolModel(LLMBase):
                 )
         logging.info(f"messages: {messages}")
 
-        agent_response = client.chat(
+        agent_response = client.chat.complete(
             model=self.name,
             messages=messages
         )

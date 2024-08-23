@@ -1,0 +1,53 @@
+name: "API Change Request - Standard "
+description: "Submit a change request related to third party standard APIs."
+title: "[API Change Request - Standard]:  "
+labels: ["standard"]
+body:
+  - type: input
+    id: feature_name
+    attributes:
+      label: "Affected component"
+      description: "Provide the file name(s) of the affected model(s)."
+      placeholder: "e.g., standard/concrete/Vector.py"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain why this change request is necessary or how it will benefit the SDK. What problem does it solve?"
+      placeholder: "Why do you need this feature?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide any suggestions for how the feature could be implemented, if applicable."
+      placeholder: "Possible implementation or approach."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, supporting documentation, or relevant information about the feature."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this feature?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+    validations:
+      required: true

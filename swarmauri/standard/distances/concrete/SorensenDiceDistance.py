@@ -1,17 +1,17 @@
 import numpy as np
-from typing import List
+from typing import List, Literal
 from collections import Counter
 
-from swarmauri.core.vector_stores.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.standard.distances.base.DistanceBase import DistanceBase
 
-class SorensenDiceDistance(IDistanceSimilarity):
+class SorensenDiceDistance(DistanceBase):
     """
     Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.
     The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.
     """
-
-    def distance(self, vector_a: List[float], vector_b: List[float]) -> float:
+    type: Literal['SorensenDiceDistance'] = 'SorensenDiceDistance'   
+    def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute the Sörensen-Dice distance between two vectors.
         
@@ -40,12 +40,12 @@ class SorensenDiceDistance(IDistanceSimilarity):
         
         return distance
     
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
-    def similarity(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarity(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
     
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> List[float]:
+    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         raise NotImplementedError("Similarity calculation is not implemented for SorensenDiceDistance.")
