@@ -29,7 +29,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv('PERPLEXITY_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == 'mixtral-8x7b-instruct'
+    assert model.name == 'llama-3-70b-instruct'
 
 @pytest.mark.unit
 def test_no_system_context():
