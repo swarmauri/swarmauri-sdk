@@ -1,7 +1,7 @@
 name: "API Change Request - Community "
 description: "Submit a change request related to third party community APIs."
 title: "[API Change Request - Community]:  "
-labels: ["community"]
+labels: ["community", "change request"]
 body:
   - type: input
     id: feature_name

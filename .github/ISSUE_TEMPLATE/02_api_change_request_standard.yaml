@@ -1,7 +1,7 @@
 name: "API Change Request - Standard "
 description: "Submit a change request related to third party standard APIs."
 title: "[API Change Request - Standard]:  "
-labels: ["standard"]
+labels: ["standard", "change request"]
 body:
   - type: input
     id: feature_name
