@@ -1,7 +1,7 @@
 name: "Enhancement Request"
 description: "Submit a request to enhance or improve an existing feature in the Swarmauri SDK."
 title: "[Enhancement Request]: "
-labels: ["enhancement request"]
+labels: ["enhancement", "change request"]
 
 body:
   - type: input
