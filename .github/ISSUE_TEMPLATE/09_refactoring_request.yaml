@@ -1,7 +1,7 @@
 name: "Refactoring Request "
 description: "Submit a change request related to refactoring internal APIs or components."
 title: "[Refactoring Request]: "
-labels: ["refactoring", "core"]
+labels: ["refactoring", "core", "change request"]
 body:
   - type: input
     id: component_name
