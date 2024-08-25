@@ -138,6 +138,10 @@ class ShuttleAIToolModel(LLMBase):
         # After executing the functions, we present the results to the Agent
         payload['messages'] = self._format_messages(conversation.history)
 
+        # Remove tools for payload
+        del payload['tools']
+        del payload['tool_choice']
+
         logging.info(f"payload: {payload}")
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
