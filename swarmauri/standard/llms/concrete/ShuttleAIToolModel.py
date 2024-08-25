@@ -98,12 +98,12 @@ class ShuttleAIToolModel(LLMBase):
                 payload['citations'] = True
 
 
-        logging.info(f"payload: {payload}")
+        logging.info(f"tool payload: {payload}")
         
         # First we ask agent to give us a response
         agent_response = requests.request("POST", url, json=payload, headers=headers)
 
-        logging.info(f"agent response {agent_response.json()}")
+        logging.info(f"tool agent response {agent_response.json()}")
 
         try:
             messages = [
@@ -139,10 +139,10 @@ class ShuttleAIToolModel(LLMBase):
         del payload['tool_choice']
 
         logging.info(f"payload['messages']: {payload['messages']}")
-        logging.info(f"payload: {payload}")
+        logging.info(f"final payload: {payload}")
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
-        logging.info(f"agent response {agent_response.json()}")
+        logging.info(f"final agent response: {agent_response.json()}")
         
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]
