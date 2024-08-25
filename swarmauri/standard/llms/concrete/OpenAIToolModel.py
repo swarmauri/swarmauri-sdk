@@ -82,7 +82,9 @@ class OpenAIToolModel(LLMBase):
             temperature=temperature
         )
         logging.info(f"agent_response: {agent_response}")
-        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
+        agent_message = AgentMessage(
+            content=agent_response.choices[0].message.content
+        )
         conversation.add_message(agent_message)
         logging.info(f"conversation: {conversation}")
         return conversation
