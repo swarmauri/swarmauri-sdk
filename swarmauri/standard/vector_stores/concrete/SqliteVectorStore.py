@@ -56,7 +56,7 @@ class SqliteVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
         self.documents = [_d for _d in self.documents if _d.id != id]
 
     def update_document(self, id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on MLMVectorStore class.')
+        raise NotImplementedError('Update_document not implemented on SqliteVectorStore class.')
         
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         query_vector = self._embedder.infer_vector(query)
