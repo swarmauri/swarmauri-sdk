@@ -42,3 +42,14 @@ def test_add_messages():
     ]
     conversation.add_messages(messages)
     assert conversation.history[-len(messages) :] == messages
+
+
+@pytest.mark.unit
+def test_remove_message():
+    conversation = Conversation()
+    message1 = HumanMessage(content="Test message 1")
+    message2 = HumanMessage(content="Test message 2")
+    conversation.add_message(message1)
+    conversation.add_message(message2)
+    conversation.remove_message(message1)
+    assert message1 not in conversation.history
