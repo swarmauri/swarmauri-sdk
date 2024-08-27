@@ -9,7 +9,7 @@ body:
     attributes:
       label: "Code Area"
       description: "Provide the name or location of the code that needs hygiene improvements (e.g., file or module name)."
-      placeholder: "e.g., src/utils/helpers.js"
+      placeholder: "e.g., standard/messages/concrete/AgentMessage.py"
     validations:
       required: true
       
