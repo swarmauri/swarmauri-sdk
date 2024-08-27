@@ -1,7 +1,7 @@
 name: "Code Hygiene Improvement"
 description: "Submit a request to clean, refactor, or improve the structure of existing code in the Swarmauri SDK."
 title: "[Code Hygiene]: "
-labels: ["code hygiene", "refactoring", "cleanup"]
+labels: ["code hygiene"]
 
 body:
   - type: input
