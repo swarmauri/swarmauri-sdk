@@ -5,22 +5,24 @@ import tempfile
 from typing import List, Union
 from qdrant_client import QdrantClient, models
 
-from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
+from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
-class QdrantVectorStore(VectorDocumentStoreRetrieveBase):
+
+class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     """
     QdrantVectorStore is a concrete implementation that integrates functionality
     for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
     """
+    type: Literal['QdrantVectorStore'] = 'QdrantVectorStore'
 
     def __init__(self, url: str, api_key: str, collection_name: str, vector_size: int):
-        self.vectorizer = Doc2VecVectorizer(vector_size=vector_size)
+        self.vectorizer = Doc2VecEmbedding(vector_size=vector_size)
         self.metric = CosineDistance()
         self.client = QdrantClient(url=url, api_key=api_key)
         self.collection_name = collection_name
