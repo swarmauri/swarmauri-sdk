@@ -46,8 +46,9 @@ setup(
             'scipy==1.10.0'
         ]},
     classifiers=[
-        'License :: OSI Approved ::  Apache Software License',
-        'Programming Language :: Python :: 3.10'
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
     ],
     python_requires='>=3.10',
     setup_requires=["wheel"]

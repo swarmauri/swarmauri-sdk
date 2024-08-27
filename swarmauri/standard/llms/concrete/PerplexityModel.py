@@ -14,9 +14,8 @@ class PerplexityModel(LLMBase):
         'llama-3-sonar-large-32k-chat',
         'llama-3-sonar-large-32k-online',
         'llama-3-8b-instruct',
-        'llama-3-70b-instruct',
-        'mixtral-8x7b-instruct']
-    name: str = "mixtral-8x7b-instruct"
+        'llama-3-70b-instruct']
+    name: str = "llama-3-70b-instruct"
     type: Literal['PerplexityModel'] = 'PerplexityModel'
     
     def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:

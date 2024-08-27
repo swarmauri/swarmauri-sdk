@@ -98,12 +98,12 @@ class ShuttleAIToolModel(LLMBase):
                 payload['citations'] = True
 
 
-        logging.info(f"tool payload: {payload}")
+        logging.info(f"payload: {payload}")
         
         # First we ask agent to give us a response
         agent_response = requests.request("POST", url, json=payload, headers=headers)
 
-        logging.info(f"tool agent response {agent_response.json()}")
+        logging.info(f"agent response {agent_response.json()}")
 
         try:
             messages = [
@@ -125,24 +125,23 @@ class ShuttleAIToolModel(LLMBase):
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call["function"]["arguments"])
                 func_result = func_call(**func_args)
-                payload['messages'].append(
-                    {
-                        "tool_call_id": tool_call['id'],
-                        "role": "tool",
-                        "name": func_name,
-                        "content": func_result,
-                    }
-                )
+                func_message = FunctionMessage(content=func_result, 
+                                               name=func_name, 
+                                               tool_call_id=tool_call['id'])
+                conversation.add_message(func_message)
 
-        # Remove tools for payload
-        del payload['tools']
-        del payload['tool_choice']
 
-        logging.info(f"payload['messages']: {payload['messages']}")
-        logging.info(f"final payload: {payload}")
+
+        logging.info(f"conversation: {conversation.history}")
+
+
+        # After executing the functions, we present the results to the Agent
+        payload['messages'] = self._format_messages(conversation.history)
+
+        logging.info(f"payload: {payload}")
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
-        logging.info(f"final agent response: {agent_response.json()}")
+        logging.info(f"agent response {agent_response.json()}")
         
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]

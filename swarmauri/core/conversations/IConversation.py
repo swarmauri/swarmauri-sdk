@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from swarmauri.core.messages.IMessage import IMessage
 
+
 class IConversation(ABC):
     """
     Interface for managing conversations, defining abstract methods for
@@ -23,6 +24,13 @@ class IConversation(ABC):
         pass
 
     @abstractmethod
+    def add_messages(self, messages: List[IMessage]):
+        """
+        Adds multiple messages to the conversation history.
+        """
+        pass
+
+    @abstractmethod
     def get_last(self) -> Optional[IMessage]:
         """
         Retrieves the latest message from the conversation history.
@@ -35,4 +43,3 @@ class IConversation(ABC):
         Clears the conversation history.
         """
         pass
-
