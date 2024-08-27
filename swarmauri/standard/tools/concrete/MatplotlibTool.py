@@ -5,7 +5,6 @@ from pydantic import Field
 from standard.tools.base.ToolBase import ToolBase, Parameter
 
 class MatplotlibTool(ToolBase):
-    version: str = "1.0.0"
     name: str = "MatplotlibTool"
     description: str = "Generates a plot using Matplotlib library based on provided configuration."
     type: Literal["MatplotlibTool"] = "MatplotlibTool"
