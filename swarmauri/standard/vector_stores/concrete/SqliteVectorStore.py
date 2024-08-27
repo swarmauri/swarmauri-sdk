@@ -1,6 +1,6 @@
 from typing import List, Union, Literal
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.embeddings.concrete.SqliteEmbedding import SqliteEmbedding
+from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
@@ -12,7 +12,7 @@ class SqliteVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._embedder = SqliteEmbedding()
+        self._embedder = Doc2VecEmbedding()
         self._distance = CosineDistance()
         self.documents: List[Document] = []   
 
