@@ -1,0 +1,75 @@
+name: "Code Hygiene Improvement"
+description: "Submit a request to clean, refactor, or improve the structure of existing code in the Swarmauri SDK."
+title: "[Code Hygiene]: "
+labels: ["code hygiene"]
+
+body:
+  - type: input
+    id: code_area
+    attributes:
+      label: "Code Area"
+      description: "Provide the name or location of the code that needs hygiene improvements (e.g., file or module name)."
+      placeholder: "e.g., standard/messages/concrete/AgentMessage.py"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: hygiene_issue_description
+    attributes:
+      label: "Hygiene Issue Description"
+      description: "A clear and concise description of the code hygiene issue, including why it needs to be cleaned or refactored."
+      placeholder: "Describe the issue in detail (e.g., redundant code, complex logic, poor readability)."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain why improving this code is necessary. How will it benefit the SDK in terms of readability, maintainability, or performance?"
+      placeholder: "Why do you need this improvement?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: potential_solutions
+    attributes:
+      label: "Potential Solutions"
+      description: "Provide suggestions for how the code could be cleaned or refactored, if applicable."
+      placeholder: "Possible improvements or refactoring approach."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context (optional)"
+      description: "Include any other context, screenshots, or relevant information about the code hygiene issue."
+      placeholder: "Any additional information."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: impact_area
+    attributes:
+      label: "Affected Areas"
+      description: "Select the area of the SDK that may be impacted by this code hygiene improvement."
+      options:
+        - "Core"
+        - "Standard/Base"
+        - "Standard/Concrete"
+        - "Community"
+        - "Experimental"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "What is the priority level of this code hygiene improvement?"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+    validations:
+      required: true
