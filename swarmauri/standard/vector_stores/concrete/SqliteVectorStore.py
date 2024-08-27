@@ -1,70 +1,162 @@
-from typing import List, Union, Literal
+import json
+import sqlite3
+from typing import List, Optional, Literal, Dict
+import numpy as np
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
-
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
-from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
+    VectorStoreRetrieveMixin,
+)
+from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
+    VectorStoreSaveLoadMixin,
+)
 
-class SqliteVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
-    type: Literal['SqliteVectorStore'] = 'SqliteVectorStore'
-    
-    def __init__(self, **kwargs):
+
+class SqliteVectorStore(
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
+):
+    type: Literal["SqliteVectorStore"] = "SqliteVectorStore"
+    db_path: str = ""
+
+    def __init__(self, db_path: str, **kwargs):
         super().__init__(**kwargs)
-        self._embedder = Doc2VecEmbedding()
         self._distance = CosineDistance()
-        self.documents: List[Document] = []   
+        self.documents: List[Document] = []
+        self.db_path = db_path
+
+        # Create the SQLite database and table if they don't exist
+        self._create_table()
+
+    def _create_table(self):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+
+        # Create the documents table
+        c.execute("""CREATE TABLE IF NOT EXISTS documents
+                     (id TEXT PRIMARY KEY,
+                      content TEXT,
+                      metadata TEXT,
+                      embedding BLOB)""")
+
+        conn.commit()
+        conn.close()
 
     def add_document(self, document: Document) -> None:
         self.documents.append(document)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self._embedder.fit_transform(documents_text)
+        self._insert_document(document)
 
-        embedded_documents = [Document(id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count])
+    def _insert_document(self, document: Document):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
 
-        for _count, _d in enumerate(self.documents) if _d.content]
+        # Serialize metadata to JSON
+        metadata_json = json.dumps(document.metadata)
 
-        self.documents = embedded_documents
+        # Serialize embedding (specifically the value of the Vector)
+        embedding_data = {
+            "value": document.embedding.value  # Assuming embedding is of type Vector and has a 'value' attribute
+        }
+        embedding_json = json.dumps(embedding_data)
+
+        # Insert the document into the documents table
+        c.execute(
+            "INSERT INTO documents (id, content, metadata, embedding) VALUES (?, ?, ?, ?)",
+            (document.id, document.content, metadata_json, embedding_json),
+        )
+        conn.commit()
+        conn.close()
 
     def add_documents(self, documents: List[Document]) -> None:
         self.documents.extend(documents)
-        documents_text = [_d.content for _d in self.documents if _d.content]
-        embeddings = self._embedder.fit_transform(documents_text)
+        for document in documents:
+            self._insert_document(document)
 
-        embedded_documents = [Document(id=_d.id, 
-            content=_d.content, 
-            metadata=_d.metadata, 
-            embedding=embeddings[_count]) for _count, _d in enumerate(self.documents) 
-            if _d.content]
+    def get_document(self, document_id: str) -> Document:
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
 
-        self.documents = embedded_documents
+        c.execute(
+            "SELECT id, content, metadata, embedding FROM documents WHERE id = ?",
+            (document_id,),
+        )
+        row = c.fetchone()
 
-    def get_document(self, id: str) -> Union[Document, None]:
-        for document in self.documents:
-            if document.id == id:
-                return document
+        conn.close()
+
+        if row:
+            document_id, content, metadata_json, embedding_json = row
+            metadata = json.loads(metadata_json)
+            embedding_data = json.loads(embedding_json)
+            embedding = Vector(
+                value=embedding_data["value"]
+            )  # Reconstruct the Vector object
+
+            return Document(
+                id=document_id, content=content, metadata=metadata, embedding=embedding
+            )
         return None
-        
+
     def get_all_documents(self) -> List[Document]:
-        return self.documents
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
 
-    def delete_document(self, id: str) -> None:
-        self.documents = [_d for _d in self.documents if _d.id != id]
+        c.execute("SELECT * FROM documents")
+        rows = c.fetchall()
 
-    def update_document(self, id: str) -> None:
-        raise NotImplementedError('Update_document not implemented on SqliteVectorStore class.')
-        
-    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        query_vector = self._embedder.infer_vector(query)
-        document_vectors = [_d.embedding for _d in self.documents if _d.content]
-        distances = self._distance.distances(query_vector, document_vectors)
-        
-        # Get the indices of the top_k most similar documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
-        
-        return [self.documents[i] for i in top_k_indices]
-    
+        conn.close()
+
+        return [
+            Document(id=row[0], content=row[1], metadata=row[2], embedding=row[3])
+            for row in rows
+        ]
+
+    def delete_document(self, document_id: str) -> None:
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+
+        c.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+
+        conn.commit()
+        conn.close()
+
+    def update_document(self, document: Document) -> None:
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+
+        c.execute(
+            """UPDATE documents 
+               SET content = ?, metadata = ?, embedding = ? 
+               WHERE id = ?""",
+            (document.content, document.metadata, document.embedding, document.id),
+        )
+
+        conn.commit()
+        conn.close()
+
+    def retrieve(self, query_vector: List[float], top_k: int = 5) -> List[Dict]:
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT id, embedding FROM documents")
+        rows = c.fetchall()
+        conn.close()
+
+        # Convert query vector to numpy array
+        query_vector = np.array(query_vector, dtype=np.float32)
+
+        results = []
+        for row in rows:
+            doc_id, embedding_json = row
+            embedding = json.loads(embedding_json)
+            vector = np.array(embedding["value"], dtype=np.float32)
+
+            # Compute similarity (e.g., Euclidean distance)
+            distance = np.linalg.norm(query_vector - vector)
+            results.append((doc_id, distance))
+
+        # Sort results by distance
+        results.sort(key=lambda x: x[1])
+
+        # Get top_k results
+        top_results = [doc_id for doc_id, _ in results[:top_k]]
+        return top_results
