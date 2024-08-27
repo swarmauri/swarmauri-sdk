@@ -30,6 +30,7 @@ jobs:
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
       QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
       QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      QDRANT_COLLECTION_NAME: ${{ secrets.QDRANT_COLLECTION_NAME }}
 
 
     steps:
