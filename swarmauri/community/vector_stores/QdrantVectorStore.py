@@ -35,12 +35,12 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
             )   
 
 
-    def add_document(self, document: IDocument) -> None:
+    def add_document(self, document: Document) -> None:
         """
         Add a single document to the document store.
         
         Parameters:
-            document (IDocument): The document to be added to the store.
+            document (Document): The document to be added to the store.
         """
         try:
             embedding = document.embedding or self.vectorizer.fit_transform(document.content).data 
@@ -64,12 +64,12 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
             
         
 
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         """
         Add multiple documents to the document store in a batch operation.
         
         Parameters:
-            documents (List[IDocument]): A list of documents to be added to the store.
+            documents (List[Document]): A list of documents to be added to the store.
         """
         self.vectorizer.fit_transform([doc.content for doc in documents])
         points = [
@@ -81,7 +81,7 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
         ]
         self.client.upsert(self.collection_name, points=points)
 
-    def get_document(self, id: str) -> Union[IDocument, None]:
+    def get_document(self, id: str) -> Union[Document, None]:
         """
         Retrieve a single document by its identifier.
         
@@ -89,17 +89,17 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
             id (str): The unique identifier of the document to retrieve.
         
         Returns:
-            Union[IDocument, None]: The requested document if found; otherwise, None.
+            Union[Document, None]: The requested document if found; otherwise, None.
         """
         
         raise NotImplementedError('Get document not implemented, use retrieve().')
 
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> List[Document]:
         """
         Retrieve all documents stored in the document store.
         
         Returns:
-            List[IDocument]: A list of all documents in the store.
+            List[Document]: A list of all documents in the store.
         """
         raise NotImplementedError('Get all documents not implemented, use retrieve().')
 
@@ -112,13 +112,13 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
         """
         self.client.delete(self.collection_name, points_selector=[id])
 
-    def update_document(self, id: str, updated_document: IDocument) -> None:
+    def update_document(self, id: str, updated_document: Document) -> None:
         """
         Update a document in the document store.
         
         Parameters:
             id (str): The unique identifier of the document to update.
-            updated_document (IDocument): The updated document instance.
+            updated_document (Document): The updated document instance.
         """
         self.client.upsert(self.collection_name, points=[                           
             models.PointStruct(
@@ -141,7 +141,7 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
         """
         raise NotImplementedError('Get document not implemeneted, use retrieve().')
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve the top_k most relevant documents based on the given query.
         For the purpose of this example, this method performs a basic search.
@@ -151,7 +151,7 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
             top_k (int): The number of top relevant documents to retrieve.
         
         Returns:
-            List[IDocument]: A list of the top_k most relevant documents.
+            List[Document]: A list of the top_k most relevant documents.
         """
         # This should be modified to a query to the Qdrant service for relevance search
         query_vector = self.vectorizer.infer_vector(query).data
