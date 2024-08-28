@@ -1,6 +1,7 @@
 import pytest
 import tempfile
 import os
+from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.vector_stores.concrete.SqliteVectorStore import (
     SqliteVectorStore,
