@@ -1,24 +1,35 @@
 import os
-from typing import List, Union
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
-
-from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
-from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.documents.concrete.Document import Document
+import logging
 import chromadb
 
-class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
+from typing import List, Union, Literal
+
+
+
+from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+
+from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
+
+
+
+
+class ChromaDBVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
+    type: Literal['QdrantVectorStore'] = 'QdrantVectorStore'
+
     def __init__(self, db_name):
         self.vectorizer = Doc2VecVectorizer()
         self.metric = CosineDistance()
         self.db_name = db_name
         self.client = chromadb.Client()
         self.collection = self.client.get_or_create_collection(name=db_name)
-        SaveLoadStoreBase.__init__(self, self.vectorizer, [])
 
-    def add_document(self, document: IDocument) -> None:
+        VectorStoreSaveLoadMixin.__init__(self, self.vectorizer, []) # 🚧 technical debt
+
+    def add_document(self, document: Document) -> None:
         try:
             embedding = self.vectorizer.infer_vector(document.content).data
             self.collection.add(ids=[document.id],
@@ -35,7 +46,7 @@ class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
                                 metadatas=[document.metadata] )
             
 
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         ids = [doc.id for doc in documents]
         texts = [doc.content for doc in documents]
         embeddings = [self.vectorizer.infer_vector(doc.content).data for doc in documents]
@@ -46,7 +57,7 @@ class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
                             embeddings=embeddings, 
                             metadatas=metadatas)
 
-    def get_document(self, doc_id: str) -> Union[IDocument, None]:
+    def get_document(self, doc_id: str) -> Union[Document, None]:
         try:
             results = self.collection.get(ids=[doc_id])
             document = Document(id=results['ids'][0],
@@ -57,7 +68,7 @@ class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
             document = None
         return document if document else []
 
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> List[Document]:
         try:
             results = self.collection.get()
             print(results)
@@ -74,7 +85,7 @@ class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
     def delete_document(self, doc_id: str) -> None:
         self.collection.delete(ids=[doc_id])
 
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+    def update_document(self, doc_id: str, updated_document: Document) -> None:
         self.delete_document(doc_id)
         self.add_document(updated_document)
 
@@ -87,12 +98,12 @@ class ChromaDBVectorStore(VectorDocumentStoreRetrieveBase, SaveLoadStoreBase):
         except StopIteration:
             return 0
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         embedding = self.vectorizer.infer_vector(query).data
         results = self.collection.query(query_embeddings=embedding,
                                         n_results=top_k)
-        print('retrieve reults', results)
-        print(results['ids'][0])
+        logging.info('retrieve reults', results)
+        logging.info(results['ids'][0])
         documents = []
         for idx in range(len(results['ids'])):
             documents.append(Document(id=results['ids'][idx],
