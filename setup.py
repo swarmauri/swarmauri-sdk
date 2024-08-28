@@ -43,7 +43,8 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.10.0'
+            'scipy==1.10.0',
+            "qdrant-client"
         ]},
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
