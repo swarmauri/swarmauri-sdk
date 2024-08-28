@@ -50,4 +50,3 @@ body:
         - "Acceptance"
     validations:
       required: true
-'
