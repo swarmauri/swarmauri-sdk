@@ -22,8 +22,8 @@ class QdrantVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vect
     type: Literal['QdrantVectorStore'] = 'QdrantVectorStore'
 
     def __init__(self, url: str, api_key: str, collection_name: str, vector_size: int):
-        self.vectorizer = Doc2VecEmbedding(vector_size=vector_size)
-        self.metric = CosineDistance()
+        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        self._distance = CosineDistance()
         self.client = QdrantClient(url=url, api_key=api_key)
         self.collection_name = collection_name
         exists = self.client.collection_exists(collection_name)

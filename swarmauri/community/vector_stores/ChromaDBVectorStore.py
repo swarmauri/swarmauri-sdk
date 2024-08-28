@@ -18,14 +18,14 @@ from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import Vecto
 
 
 class ChromaDBVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
-    type: Literal['QdrantVectorStore'] = 'QdrantVectorStore'
+    type: Literal['ChromaDBVectorStore'] = 'ChromaDBVectorStore'
 
-    def __init__(self, db_name):
-        self.vectorizer = Doc2VecVectorizer()
-        self.metric = CosineDistance()
-        self.db_name = db_name
+    def __init__(self, collection_name, vector_size: int):
+        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        self._distance = CosineDistance()
+        self.collection_name = collection_name
         self.client = chromadb.Client()
-        self.collection = self.client.get_or_create_collection(name=db_name)
+        self.collection = self.client.get_or_create_collection(name=collection_name)
 
         VectorStoreSaveLoadMixin.__init__(self, self.vectorizer, []) # 🚧 technical debt
 
