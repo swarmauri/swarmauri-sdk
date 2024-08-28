@@ -44,7 +44,9 @@ setup(
             'google-generativeai',
             'anthropic',
             'scipy==1.10.0',
-            "qdrant-client"
+            "qdrant-client",
+            "chromadb"
+
         ]},
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
