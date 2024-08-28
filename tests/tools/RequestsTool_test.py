@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.RequestTool import RequestTool as Tool
+from swarmauri.standard.tools.concrete.RequestsTool import RequestsTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'RequestTool'
+    assert Tool().type == 'RequestsTool'
 
 @pytest.mark.unit
 def test_initialization():

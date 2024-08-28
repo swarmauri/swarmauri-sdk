@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field, Extra
 from swarmauri.standard.tools.base.ToolBase import ToolBase  # Assuming the location of ToolBase import
 
-class RequestTool(ToolBase):
+class RequestsTool(ToolBase):
     """
     A tool that leverages the `requests` library to perform HTTP operations.
 
