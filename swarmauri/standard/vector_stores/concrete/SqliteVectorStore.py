@@ -2,6 +2,7 @@ import json
 import sqlite3
 from typing import List, Optional, Literal, Dict
 import numpy as np
+from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
