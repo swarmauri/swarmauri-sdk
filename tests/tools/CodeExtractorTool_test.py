@@ -16,6 +16,9 @@ def test_initialization():
     assert isinstance(tool, CodeExtractorTool)
     assert tool.resource == "Tool"
 
+@pytest.mark.unit
+def test_ubc_type():
+    assert CodeExtractorTool().type == 'CodeExtractorTool'
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -118,7 +121,6 @@ print('Hello, World!')"""
         tool.extract_code(file_name, extract_documentation, to_be_ignored)
         == expected_code
     )
-
 
 def test_stop_collecting_lines():
     file_content = """\"\"\" module documentation string\n \"\"\"
