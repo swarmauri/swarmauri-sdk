@@ -17,8 +17,7 @@ body:
     attributes:
       label: "Pytest Logs"
       description: "Provide the pytest logs outputted"
-      placeholder: "tests/llms/ShuttleAIToolModel_test.py::test_agent_exec 
-      label: "Logs"
+      placeholder: "tests/llms/ShuttleAIToolModel_test.py::test_agent_exec
       description: "Provide relevant logs"
       placeholder: "FAILED tests/parsers/TextBlobNounParser_test.py::test_parse - LookupError: "
 
