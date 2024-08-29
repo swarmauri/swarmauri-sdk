@@ -15,6 +15,45 @@ class RequestsTool(ToolBase):
     name: str = "RequestsTool"
     type: Literal['RequestsTool'] = 'RequestsTool'
     description: Optional[str] = "A tool for making HTTP requests using the `requests` library."
+    parameters: List[Parameter] = Field(default_factory=lambda: [
+        Parameter(
+            name="method",
+            type="string",
+            description="The HTTP method to use ('get', 'post', 'put', 'delete').",
+            required=True,
+            enum=["get", "post", "put", "delete"]
+        ),
+        Parameter(
+            name="url",
+            type="string",
+            description="The URL for the request.",
+            required=True
+        ),
+        Parameter(
+            name="params",
+            type="object",
+            description="The query parameters to include in the request.",
+            required=False
+        ),
+        Parameter(
+            name="data",
+            type="object",
+            description="The form data to include in the request (used in POST and PUT).",
+            required=False
+        ),
+        Parameter(
+            name="json",
+            type="object",
+            description="The JSON data to include in the request (used in POST and PUT).",
+            required=False
+        ),
+        Parameter(
+            name="headers",
+            type="object",
+            description="Additional headers to include in the request.",
+            required=False
+        )
+    ])
 
     def get(self, url: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> requests.Response:
         """
