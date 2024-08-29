@@ -7,7 +7,7 @@ class TextLengthTool(ToolBase):
     """
     A tool for measuring text length in terms of characters, words, and sentences.
     """
-    name = "TextLengthTool"
+    name: str = "TextLengthTool"
     description: str = "This tool calculates the length of the text"
     type: Literal['TextLengthTool'] = 'TextLengthTool'
 
