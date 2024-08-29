@@ -16,11 +16,11 @@ def test_initialization():
     assert type(tool.id) == str
 
 @pytest.mark.unit
-def test_call():
+def test_call(): 
     tool = Tool()
     text = "This is a simple test sentence."
-    result = tool(text)
+    result = tool(text) # 🚧 Should tools be able to return a Union[str, Dict] or be required to return str?
 
-    assert result["num_characters"] == 28
-    assert result["num_words"] == 6
-    assert result["num_sentences"] == 1
+    assert result["num_characters"] == 28 
+    assert result["num_words"] == 6 
+    assert result["num_sentences"] == 1 
