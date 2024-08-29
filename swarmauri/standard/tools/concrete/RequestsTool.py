@@ -12,11 +12,9 @@ class RequestsTool(ToolBase):
         name (str): The name of the tool.
         description (str): A brief description of what the tool does.
     """
-    name: Literal['RequestsTool'] = 'RequestsTool'
+    name: str = "RequestsTool"
+    type: Literal['RequestsTool'] = 'RequestsTool'
     description: Optional[str] = "A tool for making HTTP requests using the `requests` library."
-
-    class Config:
-        extra = Extra.forbid
 
     def get(self, url: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> requests.Response:
         """
@@ -106,6 +104,3 @@ class RequestsTool(ToolBase):
             return self.delete(url, **kwargs)
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
-
-    def __str__(self):
-        return f"{self.name}: {self.description}"
