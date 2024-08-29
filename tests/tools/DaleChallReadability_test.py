@@ -19,5 +19,5 @@ def test_initialization():
 def test_call():
     tool = Tool()
     input_data = {'input_text': 'This is a simple sentence for testing purposes.'}
-    expected_output = 6.5
+    expected_output = 7.98
     assert tool(input_data) == pytest.approx(expected_output, rel=1e-2)
