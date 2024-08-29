@@ -3,7 +3,7 @@ from typing import Any, Dict, Literal
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
-class FleschKincaid(ToolBase):
+class FleschKincaidTool(ToolBase):
     """
     A tool for calculating the Flesch-Kincaid readability score.
     """
