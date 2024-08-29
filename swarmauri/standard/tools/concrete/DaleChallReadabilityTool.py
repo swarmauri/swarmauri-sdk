@@ -1,74 +1,60 @@
-from typing import List, Literal
-from pydantic import Field
+import textstat
+from typing import Any, Dict, List, Literal
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class DaleChallReadabilityTool(ToolBase):
-    version: str = "0.1.dev1"
-    parameters: List[Parameter] = Field(
-        default_factory=lambda: [
-            Parameter(
-                name="text",
-                type="string",
-                description="The text to calculate the Dale-Chall readability score for.",
-                required=True,
-            ),
-        ]
-    )
-    name: str = "DaleChallReadabilityTool"
-    description: str = "Calculates the Dale-Chall readability score for a given text."
-    type: Literal["DaleChallReadabilityTool"] = "DaleChallReadabilityTool"
+    """
+    A tool for calculating the Dale-Chall Readability Score using the textstat library.
 
-    def __call__(self, text: str) -> float:
+    Attributes:
+        version (str): The version of the tool.
+        name (str): The name of the tool.
+        type (Literal["DaleChallReadabilityTool"]): The type of the tool.
+        description (str): A brief description of what the tool does.
+    """
+    version: str = "0.1.dev1"
+    name: str = "DaleChallReadabilityTool"
+    type: Literal["DaleChallReadabilityTool"] = "DaleChallReadabilityTool"
+    description: str = "Calculates the Dale-Chall Readability Score for a given text using textstat."
+    parameters: List[Parameter] = [
+        Parameter(
+            name="input_text",
+            type="string",
+            description="The input text for which to calculate the Dale-Chall Readability Score.",
+            required=True
+        )
+    ]
+
+    def __call__(self, data: Dict[str, Any]) -> float:
         """
-        Calculates the Dale-Chall readability score for a given text.
+        Executes the Dale-Chall Readability tool and returns the readability score using textstat.
 
         Parameters:
-            text (str): The text to analyze.
-
+            data (Dict[str, Any]): The input data containing "input_text".
+        
         Returns:
-            float: The Dale-Chall readability score.
+            float: The Dale-Chall Readability Score.
+
+        Raises:
+            ValueError: If the input data is invalid.
         """
-        return self.calculate_dale_chall_score(text)
+        if self.validate_input(data):
+            text = data['input_text']
+            dale_chall_score = textstat.dale_chall_readability_score(text)
+            return dale_chall_score
+        else:
+            raise ValueError("Invalid input for DaleChallReadabilityTool.")
 
-    def calculate_dale_chall_score(self, text: str) -> float:
-        # Preliminary data: word frequency list, constants
-        easy_words = self.get_easy_words()
-        sentences = self.get_sentences(text)
-        words = self.get_words(text)
-
-        # Count the number of difficult words
-        difficult_words = [word for word in words if word not in easy_words]
-        num_difficult_words = len(difficult_words)
-
-        # Calculate the Dale-Chall readability score
-        num_words = len(words)
-        num_sentences = len(sentences)
-
-        avg_sentence_length = num_words / num_sentences if num_sentences else 0
-        percent_difficult_words = (num_difficult_words / num_words) * 100 if num_words else 0
-
-        dale_chall_score = 0.1579 * percent_difficult_words + 0.0496 * avg_sentence_length
-        if percent_difficult_words > 5:
-            dale_chall_score += 3.6365
-
-        return round(dale_chall_score, 2)
-
-    def get_easy_words(self) -> set:
-        easy_word_set = set()
-        # Load the list of easy words (this is a sample list)
-        easy_words = """
-        a,able,about,above,accept,accident
-        please replace this list with the actual Dale-Chall easy word list.
+    def validate_input(self, data: Dict[str, Any]) -> bool:
         """
-        for word in easy_words.split(','):
-            easy_word_set.add(word.strip().lower())
-        return easy_word_set
-
-    def get_sentences(self, text: str) -> List[str]:
-        import re
-        return re.split(r'[.!?]', text)
-
-    def get_words(self, text: str) -> List[str]:
-        import re
-        return re.findall(r'\b\w+\b', text.lower())
+        Validates the input data.
+        
+        Parameters:
+            data (Dict[str, Any]): The input data to be validated.
+        
+        Returns:
+            bool: True if the input data is valid, False otherwise.
+        """
+        required_keys = ["input_text"]
+        return all(key in data for key in required_keys)

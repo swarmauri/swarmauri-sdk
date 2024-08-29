@@ -45,7 +45,8 @@ setup(
             'anthropic',
             'scipy==1.10.0',
             "qdrant-client",
-            "chromadb"
+            "chromadb",
+            "textstat"
 
         ]},
     classifiers=[

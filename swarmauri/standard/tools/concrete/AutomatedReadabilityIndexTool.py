@@ -1,51 +1,97 @@
-from typing import List, Literal
-from pydantic import Field
-from swarmauri.standard.tools.base.ToolBase import ToolBase 
+import re
+from typing import Any, Dict, List, Literal
+from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class AutomatedReadabilityIndexTool(ToolBase):
+    """
+    A tool for calculating the Automated Readability Index (ARI).
+
+    Attributes:
+        version (str): The version of the tool.
+        name (str): The name of the tool.
+        type (Literal["AutomatedReadabilityIndexTool"]): The type of the tool.
+        description (str): A brief description of what the tool does.
+        parameters (List[Parameter]): The parameters for configuring the tool.
+    """
     version: str = "0.1.dev1"
-    parameters: List[Parameter] = Field(default_factory=lambda: [
+    name: str = "AutomatedReadabilityIndexTool"
+    type: Literal["AutomatedReadabilityIndexTool"] = "AutomatedReadabilityIndexTool"
+    description: str = "Calculates the Automated Readability Index (ARI) for a given text."
+    parameters: List[Parameter] = [
         Parameter(
-            name="text",
+            name="input_text",
             type="string",
-            description="The text to calculate the readability index for.",
+            description="The input text for which to calculate the ARI.",
             required=True
         )
-    ])
-    
-    name: str = 'AutomatedReadabilityIndexTool'
-    description: str = "Calculates the readability of a given text using the Automated Readability Index (ARI)."
-    type: Literal['AutomatedReadabilityIndexTool'] = 'AutomatedReadabilityIndexTool'
+    ]
 
-    def __call__(self, text: str) -> float:
+    def __call__(self, data: Dict[str, Any]) -> float:
         """
-        Calculates the readability of the given text using the Automated Readability Index (ARI).
+        Executes the ARI tool and returns the readability score.
 
+        ARI formula:
+        4.71 * (characters/words) + 0.5 * (words/sentences) - 21.43
+        
         Parameters:
-        - text (str): The text to calculate the readability index for.
-
+            data (Dict[str, Any]): The input data containing "input_text".
+        
         Returns:
-        - float: The calculated ARI.
-        """
-        return self.calculate_ari(text)
-    
-    def calculate_ari(self, text: str) -> float:
-        """
-        Calculates the Automated Readability Index (ARI) for the provided text.
+            float: The Automated Readability Index.
 
-        Args:
-            text (str): The input text to calculate the ARI for.
+        Raises:
+            ValueError: If the input data is invalid.
+        """
+        if self.validate_input(data):
+            text = data['input_text']
+            num_sentences = self.count_sentences(text)
+            num_words = self.count_words(text)
+            num_characters = self.count_characters(text)
+            if num_sentences == 0 or num_words == 0:
+                return 0.0
+            characters_per_word = num_characters / num_words
+            words_per_sentence = num_words / num_sentences
+            ari_score = 4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
+            return ari_score
+        else:
+            raise ValueError("Invalid input for AutomatedReadabilityIndexTool.")
 
+    def count_sentences(self, text: str) -> int:
+        """
+        Counts the number of sentences in the text.
+        
+        Parameters:
+            text (str): The input text.
+        
         Returns:
-            float: The calculated ARI.
+            int: The number of sentences in the text.
         """
-        num_chars = len(text)
-        num_words = len(text.split())
-        num_sentences = text.count('.') + text.count('!') + text.count('?')
+        sentence_endings = re.compile(r'[.!?]')
+        sentences = sentence_endings.split(text)
+        return len([s for s in sentences if s.strip()])  # Count non-empty sentences
 
-        if num_words == 0 or num_sentences == 0:
-            return 0.0
+    def count_words(self, text: str) -> int:
+        """
+        Counts the number of words in the text.
+        
+        Parameters:
+            text (str): The input text.
+        
+        Returns:
+            int: The number of words in the text.
+        """
+        words = re.findall(r'\b\w+\b', text)
+        return len(words)
 
-        ari = 4.71 * (num_chars / num_words) + 0.5 * (num_words / num_sentences) - 21.43
-        return max(0.0, ari)
+    def count_characters(self, text: str) -> int:
+        """
+        Counts the number of characters in the text.
+        
+        Parameters:
+            text (str): The input text.
+        
+        Returns:
+            int: The number of characters in the text.
+        """
+        return len(text) - text.count(' ')  # Count characters excluding spaces

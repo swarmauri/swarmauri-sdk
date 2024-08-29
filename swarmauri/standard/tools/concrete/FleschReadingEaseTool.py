@@ -5,7 +5,7 @@ from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class FleschReadingEaseTool(ToolBase):
-    version: str = "0.1.dev1"
+    version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
             name="text",
@@ -68,20 +68,24 @@ class FleschReadingEaseTool(ToolBase):
             int: The number of syllables in the word.
         """
         word = word.lower()
-        vowels = "aeiou"
+        vowels = "aeiouy"
         num_syllables = 0
         prev_char = None
 
-        for char in word:
+        for i, char in enumerate(word):
             if char in vowels:
                 if prev_char is None or prev_char not in vowels:
                     num_syllables += 1
             prev_char = char
 
+        # Adjust for silent 'e' at the end
         if word.endswith("e"):
             num_syllables -= 1
 
-        if word.endswith("le") and len(word) > 1 and word[-3] not in vowels:
+        # Adjust for "le" at the end of the word when preceded by a consonant
+        if word.endswith("le") and len(word) > 2 and word[-3] not in vowels:
             num_syllables += 1
 
-        return max(num_syllables, 1)  # Ensure at least one syllable per word
+        # Ensure at least one syllable per word
+        return max(num_syllables, 1)
+
