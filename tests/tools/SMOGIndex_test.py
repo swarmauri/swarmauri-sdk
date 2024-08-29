@@ -16,6 +16,11 @@ def test_initialization():
     assert type(tool.id) == str
 
 @pytest.mark.unit
+@pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    input_text = "This is a sample text with some complex sentences and polysyllabic words to test the SMOG Index calculation."
+    expected_smog_index = tool.calculate_smog_index(input_text)
+    
+    # Call the tool with the input text and compare the result to the expected value
+    assert tool(input_text) == pytest.approx(expected_smog_index, 0.1)
