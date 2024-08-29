@@ -1,12 +1,15 @@
 
 from standard.tools.base.ToolBase import ToolBase
 import re
+from typing import Literal
 
-class TextLength(ToolBase):
+class TextLengthTool(ToolBase):
     """
     A tool for measuring text length in terms of characters, words, and sentences.
     """
     name = "TextLength"
+    description: str = "This tool calculates the length of the text"
+    type: Literal['TextLength'] = 'TextLength'
 
     def execute(self, data: str) -> dict:
         """

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from typing import List, Literal
 from pydantic import Field
-from standard.tools.base.ToolBase import ToolBase, Parameter
+from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter
 
 class MatplotlibTool(ToolBase):
     version: str = "1.0.0"

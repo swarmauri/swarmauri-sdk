@@ -1,13 +1,15 @@
-
 import re
-from typing import Any, Dict
-from standard.tools.base.ToolBase import ToolBase
+from typing import Any, Dict, Literal
+from swarmauri.standard.tools.base.ToolBase import ToolBase
 
 class GunningFogIndex(ToolBase):
     """
     A tool for calculating the Gunning Fog Index readability score.
     """
+    version: str = "0.1.dev1"
     name: str = "GunningFogIndex"
+    type: Literal["GunningFogIndex"] = "GunningFogIndex"
+    description: str = "Calculates the GunningFogIndex for a given text."
 
     def execute(self, data: Dict[str, Any]) -> float:
         """

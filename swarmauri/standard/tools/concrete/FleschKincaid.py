@@ -1,14 +1,16 @@
-
 import re
-from typing import Any, Dict
-from standard.tools.base.ToolBase import ToolBase
+from typing import Any, Dict, Literal
+from swarmauri.standard.tools.base.ToolBase import ToolBase
 
 class FleschKincaid(ToolBase):
     """
     A tool for calculating the Flesch-Kincaid readability score.
     """
+    version: str = "0.1.dev1"
     name: str = "FleschKincaid"
-
+    type: Literal["FleschKincaid"] = "FleschKincaid"
+    description: str = "Calculates the FleschKincard score for a given text."
+    
     def execute(self, data: Dict[str, Any]) -> float:
         """
         Executes the Flesch-Kincaid tool and returns the readability score.
