@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.SMOGIndex import SMOGIndex as Tool
+from swarmauri.standard.tools.concrete.SMOGIndexTool import SMOGIndexTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'SMOGIndex'
+    assert Tool().type == 'SMOGIndexTool'
 
 @pytest.mark.unit
 def test_initialization():

@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.ColemanLiauIndex import ColemanLiauIndex as Tool
+from swarmauri.standard.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

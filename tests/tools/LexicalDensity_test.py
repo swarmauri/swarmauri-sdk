@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.LexicalDensity import LexicalDensity as Tool
+from swarmauri.standard.tools.concrete.LexicalDensityTool import LexicalDensityTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'LexicalDensity'
+    assert Tool().type == 'LexicalDensityTool'
 
 @pytest.mark.unit
 def test_initialization():

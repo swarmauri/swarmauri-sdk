@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.DaleChallReadability import DaleChallReadability as Tool
+from swarmauri.standard.tools.concrete.DaleChallReadabilityTool import DaleChallReadabilityTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'DaleChallReadability'
+    assert Tool().type == 'DaleChallReadabilityTool'
 
 @pytest.mark.unit
 def test_initialization():

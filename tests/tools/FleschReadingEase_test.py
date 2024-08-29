@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.FleschReadingEase import FleschReadingEase as Tool
+from swarmauri.standard.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'FleschReadingEase'
+    assert Tool().type == 'FleschReadingEaseTool'
 
 @pytest.mark.unit
 def test_initialization():

@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.GunningFogIndex import GunningFogIndex as Tool
+from swarmauri.standard.tools.concrete.GunningFogIndexTool import GunningFogIndexTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'GunningFogIndex'
+    assert Tool().type == 'GunningFogIndexTool'
 
 @pytest.mark.unit
 def test_initialization():
