@@ -2,14 +2,14 @@ import re
 from typing import Any, Dict, Literal
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 
-class GunningFogIndex(ToolBase):
+class GunningFogIndexTool(ToolBase):
     """
     A tool for calculating the Gunning Fog Index readability score.
     """
     version: str = "0.1.dev1"
-    name: str = "GunningFogIndex"
-    type: Literal["GunningFogIndex"] = "GunningFogIndex"
-    description: str = "Calculates the GunningFogIndex for a given text."
+    name: str = "GunningFogIndexTool"
+    type: Literal["GunningFogIndexTool"] = "GunningFogIndexTool"
+    description: str = "Calculates the GunningFogIndexTool for a given text."
 
     def execute(self, data: Dict[str, Any]) -> float:
         """
@@ -36,7 +36,7 @@ class GunningFogIndex(ToolBase):
             gunning_fog_index = 0.4 * (words_per_sentence + percent_complex_words)
             return gunning_fog_index
         else:
-            raise ValueError("Invalid input for GunningFogIndex.")
+            raise ValueError("Invalid input for GunningFogIndexTool.")
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
