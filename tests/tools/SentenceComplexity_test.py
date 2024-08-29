@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'SentenceComplexity'
+    assert Tool().type == 'SentenceComplexityTool'
 
 @pytest.mark.unit
 def test_initialization():
