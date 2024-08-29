@@ -2,6 +2,7 @@
 from typing import Dict, Any, Literal
 from collections import Counter
 from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter 
 
 class LexicalDensityTool(ToolBase):
     """
