@@ -1,7 +1,7 @@
 # swarmauri/standard/tools/concrete/LexicalDensityTool.py
 from typing import Dict, Any, Literal
 from collections import Counter
-from sswarmauri.tandard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.base.ToolBase import ToolBase
 
 class LexicalDensityTool(ToolBase):
     """
