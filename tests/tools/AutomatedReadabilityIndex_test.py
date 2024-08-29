@@ -18,4 +18,4 @@ def test_initialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    assert tool({'input_text': 'The quick brown fox jumps over the lazy dog.'}) == 2.14
