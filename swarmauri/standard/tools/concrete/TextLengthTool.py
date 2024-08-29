@@ -1,65 +1,97 @@
-import re
-from typing import Literal, List, Dict, Any
+from typing import List, Literal, Dict
+from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
+import re
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+
+# Download required NLTK data once during module load
+nltk.download('punkt', quiet=True)
 
 class TextLengthTool(ToolBase):
-    """
-    A tool for measuring text length in terms of characters, words, and sentences.
-
-    Attributes:
-        name (str): The name of the tool.
-        description (str): A brief description of the tool.
-        type (Literal['TextLengthTool']): The type of the tool.
-        parameters (List[Parameter]): The parameters for configuring the tool.
-    """
-    version: str = "1.0.0"
-    name: str = "TextLengthTool"
-    description: str = "This tool calculates the length of a given text."
-    type: Literal['TextLengthTool'] = 'TextLengthTool'
-    parameters: List[Parameter] = [
+    version: str = "0.1.dev1"
+    parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
-            name="data",
+            name="text",
             type="string",
-            description="The input text to measure.",
+            description="The text to analyze for length.",
             required=True
         )
-    ]
+    ])
+    name: str = 'TextLengthTool'
+    description: str = "Calculates the length of the provided text in terms of characters, words, and sentences."
+    type: Literal['TextLengthTool'] = 'TextLengthTool'
 
-    def execute(self, data: str) -> Dict[str, Any]:
+    def __call__(self, text: str) -> Dict[str, int]:
         """
-        Measure the length of the input text.
+        Calculates the length of the provided text in terms of characters, words, and sentences.
         
         Parameters:
-            data (str): The input text.
+            text (str): The text to analyze.
         
         Returns:
-            dict: A dictionary containing the number of characters, words, and sentences in the text.
-
-        Raises:
-            ValueError: If the input data is not a string.
+            dict: A dictionary containing the number of characters, words, and sentences.
         """
-        if not isinstance(data, str):
-            raise ValueError("Input data should be a string.")
-        
-        char_count = len(data)
-        word_count = len(re.findall(r'\b\w+\b', data))
-        sentence_count = len(re.findall(r'[.!?]', data))
+        return self.calculate_text_length(text)
 
+    def calculate_text_length(self, text: str) -> Dict[str, int]:
+        """
+        Calculate the length of the text in characters, words, and sentences.
+        
+        Parameters:
+            text (str): The text to analyze.
+        
+        Returns:
+            dict: A dictionary containing:
+                  - 'num_characters': Number of characters in the text.
+                  - 'num_words': Number of words in the text.
+                  - 'num_sentences': Number of sentences in the text.
+        """
+        num_characters = self.count_characters(text)
+        num_words = self.count_words(text)
+        num_sentences = self.count_sentences(text)
+        
         return {
-            'characters': char_count,
-            'words': word_count,
-            'sentences': sentence_count
+            "num_characters": num_characters,
+            "num_words": num_words,
+            "num_sentences": num_sentences
         }
 
-    def __call__(self, data: str) -> Dict[str, Any]:
+    def count_characters(self, text: str) -> int:
         """
-        Calls the execute method to measure the length of the input text.
+        Count the number of characters in the text, excluding spaces.
         
         Parameters:
-            data (str): The input text.
+            text (str): The text to analyze.
         
         Returns:
-            dict: A dictionary containing the number of characters, words, and sentences in the text.
+            int: The number of characters in the text.
         """
-        return self.execute(data)
+        return len(text.replace(" ", ""))
+
+    def count_words(self, text: str) -> int:
+        """
+        Count the number of words in the text.
+        
+        Parameters:
+            text (str): The text to analyze.
+        
+        Returns:
+            int: The number of words in the text.
+        """
+        words = word_tokenize(text)
+        return len(words)
+
+    def count_sentences(self, text: str) -> int:
+        """
+        Count the number of sentences in the text.
+        
+        Parameters:
+            text (str): The text to analyze.
+        
+        Returns:
+            int: The number of sentences in the text.
+        """
+        sentences = sent_tokenize(text)
+        return len(sentences)
