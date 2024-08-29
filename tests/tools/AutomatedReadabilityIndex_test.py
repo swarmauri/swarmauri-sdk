@@ -18,4 +18,6 @@ def test_initialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    input_data = {'input_text': 'The quick brown fox jumps over the lazy dog.'}
+    expected_output = 2.14
+    assert tool(input_data) == pytest.approx(expected_output, rel=1e-2)
