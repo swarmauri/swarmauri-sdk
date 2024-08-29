@@ -18,4 +18,9 @@ def test_initialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    text = "This is a simple test sentence."
+    result = tool(text)
+
+    assert result["num_characters"] == 28
+    assert result["num_words"] == 6
+    assert result["num_sentences"] == 1
