@@ -83,5 +83,29 @@ class RequestsTool(ToolBase):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response
 
+    def __call__(self, method: str, url: str, **kwargs) -> requests.Response:
+        """
+        Calls the appropriate HTTP method (GET, POST, PUT, DELETE) based on the method argument.
+
+        Args:
+            method (str): The HTTP method to use ('get', 'post', 'put', 'delete').
+            url (str): The URL for the request.
+            **kwargs: Additional keyword arguments passed to the respective method.
+
+        Returns:
+            requests.Response: The response object from the HTTP request.
+        """
+        method = method.lower()
+        if method == 'get':
+            return self.get(url, **kwargs)
+        elif method == 'post':
+            return self.post(url, **kwargs)
+        elif method == 'put':
+            return self.put(url, **kwargs)
+        elif method == 'delete':
+            return self.delete(url, **kwargs)
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
+
     def __str__(self):
         return f"{self.name}: {self.description}"
