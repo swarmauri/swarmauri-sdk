@@ -7,10 +7,10 @@ class FleschKincaid(ToolBase):
     A tool for calculating the Flesch-Kincaid readability score.
     """
     version: str = "0.1.dev1"
-    name: str = "FleschKincaid"
-    type: Literal["FleschKincaid"] = "FleschKincaid"
+    name: str = "FleschKincaidTool"
+    type: Literal["FleschKincaidTool"] = "FleschKincaidTool"
     description: str = "Calculates the FleschKincard score for a given text."
-    
+
     def execute(self, data: Dict[str, Any]) -> float:
         """
         Executes the Flesch-Kincaid tool and returns the readability score.
@@ -36,7 +36,7 @@ class FleschKincaid(ToolBase):
             flesch_kincaid_score = 206.835 - 1.015 * words_per_sentence - 84.6 * syllables_per_word
             return flesch_kincaid_score
         else:
-            raise ValueError("Invalid input for FleschKincaid.")
+            raise ValueError("Invalid input for FleschKincaidTool.")
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
