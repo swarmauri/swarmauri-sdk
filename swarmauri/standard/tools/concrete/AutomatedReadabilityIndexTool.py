@@ -3,7 +3,7 @@ from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase 
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
-class AutomatedReadabilityIndex(ToolBase):
+class AutomatedReadabilityIndexTool(ToolBase):
     version: str = "0.1.dev1"
     parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
@@ -14,9 +14,9 @@ class AutomatedReadabilityIndex(ToolBase):
         )
     ])
     
-    name: str = 'AutomatedReadabilityIndex'
+    name: str = 'AutomatedReadabilityIndexTool'
     description: str = "Calculates the readability of a given text using the Automated Readability Index (ARI)."
-    type: Literal['AutomatedReadabilityIndex'] = 'AutomatedReadabilityIndex'
+    type: Literal['AutomatedReadabilityIndexTool'] = 'AutomatedReadabilityIndexTool'
 
     def __call__(self, text: str) -> float:
         """
