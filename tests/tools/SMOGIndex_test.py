@@ -16,7 +16,6 @@ def test_initialization():
     assert type(tool.id) == str
 
 @pytest.mark.unit
-@pytest.mark.unit
 def test_call():
     tool = Tool()
     input_text = "This is a sample text with some complex sentences and polysyllabic words to test the SMOG Index calculation."
