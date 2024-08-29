@@ -18,4 +18,6 @@ def test_initialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    text = "The cat sat on the mat."
+    expected_score = 116.145
+    assert  tool(text) == pytest.approx(expected_score, rel=1e-2)

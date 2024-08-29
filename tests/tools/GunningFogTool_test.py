@@ -18,4 +18,6 @@ def test_initialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    assert tool(10, 10) == str(20)
+    data = {"input_text": "This is a sample sentence. It is used to test the Gunning-Fog tool."}
+    expected_score = 0.4 * ((8 / 2) + 100 * (2 / 8))
+    assert tool(data) == pytest.approx(expected_score, rel=1e-2)
