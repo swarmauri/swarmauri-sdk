@@ -7,9 +7,9 @@ class TextLengthTool(ToolBase):
     """
     A tool for measuring text length in terms of characters, words, and sentences.
     """
-    name = "TextLength"
+    name = "TextLengthTool"
     description: str = "This tool calculates the length of the text"
-    type: Literal['TextLength'] = 'TextLength'
+    type: Literal['TextLengthTool'] = 'TextLengthTool'
 
     def execute(self, data: str) -> dict:
         """

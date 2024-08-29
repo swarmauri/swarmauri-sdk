@@ -1,12 +1,16 @@
-# swarmauri/standard/tools/concrete/LexicalDensity.py
+# swarmauri/standard/tools/concrete/LexicalDensityTool.py
 from typing import Dict, Any
 from collections import Counter
 from sswarmauri.tandard.tools.base.ToolBase import ToolBase
 
-class LexicalDensity(ToolBase):
+class LexicalDensityTool(ToolBase):
     """
     Computes the ratio of unique words to total words in the text to gauge its lexical richness.
     """
+    version: str = "0.1.dev1"
+    name: str = "LexicalDensityTool"
+    type: Literal["LexicalDensityTool"] = "LexicalDensityTool"
+    description: str = "Calculates the LexicalDensityTool for a given text."
 
     def execute(self, text: str) -> Dict[str, Any]:
         """

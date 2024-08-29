@@ -5,7 +5,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 import re
 import math
 
-class SMOGIndex(ToolBase):
+class SMOGIndexTool(ToolBase):
     version: str = "0.1.dev1"
     parameters: List[Parameter] = Field(default_factory=lambda: [
         Parameter(
@@ -15,9 +15,9 @@ class SMOGIndex(ToolBase):
             required=True
         )
     ])
-    name: str = 'SMOGIndex'
+    name: str = 'SMOGIndexTool'
     description: str = "Calculates the SMOG Index for the provided text."
-    type: Literal['SMOGIndex'] = 'SMOGIndex'
+    type: Literal['SMOGIndexTool'] = 'SMOGIndexTool'
 
     def __call__(self, text: str) -> float:
         """
