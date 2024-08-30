@@ -122,18 +122,29 @@ class FleschKincaidTool(ToolBase):
         word = word.lower()
         vowels = "aeiouy"
         syllables = 0
+        prev_char = ""
+    
         if len(word) == 0:
             return syllables
-        if word[0] in vowels:
-            syllables += 1
-        for index in range(1, len(word)):
-            if word[index] in vowels and word[index - 1] not in vowels:
-                syllables += 1
-        if word.endswith('e'):
+    
+        for index, char in enumerate(word):
+            if char in vowels:
+                if index == 0:
+                    syllables += 1
+                elif prev_char not in vowels:
+                    syllables += 1
+            prev_char = char
+    
+        # Special rule for ending 'e'
+        if word.endswith("e") and syllables > 1:
             syllables -= 1
+    
+        # Minimum of 1 syllable per word
         if syllables == 0:
             syllables = 1
+    
         return syllables
+
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """

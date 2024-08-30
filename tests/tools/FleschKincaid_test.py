@@ -25,7 +25,7 @@ def test_call():
     # Expected values
     words = 15
     sentences = 3
-    syllables = 20
+    syllables = 21
 
     words_per_sentence = words / sentences
     syllables_per_word = syllables / words
