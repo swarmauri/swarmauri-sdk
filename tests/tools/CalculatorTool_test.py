@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'CalculatorTool'
+    assert CalculatorTool().type == 'CalculatorTool'
 
 @pytest.mark.unit
 def test_initialization():
