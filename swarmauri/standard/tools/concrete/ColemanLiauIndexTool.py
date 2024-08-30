@@ -95,3 +95,15 @@ class ColemanLiauIndexTool(ToolBase):
             int: The number of characters in the text.
         """
         return len(text) - text.count(' ')  # Count characters excluding spaces
+
+    def validate_input(self, data: Dict[str, Any]) -> bool:
+        """
+        Validates the input data to ensure it contains the necessary 'input_text' key.
+        
+        Parameters:
+            data (Dict[str, Any]): The input data to validate.
+        
+        Returns:
+            bool: True if the input is valid, False otherwise.
+        """
+        return isinstance(data, dict) and "input_text" in data and isinstance(data["input_text"], str)
