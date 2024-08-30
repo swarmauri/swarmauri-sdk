@@ -7,6 +7,10 @@ def test_ubc_resource():
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
+def test_ubc_type():
+    assert Tool().type == 'TestTool'
+
+@pytest.mark.unit
 def test_initialization():
     tool = Tool()
     assert type(tool.swm_path) == str
