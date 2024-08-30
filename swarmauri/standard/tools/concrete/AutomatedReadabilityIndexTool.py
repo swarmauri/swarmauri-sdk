@@ -95,3 +95,17 @@ class AutomatedReadabilityIndexTool(ToolBase):
             int: The number of characters in the text.
         """
         return len(text) - text.count(' ')  # Count characters excluding spaces
+
+    def validate_input(self, data: Dict[str, Any]) -> bool:
+        """
+        Validates the input data for the ARI tool.
+        
+        Parameters:
+            data (Dict[str, Any]): The input data to validate.
+        
+        Returns:
+            bool: True if the input is valid, False otherwise.
+        """
+        if 'input_text' in data and isinstance(data['input_text'], str):
+            return True
+        return False
