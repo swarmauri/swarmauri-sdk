@@ -1,4 +1,5 @@
 import nltk
+import textstat
 from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase
