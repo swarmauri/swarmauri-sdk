@@ -94,7 +94,7 @@ class ColemanLiauIndexTool(ToolBase):
         Returns:
             int: The number of characters in the text.
         """
-        return len(text) - text.count(' ')  # Count characters excluding spaces
+        return len(re.findall(r'[A-Za-z]', text))  # Count characters excluding spaces
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
