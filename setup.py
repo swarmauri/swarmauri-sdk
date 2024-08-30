@@ -46,7 +46,8 @@ setup(
             'scipy==1.10.0',
             "qdrant-client",
             "chromadb",
-            "textstat"
+            "textstat",
+            "nltk"
 
         ]},
     classifiers=[

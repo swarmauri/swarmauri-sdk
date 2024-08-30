@@ -1,8 +1,12 @@
-import textstat
+import nltk
 from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
+
+# Download necessary NLTK resources
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 class LexicalDensityTool(ToolBase):
     version: str = "0.1.dev2"
@@ -64,6 +68,11 @@ class LexicalDensityTool(ToolBase):
         Returns:
             int: The number of lexical words in the text.
         """
-        words = text.split()
-        lexical_words = [word for word in words if textstat.is_lexical_word(word)]
+        words = nltk.word_tokenize(text)
+        pos_tags = nltk.pos_tag(words)
+        
+        # POS tags for lexical words (nouns, verbs, adjectives, adverbs)
+        lexical_pos_tags = {'NN', 'NNS', 'NNP', 'NNPS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'JJ', 'JJR', 'JJS', 'RB', 'RBR', 'RBS'}
+        
+        lexical_words = [word for word, pos in pos_tags if pos in lexical_pos_tags]
         return len(lexical_words)
