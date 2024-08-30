@@ -19,5 +19,11 @@ def test_initialization():
 def test_call():
     tool = Tool()
     data = {"input_text": "This is a sample sentence. It is used to test the Gunning-Fog tool."}
-    expected_score = 0.4 * ((8 / 2) + 100 * (2 / 8))
+    num_of_major_punctuations = 2
+    num_of_words = 3
+    num_of_three_plus_syllable_words = 1
+
+    expected_score = 0.4 * (
+        ( num_of_words / num_of_major_punctuations) + 100 * (num_of_three_plus_syllable_words / num_of_words)
+    )
     assert tool(data) == pytest.approx(expected_score, rel=1e-2)
