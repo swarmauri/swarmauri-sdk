@@ -7,7 +7,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 # Download necessary NLTK resources
 nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+nltk.download('averaged_perceptron_tagger_eng')
 
 class LexicalDensityTool(ToolBase):
     version: str = "0.1.dev2"
