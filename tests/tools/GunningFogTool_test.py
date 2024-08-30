@@ -20,7 +20,7 @@ def test_call():
     tool = Tool()
     data = {"input_text": "This is a sample sentence. It is used to test the Gunning-Fog tool."}
     num_of_major_punctuations = 2
-    num_of_words = 3
+    num_of_words = 13
     num_of_three_plus_syllable_words = 1
 
     expected_score = 0.4 * (
