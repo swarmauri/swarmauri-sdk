@@ -7,6 +7,10 @@ def test_ubc_resource():
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
+def test_ubc_type():
+    assert Tool().type == 'WeatherTool'
+
+@pytest.mark.unit
 def test_call():
     tool = Tool()
     location = 'Dallas'
