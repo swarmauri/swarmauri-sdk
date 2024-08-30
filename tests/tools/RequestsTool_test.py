@@ -15,7 +15,22 @@ def test_initialization():
     tool = Tool()
     assert type(tool.id) == str
 
+@pytest.mark.parametrize("method, url, kwargs", [
+    ('get', 'https://httpbin.org/get', {}),
+    ('post', 'https://httpbin.org/post', {'json': {'key': 'value'}}),
+    ('put', 'https://httpbin.org/put', {'json': {'key': 'value'}}),
+    ('delete', 'https://httpbin.org/delete', {}),
+])
+
 @pytest.mark.unit
-def test_call():
+def test_call(method, url, kwargs):
     tool = Tool()
-    assert tool(2, 3) # 🚧 Place holder for real test
+    try:
+        response = tool(method, url, **kwargs)
+
+        assert response.status_code == 200
+
+        assert 'url' in response.json()
+
+    except Exception as e:
+        pytest.fail(f"{method.upper()} request failed with error: {e}")
