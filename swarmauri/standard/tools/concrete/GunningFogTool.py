@@ -86,3 +86,15 @@ class GunningFogTool(ToolBase):
         """
         syllable_count = self.count_syllables_in_word(word)
         return syllable_count >= 3
+
+    def validate_input(self, data: Dict[str, Any]) -> bool:
+        """
+        Validates the input data to ensure it contains the required 'input_text' key.
+        
+        Parameters:
+            data (Dict[str, Any]): The input data to validate.
+        
+        Returns:
+            bool: True if the input is valid, False otherwise.
+        """
+        return isinstance(data, dict) and 'input_text' in data and isinstance(data['input_text'], str)
