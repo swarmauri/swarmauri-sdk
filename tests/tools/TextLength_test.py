@@ -21,6 +21,6 @@ def test_call():
     text = "This is a simple test sentence."
     result = tool(text) # 🚧 Should tools be able to return a Union[str, Dict] or be required to return str?
 
-    assert result["num_characters"] == 28 
+    assert result["num_characters"] == 26
     assert result["num_words"] == 6 
     assert result["num_sentences"] == 1 
