@@ -57,6 +57,32 @@ class GunningFogTool(ToolBase):
         else:
             raise ValueError("Invalid input for GunningFogTool.")
 
+    def count_sentences(self, text: str) -> int:
+        """
+        Counts the number of sentences in the text.
+        
+        Parameters:
+            text (str): The input text.
+        
+        Returns:
+            int: The number of sentences in the text.
+        """
+        sentences = re.split(r'[.!?]+', text)
+        return len([s for s in sentences if s.strip()])
+
+    def count_words(self, text: str) -> int:
+        """
+        Counts the number of words in the text.
+        
+        Parameters:
+            text (str): The input text.
+        
+        Returns:
+            int: The number of words in the text.
+        """
+        words = re.findall(r'\b\w+\b', text)
+        return len(words)
+
     def count_complex_words(self, text: str) -> int:
         """
         Counts the number of complex words (3 or more syllables) in the text.
@@ -86,6 +112,20 @@ class GunningFogTool(ToolBase):
         """
         syllable_count = self.count_syllables_in_word(word)
         return syllable_count >= 3
+
+    def count_syllables_in_word(self, word: str) -> int:
+        """
+        Counts the number of syllables in a word.
+        
+        Parameters:
+            word (str): The word to count syllables in.
+        
+        Returns:
+            int: The number of syllables in the word.
+        """
+        word = word.lower()
+        syllable_count = len(re.findall(r'[aeiouy]+', word))
+        return syllable_count
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
