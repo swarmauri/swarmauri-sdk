@@ -4,18 +4,24 @@ from swarmauri.standard.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
-from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
+from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
+    VectorStoreRetrieveMixin,
+)
+from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
+    VectorStoreSaveLoadMixin,
+)
 
-class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
-    type: Literal['TfidfVectorStore'] = 'TfidfVectorStore'
-    
+
+class TfidfVectorStore(
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
+):
+    type: Literal["TfidfVectorStore"] = "TfidfVectorStore"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = TfidfEmbedding()
         self._distance = CosineDistance()
         self.documents = []
-      
 
     def add_document(self, document: Document) -> None:
         self.documents.append(document)
@@ -54,12 +60,15 @@ class TfidfVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         documents = [query]
         documents.extend([doc.content for doc in self.documents])
         transform_matrix = self._embedder.fit_transform(documents)
-        
+
         # The inferred vector is the last vector in the transformed_matrix
         # The rest of the matrix is what we are comparing
-        distances = self._distance.distances(transform_matrix[-1], transform_matrix[:-1])  
+        distances = self._distance.distances(
+            transform_matrix[-1], transform_matrix[:-1]
+        )
 
         # Get the indices of the top_k most similar (least distant) documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
+        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[
+            :top_k
+        ]
         return [self.documents[i] for i in top_k_indices]
-
