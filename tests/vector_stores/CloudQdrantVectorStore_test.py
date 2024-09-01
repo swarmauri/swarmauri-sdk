@@ -1,18 +1,22 @@
 import os
 import pytest
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.community.vector_stores.CloudQdrantVectorStore import CloudQdrantVectorStore
+from swarmauri.community.vector_stores.CloudQdrantVectorStore import (
+    CloudQdrantVectorStore,
+)
 
 API_KEY = os.getenv("QDRANT_API_KEY")
-# COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
+COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
+URL = os.getenv("QDRANT_URL_KEY")
 
 
 @pytest.mark.unit
 def test_ubc_resource():
     vs = CloudQdrantVectorStore(
         api_key=API_KEY,
-        # collection_name=COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
         vector_size=100,
+        url=URL,
     )
     assert vs.resource == "VectorStore"
     assert vs.embedder.resource == "Embedding"
@@ -22,8 +26,9 @@ def test_ubc_resource():
 def test_ubc_type():
     vs = CloudQdrantVectorStore(
         api_key=API_KEY,
-        # collection_name=COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
         vector_size=100,
+        url=URL,
     )
     assert vs.type == "CloudQdrantVectorStore"
 
@@ -32,8 +37,9 @@ def test_ubc_type():
 def test_serialization():
     vs = CloudQdrantVectorStore(
         api_key=API_KEY,
-        # collection_name=COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
         vector_size=100,
+        url=URL,
     )
     assert vs.id == CloudQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
 
@@ -42,8 +48,9 @@ def test_serialization():
 def top_k_test():
     vs = CloudQdrantVectorStore(
         api_key=API_KEY,
-        # collection_name=COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
         vector_size=100,
+        url=URL,
     )
     documents = [
         Document(content="test"),

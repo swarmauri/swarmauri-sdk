@@ -11,43 +11,37 @@ from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbed
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
 from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri.core.vector_stores.ICloudVectorStore import ICloudVectorStore
 
 
-class CloudQdrantVectorStore(
+class PersistentQdrantVectorStore(
     VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
+    IPersistentVectorStore,
     VectorStoreBase,
-    ICloudVectorStore,
 ):
     """
-    CloudQdrantVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
+    PersistentQdrantVectorStore is a concrete implementation that integrates functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging a locally
+    hosted Qdrant instance as the backend.
     """
 
-    type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
+    type: Literal["PersistentQdrantVectorStore"] = "PersistentQdrantVectorStore"
 
-    def __init__(
-        self, api_key: str, url: str, collection_name: str, vector_size: int, **kwargs
-    ):
+    def __init__(self, url: str, collection_name: str, vector_size: int, **kwargs):
         super().__init__(
-            api_key=api_key,
-            url=url,
-            collection_name=collection_name,
-            vector_size=vector_size,
-            **kwargs,
+            collection_name=collection_name, vector_size=vector_size, **kwargs
         )
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
         self.vectorizer = self._embedder
         self._distance = CosineDistance()
 
-        self.api_key = api_key
         self.url = url
         self.collection_name = collection_name
         self.vector_size = vector_size
@@ -56,15 +50,11 @@ class CloudQdrantVectorStore(
 
     def connect(self) -> None:
         """
-        Connects to the Qdrant cloud vector store using the provided credentials.
+        Connects to the Qdrant vector store using the provided URL.
         """
         if self.client is None:
-            self.client = QdrantClient(
-                api_key=self.api_key,
-                url=self.url,
-            )
+            self.client = QdrantClient(url=self.url)
 
-        # TODO  may need optimization two loops may not be necessary
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections
         collection_names = [collection.name for collection in existing_collections]
@@ -80,7 +70,7 @@ class CloudQdrantVectorStore(
 
     def disconnect(self) -> None:
         """
-        Disconnects from the Qdrant cloud vector store.
+        Disconnects from the Qdrant vector store.
         """
         if self.client is not None:
             self.client = None
@@ -214,7 +204,7 @@ class CloudQdrantVectorStore(
 
     def clear_documents(self) -> None:
         """
-        Deletes all documents from the vector store
+        Deletes all documents from the vector store.
         """
         self.client.delete_collection(self.collection_name)
 
