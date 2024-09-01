@@ -1,24 +1,15 @@
-import os
-import json
-import logging
-import pickle
-import tempfile
 from typing import List, Union, Literal
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     PointStruct,
     VectorParams,
     Distance,
-    Filter,
-    FilterSelector,
 )
-import numpy as np
 
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
-from swarmauri.standard.vectors.concrete.Vector import Vector
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -65,7 +56,7 @@ class CloudQdrantVectorStore(
                 url=self.url,
             )
 
-        # TODO  may need optimization
+        # TODO  may need optimization two loops may not be necessary
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections
         collection_names = [collection.name for collection in existing_collections]
@@ -93,19 +84,21 @@ class CloudQdrantVectorStore(
         Parameters:
             document (Document): The document to be added to the store.
         """
-        embedding = document.embedding or self.vectorizer.fit_transform(
-            document.content
-        )
-
-        document_vector = embedding[0].to_numpy().tolist()
+        embedding = None
+        if not document.embedding:
+            self.vectorizer.fit([document.content])  # Fit only once
+            embedding = (
+                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+            )
+        else:
+            embedding = document.embedding
 
         payload = {
             "content": document.content,
             "metadata": document.metadata,
         }
 
-        doc = PointStruct(id=document.id, vector=document_vector, payload=payload)
-        print(doc)
+        doc = PointStruct(id=document.id, vector=embedding, payload=payload)
 
         self.client.upsert(
             collection_name=self.collection_name,
@@ -160,15 +153,15 @@ class CloudQdrantVectorStore(
         """
         response = self.client.scroll(
             collection_name=self.collection_name,
-            scroll_filter=FilterSelector(),  # No filter to get all documents
         )
+
         return [
             Document(
                 id=doc.id,
                 content=doc.payload["content"],
                 metadata=doc.payload["metadata"],
             )
-            for doc in response
+            for doc in response[0]
         ]
 
     def delete_document(self, id: str) -> None:
@@ -180,7 +173,6 @@ class CloudQdrantVectorStore(
         """
         self.client.delete(self.collection_name, points_selector=[id])
 
-    # TODO: Should fit the previous vector dimension
     def update_document(self, id: str, updated_document: Document) -> None:
         """
         Update a document in the document store.
@@ -189,12 +181,14 @@ class CloudQdrantVectorStore(
             id (str): The unique identifier of the document to update.
             updated_document (Document): The updated document instance.
         """
-        document_vector = (
-            updated_document.embedding
-            or self.vectorizer.fit_transform(updated_document.content)[0]
-            .to_numpy()
-            .tolist()
-        )
+        # Precompute the embedding outside the update process
+        if not updated_document.embedding:
+            # Transform without refitting to avoid vocabulary issues
+            document_vector = self.vectorizer.transform([updated_document.content])[0]
+        else:
+            document_vector = updated_document.embedding
+
+        document_vector = document_vector.to_numpy().tolist()
 
         self.client.upsert(
             self.collection_name,
@@ -214,7 +208,7 @@ class CloudQdrantVectorStore(
         """
         Deletes all documents from the vector store
         """
-        self.client.delete(self.collection_name, points_selector=FilterSelector())
+        self.client.delete_collection(self.collection_name)
 
     def document_count(self) -> int:
         """
@@ -222,7 +216,6 @@ class CloudQdrantVectorStore(
         """
         response = self.client.scroll(
             collection_name=self.collection_name,
-            scroll_filter=FilterSelector(),
         )
         return len(response)
 
