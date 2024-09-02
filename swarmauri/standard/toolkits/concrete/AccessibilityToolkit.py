@@ -4,6 +4,7 @@ from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 
 class AccessibilityToolkit(ToolkitBase):
     type: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
+    resource: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
