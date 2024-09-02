@@ -1,3 +1,6 @@
+import os
+from tempfile import NamedTemporaryFile
+
 import pytest
 from swarmauri.standard.tools.concrete.MatplotlibCsvTool import MatplotlibCsvTool as Tool
 
@@ -21,8 +24,47 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
+@pytest.mark.parametrize(
+    "csv_content, x_column, y_column, expected_error",
+    [
+        (
+            "x,y\n1,2\n3,4\n5,6",  # CSV content
+            "x",  # x_column
+            "y",  # y_column
+            None  # No error expected
+        ),
+        (
+            "a,b\n1,2\n3,4\n5,6",  # CSV content
+            "x",  # x_column
+            "y",  # y_column
+            ValueError  # Error expected due to missing columns
+        ),
+        (
+            "x,z\n1,2\n3,4\n5,6",  # CSV content
+            "x",  # x_column
+            "y",  # y_column
+            ValueError  # Error expected due to missing y_column
+        )
+    ]
+)
 @pytest.mark.unit
-def test_call():
+def test_call(csv_content, x_column, y_column, expected_error):
+    with NamedTemporaryFile(delete=False, suffix=".csv") as csv_file:
+        csv_file.write(csv_content.encode())
+        csv_file_path = csv_file.name
+
+    with NamedTemporaryFile(delete=False, suffix=".png") as output_file:
+        output_file_path = output_file.name
+
     tool = Tool()
-    input_text = "dummy text"
-    assert tool(input_text) == "dummy text"
+
+    if expected_error:
+        with pytest.raises(expected_error):
+            tool(csv_file_path, x_column, y_column, output_file_path)
+    else:
+        tool(csv_file_path, x_column, y_column, output_file_path)
+        assert os.path.exists(output_file_path)
+
+    os.remove(csv_file_path)
+    if os.path.exists(output_file_path):
+        os.remove(output_file_path)
