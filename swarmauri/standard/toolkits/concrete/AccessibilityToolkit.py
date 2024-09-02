@@ -11,15 +11,11 @@ from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 
 class AccessibilityToolkit(ToolkitBase):
     type: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
-    resource: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.add_tool(AutomatedReadabilityIndexTool(name='AutomatedReadabilityIndexTool'))
         self.add_tool(ColemanLiauIndexTool(name='ColemanLiauIndexTool'))
-        self.add_tool(DaleChallReadabilityTool(name='DaleChallReadabilityTool'))
         self.add_tool(FleschKincaidTool(name='FleschKincaidTool'))
         self.add_tool(FleschReadingEaseTool(name='FleschReadingEaseTool'))
         self.add_tool(GunningFogTool(name='GunningFogTool'))
-        self.add_tool(LexicalDensityTool(name='LexicalDensityTool'))
-        self.add_tool(TextLengthTool(name='TextLengthTool'))
