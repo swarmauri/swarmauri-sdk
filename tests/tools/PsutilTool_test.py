@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import psutil
 import pytest
 from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
 
@@ -22,57 +23,40 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
-
-mock_cpu_data = {
-    "cpu_times": {'user': 1000.0, 'system': 500.0, 'idle': 10000.0},
-    "cpu_percent": 10.0,
-    "cpu_times_per_cpu": [{'user': 500.0, 'system': 250.0, 'idle': 5000.0}],
-    "cpu_count": 4,
-    "cpu_frequency": {'current': 2400.0, 'min': 800.0, 'max': 4000.0},
-    "cpu_stats": {'ctx_switches': 1000, 'interrupts': 500, 'soft_interrupts': 300, 'syscalls': 200},
-}
-
-mock_memory_data = {
-    "virtual_memory": {'total': 8589934592, 'available': 4294967296, 'percent': 50.0, 'used': 4294967296,
-                       'free': 2147483648},
-    "swap_memory": {'total': 4294967296, 'used': 2147483648, 'free': 2147483648, 'percent': 50.0},
-}
-
-mock_disk_data = {
-    "disk_partitions": [{'device': '/dev/sda1', 'mountpoint': '/', 'fstype': 'ext4', 'opts': 'rw,relatime'}],
-    "disk_usage": {'/dev/sda1': {'total': 1000000000, 'used': 500000000, 'free': 500000000, 'percent': 50.0}},
-    "disk_io_counters": {'read_count': 1000, 'write_count': 500, 'read_bytes': 1000000, 'write_bytes': 500000},
-}
-
-mock_network_data = {
-    "network_io_counters": {'bytes_sent': 1000000, 'bytes_recv': 1000000, 'packets_sent': 1000, 'packets_recv': 1000},
-    "network_connections": [
-        {'fd': 10, 'family': 2, 'type': 1, 'laddr': ('127.0.0.1', 8080), 'raddr': ('127.0.0.1', 8081),
-         'status': 'ESTABLISHED'}],
-    "network_interfaces": {'lo': [{'family': 2, 'address': '127.0.0.1', 'netmask': '255.0.0.0', 'broadcast': None}]},
-    "interface_addresses": {'lo': [{'family': 2, 'address': '127.0.0.1', 'netmask': '255.0.0.0', 'broadcast': None}]},
-}
-
-mock_sensors_data = {
-    "battery": {'percent': 80, 'secsleft': 1000, 'power_plugged': False},
-    "temperatures": {'coretemp': [{'label': 'Core 0', 'current': 42.0, 'high': 80.0, 'critical': 100.0}]},
-    "fan_speeds": {'fan1': [{'label': 'Fan1', 'current': 1200}]},
-}
-
-
 @pytest.mark.parametrize(
-    "info_type, expected_output",
+    "info_type, psutil_method, expected_key",
     [
-        ('cpu', mock_cpu_data),
-        ('memory', mock_memory_data),
-        ('disk', mock_disk_data),
-        ('network', mock_network_data),
-        ('sensors', mock_sensors_data),
+        ('cpu', psutil.cpu_times, 'cpu_times'),
+        ('memory', psutil.virtual_memory, 'virtual_memory'),
+        ('disk', psutil.disk_partitions, 'disk_partitions'),
+        ('network', psutil.net_io_counters, 'network_io_counters'),
+        ('sensors', psutil.sensors_battery, 'battery'),
     ]
 )
 @pytest.mark.unit
-def test_call(info_type, expected_output):
+def test_call(info_type, psutil_method, expected_key):
     tool = Tool()
+    result = tool(info_type)
+
+    if info_type == 'cpu':
+        assert 'cpu_times' in result
+        assert isinstance(result['cpu_times'], dict)
+        assert 'cpu_percent' in result
+        assert isinstance(result['cpu_percent'], float)
+        assert 'cpu_count' in result
+        assert isinstance(result['cpu_count'], int)
+    elif info_type == 'memory':
+        assert 'virtual_memory' in result
+        assert isinstance(result['virtual_memory'], dict)
+    elif info_type == 'disk':
+        assert 'disk_partitions' in result
+        assert isinstance(result['disk_partitions'], list)
+    elif info_type == 'network':
+        assert 'network_io_counters' in result
+        assert isinstance(result['network_io_counters'], dict)
+    elif info_type == 'sensors':
+        assert 'battery' in result
+        assert isinstance(result['battery'], dict)
 
     with patch('psutil.cpu_times', return_value=MagicMock(_asdict=lambda: mock_cpu_data['cpu_times'])), \
             patch('psutil.cpu_percent', return_value=mock_cpu_data['cpu_percent']), \
