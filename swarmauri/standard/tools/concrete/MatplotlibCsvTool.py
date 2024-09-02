@@ -17,6 +17,7 @@ class MatplotlibCsvTool(ToolBase):
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
+                name="csv_file",
                 type="string",
                 description="The path to the CSV file containing the data.",
                 required=True
@@ -42,7 +43,7 @@ class MatplotlibCsvTool(ToolBase):
         ]
     )
 
-    def run(self, csv_file: str, x_column: str, y_column: str, output_file: str):
+    def __call__(self, csv_file: str, x_column: str, y_column: str, output_file: str):
         # Read data from CSV
         data = pd.read_csv(csv_file)
 
