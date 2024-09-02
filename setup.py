@@ -47,7 +47,8 @@ setup(
             "qdrant-client",
             "chromadb",
             "textstat",
-            "nltk"
+            "nltk",
+            "psutil"
 
         ]},
     classifiers=[
