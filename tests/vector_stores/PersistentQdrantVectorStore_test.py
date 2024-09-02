@@ -1,20 +1,20 @@
 import os
 import pytest
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.community.vector_stores.QdrantVectorStore import QdrantVectorStore
+from swarmauri.community.vector_stores.PersistentQdrantVectorStore import (
+    PersistentQdrantVectorStore,
+)
 
-URL = os.getenv("QDRANT_URL_KEY")
-API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
+URL = "http://localhost:6333"  # default URL for Qdrant
 
 
 @pytest.mark.unit
 def test_ubc_resource():
-    vs = QdrantVectorStore(
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
     assert vs.resource == "VectorStore"
     assert vs.embedder.resource == "Embedding"
@@ -22,33 +22,33 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    vs = QdrantVectorStore(
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
-    assert vs.type == "QdrantVectorStore"
+    assert vs.type == "PersistentQdrantVectorStore"
 
 
 @pytest.mark.unit
 def test_serialization():
-    vs = QdrantVectorStore(
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
-    assert vs.id == QdrantVectorStore.model_validate_json(vs.model_dump_json()).id
+    assert (
+        vs.id
+        == PersistentQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit
 def top_k_test():
-    vs = QdrantVectorStore(
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
     documents = [
         Document(content="test"),
