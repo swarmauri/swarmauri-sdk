@@ -85,14 +85,10 @@ class PersistentChromaDBVectorStore(
         """
         Close the connection to ChromaDB.
         """
-        try:
-            if self.client:
-                # Perform any necessary cleanup here
-                self.client = None
-                self.collection = None
-                logging.info("Disconnected from ChromaDB")
-        except Exception as e:
-            logging.error(f"Error disconnecting from ChromaDB: {str(e)}")
+        if self.client:
+            # Perform any necessary cleanup here
+            self.client = None
+            self.collection = None
 
     def add_document(self, document: Document) -> None:
         embedding = None
