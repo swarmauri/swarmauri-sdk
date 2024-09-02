@@ -37,7 +37,7 @@ def test_tool_count():
 @pytest.mark.unit
 def test_add_tool():
     toolkit = Toolkit()
-    tool = AutomatedReadabilityIndexTool(name='NewTool')
+    tool = AutomatedReadabilityIndexTool(name='ari_tool_2')
     toolkit.add_tool(tool)
     assert len(toolkit.get_tools()) == 6
 

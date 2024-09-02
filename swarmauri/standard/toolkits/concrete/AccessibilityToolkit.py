@@ -1,10 +1,12 @@
 from typing import Literal
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri.standard.tools.concrete.AutomatedReadabilityIndexTool import AutomatedReadabilityIndexTool
 from swarmauri.standard.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
 from swarmauri.standard.tools.concrete.FleschKincaidTool import FleschKincaidTool
 from swarmauri.standard.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool
 from swarmauri.standard.tools.concrete.GunningFogTool import GunningFogTool
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.standard.tools.concrete.LexicalDensityTool import LexicalDensityTool
+from swarmauri.standard.tools.concrete.TextLengthTool import TextLengthTool
 
 class AccessibilityToolkit(ToolkitBase):
     type: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
