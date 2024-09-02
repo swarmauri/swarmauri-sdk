@@ -19,7 +19,7 @@ def test_serialization():
     tool = Tool(name=tool_name)
     toolkit.add_tool(tool)
     assert toolkit.id == Toolkit.model_validate_json(toolkit.model_dump_json()).id
-    assert toolkit.get_tool_by_name(tool_name)('hello there!') == '2'
+    assert toolkit.get_tool_by_name(tool_name)('hello there!') == {'num_characters': 11, 'num_words': 3, 'num_sentences': 1}
 
 @pytest.mark.unit
 def test_add_tool():
@@ -32,4 +32,5 @@ def test_add_tool():
 def test_call_textlength():
     toolkit = Toolkit()
     tool_name = 'TextLengthTool'
-    assert toolkit.get_tool_by_name(tool_name)('hello there!') == '2'
+    expected_result = {'num_characters': 11, 'num_words': 3, 'num_sentences': 1}
+    assert toolkit.get_tool_by_name(tool_name)('hello there!') == expected_result
