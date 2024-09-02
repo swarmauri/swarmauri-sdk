@@ -1,6 +1,6 @@
  import os
 import pytest
-from swarmauri.standard.tools.concrete.CaptchaGeneratorTool import CaptchaGeneratorTool as Tool
+from swarmauri.community.tools.concrete.CaptchaGeneratorTool import CaptchaGeneratorTool as Tool
 
 @pytest.mark.unit
 def test_name():
