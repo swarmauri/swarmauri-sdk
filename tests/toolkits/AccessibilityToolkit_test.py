@@ -5,7 +5,7 @@ from swarmauri.standard.toolkits.concrete.AccessibilityToolkit import Accessibil
 @pytest.mark.unit
 def test_ubc_resource():
     toolkit = Toolkit()
-    assert toolkit.resource == 'AccessibilityToolkit'
+    assert toolkit.resource == 'Toolkit'
 
 @pytest.mark.unit
 def test_ubc_type():
