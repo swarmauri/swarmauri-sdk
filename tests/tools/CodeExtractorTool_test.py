@@ -7,25 +7,25 @@ Tests created must follow python syntax to avoid errors
 
 import pytest
 import tempfile
-from swarmauri.standard.tools.concrete.CodeExtractorTool import CodeExtractorTool
+from swarmauri.standard.tools.concrete.CodeExtractorTool import CodeExtractorTool as Tool
 
 
 @pytest.mark.unit
 def test_initialization():
-    tool = CodeExtractorTool()
-    assert isinstance(tool, CodeExtractorTool)
+    tool = Tool()
+    assert isinstance(tool, Tool)
     assert tool.resource == "Tool"
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert CodeExtractorTool().type == 'CodeExtractorTool'
+    assert Tool().type == 'CodeExtractorTool'
 
 @pytest.mark.unit
 def test_ubc_resource():
     """
     Test that the UBC resource attribute is correctly initialized.
     """
-    tool = CodeExtractorTool()
+    tool = Tool()
     assert tool.resource == "Tool"
 
 
@@ -43,7 +43,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = ["function1", "variable1"]
     expected_code = """\"\"\" module documentation string\n \"\"\"
@@ -52,6 +52,10 @@ print('Hello, World!')"""
     extracted_code = tool(file_name, extract_documentation, to_be_ignored)
     assert extracted_code == expected_code
 
+@pytest.mark.unit
+def test_serialization():
+    tool = Tool()
+    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.unit
 def test_extract_code():
@@ -64,7 +68,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = ["function1", "variable1"]
 
@@ -88,7 +92,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = []
 
@@ -109,7 +113,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = False
     to_be_ignored = []
 
@@ -135,7 +139,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = []
 
