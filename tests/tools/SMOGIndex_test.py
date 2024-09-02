@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.SMOGIndexTool import SMOGIndexTool as Tool
+from swarmauri.community.tools.concrete.SMOGIndexTool import SMOGIndexTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

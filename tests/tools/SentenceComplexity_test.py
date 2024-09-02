@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.SentenceComplexityTool import SentenceComplexityTool as Tool
+from swarmauri.community.tools.concrete.SentenceComplexityTool import SentenceComplexityTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
