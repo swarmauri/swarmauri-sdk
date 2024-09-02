@@ -10,6 +10,12 @@ class VectorStorePersistentMixin(IPersistentVectorStore):
     """
 
     collection_name: str
+
+    collection: Optional[object] = Field(
+        None,
+        description="Collection object for interacting with the persistent-based store",
+    )
+
     path: Optional[str] = Field(
         None, description="URL of the persistent-based store to connect to"
     )
