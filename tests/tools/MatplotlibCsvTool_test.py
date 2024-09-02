@@ -11,7 +11,6 @@ def test_ubc_resource():
 def test_ubc_type():
     assert Tool().type == 'MatplotlibCsvTool'
 
-
 @pytest.mark.unit
 def test_initialization():
     tool = Tool()

@@ -18,6 +18,11 @@ def test_initialization():
     assert type(tool.id) == str
 
 @pytest.mark.unit
+def test_serialization():
+    tool = Tool()
+    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+
+@pytest.mark.unit
 def test_call():
     tool = Tool()
     name_of_new_module = 'test_module'
