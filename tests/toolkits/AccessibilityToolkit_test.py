@@ -22,14 +22,14 @@ def test_serialization():
 @pytest.mark.unit
 def test_tool_count():
     toolkit = Toolkit()
-    assert len(toolkit.get_tools()) == 6
+    assert len(toolkit.get_tools()) == 5
 
 @pytest.mark.unit
 def test_add_tool():
     toolkit = Toolkit()
     tool = AutomatedReadabilityIndexTool()
     toolkit.add_tool(tool)
-    assert len(toolkit.get_tools()) == 7
+    assert len(toolkit.get_tools()) == 6
 
 @pytest.mark.unit
 def test_call_automated_readability_index_tool():
