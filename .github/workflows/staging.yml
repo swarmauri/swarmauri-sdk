@@ -5,11 +5,10 @@ name: Test Staging
 
 on:
   push:
-    branches: ["staging", "dev-0.4.1.x", "*"]
+    branches: ["staging", "dev-0.4.1.x", "0.4.1.x/*"]
 
 jobs:
   build:
-    if: startsWith(github.ref, 'refs/heads/dev-0.4.1.x/*')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
