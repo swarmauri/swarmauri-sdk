@@ -19,16 +19,10 @@ def test_ubc_type():
 
 @pytest.mark.unit
 def test_serialization():
-    # Create an instance of AccessibilityToolkit
-    toolkit = AccessibilityToolkit()
-
-    # Serialize the toolkit to JSON
+    toolkit = Toolkit()
     serialized_data = toolkit.model_dump_json()
+    deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
 
-    # Deserialize the JSON back to an AccessibilityToolkit object
-    deserialized_toolkit = AccessibilityToolkit.model_validate_json(serialized_data)
-
-    # Assert that the ID and content of the toolkit remain the same after serialization and deserialization
     assert toolkit.id == deserialized_toolkit.id
     assert toolkit.get_tool_names() == deserialized_toolkit.get_tool_names()
 
@@ -36,10 +30,20 @@ def test_serialization():
     assert toolkit == deserialized_toolkit
 
 @pytest.mark.unit
+def test_tool_count():
+    toolkit = Toolkit()
+    assert len(toolkit.get_tools()) == 5
+
+@pytest.mark.unit
 def test_add_tool():
     toolkit = Toolkit()
-    initial_tool_count = len(toolkit.get_tool_names())
-    # Replace Tool() with an actual tool class or instance if available
-    new_tool = AutomatedReadabilityIndexTool(name='NewTool')
-    toolkit.add_tool(new_tool)
-    assert len(toolkit.get_tool_names()) == initial_tool_count + 1
+    tool = AutomatedReadabilityIndexTool(name='NewTool')
+    toolkit.add_tool(tool)
+    assert len(toolkit.get_tools()) == 6
+
+@pytest.mark.unit
+def test_call_automated_readability_index_tool():
+    toolkit = Toolkit()
+    tool_name = 'AutomatedReadabilityIndexTool'
+    expected_result = {'num_characters': 11, 'num_words': 3, 'num_sentences': 1}
+    assert toolkit.get_tool_by_name(tool_name)('hello there!') == expected_result
