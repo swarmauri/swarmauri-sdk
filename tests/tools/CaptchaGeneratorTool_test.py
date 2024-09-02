@@ -7,7 +7,7 @@ def test_name():
     Test if the tool's name is correctly set.
     """
     tool = Tool()
-    assert tool.name == "CaptchaGeneratorTool", "The tool name does not match 'CaptchaGeneratorTool'."
+    assert tool.name == "CaptchaGeneratorTool"
 
 
 @pytest.mark.unit
