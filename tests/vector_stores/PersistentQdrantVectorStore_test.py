@@ -14,7 +14,7 @@ def test_ubc_resource():
     vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
-        url=URL,
+        path=URL,
     )
     assert vs.resource == "VectorStore"
     assert vs.embedder.resource == "Embedding"
@@ -25,7 +25,7 @@ def test_ubc_type():
     vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
-        url=URL,
+        path=URL,
     )
     assert vs.type == "PersistentQdrantVectorStore"
 
@@ -35,7 +35,7 @@ def test_serialization():
     vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
-        url=URL,
+        path=URL,
     )
     assert (
         vs.id
@@ -48,7 +48,7 @@ def top_k_test():
     vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
-        url=URL,
+        path=URL,
     )
     documents = [
         Document(content="test"),

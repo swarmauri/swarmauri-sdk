@@ -11,19 +11,21 @@ from swarmauri.standard.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbed
 from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
 from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
+from swarmauri.standard.vector_stores.base.VectorStorePersistentMixin import (
+    VectorStorePersistentMixin,
+)
 
 
 class PersistentQdrantVectorStore(
     VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
-    IPersistentVectorStore,
+    VectorStorePersistentMixin,
     VectorStoreBase,
 ):
     """
@@ -34,7 +36,7 @@ class PersistentQdrantVectorStore(
 
     type: Literal["PersistentQdrantVectorStore"] = "PersistentQdrantVectorStore"
 
-    def __init__(self, url: str, collection_name: str, vector_size: int, **kwargs):
+    def __init__(self, path: str, collection_name: str, vector_size: int, **kwargs):
         super().__init__(
             collection_name=collection_name, vector_size=vector_size, **kwargs
         )
@@ -42,7 +44,7 @@ class PersistentQdrantVectorStore(
         self.vectorizer = self._embedder
         self._distance = CosineDistance()
 
-        self.url = url
+        self.path = path
         self.collection_name = collection_name
         self.vector_size = vector_size
 
@@ -53,7 +55,7 @@ class PersistentQdrantVectorStore(
         Connects to the Qdrant vector store using the provided URL.
         """
         if self.client is None:
-            self.client = QdrantClient(url=self.url)
+            self.client = QdrantClient(path=self.path)
 
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections

@@ -17,14 +17,16 @@ from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
 from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri.core.vector_stores.ICloudVectorStore import ICloudVectorStore
+from swarmauri.standard.vector_stores.base.VectorStoreCloudMixin import (
+    VectorStoreCloudMixin,
+)
 
 
 class CloudQdrantVectorStore(
     VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
+    VectorStoreCloudMixin,
     VectorStoreBase,
-    ICloudVectorStore,
 ):
     """
     CloudQdrantVectorStore is a concrete implementation that integrates functionality
