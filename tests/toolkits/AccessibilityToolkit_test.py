@@ -1,6 +1,6 @@
 import pytest
 from swarmauri.standard.tools.concrete.TextLengthTool import TextLengthTool as Tool
-from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.standard.toolkits.concrete.AccessibilityToolkit import AccessibilityToolkit
 
 @pytest.mark.unit
 def test_ubc_resource():
