@@ -1,4 +1,4 @@
- import os
+import os
 import pytest
 from swarmauri.community.tools.concrete.CaptchaGeneratorTool import CaptchaGeneratorTool as Tool
 
