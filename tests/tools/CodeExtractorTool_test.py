@@ -68,7 +68,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = ["function1", "variable1"]
 
@@ -92,7 +92,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = []
 
@@ -113,7 +113,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = False
     to_be_ignored = []
 
@@ -139,7 +139,7 @@ print('Hello, World!')"""
         file.write(file_content)
         file_name = file.name
 
-    tool = CodeExtractorTool()
+    tool = Tool()
     extract_documentation = True
     to_be_ignored = []
 
