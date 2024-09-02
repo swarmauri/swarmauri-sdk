@@ -51,7 +51,8 @@ setup(
             "psutil",
             "qrcode",
             "folium",
-            "captcha"
+            "captcha",
+            "bs4"
 
         ]},
     classifiers=[
