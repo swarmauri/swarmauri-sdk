@@ -16,6 +16,11 @@ def test_initialization():
     tool = Tool()
     assert type(tool.id) == str
 
+@pytest.mark.unit
+def test_serialization():
+    tool = Tool()
+    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+
 @pytest.mark.parametrize(
     "plot_type, x_data, y_data, title, x_label, y_label, save_path",
     [
