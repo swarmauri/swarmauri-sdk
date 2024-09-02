@@ -1,3 +1,4 @@
+ import os
 import pytest
 from swarmauri.standard.tools.concrete.CaptchaGeneratorTool import CaptchaGeneratorTool as Tool
 
@@ -40,13 +41,17 @@ def test_serialization():
 @pytest.mark.unit
 def test_call():
     """
-    A dummy test case for the call method.
+    A test case for the call method.
     """
     tool = Tool()
-    input_data = {
-        'input_text': "This is a sample captcha text."
-    }
+    text = "This is a sample captcha text."
+    output_file = "test_captcha.png"
     
-    result = tool(input_data)
+    # Call the tool with the text and output file
+    tool(text, output_file)
     
-    assert isinstance(result, dict)
+    # Check if the file was created
+    assert os.path.isfile(output_file)
+    
+    # Clean up the file after test
+    os.remove(output_file)
