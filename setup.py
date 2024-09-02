@@ -48,7 +48,10 @@ setup(
             "chromadb",
             "textstat",
             "nltk",
-            "psutil"
+            "psutil",
+            "qrcode",
+            "folium",
+            "captcha"
 
         ]},
     classifiers=[
