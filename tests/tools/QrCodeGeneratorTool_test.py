@@ -23,9 +23,9 @@ def test_serialization():
 
 
 @pytest.mark.parametrize(
-    "data, output_filename, expected_size",
+    "test_data, expected_filename, expected_size",
     [
-        ("https://example.com", "test_qr_code_1.png", (290, 290)),  # You may need to adjust expected sizes
+        ("https://example.com", "test_qr_code_1.png", (290, 290)),  # Adjust expected sizes if necessary
         ("Hello World", "test_qr_code_2.png", (290, 290)),
         ("1234567890", "test_qr_code_3.png", (290, 290)),
     ]
