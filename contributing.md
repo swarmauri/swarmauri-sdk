@@ -52,7 +52,15 @@ To suggest enhancements to existing features:
 ### development setup
 1. Workflow logs are available in GitHub Actions feature to help you verify if your changes are working as intended. Check the logs to confirm whether tests for the changes you made passed or failed.
 
-2. To view workflows on your individual fork use the GitHub Actions feature.
+2. How to enable GitHub Actions for Your Fork 
+   - Check for the Workflow File in Your Fork 
+     - GitHub Actions workflows are defined in `.yml` files under the `.github/workflows` directory in the repository. 
+     - Navigate to the .github/workflows directory in your forked repository on GitHub.
+     - Ensure that the workflow file (e.g., `staging.yml` etc.) from the original repository is present in your fork.
+   - Enable GitHub Actions for Your Fork
+     - Go to your forked repository on GitHub.
+     - Click on the "**Settings**" tab.
+     - Under "**Actions**" in the left sidebar, ensure that Actions are enabled. If they're disabled, enable them.
 
 ### licensing
 This project is licensed under the Project License(https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE). Please make sure that any contributions adhere to the terms of the license.
