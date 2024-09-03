@@ -82,14 +82,13 @@ class GithubTool(ToolBase):
     description: str = "Interacts with GitHub repositories using PyGithub."
     type: Literal["GithubTool"] = "GithubTool"
     token: str
-    github: Optional[Github]
+    github: Optional[Github] = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
     def __init__(self, token: str):
-        super().__init__()
-        self.token = token
-        self.github = Github(token)
+        super().__init__(token=token)
+        self.github = Github(self.token)
 
     def __call__(self, action: str, **kwargs) -> Any:
         """
