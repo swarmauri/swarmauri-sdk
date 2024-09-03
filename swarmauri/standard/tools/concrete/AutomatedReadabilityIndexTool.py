@@ -27,7 +27,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
         )
     ]
 
-    def __call__(self, data: Dict[str, Any]) -> float:
+    def __call__(self, input_text: str) -> str:
         """
         Executes the ARI tool and returns the readability score.
 
@@ -43,8 +43,8 @@ class AutomatedReadabilityIndexTool(ToolBase):
         Raises:
             ValueError: If the input data is invalid.
         """
-        if self.validate_input(data):
-            text = data['input_text']
+        if self.validate_input(input_text):
+            text = input_text
             num_sentences = self.count_sentences(text)
             num_words = self.count_words(text)
             num_characters = self.count_characters(text)
@@ -53,7 +53,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
             characters_per_word = num_characters / num_words
             words_per_sentence = num_words / num_sentences
             ari_score = 4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
-            return ari_score
+            return str(ari_score)
         else:
             raise ValueError("Invalid input for AutomatedReadabilityIndexTool.")
 
@@ -96,7 +96,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
         """
         return len(text) - text.count(' ')  # Count characters excluding spaces
 
-    def validate_input(self, data: Dict[str, Any]) -> bool:
+    def validate_input(self, input_text: str) -> bool:
         """
         Validates the input data for the ARI tool.
         
@@ -106,6 +106,6 @@ class AutomatedReadabilityIndexTool(ToolBase):
         Returns:
             bool: True if the input is valid, False otherwise.
         """
-        if 'input_text' in data and isinstance(data['input_text'], str):
+        if isinstance(input_text, str):
             return True
         return False
