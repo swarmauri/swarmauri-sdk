@@ -5,22 +5,23 @@ from swarmauri.community.tools.concrete.GithubTool import GithubTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
-    tool = Tool()
+    tool = Tool(token="mock_token")
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'GithubTool'
+    assert Tool(token="mock_token").type == 'GithubTool'
 
 @pytest.mark.unit
 def test_initialization():
-    tool = Tool()
+    tool = Tool(token="mock_token")
     assert type(tool.id) == str
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool()
+    tool = Tool(token="mock_token")
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+
 
 @pytest.mark.parametrize("action, kwargs, expected", [
     ("create_repo", {"repo_name": "test_repo", "private": False}, "Repository 'test_repo' created successfully."),
@@ -73,27 +74,27 @@ def test_serialization():
 @pytest.mark.unit
 def test_call(action, kwargs, expected):
     tool = Tool(token="mock_token")
-    with patch.object(tool.github, 'get_user') as mock_get_user, \
-         patch.object(tool.github, 'get_repo') as mock_get_repo, \
+
+    with patch.object(tool.github, 'get_repo') as mock_get_repo, \
+         patch.object(tool.github, 'create_repo') as mock_create_repo, \
+         patch.object(tool.github, 'delete_repo') as mock_delete_repo, \
          patch.object(tool.github, 'get_commit') as mock_get_commit, \
          patch.object(tool.github, 'get_gist') as mock_get_gist, \
          patch.object(tool.github, 'get_pull') as mock_get_pull, \
          patch.object(tool.github, 'get_issue') as mock_get_issue, \
          patch.object(tool.github, 'get_milestone') as mock_get_milestone, \
          patch.object(tool.github, 'get_branch') as mock_get_branch, \
-         patch.object(tool.github, 'get_git_ref') as mock_get_git_ref, \
-         patch.object(tool.github, 'get_webhook') as mock_get_webhook, \
-         patch.object(tool.github, 'create_file') as mock_create_file:
+         patch.object(tool.github, 'get_webhook') as mock_get_webhook:
 
-        mock_get_user.return_value.create_repo.return_value = MagicMock(full_name="test_repo")
-        mock_get_repo.return_value = MagicMock(full_name="test_repo", description="Description", clone_url="https://github.com/test_repo")
+        mock_get_repo.return_value = MagicMock(full_name="test_repo")
+        mock_create_repo.return_value = MagicMock(name="test_repo")
+        mock_delete_repo.return_value = None  # Assuming delete_repo returns None on success
         mock_get_commit.return_value = MagicMock(commit=MagicMock(message="Initial commit"), sha="abc123")
         mock_get_gist.return_value = MagicMock(id="gist123", description="Description")
         mock_get_pull.return_value = MagicMock(number=1, title="PR Title", body="PR Body")
         mock_get_issue.return_value = MagicMock(number=1, title="Issue Title", body="Issue Body")
-        mock_get_milestone.return_value = MagicMock(title="Milestone Title", description="Milestone Description")
+        mock_get_milestone.return_value = MagicMock(title="v1.0", description="Milestone Description")
         mock_get_branch.return_value = MagicMock(name="main", commit=MagicMock(sha="abc123"))
-        mock_get_git_ref.return_value.delete.return_value = None
         mock_get_webhook.return_value = MagicMock(id=1, config={"url": "https://example.com/webhook"})
 
         result = tool(action, **kwargs)
