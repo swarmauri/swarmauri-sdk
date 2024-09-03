@@ -31,6 +31,11 @@ jobs:
       QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
       QDRANT_COLLECTION_NAME: ${{ secrets.QDRANT_COLLECTION_NAME }}
 
+      GITHUBTOOL_TEST_REPO_NAME: ${{ secrets.GITHUBTOOL_TEST_REPO_NAME }}
+      GITHUBTOOL_TEST_REPO_OWNER: ${{ secrets.GITHUBTOOL_TEST_REPO_OWNER }}
+      GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
+
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
