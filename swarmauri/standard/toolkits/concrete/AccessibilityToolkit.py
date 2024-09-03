@@ -13,10 +13,8 @@ class AccessibilityToolkit(ToolkitBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def add_tool(self, tool):
-        self.tools.append(tool)
-
-    def get_tool_names(self):
-        # Returns a list of tool names in the toolkit
-        return [tool.name for tool in self.tools]
+        self.add_tool(AutomatedReadabilityIndexTool(name='AutomatedReadabilityIndexTool'))
+        self.add_tool(ColemanLiauIndexTool(name='ColemanLiauIndexTool'))
+        self.add_tool(FleschKincaidTool(name='FleschKincaidTool'))
+        self.add_tool(FleschReadingEaseTool(name='FleschReadingEaseTool'))
+        self.add_tool(GunningFogTool(name='GunningFogTool'))
