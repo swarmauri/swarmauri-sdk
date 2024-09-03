@@ -52,7 +52,8 @@ setup(
             "qrcode",
             "folium",
             "captcha",
-            "bs4"
+            "bs4",
+            "pygithub"
 
         ]},
     classifiers=[
