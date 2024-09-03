@@ -1,56 +1,43 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
+from collections import namedtuple
 
-# Mock data
-mock_cpu_data = {
-    'cpu_times': {
-        'user': 1.23,
-        'system': 0.45,
-        'idle': 2.34,
-        'interrupt': 0.01,
-        'dpc': 0.02
-    },
-    'cpu_percent': 55.0,
-    'cpu_times_per_cpu': [
-        {'user': 1.23, 'system': 0.45, 'idle': 2.34},
-        {'user': 1.30, 'system': 0.50, 'idle': 2.40}
-    ],
-    'cpu_count': 4,
-    'cpu_frequency': {'current': 2.5, 'min': 1.2, 'max': 3.5},
-    'cpu_stats': {'ctx_switches': 12345, 'interrupts': 67890, 'soft_interrupts': 23456}
-}
+# Define namedtuples for various psutil structures
+CPUTimes = namedtuple('CPUTimes', 'user system idle interrupt dpc')
+MemoryInfo = namedtuple('MemoryInfo', 'total available percent used free')
+DiskUsage = namedtuple('DiskUsage', 'total used free percent')
+NetIO = namedtuple('NetIO', 'bytes_sent bytes_recv packets_sent packets_recv')
+Battery = namedtuple('Battery', 'percent secsleft power_plugged')
 
+# Mock data for each psutil type
+mock_cpu_times = CPUTimes(user=1.23, system=0.45, idle=2.34, interrupt=0.01, dpc=0.02)
 mock_memory_data = {
-    'virtual_memory': {'total': 8_000_000_000, 'available': 4_000_000_000, 'used': 3_000_000_000},
-    'swap_memory': {'total': 2_000_000_000, 'used': 500_000_000, 'free': 1_500_000_000}
+    'virtual_memory': MemoryInfo(total=8000, available=4000, percent=50.0, used=3000, free=1000)._asdict(),
+    'swap_memory': MemoryInfo(total=2000, available=1000, percent=50.0, used=800, free=200)._asdict()
 }
-
 mock_disk_data = {
-    'disk_partitions': [
-        {'device': '/dev/sda1', 'mountpoint': '/', 'fstype': 'ext4', 'opts': 'rw,relatime'},
-        {'device': '/dev/sdb1', 'mountpoint': '/data', 'fstype': 'xfs', 'opts': 'rw,relatime'}
-    ],
-    'disk_usage': {
-        '/': {'total': 100_000_000_000, 'used': 30_000_000_000, 'free': 70_000_000_000},
-        '/data': {'total': 50_000_000_000, 'used': 10_000_000_000, 'free': 40_000_000_000}
-    },
-    'disk_io_counters': {'read_count': 1000, 'write_count': 500, 'read_bytes': 500_000_000, 'write_bytes': 250_000_000}
+    'disk_partitions': [{'device': '/dev/sda1', 'mountpoint': '/', 'fstype': 'ext4', 'opts': 'rw'}],
+    'disk_usage': DiskUsage(total=500000, used=300000, free=200000, percent=60.0)._asdict(),
+    'disk_io_counters': {'read_count': 1234, 'write_count': 5678, 'read_bytes': 1024, 'write_bytes': 2048}
 }
-
 mock_network_data = {
-    'network_io_counters': {'bytes_sent': 1_000_000, 'bytes_recv': 2_000_000, 'packets_sent': 1000, 'packets_recv': 2000},
-    'network_connections': [{'fd': 3, 'family': 2, 'type': 1, 'laddr': {'ip': '192.168.0.1', 'port': 12345}, 'raddr': {'ip': '93.184.216.34', 'port': 80}}],
+    'network_io_counters': NetIO(bytes_sent=1234567, bytes_recv=2345678, packets_sent=3456, packets_recv=4567)._asdict(),
+    'network_connections': [{'fd': 3, 'family': 2, 'type': 1, 'laddr': ('127.0.0.1', 8080), 'raddr': (), 'status': 'LISTEN'}],
     'network_interfaces': {
-        'lo': [{'address': '127.0.0.1', 'netmask': '255.0.0.0'}],
-        'eth0': [{'address': '192.168.0.100', 'netmask': '255.255.255.0'}]
+        'eth0': [
+            {'family': 2, 'address': '192.168.1.2', 'netmask': '255.255.255.0', 'broadcast': '192.168.1.255'}
+        ]
     }
 }
-
 mock_sensors_data = {
-    'battery': {'percent': 85, 'plugged_in': True},
-    'temperatures': {'coretemp': [{'label': 'Core 0', 'temperature': 45.0}, {'label': 'Core 1', 'temperature': 50.0}]},
-    'fan_speeds': {'fan1': [{'speed': 1200}]}
+    'battery': Battery(percent=85, secsleft=1200, power_plugged=True)._asdict(),
+    'temperatures': {
+        'coretemp': [{'label': 'Core 0', 'current': 42.0, 'high': 80.0, 'critical': 100.0}]
+    },
+    'fan_speeds': {
+        'fan1': [{'label': 'Fan 1', 'current': 1500}]
+    }
 }
 
 @pytest.mark.unit
@@ -75,20 +62,27 @@ def test_serialization():
 @pytest.mark.parametrize(
     "info_type, mock_data",
     [
-        ('cpu', mock_cpu_data),
+        ('cpu', {'cpu_times': mock_cpu_times._asdict(),
+                 'cpu_percent': 55.0,
+                 'cpu_times_per_cpu': [mock_cpu_times._asdict()],
+                 'cpu_count': 4,
+                 'cpu_frequency': {'current': 2.5, 'min': 1.2, 'max': 3.5},
+                 'cpu_stats': {'ctx_switches': 12345, 'interrupts': 67890, 'soft_interrupts': 23456}
+        }),
         ('memory', mock_memory_data),
         ('disk', mock_disk_data),
         ('network', mock_network_data),
         ('sensors', mock_sensors_data),
     ]
 )
+
 @pytest.mark.unit
 def test_call(info_type, mock_data):
     tool = Tool()
 
-    with patch('psutil.cpu_times', return_value=MagicMock(**mock_data.get('cpu_times', {}))):
+    with patch('psutil.cpu_times', return_value=mock_cpu_times):
         with patch('psutil.cpu_percent', return_value=mock_data.get('cpu_percent', 0.0)):
-            with patch('psutil.cpu_times', return_value=[MagicMock(**cpu) for cpu in mock_data.get('cpu_times_per_cpu', [])]):
+            with patch('psutil.cpu_times', return_value=[mock_cpu_times for _ in mock_data.get('cpu_times_per_cpu', [])]):
                 with patch('psutil.cpu_count', return_value=mock_data.get('cpu_count', 0)):
                     with patch('psutil.cpu_freq', return_value=MagicMock(**mock_data.get('cpu_frequency', {}))):
                         with patch('psutil.cpu_stats', return_value=MagicMock(**mock_data.get('cpu_stats', {}))):
