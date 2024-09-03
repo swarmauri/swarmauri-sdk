@@ -1,10 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.AutomatedReadabilityIndexTool import AutomatedReadabilityIndexTool
-from swarmauri.standard.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
-from swarmauri.standard.tools.concrete.FleschKincaidTool import FleschKincaidTool
-from swarmauri.standard.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool
-from swarmauri.standard.tools.concrete.GunningFogTool import GunningFogTool
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.AccessibilityToolkit import AccessibilityToolkit as Toolkit
 
 @pytest.mark.unit
@@ -37,7 +32,7 @@ def test_tool_count():
 @pytest.mark.unit
 def test_add_tool():
     toolkit = Toolkit()
-    tool = AutomatedReadabilityIndexTool(name='ari_tool_2')
+    tool = AdditionTool()
     toolkit.add_tool(tool)
     assert len(toolkit.get_tools()) == 6
 
