@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.DaleChallReadabilityTool import DaleChallReadabilityTool as Tool
+from swarmauri.community.tools.concrete.DaleChallReadabilityTool import DaleChallReadabilityTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
