@@ -82,7 +82,7 @@ class GithubTool(ToolBase):
     description: str = "Interacts with GitHub repositories using PyGithub."
     type: Literal["GithubTool"] = "GithubTool"
     token: str
-    github: Github
+    github: Optional[Github]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
