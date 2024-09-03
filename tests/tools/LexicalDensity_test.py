@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.LexicalDensityTool import LexicalDensityTool as Tool
+from swarmauri.community.tools.concrete.LexicalDensityTool import LexicalDensityTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
