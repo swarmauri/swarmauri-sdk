@@ -1,7 +1,6 @@
-from unittest.mock import MagicMock, patch
-
-import psutil
+from unittest.mock import patch, MagicMock
 import pytest
+import psutil
 from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 @pytest.mark.unit
@@ -23,37 +22,57 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
-@pytest.mark.parametrize(
-    "info_type, psutil_method, expected_key",
-    [
-        ('cpu', psutil.cpu_times, 'cpu_times'),
-        ('memory', psutil.virtual_memory, 'virtual_memory'),
-        ('disk', psutil.disk_partitions, 'disk_partitions'),
-        ('network', psutil.net_io_counters, 'network_io_counters'),
-        ('sensors', psutil.sensors_battery, 'battery'),
-    ]
-)
+@pytest.mark.parametrize("action, kwargs, expected", [
+    ("cpu", {}, {"cpu_times": "CPU times data", "cpu_percent": "CPU percent data", "cpu_times_per_cpu": ["CPU times per CPU data"], "cpu_count": 4, "cpu_frequency": "CPU frequency data", "cpu_stats": "CPU stats data"}),
+    ("memory", {}, {"virtual_memory": "Virtual memory data", "swap_memory": "Swap memory data"}),
+    ("disk", {}, {"disk_partitions": ["partition1", "partition2"], "disk_usage": {"partition1": "Disk usage data", "partition2": "Disk usage data"}, "disk_io_counters": "Disk I/O counters data"}),
+    ("network", {}, {"network_io_counters": "Network I/O counters data", "network_connections": ["Network connection data"], "network_interfaces": {"iface1": ["Address data"], "iface2": ["Address data"]}}),
+    ("sensors", {}, {"battery": "Battery status data", "temperatures": {"temp1": ["Temperature data"]}, "fan_speeds": {"fan1": ["Fan speed data"]}})
+])
 @pytest.mark.unit
-def test_call(info_type, psutil_method, expected_key):
-    tool = Tool()
-    result = tool(info_type)
+def test_call(action, kwargs, expected):
+    with patch('psutil.cpu_times') as mock_cpu_times, \
+         patch('psutil.cpu_percent') as mock_cpu_percent, \
+         patch('psutil.cpu_stats') as mock_cpu_stats, \
+         patch('psutil.cpu_count') as mock_cpu_count, \
+         patch('psutil.cpu_freq') as mock_cpu_freq, \
+         patch('psutil.virtual_memory') as mock_virtual_memory, \
+         patch('psutil.swap_memory') as mock_swap_memory, \
+         patch('psutil.disk_partitions') as mock_disk_partitions, \
+         patch('psutil.disk_usage') as mock_disk_usage, \
+         patch('psutil.disk_io_counters') as mock_disk_io_counters, \
+         patch('psutil.net_io_counters') as mock_network_io_counters, \
+         patch('psutil.net_connections') as mock_network_connections, \
+         patch('psutil.net_if_addrs') as mock_network_if_addrs, \
+         patch('psutil.sensors_battery') as mock_sensors_battery, \
+         patch('psutil.sensors_temperatures') as mock_sensors_temperatures, \
+         patch('psutil.sensors_fans') as mock_sensors_fans:
 
-    if info_type == 'cpu':
-        assert 'cpu_times' in result
-        assert isinstance(result['cpu_times'], dict)
-        assert 'cpu_percent' in result
-        assert isinstance(result['cpu_percent'], float)
-        assert 'cpu_count' in result
-        assert isinstance(result['cpu_count'], int)
-    elif info_type == 'memory':
-        assert 'virtual_memory' in result
-        assert isinstance(result['virtual_memory'], dict)
-    elif info_type == 'disk':
-        assert 'disk_partitions' in result
-        assert isinstance(result['disk_partitions'], list)
-    elif info_type == 'network':
-        assert 'network_io_counters' in result
-        assert isinstance(result['network_io_counters'], dict)
-    elif info_type == 'sensors':
-        assert 'battery' in result
-        assert isinstance(result['battery'], dict)
+        # Set mock return values
+        mock_cpu_times.return_value = MagicMock(cpu_times_per_cpu=["CPU times per CPU data"], _asdict=lambda: {"cpu_times": "CPU times data"})
+        mock_cpu_percent.return_value = "CPU percent data"
+        mock_cpu_stats.return_value = MagicMock(_asdict=lambda: "CPU stats data")
+        mock_cpu_count.return_value = 4
+        mock_cpu_freq.return_value = MagicMock(_asdict=lambda: "CPU frequency data")
+        mock_virtual_memory.return_value = MagicMock(_asdict=lambda: "Virtual memory data")
+        mock_swap_memory.return_value = MagicMock(_asdict=lambda: "Swap memory data")
+
+        mock_partition1 = MagicMock(_asdict=lambda: "partition1")
+        mock_partition2 = MagicMock(_asdict=lambda: "partition2")
+        mock_disk_partitions.return_value = [mock_partition1, mock_partition2]
+
+        mock_disk_usage = MagicMock(_asdict=lambda: "Disk usage data")
+        mock_disk_usage.side_effect = lambda *args: {"partition1": "Disk usage data", "partition2": "Disk usage data"}.get(args[0], "Disk usage data")
+
+        mock_disk_io_counters.return_value = MagicMock(_asdict=lambda: "Disk I/O counters data")
+        mock_network_io_counters.return_value = MagicMock(_asdict=lambda: "Network I/O counters data")
+        mock_network_connections.return_value = [MagicMock(_asdict=lambda: "Network connection data")]
+        mock_network_if_addrs.return_value = {"iface1": [MagicMock(_asdict=lambda: "Address data")], "iface2": [MagicMock(_asdict=lambda: "Address data")]}
+        mock_sensors_battery.return_value = MagicMock(_asdict=lambda: "Battery status data")
+        mock_sensors_temperatures.return_value = {"temp1": [MagicMock(_asdict=lambda: "Temperature data")]}
+        mock_sensors_fans.return_value = {"fan1": [MagicMock(_asdict=lambda: "Fan speed data")]}
+
+        tool = Tool()
+        result = tool(action, **kwargs)
+
+        assert result == expected

@@ -54,7 +54,6 @@ class PsutilTool(ToolBase):
             "network_io_counters": psutil.net_io_counters()._asdict(),
             "network_connections": [conn._asdict() for conn in psutil.net_connections()],
             "network_interfaces": {iface: [addr._asdict() for addr in addrs] for iface, addrs in psutil.net_if_addrs().items()},
-            "interface_addresses": {iface: [addr._asdict() for addr in addrs] for iface, addrs in psutil.net_if_addrs().items()},
         }
 
     def get_all_sensors_values(self) -> Dict[str, Any]:
@@ -81,3 +80,5 @@ class PsutilTool(ToolBase):
             result = self.get_all_sensors_values()
         else:
             raise ValueError("Invalid info_type specified.")
+        
+        return result
