@@ -10,16 +10,9 @@ from swarmauri.standard.tools.concrete.TextLengthTool import TextLengthTool
 
 class AccessibilityToolkit(ToolkitBase):
     type: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
-    resource: Literal['AccessibilityToolkit'] = 'AccessibilityToolkit'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.tools = []
-        self.add_tool(AutomatedReadabilityIndexTool(name='AutomatedReadabilityIndexTool'))
-        self.add_tool(ColemanLiauIndexTool(name='ColemanLiauIndexTool'))
-        self.add_tool(FleschKincaidTool(name='FleschKincaidTool'))
-        self.add_tool(FleschReadingEaseTool(name='FleschReadingEaseTool'))
-        self.add_tool(GunningFogTool(name='GunningFogTool'))
 
     def add_tool(self, tool):
         self.tools.append(tool)
