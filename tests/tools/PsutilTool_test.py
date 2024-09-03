@@ -66,8 +66,6 @@ def test_call(action, kwargs, expected):
         mock_disk_partitions.return_value = [mock_partition1]
 
         mock_disk_usage.return_value = MagicMock(_asdict=lambda: {"disk_usage_data": "Disk usage data"})
-        mock_disk_usage.side_effect = lambda device: {"partition1": "Disk usage data", "partition2": "Disk usage data"}.get(device, "Disk usage data")
-
         mock_disk_io_counters.return_value = MagicMock(_asdict=lambda: "Disk I/O counters data")
         mock_network_io_counters.return_value = MagicMock(_asdict=lambda: "Network I/O counters data")
         mock_network_connections.return_value = [MagicMock(_asdict=lambda: "Network connection data")]
