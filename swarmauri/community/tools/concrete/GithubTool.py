@@ -13,8 +13,8 @@ class GithubTool(ToolBase):
             Parameter(
                 name="action",
                 type="string",
-                description="The full name of the repository to interact with, e.g. 'owner/repository'.",
-                required=False,
+                description="The action to perform on the GitHub API, e.g., 'create_repo', 'delete_repo', 'create_issue', etc.",
+                required=True,
             ),
             Parameter(
                 name="repo_name",
