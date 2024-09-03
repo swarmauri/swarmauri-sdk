@@ -7,12 +7,14 @@ from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.standard.agents.concrete.ToolAgent import ToolAgent
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('GROQ_API_KEY'), reason="Skipping due to environment variable not set")
 def test_ubc_resource():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = LLM(api_key = API_KEY)
     assert llm.resource == 'LLM'
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('GROQ_API_KEY'), reason="Skipping due to environment variable not set")
 def test_ubc_type():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = LLM(api_key = API_KEY)
@@ -20,6 +22,7 @@ def test_ubc_type():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('GROQ_API_KEY'), reason="Skipping due to environment variable not set")
 def test_serialization():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = LLM(api_key = API_KEY)
@@ -27,12 +30,14 @@ def test_serialization():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('GROQ_API_KEY'), reason="Skipping due to environment variable not set")
 def test_default_name():
     API_KEY = os.getenv('GROQ_API_KEY')
     model = LLM(api_key = API_KEY)
     assert model.name == 'gemma-7b-it'
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('GROQ_API_KEY'), reason="Skipping due to environment variable not set")
 def test_agent_exec():
     API_KEY = os.getenv('GROQ_API_KEY')
     llm = LLM(api_key = API_KEY)

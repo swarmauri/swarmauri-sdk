@@ -8,6 +8,7 @@ from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_ubc_resource():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     llm = LLM(api_key = API_KEY)
@@ -15,24 +16,28 @@ def test_ubc_resource():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_ubc_type():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     llm = LLM(api_key = API_KEY)
     assert llm.type == 'MistralModel'
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_serialization():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     llm = LLM(api_key = API_KEY)
     assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_default_name():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     model = LLM(api_key = API_KEY)
     assert model.name == 'open-mixtral-8x7b'
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_no_system_context():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -47,6 +52,7 @@ def test_no_system_context():
     assert type(prediction) == str
 
 @pytest.mark.acceptance
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_nonpreamble_system_context():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -77,6 +83,7 @@ def test_nonpreamble_system_context():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_preamble_system_context():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     model = LLM(api_key = API_KEY)
@@ -96,6 +103,7 @@ def test_preamble_system_context():
     assert 'Jeff' in prediction
 
 @pytest.mark.acceptance
+@pytest.mark.skipif(not os.getenv('MISTRAL_API_KEY'), reason="Skipping due to environment variable not set")
 def test_multiple_system_contexts():
     API_KEY = os.getenv('MISTRAL_API_KEY')
     model = LLM(api_key = API_KEY)
