@@ -3,24 +3,23 @@ import pytest
 from swarmauri.community.tools.concrete.QrCodeGeneratorTool import QrCodeGeneratorTool as Tool
 
 @pytest.mark.unit
-def test_name():
+def test_ubc_resource():
     tool = Tool()
-    assert tool.name == 'QrCodeGeneratorTool'
+    assert tool.resource == 'Tool'
 
 @pytest.mark.unit
-def test_type():
+def test_ubc_type():
     assert Tool().type == 'QrCodeGeneratorTool'
 
 @pytest.mark.unit
-def test_resource():
+def test_initialization():
     tool = Tool()
-    assert tool.resource == 'Tool'
+    assert type(tool.id) == str
 
 @pytest.mark.unit
 def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
-
 
 @pytest.mark.parametrize(
     "test_data, expected_filename, expected_size",
