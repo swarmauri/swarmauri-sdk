@@ -5,21 +5,21 @@ from swarmauri.community.tools.concrete.GithubTool import GithubTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
-    tool = Tool(token="mock_token")
+    tool = Tool()
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool(token="mock_token").type == 'GithubTool'
+    assert Tool().type == 'GithubTool'
 
 @pytest.mark.unit
 def test_initialization():
-    tool = Tool(token="mock_token")
+    tool = Tool()
     assert type(tool.id) == str
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool(token="mock_token")
+    tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 
@@ -73,7 +73,7 @@ def test_serialization():
 ])
 @pytest.mark.unit
 def test_call(action, kwargs, expected):
-    tool = Tool(token="mock_token")
+    tool = Tool()
 
     with patch.object(tool.github, 'get_repo') as mock_get_repo, \
          patch.object(tool.github, 'create_repo') as mock_create_repo, \
