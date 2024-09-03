@@ -88,14 +88,14 @@ def test_call(info_type, mock_data):
 
     with patch('psutil.cpu_times', return_value=MagicMock(**mock_data.get('cpu_times', {}))):
         with patch('psutil.cpu_percent', return_value=mock_data.get('cpu_percent', 0.0)):
-            with patch('psutil.cpu_times_percpu', return_value=[MagicMock(**cpu) for cpu in mock_data.get('cpu_times_per_cpu', [])]):
+            with patch('psutil.cpu_times', return_value=[MagicMock(**cpu) for cpu in mock_data.get('cpu_times_per_cpu', [])], new_callable=lambda: lambda percpu: [MagicMock(**cpu) for cpu in mock_data.get('cpu_times_per_cpu', [])] if percpu else MagicMock(**mock_data.get('cpu_times', {}))):
                 with patch('psutil.cpu_count', return_value=mock_data.get('cpu_count', 0)):
                     with patch('psutil.cpu_freq', return_value=MagicMock(**mock_data.get('cpu_frequency', {}))):
                         with patch('psutil.cpu_stats', return_value=MagicMock(**mock_data.get('cpu_stats', {}))):
                             with patch('psutil.virtual_memory', return_value=MagicMock(**mock_data.get('virtual_memory', {}))):
                                 with patch('psutil.swap_memory', return_value=MagicMock(**mock_data.get('swap_memory', {}))):
                                     with patch('psutil.disk_partitions', return_value=[MagicMock(**partition) for partition in mock_data.get('disk_partitions', [])]):
-                                        with patch('psutil.disk_usage', return_value=MagicMock(**mock_data.get('disk_usage', {}))):
+                                        with patch('psutil.disk_usage', side_effect=lambda x: MagicMock(**mock_data['disk_usage'].get(x, {}))):
                                             with patch('psutil.disk_io_counters', return_value=MagicMock(**mock_data.get('disk_io_counters', {}))):
                                                 with patch('psutil.net_io_counters', return_value=MagicMock(**mock_data.get('network_io_counters', {}))):
                                                     with patch('psutil.net_connections', return_value=[MagicMock(**conn) for conn in mock_data.get('network_connections', [])]):
