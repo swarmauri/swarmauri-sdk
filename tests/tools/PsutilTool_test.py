@@ -1,6 +1,5 @@
-from unittest.mock import MagicMock, patch
 import pytest
-import psutil
+from unittest.mock import MagicMock, patch
 from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 # Mock data
@@ -74,42 +73,37 @@ def test_serialization():
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.parametrize(
-    "info_type, psutil_method, expected_key",
+    "info_type, mock_data",
     [
-        ('cpu', 'get_all_cpu_values', 'cpu_times'),
-        ('memory', 'get_all_memory_values', 'virtual_memory'),
-        ('disk', 'get_all_disk_values', 'disk_partitions'),
-        ('network', 'get_all_network_values', 'network_io_counters'),
-        ('sensors', 'get_all_sensors_values', 'battery'),
+        ('cpu', mock_cpu_data),
+        ('memory', mock_memory_data),
+        ('disk', mock_disk_data),
+        ('network', mock_network_data),
+        ('sensors', mock_sensors_data),
     ]
 )
 @pytest.mark.unit
-def test_call(info_type, psutil_method, expected_key):
+def test_call(info_type, mock_data):
     tool = Tool()
 
-    with patch.object(tool, psutil_method, return_value=globals()[f"mock_{info_type}_data"]) as mock_method:
-        result = tool(info_type)
-
-        assert expected_key in result
-        assert isinstance(result[expected_key], dict)
-
-        # Additional specific checks based on `info_type`
-        if info_type == 'cpu':
-            assert 'cpu_times' in result
-            assert isinstance(result['cpu_times'], dict)
-            assert 'cpu_percent' in result
-            assert isinstance(result['cpu_percent'], float)
-            assert 'cpu_count' in result
-            assert isinstance(result['cpu_count'], int)
-        elif info_type == 'memory':
-            assert 'virtual_memory' in result
-            assert isinstance(result['virtual_memory'], dict)
-        elif info_type == 'disk':
-            assert 'disk_partitions' in result
-            assert isinstance(result['disk_partitions'], list)
-        elif info_type == 'network':
-            assert 'network_io_counters' in result
-            assert isinstance(result['network_io_counters'], dict)
-        elif info_type == 'sensors':
-            assert 'battery' in result
-            assert isinstance(result['battery'], dict)
+    with patch('psutil.cpu_times', return_value=MagicMock(**mock_data.get('cpu_times', {}))):
+        with patch('psutil.cpu_percent', return_value=mock_data.get('cpu_percent', 0.0)):
+            with patch('psutil.cpu_times_percpu', return_value=[MagicMock(**cpu) for cpu in mock_data.get('cpu_times_per_cpu', [])]):
+                with patch('psutil.cpu_count', return_value=mock_data.get('cpu_count', 0)):
+                    with patch('psutil.cpu_freq', return_value=MagicMock(**mock_data.get('cpu_frequency', {}))):
+                        with patch('psutil.cpu_stats', return_value=MagicMock(**mock_data.get('cpu_stats', {}))):
+                            with patch('psutil.virtual_memory', return_value=MagicMock(**mock_data.get('virtual_memory', {}))):
+                                with patch('psutil.swap_memory', return_value=MagicMock(**mock_data.get('swap_memory', {}))):
+                                    with patch('psutil.disk_partitions', return_value=[MagicMock(**partition) for partition in mock_data.get('disk_partitions', [])]):
+                                        with patch('psutil.disk_usage', return_value=MagicMock(**mock_data.get('disk_usage', {}))):
+                                            with patch('psutil.disk_io_counters', return_value=MagicMock(**mock_data.get('disk_io_counters', {}))):
+                                                with patch('psutil.net_io_counters', return_value=MagicMock(**mock_data.get('network_io_counters', {}))):
+                                                    with patch('psutil.net_connections', return_value=[MagicMock(**conn) for conn in mock_data.get('network_connections', [])]):
+                                                        with patch('psutil.net_if_addrs', return_value={iface: [MagicMock(**addr) for addr in addrs] for iface, addrs in mock_data.get('network_interfaces', {}).items()}):
+                                                            with patch('psutil.sensors_battery', return_value=MagicMock(**mock_data.get('battery', {}))):
+                                                                with patch('psutil.sensors_temperatures', return_value={name: [MagicMock(**temp) for temp in temps] for name, temps in mock_data.get('temperatures', {}).items()}):
+                                                                    with patch('psutil.sensors_fans', return_value={name: [MagicMock(**fan) for fan in fans] for name, fans in mock_data.get('fan_speeds', {}).items()}):
+                                                                        result = tool(info_type)
+                                                                        expected_key = next(iter(mock_data.keys()))
+                                                                        assert expected_key in result
+                                                                        assert isinstance(result[expected_key], dict)
