@@ -9,3 +9,4 @@ env
 /.vs
 .pyirc
 .venv/
+.ipynb_checkpoints/
