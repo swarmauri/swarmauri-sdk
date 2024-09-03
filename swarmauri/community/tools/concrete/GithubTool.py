@@ -81,6 +81,9 @@ class GithubTool(ToolBase):
     name: str = "GithubTool"
     description: str = "Interacts with GitHub repositories using PyGithub."
     type: Literal["GithubTool"] = "GithubTool"
+    token: str
+    github: Github
+
 
     def __init__(self, token: str):
         super().__init__()
