@@ -49,21 +49,21 @@ def test_call(action, kwargs, expected):
          patch('psutil.sensors_fans') as mock_sensors_fans:
 
         # Set mock return values
-        mock_cpu_times.return_value = MagicMock(_asdict=lambda: "CPU times data")
+        mock_cpu_times.return_value = MagicMock(cpu_times_per_cpu=["CPU times per CPU data"], _asdict=lambda: {"cpu_times": "CPU times data"})
         mock_cpu_percent.return_value = "CPU percent data"
         mock_cpu_stats.return_value = MagicMock(_asdict=lambda: "CPU stats data")
         mock_cpu_count.return_value = 4
         mock_cpu_freq.return_value = MagicMock(_asdict=lambda: "CPU frequency data")
         mock_virtual_memory.return_value = MagicMock(_asdict=lambda: "Virtual memory data")
         mock_swap_memory.return_value = MagicMock(_asdict=lambda: "Swap memory data")
-        
+
         mock_partition1 = MagicMock(_asdict=lambda: "partition1")
         mock_partition2 = MagicMock(_asdict=lambda: "partition2")
         mock_disk_partitions.return_value = [mock_partition1, mock_partition2]
-        
+
         mock_disk_usage = MagicMock(_asdict=lambda: "Disk usage data")
         mock_disk_usage.side_effect = lambda *args: {"partition1": "Disk usage data", "partition2": "Disk usage data"}.get(args[0], "Disk usage data")
-        
+
         mock_disk_io_counters.return_value = MagicMock(_asdict=lambda: "Disk I/O counters data")
         mock_network_io_counters.return_value = MagicMock(_asdict=lambda: "Network I/O counters data")
         mock_network_connections.return_value = [MagicMock(_asdict=lambda: "Network connection data")]
@@ -71,8 +71,8 @@ def test_call(action, kwargs, expected):
         mock_sensors_battery.return_value = MagicMock(_asdict=lambda: "Battery status data")
         mock_sensors_temperatures.return_value = {"temp1": [MagicMock(_asdict=lambda: "Temperature data")]}
         mock_sensors_fans.return_value = {"fan1": [MagicMock(_asdict=lambda: "Fan speed data")]}
-    
+
         tool = Tool()
         result = tool(action, **kwargs)
-    
+
         assert result == expected
