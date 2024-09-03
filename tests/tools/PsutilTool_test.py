@@ -1,5 +1,6 @@
 from unittest.mock import patch, MagicMock
 import pytest
+import psutil
 from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 @pytest.mark.unit
@@ -39,22 +40,20 @@ def test_serialization():
 ])
 @pytest.mark.unit
 def test_call(action, kwargs, expected):
-    tool = Tool()
-
-    with patch.object(tool.psutil, 'cpu_times') as mock_cpu_times, \
-         patch.object(tool.psutil, 'cpu_percent') as mock_cpu_percent, \
-         patch.object(tool.psutil, 'cpu_stats') as mock_cpu_stats, \
-         patch.object(tool.psutil, 'cpu_count') as mock_cpu_count, \
-         patch.object(tool.psutil, 'cpu_freq') as mock_cpu_freq, \
-         patch.object(tool.psutil, 'virtual_memory') as mock_virtual_memory, \
-         patch.object(tool.psutil, 'swap_memory') as mock_swap_memory, \
-         patch.object(tool.psutil, 'disk_partitions') as mock_disk_partitions, \
-         patch.object(tool.psutil, 'disk_usage') as mock_disk_usage, \
-         patch.object(tool.psutil, 'disk_io_counters') as mock_disk_io_counters, \
-         patch.object(tool.psutil, 'network_io_counters') as mock_network_io_counters, \
-         patch.object(tool.psutil, 'sensors_battery') as mock_sensors_battery, \
-         patch.object(tool.psutil, 'sensors_temperatures') as mock_sensors_temperatures, \
-         patch.object(tool.psutil, 'sensors_fans') as mock_sensors_fans:
+    with patch('psutil.cpu_times') as mock_cpu_times, \
+         patch('psutil.cpu_percent') as mock_cpu_percent, \
+         patch('psutil.cpu_stats') as mock_cpu_stats, \
+         patch('psutil.cpu_count') as mock_cpu_count, \
+         patch('psutil.cpu_freq') as mock_cpu_freq, \
+         patch('psutil.virtual_memory') as mock_virtual_memory, \
+         patch('psutil.swap_memory') as mock_swap_memory, \
+         patch('psutil.disk_partitions') as mock_disk_partitions, \
+         patch('psutil.disk_usage') as mock_disk_usage, \
+         patch('psutil.disk_io_counters') as mock_disk_io_counters, \
+         patch('psutil.network_io_counters') as mock_network_io_counters, \
+         patch('psutil.sensors_battery') as mock_sensors_battery, \
+         patch('psutil.sensors_temperatures') as mock_sensors_temperatures, \
+         patch('psutil.sensors_fans') as mock_sensors_fans:
 
         # Set mock return values
         mock_cpu_times.return_value = "CPU times data"
@@ -72,6 +71,7 @@ def test_call(action, kwargs, expected):
         mock_sensors_temperatures.return_value = "Temperature data"
         mock_sensors_fans.return_value = "Fan speed data"
 
-        result = tool(action, **kwargs)
+        tool = Tool()
+        result = getattr(tool, action)(**kwargs)
 
         assert result == expected
