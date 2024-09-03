@@ -23,33 +23,11 @@ def test_serialization():
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.parametrize("action, kwargs, expected", [
-    ("cpu", {}, {
-        "cpu_times": {"cpu_times": "CPU times data"},
-        "cpu_percent": "CPU percent data",
-        "cpu_times_per_cpu": ["CPU times per CPU data"],
-        "cpu_count": 4,
-        "cpu_frequency": "CPU frequency data",
-        "cpu_stats": "CPU stats data"
-    }),
-    ("memory", {}, {
-        "virtual_memory": "Virtual memory data",
-        "swap_memory": "Swap memory data"
-    }),
-    ("disk", {}, {
-        "disk_partitions": ["partition1", "partition2"],
-        "disk_usage": {"partition1": "Disk usage data", "partition2": "Disk usage data"},
-        "disk_io_counters": "Disk I/O counters data"
-    }),
-    ("network", {}, {
-        "network_io_counters": "Network I/O counters data",
-        "network_connections": ["Network connection data"],
-        "network_interfaces": {"iface1": ["Address data"], "iface2": ["Address data"]}
-    }),
-    ("sensors", {}, {
-        "battery": "Battery status data",
-        "temperatures": {"temp1": ["Temperature data"]},
-        "fan_speeds": {"fan1": ["Fan speed data"]}
-    })
+    ("cpu", {}, {"cpu_times": "CPU times data", "cpu_percent": "CPU percent data", "cpu_times_per_cpu": ["CPU times per CPU data"], "cpu_count": 4, "cpu_frequency": "CPU frequency data", "cpu_stats": "CPU stats data"}),
+    ("memory", {}, {"virtual_memory": "Virtual memory data", "swap_memory": "Swap memory data"}),
+    ("disk", {}, {"disk_partitions": ["partition1", "partition2"], "disk_usage": {"partition1": "Disk usage data", "partition2": "Disk usage data"}, "disk_io_counters": "Disk I/O counters data"}),
+    ("network", {}, {"network_io_counters": "Network I/O counters data", "network_connections": ["Network connection data"], "network_interfaces": {"iface1": ["Address data"], "iface2": ["Address data"]}}),
+    ("sensors", {}, {"battery": "Battery status data", "temperatures": {"temp1": ["Temperature data"]}, "fan_speeds": {"fan1": ["Fan speed data"]}})
 ])
 @pytest.mark.unit
 def test_call(action, kwargs, expected):
@@ -71,7 +49,7 @@ def test_call(action, kwargs, expected):
          patch('psutil.sensors_fans') as mock_sensors_fans:
 
         # Set mock return values
-        mock_cpu_times.return_value = MagicMock(cpu_times_per_cpu=["CPU times per CPU data"], _asdict=lambda: {"cpu_times": "CPU times data"})
+        mock_cpu_times.return_value = MagicMock(_asdict=lambda: {"cpu_times": "CPU times data", "cpu_times_per_cpu": ["CPU times per CPU data"]})
         mock_cpu_percent.return_value = "CPU percent data"
         mock_cpu_stats.return_value = MagicMock(_asdict=lambda: "CPU stats data")
         mock_cpu_count.return_value = 4
@@ -83,10 +61,9 @@ def test_call(action, kwargs, expected):
         mock_partition2 = MagicMock(_asdict=lambda: "partition2")
         mock_disk_partitions.return_value = [mock_partition1, mock_partition2]
 
-        def mock_disk_usage_side_effect(partition):
-            return {"partition1": "Disk usage data", "partition2": "Disk usage data"}.get(partition, "Disk usage data")
-        
-        mock_disk_usage.side_effect = mock_disk_usage_side_effect
+        mock_disk_usage.return_value = MagicMock(_asdict=lambda: {"disk_usage_data": "Disk usage data"})
+        mock_disk_usage.side_effect = lambda device: {"partition1": "Disk usage data", "partition2": "Disk usage data"}.get(device, "Disk usage data")
+
         mock_disk_io_counters.return_value = MagicMock(_asdict=lambda: "Disk I/O counters data")
         mock_network_io_counters.return_value = MagicMock(_asdict=lambda: "Network I/O counters data")
         mock_network_connections.return_value = [MagicMock(_asdict=lambda: "Network connection data")]
