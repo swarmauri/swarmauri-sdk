@@ -49,7 +49,7 @@ def test_call(action, kwargs, expected):
          patch('psutil.sensors_fans') as mock_sensors_fans:
 
         # Set mock return values
-         mock_cpu_times.return_value = MagicMock(_asdict=lambda: {"cpu_times": "CPU times data", "cpu_times_per_cpu": ["CPU times per CPU data"]})
+        mock_cpu_times.return_value = MagicMock(_asdict=lambda: {"cpu_times": "CPU times data", "cpu_times_per_cpu": ["CPU times per CPU data"]})
         mock_cpu_percent.return_value = "CPU percent data"
         mock_cpu_stats.return_value = MagicMock(_asdict=lambda: "CPU stats data")
         mock_cpu_count.return_value = 4
