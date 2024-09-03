@@ -83,6 +83,7 @@ class GithubTool(ToolBase):
     type: Literal["GithubTool"] = "GithubTool"
     token: str
     github: Github
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
     def __init__(self, token: str):
