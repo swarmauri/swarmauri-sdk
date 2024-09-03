@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 import pytest
 import psutil
-from swarmauri.standard.tools.concrete.PsutilTool import PsutilTool as Tool
+from swarmauri.community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
