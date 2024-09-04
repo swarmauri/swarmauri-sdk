@@ -1,4 +1,3 @@
-import json
 import requests
 from typing import Dict
 from pathlib import Path
