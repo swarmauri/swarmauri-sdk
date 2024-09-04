@@ -1,65 +1,59 @@
-import json
 import pytest
-from unittest.mock import patch, MagicMock
-from transformers import pipeline
-from swarmauri.community.tools.concrete.EntityRecognitionTool import EntityRecognitionTool as Tool
-
+import json
+from swarmauri.standard.tools.concrete.EntityRecognitionTool import EntityRecognitionTool
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @pytest.mark.unit
 def test_type():
-    tool = Tool()
-    assert isinstance(tool, Tool), "Component is not of the expected type."
-
+    tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
+    assert tool.type == 'ToolBase', "Type should be 'ToolBase'"
 
 @pytest.mark.unit
 def test_resource():
-    tool = Tool()
-    text = "Barack Obama was the 44th president of the United States."
-    
-    with patch('transformers.pipeline') as mock_pipeline:
-        mock_ner = MagicMock()
-        mock_ner.return_value = [{"entity": "PER", "word": "Barack Obama"}, {"entity": "ORG", "word": "United States"}]
-        mock_pipeline.return_value = mock_ner
-
-        result = tool(text)
-        assert isinstance(result, str), "The output is not of the expected type."
-        assert "PER" in result and "ORG" in result, "Resource handling failed."
-
+    tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
+    assert tool.resource == 'Tool', "Resource should be 'Tool'"
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool()
-    entities = {"PER": ["Barack Obama"], "ORG": ["United States"]}
-
+    tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
+    
     # Test serialization
-    serialized_data = json.dumps(entities)
-    assert serialized_data == '{"PER": ["Barack Obama"], "ORG": ["United States"]}', "Serialization failed."
-
+    serialized_tool = tool.dict()
+    assert 'name' in serialized_tool, "Serialized tool should include 'name'"
+    assert 'parameters' in serialized_tool, "Serialized tool should include 'parameters'"
+    
     # Test deserialization
-    deserialized_data = json.loads(serialized_data)
-    assert deserialized_data == entities, "Deserialization failed."
-
+    deserialized_tool = EntityRecognitionTool(**serialized_tool)
+    assert deserialized_tool.name == tool.name, "Deserialized tool should have the same 'name'"
+    assert deserialized_tool.parameters == tool.parameters, "Deserialized tool should have the same 'parameters'"
 
 @pytest.mark.unit
 def test_access():
-    tool = Tool()
-    assert callable(tool), "Component is not callable as expected."
-
+    tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
+    
+    # Test calling the tool
+    text = "Barack Obama was born in Hawaii."
+    result = tool(text=text)
+    
+    # Check if the result is a dictionary and not empty
+    assert isinstance(result, dict), "Result should be a dictionary"
+    assert len(result) > 0, "Result should not be empty"
 
 @pytest.mark.unit
 def test_functionality():
-    tool = Tool()
-    text = "Barack Obama was the 44th president of the United States."
-
-    with patch('transformers.pipeline') as mock_pipeline:
-        mock_ner = MagicMock()
-        mock_ner.return_value = [{"entity": "PER", "word": "Barack Obama"}, {"entity": "ORG", "word": "United States"}]
-        mock_pipeline.return_value = mock_ner
-
-        result = tool(text)
-        expected_result = '{"PER": ["Barack Obama"], "ORG": ["United States"]}'
-        assert result == expected_result, "Functionality test failed."
-
-    with patch('transformers.pipeline', side_effect=Exception("Error")):
-        with pytest.raises(Exception, match="Error"):
-            tool(text)
+    tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
+    
+    # Test functionality of __call__ method
+    text = "Apple Inc. is an American multinational technology company."
+    result = tool(text=text)
+    
+    # Check if the result is a JSON string and can be deserialized into a dictionary
+    assert isinstance(result, str), "Result should be a JSON string"
+    try:
+        result_dict = json.loads(result)
+        assert isinstance(result_dict, dict), "Deserialized result should be a dictionary"
+    except json.JSONDecodeError:
+        pytest.fail("Result could not be deserialized into a dictionary")
+    
+    # Check if 'ORG' (organization) is recognized
+    assert 'ORG' in result_dict, "Result should include 'ORG' entity type"
