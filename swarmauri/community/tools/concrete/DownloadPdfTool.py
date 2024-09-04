@@ -25,30 +25,6 @@ class DownloadPDFTool(ToolBase):
         super().__init__(name="DownloadPDFTool",
                          description="Downloads a PDF from a specified URL and saves it to a specified path.",
                          parameters=parameters)
-
-    def serialize(self, data: Dict[str, str]) -> str:
-        """
-        Serialize the data into a JSON string.
-
-        Parameters:
-        - data (Dict[str, str]): The data to serialize.
-
-        Returns:
-        - str: The serialized JSON string.
-        """
-        return json.dumps(data)
-
-    def deserialize(self, serialized_data: str) -> Dict[str, str]:
-        """
-        Deserialize the JSON string back into a dictionary.
-
-        Parameters:
-        - serialized_data (str): The JSON string to deserialize.
-
-        Returns:
-        - Dict[str, str]: The deserialized data.
-        """
-        return json.loads(serialized_data)
     
     def __call__(self, url: str, destination: str) -> Dict[str, str]:
         """
