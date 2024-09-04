@@ -25,10 +25,15 @@ def test_serialization():
 @pytest.mark.parametrize("action, kwargs, expected", [
     ("cpu", {}, {'cpu_count': 4, 'cpu_frequency': 'CPU frequency data', 'cpu_percent': 'CPU percent data', 'cpu_stats': 'CPU stats data', 'cpu_times': {'cpu_times': 'CPU times data', 'cpu_times_per_cpu': ['CPU times per CPU data']}, 'cpu_times_per_cpu': []}),
     ("memory", {}, {"virtual_memory": "Virtual memory data", "swap_memory": "Swap memory data"}),
-    ("disk", {}, {'disk_partitions': [{'device': 'sda1', 'mountpoint': '/', 'fstype': 'ext4', 'opts': 'rw'}]}),
+    ("disk", {}, {
+        'disk_partitions': [{'device': 'sda1', 'mountpoint': '/', 'fstype': 'ext4', 'opts': 'rw'}],
+        'disk_usage': {'sda1': {'disk_usage_data': 'Disk usage data'}},
+        'disk_io_counters': 'Disk I/O counters data'
+    }),
     ("network", {}, {"network_io_counters": "Network I/O counters data", "network_connections": ["Network connection data"], "network_interfaces": {"iface1": ["Address data"], "iface2": ["Address data"]}}),
     ("sensors", {}, {"battery": "Battery status data", "temperatures": {"temp1": ["Temperature data"]}, "fan_speeds": {"fan1": ["Fan speed data"]}})
 ])
+
 @pytest.mark.unit
 def test_call(action, kwargs, expected):
     with patch('psutil.cpu_times') as mock_cpu_times, \
