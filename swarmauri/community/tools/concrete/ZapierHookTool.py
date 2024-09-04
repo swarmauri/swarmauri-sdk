@@ -6,7 +6,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class ZapierHookTool(ToolBase):
-    def __init__(self, auth_token, zap_id):
+    def __init__(self, auth_token: str, zap_id: str):
         parameters = [
             Parameter(
                 name="payload",

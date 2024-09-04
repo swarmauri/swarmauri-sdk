@@ -6,21 +6,21 @@ from swarmauri.community.tools.concrete.ZapierHookTool import ZapierHookTool as 
 
 @pytest.mark.unit
 def test_ubc_resource():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id")
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'ZapierHookTool'
+    assert Tool(auth_token="dummy_token", zap_id="dummy_zap_id").type == 'ZapierHookTool'
 
 @pytest.mark.unit
 def test_initialization():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id")
     assert type(tool.id) == str
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id")
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.parametrize("payload, response_status, response_json, expected_output, should_raise", [
