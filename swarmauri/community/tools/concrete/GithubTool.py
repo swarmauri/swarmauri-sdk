@@ -85,7 +85,7 @@ class GithubTool(ToolBase):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-    def __init__(self):
+    def __init__(self, token: str):
         super().__init__()
         self.token = token
         self._github = Github(token)
