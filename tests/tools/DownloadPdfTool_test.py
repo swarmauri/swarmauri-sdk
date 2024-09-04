@@ -22,7 +22,7 @@ def test_resource():
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
-        result = tool.download_pdf(url, destination)
+        result = tool(url, destination)  # Calling the tool directly
         assert "message" in result and result["message"] == "PDF downloaded successfully."
         assert "destination" in result and result["destination"] == destination
 
@@ -30,14 +30,22 @@ def test_resource():
 def test_serialization():
     tool = Tool()
     data = {"message": "PDF downloaded successfully.", "destination": "sample.pdf"}
+    
+    # Test serialization
     serialized_data = tool.serialize(data)
+    assert isinstance(serialized_data, str), "Serialization did not return a string."
+    
+    # Test deserialization
     deserialized_data = tool.deserialize(serialized_data)
-    assert data == deserialized_data, "Serialization/Deserialization failed."
+    assert deserialized_data == data, "Deserialization did not return the expected data."
 
+    # Ensure that the original and deserialized data match
+    assert data == deserialized_data, "Serialization/Deserialization round trip failed."
+    
 @pytest.mark.unit
 def test_access():
     tool = Tool()
-    assert hasattr(tool, 'download_pdf'), "Component does not have the expected access method."
+    assert callable(tool), "Component is not callable as expected."
 
 @pytest.mark.unit
 def test_call():
@@ -51,14 +59,14 @@ def test_call():
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
-        result = tool.download_pdf(url, destination)
+        result = tool(url, destination)
         assert result == {
             "message": "PDF downloaded successfully.",
             "destination": destination
         }, "Functionality test failed."
 
     with patch('requests.get', side_effect=requests.exceptions.RequestException("Error")):
-        result = tool.download_pdf(url, destination)
+        result = tool(url, destination)
         assert "error" in result and "Failed to download PDF" in result["error"], "Error handling test failed."
 
     with patch('requests.get') as mock_get:
@@ -68,5 +76,5 @@ def test_call():
         mock_get.return_value = mock_response
 
         with patch('builtins.open', side_effect=IOError("Error")):
-            result = tool.download_pdf(url, destination)
+            result = tool(url, destination)
             assert "error" in result and "Failed to save PDF" in result["error"], "File I/O error handling test failed."
