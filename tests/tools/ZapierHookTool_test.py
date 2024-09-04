@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from swarmauri.standard.tools.concrete.ZapierHookTool import ZapierHookTool as Tool
+from swarmauri.community.tools.concrete.ZapierHookTool import ZapierHookTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
