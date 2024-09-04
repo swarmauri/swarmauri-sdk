@@ -35,7 +35,7 @@ def test_call(X, n_neighbors, n_components, n_iterations, expected_shape, should
         'X': X,
         'n_neighbors': n_neighbors,
         'n_components': n_components,
-        'n_iters': n_iterations,
+        'n_iterations': n_iterations,
     }
 
     if should_raise:
