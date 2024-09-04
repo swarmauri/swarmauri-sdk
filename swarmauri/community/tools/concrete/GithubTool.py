@@ -84,11 +84,6 @@ class GithubTool(ToolBase):
     token: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-
-    def __init__(self):
-        super().__init__()
-        self._github = Github(self.token)
-
     def __call__(self, action: str, **kwargs) -> Any:
         """
         Central method to call various GitHub API actions.
@@ -150,8 +145,9 @@ class GithubTool(ToolBase):
         }
 
         if action in action_map:
+            self._github = Github(self.token)
             return action_map[action](**kwargs)
-
+    
         raise ValueError(f"Action '{action}' is not supported.")
 
     # Repository Management Methods

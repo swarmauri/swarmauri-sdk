@@ -24,7 +24,7 @@ class DownloadPDFTool(ToolBase):
         super().__init__(name="DownloadPDFTool",
                          description="Downloads a PDF from a specified URL and saves it to a specified path.",
                          parameters=parameters)
-
+    
     def __call__(self, url: str, destination: str) -> Dict[str, str]:
         """
         Download the PDF from the specified URL and saves it to the given destination path.
