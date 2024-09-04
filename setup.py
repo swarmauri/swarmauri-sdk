@@ -53,7 +53,8 @@ setup(
             "folium",
             "captcha",
             "bs4",
-            "pygithub"
+            "pygithub",
+            "pacmap"
 
         ]},
     classifiers=[
