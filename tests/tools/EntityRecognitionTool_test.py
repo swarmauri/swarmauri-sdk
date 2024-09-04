@@ -55,5 +55,5 @@ def test_functionality():
     except json.JSONDecodeError:
         pytest.fail("Result could not be deserialized into a dictionary")
     
-    # Check if 'ORG' (organization) is recognized
+    # Check if 'ORG' is recognized
     assert 'ORG' in result_dict, "Result should include 'ORG' entity type"
