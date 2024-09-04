@@ -19,9 +19,6 @@ def test_serialization():
     deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
 
     assert toolkit.id == deserialized_toolkit.id
-    assert toolkit.get_tool_names() == deserialized_toolkit.get_tool_names()
-
-    # Optionally, ensure that the entire object is equal, including the state of each tool
     assert toolkit == deserialized_toolkit
 
 @pytest.mark.unit
