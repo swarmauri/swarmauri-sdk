@@ -5,12 +5,12 @@ import requests
 from swarmauri.community.tools.concrete.DownloadPdfTool import DownloadPdfTool as Tool
 
 @pytest.mark.unit
-def test_component_type():
+def test_type():
     tool = Tool()
     assert isinstance(tool, Tool), "Component is not of the expected type."
 
 @pytest.mark.unit
-def test_resource_handling():
+def test_resource():
     tool = Tool()
     url = "http://example.com/sample.pdf"
     destination = "sample.pdf"
@@ -34,12 +34,12 @@ def test_serialization():
     assert data == deserialized_data, "Serialization/Deserialization failed."
 
 @pytest.mark.unit
-def test_access_method():
+def test_access():
     tool = Tool()
     assert hasattr(tool, 'download_pdf'), "Component does not have the expected access method."
 
 @pytest.mark.unit
-def test_functionality():
+def test_call():
     tool = Tool()
     url = "http://example.com/sample.pdf"
     destination = "sample.pdf"
