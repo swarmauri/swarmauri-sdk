@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from swarmauri.standard.tools.concrete.PaCMAPTool import PaCMAPTool as Tool
+from swarmauri.community.tools.concrete.PaCMAPTool import PaCMAPTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.WebScrapingTool import WebScrapingTool as Tool
+from swarmauri.community.tools.concrete.WebScrapingTool import WebScrapingTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

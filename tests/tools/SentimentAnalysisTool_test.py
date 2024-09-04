@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.SentimentAnalysisTool import SentimentAnalysisTool as Tool
+from swarmauri.community.tools.concrete.SentimentAnalysisTool import SentimentAnalysisTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
