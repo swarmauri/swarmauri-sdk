@@ -9,7 +9,7 @@ from pydantic import Field
 
 
 class GmailReadTool(ToolBase):
-    SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+    SCOPES: List[str] = ['https://www.googleapis.com/auth/gmail.readonly']
 
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(default_factory=lambda: [
