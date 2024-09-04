@@ -1,6 +1,4 @@
 import os
-from unittest.mock import patch, MagicMock
-
 import pytest
 from swarmauri.community.tools.concrete.GithubTool import GithubTool as Tool
 
