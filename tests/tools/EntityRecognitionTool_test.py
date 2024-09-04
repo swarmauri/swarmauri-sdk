@@ -1,6 +1,6 @@
 import pytest
 import json
-from swarmauri.standard.tools.concrete.EntityRecognitionTool import EntityRecognitionTool
+from swarmauri.community.tools.concrete.EntityRecognitionTool import EntityRecognitionTool
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 @pytest.mark.unit
