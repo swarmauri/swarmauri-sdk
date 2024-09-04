@@ -30,17 +30,14 @@ def test_resource():
 def test_serialization():
     tool = Tool()
     data = {"message": "PDF downloaded successfully.", "destination": "sample.pdf"}
-    
+
     # Test serialization
     serialized_data = tool.serialize(data)
-    assert isinstance(serialized_data, str), "Serialization did not return a string."
-    
+    assert serialized_data == '{"message": "PDF downloaded successfully.", "destination": "sample.pdf"}'
+
     # Test deserialization
     deserialized_data = tool.deserialize(serialized_data)
-    assert deserialized_data == data, "Deserialization did not return the expected data."
-
-    # Ensure that the original and deserialized data match
-    assert data == deserialized_data, "Serialization/Deserialization round trip failed."
+    assert deserialized_data == data
     
 @pytest.mark.unit
 def test_access():
