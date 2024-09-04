@@ -2,27 +2,29 @@ import requests
 from bs4 import BeautifulSoup
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
+from typing import List, Literal
+from pydantic import Field
 
 class WebScrapingTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter(
-                name="url",
-                type="string",
-                description="URL of the link, website, webpage, etc... to scrape",
-                required=True
-            ),
-            Parameter(
-                name="selector",
-                type="string",
-                description="CSS selector to target specific elements",
-                required=True
-            )
-        ]
-        
-        super().__init__(name="WebScrapingTool", 
-                         description="This is a web scraping tool that you can utilize to scrape links, websites, webpages, etc... This tool uses python's requests and BeautifulSoup libraries to parse a URL using a CSS to target specific elements.", 
-                         parameters=parameters)
+    version: str = "1.0.0"
+    parameters: List[Parameter] = Field(default_factory=lambda: [
+        Parameter(
+            name="url",
+            type="string",
+            description="URL of the link, website, webpage, etc... to scrape",
+            required=True
+        ),
+        Parameter(
+            name="selector",
+            type="string",
+            description="CSS selector to target specific elements",
+            required=True
+        )
+    ])
+    
+    name: str = 'WebScrapingTool'
+    description: str = "This is a web scraping tool that uses python's requests and BeautifulSoup libraries to parse a URL using a CSS selector to target specific elements."
+    type: Literal['WebScrapingTool'] = 'WebScrapingTool'
 
     def __call__(self, url: str, selector: str) -> str:
         """
