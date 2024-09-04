@@ -4,23 +4,28 @@ import pytest
 import requests
 from swarmauri.community.tools.concrete.ZapierHookTool import ZapierHookTool as Tool
 
+headers = {
+        "Authorization": "Bearer dummy_token",
+        "Content-Type": "application/json"
+    }
+
 @pytest.mark.unit
 def test_ubc_resource():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
     assert tool.resource == 'Tool'
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'ZapierHookTool'
+    assert Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers).type == 'ZapierHookTool'
 
 @pytest.mark.unit
 def test_initialization():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
     assert type(tool.id) == str
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool()
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.parametrize("payload, response_status, response_json, expected_output, should_raise", [
@@ -31,7 +36,7 @@ def test_serialization():
 @patch('requests.post')
 @pytest.mark.unit
 def test_call(mock_post, payload, response_status, response_json, expected_output, should_raise):
-    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id")
+    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
     mock_response = mock_post.return_value
     mock_response.status_code = response_status
     if response_json is not None:
@@ -48,10 +53,7 @@ def test_call(mock_post, payload, response_status, response_json, expected_outpu
 
     mock_post.assert_called_with(
         f'https://hooks.zapier.com/hooks/catch/dummy_zap_id/',
-        headers={
-            "Authorization": "Bearer dummy_token",
-            "Content-Type": "application/json"
-        },
+        headers=headers,
         json={"data": payload}
     )
     assert result["num_characters"] == 26
