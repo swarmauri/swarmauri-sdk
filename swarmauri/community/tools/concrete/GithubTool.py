@@ -87,8 +87,7 @@ class GithubTool(ToolBase):
 
     def __init__(self):
         super().__init__()
-        self.token = token
-        self._github = Github(token)
+        self._github = Github(self.token)
 
     def __call__(self, action: str, **kwargs) -> Any:
         """
