@@ -46,7 +46,8 @@ def test_serialization():
     ("invalid_action", {}, None),
 ])
 @pytest.mark.skipif(not os.getenv('GITHUBTOOL_TEST_TOKEN'), reason="Skipping due to environment variable not set")
-@patch('swarmauri.standard.tools.concrete.GithubTool.Github')
+@pytest.mark.unit
+@patch('swarmauri.community.tools.concrete.GithubTool.Github')
 def test_call(mock_github, action, kwargs, method_called):
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
     tool = Tool(token=token)
