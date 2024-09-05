@@ -33,18 +33,6 @@ class GmailReadTool(ToolBase):
     credentials_path: str
     sender_email: str
     service: build = Field(init=False)
-    
-    def __init__(self, credentials_path: str, sender_email: str):
-        """
-        Initializes the GmailReadTool with a path to the credentials JSON file.
-
-        Parameters:
-        credentials_path (str): The path to the Gmail service JSON file.
-        sender_email (str): The sender's email address.
-        """
-        super().__init__(name=self.name, description=self.description, parameters=self.parameters)
-        self.credentials_path = credentials_path
-        self.sender_email = sender_email
 
     def authenticate(self):
         """
