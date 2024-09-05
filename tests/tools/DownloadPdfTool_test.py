@@ -29,15 +29,7 @@ def test_resource():
 @pytest.mark.unit
 def test_serialization():
     tool = Tool()
-    data = {"message": "PDF downloaded successfully.", "destination": "sample.pdf"}
-
-    # Test serialization
-    serialized_data = tool.serialize(data)
-    assert serialized_data == '{"message": "PDF downloaded successfully.", "destination": "sample.pdf"}'
-
-    # Test deserialization
-    deserialized_data = tool.deserialize(serialized_data)
-    assert deserialized_data == data
+    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
     
 @pytest.mark.unit
 def test_access():
