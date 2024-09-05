@@ -57,6 +57,9 @@ class PaCMAPTool(ToolBase):
         n_neighbors = kwargs.get('n_neighbors', 30)
         n_components = kwargs.get('n_components', 2)
         n_iterations = kwargs.get('n_iterations', 500)
+
+        if X is None:
+            raise TypeError("Input X cannot be None")
         
         # Instantiate the PaCMAP instance with specified parameters
         embedder = pacmap.PaCMAP(n_neighbors=n_neighbors, n_components=n_components, 
