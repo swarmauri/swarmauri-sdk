@@ -26,6 +26,7 @@ class SentimentAnalysisTool(ToolBase):
     type: Literal['SentimentAnalysisTool'] = 'SentimentAnalysisTool'
     
     def __call__(self, text: str) -> str:
+        analyzer = None
         try:
             analyzer = pipeline("sentiment-analysis")
             result = analyzer(text)
@@ -33,4 +34,5 @@ class SentimentAnalysisTool(ToolBase):
         except Exception as e:
             raise RuntimeError(f"Sentiment analysis failed: {str(e)}")
         finally:
-            del analyzer
+            if analyzer is not None:
+                del analyzer
