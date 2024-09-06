@@ -35,8 +35,9 @@ def test_serialization():
 @patch('googleapiclient.discovery.build')
 def test_call(mock_build, mock_create_message, mock_authenticate, send_method_side_effect, expected_result):
     tool = Tool(credentials_path='fake_credentials.json', sender_email='test@example.com')
-    tool.service = MagicMock()
-    mock_send = tool.service.users.return_value.messages.return_value.send.return_value.execute
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+    mock_send = mock_service.users.return_value.messages.return_value.send.return_value.execute
     mock_send.side_effect = send_method_side_effect
 
     mock_create_message.return_value = {'raw': 'fake_message'}
@@ -45,5 +46,5 @@ def test_call(mock_build, mock_create_message, mock_authenticate, send_method_si
 
     mock_authenticate.assert_called_once()
     mock_create_message.assert_called_once_with('recipient@example.com', 'Test Subject', 'Test HTML Message')
-    tool.service.users().messages().send.assert_called_once_with(userId='me', body={'raw': 'fake_message'})
+    mock_service.users().messages().send.assert_called_once_with(userId='me', body={'raw': 'fake_message'})
     assert result == expected_result
