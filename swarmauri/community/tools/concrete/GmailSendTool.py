@@ -6,7 +6,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
-from typing import List, Dict, Literal
+from typing import List, Dict, Literal, Optional
 from pydantic import Field
 
 
@@ -41,6 +41,7 @@ class GmailSendTool(ToolBase):
     
     credentials_path: str
     sender_email: str
+    service: Optional[object] = None
 
     def authenticate(self):
         """
