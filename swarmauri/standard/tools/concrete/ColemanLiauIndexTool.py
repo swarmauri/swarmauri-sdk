@@ -59,7 +59,7 @@ class ColemanLiauIndexTool(ToolBase):
                 num_sentences / num_words
             ) * 100  # Average number of sentences per 100 words
             cli_score = 0.0588 * L - 0.296 * S - 15.8
-            return {"Coleman-Liau Index": cli_score}
+            return {"coleman_liau_index": cli_score}
         else:
             raise ValueError("Invalid input for ColemanLiauIndexTool.")
 
