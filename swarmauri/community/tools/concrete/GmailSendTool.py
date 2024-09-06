@@ -41,8 +41,7 @@ class GmailSendTool(ToolBase):
     
     credentials_path: str
     sender_email: str
-    service: build = Field(init=False)
-    
+
     def authenticate(self):
         """
         Authenticates the user and creates a Gmail API service for sending emails.
