@@ -24,6 +24,16 @@ class ConversationBase(IConversation, ComponentBase):
     def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
 
+    def remove_message(self, message: SubclassUnion[MessageBase]):
+        """ 
+        Remove a message from the history
+        @param message: Message to remove from the history
+        @return None
+        """
+        if self._history and message in self._history:
+            self._history.remove(message)
+        return None
+
     def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
         if self._history:
             return self._history[-1]
