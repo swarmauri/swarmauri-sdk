@@ -47,6 +47,6 @@ class CalculatorTool(ToolBase):
                 result = x / y
             else:
                 return "Error: Unknown operation."
-            return {operation: str(result)}
+            return {"operation": operation, "calculated_result": str(result)}
         except Exception as e:
             return f"An error occurred: {str(e)}"
