@@ -13,14 +13,16 @@ class EntityRecognitionTool(ToolBase):
     """
     name: str = "EntityRecognitionTool"
     description: str = "Extracts named entities from text"
-    parameters = [
-        Parameter(
-            name="text",
-            type="string",
-            description="The text for entity recognition",
-            required=True
-        )
-    ]
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
+            Parameter(
+                name="text",
+                type="string",
+                description="The text for entity recognition",
+                required=True
+            )
+        ]
+    )
     type: Literal['EntityRecognitionTool'] = 'EntityRecognitionTool'
 
     def __call__(self, text: str) -> Dict[str, str]:
