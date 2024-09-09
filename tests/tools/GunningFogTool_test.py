@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.admin.templatetags.admin_list import results
 from swarmauri.standard.tools.concrete.GunningFogTool import GunningFogTool as Tool
 
 @pytest.mark.unit
