@@ -45,16 +45,22 @@ class TemperatureConverterTool(ToolBase):
                     result = (value * 9 / 5) + 32
                 elif to_unit == "kelvin":
                     result = value + 273.15
+                else:
+                    return "Error: Unknown temperature unit."
             elif from_unit == "fahrenheit":
                 if to_unit == "celsius":
                     result = (value - 32) * 5 / 9
                 elif to_unit == "kelvin":
                     result = (value - 32) * 5 / 9 + 273.15
+                else:
+                    return "Error: Unknown temperature unit."
             elif from_unit == "kelvin":
                 if to_unit == "celsius":
                     result = value - 273.15
                 elif to_unit == "fahrenheit":
                     result = (value - 273.15) * 9 / 5 + 32
+                else:
+                    return "Error: Unknown temperature unit."
             else:
                 return "Error: Unknown temperature unit."
 

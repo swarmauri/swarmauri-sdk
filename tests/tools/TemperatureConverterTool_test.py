@@ -35,7 +35,6 @@ def test_ubc_type():
 )
 def test_call(from_unit, to_unit, value, expected_result):
     tool = Tool()
-
     expected_keys = {f"temperature_in_{to_unit}"}
 
     result = tool(from_unit=from_unit, to_unit=to_unit, value=value)

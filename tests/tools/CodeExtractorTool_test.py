@@ -234,10 +234,7 @@ def test_call(file_contents, extract_documentation, to_be_ignored, expected_code
     with patch("builtins.open", mock_open(read_data=file_contents)):
         result = tool(file_name="fake_file.py", extract_documentation=extract_documentation, to_be_ignored=to_be_ignored)
 
-    assert result == expected_code
-
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(result.get("code"),
-                      str), f"Expected str, but got {type(result.get('code')).__name__}"
+    assert isinstance(result.get("code"), str), f"Expected str, but got {type(result.get('code')).__name__}"
     assert result.get("code") == expected_code, f"Expected Extracted Code {expected_code}, but got {result.get('code')}"

@@ -36,7 +36,7 @@ class TextLengthTool(ToolBase):
         Returns:
             dict: A dictionary containing the number of characters, words, and sentences.
         """
-        return {"text_length": self.calculate_text_length(text)}
+        return self.calculate_text_length(text)
 
     def calculate_text_length(self, text: str) -> Dict[str, int]:
         """
