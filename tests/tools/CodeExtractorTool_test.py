@@ -194,7 +194,7 @@ def test_tool(file_content, extract_documentation, to_be_ignored, expected_code)
     # extracted_code = tool.extract_code(file_name, extract_documentation, to_be_ignored)
     # assert extracted_code == expected_code
 
-    result = tool(file_name, extract_documentation, to_be_ignored) == expected_code
+    result = tool(file_name, extract_documentation, to_be_ignored)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
