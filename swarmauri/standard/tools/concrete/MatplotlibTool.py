@@ -2,65 +2,79 @@ import matplotlib.pyplot as plt
 from typing import List, Literal
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter
+import base64
+
 
 class MatplotlibTool(ToolBase):
     version: str = "1.0.0"
     name: str = "MatplotlibTool"
-    description: str = "Generates a plot using Matplotlib library based on provided configuration."
+    description: str = (
+        "Generates a plot using Matplotlib library based on provided configuration."
+    )
     type: Literal["MatplotlibTool"] = "MatplotlibTool"
-    
-    parameters: List[Parameter] = Field(default_factory=lambda: [
-        Parameter(
-            name="plot_type",
-            type="string",
-            description="Type of plot to generate (e.g., 'line', 'bar', 'scatter').",
-            required=True,
-            enum=["line", "bar", "scatter"]
-        ),
-        Parameter(
-            name="x_data",
-            type="list<float>",
-            description="X-axis data for the plot.",
-            required=True
-        ),
-        Parameter(
-            name="y_data",
-            type="list<float>",
-            description="Y-axis data for the plot.",
-            required=True
-        ),
-        Parameter(
-            name="title",
-            type="string",
-            description="Title of the plot.",
-            required=False,
-            default=""
-        ),
-        Parameter(
-            name="x_label",
-            type="string",
-            description="Label for the X-axis.",
-            required=False,
-            default=""
-        ),
-        Parameter(
-            name="y_label",
-            type="string",
-            description="Label for the Y-axis.",
-            required=False,
-            default=""
-        ),
-        Parameter(
-            name="save_path",
-            type="string",
-            description="Path to save the generated plot image.",
-            required=False,
-            default="plot.png"
-        )
-    ])
-    
-    def __call__(self, plot_type: str, x_data: List[float], y_data: List[float], 
-                 title: str = "", x_label: str = "", y_label: str = "", save_path: str ="plot.png"):
+
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
+            Parameter(
+                name="plot_type",
+                type="string",
+                description="Type of plot to generate (e.g., 'line', 'bar', 'scatter').",
+                required=True,
+                enum=["line", "bar", "scatter"],
+            ),
+            Parameter(
+                name="x_data",
+                type="list<float>",
+                description="X-axis data for the plot.",
+                required=True,
+            ),
+            Parameter(
+                name="y_data",
+                type="list<float>",
+                description="Y-axis data for the plot.",
+                required=True,
+            ),
+            Parameter(
+                name="title",
+                type="string",
+                description="Title of the plot.",
+                required=False,
+                default="",
+            ),
+            Parameter(
+                name="x_label",
+                type="string",
+                description="Label for the X-axis.",
+                required=False,
+                default="",
+            ),
+            Parameter(
+                name="y_label",
+                type="string",
+                description="Label for the Y-axis.",
+                required=False,
+                default="",
+            ),
+            Parameter(
+                name="save_path",
+                type="string",
+                description="Path to save the generated plot image.",
+                required=False,
+                default="plot.png",
+            ),
+        ]
+    )
+
+    def __call__(
+        self,
+        plot_type: str,
+        x_data: List[float],
+        y_data: List[float],
+        title: str = "",
+        x_label: str = "",
+        y_label: str = "",
+        save_path: str = "plot.png",
+    ):
         """
         Generates a plot using Matplotlib based on provided configuration.
 
@@ -76,7 +90,6 @@ class MatplotlibTool(ToolBase):
         Returns:
             str: Path where the plot image is saved.
         """
-
         plt.figure()
 
         if plot_type == "line":
@@ -98,4 +111,7 @@ class MatplotlibTool(ToolBase):
         plt.savefig(save_path)
         plt.close()
 
-        return save_path
+        with open(save_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+        return {"img_path": save_path, "img_base64": encoded_image, "data": []}

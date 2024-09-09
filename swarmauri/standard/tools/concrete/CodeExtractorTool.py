@@ -1,5 +1,5 @@
 import ast
-from typing import List, Literal
+from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -40,7 +40,7 @@ class CodeExtractorTool(ToolBase):
         file_name: str,
         extract_documentation: bool = True,
         to_be_ignored: List[str] = [],
-    ) -> str:
+    ) -> Dict[str, str]:
         """
         Extracts code from a Python file.
 
@@ -52,7 +52,9 @@ class CodeExtractorTool(ToolBase):
         Returns:
             str: Extracted code.
         """
-        return self.extract_code(file_name, extract_documentation, to_be_ignored)
+        return {
+            "code": self.extract_code(file_name, extract_documentation, to_be_ignored)
+        }
 
     def extract_code(
         self,
