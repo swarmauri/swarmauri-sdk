@@ -22,13 +22,13 @@ class AdditionTool(ToolBase):
     description: str = "This tool has two numbers together"
     type: Literal["AdditionTool"] = "AdditionTool"
 
-    def __call__(self, x: int, y: int) -> Dict[str, str]:
+    def __call__(self, x: float, y: float) -> Dict[str, str]:
         """
         Add two numbers x and y and return the sum.
 
         Parameters:
-        - x (int): The first number.
-        - y (int): The second number.
+        - x (float): The first number.
+        - y (float): The second number.
 
         Returns:
         - Dict[str, str]: Containing the function result

@@ -29,7 +29,7 @@ def test_serialization():
         ('add', 2, 3, '5'),  # Addition
         ('subtract', 5, 3, '2'),  # Subtraction
         ('multiply', 2, 3, '6'),  # Multiplication
-        ('divide', 6, 3, '2'),  # Division
+        ('divide', 6, 3, '2.0'),  # Division
         ('divide', 5, 0, 'Error: Division by zero.'),  # Division by zero, adjust based on your expected behavior
         ('unknown_ops', 5, 0, 'Error: Unknown operation.')
     ]
