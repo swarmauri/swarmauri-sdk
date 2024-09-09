@@ -1,25 +1,30 @@
 import re
-from typing import List, Literal
+from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
+
 class FleschReadingEaseTool(ToolBase):
     version: str = "0.1.dev2"
-    parameters: List[Parameter] = Field(default_factory=lambda: [
-        Parameter(
-            name="text",
-            type="string",
-            description="The text for which to calculate the Flesch Reading Ease score.",
-            required=True
-        )
-    ])
-    
-    name: str = 'FleschReadingEaseTool'
-    description: str = "Calculates the readability of text using the Flesch Reading Ease formula."
-    type: Literal['FleschReadingEaseTool'] = 'FleschReadingEaseTool'
-    
-    def __call__(self, text: str) -> float:
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
+            Parameter(
+                name="text",
+                type="string",
+                description="The text for which to calculate the Flesch Reading Ease score.",
+                required=True,
+            )
+        ]
+    )
+
+    name: str = "FleschReadingEaseTool"
+    description: str = (
+        "Calculates the readability of text using the Flesch Reading Ease formula."
+    )
+    type: Literal["FleschReadingEaseTool"] = "FleschReadingEaseTool"
+
+    def __call__(self, text: str) -> Dict[str, float]:
         """
         Calculates the Flesch Reading Ease score for the given text.
 
@@ -29,8 +34,8 @@ class FleschReadingEaseTool(ToolBase):
         Returns:
         - float: The Flesch Reading Ease score.
         """
-        return self.calculate_flesch_reading_ease(text)
-    
+        return {"flesch_reading_ease": self.calculate_flesch_reading_ease(text)}
+
     def calculate_flesch_reading_ease(self, text: str) -> float:
         """
         Calculates the Flesch Reading Ease score for the given text.
@@ -42,11 +47,11 @@ class FleschReadingEaseTool(ToolBase):
             float: The Flesch Reading Ease score.
         """
         # Count the number of sentences in the text
-        sentences = text.count('.') + text.count('!') + text.count('?')
+        sentences = text.count(".") + text.count("!") + text.count("?")
         sentences = max(sentences, 1)  # Avoid division by zero
 
         # Split the text into words
-        words = re.findall(r'\b\w+\b', text)
+        words = re.findall(r"\b\w+\b", text)
         num_words = len(words)
         num_words = max(num_words, 1)  # Avoid division by zero
 
@@ -54,9 +59,11 @@ class FleschReadingEaseTool(ToolBase):
         syllables = sum(self.count_syllables(word) for word in words)
 
         # Calculate the Flesch Reading Ease score
-        score = 206.835 - 1.015 * (num_words / sentences) - 84.6 * (syllables / num_words)
+        score = (
+            206.835 - 1.015 * (num_words / sentences) - 84.6 * (syllables / num_words)
+        )
         return score
-    
+
     def count_syllables(self, word: str) -> int:
         """
         Counts the number of syllables in a given word.
@@ -88,4 +95,3 @@ class FleschReadingEaseTool(ToolBase):
 
         # Ensure at least one syllable per word
         return max(num_syllables, 1)
-

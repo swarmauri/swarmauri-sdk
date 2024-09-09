@@ -2,8 +2,11 @@
 import requests
 from typing import Optional, Dict, Any, Literal, List
 from pydantic import BaseModel, Field, Extra
-from swarmauri.standard.tools.base.ToolBase import ToolBase  # Assuming the location of ToolBase import
-from swarmauri.standard.tools.concrete.Parameter import Parameter 
+from swarmauri.standard.tools.base.ToolBase import (
+    ToolBase,
+)  # Assuming the location of ToolBase import
+from swarmauri.standard.tools.concrete.Parameter import Parameter
+
 
 class RequestsTool(ToolBase):
     """
@@ -13,50 +16,60 @@ class RequestsTool(ToolBase):
         name (str): The name of the tool.
         description (str): A brief description of what the tool does.
     """
-    name: str = "RequestsTool"
-    type: Literal['RequestsTool'] = 'RequestsTool'
-    description: Optional[str] = "A tool for making HTTP requests using the `requests` library."
-    parameters: List[Parameter] = Field(default_factory=lambda: [
-        Parameter(
-            name="method",
-            type="string",
-            description="The HTTP method to use ('get', 'post', 'put', 'delete').",
-            required=True,
-            enum=["get", "post", "put", "delete"]
-        ),
-        Parameter(
-            name="url",
-            type="string",
-            description="The URL for the request.",
-            required=True
-        ),
-        Parameter(
-            name="params",
-            type="object",
-            description="The query parameters to include in the request.",
-            required=False
-        ),
-        Parameter(
-            name="data",
-            type="object",
-            description="The form data to include in the request (used in POST and PUT).",
-            required=False
-        ),
-        Parameter(
-            name="json",
-            type="object",
-            description="The JSON data to include in the request (used in POST and PUT).",
-            required=False
-        ),
-        Parameter(
-            name="headers",
-            type="object",
-            description="Additional headers to include in the request.",
-            required=False
-        )
-    ])
 
-    def get(self, url: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    name: str = "RequestsTool"
+    type: Literal["RequestsTool"] = "RequestsTool"
+    description: Optional[str] = (
+        "A tool for making HTTP requests using the `requests` library."
+    )
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
+            Parameter(
+                name="method",
+                type="string",
+                description="The HTTP method to use ('get', 'post', 'put', 'delete').",
+                required=True,
+                enum=["get", "post", "put", "delete"],
+            ),
+            Parameter(
+                name="url",
+                type="string",
+                description="The URL for the request.",
+                required=True,
+            ),
+            Parameter(
+                name="params",
+                type="object",
+                description="The query parameters to include in the request.",
+                required=False,
+            ),
+            Parameter(
+                name="data",
+                type="object",
+                description="The form data to include in the request (used in POST and PUT).",
+                required=False,
+            ),
+            Parameter(
+                name="json",
+                type="object",
+                description="The JSON data to include in the request (used in POST and PUT).",
+                required=False,
+            ),
+            Parameter(
+                name="headers",
+                type="object",
+                description="Additional headers to include in the request.",
+                required=False,
+            ),
+        ]
+    )
+
+    def get(
+        self,
+        url: str,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> requests.Response:
         """
         Perform an HTTP GET request.
 
@@ -72,7 +85,13 @@ class RequestsTool(ToolBase):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response
 
-    def post(self, url: str, data: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    def post(
+        self,
+        url: str,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> requests.Response:
         """
         Perform an HTTP POST request.
 
@@ -89,7 +108,13 @@ class RequestsTool(ToolBase):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response
 
-    def put(self, url: str, data: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    def put(
+        self,
+        url: str,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> requests.Response:
         """
         Perform an HTTP PUT request.
 
@@ -106,7 +131,9 @@ class RequestsTool(ToolBase):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response
 
-    def delete(self, url: str, headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    def delete(
+        self, url: str, headers: Optional[Dict[str, str]] = None
+    ) -> requests.Response:
         """
         Perform an HTTP DELETE request.
 
@@ -121,7 +148,7 @@ class RequestsTool(ToolBase):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response
 
-    def __call__(self, method: str, url: str, **kwargs) -> requests.Response:
+    def __call__(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """
         Calls the appropriate HTTP method (GET, POST, PUT, DELETE) based on the method argument.
 
@@ -134,13 +161,18 @@ class RequestsTool(ToolBase):
             requests.Response: The response object from the HTTP request.
         """
         method = method.lower()
-        if method == 'get':
-            return self.get(url, **kwargs)
-        elif method == 'post':
-            return self.post(url, **kwargs)
-        elif method == 'put':
-            return self.put(url, **kwargs)
-        elif method == 'delete':
-            return self.delete(url, **kwargs)
+        if method == "get":
+            response = self.get(url, **kwargs)
+        elif method == "post":
+            response = self.post(url, **kwargs)
+        elif method == "put":
+            response = self.put(url, **kwargs)
+        elif method == "delete":
+            response = self.delete(url, **kwargs)
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
+
+        return {
+            "response_content": response.content,
+            "response_status": response.status_code,
+        }

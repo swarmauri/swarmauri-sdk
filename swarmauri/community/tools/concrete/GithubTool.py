@@ -6,6 +6,7 @@ from pydantic import Field, ConfigDict
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
+
 class GithubTool(ToolBase):
     version: str = "1.1.0"
     parameters: List[Parameter] = Field(
@@ -84,7 +85,7 @@ class GithubTool(ToolBase):
     token: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __call__(self, action: str, **kwargs) -> Any:
+    def __call__(self, action: str, **kwargs) -> Dict[str, Any]:
         """
         Central method to call various GitHub API actions.
 
@@ -93,7 +94,7 @@ class GithubTool(ToolBase):
             **kwargs: Additional keyword arguments related to the action.
 
         Returns:
-            Any: The result of the GitHub API action.
+            Dict[str, Any]: The result of the action.
         """
         action_map = {
             "create_repo": self.create_repo,
@@ -146,8 +147,8 @@ class GithubTool(ToolBase):
 
         if action in action_map:
             self._github = Github(self.token)
-            return action_map[action](**kwargs)
-    
+            return {action: action_map[action](**kwargs)}
+
         raise ValueError(f"Action '{action}' is not supported.")
 
     # Repository Management Methods
@@ -234,7 +235,9 @@ class GithubTool(ToolBase):
             return f"Error retrieving issue: {e}"
 
     # Pull Request Management Methods
-    def create_pull(self, repo_name: str, title: str, head: str, base: str, body: str = None) -> str:
+    def create_pull(
+        self, repo_name: str, title: str, head: str, base: str, body: str = None
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             pull = repo.create_pull(title=title, body=body, head=head, base=base)
@@ -276,7 +279,14 @@ class GithubTool(ToolBase):
             return f"Error retrieving pull request: {e}"
 
     # Commit Management Methods
-    def create_commit(self, repo_name: str, path: str, message: str, content: str, branch: str = "main") -> str:
+    def create_commit(
+        self,
+        repo_name: str,
+        path: str,
+        message: str,
+        content: str,
+        branch: str = "main",
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             repo.create_file(path=path, message=message, content=content, branch=branch)
@@ -308,11 +318,15 @@ class GithubTool(ToolBase):
             return f"Error comparing commits: {e}"
 
     # Branch Management Methods
-    def create_branch(self, repo_name: str, branch_name: str, source: str = "main") -> str:
+    def create_branch(
+        self, repo_name: str, branch_name: str, source: str = "main"
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             source_branch = repo.get_branch(source)
-            repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=source_branch.commit.sha)
+            repo.create_git_ref(
+                ref=f"refs/heads/{branch_name}", sha=source_branch.commit.sha
+            )
             return f"Branch '{branch_name}' created successfully."
         except GithubException as e:
             return f"Error creating branch: {e}"
@@ -342,7 +356,9 @@ class GithubTool(ToolBase):
             return f"Error retrieving branch: {e}"
 
     # Collaborator Management Methods
-    def add_collaborator(self, repo_name: str, username: str, permission: str = "push") -> str:
+    def add_collaborator(
+        self, repo_name: str, username: str, permission: str = "push"
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             repo.add_to_collaborators(username, permission)
@@ -376,10 +392,14 @@ class GithubTool(ToolBase):
             return f"Error checking collaborator status: {e}"
 
     # Milestone Management Methods
-    def create_milestone(self, repo_name: str, title: str, description: str = None, state: str = "open") -> str:
+    def create_milestone(
+        self, repo_name: str, title: str, description: str = None, state: str = "open"
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            milestone = repo.create_milestone(title=title, description=description, state=state)
+            milestone = repo.create_milestone(
+                title=title, description=description, state=state
+            )
             return f"Milestone '{title}' created successfully."
         except GithubException as e:
             return f"Error creating milestone: {e}"
@@ -418,10 +438,18 @@ class GithubTool(ToolBase):
             return f"Error retrieving milestone: {e}"
 
     # Label Management Methods
-    def create_label(self, repo_name: str, label_name: str, color: str, description: Optional[str] = None) -> str:
+    def create_label(
+        self,
+        repo_name: str,
+        label_name: str,
+        color: str,
+        description: Optional[str] = None,
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            label = repo.create_label(name=label_name, color=color, description=description)
+            label = repo.create_label(
+                name=label_name, color=color, description=description
+            )
             return f"Label '{label_name}' created successfully."
         except GithubException as e:
             return f"Error creating label: {e}"
@@ -435,11 +463,22 @@ class GithubTool(ToolBase):
         except GithubException as e:
             return f"Error deleting label: {e}"
 
-    def update_label(self, repo_name: str, label_name: str, new_name: Optional[str] = None, color: Optional[str] = None, description: Optional[str] = None) -> str:
+    def update_label(
+        self,
+        repo_name: str,
+        label_name: str,
+        new_name: Optional[str] = None,
+        color: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             label = repo.get_label(name=label_name)
-            label.edit(name=new_name or label_name, color=color or label.color, description=description or label.description)
+            label.edit(
+                name=new_name or label_name,
+                color=color or label.color,
+                description=description or label.description,
+            )
             return f"Label '{label_name}' updated successfully."
         except GithubException as e:
             return f"Error updating label: {e}"
@@ -460,10 +499,18 @@ class GithubTool(ToolBase):
             return f"Error retrieving label: {e}"
 
     # Webhook Management Methods
-    def create_webhook(self, repo_name: str, config: Dict[str, str], events: List[str], active: bool = True) -> str:
+    def create_webhook(
+        self,
+        repo_name: str,
+        config: Dict[str, str],
+        events: List[str],
+        active: bool = True,
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            webhook = repo.create_hook(name="web", config=config, events=events, active=active)
+            webhook = repo.create_hook(
+                name="web", config=config, events=events, active=active
+            )
             return f"Webhook created successfully with ID {webhook.id}."
         except GithubException as e:
             return f"Error creating webhook: {e}"
@@ -480,7 +527,9 @@ class GithubTool(ToolBase):
     def list_webhooks(self, repo_name: str) -> List[str]:
         try:
             repo = self._github.get_repo(repo_name)
-            return [f"Webhook {hook.id}: {hook.config['url']}" for hook in repo.get_hooks()]
+            return [
+                f"Webhook {hook.id}: {hook.config['url']}" for hook in repo.get_hooks()
+            ]
         except GithubException as e:
             return f"Error listing webhooks: {e}"
 
@@ -493,9 +542,13 @@ class GithubTool(ToolBase):
             return f"Error retrieving webhook: {e}"
 
     # Gist Management Methods
-    def create_gist(self, files: Dict[str, str], description: str = "", public: bool = True) -> str:
+    def create_gist(
+        self, files: Dict[str, str], description: str = "", public: bool = True
+    ) -> str:
         try:
-            gist = self._github.get_user().create_gist(public=public, files=files, description=description)
+            gist = self._github.get_user().create_gist(
+                public=public, files=files, description=description
+            )
             return f"Gist created successfully with ID {gist.id}."
         except GithubException as e:
             return f"Error creating gist: {e}"
@@ -508,7 +561,12 @@ class GithubTool(ToolBase):
         except GithubException as e:
             return f"Error deleting gist: {e}"
 
-    def update_gist(self, gist_id: str, files: Optional[Dict[str, str]] = None, description: Optional[str] = None) -> str:
+    def update_gist(
+        self,
+        gist_id: str,
+        files: Optional[Dict[str, str]] = None,
+        description: Optional[str] = None,
+    ) -> str:
         try:
             gist = self._github.get_gist(gist_id)
             gist.edit(files=files, description=description)
@@ -525,7 +583,12 @@ class GithubTool(ToolBase):
     def get_gist(self, gist_id: str) -> str:
         try:
             gist = self._github.get_gist(gist_id)
-            files = "\n".join([f"{fname}: {fileinfo['raw_url']}" for fname, fileinfo in gist.files.items()])
+            files = "\n".join(
+                [
+                    f"{fname}: {fileinfo['raw_url']}"
+                    for fname, fileinfo in gist.files.items()
+                ]
+            )
             return f"Gist {gist.id}: {gist.description}\nFiles: \n{files}"
         except GithubException as e:
             return f"Error retrieving gist: {e}"

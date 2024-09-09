@@ -1,7 +1,9 @@
+from typing import Dict
 from tweepy import Client
 
 from swarmauri.standard.tools.concrete.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
+
 
 class TwitterPostTool(ToolBase):
     def __init__(self, bearer_token):
@@ -11,16 +13,20 @@ class TwitterPostTool(ToolBase):
                 name="status",
                 type="string",
                 description="The status message to post on Twitter",
-                required=True
+                required=True,
             )
         ]
-        
-        super().__init__(name="TwitterPostTool", description="Post a status update on Twitter", parameters=parameters)
-        
+
+        super().__init__(
+            name="TwitterPostTool",
+            description="Post a status update on Twitter",
+            parameters=parameters,
+        )
+
         # Initialize Twitter API Client
         self.client = Client(bearer_token=bearer_token)
 
-    def __call__(self, status: str) -> str:
+    def __call__(self, status: str) -> Dict[str, str]:
         """
         Posts a status on Twitter.
 
@@ -28,14 +34,14 @@ class TwitterPostTool(ToolBase):
             status (str): The status message to post.
 
         Returns:
-            str: A confirmation message including the tweet's URL if successful.
+            Dict[str, str]: A dictionary containing the response from the Twitter API.
         """
         try:
             # Using Tweepy to send a tweet
             response = self.client.create_tweet(text=status)
-            tweet_id = response.data['id']
+            tweet_id = response.data["id"]
             # Constructing URL to the tweet - Adjust the URL to match Twitter API v2 structure if needed
             tweet_url = f"https://twitter.com/user/status/{tweet_id}"
-            return f"Tweet successful: {tweet_url}"
+            return {"message": "Tweet posted successfully!", "tweet_url": tweet_url}
         except Exception as e:
-            return f"An error occurred: {e}"
+            return {"message": f"Failed to post tweet: {e}"}
