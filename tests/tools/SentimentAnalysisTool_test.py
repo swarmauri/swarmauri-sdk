@@ -30,6 +30,6 @@ def test_call(text, expected_labels):
     tool = Tool()
     result = tool(text)
 
-    assert result in expected_labels
+    assert result['sentiment'] in expected_labels
 
     assert not hasattr(tool, 'analyzer')
