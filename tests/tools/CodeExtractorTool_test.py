@@ -4,6 +4,7 @@ This file contains the unit tests for the CodeExtractorTool class.
 In the CodeExtractorTool, it utilizes ast hence checks for python syntax
 Tests created must follow python syntax to avoid errors
 """
+from unittest.mock import patch, mock_open
 
 import pytest
 import tempfile
@@ -151,3 +152,87 @@ variable1 = 10"""
         tool.extract_code(file_name, extract_documentation, to_be_ignored)
         == expected_code
     )
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "file_contents, extract_documentation, to_be_ignored, expected_code",
+    [
+        (
+            '''"""
+            This is a docstring.
+            """
+            def foo():
+                pass
+            def bar():
+                pass
+            # non-essentials
+            ''',
+            True,
+            [],
+            'def foo():\n    pass\n\ndef bar():\n    pass\n'
+        ),
+        (
+            '''"""
+            This is a docstring.
+            """
+            def foo():
+                pass
+            def bar():
+                pass
+            # non-essentials
+            ''',
+            False,
+            [],
+            'def foo():\n    pass\n\ndef bar():\n    pass\n'
+        ),
+        (
+            '''"""
+            This is a docstring.
+            """
+            def foo():
+                pass
+            def bar():
+                pass
+            # non-essentials
+            ''',
+            True,
+            ['foo'],
+            'def bar():\n    pass\n'
+        ),
+        (
+            '''def foo():
+                pass
+            def bar():
+                pass
+            ''',
+            True,
+            [],
+            'def foo():\n    pass\n\ndef bar():\n    pass\n'
+        ),
+        (
+            '''def foo():
+                pass
+            def bar():
+                pass
+            ''',
+            False,
+            ['foo'],
+            'def bar():\n    pass\n'
+        ),
+    ]
+)
+def test_call(file_contents, extract_documentation, to_be_ignored, expected_code):
+    tool = Tool()
+
+    expected_keys = {'code'}
+
+    with patch("builtins.open", mock_open(read_data=file_contents)):
+        result = tool(file_name="fake_file.py", extract_documentation=extract_documentation, to_be_ignored=to_be_ignored)
+
+    assert result == expected_code
+
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert isinstance(result.get("code"),
+                      str), f"Expected str, but got {type(result.get('code')).__name__}"
+    assert result.get("code") == expected_code, f"Expected Extracted Code {expected_code}, but got {result.get('code')}"

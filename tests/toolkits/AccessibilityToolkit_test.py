@@ -1,4 +1,5 @@
 import pytest
+import logging
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.standard.toolkits.concrete.AccessibilityToolkit import AccessibilityToolkit as Toolkit
 
@@ -16,6 +17,7 @@ def test_ubc_type():
 def test_serialization():
     toolkit = Toolkit()
     serialized_data = toolkit.model_dump_json()
+    logging.info(serialized_data)
     deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
 
     assert toolkit.id == deserialized_toolkit.id

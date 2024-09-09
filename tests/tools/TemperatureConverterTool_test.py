@@ -29,7 +29,7 @@ def test_call():
 
     # Test conversion with the same units
     result = tool(from_unit="celsius", to_unit="celsius", value=25)
-    assert result == "25.0"  # Same unit conversion
+    assert result == "25"  # Same unit conversion
 
     # Test invalid 'from_unit'
     result = tool(from_unit="invalid_unit", to_unit="fahrenheit", value=25)

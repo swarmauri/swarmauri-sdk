@@ -21,10 +21,28 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
+
 @pytest.mark.unit
-def test_call():
+@pytest.mark.parametrize(
+    "operation, num1, num2, expected_result",
+    [
+        ('add', 2, 3, '5'),  # Addition
+        ('subtract', 5, 3, '2'),  # Subtraction
+        ('multiply', 2, 3, '6'),  # Multiplication
+        ('divide', 6, 3, '2'),  # Division
+        ('divide', 5, 0, 'Infinity')  # Division by zero, adjust based on your expected behavior
+    ]
+)
+def test_call(operation, num1, num2, expected_result):
     tool = Tool()
-    assert tool('add', 2, 3) == str(5)
-    assert tool('subtract', 17, 2) == str(15)
-    assert tool('multiply', 100, 5) == str(500)
-    assert tool('divide', 100, 2) == str(50.0)
+
+    expected_keys = {"operation", "calculated_result"}
+    result = tool(operation, num1, num2)
+
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert isinstance(result.get("calculated_result"),
+                      str), f"Expected str, but got {type(result.get('calculated_result')).__name__}"
+
+    assert result.get(
+        "calculated_result") == expected_result, f"Expected Calculated result {expected_result}, but got {result.get('calculated_result')}"

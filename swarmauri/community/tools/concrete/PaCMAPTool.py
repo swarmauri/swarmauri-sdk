@@ -66,7 +66,6 @@ class PaCMAPTool(ToolBase):
         embedder = pacmap.PaCMAP(
             n_neighbors=n_neighbors, n_components=n_components, n_iters=n_iterations
         )
-
         # Fit the model and transform the data
         X_reduced = embedder.fit_transform(X)
 

@@ -27,7 +27,8 @@ class SentimentAnalysisTool(ToolBase):
 
     name: str = "SentimentAnalysisTool"
     description: str = "Analyzes the sentiment of the given text."
-    type: Literal["SentimentAnalysisTool"] = "SentimentAnalysisTool"
+    type: Literal['SentimentAnalysisTool'] = 'SentimentAnalysisTool'
+    
 
     def __call__(self, text: str) -> Dict[str, str]:
         """
@@ -43,7 +44,7 @@ class SentimentAnalysisTool(ToolBase):
         Raises:
             RuntimeError: If sentiment analysis fails.
         """
-
+        analyzer = None
         try:
             analyzer = pipeline("sentiment-analysis")
             result = analyzer(text)
@@ -51,4 +52,5 @@ class SentimentAnalysisTool(ToolBase):
         except Exception as e:
             raise RuntimeError(f"Sentiment analysis failed: {str(e)}")
         finally:
-            del analyzer
+            if analyzer is not None:
+                del analyzer
