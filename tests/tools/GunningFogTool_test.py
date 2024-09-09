@@ -28,7 +28,7 @@ def test_serialization():
         ("Another example with more complex sentences; used for testing.", 3, 10, 2, 16.93),      # Test case 2
         ("Short sentence.", 1, 3, 0, 20.8),                                                # Test case 3
         ("Punctuation-heavy text! Is it really? Yes, it is! 42", 5, 10, 1, 5.0),             # Test case 4
-        ("", 0, 0, 0)                                                                  # Test case 5: empty string
+        ("", 0, 0, 0, 0)                                                                  # Test case 5: empty string
     ]
 )
 def test_call(input_text, num_of_major_punctuations, num_of_words, num_of_three_plus_syllable_words, expected_score):
