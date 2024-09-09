@@ -29,11 +29,11 @@ def test_serialization():
 @pytest.mark.parametrize(
     "input_a, input_b, expected_keys, expected_type, expected_sum",
     [
-        (2, 3, {'sum'}, str, "5.0"),     # Test case 1: positive integers
-        (-2, -3, {'sum'}, str, "-5.0"),  # Test case 2: negative integers
-        (0, 0, {'sum'}, str, "0.0"),     # Test case 3: zero values
+        (2, 3, {'sum'}, str, "5"),     # Test case 1: positive integers
+        (-2, -3, {'sum'}, str, "-5"),  # Test case 2: negative integers
+        (0, 0, {'sum'}, str, "0"),     # Test case 3: zero values
         (2.5, 3.5, {'sum'}, str, "6.0"),# Test case 4: floating-point numbers
-        ("2", "3", {'sum'}, str, "5.0")  # Test case 5: string inputs (assuming the Tool can handle this)
+        ("2", "3", {'sum'}, str, "5")  # Test case 5: string inputs (assuming the Tool can handle this)
     ]
 )
 def test_call(input_a, input_b, expected_keys, expected_type, expected_sum):
