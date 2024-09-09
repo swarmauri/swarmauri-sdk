@@ -23,35 +23,34 @@ def test_serialization():
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "input_data, expected_score",
+    "input_text, expected_score",
     [
         (
-                {'input_text': 'The quick brown fox jumps over the lazy dog.'},
+                'The quick brown fox jumps over the lazy dog.',
                 1.91
         ),
         (
-                {'input_text': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'},
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
                 2.50  # Replace with the expected ARI score for this input
         ),
         (
-                {'input_text': 'A short sentence.'},
+                'A short sentence.',
                 5.00  # Replace with the expected ARI score for this input
         ),
         (
-                {'input_text': ''},
+                '',
                 0.00  # Replace with the expected ARI score for this input
         ),
         (
-                {
-                    'input_text': 'Some longer text to test the algorithm with more complexity and variability in sentence length and word choice.'},
+                'Some longer text to test the algorithm with more complexity and variability in sentence length and word choice.',
                 3.25  # Replace with the expected ARI score for this input
         )
     ]
 )
-def test_call(input_data, expected_score):
+def test_call(input_text, expected_score):
     tool = Tool()
 
-    result = tool(input_data)
+    result = tool(input_text)
 
     expected_keys = {'ari_score'}
 

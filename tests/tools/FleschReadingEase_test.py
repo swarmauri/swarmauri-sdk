@@ -26,10 +26,10 @@ def test_serialization():
     "text, expected_score",
     [
         ("The cat sat on the mat.", 116.145),  # Test case 1: simple sentence
-        ("This is a more complex sentence, with more words.", 83.204),  # Test case 2: more complex sentence
-        ("Short sentence.", 100.665),  # Test case 3: short sentence
+        ("This is a more complex sentence, with more words.", 94.30),  # Test case 2: more complex sentence
+        ("Short sentence.", 77.90),  # Test case 3: short sentence
         ("", 206.835),  # Test case 4: empty string
-        ("A very difficult sentence, with lots of complexity!", 55.77)  # Test case 5: complex sentence with punctuation
+        ("A very difficult sentence, with lots of complexity!", 40.09)  # Test case 5: complex sentence with punctuation
     ]
 )
 def test_call(text, expected_score):

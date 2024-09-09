@@ -33,5 +33,4 @@ class AdditionTool(ToolBase):
         Returns:
         - Dict[str, str]: Containing the function result
         """
-        return {}
         return {"sum": str(x + y)}

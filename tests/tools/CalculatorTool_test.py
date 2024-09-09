@@ -30,7 +30,8 @@ def test_serialization():
         ('subtract', 5, 3, '2'),  # Subtraction
         ('multiply', 2, 3, '6'),  # Multiplication
         ('divide', 6, 3, '2'),  # Division
-        ('divide', 5, 0, 'Infinity')  # Division by zero, adjust based on your expected behavior
+        ('divide', 5, 0, 'Error: Division by zero.'),  # Division by zero, adjust based on your expected behavior
+        ('unknown_ops', 5, 0, 'Error: Unknown operation.')
     ]
 )
 def test_call(operation, num1, num2, expected_result):
@@ -39,10 +40,14 @@ def test_call(operation, num1, num2, expected_result):
     expected_keys = {"operation", "calculated_result"}
     result = tool(operation, num1, num2)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(result.get("calculated_result"),
+    if isinstance(result, str):
+        assert result == expected_result
+
+    else:
+        assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+        assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+        assert isinstance(result.get("calculated_result"),
                       str), f"Expected str, but got {type(result.get('calculated_result')).__name__}"
 
-    assert result.get(
-        "calculated_result") == expected_result, f"Expected Calculated result {expected_result}, but got {result.get('calculated_result')}"
+        assert result.get(
+            "calculated_result") == expected_result, f"Expected Calculated result {expected_result}, but got {result.get('calculated_result')}"
