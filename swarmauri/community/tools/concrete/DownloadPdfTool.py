@@ -1,29 +1,31 @@
 import requests
-from typing import Dict
+from typing import Dict, Literal, List
 from pathlib import Path
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 class DownloadPDFTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter(
-                name="url",
-                type="string",
-                description="The URL of the PDF file to download",
-                required=True
-            ),
-            Parameter(
-                name="destination",
-                type="string",
-                description="The path where the PDF file will be saved",
-                required=True
-            )
-        ]
-        
-        super().__init__(name="DownloadPDFTool",
-                         description="Downloads a PDF from a specified URL and saves it to a specified path.",
-                         parameters=parameters)
+    """
+    A tool to download a PDF from a specified URL and save it to a specified path.
+    """
+
+    name: str = "DownloadPDFTool"
+    description: str = "Downloads a PDF from a specified URL and saves it to a specified path."
+    parameters: List[Parameter] = [
+        Parameter(
+            name="url",
+            type="string",
+            description="The URL of the PDF file to download",
+            required=True
+        ),
+        Parameter(
+            name="destination",
+            type="string",
+            description="The path where the PDF file will be saved",
+            required=True
+        )
+    ]
+    type: Literal['DownloadPDFTool'] = 'DownloadPDFTool'
     
     def __call__(self, url: str, destination: str) -> Dict[str, str]:
         """

@@ -1,4 +1,5 @@
 import json
+from typing import Literal, List
 from transformers import pipeline, logging as hf_logging
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -6,16 +7,18 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 hf_logging.set_verbosity_error()
 
 class EntityRecognitionTool(ToolBase):
-    def __init__(self):
-        parameters = [
-            Parameter("text","string","The text for entity recognition",True)
-        ]
-        super().__init__(name="EntityRecognitionTool", 
-                         description="Extracts named entities from text", 
-                         parameters=parameters)
-        
+    """
+    A tool that extracts named entities from text using a pre-trained NLP model.
+    """
 
-    def __call__(self, text: str) -> dict:
+    name: str = "EntityRecognitionTool"
+    description: str = "Extracts named entities from text"
+    parameters: List[Parameter] = [
+        Parameter(name="text", type="string", description="The text for entity recognition", required=True)
+    ]
+    type: Literal['EntityRecognitionTool'] = 'EntityRecognitionTool'
+
+    def __call__(self, text: str) -> str:
         try:
             self.nlp = pipeline("ner")
             entities = self.nlp(text)
