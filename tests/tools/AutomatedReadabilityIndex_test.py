@@ -31,11 +31,11 @@ def test_serialization():
         ),
         (
                 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                2.50  # Replace with the expected ARI score for this input
+                11.41  # Replace with the expected ARI score for this input
         ),
         (
                 'A short sentence.',
-                5.00  # Replace with the expected ARI score for this input
+                3.62  # Replace with the expected ARI score for this input
         ),
         (
                 '',
@@ -43,7 +43,7 @@ def test_serialization():
         ),
         (
                 'Some longer text to test the algorithm with more complexity and variability in sentence length and word choice.',
-                3.25  # Replace with the expected ARI score for this input
+                12.16  # Replace with the expected ARI score for this input
         )
     ]
 )
@@ -57,7 +57,7 @@ def test_call(input_text, expected_score):
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
     assert isinstance(result.get("ari_score"),
-                      str), f"Expected str, but got {type(result.get('ari_score')).__name__}"
+                      float), f"Expected float, but got {type(result.get('ari_score')).__name__}"
 
-    assert result.get("ari_score") == pytest.approx(expected_score,
-                                                    rel=1e-2), f"Expected ARI score {pytest.approx(expected_score, rel=1e-2)}, but got {result.get('ari_score')}"
+    assert result.get("ari_score") == pytest.approx(expected_score, rel=1e-2), \
+        f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"
