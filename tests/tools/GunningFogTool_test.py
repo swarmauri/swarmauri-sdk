@@ -24,11 +24,11 @@ def test_serialization():
 @pytest.mark.parametrize(
     "input_text, num_of_major_punctuations, num_of_words, num_of_three_plus_syllable_words",
     [
-        ("This is a sample sentence. It is used to test the Gunning-Fog tool.", 2, 13),   # Test case 1
-        ("Another example with more complex sentences; used for testing.", 3, 10),      # Test case 2
+        ("This is a sample sentence. It is used to test the Gunning-Fog tool.", 2, 13, 1),   # Test case 1
+        ("Another example with more complex sentences; used for testing.", 3, 10, 2),      # Test case 2
         ("Short sentence.", 1, 3, 0),                                                # Test case 3
-        ("Punctuation-heavy text! Is it really? Yes, it is! 42", 5, 10),             # Test case 4
-        ("", 0, 0)                                                                  # Test case 5: empty string
+        ("Punctuation-heavy text! Is it really? Yes, it is! 42", 5, 10, 1),             # Test case 4
+        ("", 0, 0, 0)                                                                  # Test case 5: empty string
     ]
 )
 def test_call(input_text, num_of_major_punctuations, num_of_words, num_of_three_plus_syllable_words):
