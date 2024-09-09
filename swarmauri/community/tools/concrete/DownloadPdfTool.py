@@ -1,3 +1,5 @@
+import base64
+from io import BytesIO
 import requests
 from typing import Dict, Literal, List
 from pathlib import Path
@@ -61,6 +63,7 @@ class DownloadPDFTool(ToolBase):
         except requests.exceptions.RequestException as e:
             # Handle requests-related errors
             return {"error": f"Failed to download PDF: {e}"}
+
         except IOError as e:
             # Handle data I/O errors
             return {"error": f"Failed to process PDF: {e}"}
