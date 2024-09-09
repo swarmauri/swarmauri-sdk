@@ -26,7 +26,7 @@ def test_serialization():
     [
         ("This is a sample sentence. It is used to test the Gunning-Fog tool.", 2, 13, 1),   # Test case 1
         ("Another example with more complex sentences; used for testing.", 3, 10, 2),      # Test case 2
-        ("Short sentence.", 1, 3, 0, 0.0),                                                # Test case 3
+        ("Short sentence.", 1, 3, 0),                                                # Test case 3
         ("Punctuation-heavy text! Is it really? Yes, it is! 42", 5, 10, 1),             # Test case 4
         ("", 0, 0, 0)                                                                  # Test case 5: empty string
     ]
