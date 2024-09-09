@@ -9,7 +9,7 @@ def tool():
 
 @pytest.mark.unit
 def test_type(tool):
-    assert tool.type == 'ToolBase'
+    assert tool.type == 'GmailReadTool'
 
 @pytest.mark.unit
 def test_resource(tool):
