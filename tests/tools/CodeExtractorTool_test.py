@@ -158,68 +158,68 @@ variable1 = 10"""
     "file_contents, extract_documentation, to_be_ignored, expected_code",
     [
         (
-            '''
-            """
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
+        '''
+        """
+        This is a docstring.
+        """
+        def foo():
+            pass
+        def bar():
+            pass
+        # non-essentials
+        ''',
             True,
             [],
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''
-            """
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
+        '''
+        """
+        This is a docstring.
+        """
+        def foo():
+            pass
+        def bar():
+            pass
+        # non-essentials
+        ''',
             False,
             [],
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''
-            """
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
+        '''
+        """
+        This is a docstring.
+        """
+        def foo():
+            pass
+        def bar():
+            pass
+        # non-essentials
+        ''',
             True,
             ['foo'],
             'def bar():\n    pass\n'
         ),
         (
-            '''
-            def foo():
-                pass
-            def bar():
-                pass
-            ''',
+        '''
+        def foo():
+            pass
+        def bar():
+            pass
+        ''',
             True,
             [],
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''
-            def foo():
-                pass
-            def bar():
-                pass
-            ''',
+        '''
+        def foo():
+            pass
+        def bar():
+            pass
+        ''',
             False,
             ['foo'],
             'def bar():\n    pass\n'
