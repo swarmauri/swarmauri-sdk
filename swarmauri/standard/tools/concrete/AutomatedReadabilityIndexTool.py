@@ -57,7 +57,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
             characters_per_word = num_characters / num_words
             words_per_sentence = num_words / num_sentences
             ari_score = 4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
-            return {"ari_score": str(ari_score)}
+            return {"ari_score": ari_score}
         else:
             raise ValueError("Invalid input for AutomatedReadabilityIndexTool.")
 

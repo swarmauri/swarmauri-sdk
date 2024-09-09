@@ -29,17 +29,17 @@ def test_serialization():
 @pytest.mark.parametrize(
     "input_a, input_b, expected_keys, expected_type, expected_sum",
     [
-        (2, 3, {'sum'}, str, "5"),     # Test case 1: positive integers
-        (-2, -3, {'sum'}, str, "-5"),  # Test case 2: negative integers
-        (0, 0, {'sum'}, str, "0"),     # Test case 3: zero values
+        (2, 3, {'sum'}, str, "5.0"),     # Test case 1: positive integers
+        (-2, -3, {'sum'}, str, "-5.0"),  # Test case 2: negative integers
+        (0, 0, {'sum'}, str, "0.0"),     # Test case 3: zero values
         (2.5, 3.5, {'sum'}, str, "6.0"),# Test case 4: floating-point numbers
-        ("2", "3", {'sum'}, str, "5")  # Test case 5: string inputs (assuming the Tool can handle this)
+        ("2", "3", {'sum'}, str, "5.0")  # Test case 5: string inputs (assuming the Tool can handle this)
     ]
 )
 def test_call(input_a, input_b, expected_keys, expected_type, expected_sum):
     tool = Tool()
 
-    result = tool(int(input_a), int(input_b))
+    result = tool(float(input_a), float(input_b))
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
