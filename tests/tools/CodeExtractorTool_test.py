@@ -158,7 +158,8 @@ variable1 = 10"""
     "file_contents, extract_documentation, to_be_ignored, expected_code",
     [
         (
-            '''"""
+            '''
+            """
             This is a docstring.
             """
             def foo():
@@ -172,7 +173,8 @@ variable1 = 10"""
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''"""
+            '''
+            """
             This is a docstring.
             """
             def foo():
@@ -186,7 +188,8 @@ variable1 = 10"""
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''"""
+            '''
+            """
             This is a docstring.
             """
             def foo():
@@ -200,7 +203,8 @@ variable1 = 10"""
             'def bar():\n    pass\n'
         ),
         (
-            '''def foo():
+            '''
+            def foo():
                 pass
             def bar():
                 pass
@@ -210,7 +214,8 @@ variable1 = 10"""
             'def foo():\n    pass\n\ndef bar():\n    pass\n'
         ),
         (
-            '''def foo():
+            '''
+            def foo():
                 pass
             def bar():
                 pass

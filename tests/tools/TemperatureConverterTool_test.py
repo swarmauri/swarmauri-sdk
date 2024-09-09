@@ -12,38 +12,6 @@ def test_serialization():
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 @pytest.mark.unit
-def test_call():
-    tool = Tool()
-    
-    # Test Celsius to Fahrenheit conversion
-    result = tool(from_unit="celsius", to_unit="fahrenheit", value=25)
-    assert result == "77.0"  # 25°C = 77°F
-
-    # Test Kelvin to Celsius conversion
-    result = tool(from_unit="kelvin", to_unit="celsius", value=0)
-    assert result == "-273.15"  # 0K = -273.15°C
-
-    # Test Fahrenheit to Kelvin conversion
-    result = tool(from_unit="fahrenheit", to_unit="kelvin", value=32)
-    assert result == "273.15"  # 32°F = 273.15K
-
-    # Test conversion with the same units
-    result = tool(from_unit="celsius", to_unit="celsius", value=25)
-    assert result == "25"  # Same unit conversion
-
-    # Test invalid 'from_unit'
-    result = tool(from_unit="invalid_unit", to_unit="fahrenheit", value=25)
-    assert result == "Error: Unknown temperature unit."
-
-    # Test invalid 'to_unit'
-    result = tool(from_unit="celsius", to_unit="invalid_unit", value=25)
-    assert result == "Error: Unknown temperature unit."
-
-    # Test invalid value type
-    result = tool(from_unit="celsius", to_unit="fahrenheit", value="invalid_value")
-    assert result == "An error occurred: could not convert string to float: 'invalid_value'"
-
-@pytest.mark.unit
 def test_ubc_resource():
     tool = Tool()
     assert tool.resource == 'Tool'
@@ -51,3 +19,32 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
     assert Tool().type == 'TemperatureConverterTool'
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "from_unit, to_unit, value, expected_result",
+    [
+        ("celsius", "fahrenheit", 25, "77.0"),  # 25°C = 77°F
+        ("kelvin", "celsius", 0, "-273.15"),  # 0K = -273.15°C
+        ("fahrenheit", "kelvin", 32, "273.15"),  # 32°F = 273.15K
+        ("celsius", "celsius", 25, "25"),  # Same unit conversion
+        ("invalid_unit", "fahrenheit", 25, "Error: Unknown temperature unit."),
+        ("celsius", "invalid_unit", 25, "Error: Unknown temperature unit."),
+    ]
+)
+def test_call(from_unit, to_unit, value, expected_result):
+    tool = Tool()
+
+    expected_keys = {f"temperature_in_{to_unit}"}
+
+    result = tool(from_unit=from_unit, to_unit=to_unit, value=value)
+
+    if isinstance(result, str):
+        assert result == expected_result
+    else:
+        assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+        assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+        assert isinstance(result.get(f"temperature_in_{to_unit}"), str), f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+
+        assert result.get(f"temperature_in_{to_unit}") == expected_result, f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"

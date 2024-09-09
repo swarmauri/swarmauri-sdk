@@ -51,7 +51,7 @@ class ColemanLiauIndexTool(ToolBase):
             num_words = self.count_words(text)
             num_characters = self.count_characters(text)
             if num_sentences == 0 or num_words == 0:
-                return 0.0
+                return {"coleman_liau_index": 0.0}
             L = (
                 num_characters / num_words
             ) * 100  # Average number of letters per 100 words

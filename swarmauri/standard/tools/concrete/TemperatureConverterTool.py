@@ -35,9 +35,10 @@ class TemperatureConverterTool(ToolBase):
     type: Literal["TemperatureConverterTool"] = "TemperatureConverterTool"
 
     def __call__(self, from_unit: str, to_unit: str, value: float) -> Dict[str, str]:
+        result = None
         try:
             if from_unit == to_unit:
-                return str(value)
+                return {f"temperature_in_{to_unit}": str(value)}
 
             if from_unit == "celsius":
                 if to_unit == "fahrenheit":
@@ -59,7 +60,7 @@ class TemperatureConverterTool(ToolBase):
 
             return {f"temperature_in_{to_unit}": str(result)}
         except Exception as e:
-            return f"An error occurred: {str(e)}"
+            raise f"An error occurred: {str(e)}"
 
 
 # Example usage:
