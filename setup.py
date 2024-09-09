@@ -54,7 +54,8 @@ setup(
             "captcha",
             "bs4",
             "pygithub",
-            "pacmap"
+            "pacmap",
+            "tf-keras"
 
         ]},
     classifiers=[
