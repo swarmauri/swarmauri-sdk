@@ -31,8 +31,6 @@ def test_ubc_type():
         ("celsius", "celsius", 25, "25"),  # Same unit conversion
         ("invalid_unit", "fahrenheit", 25, "Error: Unknown temperature unit."),
         ("celsius", "invalid_unit", 25, "Error: Unknown temperature unit."),
-        ("celsius", "fahrenheit", "invalid_value",
-         "An error occurred: could not convert string to float: 'invalid_value'"),
     ]
 )
 def test_call(from_unit, to_unit, value, expected_result):

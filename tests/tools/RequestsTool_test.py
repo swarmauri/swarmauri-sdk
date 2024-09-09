@@ -30,12 +30,16 @@ def test_serialization():
 @pytest.mark.unit
 def test_call(method, url, kwargs):
     tool = Tool()
+
+    expected_keys = {"response_content", "response_status"}
+
     try:
-        response = tool(method, url, **kwargs)
+        result = tool(method, url, **kwargs)
 
-        assert response.status_code == 200
+        assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+        assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
 
-        assert 'url' in response.json()
-
+        assert result.get(
+            "response_status") == 200, f"Expected Reading Ease value is {200}, but got {result.get('response_status')}"
     except Exception as e:
         pytest.fail(f"{method.upper()} request failed with error: {e}")

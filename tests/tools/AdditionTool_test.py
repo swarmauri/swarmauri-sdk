@@ -39,7 +39,7 @@ def test_serialization():
 def test_call(input_a, input_b, expected_keys, expected_type, expected_sum):
     tool = Tool()
 
-    result = tool(input_a, input_b)
+    result = tool(int(input_a), int(input_b))
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"

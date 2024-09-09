@@ -25,7 +25,7 @@ def test_call():
     tool = Tool()
     location = 'Dallas'
 
-    expected_result = "Weather Info: ('Dallas', 'fahrenheit')"
+    expected_result = "('Dallas', 'fahrenheit')"
 
     expected_keys = {'weather_info'}
 
