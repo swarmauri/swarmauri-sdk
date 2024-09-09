@@ -6,7 +6,7 @@ from swarmauri.standard.tools.concrete.Parameter import Parameter
 @pytest.mark.unit
 def test_type():
     tool = EntityRecognitionTool(name="EntityRecognitionTool", parameters=[Parameter(name="text", type="string", description="The text for entity recognition", required=True)])
-    assert tool.type == 'ToolBase', "Type should be 'ToolBase'"
+    assert tool.type == 'EntityRecognitionTool', "Type should be 'ToolBase'"
 
 @pytest.mark.unit
 def test_resource():
