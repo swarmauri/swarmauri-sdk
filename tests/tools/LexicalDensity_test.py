@@ -26,7 +26,7 @@ def test_call():
     input_text = "This is a test sentence."
     expected_lexical_density = tool.calculate_lexical_density(input_text)
     
-    assert tool(input_text) == pytest.approx(expected_lexical_density, 0.01)
+    assert tool(input_text)['lexical_density'] == pytest.approx(expected_lexical_density, 0.01)
 
 @pytest.mark.unit
 def test_call_empty_text():
@@ -35,4 +35,4 @@ def test_call_empty_text():
     expected_lexical_density = 0.0
     
     # Call the tool with the empty text and check if it returns 0.0
-    assert tool(input_text) == expected_lexical_density
+    assert tool(input_text)['lexical_density'] == expected_lexical_density
