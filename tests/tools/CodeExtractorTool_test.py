@@ -167,8 +167,6 @@ def test_call(file_content, extract_documentation, to_be_ignored, expected_code)
     expected_keys = {'code'}
 
     tool = Tool()
-    # extracted_code = tool.extract_code(file_name, extract_documentation, to_be_ignored)
-    # assert extracted_code == expected_code
 
     result = tool(file_name, extract_documentation, to_be_ignored)
 
