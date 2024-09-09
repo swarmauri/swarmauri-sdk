@@ -24,4 +24,18 @@ def test_serialization():
 def test_call():
     tool = Tool()
     location = 'Dallas'
-    assert tool(location) == "Weather Info: ('Dallas', 'fahrenheit')\n"
+
+    expected_result = "Weather Info: ('Dallas', 'fahrenheit')"
+
+    expected_keys = {'weather_info'}
+
+    result = tool(location)
+
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert isinstance(result.get("weather_info"),
+                      str), f"Expected str, but got {type(result.get('weather_info')).__name__}"
+
+    assert result.get(
+        "weather_info") == expected_result, f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"
+

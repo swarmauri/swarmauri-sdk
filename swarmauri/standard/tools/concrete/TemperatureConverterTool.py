@@ -37,7 +37,7 @@ class TemperatureConverterTool(ToolBase):
     def __call__(self, from_unit: str, to_unit: str, value: float) -> Dict[str, str]:
         try:
             if from_unit == to_unit:
-                return str(value)
+                return {f"temperature_in_{to_unit}": str(value)}
 
             if from_unit == "celsius":
                 if to_unit == "fahrenheit":

@@ -38,5 +38,15 @@ def test_ubc_type():
 def test_call(from_unit, to_unit, value, expected_result):
     tool = Tool()
 
+    expected_keys = {f"temperature_in_{to_unit}"}
+
     result = tool(from_unit=from_unit, to_unit=to_unit, value=value)
-    assert result == expected_result
+
+    if isinstance(result, str):
+        assert result == expected_result
+    else:
+        assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+        assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+        assert isinstance(result.get(f"temperature_in_{to_unit}"), str), f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+
+        assert result.get(f"temperature_in_{to_unit}") == expected_result, f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"
