@@ -53,11 +53,11 @@ class AutomatedReadabilityIndexTool(ToolBase):
             num_words = self.count_words(text)
             num_characters = self.count_characters(text)
             if num_sentences == 0 or num_words == 0:
-                return "0.0"
+                return {"ari_score": 0.0}
             characters_per_word = num_characters / num_words
             words_per_sentence = num_words / num_sentences
             ari_score = 4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
-            return {"ari_score": str(ari_score)}
+            return {"ari_score": ari_score}
         else:
             raise ValueError("Invalid input for AutomatedReadabilityIndexTool.")
 

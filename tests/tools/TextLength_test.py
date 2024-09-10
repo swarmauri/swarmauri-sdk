@@ -24,8 +24,28 @@ def test_serialization():
 def test_call(): 
     tool = Tool()
     text = "This is a simple test sentence."
+
+    num_characters = 26
+    num_words = 7
+    num_sentences = 1
+
+    expected_keys = {"num_characters", "num_words", "num_sentences"}
+
     result = tool(text)
 
-    assert result["num_characters"] == 26
-    assert result["num_words"] == 7
-    assert result["num_sentences"] == 1 
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert isinstance(result.get("num_characters"),
+                      int), f"Expected int, but got {type(result.get('num_characters')).__name__}"
+    assert isinstance(result.get("num_words"),
+                      int), f"Expected int, but got {type(result.get('num_words')).__name__}"
+    assert isinstance(result.get("num_sentences"),
+                      int), f"Expected int, but got {type(result.get('num_sentences')).__name__}"
+
+    assert result.get(
+        "num_characters") == num_characters, f"Expected Number of Characters is {num_characters}, but got {result.get('num_characters')}"
+    assert result.get(
+        "num_words") == num_words, f"Expected Number of Words is {num_words}, but got {result.get('num_words')}"
+    assert result.get(
+        "num_sentences") == num_sentences, f"Expected Number of Sentence is {num_sentences}, but got {result.get('num_sentences')}"
+

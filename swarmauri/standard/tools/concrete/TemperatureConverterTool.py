@@ -35,31 +35,38 @@ class TemperatureConverterTool(ToolBase):
     type: Literal["TemperatureConverterTool"] = "TemperatureConverterTool"
 
     def __call__(self, from_unit: str, to_unit: str, value: float) -> Dict[str, str]:
+        result = None
         try:
             if from_unit == to_unit:
-                return str(value)
+                return {f"temperature_in_{to_unit}": str(value)}
 
             if from_unit == "celsius":
                 if to_unit == "fahrenheit":
                     result = (value * 9 / 5) + 32
                 elif to_unit == "kelvin":
                     result = value + 273.15
+                else:
+                    return "Error: Unknown temperature unit."
             elif from_unit == "fahrenheit":
                 if to_unit == "celsius":
                     result = (value - 32) * 5 / 9
                 elif to_unit == "kelvin":
                     result = (value - 32) * 5 / 9 + 273.15
+                else:
+                    return "Error: Unknown temperature unit."
             elif from_unit == "kelvin":
                 if to_unit == "celsius":
                     result = value - 273.15
                 elif to_unit == "fahrenheit":
                     result = (value - 273.15) * 9 / 5 + 32
+                else:
+                    return "Error: Unknown temperature unit."
             else:
                 return "Error: Unknown temperature unit."
 
             return {f"temperature_in_{to_unit}": str(result)}
         except Exception as e:
-            return f"An error occurred: {str(e)}"
+            raise f"An error occurred: {str(e)}"
 
 
 # Example usage:

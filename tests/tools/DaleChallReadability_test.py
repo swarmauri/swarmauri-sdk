@@ -56,6 +56,8 @@ def test_call():
 
     # Check if the score is approximately what is expected
     expected_output = 7.98
+
     assert dale_chall_score == pytest.approx(
         expected_output, rel=1e-2
     ), f"Expected score {expected_output}, but got {dale_chall_score}"
+

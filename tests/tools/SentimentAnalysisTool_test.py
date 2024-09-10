@@ -40,9 +40,11 @@ def test_call(text, expected_labels):
     tool = Tool()
     result = tool(text)
 
+
     assert result["sentiment"] in expected_labels
 
     assert isinstance(result, dict)
     assert "sentiment" in result
+
 
     assert not hasattr(tool, "analyzer")

@@ -51,7 +51,7 @@ class GunningFogTool(ToolBase):
             num_words = self.count_words(text)
             num_complex_words = self.count_complex_words(text)
             if num_sentences == 0 or num_words == 0:
-                return 0.0
+                return {"gunning_fog_score": 0.0}
             words_per_sentence = num_words / num_sentences
             complex_words_per_word = num_complex_words / num_words
             gunning_fog_score = 0.4 * (

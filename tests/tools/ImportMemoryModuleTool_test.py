@@ -33,7 +33,7 @@ def test_call():
 
     expected_keys = {'message'}
 
-    expected_message = f"{name_of_new_module} has been successfully imported {dot_separated_package_page}"
+    expected_message = f"{name_of_new_module} has been successfully imported into {dot_separated_package_page}"
 
     result = tool(name_of_new_module,
                                  code_snippet,

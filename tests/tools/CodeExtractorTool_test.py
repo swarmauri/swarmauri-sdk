@@ -29,30 +29,6 @@ def test_ubc_resource():
     tool = Tool()
     assert tool.resource == "Tool"
 
-
-@pytest.mark.unit
-def test_call():
-    """
-    Test the __call__ method of CodeExtractorTool.
-    """
-    file_content = """\"\"\" module documentation string\n \"\"\"
-function1 = lambda x: x + 1
-variable1 = 10
-print('Hello, World!')"""
-
-    with tempfile.NamedTemporaryFile("w+", delete=False) as file:
-        file.write(file_content)
-        file_name = file.name
-
-    tool = Tool()
-    extract_documentation = True
-    to_be_ignored = ["function1", "variable1"]
-    expected_code = """\"\"\" module documentation string\n \"\"\"
-print('Hello, World!')"""
-
-    extracted_code = tool(file_name, extract_documentation, to_be_ignored)
-    assert extracted_code == expected_code
-
 @pytest.mark.unit
 def test_serialization():
     tool = Tool()
@@ -155,84 +131,46 @@ variable1 = 10"""
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "file_contents, extract_documentation, to_be_ignored, expected_code",
+    "file_content, extract_documentation, to_be_ignored, expected_code",
     [
         (
-            '''"""
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
             True,
-            [],
-            'def foo():\n    pass\n\ndef bar():\n    pass\n'
+            ["function1", "variable1"],
+            '''""" module documentation string\n """\nprint('Hello, World!')'''
         ),
         (
-            '''"""
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
+            True,
+            [],
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')'''
+        ),
+        (
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
             False,
             [],
-            'def foo():\n    pass\n\ndef bar():\n    pass\n'
+            '''function1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')'''
         ),
         (
-            '''"""
-            This is a docstring.
-            """
-            def foo():
-                pass
-            def bar():
-                pass
-            # non-essentials
-            ''',
-            True,
-            ['foo'],
-            'def bar():\n    pass\n'
-        ),
-        (
-            '''def foo():
-                pass
-            def bar():
-                pass
-            ''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\n# non-essentials\nif "#" in stripped_line and "non-essentials" in stripped_line:\n    break\nprint('Hello, World!')''',
             True,
             [],
-            'def foo():\n    pass\n\ndef bar():\n    pass\n'
-        ),
-        (
-            '''def foo():
-                pass
-            def bar():
-                pass
-            ''',
-            False,
-            ['foo'],
-            'def bar():\n    pass\n'
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10'''
         ),
     ]
 )
-def test_call(file_contents, extract_documentation, to_be_ignored, expected_code):
-    tool = Tool()
+def test_call(file_content, extract_documentation, to_be_ignored, expected_code):
+    with tempfile.NamedTemporaryFile("w+", delete=False) as file:
+        file.write(file_content)
+        file_name = file.name
 
     expected_keys = {'code'}
 
-    with patch("builtins.open", mock_open(read_data=file_contents)):
-        result = tool(file_name="fake_file.py", extract_documentation=extract_documentation, to_be_ignored=to_be_ignored)
+    tool = Tool()
 
-    assert result == expected_code
+    result = tool(file_name, extract_documentation, to_be_ignored)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
     assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(result.get("code"),
-                      str), f"Expected str, but got {type(result.get('code')).__name__}"
+    assert isinstance(result.get("code"), str), f"Expected str, but got {type(result.get('code')).__name__}"
     assert result.get("code") == expected_code, f"Expected Extracted Code {expected_code}, but got {result.get('code')}"
