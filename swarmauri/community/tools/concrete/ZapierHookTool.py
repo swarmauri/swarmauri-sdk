@@ -30,7 +30,7 @@ class ZapierHookTool(ToolBase):
     def authenticate(self):
         """Set up the necessary headers for authentication."""
         self.headers = {
-            "Authorization": f"Bearer {self._auth_token}",
+            "Authorization": f"Bearer {self.auth_token}",
             "Content-Type": "application/json",
         }
 
@@ -45,7 +45,7 @@ class ZapierHookTool(ToolBase):
         """
         self.authenticate()
         response = requests.post(
-            f"https://hooks.zapier.com/hooks/catch/{self._zap_id}/",
+            f"https://hooks.zapier.com/hooks/catch/{self.zap_id}/",
             headers=self.headers,
             json={"data": payload},
         )
