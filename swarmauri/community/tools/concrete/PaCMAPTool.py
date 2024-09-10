@@ -2,7 +2,7 @@ import numpy as np
 import pacmap  # Ensure pacmap is installed
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
-from typing import List, Literal, Dict
+from typing import List, Literal, Dict, Union
 
 from pydantic import Field
 
@@ -46,7 +46,7 @@ class PaCMAPTool(ToolBase):
     description: str = "Applies PaCMAP for dimensionality reduction."
     type: Literal["PaCMAPTool"] = "PaCMAPTool"
 
-    def __call__(self, **kwargs) -> Dict[str, np.ndarray]:
+    def __call__(self, **kwargs) -> Dict[str, Union[np.ndarray, None]]:
         """
         Applies the PaCMAP algorithm on the provided dataset.
 
@@ -54,17 +54,21 @@ class PaCMAPTool(ToolBase):
         - kwargs: Additional keyword arguments for the PaCMAP algorithm.
 
         Returns:
-        - Dict[str, np.ndarray]: A dictionary containing the reduced data points.
+        - Dict[str, Union[np.ndarray, None]]: A dictionary containing the reduced data points.
         """
         # Set default values for any unspecified parameters
         X = kwargs.get("X")
+
+        if X is None:
+            return {"X_reduced": None}
+
         n_neighbors = kwargs.get("n_neighbors", 30)
         n_components = kwargs.get("n_components", 2)
         n_iterations = kwargs.get("n_iterations", 500)
 
         # Instantiate the PaCMAP instance with specified parameters
         embedder = pacmap.PaCMAP(
-            n_neighbors=n_neighbors, n_components=n_components, n_iters=n_iterations
+            n_neighbors=n_neighbors, n_components=n_components, num_iters=n_iterations
         )
         # Fit the model and transform the data
         X_reduced = embedder.fit_transform(X)
