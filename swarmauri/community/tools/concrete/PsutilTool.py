@@ -125,4 +125,4 @@ class PsutilTool(ToolBase):
 
         # Execute the corresponding method and return the result
         result = info_methods[info_type]()
-        return {info_type: result}
+        return result
