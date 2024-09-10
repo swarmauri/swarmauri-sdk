@@ -1,6 +1,6 @@
 import json
-from typing import List, Dict, Literal, Optional
-from openai import OpenAI  # DeepInfra's client library
+from typing import List, Dict, Literal
+from openai import OpenAI
 from swarmauri.core.typing import SubclassUnion
 
 from swarmauri.standard.messages.base.MessageBase import MessageBase
@@ -63,9 +63,6 @@ class DeepInfraModel(LLMBase):
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
-        """
-        Format the messages into the format expected by the DeepInfra API.
-        """
         message_properties = ["content", "role", "name"]
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
@@ -76,11 +73,10 @@ class DeepInfraModel(LLMBase):
     def predict(
         self,
         conversation,
-        temperature: float = 0.7,
-        max_tokens: int = 256,
-        enable_json: bool = False,
-        stop: Optional[List[str]] = None,
-        stream: bool = False,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = None,
     ):
         """
         Generate predictions using the DeepInfra model.
@@ -90,8 +86,7 @@ class DeepInfraModel(LLMBase):
         - temperature (float): Sampling temperature.
         - max_tokens (int): Maximum number of tokens to generate.
         - enable_json (bool): Format response as JSON.
-        - stop (Optional[List[str]]): List of stop sequences.
-        - stream (bool): Whether to stream the response.
+        - stop (List[str]): List of stop sequences.
 
         Returns:
         - The updated conversation with the model's response.
@@ -101,44 +96,32 @@ class DeepInfraModel(LLMBase):
             api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
         )
 
-        if stream:
+        if enable_json:
             response = client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,
+                response_format={"type": "json_object"},
                 max_tokens=max_tokens,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
                 stop=stop,
-                stream=True,
             )
-
-            for event in response:
-                if event.choices[0].finish_reason:
-                    print(
-                        "Completion finished. Reason:",
-                        event.choices[0].finish_reason,
-                    )
-                else:
-                    # Get the streamed content
-                    message_content = event.choices[0].delta.get("content", "")
-                    if message_content:
-                        conversation.add_message(AgentMessage(content=message_content))
         else:
             response = client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
                 stop=stop,
             )
 
-            if enable_json:
-                # Return the raw JSON response
-                result = json.loads(response)
-            else:
-                result = response
-
-            # Add the model's response to the conversation
-            message_content = result["choices"][0]["message"]["content"]
-            conversation.add_message(AgentMessage(content=message_content))
+        result = json.loads(response.model_dump_json())
+        message_content = result["choices"][0]["message"]["content"]
+        conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
