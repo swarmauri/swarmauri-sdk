@@ -1,6 +1,8 @@
-import os
 import pytest
-from swarmauri.community.tools.concrete.CaptchaGeneratorTool import CaptchaGeneratorTool as Tool
+from swarmauri.community.tools.concrete.CaptchaGeneratorTool import (
+    CaptchaGeneratorTool as Tool,
+)
+
 
 @pytest.mark.unit
 def test_name():
@@ -40,18 +42,27 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_call():
-    """
-    A test case for the call method.
-    """
     tool = Tool()
-    text = "This is a sample captcha text."
-    output_file = "test_captcha.png"
-    
-    # Call the tool with the text and output file
-    tool(text, output_file)
-    
-    # Check if the file was created
-    assert os.path.isfile(output_file)
-    
-    # Clean up the file after test
-    os.remove(output_file)
+
+    # Sample text for CAPTCHA generation
+    text = "This is a test CAPTCHA"
+
+    # Call the tool and capture the result
+    result = tool(text)
+
+    # Expected keys in the result
+    expected_keys = {"image_b64"}
+
+    # Verify that the result is a dictionary
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+
+    # Check if the result contains the 'image_b64' key
+    assert expected_keys.issubset(
+        result.keys()
+    ), f"Expected keys {expected_keys}, but got {result.keys()}"
+
+    # Verify that the 'image_b64' field is a string (base64 encoded image)
+    image_b64 = result.get("image_b64")
+    assert isinstance(
+        image_b64, str
+    ), f"Expected string for 'image_b64', but got {type(image_b64).__name__}"
