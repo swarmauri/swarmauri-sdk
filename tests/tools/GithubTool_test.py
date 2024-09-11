@@ -49,22 +49,43 @@ def test_serialization():
 
 
 @pytest.mark.parametrize(
-    "action, kwargs, method_called",
+    "action, kwargs, method_called, expected_result",
     [
         # Valid cases for repo management
-        ("create_repo", {"repo_name": "test-repo"}, "create_repo"),
-        ("delete_repo", {"repo_name": "test-repo"}, "delete_repo"),
-        ("get_repo", {"repo_name": "test-repo"}, "get_repo"),
-        ("list_repos", {}, "list_repos"),
+        (
+            "create_repo",
+            {"repo_name": "test-repo"},
+            "create_repo",
+            {"create_repo": "test action"},
+        ),
+        (
+            "delete_repo",
+            {"repo_name": "test-repo"},
+            "delete_repo",
+            {"delete_repo": "test action"},
+        ),
+        (
+            "get_repo",
+            {"repo_name": "test-repo"},
+            "get_repo",
+            {"get_repo": "test action"},
+        ),
+        ("list_repos", {}, "list_repos", {"list_repos": "test action"}),
         # Valid cases for issue management
         (
             "create_issue",
             {"repo_name": "test-repo", "title": "Test Issue"},
             "create_issue",
+            {"create_issue": "test action"},
         ),
-        ("close_issue", {"repo_name": "test-repo", "issue_number": 1}, "close_issue"),
+        (
+            "close_issue",
+            {"repo_name": "test-repo", "issue_number": 1},
+            "close_issue",
+            {"close_issue": "test action"},
+        ),
         # Invalid action
-        ("invalid_action", {}, None),
+        ("invalid_action", {}, None, None),
     ],
 )
 @pytest.mark.skipif(
@@ -73,23 +94,30 @@ def test_serialization():
 )
 @pytest.mark.unit
 @patch("swarmauri.community.tools.concrete.GithubTool.Github")
-def test_call(mock_github, action, kwargs, method_called):
+def test_call(mock_github, action, kwargs, method_called, expected_result):
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
+
+    # Initialize the tool object
     tool = Tool(token=token)
 
+    # Mock the Github API calls
     mock_github.return_value = MagicMock()
 
     if method_called is not None:
+        # Use patch.object to mock the specific method within the Tool instance
         with patch.object(
-            tool,
-            method_called,
-            return_value={"Action 'test_action'": "performed a test action"},
-        ) as mock_method:
+            tool, method_called, return_value="test action"
+        ) as method_mock:
+            # Call the __call__ method
             result = tool(action=action, **kwargs)
 
-            mock_method.assert_called_once_with(**kwargs)
-            assert result == {"Action 'test_action'": "performed a test action"}
+            # Assert that the correct method was called with the correct arguments
+            method_mock.assert_called_once_with(**kwargs)
+
+            # Assert that the result matches the expected output
+            assert result == expected_result
 
     else:
+        # Test the case when an invalid action is provided
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
             tool(action=action, **kwargs)
