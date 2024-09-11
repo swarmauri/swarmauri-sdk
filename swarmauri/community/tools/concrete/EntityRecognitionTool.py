@@ -1,5 +1,5 @@
 import json
-from typing import List, Literal, Dict
+from typing import List, Literal, Dict, Optional
 from transformers import pipeline, logging as hf_logging
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
@@ -24,6 +24,7 @@ class EntityRecognitionTool(ToolBase):
         ]
     )
     type: Literal['EntityRecognitionTool'] = 'EntityRecognitionTool'
+    nlp: Optional[pipeline] = None
 
     def __call__(self, text: str) -> Dict[str, str]:
         try:
