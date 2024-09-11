@@ -1,10 +1,9 @@
 import json
-from typing import List, Literal, Dict, Optional
+from typing import List, Literal, Dict, Optional, Callable
 from transformers import pipeline, logging as hf_logging
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 from pydantic import Field
-from transformers import PreTrainedModel
 
 hf_logging.set_verbosity_error()
 
@@ -25,9 +24,7 @@ class EntityRecognitionTool(ToolBase):
         ]
     )
     type: Literal['EntityRecognitionTool'] = 'EntityRecognitionTool'
-    nlp: Optional[pipeline] = None
-    model: Optional[PreTrainedModel]
-
+    nlp: Optional[Callable] = None
 
     def __call__(self, text: str) -> Dict[str, str]:
         try:
@@ -38,7 +35,7 @@ class EntityRecognitionTool(ToolBase):
                 if entity['entity'] not in organized_entities:
                     organized_entities[entity['entity']] = []
                 organized_entities[entity['entity']].append(entity['word'])
-            return json.dumps(organized_entities)
+            return {"entities": json.dumps(organized_entities)}
         except Exception as e:
             raise e
         finally:

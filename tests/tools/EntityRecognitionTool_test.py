@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -18,22 +19,23 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
+@pytest.mark.unit
 def test_call():
-    sample_text = "John Doe works at OpenAI."
-    mock_entities = [
-        {"entity": "PER", "word": "John Doe"},
-        {"entity": "ORG", "word": "OpenAI"}
-    ]
-    expected_output = '{"PER": ["John Doe"], "ORG": ["OpenAI"]}'
-
     tool = Tool()
 
-    with patch('transformers.pipeline') as mock_pipeline:
-        mock_pipeline.return_value = MagicMock(return_value=mock_entities)
+    text = "Apple Inc. is an American multinational technology company."
+    expected_result = {"I-ORG": ["Apple", "Inc"], "I-MISC": ["American"]}
 
-        result = tool(sample_text)
+    expected_keys = {"entities"}
 
-        assert result == expected_output
+    result = tool(text=text)
 
-        mock_pipeline.assert_called_once_with("ner")
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert isinstance(result.get("entities"),
+                      str), f"Expected str, but got {type(result.get('program')).__name__}"
+
+    assert result.get(
+        "entities") == json.dumps(expected_result), f"Expected Entities result {json.dumps(expected_result)}, but got {result.get('entities')}"
+
 
