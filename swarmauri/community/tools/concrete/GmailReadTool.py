@@ -9,7 +9,7 @@ from pydantic import Field
 
 
 class GmailReadTool(ToolBase):
-    SCOPES: List[str] = ['https://www.googleapis.com/auth/gmail.readonly']
+    SCOPES: List[str] = ["https://www.googleapis.com/auth/gmail.readonly"]
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -56,8 +56,8 @@ class GmailReadTool(ToolBase):
         Returns:
             Dict[str, str]: A dictionary containing the email messages.
         """
-        self.authenticate()
         try:
+            self.authenticate()
             # Call the Gmail API
             gmail_messages = self.service.users().messages()
             results = gmail_messages.list(
