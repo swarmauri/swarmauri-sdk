@@ -4,6 +4,7 @@ from transformers import pipeline, logging as hf_logging
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 from pydantic import Field
+from transformers import PreTrainedModel
 
 hf_logging.set_verbosity_error()
 
@@ -25,6 +26,8 @@ class EntityRecognitionTool(ToolBase):
     )
     type: Literal['EntityRecognitionTool'] = 'EntityRecognitionTool'
     nlp: Optional[pipeline] = None
+    model: Optional[PreTrainedModel]
+
 
     def __call__(self, text: str) -> Dict[str, str]:
         try:
