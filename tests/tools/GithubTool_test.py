@@ -1,8 +1,11 @@
 import os
 from unittest.mock import MagicMock, patch
+from dotenv import load_dotenv
 
 import pytest
 from swarmauri.community.tools.concrete.GithubTool import GithubTool as Tool
+
+load_dotenv()
 
 
 @pytest.mark.unit
@@ -49,43 +52,140 @@ def test_serialization():
 
 
 @pytest.mark.parametrize(
-    "action, kwargs, method_called, expected_result",
+    "action, kwargs, method_called",
     [
         # Valid cases for repo management
-        (
-            "create_repo",
-            {"repo_name": "test-repo"},
-            "create_repo",
-            {"create_repo": "test action"},
-        ),
-        (
-            "delete_repo",
-            {"repo_name": "test-repo"},
-            "delete_repo",
-            {"delete_repo": "test action"},
-        ),
-        (
-            "get_repo",
-            {"repo_name": "test-repo"},
-            "get_repo",
-            {"get_repo": "test action"},
-        ),
-        ("list_repos", {}, "list_repos", {"list_repos": "test action"}),
-        # Valid cases for issue management
+        ("create_repo", {"repo_name": "test-repo"}, "create_repo"),
+        ("delete_repo", {"repo_name": "test-repo"}, "delete_repo"),
+        ("get_repo", {"repo_name": "test-repo"}, "get_repo"),
+        ("list_repos", {}, "list_repos"),
+        ("update_repo", {"repo_name": "test-repo"}, "update_repo"),
         (
             "create_issue",
             {"repo_name": "test-repo", "title": "Test Issue"},
             "create_issue",
-            {"create_issue": "test action"},
+        ),
+        ("close_issue", {"repo_name": "test-repo", "issue_number": 1}, "close_issue"),
+        (
+            "update_issue",
+            {"repo_name": "test-repo", "issue_number": 1, "title": "Updated Issue"},
+            "update_issue",
+        ),
+        ("list_issues", {"repo_name": "test-repo"}, "list_issues"),
+        ("get_issue", {"repo_name": "test-repo", "issue_number": 1}, "get_issue"),
+        ("create_pull", {"repo_name": "test-repo", "title": "Test PR"}, "create_pull"),
+        ("merge_pull", {"repo_name": "test-repo", "pull_number": 1}, "merge_pull"),
+        ("close_pull", {"repo_name": "test-repo", "pull_number": 1}, "close_pull"),
+        ("list_pulls", {"repo_name": "test-repo"}, "list_pulls"),
+        ("get_pull", {"repo_name": "test-repo", "pull_number": 1}, "get_pull"),
+        (
+            "create_commit",
+            {"repo_name": "test-repo", "message": "Test Commit"},
+            "create_commit",
+        ),
+        ("list_commits", {"repo_name": "test-repo"}, "list_commits"),
+        (
+            "get_commit",
+            {"repo_name": "test-repo", "commit_sha": "abcdef"},
+            "get_commit",
         ),
         (
-            "close_issue",
-            {"repo_name": "test-repo", "issue_number": 1},
-            "close_issue",
-            {"close_issue": "test action"},
+            "compare_commits",
+            {"repo_name": "test-repo", "base": "main", "head": "feature"},
+            "compare_commits",
         ),
+        (
+            "create_branch",
+            {"repo_name": "test-repo", "branch_name": "new-branch"},
+            "create_branch",
+        ),
+        (
+            "delete_branch",
+            {"repo_name": "test-repo", "branch_name": "new-branch"},
+            "delete_branch",
+        ),
+        ("list_branches", {"repo_name": "test-repo"}, "list_branches"),
+        ("get_branch", {"repo_name": "test-repo", "branch_name": "main"}, "get_branch"),
+        (
+            "add_collaborator",
+            {"repo_name": "test-repo", "username": "collaborator"},
+            "add_collaborator",
+        ),
+        (
+            "remove_collaborator",
+            {"repo_name": "test-repo", "username": "collaborator"},
+            "remove_collaborator",
+        ),
+        ("list_collaborators", {"repo_name": "test-repo"}, "list_collaborators"),
+        (
+            "check_collaborator",
+            {"repo_name": "test-repo", "username": "collaborator"},
+            "check_collaborator",
+        ),
+        (
+            "create_milestone",
+            {"repo_name": "test-repo", "title": "Milestone 1"},
+            "create_milestone",
+        ),
+        (
+            "close_milestone",
+            {"repo_name": "test-repo", "milestone_number": 1},
+            "close_milestone",
+        ),
+        (
+            "update_milestone",
+            {
+                "repo_name": "test-repo",
+                "milestone_number": 1,
+                "title": "Updated Milestone",
+            },
+            "update_milestone",
+        ),
+        ("list_milestones", {"repo_name": "test-repo"}, "list_milestones"),
+        (
+            "get_milestone",
+            {"repo_name": "test-repo", "milestone_number": 1},
+            "get_milestone",
+        ),
+        (
+            "create_label",
+            {"repo_name": "test-repo", "name": "bug", "color": "f29513"},
+            "create_label",
+        ),
+        ("delete_label", {"repo_name": "test-repo", "name": "bug"}, "delete_label"),
+        (
+            "update_label",
+            {"repo_name": "test-repo", "name": "bug", "color": "f29513"},
+            "update_label",
+        ),
+        ("list_labels", {"repo_name": "test-repo"}, "list_labels"),
+        ("get_label", {"repo_name": "test-repo", "name": "bug"}, "get_label"),
+        (
+            "create_webhook",
+            {"repo_name": "test-repo", "config": {"url": "http://example.com"}},
+            "create_webhook",
+        ),
+        ("delete_webhook", {"repo_name": "test-repo", "hook_id": 1}, "delete_webhook"),
+        ("list_webhooks", {"repo_name": "test-repo"}, "list_webhooks"),
+        ("get_webhook", {"repo_name": "test-repo", "hook_id": 1}, "get_webhook"),
+        (
+            "create_gist",
+            {
+                "description": "Test Gist",
+                "files": {"file1.txt": {"content": "Hello World"}},
+            },
+            "create_gist",
+        ),
+        ("delete_gist", {"gist_id": "12345"}, "delete_gist"),
+        (
+            "update_gist",
+            {"gist_id": "12345", "description": "Updated Gist"},
+            "update_gist",
+        ),
+        ("list_gists", {"username": "test-user"}, "list_gists"),
+        ("get_gist", {"gist_id": "12345"}, "get_gist"),
         # Invalid action
-        ("invalid_action", {}, None, None),
+        ("invalid_action", {}, None),
     ],
 )
 @pytest.mark.skipif(
@@ -94,30 +194,33 @@ def test_serialization():
 )
 @pytest.mark.unit
 @patch("swarmauri.community.tools.concrete.GithubTool.Github")
-def test_call(mock_github, action, kwargs, method_called, expected_result):
+def test_call(mock_github, action, kwargs, method_called):
+    expected_keys = {action}
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-
-    # Initialize the tool object
     tool = Tool(token=token)
 
-    # Mock the Github API calls
     mock_github.return_value = MagicMock()
 
     if method_called is not None:
-        # Use patch.object to mock the specific method within the Tool instance
         with patch.object(
-            tool, method_called, return_value="test action"
-        ) as method_mock:
-            # Call the __call__ method
+            Tool,
+            method_called,
+            return_value="performed a test action successfully",
+        ) as mock_method:
             result = tool(action=action, **kwargs)
 
-            # Assert that the correct method was called with the correct arguments
-            method_mock.assert_called_once_with(**kwargs)
+            mock_method.assert_called_once_with(**kwargs)
 
-            # Assert that the result matches the expected output
-            assert result == expected_result
-
+            assert isinstance(
+                result, dict
+            ), f"Expected dict, but got {type(result).__name__}"
+            assert expected_keys.issubset(
+                result.keys()
+            ), f"Expected keys {expected_keys} but got {result.keys()}"
+            assert isinstance(
+                result.get(action), str
+            ), f"Expected int, but got {type(result.get(action)).__name__}"
+            assert result == {f"{action}": "performed a test action successfully"}
     else:
-        # Test the case when an invalid action is provided
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
             tool(action=action, **kwargs)
