@@ -57,7 +57,7 @@ def test_serialization():
 def test_call(info_type, expected_keys, should_raise):
     tool = Tool()
     if should_raise:
-        with pytest.raises(ValueError, match="Invalid info_type specified."):
+        with pytest.raises(ValueError, match=r"Invalid info_type 'invalid' specified"):
             tool(info_type=info_type)
     else:
         result = tool(info_type=info_type)

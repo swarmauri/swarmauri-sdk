@@ -3,10 +3,10 @@ import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
-from typing import List, Dict, Literal, Optional
+from typing import List, Dict, Literal
 from pydantic import Field
 
 
@@ -43,18 +43,17 @@ class GmailSendTool(ToolBase):
 
     credentials_path: str
     sender_email: str
-    service: build = Field(init=False)
-      
-    def authenticate(self):
+
+    def authenticate(self) -> Resource:
         """
         Authenticates the user and creates a Gmail API service for sending emails.
+        This method returns the service instance, without saving it as an attribute.
         """
         credentials = service_account.Credentials.from_service_account_file(
             self.credentials_path, scopes=self.SCOPES
         )
-
         delegated_credentials = credentials.with_subject(self.sender_email)
-        self.service = build("gmail", "v1", credentials=delegated_credentials)
+        return build("gmail", "v1", credentials=delegated_credentials)
 
     def create_message(
         self, to: str, subject: str, message_text: str
@@ -93,12 +92,12 @@ class GmailSendTool(ToolBase):
         Returns:
             Dict[str, str]: A message indicating the status of the email sending process.
         """
-        self.authenticate()
+        service = (
+            self.authenticate()
+        )  # Authenticate within this function and do not store in the object state
         try:
             message = self.create_message(recipients, subject, htmlMsg)
-            self.service.users().messages().send(userId="me", body=message).execute()
-            return {"send_email_message": f"Email sent successfully to {recipients}"}
+            service.users().messages().send(userId="me", body=message).execute()
+            return {"success": f"Email sent successfully to {recipients}"}
         except Exception as e:
-            return f"An error occurred in sending the email: {str(e)}"
-        finally:
-            del self.service
+            return {"error": f"An error occurred in sending the email: {str(e)}"}
