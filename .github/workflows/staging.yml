@@ -27,7 +27,7 @@ jobs:
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
-      DEEPINFRA_API_KEY: ${{ secrets/DEEPINFRA_API_KEY }}
+      DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
 
       # Database Keys
       QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
