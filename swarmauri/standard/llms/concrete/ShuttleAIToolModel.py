@@ -95,11 +95,10 @@ class ShuttleAIToolModel(LLMBase):
             payload["tone"] = tone
             # Include citations only if citations is True
             if citations:
-                payload['citations'] = True
-
+                payload["citations"] = True
 
         logging.info(f"tool payload: {payload}")
-        
+
         # First we ask agent to give us a response
         agent_response = requests.request("POST", url, json=payload, headers=headers)
 
@@ -117,7 +116,6 @@ class ShuttleAIToolModel(LLMBase):
             "tool_calls", None
         )
 
-
         # If agent responds with tool call, then we execute the functions
         if tool_calls:
             for tool_call in tool_calls:
@@ -125,25 +123,25 @@ class ShuttleAIToolModel(LLMBase):
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call["function"]["arguments"])
                 func_result = func_call(**func_args)
-                payload['messages'].append(
+                payload["messages"].append(
                     {
-                        "tool_call_id": tool_call['id'],
+                        "tool_call_id": tool_call["id"],
                         "role": "tool",
                         "name": func_name,
-                        "content": func_result,
+                        "content": json.dumps(func_result),
                     }
                 )
 
         # Remove tools for payload
-        del payload['tools']
-        del payload['tool_choice']
+        del payload["tools"]
+        del payload["tool_choice"]
 
         logging.info(f"payload['messages']: {payload['messages']}")
         logging.info(f"final payload: {payload}")
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
         logging.info(f"final agent response: {agent_response.json()}")
-        
+
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]
         )

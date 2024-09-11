@@ -8,35 +8,47 @@ from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.FunctionMessage import FunctionMessage
 from swarmauri.standard.llms.base.LLMBase import LLMBase
-from swarmauri.standard.schema_converters.concrete.GroqSchemaConverter import GroqSchemaConverter
+from swarmauri.standard.schema_converters.concrete.GroqSchemaConverter import (
+    GroqSchemaConverter,
+)
+
 
 class GroqToolModel(LLMBase):
     """
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
+
     api_key: str
-    allowed_models: List[str] = ['llama3-8b-8192', 
-    'llama3-70b-8192', 
-    'mixtral-8x7b-32768', 
-    'gemma-7b-it']
+    allowed_models: List[str] = [
+        "llama3-8b-8192",
+        "llama3-70b-8192",
+        "mixtral-8x7b-32768",
+        "gemma-7b-it",
+    ]
     name: str = "gemma-7b-it"
-    type: Literal['GroqToolModel'] = 'GroqToolModel'
-    
+    type: Literal["GroqToolModel"] = "GroqToolModel"
+
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [GroqSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, str]]:
-        message_properties = ['content', 'role', 'name', 'tool_call_id', 'tool_calls']
-        formatted_messages = [message.model_dump(include=message_properties, exclude_none=True) for message in messages]
+    def _format_messages(
+        self, messages: List[SubclassUnion[MessageBase]]
+    ) -> List[Dict[str, str]]:
+        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        formatted_messages = [
+            message.model_dump(include=message_properties, exclude_none=True)
+            for message in messages
+        ]
         return formatted_messages
 
-    def predict(self, 
-        conversation, 
-        toolkit=None, 
-        tool_choice=None, 
-        temperature=0.7, 
-        max_tokens=1024):
-
+    def predict(
+        self,
+        conversation,
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ):
         formatted_messages = self._format_messages(conversation.history)
 
         client = Groq(api_key=self.api_key)
@@ -56,28 +68,29 @@ class GroqToolModel(LLMBase):
         agent_message = AgentMessage(content=tool_response.choices[0].message.content)
         conversation.add_message(agent_message)
 
-
         tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call.function.name
-                
+
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
-                
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call.id)
+
+                func_message = FunctionMessage(
+                    content=json.dumps(func_result),
+                    name=func_name,
+                    tool_call_id=tool_call.id,
+                )
                 conversation.add_message(func_message)
-            
+
         logging.info(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
         agent_response = client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             max_tokens=max_tokens,
-            temperature=temperature
+            temperature=temperature,
         )
         logging.info(agent_response)
         agent_message = AgentMessage(content=agent_response.choices[0].message.content)
