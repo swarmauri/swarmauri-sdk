@@ -5,7 +5,7 @@ name: Test Staging
 
 on:
   push:
-    branches: ["staging", "0.4.*.dev"]
+    branches: ["staging", "*.dev"]
 
 jobs:
   build:
