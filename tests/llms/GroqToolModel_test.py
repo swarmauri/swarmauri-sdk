@@ -44,7 +44,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv("GROQ_API_KEY")
     model = LLM(api_key=API_KEY)
-    assert model.name == "gemma-7b-it"
+    assert model.name == "llama3-groq-70b-8192-tool-use-preview"
 
 
 @pytest.mark.unit
