@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Any, Dict
 from swarmauri.core.chains.IChainStep import IChainStep
 
+
 class IChain(ABC):
     """
     Defines the interface for a Chain within a system, facilitating the organized
@@ -50,7 +51,7 @@ class IChain(ABC):
         pass
 
     @abstractmethod
-    def execute(self, *args, **kwargs) -> Any:
+    def execute(self, *args, **kwargs) -> Dict[str, Any]:
         """
         Initiates the execution of the chain. This involves invoking each step in the order
         they have been added to the chain, passing control from one step to the next, and optionally

@@ -1,39 +1,43 @@
 import sys
 import io
-from typing import List, Literal
+from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri.standard.tools.base.ToolBase import ToolBase 
-from swarmauri.standard.tools.concrete.Parameter import Parameter 
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
 class CodeInterpreterTool(ToolBase):
     version: str = "1.0.0"
-    parameters: List[Parameter] = Field(default_factory=lambda: [
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
             Parameter(
                 name="user_code",
                 type="string",
-                description=("Executes the provided Python code snippet in a secure sandbox environment. "
-                             "This tool is designed to interpret the execution of the python code snippet."
-                             "Returns the output"),
-                required=True
+                description=(
+                    "Executes the provided Python code snippet in a secure sandbox environment. "
+                    "This tool is designed to interpret the execution of the python code snippet."
+                    "Returns the output"
+                ),
+                required=True,
             )
-        ])
-    name: str = 'CodeInterpreterTool'
+        ]
+    )
+    name: str = "CodeInterpreterTool"
     description: str = "Executes provided Python code and captures its output."
-    type: Literal['CodeInterpreterTool'] = 'CodeInterpreterTool'
+    type: Literal["CodeInterpreterTool"] = "CodeInterpreterTool"
 
-    def __call__(self, user_code: str) -> str:
+    def __call__(self, user_code: str) -> Dict[str, str]:
         """
         Executes the provided user code and captures its stdout output.
-        
+
         Parameters:
             user_code (str): Python code to be executed.
-        
+
         Returns:
             str: Captured output or error message from the executed code.
         """
-        return self.execute_code(user_code)
-    
+        return {"code_output": self.execute_code(user_code)}
+
     def execute_code(self, user_code: str) -> str:
         """
         Executes the provided user code and captures its stdout output.
