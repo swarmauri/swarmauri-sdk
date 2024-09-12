@@ -5,14 +5,16 @@ from swarmauri.standard.messages.base.MessageBase import MessageBase
 from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.core.conversations.IConversation import IConversation
 
+
 class ConversationBase(IConversation, ComponentBase):
     """
     Concrete implementation of IConversation, managing conversation history and operations.
     """
+
     _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
-    resource: ResourceTypes =  Field(default=ResourceTypes.CONVERSATION.value)
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['ConversationBase'] = 'ConversationBase'
+    resource: ResourceTypes = Field(default=ResourceTypes.CONVERSATION.value)
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    type: Literal["ConversationBase"] = "ConversationBase"
 
     @property
     def history(self) -> List[SubclassUnion[MessageBase]]:
@@ -20,9 +22,24 @@ class ConversationBase(IConversation, ComponentBase):
         Provides read-only access to the conversation history.
         """
         return self._history
-    
+
     def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
+        
+    def remove_message(self, message: SubclassUnion[MessageBase]):
+        """ 
+        Remove a message from the history
+        
+        @param message: Message to remove from the history
+        @return None
+        """
+        if self._history and message in self._history:
+            self._history.remove(message)
+        return None
+
+    def add_messages(self, messages: List[SubclassUnion[MessageBase]]):
+        for message in messages:
+            self._history.append(message)
 
     def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
         if self._history:
