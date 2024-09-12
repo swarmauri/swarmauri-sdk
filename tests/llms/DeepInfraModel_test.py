@@ -9,6 +9,10 @@ from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_ubc_resource():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     llm = LLM(api_key=API_KEY)
@@ -16,6 +20,10 @@ def test_ubc_resource():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_ubc_type():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     llm = LLM(api_key=API_KEY)
@@ -23,6 +31,10 @@ def test_ubc_type():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_serialization():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     llm = LLM(api_key=API_KEY)
@@ -30,6 +42,10 @@ def test_serialization():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_default_name():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     model = LLM(api_key=API_KEY)
@@ -37,6 +53,10 @@ def test_default_name():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_no_system_context():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     model = LLM(api_key=API_KEY)
@@ -48,10 +68,14 @@ def test_no_system_context():
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
 
 
 @pytest.mark.acceptance
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_nonpreamble_system_context():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     model = LLM(api_key=API_KEY)
@@ -81,6 +105,10 @@ def test_nonpreamble_system_context():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_preamble_system_context():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     model = LLM(api_key=API_KEY)
@@ -101,6 +129,10 @@ def test_preamble_system_context():
 
 
 @pytest.mark.acceptance
+@pytest.mark.skipif(
+    not os.getenv("DEEPINFRA_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_multiple_system_contexts():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
     model = LLM(api_key=API_KEY)
@@ -126,5 +158,5 @@ def test_multiple_system_contexts():
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Ben" in prediction
