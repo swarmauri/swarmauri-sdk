@@ -84,7 +84,7 @@ class ComponentBase(BaseModel):
     #     return set(subclasses_dict.values())
     
     @classmethod
-    def __swm_register_subclass__(cls, subclass):
+    def __swm_register_subclass__(cls, subclass) -> None:
         logging.debug('__swm_register_subclass__ executed\n')
         
         if 'type' in subclass.__annotations__:

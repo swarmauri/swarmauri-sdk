@@ -47,7 +47,15 @@ setup(
             "qdrant-client",
             "chromadb",
             "textstat",
-            "nltk"
+            "nltk",
+            "psutil",
+            "qrcode",
+            "folium",
+            "captcha",
+            "bs4",
+            "pygithub",
+            "pacmap",
+            "tf-keras"
 
         ]},
     classifiers=[
