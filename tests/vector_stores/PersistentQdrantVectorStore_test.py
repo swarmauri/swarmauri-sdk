@@ -1,50 +1,54 @@
 import os
 import pytest
 from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.community.vector_stores.ChromaDBVectorStore import ChromaDBVectorStore  
+from swarmauri.community.vector_stores.PersistentQdrantVectorStore import (
+    PersistentQdrantVectorStore,
+)
 
-URL = os.getenv("Chromadb_URL_KEY")  
-API_KEY = os.getenv("Chromadb_API_KEY")
-COLLECTION_NAME = os.getenv("Chromadb_COLLECTION_NAME")
+COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
+URL = "http://localhost:6333"  # default URL for Qdrant
+
 
 @pytest.mark.unit
 def test_ubc_resource():
-    vs = ChromaDBVectorStore(  
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
     assert vs.resource == "VectorStore"
     assert vs.embedder.resource == "Embedding"
 
+
 @pytest.mark.unit
 def test_ubc_type():
-    vs = ChromaDBVectorStore( 
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
-    assert vs.type == "ChromaDBVectorStore"
+    assert vs.type == "PersistentQdrantVectorStore"
+
 
 @pytest.mark.unit
 def test_serialization():
-    vs = ChromaDBVectorStore( 
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
-    assert vs.id == ChromaDBVectorStore.model_validate_json(vs.model_dump_json()).id  
+    assert (
+        vs.id
+        == PersistentQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
+    )
+
 
 @pytest.mark.unit
 def top_k_test():
-    vs = ChromaDBVectorStore( 
-        url=URL,
-        api_key=API_KEY,
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
+        path=URL,
     )
     documents = [
         Document(content="test"),

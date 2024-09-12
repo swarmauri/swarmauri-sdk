@@ -6,6 +6,7 @@ from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.standard.documents.concrete.Document import Document
 from swarmauri.core.vector_stores.IVectorStore import IVectorStore
 
+
 class VectorStoreBase(IVectorStore, ComponentBase):
     """
     Abstract base class for document stores, implementing the IVectorStore interface.
@@ -13,12 +14,13 @@ class VectorStoreBase(IVectorStore, ComponentBase):
     This class provides a standard API for adding, updating, getting, and deleting documents in a vector store.
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
+
     documents: List[Document] = []
     _embedder = PrivateAttr()
     _distance = PrivateAttr()
-    resource: Optional[str] =  Field(default=ResourceTypes.VECTOR_STORE.value)
-    type: Literal['VectorStoreBase'] = 'VectorStoreBase'
-    
+    resource: Optional[str] = Field(default=ResourceTypes.VECTOR_STORE.value)
+    type: Literal["VectorStoreBase"] = "VectorStoreBase"
+
     @property
     def embedder(self):
         return self._embedder
@@ -93,10 +95,10 @@ class VectorStoreBase(IVectorStore, ComponentBase):
 
         """
         self.documents = []
-    
+
     def document_count(self):
         return len(self.documents)
-    
+
     def document_dumps(self) -> str:
         """
         Placeholder
@@ -107,21 +109,27 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         """
         Placeholder
         """
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump([each.to_dict() for each in self.documents], 
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(
+                [each.to_dict() for each in self.documents],
                 f,
-                ensure_ascii=False, 
-                indent=4)  
+                ensure_ascii=False,
+                indent=4,
+            )
 
     def document_loads(self, json_data: str) -> None:
         """
         Placeholder
         """
-        self.documents = [globals()[each['type']].from_dict(each) for each in json.loads(json_data)]
+        self.documents = [
+            globals()[each["type"]].from_dict(each) for each in json.loads(json_data)
+        ]
 
     def document_load(self, file_path: str) -> None:
         """
         Placeholder
         """
-        with open(file_path, 'r', encoding='utf-8') as f:
-            self.documents = [globals()[each['type']].from_dict(each) for each in json.load(file_path)]
+        with open(file_path, "r", encoding="utf-8") as f:
+            self.documents = [
+                globals()[each["type"]].from_dict(each) for each in json.load(file_path)
+            ]
