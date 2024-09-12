@@ -17,7 +17,7 @@ class PerplexityModel(LLMBase):
         "llama-3-sonar-large-32k-online",
         "llama-3-8b-instruct",
         "llama-3-70b-instruct",
-        " llama-3.1-70b-instruct",
+        "llama-3.1-70b-instruct",
     ]
     name: str = "llama-3.1-70b-instruct"
     type: Literal["PerplexityModel"] = "PerplexityModel"
