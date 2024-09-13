@@ -1,66 +1,71 @@
-### code of conduct
-This section will be updated with a link to the Code of Conduct file once it is available.
+### Code of Conduct
+📝 [Code of conduct coming soon]
 
-### reporting bugs
+### Reporting Bugs 🐞
 To report a bug, please follow these steps:
 
-1. Search Existing Issues: Before creating a new bug report, please check the existing issues to see if the problem has already been reported.
+1. **🔍 Search Existing Issues**: Before creating a new bug report, check the existing issues to see if the problem has already been reported.
+2. **🆕 Create a New Issue**: If no existing issue matches your bug, open a new issue using the provided bug report template. Be sure to include:
+   - 🛠️ Detailed steps to reproduce the bug.
+   - ✔️ Expected behavior.
+   - 📸 Any relevant screenshots or logs.
 
-2. Create a New Issue: If no existing issue matches, open a new issue and use the provided bug report template. Include as much detail as possible, such as steps to reproduce the bug, expected behavior, and screenshots if applicable.
-
-### suggesting new features
+### Suggesting New Features 💡
 To suggest a new feature:
 
-1. Search Existing Issues: Look through the existing issues to see if the feature has already been suggested.
-2. Create a New Feature Request: If the feature has not been suggested yet, open a new issue and use the feature request template. Describe the feature, its purpose, and any other relevant details.
+1. **🔍 Search Existing Issues**: Look through existing issues to see if the feature has already been suggested.
+2. **🆕 Create a New Feature Request**: If the feature has not been suggested yet, open a new issue using the feature request template. Provide:
+   - 📝 A clear description of the feature.
+   - 🎯 The purpose of the feature.
+   - 📋 Any other relevant details that would help in implementation.
 
-### suggesting enhancements
+### Suggesting Enhancements 🚀
 To suggest enhancements to existing features:
 
-1. Search Existing Issues: Check if someone has already proposed the enhancement.
-2. Create a New Enhancement Request: If the enhancement has not been suggested, create a new issue using the enhancement request template. Clearly explain the enhancement and how it will improve the project.
+1. **🔍 Search Existing Issues**: Verify if someone has already proposed the enhancement.
+2. **🆕 Create a New Enhancement Request**: If the enhancement hasn't been suggested yet, create a new issue using the enhancement request template. Clearly explain:
+   - 🛠️ What the enhancement is.
+   - 📈 How it improves the current functionality.
 
-### style guide
+### Style Guide
+🎨 **[Style guide content coming soon]**
 
-**Placeholder**
+### How to Contribute 🤝
+1. **🍴 Fork the Repository**: Fork the repository from [https://github.com/swarmauri/swarmauri-sdk](https://github.com/swarmauri/swarmauri-sdk) to your GitHub account.
+2. **⭐ Star and 👀 Watch**: Star and watch the repository to stay updated on changes.
+3. **📥 Clone Your Fork**: Clone your fork to your local machine using:
+   ```bash
+   git clone https://github.com/your-username/swarmauri-sdk.git
+    ```
+4. **💻 Commit Changes to Your Fork**:
+   - Checkout a working branch:
+     ```bash
+     git checkout -b your-working-branch
+     ```
+   - Make your changes and commit them with a descriptive message:
+     ```bash
+     git add .
+     git commit -m "Add a meaningful commit message"
+     git push origin feature/your-feature-name
+     ```
 
-### how to contribute
-1. Fork the (https://github.com/swarmauri/swarmauri-sdk) repository to your own GitHub account.
-2. Star the repository.
-3. Watch the repository to stay updated with changes.
-4. Clone your fork to your local machine using the command: 
-    git clone https://github.com/your-username/swarmauri-sdk.git
+5. **🧪 Testing**: Ensure that every new feature or component has a corresponding test file. The test should cover:
+   - **Component Type**: Ensure the component is of the expected type.
+   - **📦 Resource Handling**: Validate input/output handling and dependencies.
+   - **🗃️ Serialization**: Test proper serialization and deserialization of data.
+   - **🔑 Access Method**: Verify how the component is accessed or invoked in the system.
+   - **⚙️ Functionality**: Confirm that the component behaves as intended and meets the defined requirements.
 
-5. Commit Changes to Your Fork:
-    git checkout [your-working-branch]
-6. Make your changes, commit them with descriptive messages, and push to your fork:
-    git add .
-    git commit -m "Add a meaningful commit message"
-    git push origin feature/your-feature-name
-7. Every new feature or component must have an associated test file created first.
+6. **📤 Create a Pull Request**: Once your changes are ready, create a pull request to the main repository’s `main` branch. Be sure to:
+   - Provide a detailed description of your changes.
+   - 🔗 Reference any related issues.
+   - 👥 Request reviews from project maintainers.
 
-#### Each test must cover the following aspects:
-1. Type of Component: Verify that the component is of the expected type.
-2. Resource: Test the component's resource handling (e.g., input/output validation, dependencies).
-3. Serialization: Ensure proper serialization and deserialization of data.
-4. Access Method: Check how the component is accessed or invoked within the system.
-5. Functionality: Confirm that the component functions as intended and meets all defined requirements.
+### Development Setup ⚙️
+1. **📄 Check Workflow Logs**: Use GitHub Actions to verify if your changes pass the required tests. Review the logs to ensure the changes work as intended.
+2. **⚙️ Enable GitHub Actions for Your Fork**:
+   - **🔄 Check for Workflow File**: Ensure that the workflow files (e.g., `staging.yml`) from the original repository are present in the `.github/workflows` directory of your fork.
+   - **🔧 Enable Actions**: Navigate to your fork’s **Settings** tab, and under the **Actions** section, ensure that GitHub Actions are enabled.
 
-#### Once your changes are ready, create a pull request from your branch to the main repository's main branch.
-#### Provide a detailed description of your changes, reference any related issues, and request reviews.
-
-### development setup
-1. Workflow logs are available in GitHub Actions feature to help you verify if your changes are working as intended. Check the logs to confirm whether tests for the changes you made passed or failed.
-
-2. How to enable GitHub Actions for Your Fork 
-   - Check for the Workflow File in Your Fork 
-     - GitHub Actions workflows are defined in `.yml` files under the `.github/workflows` directory in the repository. 
-     - Navigate to the .github/workflows directory in your forked repository on GitHub.
-     - Ensure that the workflow file (e.g., `staging.yml` etc.) from the original repository is present in your fork.
-   - Enable GitHub Actions for Your Fork
-     - Go to your forked repository on GitHub.
-     - Click on the "**Settings**" tab.
-     - Under "**Actions**" in the left sidebar, ensure that Actions are enabled. If they're disabled, enable them.
-
-### licensing
-This project is licensed under the Project License(https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE). Please make sure that any contributions adhere to the terms of the license.
+### Licensing 📜
+This project is licensed under the [Project License](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE). Please ensure that all contributions comply with the terms of the license.
