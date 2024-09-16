@@ -8,7 +8,7 @@ from swarmauri.standard.tools.base.ToolBase import (
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 
-class RequestsTool(ToolBase):
+class JSONRequestsTool(ToolBase):
     """
     A tool that leverages the `requests` library to perform HTTP operations.
 
@@ -17,8 +17,8 @@ class RequestsTool(ToolBase):
         description (str): A brief description of what the tool does.
     """
 
-    name: str = "RequestsTool"
-    type: Literal["RequestsTool"] = "RequestsTool"
+    name: str = "JSONRequestsTool"
+    type: Literal["JSONRequestsTool"] = "JSONRequestsTool"
     description: Optional[str] = (
         "A tool for making HTTP requests using the `requests` library."
     )
@@ -172,7 +172,4 @@ class RequestsTool(ToolBase):
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
 
-        return {
-            "response_content": response.content,
-            "response_status": response.status_code,
-        }
+        return response.json()
