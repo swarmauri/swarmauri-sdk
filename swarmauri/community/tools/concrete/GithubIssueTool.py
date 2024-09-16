@@ -24,9 +24,15 @@ class GithubIssueTool(ToolBase):
                 required=False,
             ),
             Parameter(
-                name="file_path",
+                name="title",
                 type="string",
-                description="The path to the file in the repository, e.g. 'path/to/file.txt'.",
+                description="Title of the issue to create",
+                required=False,
+            ),
+            Parameter(
+                name="body",
+                type="string",
+                description="Body of the issue to create",
                 required=False,
             ),
             Parameter(
