@@ -9,6 +9,11 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 
 class DeepInfraModel(LLMBase):
+    """
+    Provider resources: https://deepinfra.com/models/text-generation
+
+    """
+
     api_key: str
     allowed_models: List[str] = [
         "meta-llama/Meta-Llama-3.1-405B-Instruct",
@@ -36,6 +41,7 @@ class DeepInfraModel(LLMBase):
         "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
         "Phind/Phind-CodeLlama-34B-v2",
         "Qwen/Qwen2-7B-Instruct",
+        "Sao10K/L3.1-70B-Euryale-v2.2",
         "bigcode/starcoder2-15b",
         "bigcode/starcoder2-15b-instruct-v0.1",
         "codellama/CodeLlama-34b-Instruct-hf",
@@ -46,12 +52,14 @@ class DeepInfraModel(LLMBase):
         "deepinfra/airoboros-70b",
         "google/codegemma-7b-it",
         "google/gemma-1.1-7b-it",
+        "mattshumer/Reflection-Llama-3.1-70B",
         "meta-llama/Llama-2-13b-chat-hf",
         "meta-llama/Llama-2-70b-chat-hf",
         "meta-llama/Llama-2-7b-chat-hf",
         "microsoft/Phi-3-medium-4k-instruct",
         "mistralai/Mistral-7B-Instruct-v0.1",
         "mistralai/Mistral-7B-Instruct-v0.2",
+        "mistralai/Mixtral-8x22B-v0.1",
         "mistralai/Mixtral-8x22B-v0.1",
         "nvidia/Nemotron-4-340B-Instruct",
         "openchat/openchat-3.6-8b",
