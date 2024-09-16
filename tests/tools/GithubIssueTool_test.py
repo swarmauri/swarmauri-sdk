@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
 
 import pytest
-from swarmauri.community.tools.concrete.GithubRepoTool import GithubRepoTool as Tool
+from swarmauri.community.tools.concrete.GithubIssueTool import GithubIssueTool as Tool
 
 load_dotenv()
 
@@ -26,7 +26,7 @@ def test_ubc_resource():
 )
 def test_ubc_type():
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    assert Tool(token=token).type == "GithubRepoTool"
+    assert Tool(token=token).type == "GithubIssueTool"
 
 
 @pytest.mark.unit
@@ -54,12 +54,19 @@ def test_serialization():
 @pytest.mark.parametrize(
     "action, kwargs, method_called",
     [
-        # Valid cases for repo management
-        ("create_repo", {"repo_name": "test-repo"}, "create_repo"),
-        ("delete_repo", {"repo_name": "test-repo"}, "delete_repo"),
-        ("get_repo", {"repo_name": "test-repo"}, "get_repo"),
-        ("list_repos", {}, "list_repos"),
-        ("update_repo", {"repo_name": "test-repo"}, "update_repo"),
+        (
+            "create_issue",
+            {"repo_name": "test-repo", "title": "Test Issue"},
+            "create_issue",
+        ),
+        ("close_issue", {"repo_name": "test-repo", "issue_number": 1}, "close_issue"),
+        (
+            "update_issue",
+            {"repo_name": "test-repo", "issue_number": 1, "title": "Updated Issue"},
+            "update_issue",
+        ),
+        ("list_issues", {"repo_name": "test-repo"}, "list_issues"),
+        ("get_issue", {"repo_name": "test-repo", "issue_number": 1}, "get_issue"),
         # Invalid action
         ("invalid_action", {}, None),
     ],
@@ -69,7 +76,7 @@ def test_serialization():
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
-@patch("swarmauri.community.tools.concrete.GithubRepoTool.Github")
+@patch("swarmauri.community.tools.concrete.GithubIssueTool.Github")
 def test_call(mock_github, action, kwargs, method_called):
     expected_keys = {action}
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")

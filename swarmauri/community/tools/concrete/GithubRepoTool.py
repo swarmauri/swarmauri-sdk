@@ -23,11 +23,17 @@ class GithubRepoTool(ToolBase):
                 description="The full name of the repository to interact with, e.g. 'owner/repository'.",
                 required=False,
             ),
+            Parameter(
+                name="file_path",
+                type="string",
+                description="The path to the file in the repository, e.g. 'path/to/file.txt'.",
+                required=False,
+            ),
         ]
     )
-    name: str = "GithubTool"
+    name: str = "GithubRepoTool"
     description: str = "Interacts with GitHub repositories using PyGithub."
-    type: Literal["GithubTool"] = "GithubTool"
+    type: Literal["GithubRepoTool"] = "GithubRepoTool"
     token: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
