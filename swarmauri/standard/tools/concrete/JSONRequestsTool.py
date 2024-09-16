@@ -172,4 +172,12 @@ class JSONRequestsTool(ToolBase):
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
 
-        return response.json()
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            # If JSON parsing fails, return the raw text and some metadata
+            return {
+                "status_code": response.status_code,
+                "headers": dict(response.headers),
+                "content": response.text,
+            }
