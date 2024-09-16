@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.standard.tools.concrete.RequestsTool import RequestsTool as Tool
+from swarmauri.standard.tools.concrete.JSONRequestsTool import JSONRequestsTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +8,7 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'RequestsTool'
+    assert Tool().type == 'JSONRequestsTool'
 
 @pytest.mark.unit
 def test_initialization():
