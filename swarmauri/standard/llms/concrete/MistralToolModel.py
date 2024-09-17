@@ -14,11 +14,16 @@ from swarmauri.standard.schema_converters.concrete.MistralSchemaConverter import
 
 
 class MistralToolModel(LLMBase):
+    """
+    Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
+    """
+
     api_key: str
     allowed_models: List[str] = [
         "open-mixtral-8x22b",
         "mistral-small-latest",
         "mistral-large-latest",
+        "open-mistral-nemo",
     ]
     name: str = "open-mixtral-8x22b"
     type: Literal["MistralToolModel"] = "MistralToolModel"
