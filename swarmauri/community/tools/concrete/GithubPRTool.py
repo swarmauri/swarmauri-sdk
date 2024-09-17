@@ -37,19 +37,19 @@ class GithubPRTool(ToolBase):
             ),
             Parameter(
                 name="head",
-                type="str",
+                type="string",
                 description="The head branch with your changes",
                 required=False,
             ),
             Parameter(
                 name="base",
-                type="str",
+                type="string",
                 description="The base branch you're merging into, typically 'main' or 'master'",
                 required=False,
             ),
             Parameter(
                 name="body",
-                type="str",
+                type="string",
                 description="The description of the pull request to create.",
                 required=False,
             ),
