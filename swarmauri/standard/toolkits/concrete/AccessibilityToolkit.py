@@ -1,6 +1,16 @@
+import warnings
+import logging
 from typing import Literal, Any
 from pydantic import Field, model_validator
+
+# Suppress specific warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
+
 from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.core.typing import SubclassUnion
+from swarmauri.standard.tools.base.ToolBase import ToolBase
+
+
 from swarmauri.standard.tools.concrete.AutomatedReadabilityIndexTool import (
     AutomatedReadabilityIndexTool,
 )
@@ -52,29 +62,27 @@ class AccessibilityToolkit(ToolkitBase):
         # Extract the tools and validate their types manually
         tools = values.get("tools", {})
 
-        # Map of tool types to their corresponding classes
-        tool_class_map = {
-            "AutomatedReadabilityIndexTool": AutomatedReadabilityIndexTool,
-            "ColemanLiauIndexTool": ColemanLiauIndexTool,
-            "FleschKincaidTool": FleschKincaidTool,
-            "FleschReadingEaseTool": FleschReadingEaseTool,
-            "GunningFogTool": GunningFogTool,
-        }
-
         for tool_name, tool_data in tools.items():
             if isinstance(tool_data, dict):
                 tool_type = tool_data.get("type")
                 tool_id = tool_data.get("id")  # Preserve the ID if it exists
 
-                # Map types to the correct tool class and instantiate the tool
-                tool_class = tool_class_map.get(tool_type)
-                if tool_class:
+                try:
+                    # Assuming SubclassUnion returns a dictionary or a list of tool classes
+                    tool_class = next(
+                        sc
+                        for sc in SubclassUnion.__swm__get_subclasses__(ToolBase)
+                        if sc.__name__ == tool_type
+                    )
+
+                    logging.info(tool_class)
+
                     # Create an instance of the tool class
                     tools[tool_name] = tool_class(**tool_data)
                     tools[
                         tool_name
                     ].id = tool_id  # Ensure the tool ID is not changed unintentionally
-                else:
+                except StopIteration:
                     raise ValueError(f"Unknown tool type: {tool_type}")
 
         values["tools"] = tools
