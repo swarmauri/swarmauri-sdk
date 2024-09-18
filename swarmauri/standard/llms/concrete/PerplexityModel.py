@@ -9,6 +9,11 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 
 class PerplexityModel(LLMBase):
+    """
+    Provider resources: https://docs.perplexity.ai/guides/model-cards
+    Link to depreciated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
+    """
+
     api_key: str
     allowed_models: List[str] = [
         "llama-3-sonar-small-32k-chat",
@@ -18,6 +23,12 @@ class PerplexityModel(LLMBase):
         "llama-3-8b-instruct",
         "llama-3-70b-instruct",
         "llama-3.1-70b-instruct",
+        "llama-3.1-sonar-small-128k-online",
+        "llama-3.1-sonar-large-128k-online",
+        "llama-3.1-sonar-huge-128k-online",
+        "llama-3.1-sonar-small-128k-chat",
+        "llama-3.1-sonar-large-128k-chat",
+        "llama-3.1-8b-instruct",
     ]
     name: str = "llama-3.1-70b-instruct"
     type: Literal["PerplexityModel"] = "PerplexityModel"
