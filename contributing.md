@@ -1,66 +1,92 @@
-### code of conduct
-This section will be updated with a link to the Code of Conduct file once it is available.
+## Contributing Guidelines
 
-### reporting bugs
-To report a bug, please follow these steps:
+We welcome contributions to improve this project. Please follow these guidelines to ensure a smooth contribution process.
 
-1. Search Existing Issues: Before creating a new bug report, please check the existing issues to see if the problem has already been reported.
+### Code of Conduct
+The Code of Conduct for this project will be available soon. Once available, please make sure to review and adhere to it. 
 
-2. Create a New Issue: If no existing issue matches, open a new issue and use the provided bug report template. Include as much detail as possible, such as steps to reproduce the bug, expected behavior, and screenshots if applicable.
+### Reporting Bugs
+To report bugs, please follow these steps:
 
-### suggesting new features
-To suggest a new feature:
+1. **Search Existing Issues:** Before reporting a bug, check the [Issues](https://github.com/swarmauri/swarmauri-sdk/issues) to see if the problem has already been reported or is being addressed.
+   
+2. **Create a New Bug Report:** If no issue matches, open a new issue using the provided bug report template. Include:
+   - Detailed steps to reproduce the bug.
+   - The expected and actual behavior.
+   - Screenshots, logs, or other helpful information.
 
-1. Search Existing Issues: Look through the existing issues to see if the feature has already been suggested.
-2. Create a New Feature Request: If the feature has not been suggested yet, open a new issue and use the feature request template. Describe the feature, its purpose, and any other relevant details.
+### Suggesting New Features
+If you have an idea for a new feature, please:
 
-### suggesting enhancements
-To suggest enhancements to existing features:
+1. **Search Existing Issues:** Review existing issues to see if the feature has already been requested.
 
-1. Search Existing Issues: Check if someone has already proposed the enhancement.
-2. Create a New Enhancement Request: If the enhancement has not been suggested, create a new issue using the enhancement request template. Clearly explain the enhancement and how it will improve the project.
+2. **Submit a New Feature Request:** If not, create a new issue using the feature request template. Provide:
+   - A clear description of the feature.
+   - Its potential use cases and benefits to the project.
 
-### style guide
+### Suggesting Enhancements
+To suggest improvements to existing features:
 
-**Placeholder**
+1. **Search Existing Issues:** Make sure the enhancement hasn’t already been proposed.
 
-### how to contribute
-1. Fork the (https://github.com/swarmauri/swarmauri-sdk) repository to your own GitHub account.
-2. Star the repository.
-3. Watch the repository to stay updated with changes.
-4. Clone your fork to your local machine using the command: 
-    git clone https://github.com/your-username/swarmauri-sdk.git
+2. **Create an Enhancement Request:** If not, submit an issue with the enhancement request template. Describe:
+   - The current functionality.
+   - The proposed improvements and how they enhance the project.
 
-5. Commit Changes to Your Fork:
-    git checkout [your-working-branch]
-6. Make your changes, commit them with descriptive messages, and push to your fork:
-    git add .
-    git commit -m "Add a meaningful commit message"
-    git push origin feature/your-feature-name
-7. Every new feature or component must have an associated test file created first.
+### Style Guide
+_This section is currently under development and will provide coding style conventions for the project soon._
 
-#### Each test must cover the following aspects:
-1. Type of Component: Verify that the component is of the expected type.
-2. Resource: Test the component's resource handling (e.g., input/output validation, dependencies).
-3. Serialization: Ensure proper serialization and deserialization of data.
-4. Access Method: Check how the component is accessed or invoked within the system.
-5. Functionality: Confirm that the component functions as intended and meets all defined requirements.
+### How to Contribute
 
-#### Once your changes are ready, create a pull request from your branch to the main repository's main branch.
-#### Provide a detailed description of your changes, reference any related issues, and request reviews.
+1. **Fork the Repository:**
+   - Navigate to the [repository](https://github.com/swarmauri/swarmauri-sdk) and fork it to your GitHub account.
+   
+2. **Star and Watch:**
+   - Star the repo and watch for updates to stay informed.
 
-### development setup
-1. Workflow logs are available in GitHub Actions feature to help you verify if your changes are working as intended. Check the logs to confirm whether tests for the changes you made passed or failed.
+3. **Clone Your Fork:**
+   - Clone your fork to your local machine:  
+     `git clone https://github.com/your-username/swarmauri-sdk.git`
 
-2. How to enable GitHub Actions for Your Fork 
-   - Check for the Workflow File in Your Fork 
-     - GitHub Actions workflows are defined in `.yml` files under the `.github/workflows` directory in the repository. 
-     - Navigate to the .github/workflows directory in your forked repository on GitHub.
-     - Ensure that the workflow file (e.g., `staging.yml` etc.) from the original repository is present in your fork.
-   - Enable GitHub Actions for Your Fork
-     - Go to your forked repository on GitHub.
-     - Click on the "**Settings**" tab.
-     - Under "**Actions**" in the left sidebar, ensure that Actions are enabled. If they're disabled, enable them.
+4. **Create a New Branch:**
+   - Create a feature branch to work on:  
+     `git checkout -b feature/your-feature-name`
 
-### licensing
-This project is licensed under the Project License(https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE). Please make sure that any contributions adhere to the terms of the license.
+5. **Make Changes:**
+   - Implement your changes. Write meaningful and clear commit messages.
+   - Stage and commit your changes:  
+     `git add .`  
+     `git commit -m "Add a meaningful commit message"`
+
+6. **Push to Your Fork:**
+   - Push your branch to your fork:  
+     `git push origin feature/your-feature-name`
+
+7. **Write Tests:**  
+   - Ensure each new feature has an associated test file.
+   - Tests should cover:
+     1. **Component Type:** Verify the component is of the expected type.
+     2. **Resource Handling:** Validate inputs/outputs and dependencies.
+     3. **Serialization:** Ensure data is properly serialized and deserialized.
+     4. **Access Method:** Test component accessibility within the system.
+     5. **Functionality:** Confirm the feature meets the project requirements.
+
+8. **Create a Pull Request:**  
+   - Once your changes are ready, create a pull request (PR) to merge your branch into the main repository. 
+   - Provide a detailed description, link to related issues, and request a review.
+
+### Development Setup
+
+1. **Run Tests with GitHub Actions:**
+   - GitHub Actions will automatically run tests for your changes. 
+   - Check the Actions tab to verify if your changes pass the tests.
+
+2. **Enabling GitHub Actions on Your Fork:**
+   - **Check for Workflow Files:** Ensure `.yml` workflow files are present under `.github/workflows` in your fork.
+   - **Enable Actions:** 
+     - Go to the "**Settings**" tab of your fork.
+     - Under "**Actions**" in the left sidebar, ensure Actions are enabled. If not, enable them.
+
+### Licensing
+This project is licensed under the [Project License](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE).  
+Please ensure that your contributions comply with the terms of the license.
