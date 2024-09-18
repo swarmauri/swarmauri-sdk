@@ -54,8 +54,8 @@ def test_serialization():
 @pytest.mark.parametrize(
     "action, kwargs, method_called",
     [
-        ("create_branch",{"repo_name": "test-repo", "branch_name": "new-branch"},"create_branch",),
-        ("delete_branch",{"repo_name": "test-repo", "branch_name": "new-branch"},"delete_branch",),
+        ("create_branch", {"repo_name": "test-repo", "branch_name": "new-branch", "source_branch": "main"}, "create_branch"),
+        ("delete_branch", {"repo_name": "test-repo", "branch_name": "new-branch"}, "delete_branch"),
         ("list_branches", {"repo_name": "test-repo"}, "list_branches"),
         ("get_branch", {"repo_name": "test-repo", "branch_name": "main"}, "get_branch"),
         # Invalid action
