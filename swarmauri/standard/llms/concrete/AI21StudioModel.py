@@ -11,17 +11,17 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 
 class AI21StudioModel(LLMBase):
+    """
+    Provider resources: https://docs.ai21.com/reference/jamba-15-api-ref
+
+    """
+
     api_key: str
     allowed_models: List[str] = [
-        "jamba-instruct",
-        "jamba-instruct-preview",
-        "jamba-next",
-        "jamba-large-next",
-        "jamba-large-next-2",
-        "jamba-1.5",
         "jamba-1.5-large",
+        "jamba-1.5-mini",
     ]
-    name: str = "jamba-instruct"
+    name: str = "jamba-1.5-mini"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
 
     def _format_messages(
@@ -36,8 +36,6 @@ class AI21StudioModel(LLMBase):
             for message in messages
         ]
         return formatted_messages
-
-
 
     def predict(
         self,

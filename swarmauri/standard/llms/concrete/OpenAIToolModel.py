@@ -14,11 +14,18 @@ from swarmauri.standard.schema_converters.concrete.OpenAISchemaConverter import 
 
 
 class OpenAIToolModel(LLMBase):
+    """
+    Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
+    """
+
     api_key: str
     allowed_models: List[str] = [
         "gpt-4o",
         "gpt-4o-2024-05-13",
         "gpt-4-turbo",
+        "gpt-4o-mini",
+        "gpt-4o-mini-2024-07-18",
+        "gpt-4o-2024-08-06",
         "gpt-4-turbo-2024-04-09",
         "gpt-4-turbo-preview",
         "gpt-4-0125-preview",
