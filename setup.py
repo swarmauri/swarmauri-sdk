@@ -33,7 +33,7 @@ setup(
             'scikit-learn',
             'gensim',
             'textblob',
-            'spacy==3.7.4',
+            'spacy',
             'pygments',
             'gradio',
             'websockets',
