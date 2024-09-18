@@ -35,7 +35,7 @@ setup(
             'textblob',
             'spacy==3.7.4',
             'pygments',
-            'gradio',
+            'gradio>=4.44.0',
             'websockets',
             'openai',
             'groq',
