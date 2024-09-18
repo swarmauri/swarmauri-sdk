@@ -38,11 +38,6 @@ def test_serialization():
     deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
 
     assert toolkit.id == deserialized_toolkit.id
-    # assert (
-    #     toolkit.tools["GithubPRTool"].id
-    #     == deserialized_toolkit.tools["GithubPRTool"].id
-    # )
-    # assert toolkit == deserialized_toolkit
 
 
 @pytest.mark.unit
