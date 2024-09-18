@@ -9,10 +9,13 @@ from swarmauri.standard.llms.base.LLMBase import LLMBase
 
 
 class DeepSeekModel(LLMBase):
+    """
+    Provider resources: https://platform.deepseek.com/api-docs/quick_start/pricing
+    """
+
     api_key: str
     allowed_models: List[str] = [
-        "deepseek-chat",
-        "deepseek-coder",
+        "deepseek-chat"
     ]
     name: str = "deepseek-chat"
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
