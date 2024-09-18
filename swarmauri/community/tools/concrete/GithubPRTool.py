@@ -1,4 +1,4 @@
-# swarmauri/standard/tools/concrete/GithubTool.py
+# swarmauri/community/tools/concrete/GithubPRTool.py
 
 from github import Github, GithubException
 from typing import List, Dict, Literal, Optional, Any

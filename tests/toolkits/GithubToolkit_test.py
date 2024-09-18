@@ -8,7 +8,7 @@ from sympy.ntheory.primetest import proth_test
 
 from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.community.tools.concrete.GithubRepoTool import GithubRepoTool
-from swarmauri.standard.toolkits.concrete.GithubToolkit import GithubToolkit as Toolkit
+from swarmauri.community.toolkits.concrete.GithubToolkit import GithubToolkit as Toolkit
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,17 +38,12 @@ def test_serialization():
     deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
 
     assert toolkit.id == deserialized_toolkit.id
-    # assert (
-    #     toolkit.tools["GithubPRTool"].id
-    #     == deserialized_toolkit.tools["GithubPRTool"].id
-    # )
-    # assert toolkit == deserialized_toolkit
 
 
 @pytest.mark.unit
 def test_tool_count():
     toolkit = Toolkit(token=token)
-    assert len(toolkit.get_tools()) == 3
+    assert len(toolkit.get_tools()) == 5
 
 
 @pytest.mark.unit
@@ -56,7 +51,7 @@ def test_add_tool():
     toolkit = Toolkit(token=token)
     tool = AdditionTool()
     toolkit.add_tool(tool)
-    assert len(toolkit.get_tools()) == 4
+    assert len(toolkit.get_tools()) == 6
 
 
 @pytest.mark.parametrize(
