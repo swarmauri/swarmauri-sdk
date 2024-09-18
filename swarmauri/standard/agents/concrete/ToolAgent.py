@@ -11,12 +11,12 @@ from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     llm: SubclassUnion[LLMBase]
-    toolkit: SubclassUnion[Toolkit]
+    toolkit: SubclassUnion[ToolkitBase]
     conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     type: Literal['ToolAgent'] = 'ToolAgent'
