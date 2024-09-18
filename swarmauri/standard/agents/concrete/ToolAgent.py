@@ -11,7 +11,7 @@ from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
 from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
