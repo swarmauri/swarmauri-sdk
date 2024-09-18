@@ -55,10 +55,10 @@ def test_serialization():
     "action, kwargs, method_called",
     [
         # Valid cases for repo management
-        ("create_commit", {"repo_name": "test-repo", "message": "Test Commit"},"create_commit",),
+        ("create_commit", {"repo_name": "test-repo", "file_path": "path/to/file.txt", "message": "Test Commit", "content": "File content", "branch": "main"}, "create_commit"),
         ("list_commits", {"repo_name": "test-repo"}, "list_commits"),
-        ("get_commit",{"repo_name": "test-repo", "commit_sha": "abcdef"},"get_commit",),
-        ("compare_commits",{"repo_name": "test-repo", "base": "main", "head": "feature"},"compare_commits",)
+        ("get_commit", {"repo_name": "test-repo", "sha": "abcdef"}, "get_commit"),
+        ("compare_commits", {"repo_name": "test-repo", "base": "main", "head": "feature"}, "compare_commits"),
         # Invalid action
         ("invalid_action", {}, None),
     ],
