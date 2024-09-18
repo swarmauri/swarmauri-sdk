@@ -8,6 +8,8 @@ from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri.community.tools.concrete.GithubRepoTool import GithubRepoTool
 from swarmauri.community.tools.concrete.GithubIssueTool import GithubIssueTool
 from swarmauri.community.tools.concrete.GithubPRTool import GithubPRTool
+from swarmauri.community.tools.concrete.GithubBranchTool import GithubBranchTool
+from swarmauri.community.tools.concrete.GithubCommitTool import GithubCommitTool
 from dotenv import load_dotenv
 
 from swarmauri.standard.tools.base.ToolBase import ToolBase
@@ -24,6 +26,8 @@ class GithubToolkit(ToolkitBase, BaseModel):
     github_repo_tool: Optional[GithubRepoTool] = None
     github_issue_tool: Optional[GithubIssueTool] = None
     github_pr_tool: Optional[GithubPRTool] = None
+    github_branch_tool: Optional[GithubBranchTool] = None
+    github_commit_tool: Optional[GithubCommitTool] = None
 
     def __init__(self, token: str, **kwargs):
         super().__init__(**kwargs)
@@ -36,10 +40,14 @@ class GithubToolkit(ToolkitBase, BaseModel):
         self.github_repo_tool = GithubRepoTool(token=self.token)
         self.github_issue_tool = GithubIssueTool(token=self.token)
         self.github_pr_tool = GithubPRTool(token=self.token)
+        self.github_branch_tool = GithubBranchTool(token=self.token)
+        self.github_commit_tool = GithubCommitTool(token=self.token)
 
         self.add_tool(self.github_repo_tool)
         self.add_tool(self.github_issue_tool)
         self.add_tool(self.github_pr_tool)
+        self.add_tool(self.github_commit_tool)
+        self.add_tool(self.github_branch_tool)
 
     @model_validator(mode="wrap")
     @classmethod
