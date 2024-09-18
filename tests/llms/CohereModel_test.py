@@ -33,7 +33,7 @@ def test_serialization():
 def test_default_name():
     API_KEY = os.getenv('COHERE_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == 'command-light'
+    assert model.name == 'command'
 
 @pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('COHERE_API_KEY'), reason="Skipping due to environment variable not set")

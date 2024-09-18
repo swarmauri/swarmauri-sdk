@@ -24,7 +24,7 @@ class CohereModel(LLMBase):
         "command-light",
         "command",
     ]
-    name: str = "command-light"
+    name: str = "command"
     type: Literal["CohereModel"] = "CohereModel"
 
     def _format_messages(

@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.11"]
 
     env:
       # Model Provider Keys
@@ -29,6 +29,7 @@ jobs:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
       DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
       # Database Keys
       QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
