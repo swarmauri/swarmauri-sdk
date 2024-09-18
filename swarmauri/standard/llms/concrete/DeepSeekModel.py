@@ -15,9 +15,7 @@ class DeepSeekModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        "deepseek-chat",
-        "deepseek-coder",
-        "DeepSeek-V2.5",
+        "deepseek-chat"
     ]
     name: str = "deepseek-chat"
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
