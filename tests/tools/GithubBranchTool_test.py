@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
 
 import pytest
-from swarmauri.community.tools.concrete.GithubTool import GithubTool as Tool
+from swarmauri.community.tools.concrete.GithubBranchTool import GithubBranchTool as Tool
 
 load_dotenv()
 
