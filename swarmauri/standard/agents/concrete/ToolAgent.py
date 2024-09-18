@@ -16,7 +16,7 @@ from swarmauri.standard.conversations.base.ConversationBase import ConversationB
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     llm: SubclassUnion[LLMBase]
-    toolkit: SubclassUnion[Toolkit]
+    toolkit: SubclassUnion[ToolkitBase]
     conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
     type: Literal['ToolAgent'] = 'ToolAgent'
