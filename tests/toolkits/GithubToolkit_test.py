@@ -43,7 +43,7 @@ def test_serialization():
 @pytest.mark.unit
 def test_tool_count():
     toolkit = Toolkit(token=token)
-    assert len(toolkit.get_tools()) == 3
+    assert len(toolkit.get_tools()) == 5
 
 
 @pytest.mark.unit
@@ -51,7 +51,7 @@ def test_add_tool():
     toolkit = Toolkit(token=token)
     tool = AdditionTool()
     toolkit.add_tool(tool)
-    assert len(toolkit.get_tools()) == 4
+    assert len(toolkit.get_tools()) == 6
 
 
 @pytest.mark.parametrize(
