@@ -23,7 +23,7 @@ class DeepInfraModel(LLMBase):
      'Phind/Phind-CodeLlama-34B-v2',
      'Qwen/Qwen2-72B-Instruct',
      'Qwen/Qwen2-7B-Instruct',
-     'Qwen2.5-72B-Instruct',
+     'Qwen/Qwen2.5-72B-Instruct',
      'Sao10K/L3-70B-Euryale-v2.1',
      'Sao10K/L3.1-70B-Euryale-v2.2',
      'bigcode/starcoder2-15b',
