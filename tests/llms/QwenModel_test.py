@@ -1,44 +1,44 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
+from swarmauri.standard.llms.concrete.QwenModel import QwenModel as LLM
 from swarmauri.standard.conversations.concrete.Conversation import Conversation
 from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_ubc_resource():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     llm = LLM(api_key = API_KEY)
     assert llm.resource == 'LLM'
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_ubc_type():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     llm = LLM(api_key = API_KEY)
-    assert llm.type == 'LeptonAIModel'
+    assert llm.type == 'QwenModel'
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_serialization():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     llm = LLM(api_key = API_KEY)
     assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_default_name():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     model = LLM(api_key = API_KEY)
-    assert model.name == 'llama3-8b'
+    assert model.name == 'Qwen2-7B-Instruct'
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_no_system_context():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
@@ -50,10 +50,10 @@ def test_no_system_context():
     prediction = conversation.get_last().content
     assert type(prediction) == str
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
@@ -80,10 +80,10 @@ def test_nonpreamble_system_context():
     assert 'Jeff' in prediction
 
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
 def test_preamble_system_context():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
@@ -100,10 +100,10 @@ def test_preamble_system_context():
     assert type(prediction) == str
     assert 'Jeff' in prediction
 
-@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(not os.getenv('QWEN_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.acceptance
 def test_multiple_system_contexts():
-    API_KEY = os.getenv('LEPTON_API_KEY')
+    API_KEY = os.getenv('QWEN_API_KEY')
     model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
