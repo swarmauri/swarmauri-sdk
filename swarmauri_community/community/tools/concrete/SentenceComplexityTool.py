@@ -6,27 +6,23 @@ from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 # Download required NLTK data once during module load
-nltk.download("punkt", quiet=True)
 
+nltk.download('punkt', quiet=True)
 
 class SentenceComplexityTool(ToolBase):
     version: str = "0.1.dev2"
-    parameters: List[Parameter] = Field(
-        default_factory=lambda: [
-            Parameter(
-                name="text",
-                type="string",
-                description="The text to analyze for sentence complexity.",
-                required=True,
-            )
-        ]
-    )
+    parameters: List[Parameter] = Field(default_factory=lambda: [
+        Parameter(
+            name="text",
+            type="string",
+            description="The text to analyze for sentence complexity.",
+            required=True
+        )
+    ])
 
-    name: str = "SentenceComplexityTool"
-    description: str = (
-        "Evaluates sentence complexity based on average sentence length and the number of clauses."
-    )
-    type: Literal["SentenceComplexityTool"] = "SentenceComplexityTool"
+    name: str = 'SentenceComplexityTool'
+    description: str = "Evaluates sentence complexity based on average sentence length and the number of clauses."
+    type: Literal['SentenceComplexityTool'] = 'SentenceComplexityTool'
 
     def __call__(self, text: str) -> Dict[str, float]:
         """
@@ -45,7 +41,11 @@ class SentenceComplexityTool(ToolBase):
         num_sentences = len(sentences)
 
         if num_sentences == 0:
-            return {"average_sentence_length": 0.0, "average_clauses_per_sentence": 0.0}
+            return {
+                "average_sentence_length": 0.0,
+                "average_clauses_per_sentence": 0.0
+            }
+
 
         total_words = 0
         total_clauses = 0
@@ -55,6 +55,7 @@ class SentenceComplexityTool(ToolBase):
             total_words += len(words)
 
             # Improved clause counting method
+
             clauses = sentence.count(",") + sentence.count(";")
             clauses += sum(
                 sentence.lower().count(conj)

@@ -7,7 +7,9 @@ import math
 import nltk
 from nltk.tokenize import sent_tokenize
 
-## Download required NLTK data once during module load
+
+# Download required NLTK data once during module load
+
 nltk.download("punkt", quiet=True)
 
 
