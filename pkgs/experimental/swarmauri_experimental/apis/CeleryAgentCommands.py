@@ -26,7 +26,7 @@ class CeleryAgentCommands(IAgentCommands):
         """
         Fetches the status of a command execution via its task ID.
         """
-        async_result = self.app.AsyncResult(task_id)
+        async_result = self.app.AsyncResult(task_id) 
         return {"status": async_result.status, "result": async_result.result if async_result.ready() else None}
 
     def revoke_command(self, task_id: str) -> None:
