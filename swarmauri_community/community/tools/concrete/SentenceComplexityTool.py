@@ -6,6 +6,7 @@ from swarmauri.standard.tools.base.ToolBase import ToolBase
 from swarmauri.standard.tools.concrete.Parameter import Parameter
 
 # Download required NLTK data once during module load
+
 nltk.download('punkt', quiet=True)
 
 class SentenceComplexityTool(ToolBase):
@@ -45,6 +46,7 @@ class SentenceComplexityTool(ToolBase):
                 "average_clauses_per_sentence": 0.0
             }
 
+
         total_words = 0
         total_clauses = 0
 
@@ -53,14 +55,27 @@ class SentenceComplexityTool(ToolBase):
             total_words += len(words)
 
             # Improved clause counting method
-            clauses = sentence.count(',') + sentence.count(';')
-            clauses += sum(sentence.lower().count(conj) for conj in ["and", "but", "or", "because", "although", "though", "while", "if"])
-            total_clauses += (clauses + 1)
+
+            clauses = sentence.count(",") + sentence.count(";")
+            clauses += sum(
+                sentence.lower().count(conj)
+                for conj in [
+                    "and",
+                    "but",
+                    "or",
+                    "because",
+                    "although",
+                    "though",
+                    "while",
+                    "if",
+                ]
+            )
+            total_clauses += clauses + 1
 
         avg_sentence_length = total_words / num_sentences
         avg_clauses_per_sentence = total_clauses / num_sentences
 
         return {
             "average_sentence_length": avg_sentence_length,
-            "average_clauses_per_sentence": avg_clauses_per_sentence
+            "average_clauses_per_sentence": avg_clauses_per_sentence,
         }

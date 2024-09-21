@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import swarmauri_community
 
 setup(
-    name="swarmauri_community",
+    name="swarmauri-community",
     version=swarmauri_community.__version__,
     author="Jacob Stewart",
     author_email="corporate@swarmauri.com",

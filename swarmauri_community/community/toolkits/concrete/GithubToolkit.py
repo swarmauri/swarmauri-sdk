@@ -5,11 +5,12 @@ from pydantic import model_validator, BaseModel
 
 from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
-from swarmauri_community.community.tools.concrete.GithubRepoTool import GithubRepoTool
-from swarmauri_community.community.tools.concrete.GithubIssueTool import GithubIssueTool
-from swarmauri_community.community.tools.concrete.GithubPRTool import GithubPRTool
-from swarmauri_community.community.tools.concrete.GithubBranchTool import GithubBranchTool
-from swarmauri_community.community.tools.concrete.GithubCommitTool import GithubCommitTool
+from swarmauri_community.tools.concrete.GithubRepoTool import GithubRepoTool
+from swarmauri_community.tools.concrete.GithubIssueTool import GithubIssueTool
+from swarmauri_community.tools.concrete.GithubPRTool import GithubPRTool
+from swarmauri_community.tools.concrete.GithubBranchTool import GithubBranchTool
+from swarmauri_community.tools.concrete.GithubCommitTool import GithubCommitTool
+
 from dotenv import load_dotenv
 
 from swarmauri.standard.tools.base.ToolBase import ToolBase

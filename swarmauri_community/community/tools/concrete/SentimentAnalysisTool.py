@@ -27,8 +27,7 @@ class SentimentAnalysisTool(ToolBase):
 
     name: str = "SentimentAnalysisTool"
     description: str = "Analyzes the sentiment of the given text."
-    type: Literal['SentimentAnalysisTool'] = 'SentimentAnalysisTool'
-    
+    type: Literal["SentimentAnalysisTool"] = "SentimentAnalysisTool"
 
     def __call__(self, text: str) -> Dict[str, str]:
         """
