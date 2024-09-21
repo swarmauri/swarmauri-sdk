@@ -1,6 +1,6 @@
 from celery import Celery
 from swarmauri.core.agent_apis.IAgentCommands import IAgentCommands
-from typing import Callable, Any, Dict  
+from typing import Callable, Any, Dict   
 
 class CeleryAgentCommands(IAgentCommands):
     def __init__(self, broker_url: str, backend_url: str):
