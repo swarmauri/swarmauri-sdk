@@ -11,38 +11,7 @@ on:
       - 'pkgs/swarmauri/**'
 
 jobs:
-
-
-
-
-  define-matrix:
-    runs-on: ubuntu-latest
-
-    outputs:
-      colors: ${{ steps.colors.outputs.colors }}
-
-    steps:
-      - name: Define Colors
-        id: colors
-        run: |
-          echo 'colors=["red", "green", "blue"]' >> $GITHUB_OUTPUT
-
-  consume-artifacts:
-    runs-on: ubuntu-latest
-    needs:
-    - define-matrix
-    strategy:
-      matrix:
-        color: ${{ fromJSON(needs.define-matrix.outputs.colors) }}
-
-    steps:
-    - name: Name color
-      run: |
-        echo ${{ matrix.color }}
-
-
-
-  detect:
+  detect-changes:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
@@ -64,21 +33,7 @@ jobs:
 
           # Export it to GITHUB_OUTPUT in JSON format
           echo "packages=$CHANGED_PACKAGES_ARRAY"
-          echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
-
-  echo-detect:
-    runs-on: ubuntu-latest
-    needs:
-    - detect
-    strategy:
-      matrix:
-        color: ${{ fromJSON(needs.detect.outputs.packages) }}
-
-    steps:
-    - name: Name color
-      run: |
-        echo ${{ matrix.color }}
-          
+          echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT          
 
   test:
     needs: detect
@@ -87,7 +42,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        package: ${{ fromJSON(needs.detect.outputs.packages) }}
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
     env:
       # Model Provider Keys
