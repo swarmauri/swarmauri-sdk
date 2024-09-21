@@ -37,7 +37,6 @@ jobs:
 
     steps:
     - name: Retrieve Artifact
-      uses: actions/download-artifact@v4
       with:
         name: ${{ matrix.color }}
 
