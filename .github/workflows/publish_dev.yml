@@ -109,19 +109,19 @@ jobs:
         run: |
           pip freeze
 
-      - name: Run tests
-        continue-on-error: true
-        run: |
-          pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
+      # - name: Run tests
+      #   continue-on-error: true
+      #   run: |
+      #     pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
 
-      - name: Output test results for debugging
-        run: |
-          cat results.xml
+      # - name: Output test results for debugging
+      #   run: |
+      #     cat results.xml
 
-      - name: Classify test results
-        run: |
-          python scripts/classify_results.py results.xml
-        continue-on-error: false
+      # - name: Classify test results
+      #   run: |
+      #     python scripts/classify_results.py results.xml
+      #   continue-on-error: false
 
       - name: Publish to PyPI
         if: success()

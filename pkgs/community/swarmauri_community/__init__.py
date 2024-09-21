@@ -8,4 +8,6 @@ __long_desc__ = """
 - **Open Source Contributions**: A collaborative space for developers to contribute new components, plug-ins, and features.
 
 
+Visit us at: https://swarmauri.com
+Follow us at: https://github.com/swarmauri  
 """

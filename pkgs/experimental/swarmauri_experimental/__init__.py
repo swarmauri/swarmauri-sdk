@@ -7,6 +7,6 @@ __long_desc__ = """
 - **In-Development Components**: Early-stage features and components that push the boundaries of the Swarmauri framework, offering innovative solutions that are still in testing phases.
 
 Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
+Follow us at: https://github.com/swarmauri 
 
 """
