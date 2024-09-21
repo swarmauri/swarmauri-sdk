@@ -38,7 +38,7 @@ jobs:
     steps:
     - name: Name color
       run: |
-        cat ${{ matrix.color }}
+        echo ${{ matrix.color }}
 
 
 
