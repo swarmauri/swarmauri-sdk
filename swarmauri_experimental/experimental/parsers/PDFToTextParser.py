@@ -1,8 +1,9 @@
 import fitz  # PyMuPDF
 from typing import List, Union, Any
-from ....core.parsers.IParser import IParser
-from ....core.documents.IDocument import IDocument
-from ....standard.documents.concrete.ConcreteDocument import ConcreteDocument
+from swarmauri.core.parsers.IParser import IParser
+from swarmauri.core.documents.IDocument import IDocument
+from swarmauri.standard.documents.concrete.ConcreteDocument import ConcreteDocument
+
 
 class PDFtoTextParser(IParser):
     """
@@ -34,9 +35,11 @@ class PDFtoTextParser(IParser):
                 text += page.get_text()
 
             # Create a document with the extracted text
-            document = ConcreteDocument(doc_id=str(hash(data)), content=text, metadata={"source": data})
+            document = ConcreteDocument(
+                doc_id=str(hash(data)), content=text, metadata={"source": data}
+            )
             return [document]
-        
+
         except Exception as e:
             print(f"An error occurred while parsing the PDF: {e}")
             return []

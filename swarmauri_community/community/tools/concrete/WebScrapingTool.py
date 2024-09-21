@@ -26,7 +26,9 @@ class WebScrapingTool(ToolBase):
     )
 
     name: str = "WebScrapingTool"
-    description: str = "This is a web scraping tool that uses python's requests and BeautifulSoup libraries to parse a URL using a CSS selector to target specific elements."
+    description: str = (
+        "This is a web scraping tool that uses python's requests and BeautifulSoup libraries to parse a URL using a CSS selector to target specific elements."
+    )
     type: Literal["WebScrapingTool"] = "WebScrapingTool"
 
     def __call__(self, url: str, selector: str) -> Dict[str, str]:

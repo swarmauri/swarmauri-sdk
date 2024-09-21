@@ -11,3 +11,4 @@ env
 .venv/
 .ipynb_checkpoints/
 .env
+.DS_STORE

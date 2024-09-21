@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, Union
-from ...core.messages.IMessage import IMessage
-from ...core.conversations.IConversation import IConversation
+from swarmauri.core.conversations.IConversation import IConversation
+from swarmauri.core.messages.IMessage import IMessage
+
 
 class SemanticConversation(IConversation, ABC):
     """
@@ -11,7 +12,6 @@ class SemanticConversation(IConversation, ABC):
 
     This class requires subclasses to implement the _analyze_message method for semantic analysis.
     """
-
 
     @abstractmethod
     def register_handler(self, category: str, handler: Callable[[IMessage], None]):
@@ -50,6 +50,8 @@ class SemanticConversation(IConversation, ABC):
         Raises:
             NotImplementedError: If the method is not overridden in a subclass.
         """
-        raise NotImplementedError("Subclasses must implement the _analyze_message method to provide semantic analysis.")
+        raise NotImplementedError(
+            "Subclasses must implement the _analyze_message method to provide semantic analysis."
+        )
 
     # Additional methods as needed for message retrieval, history management, etc., inherited from Conversation

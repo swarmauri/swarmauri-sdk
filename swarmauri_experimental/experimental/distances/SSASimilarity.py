@@ -1,6 +1,6 @@
 from typing import Set, List, Dict
-from ....core.vector_stores.ISimilarity import ISimilarity
-from ....core.vectors.IVector import IVector
+from swarmauri.core.vector_stores.ISimilarity import ISimilarity
+from swarmauri.core.vectors.IVector import IVector
 
 
 class SSASimilarity(ISimilarity):
@@ -41,11 +41,11 @@ class SSASimilarity(ISimilarity):
         """
         # Calculate the intersection (shared variables) between the two states
         shared_variables = state_a.intersection(state_b)
-        
+
         # Calculate the union (total unique variables) of the two states
         total_variables = state_a.union(state_b)
-        
+
         # Calculate the SSA measure as the ratio of shared to total variables
         ssa = len(shared_variables) / len(total_variables) if total_variables else 1
-        
+
         return ssa
