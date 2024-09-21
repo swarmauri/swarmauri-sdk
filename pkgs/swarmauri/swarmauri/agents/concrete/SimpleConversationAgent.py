@@ -10,6 +10,7 @@ from swarmauri.standard.conversations.base.ConversationBase import ConversationB
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
     conversation: SubclassUnion[ConversationBase]
+    
     type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
     
     def exec(self, 
