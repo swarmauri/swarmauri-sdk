@@ -7,5 +7,5 @@ __long_desc__ = """
 
 
 Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
+Follow us at: https://github.com/swarmauri 
 """
