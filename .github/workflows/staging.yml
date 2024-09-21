@@ -29,8 +29,8 @@ jobs:
             echo "No packages changed."
             echo "::set-output name=packages_matrix::[]"
           else
-            echo "Changed packages: $CHANGED_PACKAGES"
-            echo "::set-output name=packages_matrix::[$CHANGED_PACKAGES]"
+            # Ensure proper JSON format for single or multiple packages
+            echo "::set-output name=packages_matrix::[$(echo $CHANGED_PACKAGES | sed 's/,/\",\"/g' | sed 's/^/\"/;s/$/\"/')]"
           fi
 
   test:
