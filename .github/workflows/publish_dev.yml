@@ -128,5 +128,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: cobycloud
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
           packages_dir: pkgs/${{ matrix.package }}/dist
