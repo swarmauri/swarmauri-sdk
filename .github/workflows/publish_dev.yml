@@ -74,10 +74,10 @@ jobs:
       GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -129,4 +129,4 @@ jobs:
         with:
           user: cobycloud
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages_dir: pkgs/${{ matrix.package }}/dist/*
+          packages_dir: pkgs/${{ matrix.package }}/dist
