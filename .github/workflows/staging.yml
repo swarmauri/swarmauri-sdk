@@ -119,7 +119,7 @@ jobs:
 
       - name: Classify test results
         run: |
-          python pkgs/${{ matrix.package }}/tests/classify_results.py results.xml
+          python scripts/classify_results.py results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
