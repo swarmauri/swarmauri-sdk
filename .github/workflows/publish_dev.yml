@@ -129,4 +129,4 @@ jobs:
         with:
           user: cobycloud
           password: ${{ secrets.PYPI_API_TOKEN }}
-          package: pkgs/${{ matrix.package }}/dist/*
+          packages_dir: pkgs/${{ matrix.package }}/dist/*
