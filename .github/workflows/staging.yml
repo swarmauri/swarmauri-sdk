@@ -45,7 +45,7 @@ jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
-      packages_matrix: ${{ steps.packages_matrix.outputs.packages_matrix }}
+      packages: ${{ steps.packages.outputs.packages }}
 
     steps:
       - uses: actions/checkout@v3
@@ -63,8 +63,8 @@ jobs:
 
 
           # Export it to GITHUB_OUTPUT in JSON format
-          echo "packages_matrix=$CHANGED_PACKAGES_ARRAY"
-          echo "packages_matrix=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
+          echo "packages=$CHANGED_PACKAGES_ARRAY"
+          echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
 
           
           
@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        package: ${{ fromJSON(needs.detect.outputs.packages_matrix) }}
+        package: ${{ fromJSON(needs.detect.outputs.packages) }}
 
     env:
       # Model Provider Keys
