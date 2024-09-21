@@ -1,5 +1,4 @@
 from typing import Any, Optional, Dict, Literal
-
 from swarmauri.standard.conversations.concrete.MaxSystemContextConversation import MaxSystemContextConversation
 from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.standard.agents.base.AgentBase import AgentBase
