@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import swarmauri
+import swarmauri_core
 
 setup(
     name='swarmauri',
