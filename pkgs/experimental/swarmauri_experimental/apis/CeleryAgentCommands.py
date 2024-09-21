@@ -31,6 +31,6 @@ class CeleryAgentCommands(IAgentCommands):
 
     def revoke_command(self, task_id: str) -> None:
         """
-        Revokes or terminates a command execution by its task ID.  
+        Revokes or terminates a command execution by its task ID.   
         """
         self.app.control.revoke(task_id, terminate=True)
