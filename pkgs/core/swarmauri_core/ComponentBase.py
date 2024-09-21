@@ -68,20 +68,7 @@ class ComponentBase(BaseModel):
         super().__init_subclass__(**kwargs)
         ComponentBase.__swm_register_subclass__(cls)
     
-    # @classmethod
-    # def __swm__get_subclasses__(cls) -> set:
-    #     logging.debug('__swm__get_subclasses__ executed\n')
-    #     def is_excluded_module(module_name: str) -> bool:
-    #         return (module_name == 'builtins' or 
-    #                 module_name == 'types')
-
-    #     subclasses_dict = {cls.__name__: cls}
-    #     for subclass in cls.__subclasses__():
-    #         if not is_excluded_module(subclass.__module__):
-    #             subclasses_dict.update({_s.__name__: _s for _s in subclass.__swm__get_subclasses__() 
-    #                 if not is_excluded_module(_s.__module__)})
-
-    #     return set(subclasses_dict.values())
+    
     
     @classmethod
     def __swm_register_subclass__(cls, subclass) -> None:
