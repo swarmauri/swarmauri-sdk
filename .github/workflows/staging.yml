@@ -36,11 +36,9 @@ jobs:
         color: ${{ fromJSON(needs.define-matrix.outputs.colors) }}
 
     steps:
-    - name: Retrieve Artifact
+    - name: Name color
       with:
         name: ${{ matrix.color }}
-
-    - name: Report Color
       run: |
         cat color
 
