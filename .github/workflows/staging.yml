@@ -121,10 +121,3 @@ jobs:
         run: |
           python scripts/classify_results.py results.xml
         continue-on-error: false
-
-      - name: Publish to PyPI
-        if: success() && github.event_name == 'pull_request' && github.base_ref == 'stable'
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: cobycloud
-          password: ${{ secrets.PYPI_API_TOKEN }}

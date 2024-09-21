@@ -1,9 +1,10 @@
 name: Test and Publish Stable Release
 
+name: Test Staging
+
 on:
   pull_request:
-    branches:
-      - stable
+    branches: ["stable"]
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -12,19 +13,41 @@ on:
       - 'pkgs/swarmauri/**'
 
 jobs:
-  build:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
 
+    steps:
+      - uses: actions/checkout@v3
+      - name: Detect Changed Packages
+        id: packages
+        run: |
+          git fetch origin ${{ github.event.before }}
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
+          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
+    
+          if [ -z "$CHANGED_PACKAGES" ]; then
+            # If no packages changed, set to an empty array
+            CHANGED_PACKAGES_ARRAY="[]"
+          else
+            # Convert the comma-separated packages to a JSON array format
+            CHANGED_PACKAGES_ARRAY=$(echo "[\"$(echo $CHANGED_PACKAGES | sed 's/,/","/g')\"]")
+          fi
+
+          # Export it to GITHUB_OUTPUT in JSON format
+          echo "packages=$CHANGED_PACKAGES_ARRAY"
+          echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
+ 
+
+  test:
+    needs: detect-changes
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11"]
-        package:
-          - community
-          - core
-          - experimental
-          - partners
-          - swarmauri
+        python-version: ["3.12"]
+        package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
     env:
       # Model Provider Keys
@@ -98,7 +121,7 @@ jobs:
 
       - name: Classify test results
         run: |
-          python pkgs/${{ matrix.package }}/tests/classify_results.py results.xml
+          python scripts/classify_results.py results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
