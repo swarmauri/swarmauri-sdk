@@ -35,8 +35,7 @@ jobs:
 
           # Export it to GITHUB_OUTPUT in JSON format
           echo "packages_matrix=$CHANGED_PACKAGES_ARRAY"
-          echo "packages_matrix=${CHANGED_PACKAGES_ARRAY}" >> "$GITHUB_OUTPUT"
-          echo "::set-output packages_matrix=value::$CHANGEd_PACKAGES_ARRAY"
+          echo "packages_matrix=${CHANGED_PACKAGES_ARRAY}" >> $GITHUB_OUTPUT
 
           
           
