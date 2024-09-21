@@ -9,7 +9,7 @@ from swarmauri.core.typing import SubclassUnion
 from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
-    conversation: SubclassUnion[ConversationBase]
+    conversation: SubclassUnion[ConversationBase] #
     type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
     
     def exec(self, 

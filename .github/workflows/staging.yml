@@ -42,6 +42,11 @@ jobs:
       run: |
         cat color
 
+
+
+
+
+
   detect:
     runs-on: ubuntu-latest
     outputs:
@@ -63,9 +68,10 @@ jobs:
           echo $CHANGED_PACKAGES_ARRAY
 
 
-
           # Export it to GITHUB_OUTPUT in JSON format
+          echo "packages_matrix=$CHANGED_PACKAGES_ARRAY"
           echo "packages_matrix=$CHANGED_PACKAGES_ARRAY" >> "$GITHUB_OUTPUT"
+
           
           
 
