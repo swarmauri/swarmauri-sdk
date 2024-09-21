@@ -25,7 +25,7 @@ jobs:
       - name: Define Colors
         id: colors
         run: |
-          echo 'colors=["red", "green", "blue"]' >> "$GITHUB_OUTPUT"
+          echo 'colors=["red", "green", "blue"]' >> $GITHUB_OUTPUT
 
   consume-artifacts:
     runs-on: ubuntu-latest
