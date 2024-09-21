@@ -1,7 +1,5 @@
 name: Test and Publish Stable Release
 
-name: Test Staging
-
 on:
   pull_request:
     branches: ["stable"]
