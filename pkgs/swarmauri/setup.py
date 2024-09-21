@@ -43,7 +43,7 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.10.0',
+            'scipy',
             "qdrant-client",
             "chromadb",
             "textstat",
