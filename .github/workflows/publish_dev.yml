@@ -10,7 +10,6 @@ on:
       - 'pkgs/experimental/**'
       - 'pkgs/partners/**'
       - 'pkgs/swarmauri/**'
-      - 'pkgs/standard/**'
 
 jobs:
   detect-changes:
@@ -25,7 +24,7 @@ jobs:
         run: |
           git fetch origin ${{ github.event.before }}
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
-          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|standard|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
+          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
     
           if [ -z "$CHANGED_PACKAGES" ]; then
             # If no packages changed, set to an empty array
@@ -110,19 +109,19 @@ jobs:
         run: |
           pip freeze
 
-      # - name: Run tests
-      #   continue-on-error: true
-      #   run: |
-      #     pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
+      - name: Run tests
+        continue-on-error: true
+        run: |
+          pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
 
-      # - name: Output test results for debugging
-      #   run: |
-      #     cat results.xml
+      - name: Output test results for debugging
+        run: |
+          cat results.xml
 
-      # - name: Classify test results
-      #   run: |
-      #     python scripts/classify_results.py results.xml
-      #   continue-on-error: false
+      - name: Classify test results
+        run: |
+          python scripts/classify_results.py results.xml
+        continue-on-error: false
 
       - name: Publish to PyPI
         if: success()
