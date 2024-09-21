@@ -12,41 +12,6 @@ on:
 
 jobs:
 
-  define-matrix:
-    runs-on: ubuntu-latest
-
-    outputs:
-      colors: ${{ steps.colors.outputs.colors }}
-
-    steps:
-      - name: Define Colors
-        id: colors
-        run: |
-          echo 'colors=["red", "green", "blue"]' >> "$GITHUB_OUTPUT"
-
-  consume-artifacts:
-    runs-on: ubuntu-latest
-    needs:
-    - define-matrix
-    strategy:
-      matrix:
-        color: ${{ fromJSON(needs.define-matrix.outputs.colors) }}
-
-    steps:
-    - name: Retrieve Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ matrix.color }}
-
-    - name: Report Color
-      run: |
-        cat color
-
-
-
-
-
-
   detect:
     runs-on: ubuntu-latest
     outputs:
