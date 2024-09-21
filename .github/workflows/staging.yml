@@ -25,13 +25,8 @@ jobs:
           git fetch origin ${{ github.event.before }}
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
           CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
-          if [ -z "$CHANGED_PACKAGES" ]; then
-            echo "No packages changed."
-            echo "::set-output name=packages_matrix::[]"
-          else
-            # Ensure proper JSON format for single or multiple packages
-            echo "::set-output name=packages_matrix::[$(echo $CHANGED_PACKAGES | sed 's/,/\",\"/g' | sed 's/^/\"/;s/$/\"/')]"
-          fi
+          echo "CHANGED_PACKAGES=$CHANGED_PACKAGES"
+          echo "::set-output name=packages_matrix::[$CHANGED_PACKAGES]"
 
   test:
     needs: detect
