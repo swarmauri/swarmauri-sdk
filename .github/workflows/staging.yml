@@ -37,10 +37,8 @@ jobs:
 
     steps:
     - name: Name color
-      with:
-        name: ${{ matrix.color }}
       run: |
-        cat color
+        cat ${{ matrix.color }}
 
 
 
