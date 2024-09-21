@@ -18,7 +18,7 @@ jobs:
       packages: ${{ steps.packages.outputs.packages }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Detect Changed Packages
         id: packages
         run: |

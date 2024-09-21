@@ -4,6 +4,6 @@ __long_desc__ = """
 
 ## Core 
 - **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
-
+ 
 
 """
