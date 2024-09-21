@@ -2,7 +2,7 @@ name: Test Staging
 
 on:
   pull_request:
-    branches: ["staging", "*.dev*"]
+    branches: ["staging"]
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'

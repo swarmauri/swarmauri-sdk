@@ -3,8 +3,8 @@ name: Test and Publish Dev Release
 name: Test Staging
 
 on:
-  pull_request:
-    branches: ["staging", "*.dev*"]
+  push:
+    branches: ["*.dev*"]
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -125,7 +125,7 @@ jobs:
         continue-on-error: false
 
       - name: Publish to PyPI
-        if: success() && github.event_name == 'pull_request' && github.base_ref == 'dev'
+        if: success() && github.event_name == 'pull_request'
         uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: cobycloud
