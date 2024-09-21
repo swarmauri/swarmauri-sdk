@@ -69,7 +69,6 @@ class ComponentBase(BaseModel):
         ComponentBase.__swm_register_subclass__(cls)
     
     
-    
     @classmethod
     def __swm_register_subclass__(cls, subclass) -> None:
         logging.debug('__swm_register_subclass__ executed\n')
