@@ -109,7 +109,6 @@ jobs:
           pip freeze
 
       - name: Run tests
-        if: matrix.package != 'core'  # Skip tests for 'core' package
         continue-on-error: true
         run: |
           pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
