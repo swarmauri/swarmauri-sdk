@@ -13,7 +13,7 @@ setup(
     license='MIT',
     packages=find_packages(include=['swarmauri_core*']),  # Include packages in your_package and libs directories
     install_requires=[
-        'numpy',  # Common dependencies for all distributions
+        'numpy',
         'requests',
         'pydantic'
     ],
