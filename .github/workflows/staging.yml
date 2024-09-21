@@ -14,7 +14,7 @@ jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
-      packages_matrix: ${{ steps.set-matrix.outputs.packages_matrix }}
+      packages_matrix: ${{ steps.packages_matrix.outputs.packages_matrix }}
 
     steps:
       - uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        package: ${{ fromJSON(needs.detect.outputs.CHANGED_PACKAGES) }}
+        package: ${{ fromJSON(needs.detect.outputs.packages_matrix) }}
 
     env:
       # Model Provider Keys
