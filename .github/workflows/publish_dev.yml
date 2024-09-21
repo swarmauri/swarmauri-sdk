@@ -124,7 +124,7 @@ jobs:
         continue-on-error: false
 
       - name: Publish to PyPI
-        if: success() && github.event_name == 'push'
+        if: success()
         uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: cobycloud
