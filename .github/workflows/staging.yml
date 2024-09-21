@@ -26,6 +26,7 @@ jobs:
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
           CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
           echo "packages_matrix=$CHANGED_PACKAGES" >> "$GITHUB_OUTPUT"
+          echo "packages_matrix=$CHANGED_PACKAGES"
 
   test:
     needs: detect
