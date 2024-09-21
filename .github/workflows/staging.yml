@@ -14,16 +14,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Step 1: Detect Changed Packages
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect Changed Packages
+        id: detect_changes
+        run: |
+          git fetch origin ${{ github.event.before }}
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
+          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u)
+          echo "Changed packages: $CHANGED_PACKAGES"
+          echo "PACKAGES_MATRIX="\"[$(echo $CHANGED_PACKAGES | sed 's/ /,/g')]\" >> $GITHUB_ENV
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        package:
-          - community
-          - core
-          - experimental
-          - partners
-          - swarmauri
+        package: ${{ fromJson(env.PACKAGES_MATRIX) }}  # Step 2: Dynamic matrix based on changed packages
 
     env:
       # Model Provider Keys
@@ -58,17 +69,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Check if package has changes
-        id: check_changes
-        run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "pkgs/${{ matrix.package }}/"; then
-            echo "package_changed=true" >> $GITHUB_ENV
-          else
-            echo "package_changed=false" >> $GITHUB_ENV
-          fi
-
       - name: Install dependencies
-        if: env.package_changed == 'true'
         run: |
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install flake8 pytest
@@ -77,48 +78,41 @@ jobs:
           if [ -f pkgs/${{ matrix.package }}/requirements.txt ]; then pip install -r pkgs/${{ matrix.package }}/requirements.txt; fi
 
       - name: Lint with flake8
-        if: env.package_changed == 'true'
         run: |
           flake8 pkgs/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 pkgs/${{ matrix.package }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build package
-        if: env.package_changed == 'true'
         run: |
           cd pkgs/${{ matrix.package }}
           python -m pip install build
           python -m build
 
       - name: Install package
-        if: env.package_changed == 'true'
         run: |
           LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
           python -m pip install "$LATEST_WHL"[full]
 
       - name: Get pip freeze
-        if: env.package_changed == 'true'
         run: |
           pip freeze
 
       - name: Run tests
-        if: env.package_changed == 'true'
         continue-on-error: true
         run: |
           pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
 
       - name: Output test results for debugging
-        if: env.package_changed == 'true'
         run: |
           cat results.xml
 
       - name: Classify test results
-        if: env.package_changed == 'true'
         run: |
-          python scripts/classify_results.py results.xml
+          python pkgs/${{ matrix.package }}/tests/classify_results.py results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
-        if: success() && env.package_changed == 'true' && github.event_name == 'pull_request' && github.base_ref == 'stable'
+        if: success() && github.event_name == 'pull_request' && github.base_ref == 'stable'
         uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: cobycloud
