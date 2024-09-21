@@ -33,4 +33,4 @@ class CeleryAgentCommands(IAgentCommands):
         """
         Revokes or terminates a command execution by its task ID.
         """
-        self.app.control.revoke(task_id, terminate=True)
+        self.app.control.revoke(task_id, terminate=True) 
