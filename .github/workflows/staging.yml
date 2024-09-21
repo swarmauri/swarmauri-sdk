@@ -11,10 +11,11 @@ on:
       - 'pkgs/swarmauri/**'
 
 jobs:
-  build:
+  detect:
     runs-on: ubuntu-latest
+    outputs:
+      packages_matrix: ${{ steps.set-matrix.outputs.packages_matrix }}
 
-    # Step 1: Detect Changed Packages
     steps:
       - uses: actions/checkout@v3
 
@@ -23,18 +24,18 @@ jobs:
         run: |
           git fetch origin ${{ github.event.before }}
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
-          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u)
-          echo "Changed packages: $CHANGED_PACKAGES"
-          echo "PACKAGES_MATRIX="\"[$(echo $CHANGED_PACKAGES | sed 's/ /,/g')]\" >> $GITHUB_ENV
+          CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "CHANGED_PACKAGES=$CHANGED_PACKAGES"
+          echo "::set-output name=packages_matrix::[$CHANGED_PACKAGES]"
 
   test:
-    needs: build
+    needs: detect
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        package: ${{ fromJson(env.PACKAGES_MATRIX) }}  # Step 2: Dynamic matrix based on changed packages
+        package: ${{ fromJson(needs.detect.outputs.packages_matrix) }}
 
     env:
       # Model Provider Keys
