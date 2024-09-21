@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_experimental.experimental.embeddings.SpatialDocEmbedding import (
+from swarmauri_experimental.embeddings.SpatialDocEmbedding import (
     SpatialDocEmbedding,
 )
 

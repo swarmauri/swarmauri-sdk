@@ -1,63 +1,22 @@
 from setuptools import setup, find_packages
-import swarmauri
+import swarmauri_core
 
 setup(
     name='swarmauri',
-    version=swarmauri.__version__,
+    version=swarmauri_core.__version__,
     author='Jacob Stewart',
     author_email='corporate@swarmauri.com',
     description='This repository includes core interfaces, standard ABCs and concrete references, third party plugins, and experimental modules for the swarmaURI framework.',
-    long_description=swarmauri.__long_desc__,
+    long_description=swarmauri_core.__long_desc__,
     long_description_content_type='text/markdown',
     url='http://github.com/swarmauri/swarmauri-sdk',
     license='MIT',
     packages=find_packages(include=['swarmauri_core*']),  # Include packages in your_package and libs directories
     install_requires=[
-        'numpy',  # Common dependencies for all distributions
+        'numpy',
         'requests',
         'pydantic'
     ],
-    extras_require={
-        'full': [
-            'ai21>=2.2.0',
-            "shuttleai",
-            'transformers',
-            'tensorflow',
-            'typing_extensions',
-            'google-api-python-client',
-            'google-auth-httplib2',
-            'google-auth-oauthlib',
-            'boto3',
-            'yake',
-            'torch',
-            'scikit-learn',
-            'gensim',
-            'textblob',
-            'spacy',
-            'pygments',
-            'gradio',
-            'websockets',
-            'openai',
-            'groq',
-            'mistralai',
-            'cohere',
-            'google-generativeai',
-            'anthropic',
-            'scipy==1.10.0',
-            "qdrant-client",
-            "chromadb",
-            "textstat",
-            "nltk",
-            "psutil",
-            "qrcode",
-            "folium",
-            "captcha",
-            "bs4",
-            "pygithub",
-            "pacmap",
-            "tf-keras"
-
-        ]},
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.10',

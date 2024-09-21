@@ -5,8 +5,8 @@ import numpy as np
 from typing import Literal
 from pydantic import PrivateAttr
 
-from swarmauri.standard.embeddings.base.EmbeddingBase import EmbeddingBase
-from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
+from swarmauri.vectors.concrete.Vector import Vector
 
 class SpatialDocEmbedding(EmbeddingBase):
     _special_tokens_dict = PrivateAttr()

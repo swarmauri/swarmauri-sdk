@@ -15,7 +15,8 @@ setup(
     install_requires=[
         'numpy',  # Common dependencies for all distributions
         'requests',
-        'pydantic'
+        'pydantic',
+        'swarmauri_core==0.5.0.dev1'
     ],
     extras_require={
         'full': [
@@ -43,7 +44,7 @@ setup(
             'cohere',
             'google-generativeai',
             'anthropic',
-            'scipy==1.10.0',
+            'scipy',
             "qdrant-client",
             "chromadb",
             "textstat",
