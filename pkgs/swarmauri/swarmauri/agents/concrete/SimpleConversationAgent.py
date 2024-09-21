@@ -5,11 +5,11 @@ from swarmauri.standard.agents.base.AgentBase import AgentBase
 from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
 from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
-from swarmauri.core.typing import SubclassUnion # 🚧  Placeholder
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase # 🚧  Placeholder
+from swarmauri.core.typing import SubclassUnion 
+from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
-    conversation: SubclassUnion[ConversationBase] # 🚧  Placeholder
+    conversation: SubclassUnion[ConversationBase]
     type: Literal['SimpleConversationAgent'] = 'SimpleConversationAgent'
     
     def exec(self, 
