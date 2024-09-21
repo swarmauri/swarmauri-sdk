@@ -3,7 +3,7 @@ from swarmauri.core.agent_apis.IAgentCommands import IAgentCommands
 from typing import Callable, Any, Dict   
 
 class CeleryAgentCommands(IAgentCommands):
-    def __init__(self, broker_url: str, backend_url: str):
+    def __init__(self, broker_url: str, backend_url: str): 
         """
         Initializes the Celery application with the specified broker and backend URLs.
         """
