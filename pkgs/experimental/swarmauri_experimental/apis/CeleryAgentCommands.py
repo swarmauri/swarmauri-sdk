@@ -1,9 +1,9 @@
 from celery import Celery
 from swarmauri.core.agent_apis.IAgentCommands import IAgentCommands
-from typing import Callable, Any, Dict    
+from typing import Callable, Any, Dict
 
 class CeleryAgentCommands(IAgentCommands):
-    def __init__(self, broker_url: str, backend_url: str): 
+    def __init__(self, broker_url: str, backend_url: str):
         """
         Initializes the Celery application with the specified broker and backend URLs.
         """
@@ -26,7 +26,7 @@ class CeleryAgentCommands(IAgentCommands):
         """
         Fetches the status of a command execution via its task ID.
         """
-        async_result = self.app.AsyncResult(task_id) 
+        async_result = self.app.AsyncResult(task_id)
         return {"status": async_result.status, "result": async_result.result if async_result.ready() else None}
 
     def revoke_command(self, task_id: str) -> None:
