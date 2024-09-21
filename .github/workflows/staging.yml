@@ -26,8 +26,7 @@ jobs:
           git fetch origin ${{ github.event.before }}
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
           CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
-          echo "packages_matrix=$CHANGED_PACKAGES" >> "$GITHUB_OUTPUT"
-
+    
           # Convert the comma-separated packages to a JSON array format
           CHANGED_PACKAGES_ARRAY=$(echo "[\"$(echo $CHANGED_PACKAGES | sed 's/,/","/g')\"]")
           echo $CHANGED_PACKAGES_ARRAY
