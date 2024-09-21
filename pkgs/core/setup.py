@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import swarmauri_core
 
 setup(
-    name='swarmauri',
+    name='swarmauri_core',
     version=swarmauri_core.__version__,
     author='Jacob Stewart',
     author_email='corporate@swarmauri.com',
@@ -10,7 +10,7 @@ setup(
     long_description=swarmauri_core.__long_desc__,
     long_description_content_type='text/markdown',
     url='http://github.com/swarmauri/swarmauri-sdk',
-    license='MIT',
+    license='Apache Software License',
     packages=find_packages(include=['swarmauri_core*']),  # Include packages in your_package and libs directories
     install_requires=[
         'numpy',

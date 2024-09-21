@@ -10,7 +10,7 @@ setup(
     long_description=swarmauri.__long_desc__,
     long_description_content_type='text/markdown',
     url='http://github.com/swarmauri/swarmauri-sdk',
-    license='MIT',
+    license='Apache Software License',
     packages=find_packages(include=['swarmauri*']),  # Include packages in your_package and libs directories
     install_requires=[
         'numpy',  # Common dependencies for all distributions
