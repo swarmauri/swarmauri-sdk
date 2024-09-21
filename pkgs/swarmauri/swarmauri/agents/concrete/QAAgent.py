@@ -7,7 +7,7 @@ from swarmauri.standard.agents.base.AgentBase import AgentBase
 class QAAgent(AgentBase):
     conversation: MaxSystemContextConversation = MaxSystemContextConversation(max_size=2)
     type: Literal['QAAgent'] = 'QAAgent'
-    
+
     def exec(self, 
         input_str: Optional[str] = "",
         llm_kwargs: Optional[Dict] = {} 
