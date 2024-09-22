@@ -20,7 +20,6 @@ def test_serialization():
 def test_metric_value():
 	assert Metric(unit='points', value=10)() == 10
 
-
 @pytest.mark.unit
 def test_metric_unit():
-	assert Metric(unit='points', value=10).unit == 'bad assert'
+    assert Metric(unit='points', value=10).unit == 'bad assertion value'
