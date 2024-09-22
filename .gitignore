@@ -12,3 +12,4 @@ env
 .ipynb_checkpoints/
 .env
 .DS_STORE
+/combined
