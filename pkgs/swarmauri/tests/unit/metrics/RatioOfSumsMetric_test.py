@@ -23,4 +23,4 @@ def test_metric_value():
 
 @pytest.mark.unit
 def test_metric_unit():
-	assert Metric(unit='points', value=10).unit == 'points'
+	assert Metric(unit='points', value=10).unit == 'bad assert'

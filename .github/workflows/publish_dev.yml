@@ -1,6 +1,5 @@
 name: Test and Publish Dev Release
 
-
 on:
   push:
     branches: ["*.dev*"]
