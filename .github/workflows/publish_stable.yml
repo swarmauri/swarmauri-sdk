@@ -1,4 +1,4 @@
-name: Test and Publish Stable Release
+name: Release Stable
 
 on:
   pull_request:
