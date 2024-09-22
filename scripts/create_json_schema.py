@@ -63,4 +63,4 @@ def get_all_base_files(root_dir, save_dir):
     save_to_json(combined_core_standard, "combined_core_standard")
 
 if __name__ == '__main__':
-    get_all_base_files('../swarmauri', '../combined')
+    get_all_base_files('../pkgs', '../combined')
