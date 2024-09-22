@@ -11,4 +11,4 @@ class PatternMatchingMetric(MetricBase, MetricCalculateMixin):
         matches = data[column].str.contains(pattern, regex=True)
         
         # Calculate the proportion of True values (i.e., the percentage of matches)
-        return matches.mean() * 100  # Returning percentage as a float
+        return matches.mean() * 100  # Returning percentage as a float 

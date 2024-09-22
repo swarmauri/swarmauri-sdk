@@ -12,4 +12,4 @@ class RatioOfSumsMetric(MetricBase, MetricCalculateMixin):
         if sum_b == 0:
             raise ValueError(f"The sum of column '{column_b}' is zero, cannot divide by zero.")
         
-        return sum_a / sum_b
+        return sum_a / sum_b 
