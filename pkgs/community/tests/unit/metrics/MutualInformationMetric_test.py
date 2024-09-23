@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.metrics.MutualInformationMetric import (
+from swarmauri_community.metrics.concrete.MutualInformationMetric import (
     MutualInformationMetric as Metric,
 )
 
