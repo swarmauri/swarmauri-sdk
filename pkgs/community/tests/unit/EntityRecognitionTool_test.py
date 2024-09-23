@@ -2,7 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from swarmauri.community.tools.concrete.EntityRecognitionTool import EntityRecognitionTool as Tool
+from swarmauri_community.tools.concrete.EntityRecognitionTool import EntityRecognitionTool as Tool
 
 @pytest.mark.unit
 def test_type():

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
 
 import pytest
-from swarmauri.community.tools.concrete.GithubBranchTool import GithubBranchTool as Tool
+from swarmauri_community.tools.concrete.GithubBranchTool import GithubBranchTool as Tool
 
 load_dotenv()
 
@@ -67,7 +67,7 @@ def test_serialization():
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
-@patch("swarmauri.community.tools.concrete.GithubTool.Github")
+@patch("swarmauri_community.tools.concrete.GithubTool.Github")
 def test_call(mock_github, action, kwargs, method_called):
     expected_keys = {action}
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")

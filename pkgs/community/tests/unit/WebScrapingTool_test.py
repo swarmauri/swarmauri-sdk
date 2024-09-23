@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.community.tools.concrete.WebScrapingTool import WebScrapingTool as Tool
+from swarmauri_community.tools.concrete.WebScrapingTool import WebScrapingTool as Tool
 
 
 @pytest.mark.unit

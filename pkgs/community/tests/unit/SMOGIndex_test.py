@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.community.tools.concrete.SMOGIndexTool import SMOGIndexTool as Tool
+from swarmauri_community.tools.concrete.SMOGIndexTool import SMOGIndexTool as Tool
 
 
 @pytest.mark.unit

@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 
 import pytest
-from swarmauri.community.tools.concrete.GmailSendTool import GmailSendTool as Tool
+from swarmauri_community.tools.concrete.GmailSendTool import GmailSendTool as Tool
 
 
 @pytest.mark.unit
