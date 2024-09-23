@@ -1,8 +1,8 @@
 import json
 import requests
 from typing import Dict, List, Literal
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 from pydantic import Field
 
 

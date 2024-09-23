@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Any, Literal
 from pydantic import Field
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.standard.tools.concrete.Parameter import Parameter
-from swarmauri.core.tools.ITool import ITool
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_core.tools.ITool import ITool
 
 
 class ToolBase(ITool, ComponentBase, ABC):

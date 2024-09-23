@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any
-from swarmauri.core.chains.IChainStep import IChainStep
+from swarmauri_core.chains.IChainStep import IChainStep
 
 class IChainFormatter(ABC):
     @abstractmethod

@@ -6,9 +6,9 @@ import logging
 
 from sympy.ntheory.primetest import proth_test
 
-from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.community.tools.concrete.GithubRepoTool import GithubRepoTool
-from swarmauri.community.toolkits.concrete.GithubToolkit import GithubToolkit as Toolkit
+from swarmauri.tools.concrete.AdditionTool import AdditionTool
+from swarmauri_community.tools.concrete.GithubRepoTool import GithubRepoTool
+from swarmauri_community.toolkits.concrete.GithubToolkit import GithubToolkit as Toolkit
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -68,7 +68,7 @@ def test_add_tool():
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri.community.tools.concrete.GithubRepoTool.Github")
+@patch("swarmauri_community.tools.concrete.GithubRepoTool.Github")
 def test_call_github_repo_tool(mock_github, action, kwargs, method_called):
     expected_keys = {action}
     toolkit = Toolkit(token=token)

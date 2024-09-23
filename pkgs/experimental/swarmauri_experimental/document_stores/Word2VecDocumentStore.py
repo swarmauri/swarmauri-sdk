@@ -1,11 +1,11 @@
 from typing import List, Union, Optional
 import numpy as np
 from gensim.models import Word2Vec
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
-from swarmauri.core.retrievers.IRetriever import IRetriever
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri_core.retrievers.IRetriever import IRetriever
+from swarmauri.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
+from swarmauri.vectors.concrete.SimpleVector import SimpleVector
 import gensim.downloader as api
 
 class Word2VecDocumentStore(IDocumentStore, IRetriever):

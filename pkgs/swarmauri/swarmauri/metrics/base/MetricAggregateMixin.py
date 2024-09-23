@@ -1,6 +1,6 @@
 from typing import List, Any, Literal
 from pydantic import BaseModel
-from swarmauri.core.metrics.IMetricAggregate import IMetricAggregate
+from swarmauri_core.metrics.IMetricAggregate import IMetricAggregate
 
 class MetricAggregateMixin(IMetricAggregate, BaseModel):
     """

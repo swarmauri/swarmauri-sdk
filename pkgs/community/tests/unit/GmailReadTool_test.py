@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.community.tools.concrete.GmailReadTool import GmailReadTool as Tool
+from swarmauri_community.tools.concrete.GmailReadTool import GmailReadTool as Tool
 from unittest.mock import patch, MagicMock
 
 

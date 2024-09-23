@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.documents.concrete.Document import Document
 from swarmauri_community.community.vector_stores.PersistentChromaDBVectorStore import (
     PersistentChromaDBVectorStore,
 )

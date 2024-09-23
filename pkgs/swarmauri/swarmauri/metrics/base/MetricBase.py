@@ -1,7 +1,7 @@
 from typing import Any, Optional, Literal
 from pydantic import BaseModel, ConfigDict, Field
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.metrics.IMetric import IMetric
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.metrics.IMetric import IMetric
 
 class MetricBase(IMetric, ComponentBase):
     """

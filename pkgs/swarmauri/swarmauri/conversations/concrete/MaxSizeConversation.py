@@ -1,8 +1,8 @@
 from typing import Literal
 from pydantic import Field
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
-from swarmauri.core.messages.IMessage import IMessage
-from swarmauri.core.conversations.IMaxSize import IMaxSize
+from swarmauri.conversations.base.ConversationBase import ConversationBase
+from swarmauri_core.messages.IMessage import IMessage
+from swarmauri_core.conversations.IMaxSize import IMaxSize
 
 class MaxSizeConversation(IMaxSize, ConversationBase):
     max_size: int = Field(default=2, gt=1)

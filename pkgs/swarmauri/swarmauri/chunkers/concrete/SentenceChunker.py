@@ -1,6 +1,6 @@
 from typing import Literal
 import re
-from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
+from swarmauri.chunkers.base.ChunkerBase import ChunkerBase
 
 class SentenceChunker(ChunkerBase):
     """

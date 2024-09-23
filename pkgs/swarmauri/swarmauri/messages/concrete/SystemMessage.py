@@ -1,6 +1,6 @@
 from typing import Optional, Any, Literal
 from pydantic import Field
-from swarmauri.standard.messages.base.MessageBase import MessageBase
+from swarmauri.messages.base.MessageBase import MessageBase
 
 class SystemMessage(MessageBase):
     content: str

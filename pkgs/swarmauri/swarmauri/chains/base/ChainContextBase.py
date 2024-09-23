@@ -1,9 +1,9 @@
 from typing import Any, Callable, Dict, List, Optional, Literal
 from pydantic import Field, ConfigDict
 import re
-from swarmauri.standard.chains.concrete.ChainStep import ChainStep
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.chains.IChainContext import IChainContext
+from swarmauri.chains.concrete.ChainStep import ChainStep
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.chains.IChainContext import IChainContext
 
 class ChainContextBase(IChainContext, ComponentBase):
     steps: List[ChainStep] = []

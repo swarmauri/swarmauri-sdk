@@ -1,6 +1,6 @@
 import json
 import boto3
-from swarmauri.core.models.IModel import IModel
+from swarmauri_core.models.IModel import IModel
 
 
 class AWSSageMakerModel(IModel):

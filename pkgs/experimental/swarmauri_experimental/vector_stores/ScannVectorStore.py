@@ -2,10 +2,10 @@ import numpy as np
 import scann
 from typing import List, Dict, Union
 
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
-from swarmauri.core.vector_stores.ISimiliarityQuery import ISimilarityQuery
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri_core.vector_stores.IVectorStore import IVectorStore
+from swarmauri_core.vector_stores.ISimiliarityQuery import ISimilarityQuery
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri.vectors.concrete.SimpleVector import SimpleVector
 
 
 class ScannVectorStore(IVectorStore, ISimilarityQuery):

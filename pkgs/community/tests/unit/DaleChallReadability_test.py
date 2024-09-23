@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.community.tools.concrete.DaleChallReadabilityTool import (
+from swarmauri_community.tools.concrete.DaleChallReadabilityTool import (
     DaleChallReadabilityTool as Tool,
 )
 

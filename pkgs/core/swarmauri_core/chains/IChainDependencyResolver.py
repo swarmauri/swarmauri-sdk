@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Dict, List, Optional
-from swarmauri.standard.chains.concrete.ChainStep import ChainStep
+from swarmauri.chains.concrete.ChainStep import ChainStep
 
 class IChainDependencyResolver(ABC):
     @abstractmethod

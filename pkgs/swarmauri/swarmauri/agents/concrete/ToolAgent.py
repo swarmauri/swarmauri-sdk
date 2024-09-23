@@ -2,17 +2,17 @@ from pydantic import ConfigDict
 from typing import Any, Optional, Union, Dict, Literal
 import json
 import logging
-from swarmauri.core.messages import IMessage
+from swarmauri_core.messages import IMessage
 
-from swarmauri.standard.llms.base.LLMBase import LLMBase
-from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
-from swarmauri.standard.agents.base.AgentToolMixin import AgentToolMixin
-from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
+from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.agents.base.AgentBase import AgentBase
+from swarmauri.agents.base.AgentConversationMixin import AgentConversationMixin
+from swarmauri.agents.base.AgentToolMixin import AgentToolMixin
+from swarmauri.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.conversations.base.ConversationBase import ConversationBase
 
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     llm: SubclassUnion[LLMBase]

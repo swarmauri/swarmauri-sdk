@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import Field
 
-from swarmauri.core.vector_stores.ICloudVectorStore import ICloudVectorStore
+from swarmauri_core.vector_stores.ICloudVectorStore import ICloudVectorStore
 
 
 class VectorStoreCloudMixin(ICloudVectorStore):

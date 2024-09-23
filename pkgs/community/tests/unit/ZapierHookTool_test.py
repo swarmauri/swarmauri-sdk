@@ -3,7 +3,7 @@ import json
 
 import pytest
 import requests
-from swarmauri.community.tools.concrete.ZapierHookTool import ZapierHookTool as Tool
+from swarmauri_community.tools.concrete.ZapierHookTool import ZapierHookTool as Tool
 
 headers = {"Authorization": "Bearer dummy_token", "Content-Type": "application/json"}
 

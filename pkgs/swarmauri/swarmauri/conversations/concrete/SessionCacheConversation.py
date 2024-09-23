@@ -1,12 +1,12 @@
 from typing import Optional, Union, List, Literal
 from pydantic import Field, ConfigDict
 from collections import deque
-from swarmauri.core.messages.IMessage import IMessage
-from swarmauri.core.conversations.IMaxSize import IMaxSize
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
-from swarmauri.standard.conversations.base.ConversationSystemContextMixin import ConversationSystemContextMixin
-from swarmauri.standard.messages.concrete import SystemMessage, AgentMessage, HumanMessage, FunctionMessage
-from swarmauri.standard.exceptions.concrete import IndexErrorWithContext
+from swarmauri_core.messages.IMessage import IMessage
+from swarmauri_core.conversations.IMaxSize import IMaxSize
+from swarmauri.conversations.base.ConversationBase import ConversationBase
+from swarmauri.conversations.base.ConversationSystemContextMixin import ConversationSystemContextMixin
+from swarmauri.messages.concrete import SystemMessage, AgentMessage, HumanMessage, FunctionMessage
+from swarmauri.exceptions.concrete import IndexErrorWithContext
 
 
 class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):

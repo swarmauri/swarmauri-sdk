@@ -1,4 +1,4 @@
-from swarmauri.core.tracing.ITraceContext import ITraceContext
+from swarmauri_core.tracing.ITraceContext import ITraceContext
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 

@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import Field
 
-from swarmauri.core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
+from swarmauri_core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
 
 
 class VectorStorePersistentMixin(IPersistentVectorStore):

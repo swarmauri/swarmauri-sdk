@@ -1,7 +1,7 @@
 from typing import Literal
-from swarmauri.standard.metrics.base.MetricBase import MetricBase
-from swarmauri.standard.metrics.base.MetricCalculateMixin import MetricCalculateMixin
-from swarmauri.standard.metrics.base.MetricAggregateMixin import MetricAggregateMixin
+from swarmauri.metrics.base.MetricBase import MetricBase
+from swarmauri.metrics.base.MetricCalculateMixin import MetricCalculateMixin
+from swarmauri.metrics.base.MetricAggregateMixin import MetricAggregateMixin
 
 class MeanMetric(MetricAggregateMixin, MetricCalculateMixin, MetricBase):
     """

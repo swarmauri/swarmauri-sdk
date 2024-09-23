@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 import requests
-from swarmauri.community.tools.concrete.DownloadPdfTool import DownloadPDFTool as Tool
+from swarmauri_community.tools.concrete.DownloadPdfTool import DownloadPDFTool as Tool
 
 
 @pytest.mark.unit

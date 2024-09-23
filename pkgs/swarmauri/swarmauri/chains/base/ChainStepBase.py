@@ -1,9 +1,9 @@
 from typing import Any, Tuple, Dict, Optional, Union, Literal
 from pydantic import Field, ConfigDict
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.chains.IChainStep import IChainStep
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.chains.IChainStep import IChainStep
 
 class ChainStepBase(IChainStep, ComponentBase):
     """

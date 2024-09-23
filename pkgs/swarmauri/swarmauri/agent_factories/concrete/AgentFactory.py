@@ -1,9 +1,9 @@
 import json
 from datetime import datetime
 from typing import Callable, Dict, Any
-from swarmauri.core.agents.IAgent import IAgent
-from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
-from swarmauri.core.agentfactories.IExportConf import IExportConf
+from swarmauri_core.agents.IAgent import IAgent
+from swarmauri_core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri_core.agentfactories.IExportConf import IExportConf
 
 class AgentFactory(IAgentFactory, IExportConf):
     def __init__(self):

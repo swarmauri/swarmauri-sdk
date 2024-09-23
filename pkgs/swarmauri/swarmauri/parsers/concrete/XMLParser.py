@@ -2,8 +2,8 @@ import xml.etree.ElementTree as ET
 from typing import List, Union, Any, Literal
 
 from pydantic import Field
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.parsers.base.ParserBase import ParserBase
 
 class XMLParser(ParserBase):
     """

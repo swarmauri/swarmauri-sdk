@@ -1,7 +1,7 @@
 from typing import List, Literal
 from scipy.spatial.distance import minkowski
-from swarmauri.standard.vectors.concrete.Vector import Vector
-from swarmauri.standard.distances.base.DistanceBase import DistanceBase
+from swarmauri.vectors.concrete.Vector import Vector
+from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class MinkowskiDistance(DistanceBase):
     """

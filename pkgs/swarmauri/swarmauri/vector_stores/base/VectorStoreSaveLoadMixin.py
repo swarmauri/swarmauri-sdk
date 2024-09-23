@@ -4,8 +4,8 @@ from pydantic import BaseModel
 import json
 import glob
 import importlib 
-from swarmauri.core.vector_stores.IVectorStoreSaveLoad import IVectorStoreSaveLoad
-from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri_core.vector_stores.IVectorStoreSaveLoad import IVectorStoreSaveLoad
+from swarmauri.documents.concrete.Document import Document
 
 class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
     """
@@ -51,7 +51,7 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
     def _load_document(self, data):
         document_type = data.pop("type") 
         if document_type:
-            module = importlib.import_module(f"swarmauri.standard.documents.concrete.{document_type}")
+            module = importlib.import_module(f"swarmauri.documents.concrete.{document_type}")
             document_class = getattr(module, document_type)
             document = document_class.from_dict(data)
             return document
@@ -157,7 +157,7 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
                 part_documents = json.load(f)
                 for document_data in part_documents:
                     document_type = document_data.pop("type")
-                    document_module = importlib.import_module(f"swarmauri.standard.documents.concrete.{document_type}")
+                    document_module = importlib.import_module(f"swarmauri.documents.concrete.{document_type}")
                     document_class = getattr(document_module, document_type)
                     document = document_class.from_dict(document_data)
                     self.documents.append(document)

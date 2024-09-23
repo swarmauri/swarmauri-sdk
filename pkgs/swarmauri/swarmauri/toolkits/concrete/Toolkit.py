@@ -1,5 +1,5 @@
 from typing import Literal
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri.toolkits.base.ToolkitBase import ToolkitBase
 
 class Toolkit(ToolkitBase):
     type: Literal['Toolkit'] = 'Toolkit'

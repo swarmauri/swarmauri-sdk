@@ -1,8 +1,8 @@
 from typing import Dict
 from tweepy import Client
 
-from swarmauri.standard.tools.concrete.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.concrete.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 
 
 class TwitterPostTool(ToolBase):

@@ -1,8 +1,8 @@
 import numpy as np
 from typing import List
 from pydantic import BaseModel
-from swarmauri.core.vectors.IVectorProduct import IVectorProduct
-from swarmauri.standard.vectors.concrete.Vector import Vector
+from swarmauri_core.vectors.IVectorProduct import IVectorProduct
+from swarmauri.vectors.concrete.Vector import Vector
 
 class VectorProductMixin(IVectorProduct, BaseModel):
     def dot_product(self, vector_a: Vector, vector_b: Vector) -> float:

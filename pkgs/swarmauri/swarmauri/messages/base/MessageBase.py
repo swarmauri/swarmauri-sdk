@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Literal
 from pydantic import PrivateAttr, ConfigDict, Field
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.messages.IMessage import IMessage
 
 class MessageBase(IMessage, ComponentBase):
     content: str

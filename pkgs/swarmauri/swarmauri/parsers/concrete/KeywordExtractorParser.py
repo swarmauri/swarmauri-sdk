@@ -1,8 +1,8 @@
 import yake
 from typing import List, Union, Any, Literal
 from pydantic import ConfigDict, PrivateAttr
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.parsers.base.ParserBase import ParserBase
 
 class KeywordExtractorParser(ParserBase):
     """

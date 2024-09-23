@@ -1,7 +1,7 @@
 import json
 from typing import List, Literal
 from openai import OpenAI
-from swarmauri.standard.llms.base.LLMBase import LLMBase
+from swarmauri.llms.base.LLMBase import LLMBase
 
 
 class OpenAIImageGenerator(LLMBase):

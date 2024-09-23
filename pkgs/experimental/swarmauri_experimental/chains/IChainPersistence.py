@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
-from swarmauri.core.chains.IChain import IChain
+from swarmauri_core.chains.IChain import IChain
 
 class IChainPersistence(ABC):
     @abstractmethod

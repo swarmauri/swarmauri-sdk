@@ -1,8 +1,8 @@
 import json
 from typing import List, Literal, Dict, Optional, Callable
 from transformers import pipeline, logging as hf_logging
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 from pydantic import Field
 
 hf_logging.set_verbosity_error()

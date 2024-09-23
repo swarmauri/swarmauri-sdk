@@ -1,7 +1,7 @@
 import json
 import pickle
 from typing import List
-from swarmauri.core.chains.ISwarmFactory import (
+from swarmauri_core.chains.ISwarmFactory import (
     ISwarmFactory , 
     CallableChainItem, 
     AgentDefinition, 

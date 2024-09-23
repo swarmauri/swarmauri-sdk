@@ -1,11 +1,11 @@
 import json
 from typing import List, Dict, Literal
 import google.generativeai as genai
-from swarmauri.core.typing import SubclassUnion
+from swarmauri_core.typing import SubclassUnion
 
-from swarmauri.standard.messages.base.MessageBase import MessageBase
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.llms.base.LLMBase import LLMBase
+from swarmauri.messages.base.MessageBase import MessageBase
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.llms.base.LLMBase import LLMBase
 
 
 class GeminiProModel(LLMBase):

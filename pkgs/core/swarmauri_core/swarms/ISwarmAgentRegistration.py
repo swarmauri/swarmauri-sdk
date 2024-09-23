@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-from swarmauri.core.agents.IAgent import IAgent
+from swarmauri_core.agents.IAgent import IAgent
 
 class ISwarmAgentRegistration(ABC):
     """

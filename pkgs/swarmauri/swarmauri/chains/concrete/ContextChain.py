@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Callable, Optional, Tuple, Union, Literal
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.chains.concrete.ChainStep import ChainStep
-from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
-from swarmauri.core.chains.IChain import IChain
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.chains.concrete.ChainStep import ChainStep
+from swarmauri.chains.base.ChainContextBase import ChainContextBase
+from swarmauri_core.chains.IChain import IChain
 
 
 class ContextChain(IChain, ChainContextBase):

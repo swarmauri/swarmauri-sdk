@@ -6,13 +6,13 @@ from ampligraph.evaluation import train_test_split_no_unseen
 from ampligraph.latent_features import EmbeddingModel
 from ampligraph.utils import save_model, restore_model
 
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
-from swarmauri.core.retrievers.IRetriever import IRetriever
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vector_stores.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.standard.vectorizers.concrete.AmpligraphVectorizer import AmpligraphVectorizer
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri_core.retrievers.IRetriever import IRetriever
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
+from swarmauri.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri.vectorizers.concrete.AmpligraphVectorizer import AmpligraphVectorizer
 
 
 class TriplesDocumentStore(IDocumentStore, IRetriever):

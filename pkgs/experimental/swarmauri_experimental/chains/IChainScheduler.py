@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from swarmauri.core.chains.IChain import IChain
+from swarmauri_core.chains.IChain import IChain
 
 class IChainScheduler(ABC):
     @abstractmethod

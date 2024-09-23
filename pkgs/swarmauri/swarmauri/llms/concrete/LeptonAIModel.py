@@ -1,10 +1,10 @@
 import json
 from openai import OpenAI
 from typing import List, Dict, Literal, Optional
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.messages.base.MessageBase import MessageBase
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.llms.base.LLMBase import LLMBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.messages.base.MessageBase import MessageBase
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.llms.base.LLMBase import LLMBase
 
 
 class LeptonAIModel(LLMBase):

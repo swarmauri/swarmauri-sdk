@@ -1,5 +1,5 @@
 import functools
-from swarmauri.standard.tracing.concrete.SimpleTracer import SimpleTracer  # Import SimpleTracer from the previously defined path
+from swarmauri.tracing.concrete.SimpleTracer import SimpleTracer  # Import SimpleTracer from the previously defined path
 
 # Initialize the global tracer object
 tracer = SimpleTracer()

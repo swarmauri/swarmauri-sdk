@@ -1,5 +1,5 @@
 from typing import List, Dict, Set
-from swarmauri.core.vector_stores.ISimilarity import ISimilarity
+from swarmauri_core.vector_stores.ISimilarity import ISimilarity
 
 
 class SSIVSimilarity(ISimilarity):

@@ -1,13 +1,13 @@
 from typing import List, Union, Literal
 from pydantic import PrivateAttr
 
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
-from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
+from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
-from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
-from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
+from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
 
 
 class Doc2VecVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):

@@ -1,5 +1,5 @@
 from typing import Literal
-from swarmauri.standard.metrics.base.MetricBase import MetricBase
+from swarmauri.metrics.base.MetricBase import MetricBase
 
 class ZeroMetric(MetricBase):
     """

@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, List, Literal
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 
 
 class GunningFogTool(ToolBase):

@@ -2,8 +2,8 @@ import base64
 import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 from typing import List, Literal, Dict, Optional
 from pydantic import Field
 

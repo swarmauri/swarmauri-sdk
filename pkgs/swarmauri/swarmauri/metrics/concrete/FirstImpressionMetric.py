@@ -1,5 +1,5 @@
 from typing import Any, Literal
-from swarmauri.standard.metrics.base.MetricBase import MetricBase
+from swarmauri.metrics.base.MetricBase import MetricBase
 
 class FirstImpressionMetric(MetricBase):
     """

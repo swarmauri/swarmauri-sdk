@@ -1,8 +1,8 @@
 import json
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.core.document_stores.IDocumentStore import IDocumentStore
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 
 class DocumentStoreBase(IDocumentStore, ABC):
     """

@@ -4,13 +4,13 @@ import pickle
 import tempfile
 from typing import List, Union
 from annoy import AnnoyIndex
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
-from swarmauri.standard.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.vector_stores.base.SaveLoadStoreBase import SaveLoadStoreBase
+from swarmauri.vector_stores.base.VectorDocumentStoreRetrieveBase import VectorDocumentStoreRetrieveBase
 
-from swarmauri.standard.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
-#from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.vectorizers.concrete.Doc2VecVectorizer import Doc2VecVectorizer
+#from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 class AnnoyVectorStore(SaveLoadStoreBase, VectorDocumentStoreRetrieveBase):
     """

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 from pydantic import BaseModel
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.core.vector_stores.IVectorStoreRetrieve import IVectorStoreRetrieve
+from swarmauri.documents.concrete.Document import Document
+from swarmauri_core.vector_stores.IVectorStoreRetrieve import IVectorStoreRetrieve
 
 
 class VectorStoreRetrieveMixin(IVectorStoreRetrieve, BaseModel):

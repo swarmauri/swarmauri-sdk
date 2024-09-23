@@ -4,8 +4,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google.oauth2 import service_account
 from googleapiclient.discovery import build, Resource
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 from typing import List, Dict, Literal
 from pydantic import Field
 

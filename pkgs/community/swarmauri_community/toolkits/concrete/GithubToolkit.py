@@ -3,8 +3,8 @@ from typing import Literal, Any, Optional
 
 from pydantic import model_validator, BaseModel
 
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri_community.tools.concrete.GithubRepoTool import GithubRepoTool
 from swarmauri_community.tools.concrete.GithubIssueTool import GithubIssueTool
 from swarmauri_community.tools.concrete.GithubPRTool import GithubPRTool
@@ -13,7 +13,7 @@ from swarmauri_community.tools.concrete.GithubCommitTool import GithubCommitTool
 
 from dotenv import load_dotenv
 
-from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.tools.base.ToolBase import ToolBase
 
 load_dotenv()
 
