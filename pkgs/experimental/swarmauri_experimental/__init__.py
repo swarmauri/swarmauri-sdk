@@ -1,4 +1,4 @@
-__version__ = "0.5.0.dev4"
+__version__ = "0.5.0.dev6"
 __long_desc__ = """
 
 # Swarmauri Experimental SDK

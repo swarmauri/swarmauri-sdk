@@ -1,4 +1,4 @@
-__version__ = "0.5.0.dev5"
+__version__ = "0.5.0.dev8"
 __long_desc__ = """
 # Swarmauri Core
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import swarmauri_core
 
 setup(
-    name='swarmauri_core',
+    name='swarmauri-core',
     version=swarmauri_core.__version__,
     author='Jacob Stewart',
     author_email='corporate@swarmauri.com',
