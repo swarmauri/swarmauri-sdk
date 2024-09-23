@@ -5,6 +5,11 @@ from swarmauri_experimental.embeddings.SpatialDocEmbedding import (
 
 
 @pytest.mark.unit
+def test_ubc_resource():
+    assert SpatialDocEmbedding().resource == "Embedding"
+
+
+@pytest.mark.unit
 def test_ubc_type():
     assert SpatialDocEmbedding().type == "SpatialDocEmbedding"
 
