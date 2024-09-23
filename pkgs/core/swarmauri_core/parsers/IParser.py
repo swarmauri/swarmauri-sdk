@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
-from swarmauri_core.documents.IDocument import IDocument
+
+from swarmauri.core.documents.IDocument import IDocument
+from typing_extensions import Annotated
+
+FilePath = Annotated[str, "FilePath"]
+
 
 class IParser(ABC):
     """
@@ -9,7 +14,7 @@ class IParser(ABC):
     """
 
     @abstractmethod
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, bytes, FilePath]) -> List[IDocument]:
         """
         Public method to parse input data (either a str or a Message) into a list of Document instances.
         
