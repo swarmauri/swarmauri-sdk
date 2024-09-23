@@ -2,7 +2,7 @@ import base64
 import pytest
 from unittest.mock import patch, MagicMock
 import requests
-from swarmauri_community.community.tools.concrete.DownloadPdfTool import (
+from swarmauri_community.tools.concrete.DownloadPdfTool import (
     DownloadPDFTool as Tool,
 )
 

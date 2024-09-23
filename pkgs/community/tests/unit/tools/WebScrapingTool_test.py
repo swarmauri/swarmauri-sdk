@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.community.tools.concrete.WebScrapingTool import (
+from swarmauri_community.tools.concrete.WebScrapingTool import (
     WebScrapingTool as Tool,
 )
 
