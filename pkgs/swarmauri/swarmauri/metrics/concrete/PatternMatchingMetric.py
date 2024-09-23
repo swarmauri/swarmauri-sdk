@@ -9,7 +9,7 @@ class PatternMatchingMetric(MetricBase, MetricCalculateMixin):
     """
     A metric class to calculate the percentage of data points that match a given pattern in a column.
     """
-
+    unit: str = "percentage"
     type: Literal["PatternMatchingMetric"] = "PatternMatchingMetric"
 
     def calculate(self, data: pd.DataFrame, column: str, pattern: str) -> float:
