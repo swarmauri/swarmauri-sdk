@@ -16,7 +16,7 @@ setup(
         'numpy',  # Common dependencies for all distributions
         'requests',
         'pydantic',
-        'swarmauri_core==0.5.0.dev5'
+        'swarmauri_core==0.5.0.dev6'
     ],
     extras_require={
         'full': [
