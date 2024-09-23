@@ -19,7 +19,7 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_parse():
-    documents = Parser().parse(r'demo.pdf')
+    documents = Parser().parse(r'../resources/demo.pdf')
     assert documents[0].resource == 'Document'
     assert documents[0].content == 'This is a demo pdf \n'
-    assert documents[0].metadata['source'] == r'demo.pdf'
+    assert documents[0].metadata['source'] == r'../resources/demo.pdf'
