@@ -23,10 +23,10 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_transform():
+def test_infer_vector():
     embedder = OpenAIEmbedding(api_key=os.getenv("OPENAI_API_KEY"))
     documents = ["test", "cat", "banana"]
-    response = embedder.transform(documents)
+    response = embedder.infer_vector(documents)
     assert 3 == len(response)
     assert float == type(response[0].value[0])
     assert 1536 == len(
