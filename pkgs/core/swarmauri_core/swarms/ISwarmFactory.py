@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Type, Union
-from swarmauri.core.swarms.ISwarm import ISwarm
-from swarmauri.core.chains.ICallableChain import ICallableChain 
-from swarmauri.core.agents.IAgent import IAgent 
+from swarmauri_core.swarms.ISwarm import ISwarm
+from swarmauri_core.chains.ICallableChain import ICallableChain 
+from swarmauri_core.agents.IAgent import IAgent 
 
 class Step(NamedTuple):
     description: str

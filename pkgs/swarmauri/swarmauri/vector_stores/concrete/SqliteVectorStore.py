@@ -2,14 +2,14 @@ import json
 import sqlite3
 from typing import List, Optional, Literal, Dict
 import numpy as np
-from swarmauri.standard.vectors.concrete.Vector import Vector
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri.vectors.concrete.Vector import Vector
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 

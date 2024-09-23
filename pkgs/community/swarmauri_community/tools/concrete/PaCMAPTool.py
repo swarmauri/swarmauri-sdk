@@ -1,7 +1,7 @@
 import numpy as np
 import pacmap  # Ensure pacmap is installed
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.tools.concrete.Parameter import Parameter
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.tools.concrete.Parameter import Parameter
 from typing import List, Literal, Dict, Union
 
 from pydantic import Field

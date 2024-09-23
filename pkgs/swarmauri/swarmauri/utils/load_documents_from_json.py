@@ -1,6 +1,6 @@
 import json
 from typing import List
-from swarmauri.standard.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.documents.concrete.EmbeddedDocument import EmbeddedDocument
 
 def load_documents_from_json_file(json_file_path):
     documents = []

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-from swarmauri.core.tracing.ITraceContext import ITraceContext
+from swarmauri_core.tracing.ITraceContext import ITraceContext
 
 class SimpleTraceContext(ITraceContext):
     def __init__(self, trace_id: str, name: str, initial_attributes: Optional[Dict[str, Any]] = None):

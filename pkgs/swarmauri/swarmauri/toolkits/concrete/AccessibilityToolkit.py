@@ -6,20 +6,20 @@ from pydantic import Field, model_validator
 # Suppress specific warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
-from swarmauri.standard.toolkits.base.ToolkitBase import ToolkitBase
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.tools.base.ToolBase import ToolBase
+from swarmauri.toolkits.base.ToolkitBase import ToolkitBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.tools.base.ToolBase import ToolBase
 
 
-from swarmauri.standard.tools.concrete.AutomatedReadabilityIndexTool import (
+from swarmauri.tools.concrete.AutomatedReadabilityIndexTool import (
     AutomatedReadabilityIndexTool,
 )
-from swarmauri.standard.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
-from swarmauri.standard.tools.concrete.FleschKincaidTool import FleschKincaidTool
-from swarmauri.standard.tools.concrete.FleschReadingEaseTool import (
+from swarmauri.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
+from swarmauri.tools.concrete.FleschKincaidTool import FleschKincaidTool
+from swarmauri.tools.concrete.FleschReadingEaseTool import (
     FleschReadingEaseTool,
 )
-from swarmauri.standard.tools.concrete.GunningFogTool import GunningFogTool
+from swarmauri.tools.concrete.GunningFogTool import GunningFogTool
 
 
 class AccessibilityToolkit(ToolkitBase):

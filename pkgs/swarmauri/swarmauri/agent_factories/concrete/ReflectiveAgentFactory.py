@@ -2,9 +2,9 @@ import importlib
 from datetime import datetime
 import json
 from typing import Callable, Dict, Type, Any
-from swarmauri.core.agents.IAgent import IAgent  # Update this import path as needed
-from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
-from swarmauri.core.agentfactories.IExportConf import IExportConf
+from swarmauri_core.agents.IAgent import IAgent  # Update this import path as needed
+from swarmauri_core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri_core.agentfactories.IExportConf import IExportConf
 
 class ReflectiveAgentFactory(IAgentFactory, IExportConf):
     def __init__(self):

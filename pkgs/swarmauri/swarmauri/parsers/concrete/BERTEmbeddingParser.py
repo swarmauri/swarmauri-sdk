@@ -2,9 +2,9 @@ from typing import List, Union, Any, Literal
 from transformers import BertTokenizer, BertModel
 import torch
 from pydantic import PrivateAttr
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.parsers.base.ParserBase import ParserBase
 
 class BERTEmbeddingParser(ParserBase):
     """

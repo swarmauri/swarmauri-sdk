@@ -1,10 +1,10 @@
 import inspect
 from threading import Lock
 from typing import Optional, Dict, List, Tuple
-from swarmauri.core.messages.IMessage import IMessage
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
-from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_core.messages.IMessage import IMessage
+from swarmauri.conversations.base.ConversationBase import ConversationBase
+from swarmauri.messages.concrete.HumanMessage import HumanMessage
+from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 class SharedConversation(ConversationBase):
     """

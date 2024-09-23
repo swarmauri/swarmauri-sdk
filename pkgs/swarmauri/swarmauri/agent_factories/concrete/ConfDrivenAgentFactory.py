@@ -2,9 +2,9 @@ import json
 import importlib
 from datetime import datetime
 from typing import Any, Dict, Callable
-from swarmauri.core.agents.IAgent import IAgent  # Replace with the correct IAgent path
-from swarmauri.core.agentfactories.IAgentFactory import IAgentFactory
-from swarmauri.core.agentfactories.IExportConf import IExportConf
+from swarmauri_core.agents.IAgent import IAgent  # Replace with the correct IAgent path
+from swarmauri_core.agentfactories.IAgentFactory import IAgentFactory
+from swarmauri_core.agentfactories.IExportConf import IExportConf
 
 
 class ConfDrivenAgentFactory(IAgentFactory, IExportConf):

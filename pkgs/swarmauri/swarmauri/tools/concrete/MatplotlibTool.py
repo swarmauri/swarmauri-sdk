@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from typing import List, Literal
 from pydantic import Field
-from swarmauri.standard.tools.base.ToolBase import ToolBase, Parameter
+from swarmauri.tools.base.ToolBase import ToolBase, Parameter
 import base64
 
 

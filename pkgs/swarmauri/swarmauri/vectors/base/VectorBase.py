@@ -3,8 +3,8 @@ from typing import List, Optional, Literal
 import json
 import numpy as np
 from pydantic import Field
-from swarmauri.core.vectors.IVector import IVector
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class VectorBase(IVector, ComponentBase):
     value: List[float]

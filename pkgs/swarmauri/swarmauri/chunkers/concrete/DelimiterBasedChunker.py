@@ -1,6 +1,6 @@
 from typing import List, Union, Any, Literal
 import re
-from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
+from swarmauri.chunkers.base.ChunkerBase import ChunkerBase
 
 class DelimiterBasedChunker(ChunkerBase):
     """

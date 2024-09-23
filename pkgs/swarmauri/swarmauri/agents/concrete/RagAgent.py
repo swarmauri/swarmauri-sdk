@@ -1,20 +1,20 @@
 from typing import Any, Optional, Union, Dict, Literal
-from swarmauri.core.messages import IMessage
+from swarmauri_core.messages import IMessage
 
-from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.AgentRetrieveMixin import AgentRetrieveMixin
-from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
-from swarmauri.standard.agents.base.AgentVectorStoreMixin import AgentVectorStoreMixin
-from swarmauri.standard.agents.base.AgentSystemContextMixin import AgentSystemContextMixin
+from swarmauri.agents.base.AgentBase import AgentBase
+from swarmauri.agents.base.AgentRetrieveMixin import AgentRetrieveMixin
+from swarmauri.agents.base.AgentConversationMixin import AgentConversationMixin
+from swarmauri.agents.base.AgentVectorStoreMixin import AgentVectorStoreMixin
+from swarmauri.agents.base.AgentSystemContextMixin import AgentSystemContextMixin
 
-from swarmauri.standard.messages.concrete import (HumanMessage, 
+from swarmauri.messages.concrete import (HumanMessage, 
                                                   SystemMessage,
                                                   AgentMessage)
 
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.llms.base.LLMBase import LLMBase
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
-from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.conversations.base.ConversationBase import ConversationBase
+from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 
 class RagAgent(AgentRetrieveMixin, 
                AgentVectorStoreMixin, 

@@ -1,5 +1,5 @@
 from typing import List, Literal
-from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
+from swarmauri.chunkers.base.ChunkerBase import ChunkerBase
 
 
 class SlidingWindowChunker(ChunkerBase):

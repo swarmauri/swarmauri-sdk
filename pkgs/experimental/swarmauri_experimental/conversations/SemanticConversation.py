@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, Union
-from swarmauri.core.conversations.IConversation import IConversation
-from swarmauri.core.messages.IMessage import IMessage
+from swarmauri_core.conversations.IConversation import IConversation
+from swarmauri_core.messages.IMessage import IMessage
 
 
 class SemanticConversation(IConversation, ABC):

@@ -1,9 +1,9 @@
 import json
 from jsonschema import validate, ValidationError
 from typing import Dict, Any, Callable, Type
-from swarmauri.core.agents.IAgent import IAgent
-from swarmauri.core.agent_factories.IAgentFactory import IAgentFactory
-from swarmauri.core.agent_factories.IExportConf import IExportConf
+from swarmauri_core.agents.IAgent import IAgent
+from swarmauri_core.agent_factories.IAgentFactory import IAgentFactory
+from swarmauri_core.agent_factories.IExportConf import IExportConf
 import importlib
 
 class JsonAgentFactory:

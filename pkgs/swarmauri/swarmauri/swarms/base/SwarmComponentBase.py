@@ -1,4 +1,4 @@
-from swarmauri.core.swarms.ISwarmComponent import ISwarmComponent
+from swarmauri_core.swarms.ISwarmComponent import ISwarmComponent
 
 class SwarmComponentBase(ISwarmComponent):
     """

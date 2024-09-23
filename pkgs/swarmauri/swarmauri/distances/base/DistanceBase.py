@@ -2,10 +2,10 @@ from abc import abstractmethod
 from numpy.linalg import norm
 from typing import List, Optional, Literal
 from pydantic import Field
-from swarmauri.core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.standard.vectors.concrete.Vector import Vector
-from swarmauri.standard.vectors.concrete.VectorProductMixin import VectorProductMixin
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
+from swarmauri.vectors.concrete.Vector import Vector
+from swarmauri.vectors.concrete.VectorProductMixin import VectorProductMixin
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class DistanceBase(IDistanceSimilarity, VectorProductMixin, ComponentBase):
     """

@@ -1,5 +1,5 @@
 from typing import Literal
-from swarmauri.standard.chains.base.ChainStepBase import ChainStepBase
+from swarmauri.chains.base.ChainStepBase import ChainStepBase
 
 class ChainStep(ChainStepBase):
     """

@@ -2,9 +2,9 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Optional, Literal
 from pydantic import Field, PrivateAttr
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.core.vector_stores.IVectorStore import IVectorStore
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.documents.concrete.Document import Document
+from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 
 
 class VectorStoreBase(IVectorStore, ComponentBase):

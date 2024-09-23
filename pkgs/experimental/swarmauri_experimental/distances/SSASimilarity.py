@@ -1,6 +1,6 @@
 from typing import Set, List, Dict
-from swarmauri.core.vector_stores.ISimilarity import ISimilarity
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri_core.vector_stores.ISimilarity import ISimilarity
+from swarmauri_core.vectors.IVector import IVector
 
 
 class SSASimilarity(ISimilarity):

@@ -5,8 +5,8 @@ import json
 import uuid
 from datetime import datetime
 
-from swarmauri.core.tracing.ITracer import ITracer
-from swarmauri.core.tracing.ITraceContext import ITraceContext
+from swarmauri_core.tracing.ITracer import ITracer
+from swarmauri_core.tracing.ITraceContext import ITraceContext
 
 # Implementing the RemoteTraceContext class
 class RemoteTraceContext(ITraceContext):

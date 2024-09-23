@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from typing import List, Union, Any, Literal
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.parsers.base.ParserBase import ParserBase
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.parsers.base.ParserBase import ParserBase
 
 class BeautifulSoupElementParser(ParserBase):
     """

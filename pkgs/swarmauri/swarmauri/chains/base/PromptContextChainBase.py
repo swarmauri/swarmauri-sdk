@@ -6,14 +6,14 @@ import re
 import numpy as np
 
 
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.standard.chains.concrete.ChainStep import ChainStep
-from swarmauri.standard.chains.base.ChainContextBase import ChainContextBase
-from swarmauri.standard.prompts.concrete.PromptMatrix import PromptMatrix
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.core.prompts.IPromptMatrix import IPromptMatrix
-from swarmauri.core.chains.IChainDependencyResolver import IChainDependencyResolver
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri.chains.concrete.ChainStep import ChainStep
+from swarmauri.chains.base.ChainContextBase import ChainContextBase
+from swarmauri.prompts.concrete.PromptMatrix import PromptMatrix
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.agents.base.AgentBase import AgentBase
+from swarmauri_core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
 
 class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
     prompt_matrix: PromptMatrix

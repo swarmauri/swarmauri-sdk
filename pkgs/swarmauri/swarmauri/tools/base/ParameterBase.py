@@ -1,7 +1,7 @@
 from typing import Optional, List, Any
 from pydantic import Field
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.core.tools.IParameter import IParameter
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.tools.IParameter import IParameter
 
 
 class ParameterBase(IParameter, ComponentBase):

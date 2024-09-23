@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from swarmauri.core.documents.IDocument import IDocument
+from swarmauri_core.documents.IDocument import IDocument
 
 class IExperimentDocument(IDocument, ABC):
     """

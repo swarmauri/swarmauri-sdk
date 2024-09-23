@@ -1,12 +1,12 @@
 from typing import Any, Optional, Dict, Literal
 
-from swarmauri.core.conversations.IConversation import IConversation
-from swarmauri.standard.agents.base.AgentBase import AgentBase
-from swarmauri.standard.agents.base.AgentConversationMixin import AgentConversationMixin
-from swarmauri.standard.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
+from swarmauri_core.conversations.IConversation import IConversation
+from swarmauri.agents.base.AgentBase import AgentBase
+from swarmauri.agents.base.AgentConversationMixin import AgentConversationMixin
+from swarmauri.messages.concrete import HumanMessage, AgentMessage, FunctionMessage
 
-from swarmauri.core.typing import SubclassUnion 
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri_core.typing import SubclassUnion 
+from swarmauri.conversations.base.ConversationBase import ConversationBase
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
     conversation: SubclassUnion[ConversationBase] #

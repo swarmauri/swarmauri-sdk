@@ -1,11 +1,11 @@
 import pytest
 import os
 from swarmauri.experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM 
-from swarmauri.standard.conversations.concrete.Conversation import Conversation
+from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.messages.concrete.HumanMessage import HumanMessage
+from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 @pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('SHUTTLEAI_API_KEY'), reason="Skipping due to environment variable not set")

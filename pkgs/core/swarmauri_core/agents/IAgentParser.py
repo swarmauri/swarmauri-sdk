@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from swarmauri.core.parsers.IParser import IParser 
+from swarmauri_core.parsers.IParser import IParser 
 
 class IAgentParser(ABC):
     

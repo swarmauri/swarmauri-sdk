@@ -1,5 +1,5 @@
 from celery import Celery
-from swarmauri.core.agent_apis.IAgentCommands import IAgentCommands
+from swarmauri_core.agent_apis.IAgentCommands import IAgentCommands
 from typing import Callable, Any, Dict
 
 class CeleryAgentCommands(IAgentCommands):

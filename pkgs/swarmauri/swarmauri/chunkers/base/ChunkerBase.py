@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Any, Literal
 from pydantic import Field
-from swarmauri.core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class ChunkerBase(ComponentBase, ABC):
     """

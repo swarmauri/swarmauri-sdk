@@ -2,8 +2,8 @@ from datetime import datetime
 import uuid
 from typing import Dict, Any, Optional
 
-from swarmauri.core.tracing.ITracer import ITracer
-from swarmauri.standard.tracing.concrete.SimpleTraceContext import SimpleTraceContext
+from swarmauri_core.tracing.ITracer import ITracer
+from swarmauri.tracing.concrete.SimpleTraceContext import SimpleTraceContext
 
 class SimpleTracer(ITracer):
     _instance = None  # Singleton instance placeholder

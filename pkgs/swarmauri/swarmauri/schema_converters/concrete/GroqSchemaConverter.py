@@ -1,7 +1,7 @@
 from typing import  Dict, Any, Literal
-from swarmauri.core.typing import SubclassUnion
-from swarmauri.standard.tools.base.ToolBase import ToolBase
-from swarmauri.standard.schema_converters.base.SchemaConverterBase import SchemaConverterBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri.schema_converters.base.SchemaConverterBase import SchemaConverterBase
 
 class GroqSchemaConverter(SchemaConverterBase):
     type: Literal['GroqSchemaConverter'] = 'GroqSchemaConverter'

@@ -2,13 +2,13 @@ import json
 import logging
 from typing import List, Literal, Dict, Any
 from openai import OpenAI
-from swarmauri.core.typing import SubclassUnion
+from swarmauri_core.typing import SubclassUnion
 
-from swarmauri.standard.messages.base.MessageBase import MessageBase
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.messages.concrete.FunctionMessage import FunctionMessage
-from swarmauri.standard.llms.base.LLMBase import LLMBase
-from swarmauri.standard.schema_converters.concrete.OpenAISchemaConverter import (
+from swarmauri.messages.base.MessageBase import MessageBase
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.messages.concrete.FunctionMessage import FunctionMessage
+from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.schema_converters.concrete.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
 

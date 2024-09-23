@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
-from swarmauri.core.document_stores.IDocumentRetrieve import IDocumentRetrieve
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.document_stores.base.DocumentStoreBase import DocumentStoreBase
+from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri.document_stores.base.DocumentStoreBase import DocumentStoreBase
 
 class DocumentStoreRetrieveBase(DocumentStoreBase, IDocumentRetrieve, ABC):
 

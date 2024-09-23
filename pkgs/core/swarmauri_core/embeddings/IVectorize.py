@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
-from swarmauri.core.vectors.IVector import IVector
+from swarmauri_core.vectors.IVector import IVector
 
 class IVectorize(ABC):
     """

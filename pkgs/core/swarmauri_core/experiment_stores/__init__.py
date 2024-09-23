@@ -1,7 +1,7 @@
 # core/experiment_stores/IExperimentStore.py
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Union
-from swarmauri.core.documents.IExperimentDocument import IExperimentDocument
+from swarmauri_core.documents.IExperimentDocument import IExperimentDocument
 
 class IExperimentStore(ABC):
     """

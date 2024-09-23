@@ -1,5 +1,5 @@
 from typing import List, Union, Any, Literal
-from swarmauri.standard.chunkers.base.ChunkerBase import ChunkerBase
+from swarmauri.chunkers.base.ChunkerBase import ChunkerBase
 
 class FixedLengthChunker(ChunkerBase):
     """

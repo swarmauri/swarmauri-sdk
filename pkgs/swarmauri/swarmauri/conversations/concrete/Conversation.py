@@ -1,5 +1,5 @@
 from typing import Literal
-from swarmauri.standard.conversations.base.ConversationBase import ConversationBase
+from swarmauri.conversations.base.ConversationBase import ConversationBase
 
 class Conversation(ConversationBase):
     """

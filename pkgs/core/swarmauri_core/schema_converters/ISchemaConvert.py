@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
-from swarmauri.core.tools.ITool import ITool
+from swarmauri_core.tools.ITool import ITool
 
 class ISchemaConvert(ABC):
 

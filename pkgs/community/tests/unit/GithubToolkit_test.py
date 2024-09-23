@@ -6,7 +6,7 @@ import logging
 
 from sympy.ntheory.primetest import proth_test
 
-from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
+from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.community.tools.concrete.GithubRepoTool import GithubRepoTool
 from swarmauri.community.toolkits.concrete.GithubToolkit import GithubToolkit as Toolkit
 from dotenv import load_dotenv

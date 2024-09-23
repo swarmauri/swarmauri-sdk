@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Literal
 from pydantic import BaseModel
-from swarmauri.core.metrics.IMetricCalculate import IMetricCalculate
+from swarmauri_core.metrics.IMetricCalculate import IMetricCalculate
 
 class MetricCalculateMixin(IMetricCalculate, BaseModel):
     """

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any, Dict
-from swarmauri.core.chains.IChain import IChain
-from swarmauri.core.chains.IChainStep import IChainStep
+from swarmauri_core.chains.IChain import IChain
+from swarmauri_core.chains.IChainStep import IChainStep
 
 class IChainFactory(ABC):
     """

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from swarmauri.core.models.IModel import IModel
+from swarmauri_core.models.IModel import IModel
 from typing import Any
 
 class HierarchicalAttentionModel(IModel):

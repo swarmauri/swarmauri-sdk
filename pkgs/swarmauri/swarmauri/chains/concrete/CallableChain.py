@@ -1,5 +1,5 @@
 from typing import Any, Callable, List, Dict, Optional
-from swarmauri.core.chains.ICallableChain import ICallableChain, CallableDefinition
+from swarmauri_core.chains.ICallableChain import ICallableChain, CallableDefinition
 
 
 class CallableChain(ICallableChain):

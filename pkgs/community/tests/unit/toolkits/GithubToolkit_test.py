@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, MagicMock
 import pytest
 import logging
-from swarmauri.standard.tools.concrete.AdditionTool import AdditionTool
+from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri_community.community.tools.concrete.GithubRepoTool import GithubRepoTool
 from swarmauri_community.community.toolkits.concrete.GithubToolkit import (
     GithubToolkit as Toolkit,
