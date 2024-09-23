@@ -9,7 +9,7 @@ setup(
     description="Community version of the swarmauri framework",
     long_description=swarmauri_community.__long_desc__,
     long_description_content_type="text/markdown",
-    url="http://github.com/swarmauri/swarmauri-sdk/swarmauri-community",
+    url="http://github.com/swarmauri/swarmauri-sdk",
     license='Apache Software License',
     packages=find_packages(
         include=["swarmauri_community*"]
@@ -18,8 +18,8 @@ setup(
         "numpy",  # Common dependencies for all distributions
         "requests",
         "pydantic",
-        "swarmauri-core==0.5.0.dev1",
-        "swarmauri==0.5.0.dev2"
+        "swarmauri-core==0.5.0.dev6",
+        "swarmauri==0.5.0.dev6"
     ],
     extras_require={
         "full": [
