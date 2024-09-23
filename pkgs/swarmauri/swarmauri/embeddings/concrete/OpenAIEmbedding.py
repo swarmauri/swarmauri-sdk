@@ -30,7 +30,7 @@ class OpenAIEmbedding(EmbeddingBase):
 
         try:
             self._client = openai.OpenAI(api_key=api_key)
-        except Exception as e:  
+        except Exception as e:
             raise ValueError(
                 f"An error occurred while initializing OpenAI client: {str(e)}"
             )
@@ -45,13 +45,7 @@ class OpenAIEmbedding(EmbeddingBase):
         Returns:
             List[IVector]: A list of vectors representing the transformed data.
         """
-        try:
-            response = self._client.embeddings.create(input=data, model=self.model)
-            embeddings = [Vector(value=item.embedding) for item in response.data]
-            return embeddings
-        except Exception as e: 
-            print(f"An error occurred during embedding transformation: {str(e)}")
-            return []
+        raise NotImplementedError("save_model is not applicable for OpenAI embeddings")
 
     def infer_vector(self, data: str):
         """
@@ -63,11 +57,9 @@ class OpenAIEmbedding(EmbeddingBase):
         Returns:
             IVector: A vector representing the transformed single data point.
         """
-        try:
-            return self.transform([data])[0]
-        except IndexError as e:
-            print(f"Failed to get a valid embedding: {str(e)}")
-            return None
+        response = self._client.embeddings.create(input=data, model=self.model)
+        embeddings = [Vector(value=item.embedding) for item in response.data]
+        return embeddings
 
     def save_model(self, path: str):
         raise NotImplementedError("save_model is not applicable for OpenAI embeddings")
