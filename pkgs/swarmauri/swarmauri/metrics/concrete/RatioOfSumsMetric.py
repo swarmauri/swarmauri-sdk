@@ -9,7 +9,7 @@ class RatioOfSumsMetric(MetricBase, MetricCalculateMixin):
     """
     A metric class to calculate the ratio of the sum of two columns in a DataFrame.
     """
-
+    unit: str = "percentage"
     type: Literal["RatioOfSumsMetric"] = "RatioOfSumsMetric"
 
     def calculate(self, data: pd.DataFrame, column_a: str, column_b: str) -> float:
