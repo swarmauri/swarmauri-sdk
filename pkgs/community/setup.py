@@ -10,7 +10,7 @@ setup(
     long_description=swarmauri_community.__long_desc__,
     long_description_content_type="text/markdown",
     url="http://github.com/swarmauri/swarmauri-sdk/swarmauri-community",
-    license='Apache Software License',
+    license="Apache Software License",
     packages=find_packages(
         include=["swarmauri_community*"]
     ),  # Include packages in your_package and libs directories
@@ -18,8 +18,9 @@ setup(
         "numpy",  # Common dependencies for all distributions
         "requests",
         "pydantic",
+        "pymupdf",
         "swarmauri-core==0.5.0.dev1",
-        "swarmauri==0.5.0.dev2"
+        "swarmauri==0.5.0.dev2",
     ],
     extras_require={
         "full": [

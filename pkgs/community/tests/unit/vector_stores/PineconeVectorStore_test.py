@@ -5,6 +5,11 @@ from swarmauri_community.vector_stores.PineconeVectorStore import PineconeVector
 
 API_KEY = os.getenv("PINECONE_API_KEY")
 
+
+@pytest.mark.skipif(
+    not os.getenv("PINECONE_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_ubc_resource():
     vs = PineconeVectorStore(
@@ -16,6 +21,10 @@ def test_ubc_resource():
     assert vs.embedder.resource == "Embedding"
 
 
+@pytest.mark.skipif(
+    not os.getenv("PINECONE_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_ubc_type():
     vs = PineconeVectorStore(
@@ -25,6 +34,11 @@ def test_ubc_type():
     )
     assert vs.type == "PineconeVectorStore"
 
+
+@pytest.mark.skipif(
+    not os.getenv("PINECONE_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_serialization():
     vs = PineconeVectorStore(
@@ -35,6 +49,10 @@ def test_serialization():
     assert vs.id == PineconeVectorStore.model_validate_json(vs.model_dump_json()).id
 
 
+@pytest.mark.skipif(
+    not os.getenv("PINECONE_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_top_k():
     vs = PineconeVectorStore(
@@ -52,6 +70,3 @@ def test_top_k():
 
     vs.add_documents(documents)
     assert len(vs.retrieve(query="test", top_k=2)) == 2
-
-
-

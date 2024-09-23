@@ -1,7 +1,5 @@
-from unittest.mock import patch, MagicMock
 import pytest
-import psutil
-from swarmauri_community.community.tools.concrete.PsutilTool import PsutilTool as Tool
+from swarmauri_community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 
 @pytest.mark.unit

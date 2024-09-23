@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.community.tools.concrete.SMOGIndexTool import (
+from swarmauri_community.tools.concrete.SMOGIndexTool import (
     SMOGIndexTool as Tool,
 )
 

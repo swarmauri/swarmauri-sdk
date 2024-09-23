@@ -3,8 +3,8 @@ from unittest.mock import patch, MagicMock
 import pytest
 import logging
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri_community.community.tools.concrete.GithubRepoTool import GithubRepoTool
-from swarmauri_community.community.toolkits.concrete.GithubToolkit import (
+from swarmauri_community.tools.concrete.GithubRepoTool import GithubRepoTool
+from swarmauri_community.toolkits.concrete.GithubToolkit import (
     GithubToolkit as Toolkit,
 )
 from dotenv import load_dotenv
@@ -66,7 +66,7 @@ def test_add_tool():
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri_community.community.tools.concrete.GithubRepoTool.Github")
+@patch("swarmauri_community.tools.concrete.GithubRepoTool.Github")
 def test_call_github_repo_tool(mock_github, action, kwargs, method_called):
     expected_keys = {action}
     toolkit = Toolkit(token=token)

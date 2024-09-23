@@ -1,15 +1,17 @@
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 from typing import List, Union, Any, Literal
-from swarmauri.standard.parsers.base.ParserBase import ParserBase
-from swarmauri.core.documents.IDocument import IDocument
-from swarmauri.standard.documents.concrete.Document import Document
+from swarmauri.parsers.base.ParserBase import ParserBase
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri.documents.concrete.Document import Document
+
 
 class PDFtoTextParser(ParserBase):
     """
     A parser to extract text from PDF files.
     """
-    type: Literal['FitzPdfParser'] = 'FitzPdfParser'
-    
+
+    type: Literal["FitzPdfParser"] = "FitzPdfParser"
+
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """
         Parses a PDF file and extracts its text content as Document instances.
@@ -26,7 +28,7 @@ class PDFtoTextParser(ParserBase):
 
         try:
             # Open the PDF file
-            doc = fitz.open(data)
+            doc = pymupdf.open(data)
             text = ""
 
             # Extract text from each page
@@ -37,7 +39,7 @@ class PDFtoTextParser(ParserBase):
             # Create a document with the extracted text
             document = Document(content=text, metadata={"source": data})
             return [document]
-        
+
         except Exception as e:
             print(f"An error occurred while parsing the PDF: {e}")
             return []
