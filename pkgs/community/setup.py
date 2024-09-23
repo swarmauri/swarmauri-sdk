@@ -18,6 +18,7 @@ setup(
         "numpy",  # Common dependencies for all distributions
         "requests",
         "pydantic",
+        "pymupdf",
         "swarmauri-core==0.5.0.dev7",
         "swarmauri==0.5.0.dev7"
     ],

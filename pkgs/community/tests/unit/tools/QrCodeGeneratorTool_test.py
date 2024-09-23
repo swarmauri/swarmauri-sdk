@@ -1,5 +1,4 @@
 import base64
-from PIL import Image
 import pytest
 from swarmauri_community.tools.concrete.QrCodeGeneratorTool import (
     QrCodeGeneratorTool as Tool,
