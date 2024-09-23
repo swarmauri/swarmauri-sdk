@@ -26,13 +26,13 @@ def get_all_base_files(root_dir, save_dir):
                         entry = {"document_name": full_path, "content": content}
 
                         # Assign to categories based on folder structure
-                        if 'core' in root:
+                        if '_core' in root:
                             data["core_files"].append(entry)
-                        if 'standard' in root:
+                        if 'swarmauri' in root:
                             data["standard_files"].append(entry)
-                        if 'community' in root:
+                        if '_community' in root:
                             data["community_files"].append(entry)
-                        if 'experimental' in root:
+                        if '_experimental' in root:
                             data["experimental_files"].append(entry)
                         if 'examples' in root:
                             data["examples_files"].append(entry)
