@@ -71,3 +71,12 @@ body:
     validations:
       required: true
       
+  - type: checkboxes
+    id: required_files
+    attributes:
+      label: Required Files
+      description: Both of these files are required to successfully submit a PR.
+      options:
+        - label: Test File
+        - label: Component File
+        
