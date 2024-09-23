@@ -28,6 +28,8 @@ class OpenAIEmbedding(EmbeddingBase):
                 f"Invalid model '{model}'. Allowed models are: {', '.join(self._allowed_models)}"
             )
 
+        self.model = model
+
         try:
             self._client = openai.OpenAI(api_key=api_key)
         except Exception as e:
