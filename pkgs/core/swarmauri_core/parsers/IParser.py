@@ -17,7 +17,7 @@ class IParser(ABC):
     def parse(self, data: Union[str, bytes, FilePath]) -> List[IDocument]:
         """
         Public method to parse input data (either a str or a Message) into a list of Document instances.
-        
+
         This method leverages the abstract _parse_data method which must be
         implemented by subclasses to define specific parsing logic.
         """

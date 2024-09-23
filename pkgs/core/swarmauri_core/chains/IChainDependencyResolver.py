@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Dict, List, Optional
 from swarmauri.chains.concrete.ChainStep import ChainStep
 
+
 class IChainDependencyResolver(ABC):
     @abstractmethod
     def build_dependencies(self) -> List[ChainStep]:
@@ -18,7 +19,9 @@ class IChainDependencyResolver(ABC):
         pass
 
     @abstractmethod
-    def resolve_dependencies(self, matrix: List[List[Optional[str]]], sequence_index: int) -> List[int]:
+    def resolve_dependencies(
+        self, matrix: List[List[Optional[str]]], sequence_index: int
+    ) -> List[int]:
         """
         Resolves the execution order based on the provided dependencies.
 
