@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.community.tools.concrete.SentimentAnalysisTool import (
+from swarmauri_community.tools.concrete.SentimentAnalysisTool import (
     SentimentAnalysisTool as Tool,
 )
 

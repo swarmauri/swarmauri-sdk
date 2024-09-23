@@ -1,6 +1,6 @@
 import json
 import pytest
-from swarmauri_community.community.tools.concrete.EntityRecognitionTool import (
+from swarmauri_community.tools.concrete.EntityRecognitionTool import (
     EntityRecognitionTool as Tool,
 )
 

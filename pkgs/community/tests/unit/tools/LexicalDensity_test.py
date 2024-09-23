@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.community.tools.concrete.LexicalDensityTool import (
+from swarmauri_community.tools.concrete.LexicalDensityTool import (
     LexicalDensityTool as Tool,
 )
 

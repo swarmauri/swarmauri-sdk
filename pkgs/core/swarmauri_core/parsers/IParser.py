@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
 
-from swarmauri.core.documents.IDocument import IDocument
+from swarmauri_core.documents.IDocument import IDocument
 from typing_extensions import Annotated
 
 FilePath = Annotated[str, "FilePath"]

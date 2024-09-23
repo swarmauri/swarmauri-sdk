@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.community.tools.concrete.CaptchaGeneratorTool import (
+from swarmauri_community.tools.concrete.CaptchaGeneratorTool import (
     CaptchaGeneratorTool as Tool,
 )
 

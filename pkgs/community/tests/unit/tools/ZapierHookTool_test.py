@@ -3,7 +3,7 @@ import json
 
 import pytest
 import requests
-from swarmauri_community.community.tools.concrete.ZapierHookTool import (
+from swarmauri_community.tools.concrete.ZapierHookTool import (
     ZapierHookTool as Tool,
 )
 

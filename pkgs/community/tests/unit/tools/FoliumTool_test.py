@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 import base64
 
 import pytest
-from swarmauri_community.community.tools.concrete.FoliumTool import FoliumTool as Tool
+from swarmauri_community.tools.concrete.FoliumTool import FoliumTool as Tool
 
 
 @pytest.mark.unit
