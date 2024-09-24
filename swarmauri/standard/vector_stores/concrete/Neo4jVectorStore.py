@@ -133,7 +133,7 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                     d.metadata = $metadata
             """, id=id, content=updated_document.content, metadata=json.dumps(updated_document.metadata))
     
-    def retrieve(self, inp_text: str, top_k: int = 5, string_field: str = 'content') -> List[Document]:
+    def retrieve(self, query: str, top_k: int = 5, string_field: str = 'content') -> List[Document]:
         """
         Retrieve the top_k most similar documents to the query based on Levenshtein distance using APOC's apoc.text.distance.
 
@@ -142,15 +142,16 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         :param string_field: Specific field to apply Levenshtein distance (default: 'content')
         :return: List of Document objects
         """
+        input_text = query
         with self._driver.session() as session:
             cypher_query = f"""
                 MATCH (d:Document)
                 RETURN d.id AS id, d.content AS content, d.metadata AS metadata,
-                       apoc.text.distance(d.{string_field}, $inp_text) AS distance
+                       apoc.text.distance(d.{string_field}, $input_text) AS distance
                 ORDER BY distance ASC
                 LIMIT $top_k
             """
-            results = session.run(cypher_query, inp_text=inp_text, top_k=top_k)
+            results = session.run(cypher_query, input_text=input_text, top_k=top_k)
             
             documents = []
             for record in results:
@@ -170,6 +171,4 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
     
     def __del__(self):
         self.close()
-       
     
-
