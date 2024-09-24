@@ -35,7 +35,7 @@ def test_default_name():
     model = LLM(api_key = API_KEY)
     assert model.name == 'shuttle-2-turbo'
 
-@pytest.mark.experimental
+@pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('SHUTTLEAI_API_KEY'), reason="Skipping due to environment variable not set")
 def test_no_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
@@ -50,7 +50,7 @@ def test_no_system_context():
     prediction = conversation.get_last().content
     assert type(prediction) == str
 
-@pytest.mark.experimental
+@pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('SHUTTLEAI_API_KEY'), reason="Skipping due to environment variable not set")
 def test_nonpreamble_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
@@ -80,7 +80,7 @@ def test_nonpreamble_system_context():
     assert 'Jeff' in prediction
 
 
-@pytest.mark.experimental
+@pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('SHUTTLEAI_API_KEY'), reason="Skipping due to environment variable not set")
 def test_preamble_system_context():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
@@ -100,7 +100,7 @@ def test_preamble_system_context():
     assert type(prediction) == str
     assert 'Jeff' in prediction
 
-@pytest.mark.experimental
+@pytest.mark.unit
 @pytest.mark.skipif(not os.getenv('SHUTTLEAI_API_KEY'), reason="Skipping due to environment variable not set")
 def test_multiple_system_contexts():
     API_KEY = os.getenv('SHUTTLEAI_API_KEY')
