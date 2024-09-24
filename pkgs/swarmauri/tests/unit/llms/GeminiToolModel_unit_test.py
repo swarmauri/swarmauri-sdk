@@ -6,47 +6,47 @@ from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
 
-@pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('GEMINI_API_KEY'), reason="Skipping due to environment variable not set")
-def test_ubc_resource():
-    API_KEY = os.getenv('GEMINI_API_KEY')
-    llm = LLM(api_key = API_KEY)
-    assert llm.resource == 'LLM'
+
+@pytest.fixture(scope="module")
+def gemini_tool_model():
+    API_KEY = os.getenv("GEMINI_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = LLM(api_key=API_KEY)
+    return llm
+
 
 @pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('GEMINI_API_KEY'), reason="Skipping due to environment variable not set")
-def test_ubc_type():
-    API_KEY = os.getenv('GEMINI_API_KEY')
-    llm = LLM(api_key = API_KEY)
-    assert llm.type == 'GeminiToolModel'
+def test_ubc_resource(gemini_tool_model):
+    assert gemini_tool_model.resource == "LLM"
+
 
 @pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('GEMINI_API_KEY'), reason="Skipping due to environment variable not set")
-def test_serialization():
-    API_KEY = os.getenv('GEMINI_API_KEY')
-    llm = LLM(api_key = API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_type(gemini_tool_model):
+    assert gemini_tool_model.type == "GeminiToolModel"
+
 
 @pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('GEMINI_API_KEY'), reason="Skipping due to environment variable not set")
-def test_default_name():
-    API_KEY = os.getenv('GEMINI_API_KEY')
-    model = LLM(api_key = API_KEY)
-    assert model.name == 'gemini-1.5-pro-latest'
+def test_serialization(gemini_tool_model):
+    assert (
+        gemini_tool_model.id
+        == LLM.model_validate_json(gemini_tool_model.model_dump_json()).id
+    )
+
 
 @pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('GEMINI_API_KEY'), reason="Skipping due to environment variable not set")
-def test_agent_exec():
-    API_KEY = os.getenv('GEMINI_API_KEY')
-    llm = LLM(api_key = API_KEY)
+def test_default_name(gemini_tool_model):
+    assert gemini_tool_model.name == "gemini-1.5-pro-latest"
+
+
+@pytest.mark.unit
+def test_agent_exec(gemini_tool_model):
     conversation = Conversation()
     toolkit = Toolkit()
     tool = AdditionTool()
     toolkit.add_tool(tool)
 
-    agent = ToolAgent(llm=llm, 
-        conversation=conversation,
-        toolkit=toolkit)
-    result = agent.exec('Add 512+671')
+    # Use geminitool_model from the fixture
+    agent = ToolAgent(llm=gemini_tool_model, conversation=conversation, toolkit=toolkit)
+    result = agent.exec("Add 512+671")
     assert type(result) == str
-

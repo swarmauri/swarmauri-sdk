@@ -8,58 +8,38 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+@pytest.fixture(scope="module")
+def cohere_model():
     API_KEY = os.getenv("COHERE_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    assert llm.resource == "LLM"
+    return llm
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    API_KEY = os.getenv("COHERE_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.type == "CohereModel"
+def test_ubc_resource(cohere_model):
+    assert cohere_model.resource == "LLM"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    API_KEY = os.getenv("COHERE_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_type(cohere_model):
+    assert cohere_model.type == "CohereModel"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_default_name():
-    API_KEY = os.getenv("COHERE_API_KEY")
-    model = LLM(api_key=API_KEY)
-    assert model.name == "command"
+def test_serialization(cohere_model):
+    assert cohere_model.id == LLM.model_validate_json(cohere_model.model_dump_json()).id
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_no_system_context():
-    API_KEY = os.getenv("COHERE_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_default_name(cohere_model):
+    assert cohere_model.name == "command"
+
+
+@pytest.mark.unit
+def test_no_system_context(cohere_model):
+    model = cohere_model
     conversation = Conversation()
 
     input_data = "Hello"
@@ -72,13 +52,8 @@ def test_no_system_context():
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("COHERE_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_preamble_system_context():
-    API_KEY = os.getenv("COHERE_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_preamble_system_context(cohere_model):
+    model = cohere_model
     conversation = Conversation()
 
     system_context = "Jane knows Martin."
