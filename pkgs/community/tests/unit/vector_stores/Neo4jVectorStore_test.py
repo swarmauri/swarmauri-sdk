@@ -1,11 +1,8 @@
 import os
 import pytest
-import json
-from typing import List
 from dotenv import load_dotenv
-from swarmauri.standard.documents.concrete.Document import Document
-from Neo4jVectorStore import Neo4jVectorStore
-from neo4j import GraphDatabase
+from swarmauri.documents.concrete.Document import Document
+from swarmauri_community.vector_stores.Neo4jVectorStore import Neo4jVectorStore
 
 
 load_dotenv()
@@ -15,6 +12,10 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 COLLECTION_NAME = os.getenv("NEO4J_COLLECTION_NAME", "TestCollection")
 
 
+@pytest.mark.skipif(
+    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.fixture(scope="module")
 def vector_store():
     """
@@ -24,7 +25,7 @@ def vector_store():
         uri=NEO4J_URI,
         user=NEO4J_USER,
         password=NEO4J_PASSWORD,
-        collection_name=COLLECTION_NAME  # If applicable
+        collection_name=COLLECTION_NAME,  # If applicable
     )
     yield store
     # # Teardown: Clean up the test collection if necessary
@@ -35,7 +36,10 @@ def vector_store():
     #     """)
     store.close()
 
-
+@pytest.mark.skipif(
+    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_ubc_type(vector_store):
     """
@@ -43,16 +47,24 @@ def test_ubc_type(vector_store):
     """
     assert vector_store.type == "Neo4jVectorStore"
 
-
+@pytest.mark.skipif(
+    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def test_serialization(vector_store):
     """
     Test to verify serialization and deserialization of Neo4jVectorStore.
     """
 
-    assert vector_store.id == Neo4jVectorStore.model_validate_json(vector_store.model_dump_json()).id
-
-
+    assert (
+        vector_store.id
+        == Neo4jVectorStore.model_validate_json(vector_store.model_dump_json()).id
+    )
+@pytest.mark.skipif(
+    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    reason="Skipping due to environment variable not set",
+)
 @pytest.mark.unit
 def top_k_test(vector_store):
     documents = [
