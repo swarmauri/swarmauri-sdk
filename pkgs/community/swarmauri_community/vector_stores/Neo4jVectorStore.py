@@ -1,5 +1,5 @@
-from typing import List, Union, Literal
-from pydantic import BaseModel, PrivateAttr
+from typing import List, Union, Literal, Optional
+from pydantic import BaseModel, PrivateAttr, field_validator
 from neo4j import GraphDatabase
 import json
 
@@ -13,33 +13,31 @@ from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
 )
 
 
-class Neo4jVectorStore(
-    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel
-):
-    type: Literal["Neo4jVectorStore"] = "Neo4jVectorStore"
 
-    # Private attributes
-    _driver: PrivateAttr = None
+class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel):
+    type: Literal['Neo4jVectorStore'] = 'Neo4jVectorStore'
+    uri: str
+    user: str
+    password: str
+    collection_name: Optional[str] = None
 
-    def __init__(self, uri: str, user: str, password: str, **kwargs):
-        """
-        Initialize the Neo4jVectorStore.
+    # Private attributes are excluded from serialization by default
+    _driver: Optional[GraphDatabase.driver] = PrivateAttr(default=None)
 
-        :param uri: Neo4j database URI, e.g., "bolt://localhost:7687"
-        :param user: Username for Neo4j
-        :param password: Password for Neo4j
-        :param kwargs: Additional arguments
-        """
-        super().__init__(**kwargs)
-        self._driver = GraphDatabase.driver(uri, auth=(user, password))
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        self._driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
         self._initialize_schema()
 
     def _initialize_schema(self):
         """
         Initialize the Neo4j schema, creating necessary indexes and constraints.
         """
+        
         with self._driver.session() as session:
             # Create a unique constraint on Document ID with a specific constraint name
+
             session.run(
                 """
             CREATE CONSTRAINT unique_document_id IF NOT EXISTS
@@ -48,23 +46,27 @@ class Neo4jVectorStore(
         """
             )
 
+
     def add_document(self, document: Document) -> None:
         """
         Add a single document to the Neo4j store.
 
         :param document: Document to add
         """
+       
         with self._driver.session() as session:
             session.run(
                 """
                 MERGE (d:Document {id: $id})
                 SET d.content = $content,
                     d.metadata = $metadata
+
             """,
                 id=document.id,
                 content=document.content,
                 metadata=json.dumps(document.metadata),
             )
+
 
     def add_documents(self, documents: List[Document]) -> None:
         """
@@ -72,6 +74,7 @@ class Neo4jVectorStore(
 
         :param documents: List of documents to add
         """
+
         with self._driver.session() as session:
             for document in documents:
                 session.run(
@@ -79,11 +82,13 @@ class Neo4jVectorStore(
                     MERGE (d:Document {id: $id})
                     SET d.content = $content,
                         d.metadata = $metadata
+
                 """,
                     id=document.id,
                     content=document.content,
                     metadata=json.dumps(document.metadata),
                 )
+
 
     def get_document(self, id: str) -> Union[Document, None]:
         """
@@ -92,6 +97,7 @@ class Neo4jVectorStore(
         :param id: Document ID
         :return: Document object or None if not found
         """
+        
         with self._driver.session() as session:
             result = session.run(
                 """
@@ -107,6 +113,7 @@ class Neo4jVectorStore(
                     metadata=json.loads(result["metadata"]),
                 )
             return None
+
 
     def get_all_documents(self) -> List[Document]:
         """
@@ -132,12 +139,14 @@ class Neo4jVectorStore(
                 )
             return documents
 
+
     def delete_document(self, id: str) -> None:
         """
         Delete a document by its ID.
 
         :param id: Document ID
         """
+
         with self._driver.session() as session:
             session.run(
                 """
@@ -147,6 +156,7 @@ class Neo4jVectorStore(
                 id=id,
             )
 
+
     def update_document(self, id: str, updated_document: Document) -> None:
         """
         Update an existing document.
@@ -154,12 +164,14 @@ class Neo4jVectorStore(
         :param id: Document ID
         :param updated_document: Document object with updated data
         """
+
         with self._driver.session() as session:
             session.run(
                 """
                 MATCH (d:Document {id: $id})
                 SET d.content = $content,
                     d.metadata = $metadata
+
             """,
                 id=id,
                 content=updated_document.content,
@@ -169,6 +181,7 @@ class Neo4jVectorStore(
     def retrieve(
         self, query: str, top_k: int = 5, string_field: str = "content"
     ) -> List[Document]:
+
         """
         Retrieve the top_k most similar documents to the query based on Levenshtein distance using APOC's apoc.text.distance.
 
@@ -177,12 +190,14 @@ class Neo4jVectorStore(
         :param string_field: Specific field to apply Levenshtein distance (default: 'content')
         :return: List of Document objects
         """
+
         input_text = query
+
         with self._driver.session() as session:
             cypher_query = f"""
                 MATCH (d:Document)
                 RETURN d.id AS id, d.content AS content, d.metadata AS metadata,
-                       apoc.text.distance(d.{string_field}, $input_text) AS distance
+                        apoc.text.distance(d.{string_field}, $input_text) AS distance
                 ORDER BY distance ASC
                 LIMIT $top_k
             """
@@ -203,8 +218,12 @@ class Neo4jVectorStore(
         """
         Close the Neo4j driver connection.
         """
+
         if self._driver:
             self._driver.close()
 
+
     def __del__(self):
         self.close()
+
+
