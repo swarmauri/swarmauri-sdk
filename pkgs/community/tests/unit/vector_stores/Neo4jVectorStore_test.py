@@ -13,7 +13,7 @@ COLLECTION_NAME = os.getenv("NEO4J_COLLECTION_NAME", "TestCollection")
 
 
 @pytest.mark.skipif(
-    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    not os.getenv("NEO4J_PASSWORD"),
     reason="Skipping due to environment variable not set",
 )
 @pytest.fixture(scope="module")
@@ -36,8 +36,9 @@ def vector_store():
     #     """)
     store.close()
 
+
 @pytest.mark.skipif(
-    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    not os.getenv("NEO4J_PASSWORD"),
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
@@ -47,8 +48,9 @@ def test_ubc_type(vector_store):
     """
     assert vector_store.type == "Neo4jVectorStore"
 
+
 @pytest.mark.skipif(
-    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    not os.getenv("NEO4J_PASSWORD"),
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
@@ -61,8 +63,10 @@ def test_serialization(vector_store):
         vector_store.id
         == Neo4jVectorStore.model_validate_json(vector_store.model_dump_json()).id
     )
+
+
 @pytest.mark.skipif(
-    not os.getenv("NEO4J_PASSWORD") and not os.getenv("NEO4J_URI"),
+    not os.getenv("NEO4J_PASSWORD"),
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
