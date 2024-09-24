@@ -19,8 +19,8 @@ setup(
         "requests",
         "pydantic",
         "pymupdf",
-        "swarmauri-core==0.5.0.dev7",
-        "swarmauri==0.5.0.dev7"
+        "swarmauri-core==0.5.0.dev8",
+        "swarmauri==0.5.0.dev8"
     ],
     extras_require={
         "full": [
