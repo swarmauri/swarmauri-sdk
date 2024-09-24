@@ -9,11 +9,15 @@ from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.agents.concrete.RagAgent import RagAgent
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("GROQ_API_KEY")
 
 
 @pytest.mark.unit
 def test_ubc_resource():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqModel(api_key=API_KEY)
     system_context = SystemMessage(content="Your name is Jeff.")
     conversation = MaxSystemContextConversation(
@@ -39,7 +43,6 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqModel(api_key=API_KEY)
     system_context = SystemMessage(content="Your name is Jeff.")
     conversation = MaxSystemContextConversation(
@@ -65,7 +68,6 @@ def test_ubc_type():
 
 @pytest.mark.unit
 def test_serialization():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqModel(api_key=API_KEY)
     system_context = SystemMessage(content="Your name is Jeff.")
     conversation = MaxSystemContextConversation(
