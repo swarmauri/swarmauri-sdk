@@ -3,10 +3,15 @@ from pydantic import BaseModel, PrivateAttr, field_validator
 from neo4j import GraphDatabase
 import json
 
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.standard.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.standard.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
-from swarmauri.standard.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+    VectorStoreRetrieveMixin,
+)
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+    VectorStoreSaveLoadMixin,
+)
+
 
 
 class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel):
@@ -32,11 +37,15 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         
         with self._driver.session() as session:
             # Create a unique constraint on Document ID with a specific constraint name
-            session.run("""
-                CREATE CONSTRAINT unique_document_id IF NOT EXISTS
-                FOR (d:Document)
-                REQUIRE d.id IS UNIQUE
-            """)
+
+            session.run(
+                """
+            CREATE CONSTRAINT unique_document_id IF NOT EXISTS
+            FOR (d:Document)
+            REQUIRE d.id IS UNIQUE
+        """
+            )
+
 
     def add_document(self, document: Document) -> None:
         """
@@ -46,11 +55,17 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
        
         with self._driver.session() as session:
-            session.run("""
+            session.run(
+                """
                 MERGE (d:Document {id: $id})
                 SET d.content = $content,
                     d.metadata = $metadata
-            """, id=document.id, content=document.content, metadata=json.dumps(document.metadata))
+
+            """,
+                id=document.id,
+                content=document.content,
+                metadata=json.dumps(document.metadata),
+            )
 
 
     def add_documents(self, documents: List[Document]) -> None:
@@ -62,11 +77,17 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
 
         with self._driver.session() as session:
             for document in documents:
-                session.run("""
+                session.run(
+                    """
                     MERGE (d:Document {id: $id})
                     SET d.content = $content,
                         d.metadata = $metadata
-                """, id=document.id, content=document.content, metadata=json.dumps(document.metadata))
+
+                """,
+                    id=document.id,
+                    content=document.content,
+                    metadata=json.dumps(document.metadata),
+                )
 
 
     def get_document(self, id: str) -> Union[Document, None]:
@@ -78,15 +99,18 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
         
         with self._driver.session() as session:
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (d:Document {id: $id})
                 RETURN d.id AS id, d.content AS content, d.metadata AS metadata
-            """, id=id).single()
+            """,
+                id=id,
+            ).single()
             if result:
                 return Document(
-                    id=result['id'],
-                    content=result['content'],
-                    metadata=json.loads(result['metadata'])
+                    id=result["id"],
+                    content=result["content"],
+                    metadata=json.loads(result["metadata"]),
                 )
             return None
 
@@ -98,17 +122,21 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         :return: List of Document objects
         """
         with self._driver.session() as session:
-            results = session.run("""
+            results = session.run(
+                """
                 MATCH (d:Document)
                 RETURN d.id AS id, d.content AS content, d.metadata AS metadata
-            """)
+            """
+            )
             documents = []
             for record in results:
-                documents.append(Document(
-                    id=record['id'],
-                    content=record['content'],
-                    metadata=json.loads(record['metadata'])
-                ))
+                documents.append(
+                    Document(
+                        id=record["id"],
+                        content=record["content"],
+                        metadata=json.loads(record["metadata"]),
+                    )
+                )
             return documents
 
 
@@ -120,10 +148,14 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
 
         with self._driver.session() as session:
-            session.run("""
+            session.run(
+                """
                 MATCH (d:Document {id: $id})
                 DETACH DELETE d
-            """, id=id)
+            """,
+                id=id,
+            )
+
 
     def update_document(self, id: str, updated_document: Document) -> None:
         """
@@ -134,14 +166,22 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
 
         with self._driver.session() as session:
-            session.run("""
+            session.run(
+                """
                 MATCH (d:Document {id: $id})
                 SET d.content = $content,
                     d.metadata = $metadata
-            """, id=id, content=updated_document.content, metadata=json.dumps(updated_document.metadata))
-    
 
-    def retrieve(self, query: str, top_k: int = 5, string_field: str = 'content') -> List[Document]:
+            """,
+                id=id,
+                content=updated_document.content,
+                metadata=json.dumps(updated_document.metadata),
+            )
+
+    def retrieve(
+        self, query: str, top_k: int = 5, string_field: str = "content"
+    ) -> List[Document]:
+
         """
         Retrieve the top_k most similar documents to the query based on Levenshtein distance using APOC's apoc.text.distance.
 
@@ -165,11 +205,13 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
 
             documents = []
             for record in results:
-                documents.append(Document(
-                    id=record['id'],
-                    content=record['content'],
-                    metadata=json.loads(record['metadata'])
-                ))
+                documents.append(
+                    Document(
+                        id=record["id"],
+                        content=record["content"],
+                        metadata=json.loads(record["metadata"]),
+                    )
+                )
             return documents
 
     def close(self):
@@ -181,22 +223,7 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
             self._driver.close()
 
 
-    # Serialization methods
-    def serialize(self) -> str:
-        """
-        Serialize the configuration of the store.
-        """
-        return self.model_dump_json()
+    def __del__(self):
+        self.close()
 
-    @classmethod
-    def deserialize(cls, json_str: str) -> 'Neo4jVectorStore':
-        """
-        Deserialize the JSON string to create a new instance of Neo4jVectorStore.
-        """
-        data = json.loads(json_str)
-        return cls(
-            uri=data['uri'],
-            user=data['user'],
-            password=data['password'],
-            collection_name=data.get('collection_name')
-        )
+

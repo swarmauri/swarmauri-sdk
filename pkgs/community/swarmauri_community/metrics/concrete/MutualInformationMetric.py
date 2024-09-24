@@ -14,6 +14,7 @@ class MutualInformationMetric(MetricBase, MetricCalculateMixin):
     """
 
     type: Literal["MutualInformationMetric"] = "MutualInformationMetric"
+    unit: str = "bits"
 
     def calculate(self, data: pd.DataFrame, target_column: str) -> float:
         """
