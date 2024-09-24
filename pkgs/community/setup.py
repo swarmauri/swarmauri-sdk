@@ -61,6 +61,8 @@ setup(
             "pygithub",
             "pacmap",
             "tf-keras",
+            "pinecone",
+            "neo4j"
         ]
     },
     classifiers=[
