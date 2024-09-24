@@ -64,6 +64,7 @@ setup(
             "tf-keras",
             "pinecone",
             "neo4j",
+            "pinecone"
         ]
     },
     classifiers=[
