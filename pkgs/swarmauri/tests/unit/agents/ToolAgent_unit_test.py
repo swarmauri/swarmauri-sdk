@@ -5,11 +5,15 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("GROQ_API_KEY")
 
 
 @pytest.mark.unit
 def test_ubc_resource():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqToolModel(api_key=API_KEY)
     conversation = Conversation()
     toolkit = Toolkit()
@@ -22,7 +26,6 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqToolModel(api_key=API_KEY)
     conversation = Conversation()
     toolkit = Toolkit()
@@ -35,7 +38,6 @@ def test_ubc_type():
 
 @pytest.mark.unit
 def test_serialization():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqToolModel(api_key=API_KEY)
     conversation = Conversation()
     toolkit = Toolkit()
@@ -48,7 +50,6 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_agent_exec():
-    API_KEY = os.getenv("GROQ_API_KEY")
     llm = GroqToolModel(api_key=API_KEY)
     conversation = Conversation()
     toolkit = Toolkit()
