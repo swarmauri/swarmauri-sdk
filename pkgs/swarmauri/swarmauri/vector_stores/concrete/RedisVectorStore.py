@@ -25,11 +25,11 @@ class RedisVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         redis_host: str = "localhost",
         redis_port: int = 6379,
         redis_password: str = None,
-        embedding_dimension: int = 8000,  
+        embedding_dimension: int = 8000,  # Adjust based on your embedder
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self._embedder = Doc2VecEmbedding()  
+        self._embedder = Doc2VecEmbedding()  # Replace with your specific embedder if different
         self.embedding_dimension = embedding_dimension
 
         # Initialize Redis client
