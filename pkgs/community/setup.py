@@ -22,6 +22,7 @@ setup(
         "neo4j",
         "swarmauri-core==0.5.0.dev8",
         "swarmauri==0.5.0.dev8",
+        "pygithub",
     ],
     extras_require={
         "full": [
@@ -64,7 +65,7 @@ setup(
             "tf-keras",
             "pinecone",
             "neo4j",
-            "pinecone"
+            "pinecone",
         ]
     },
     classifiers=[

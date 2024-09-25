@@ -9,58 +9,40 @@ from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("SHUTTLEAI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+@pytest.fixture(scope="module")
+def shuttleai_tool_model():
     API_KEY = os.getenv("SHUTTLEAI_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    assert llm.resource == "LLM"
+    return llm
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("SHUTTLEAI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    API_KEY = os.getenv("SHUTTLEAI_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.type == "ShuttleAIToolModel"
+def test_ubc_resource(shuttleai_tool_model):
+    assert shuttleai_tool_model.resource == "LLM"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("SHUTTLEAI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    API_KEY = os.getenv("SHUTTLEAI_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_type(shuttleai_tool_model):
+    assert shuttleai_tool_model.type == "ShuttleAIToolModel"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("SHUTTLEAI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_default_name():
-    API_KEY = os.getenv("SHUTTLEAI_API_KEY")
-    model = LLM(api_key=API_KEY)
-    assert model.name == "shuttle-2-turbo"
+def test_serialization(shuttleai_tool_model):
+    assert (
+        shuttleai_tool_model.id
+        == LLM.model_validate_json(shuttleai_tool_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("SHUTTLEAI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_agent_exec():
-    API_KEY = os.getenv("SHUTTLEAI_API_KEY")
-    llm = LLM(api_key=API_KEY)
+def test_default_name(shuttleai_tool_model):
+    assert shuttleai_tool_model.name == "shuttle-2-turbo"
+
+
+@pytest.mark.unit
+def test_agent_exec(shuttleai_tool_model):
     conversation = Conversation()
     toolkit = Toolkit()
     tool = AdditionTool()

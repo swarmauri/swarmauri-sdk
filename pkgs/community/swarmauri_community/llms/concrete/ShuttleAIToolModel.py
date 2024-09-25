@@ -16,18 +16,18 @@ from swarmauri.schema_converters.concrete.ShuttleAISchemaConverter import (
 class ShuttleAIToolModel(LLMBase):
     api_key: str
     allowed_models: List[str] = [
-        "shuttle-2-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-0125-preview",
-        "gpt-4-1106-preview",
-        "gpt-4-0613",
+        "claude-instant-1.1",
+        "gemini-1.0-pro-latest",
+        "gemini-1.5-pro-latest",
         "gpt-3.5-turbo-0125",
         "gpt-3.5-turbo-1106",
-        "claude-instant-1.1",
-        "wizardlm-2-8x22b",
+        "gpt-4-0125-preview",
+        "gpt-4-0613",
+        "gpt-4-1106-preview",
+        "gpt-4-turbo-2024-04-09",
         "mistral-7b-instruct-v0.2",
-        "gemini-1.5-pro-latest",
-        "gemini-1.0-pro-latest",
+        "shuttle-2-turbo",
+        "wizardlm-2-8x22b",
     ]
     name: str = "shuttle-2-turbo"
     type: Literal["ShuttleAIToolModel"] = "ShuttleAIToolModel"
@@ -95,11 +95,10 @@ class ShuttleAIToolModel(LLMBase):
             payload["tone"] = tone
             # Include citations only if citations is True
             if citations:
-                payload['citations'] = True
-
+                payload["citations"] = True
 
         logging.info(f"payload: {payload}")
-        
+
         # First we ask agent to give us a response
         agent_response = requests.request("POST", url, json=payload, headers=headers)
 
@@ -117,7 +116,6 @@ class ShuttleAIToolModel(LLMBase):
             "tool_calls", None
         )
 
-
         # If agent responds with tool call, then we execute the functions
         if tool_calls:
             for tool_call in tool_calls:
@@ -125,24 +123,21 @@ class ShuttleAIToolModel(LLMBase):
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call["function"]["arguments"])
                 func_result = func_call(**func_args)
-                func_message = FunctionMessage(content=func_result, 
-                                               name=func_name, 
-                                               tool_call_id=tool_call['id'])
+                func_message = FunctionMessage(
+                    content=func_result, name=func_name, tool_call_id=tool_call["id"]
+                )
                 conversation.add_message(func_message)
-
-
 
         logging.info(f"conversation: {conversation.history}")
 
-
         # After executing the functions, we present the results to the Agent
-        payload['messages'] = self._format_messages(conversation.history)
+        payload["messages"] = self._format_messages(conversation.history)
 
         logging.info(f"payload: {payload}")
 
         agent_response = requests.request("POST", url, json=payload, headers=headers)
         logging.info(f"agent response {agent_response.json()}")
-        
+
         agent_message = AgentMessage(
             content=agent_response.json()["choices"][0]["message"]["content"]
         )
