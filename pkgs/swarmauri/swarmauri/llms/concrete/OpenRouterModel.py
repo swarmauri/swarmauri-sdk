@@ -357,6 +357,8 @@ class OpenRouterModel(LLMBase):
         else:
             response = requests.post(url, json=payload, headers=headers)
         response_json = json.loads(response.text)
+        if "error" in response_json:
+            raise ValueError(response_json["error"])
         print(response_json)
         message_content = response_json["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))

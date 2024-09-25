@@ -28,4 +28,4 @@ def test_metric_value():
 
 @pytest.mark.unit
 def test_metric_unit():
-    assert Metric(value=10).unit == "percentage"
+    assert Metric(value=10).unit == "bits"

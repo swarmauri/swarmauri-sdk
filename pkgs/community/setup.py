@@ -10,7 +10,7 @@ setup(
     long_description=swarmauri_community.__long_desc__,
     long_description_content_type="text/markdown",
     url="http://github.com/swarmauri/swarmauri-sdk",
-    license='Apache Software License',
+    license="Apache Software License",
     packages=find_packages(
         include=["swarmauri_community*"]
     ),  # Include packages in your_package and libs directories
@@ -19,8 +19,9 @@ setup(
         "requests",
         "pydantic",
         "pymupdf",
+        "neo4j",
         "swarmauri-core==0.5.0.dev8",
-        "swarmauri==0.5.0.dev8"
+        "swarmauri==0.5.0.dev8",
     ],
     extras_require={
         "full": [
@@ -64,6 +65,8 @@ setup(
             "pinecone",
             "neo4j",
             "tiktoken"
+
+
         ]
     },
     classifiers=[

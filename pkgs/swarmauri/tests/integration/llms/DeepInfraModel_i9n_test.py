@@ -8,14 +8,18 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.acceptance
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_nonpreamble_system_context():
+@pytest.fixture(scope="module")
+def deepinfra_model():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    model = LLM(api_key=API_KEY)
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = LLM(api_key=API_KEY)
+    return llm
+
+
+@pytest.mark.acceptance
+def test_nonpreamble_system_context(deepinfra_model):
+    model = deepinfra_model
     conversation = Conversation()
 
     # Say hi
@@ -42,13 +46,8 @@ def test_nonpreamble_system_context():
 
 
 @pytest.mark.acceptance
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_multiple_system_contexts():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_multiple_system_contexts(deepinfra_model):
+    model = deepinfra_model
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'

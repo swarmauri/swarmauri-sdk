@@ -3,63 +3,58 @@ import os
 from swarmauri.llms.concrete.GeminiProModel import GeminiProModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("GEMINI_API_KEY")
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
-    API_KEY = os.getenv("GEMINI_API_KEY")
+@pytest.fixture(scope="module")
+def geminipro_model():
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    assert llm.resource == "LLM"
+    return llm
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    API_KEY = os.getenv("GEMINI_API_KEY")
+def get_allowed_models():
+    if not API_KEY:
+        return []
     llm = LLM(api_key=API_KEY)
-    assert llm.type == "GeminiProModel"
+    return llm.allowed_models
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    API_KEY = os.getenv("GEMINI_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_resource(geminipro_model):
+    assert geminipro_model.resource == "LLM"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_default_name():
-    API_KEY = os.getenv("GEMINI_API_KEY")
-    model = LLM(api_key=API_KEY)
-    assert model.name == "gemini-1.5-pro-latest"
+def test_ubc_type(geminipro_model):
+    assert geminipro_model.type == "GeminiProModel"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_no_system_context():
-    API_KEY = os.getenv("GEMINI_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_serialization(geminipro_model):
+    assert (
+        geminipro_model.id
+        == LLM.model_validate_json(geminipro_model.model_dump_json()).id
+    )
+
+
+@pytest.mark.unit
+def test_default_name(geminipro_model):
+    assert geminipro_model.name == "gemini-1.5-pro-latest"
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_no_system_context(geminipro_model, model_name):
+    model = geminipro_model
+    model.name = model_name
     conversation = Conversation()
 
     input_data = "Hello"
@@ -70,14 +65,11 @@ def test_no_system_context():
     assert type(prediction) == str
 
 
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_preamble_system_context():
-    API_KEY = os.getenv("GEMINI_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_preamble_system_context(geminipro_model, model_name):
+    model = geminipro_model
+    model.name = model_name
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
