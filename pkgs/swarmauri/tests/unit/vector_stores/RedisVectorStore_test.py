@@ -1,14 +1,24 @@
 import pytest
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.vector_stores.concrete.RedisVectorStore import RedisVectorStore
+from dotenv import load_dotenv
+from os import getenv
+
+load_dotenv()
+
+REDIS_HOST = getenv("REDIS_HOST")
+REDIS_PORT = getenv("REDIS_HOST", "12648")
+REDIS_PASSWORD = getenv("REDIS_PASSWORD")
 
 
 @pytest.fixture(scope="module")
 def vector_store():
+    if not all([REDIS_HOST, REDIS_PORT, REDIS_PASSWORD]):
+        pytest.skip("Skipping due to environment variable not set")
     vector_store = RedisVectorStore(
-        redis_host="redis-12648.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-        redis_port=12648,
-        redis_password="EaNg3YcgUW94Uj1P5wT3LScNtM97avu2",  # Replace with your password if needed
+        redis_host=REDIS_HOST,
+        redis_port=REDIS_PORT,
+        redis_password=REDIS_PASSWORD,  # Replace with your password if needed
         embedding_dimension=8000,  # Adjust based on your embedder
     )
     return vector_store
@@ -25,29 +35,17 @@ def sample_document():
 
 
 @pytest.mark.unit
-def test_ubc_resource():
-    vs = RedisVectorStore(
-        redis_host="redis-12648.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-        redis_port=12648,
-        redis_password="EaNg3YcgUW94Uj1P5wT3LScNtM97avu2",  # Replace with your password if needed
-        embedding_dimension=8000,  # Adjust based on your embedder
-    )
-    assert vs.resource == "VectorStore"
+def test_ubc_resource(vector_store):
+    assert vector_store.resource == "VectorStore"
 
 
 @pytest.mark.unit
-def test_ubc_type():
-    vs = RedisVectorStore(
-        redis_host="redis-12648.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
-        redis_port=12648,
-        redis_password="EaNg3YcgUW94Uj1P5wT3LScNtM97avu2",
-        embedding_dimension=8000,
-    )
-    assert vs.type == "RedisVectorStore"
+def test_ubc_type(vector_store):
+    assert vector_store.type == "RedisVectorStore"
 
 
 @pytest.mark.unit
-def top_k_test(vs=vector_store):
+def top_k_test(vector_store):
     documents = [
         Document(content="test"),
         Document(content="test1"),
@@ -55,8 +53,8 @@ def top_k_test(vs=vector_store):
         Document(content="test3"),
     ]
 
-    vs.add_documents(documents)
-    assert len(vs.retrieve(query="test", top_k=2)) == 2
+    vector_store.add_documents(documents)
+    assert len(vector_store.retrieve(query="test", top_k=2)) == 2
 
 
 @pytest.mark.unit

@@ -46,7 +46,7 @@ def test_serialization(openrouter_model):
 
 @pytest.mark.unit
 def test_default_name(openrouter_model):
-    assert openrouter_model.name == "01-ai/yi-34b"
+    assert openrouter_model.name == "mistralai/pixtral-12b:free"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -68,6 +68,7 @@ def test_no_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
+    failed_models = []
     model = openrouter_model
     model.name = model_name
     conversation = Conversation()
@@ -86,5 +87,6 @@ def test_preamble_system_context(openrouter_model, model_name):
         assert isinstance(prediction, str)
         assert "Jeff" in prediction
     except Exception as e:
+        failed_models.append(model.name)
         pytest.fail(f"Error: {e}")
         # pytest.skip(f"Error: {e}")
