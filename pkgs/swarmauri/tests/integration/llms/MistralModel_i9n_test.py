@@ -6,6 +6,9 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @pytest.fixture(scope="module")
