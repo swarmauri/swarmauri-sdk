@@ -86,6 +86,5 @@ def test_preamble_system_context(openrouter_model, model_name):
         assert isinstance(prediction, str)
         assert "Jeff" in prediction
     except Exception as e:
-        failed_models.append(model.name)
         pytest.fail(f"Error: {e}")
         # pytest.skip(f"Error: {e}")
