@@ -8,58 +8,41 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-@pytest.mark.unit
-def test_ubc_resource():
+@pytest.fixture(scope="module")
+def anthropic_model():
     API_KEY = os.getenv("ANTHROPIC_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    assert llm.resource == "LLM"
+    return llm
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_ubc_type():
-    API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.type == "AnthropicModel"
+def test_ubc_resource(anthropic_model):
+    assert anthropic_model.resource == "LLM"
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_serialization():
-    API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_type(anthropic_model):
+    assert anthropic_model.type == "AnthropicModel"
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_default_name():
-    API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    model = LLM(api_key=API_KEY)
-    assert model.name == "claude-3-haiku-20240307"
+def test_serialization(anthropic_model):
+    assert (
+        anthropic_model.id
+        == LLM.model_validate_json(anthropic_model.model_dump_json()).id
+    )
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_no_system_context():
-    API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_default_name(anthropic_model):
+    assert anthropic_model.name == "claude-3-haiku-20240307"
+
+
+@pytest.mark.unit
+def test_no_system_context(anthropic_model):
+    model = anthropic_model
     conversation = Conversation()
 
     input_data = "Hello"
@@ -71,14 +54,9 @@ def test_no_system_context():
     assert type(prediction) == str
 
 
-@pytest.mark.skipif(
-    not os.getenv("ANTHROPIC_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_preamble_system_context():
-    API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_preamble_system_context(anthropic_model):
+    model = anthropic_model
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'

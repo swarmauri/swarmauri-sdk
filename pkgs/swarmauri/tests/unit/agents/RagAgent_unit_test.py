@@ -1,6 +1,5 @@
 import pytest
 import os
-
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.conversations.concrete.MaxSystemContextConversation import (
     MaxSystemContextConversation,
@@ -13,22 +12,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("GROQ_API_KEY")
 
+@pytest.fixture(scope="module")
+def rag_agent():
+    API_KEY = os.getenv("GROQ_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
 
-@pytest.mark.unit
-def test_ubc_resource():
     llm = GroqModel(api_key=API_KEY)
     system_context = SystemMessage(content="Your name is Jeff.")
     conversation = MaxSystemContextConversation(
         system_context=system_context, max_size=4
     )
     vector_store = TfidfVectorStore()
+
     documents = [
         Document(content="Their sister's name is Jane."),
         Document(content="Their mother's name is Jean."),
         Document(content="Their father's name is Joseph."),
-        Document(content="Their grandather's name is Alex."),
+        Document(content="Their grandfather's name is Alex."),
     ]
     vector_store.add_documents(documents)
 
@@ -38,54 +40,19 @@ def test_ubc_resource():
         system_context=system_context,
         vector_store=vector_store,
     )
-    assert agent.resource == "Agent"
+    return agent
 
 
 @pytest.mark.unit
-def test_ubc_type():
-    llm = GroqModel(api_key=API_KEY)
-    system_context = SystemMessage(content="Your name is Jeff.")
-    conversation = MaxSystemContextConversation(
-        system_context=system_context, max_size=4
-    )
-    vector_store = TfidfVectorStore()
-    documents = [
-        Document(content="Their sister's name is Jane."),
-        Document(content="Their mother's name is Jean."),
-        Document(content="Their father's name is Joseph."),
-        Document(content="Their grandather's name is Alex."),
-    ]
-    vector_store.add_documents(documents)
-
-    agent = RagAgent(
-        llm=llm,
-        conversation=conversation,
-        system_context=system_context,
-        vector_store=vector_store,
-    )
-    assert agent.type == "RagAgent"
+def test_ubc_resource(rag_agent):
+    assert rag_agent.resource == "Agent"
 
 
 @pytest.mark.unit
-def test_serialization():
-    llm = GroqModel(api_key=API_KEY)
-    system_context = SystemMessage(content="Your name is Jeff.")
-    conversation = MaxSystemContextConversation(
-        system_context=system_context, max_size=4
-    )
-    vector_store = TfidfVectorStore()
-    documents = [
-        Document(content="Their sister's name is Jane."),
-        Document(content="Their mother's name is Jean."),
-        Document(content="Their father's name is Joseph."),
-        Document(content="Their grandather's name is Alex."),
-    ]
-    vector_store.add_documents(documents)
+def test_ubc_type(rag_agent):
+    assert rag_agent.type == "RagAgent"
 
-    agent = RagAgent(
-        llm=llm,
-        conversation=conversation,
-        system_context=system_context,
-        vector_store=vector_store,
-    )
-    assert agent.id == RagAgent.model_validate_json(agent.model_dump_json()).id
+
+@pytest.mark.unit
+def test_serialization(rag_agent):
+    assert rag_agent.id == RagAgent.model_validate_json(rag_agent.model_dump_json()).id

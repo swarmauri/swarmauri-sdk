@@ -8,58 +8,41 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+@pytest.fixture(scope="module")
+def deepinfra_model():
     API_KEY = os.getenv("DEEPINFRA_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    assert llm.resource == "LLM"
+    return llm
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.type == "DeepInfraModel"
+def test_ubc_resource(deepinfra_model):
+    assert deepinfra_model.resource == "deepinfra_model"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    llm = LLM(api_key=API_KEY)
-    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
+def test_ubc_type(deepinfra_model):
+    assert deepinfra_model.type == "DeepInfraModel"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_default_name():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    model = LLM(api_key=API_KEY)
-    assert model.name == "Qwen/Qwen2-72B-Instruct"
+def test_serialization(deepinfra_model):
+    assert (
+        deepinfra_model.id
+        == LLM.model_validate_json(deepinfra_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_no_system_context():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_default_name(deepinfra_model):
+    assert deepinfra_model.name == "Qwen/Qwen2-72B-Instruct"
+
+
+@pytest.mark.unit
+def test_no_system_context(deepinfra_model):
+    model = deepinfra_model
     conversation = Conversation()
 
     input_data = "Hello"
@@ -72,13 +55,8 @@ def test_no_system_context():
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("DEEPINFRA_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_preamble_system_context():
-    API_KEY = os.getenv("DEEPINFRA_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_preamble_system_context(deepinfra_model):
+    model = deepinfra_model
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'

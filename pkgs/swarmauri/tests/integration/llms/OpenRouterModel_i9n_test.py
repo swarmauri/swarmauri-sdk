@@ -7,14 +7,18 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
-@pytest.mark.skipif(
-    not os.getenv("OPENROUTER_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-@pytest.mark.acceptance
-def test_nonpreamble_system_context():
+@pytest.fixture(scope="module")
+def openrouter_model():
     API_KEY = os.getenv("OPENROUTER_API_KEY")
-    model = LLM(api_key=API_KEY)
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = LLM(api_key=API_KEY)
+    return llm
+
+
+@pytest.mark.acceptance
+def test_nonpreamble_system_context(openrouter_model):
+    model = openrouter_model
     conversation = Conversation()
 
     # Say hi
@@ -40,14 +44,9 @@ def test_nonpreamble_system_context():
     assert "Jeff" in prediction
 
 
-@pytest.mark.skipif(
-    not os.getenv("OPENROUTER_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.acceptance
-def test_multiple_system_contexts():
-    API_KEY = os.getenv("OPENROUTER_API_KEY")
-    model = LLM(api_key=API_KEY)
+def test_multiple_system_contexts(openrouter_model):
+    model = openrouter_model
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
