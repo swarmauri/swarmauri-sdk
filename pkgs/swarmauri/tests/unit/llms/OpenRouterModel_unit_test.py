@@ -20,6 +20,8 @@ def openrouter_model():
 
 
 def get_allowed_models():
+    if not API_KEY:
+        return []
     llm = LLM(api_key=API_KEY)
     return llm.allowed_models
 
