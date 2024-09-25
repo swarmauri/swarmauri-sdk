@@ -65,7 +65,7 @@ setup(
             "tf-keras",
             "pinecone",
             "neo4j",
-            "pinecone",
+            "tiktoken",
         ]
     },
     classifiers=[
