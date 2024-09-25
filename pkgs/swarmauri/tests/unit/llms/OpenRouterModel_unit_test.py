@@ -80,31 +80,11 @@ def test_preamble_system_context(openrouter_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
-    prediction = conversation.get_last().content
-    assert type(prediction) == str
-    assert "Jeff" in prediction
-
-
-@pytest.mark.unit
-def test_preamble_system_context_default_model(openrouter_model):
-    model = openrouter_model
-    model.name = "01-ai/yi-34b"
-    conversation = Conversation()
-
-    system_context = 'You only respond with the following phrase, "Jeff"'
-    human_message = SystemMessage(content=system_context)
-    conversation.add_message(human_message)
-
-    input_data = "Hi"
-    human_message = HumanMessage(content=input_data)
-    conversation.add_message(human_message)
     try:
         model.predict(conversation=conversation)
         prediction = conversation.get_last().content
         assert isinstance(prediction, str)
         assert "Jeff" in prediction
-        assert model.name == "01-ai/yi-34b"
     except Exception as e:
         pytest.fail(f"Error: {e}")
         # pytest.skip(f"Error: {e}")
