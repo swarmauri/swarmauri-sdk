@@ -62,7 +62,8 @@ setup(
             "pacmap",
             "tf-keras",
             "pinecone",
-            "neo4j"
+            "neo4j",
+            "tiktoken"
         ]
     },
     classifiers=[
