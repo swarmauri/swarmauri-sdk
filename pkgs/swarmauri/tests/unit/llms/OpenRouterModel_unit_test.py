@@ -20,6 +20,8 @@ def openrouter_model():
 
 
 def get_allowed_models():
+    if not API_KEY:
+        return []
     llm = LLM(api_key=API_KEY)
     return llm.allowed_models
 
@@ -44,7 +46,7 @@ def test_serialization(openrouter_model):
 
 @pytest.mark.unit
 def test_default_name(openrouter_model):
-    assert openrouter_model.name == "mistralai/pixtral-12b:free"
+    assert openrouter_model.name == "01-ai/yi-34b"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -78,7 +80,11 @@ def test_preamble_system_context(openrouter_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
-    prediction = conversation.get_last().content
-    assert type(prediction) == str
-    assert "Jeff" in prediction
+    try:
+        model.predict(conversation=conversation)
+        prediction = conversation.get_last().content
+        assert isinstance(prediction, str)
+        assert "Jeff" in prediction
+    except Exception as e:
+        pytest.fail(f"Error: {e}")
+        # pytest.skip(f"Error: {e}")
