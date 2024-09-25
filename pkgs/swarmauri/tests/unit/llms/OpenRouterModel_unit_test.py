@@ -46,7 +46,7 @@ def test_serialization(openrouter_model):
 
 @pytest.mark.unit
 def test_default_name(openrouter_model):
-    assert openrouter_model.name == "mistralai/pixtral-12b:free"
+    assert openrouter_model.name == "mistralai/mistral-7b-instruct-v0.1"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -68,7 +68,6 @@ def test_no_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
-    failed_models = []
     model = openrouter_model
     model.name = model_name
     conversation = Conversation()
