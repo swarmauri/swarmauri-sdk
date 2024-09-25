@@ -19,7 +19,7 @@ def deepinfra_model():
 
 @pytest.mark.unit
 def test_ubc_resource(deepinfra_model):
-    assert deepinfra_model.resource == "deepinfra_model"
+    assert deepinfra_model.resource == "LLM"
 
 
 @pytest.mark.unit
