@@ -2,18 +2,26 @@ import pytest
 import os
 from swarmauri.llms.concrete.OpenRouterModel import OpenRouterModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 @pytest.fixture(scope="module")
 def openrouter_model():
-    API_KEY = os.getenv("OPENROUTER_API_KEY")
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
     return llm
+
+
+def get_allowed_models():
+    llm = LLM(api_key=API_KEY)
+    return llm.allowed_models
 
 
 @pytest.mark.unit
@@ -39,9 +47,11 @@ def test_default_name(openrouter_model):
     assert openrouter_model.name == "mistralai/pixtral-12b:free"
 
 
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_no_system_context(openrouter_model):
+def test_no_system_context(openrouter_model, model_name):
     model = openrouter_model
+    model.name = model_name
     conversation = Conversation()
 
     input_data = "Hello"
@@ -53,9 +63,11 @@ def test_no_system_context(openrouter_model):
     assert type(prediction) == str
 
 
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_preamble_system_context(openrouter_model):
+def test_preamble_system_context(openrouter_model, model_name):
     model = openrouter_model
+    model.name = model_name
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'

@@ -3,18 +3,28 @@ import os
 from swarmauri.llms.concrete.DeepSeekModel import DeepSeekModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 
 @pytest.fixture(scope="module")
 def deepseek_model():
-    API_KEY = os.getenv("DEEPSEEK_API_KEY")
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
     return llm
+
+
+def get_allowed_models():
+    if not API_KEY:
+        return []
+    llm = LLM(api_key=API_KEY)
+    return llm.allowed_models
 
 
 @pytest.mark.unit

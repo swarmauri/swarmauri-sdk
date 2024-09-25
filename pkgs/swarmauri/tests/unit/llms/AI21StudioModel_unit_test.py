@@ -3,18 +3,28 @@ import pytest
 from swarmauri.llms.concrete.AI21StudioModel import AI21StudioModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("AI21STUDIO_API_KEY")
 
 
 @pytest.fixture(scope="module")
 def ai21studio_model():
-    API_KEY = os.getenv("AI21STUDIO_API_KEY")
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
     return llm
+
+
+def get_allowed_models():
+    if not API_KEY:
+        return []
+    llm = LLM(api_key=API_KEY)
+    return llm.allowed_models
 
 
 @pytest.mark.unit
@@ -41,8 +51,10 @@ def test_default_name(ai21studio_model):
 
 
 @pytest.mark.unit
-def test_no_system_context(ai21studio_model):
+@pytest.mark.parametrize("model_name", get_allowed_models())
+def test_no_system_context(ai21studio_model, model_name):
     model = ai21studio_model
+    model.name = model_name
     conversation = Conversation()
 
     input_data = "Hello"
@@ -51,12 +63,15 @@ def test_no_system_context(ai21studio_model):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert isinstance(prediction, str)
 
 
 @pytest.mark.unit
-def test_preamble_system_context(ai21studio_model):
+@pytest.mark.parametrize("model_name", get_allowed_models())
+def test_preamble_system_context(ai21studio_model, model_name):
     model = ai21studio_model
+    model.name = model_name
+
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -70,4 +85,4 @@ def test_preamble_system_context(ai21studio_model):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert "Jeff" in prediction
+    assert "Jeff" in prediction, f"Test failed for model: {model_name}"
