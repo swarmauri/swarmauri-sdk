@@ -18,7 +18,7 @@ def mistral_tool_model():
 
 @pytest.mark.unit
 def test_ubc_resource(mistral_tool_model):
-    assert mistral_tool_model.resource == "mistral_tool_model"
+    assert mistral_tool_model.resource == "LLM"
 
 
 @pytest.mark.unit
