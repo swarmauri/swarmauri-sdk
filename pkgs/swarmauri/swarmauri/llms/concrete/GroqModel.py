@@ -17,7 +17,6 @@ class GroqModel(LLMBase):
         "llama3-70b-8192",
         "mixtral-8x7b-32768",
         "gemma-7b-it",
-        "gemma-2-9b-it",
         "llama-3.1-70b-versatile",
         "llama-3.1-8b-instant",
         "llava-v1.5-7b-4096-preview",
