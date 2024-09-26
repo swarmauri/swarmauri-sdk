@@ -22,7 +22,9 @@ def vector_store():
     Fixture to initialize and teardown the Neo4jVectorStore.
     """
     if not all([NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD]):
-        pytest.fail("NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD must be set in environment variables.")
+        pytest.fail(
+            "NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD must be set in environment variables."
+        )
 
     store = Neo4jVectorStore(
         uri=NEO4J_URI,
@@ -34,14 +36,15 @@ def vector_store():
     # Teardown: Clean up the test collection if necessary
     try:
         with store._driver.session() as session:
-            session.run("""
+            session.run(
+                """
                 MATCH (d:Document)
                 DETACH DELETE d
-            """)
+            """
+            )
     except Exception as e:
         pytest.fail(f"Teardown failed: {e}")
     store.close()
-
 
 
 @pytest.mark.skipif(
@@ -51,11 +54,15 @@ def vector_store():
 @pytest.fixture
 def sample_documents():
     return [
-        Document(id="doc_sample_1", content="Sample Content 1", metadata={"key": "value1"}),
-        Document(id="doc_sample_2", content="Sample Content 2", metadata={"key": "value2"}),
+        Document(
+            id="doc_sample_1", content="Sample Content 1", metadata={"key": "value1"}
+        ),
+        Document(
+            id="doc_sample_2", content="Sample Content 2", metadata={"key": "value2"}
+        ),
     ]
 
-  
+
 @pytest.mark.unit
 def test_ubc_type(vector_store):
     """
@@ -77,7 +84,6 @@ def test_serialization(vector_store):
         vector_store.id
         == Neo4jVectorStore.model_validate_json(vector_store.model_dump_json()).id
     )
-
 
 
 @pytest.mark.skipif(
@@ -102,19 +108,19 @@ def top_k_test(vector_store):
     assert retrieved_ids == expected_ids
 
 
-@pytest.mark.unit 
+@pytest.mark.unit
 def test_add_document(vector_store):
     doc = Document(
         id="doc_add_1",
         content="This is a sample document.",
-        metadata={"author": "John Doe", "title": "Sample Document"}
+        metadata={"author": "John Doe", "title": "Sample Document"},
     )
     vector_store.add_document(doc)
     retrieved_doc = vector_store.get_document("doc_add_1")
     assert retrieved_doc == doc
 
 
-@pytest.mark.unit 
+@pytest.mark.unit
 def test_add_documents(vector_store, sample_documents):
     vector_store.add_documents(sample_documents)
     for doc in sample_documents:

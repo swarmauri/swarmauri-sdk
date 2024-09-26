@@ -1,54 +1,39 @@
 import os
 from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
-
 import pytest
 from swarmauri_community.tools.concrete.GithubTool import GithubTool as Tool
 
 load_dotenv()
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+# Fixture to handle Github Tool token retrieval and skipping if not set
+@pytest.fixture(scope="module")
+def github_tool():
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.resource == "Tool"
+    if not token:
+        pytest.skip("Skipping tests due to missing GITHUBTOOL_TEST_TOKEN")
+    return Tool(token=token)
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    assert Tool(token=token).type == "GithubTool"
+def test_ubc_resource(github_tool):
+    assert github_tool.resource == "Tool"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_initialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert type(tool.id) == str
+def test_ubc_type(github_tool):
+    assert github_tool.type == "GithubTool"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+def test_initialization(github_tool):
+    assert type(github_tool.id) == str
+
+
+@pytest.mark.unit
+def test_serialization(github_tool):
+    assert github_tool.id == Tool.model_validate_json(github_tool.model_dump_json()).id
 
 
 @pytest.mark.parametrize(
@@ -188,16 +173,10 @@ def test_serialization():
         ("invalid_action", {}, None),
     ],
 )
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
 @patch("swarmauri_community.tools.concrete.GithubTool.Github")
-def test_call(mock_github, action, kwargs, method_called):
+def test_call(mock_github, github_tool, action, kwargs, method_called):
     expected_keys = {action}
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
 
     mock_github.return_value = MagicMock()
 
@@ -207,7 +186,7 @@ def test_call(mock_github, action, kwargs, method_called):
             method_called,
             return_value="performed a test action successfully",
         ) as mock_method:
-            result = tool(action=action, **kwargs)
+            result = github_tool(action=action, **kwargs)
 
             mock_method.assert_called_once_with(**kwargs)
 
@@ -219,8 +198,8 @@ def test_call(mock_github, action, kwargs, method_called):
             ), f"Expected keys {expected_keys} but got {result.keys()}"
             assert isinstance(
                 result.get(action), str
-            ), f"Expected int, but got {type(result.get(action)).__name__}"
+            ), f"Expected str, but got {type(result.get(action)).__name__}"
             assert result == {f"{action}": "performed a test action successfully"}
     else:
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
-            tool(action=action, **kwargs)
+            github_tool(action=action, **kwargs)

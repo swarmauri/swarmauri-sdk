@@ -11,42 +11,49 @@ URL = os.getenv(
 COLLECTION_NAME = os.getenv("Chromadb_COLLECTION_NAME", "test_collection")
 
 
-@pytest.mark.unit
-def test_ubc_resource():
-    vs = PersistentChromaDBVectorStore(
+# Fixture for creating a PersistentChromaDBVectorStore instance
+@pytest.fixture
+def vector_store():
+    return PersistentChromaDBVectorStore(
         path=URL,
         collection_name=COLLECTION_NAME,
         vector_size=100,
     )
-    assert vs.resource == "VectorStore"
-    assert vs.embedder.resource == "Embedding"
+
+
+# Skipif condition
+chromadb_not_configured = pytest.mark.skipif(
+    URL is None or COLLECTION_NAME is None, reason="ChromaDB is not properly configured"
+)
 
 
 @pytest.mark.unit
-def test_ubc_type():
-    vs = PersistentChromaDBVectorStore(
-        path=URL,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-    )
-    assert vs.type == "PersistentChromaDBVectorStore"
+@chromadb_not_configured
+def test_ubc_resource(vector_store):
+    assert vector_store.resource == "VectorStore"
+    assert vector_store.embedder.resource == "Embedding"
 
 
 @pytest.mark.unit
-def test_serialization():
-    vs = PersistentChromaDBVectorStore(
-        path=URL,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-    )
+@chromadb_not_configured
+def test_ubc_type(vector_store):
+    assert vector_store.type == "PersistentChromaDBVectorStore"
+
+
+@pytest.mark.unit
+@chromadb_not_configured
+def test_serialization(vector_store):
     assert (
-        vs.id
-        == PersistentChromaDBVectorStore.model_validate_json(vs.model_dump_json()).id
+        vector_store.id
+        == PersistentChromaDBVectorStore.model_validate_json(
+            vector_store.model_dump_json()
+        ).id
     )
 
 
 @pytest.mark.unit
-def top_k_test():
+@chromadb_not_configured
+def test_top_k():
     vs = PersistentChromaDBVectorStore(
         path=URL,
         collection_name=COLLECTION_NAME,
