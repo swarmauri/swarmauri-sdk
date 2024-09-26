@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from swarmauri.standard.documents.concrete.Document import Document
-from swarmauri.vector_stores.concrete.RedisVectorStore import RedisVectorStore  
+from swarmauri.documents.concrete.Document import Document
+from swarmauri_community.vector_stores.RedisVectorStore import RedisVectorStore  
 
 @pytest.fixture(scope="module")
 def vector_store():
