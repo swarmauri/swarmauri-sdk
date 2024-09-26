@@ -8,11 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WEAVIATE_URL = os.getenv(
-    "WEAVIATE_URL",
-    "https://p6grmuovrkqie6kafxts2a.c0.asia-southeast1.gcp.weaviate.cloud",
-)
-WEAVIATE_API_KEY = os.getenv("WEAVIATE_URL", "kAF7ar7sZqgFyZEhS4hL9eVAJ3Br5PwJP6An")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL")
+WEAVIATE_API_KEY = os.getenv("WEAVIATE_API_KEY")
 
 
 @pytest.fixture(scope="module")
