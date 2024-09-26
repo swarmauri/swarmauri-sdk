@@ -10,47 +10,42 @@ from swarmauri_community.tools.concrete.GithubCommitTool import (
 load_dotenv()
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+# Fixture for retrieving GitHub token and skipping tests if not available
+@pytest.fixture(scope="module")
+def github_token():
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.resource == "Tool"
+    if not token:
+        pytest.skip("Skipping due to GITHUBTOOL_TEST_TOKEN not set")
+    return token
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    assert Tool(token=token).type == "GithubCommitTool"
+# Fixture for initializing the GithubCommitTool
+@pytest.fixture(scope="module")
+def github_commit_tool(github_token):
+    return Tool(token=github_token)
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_initialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert type(tool.id) == str
+def test_ubc_resource(github_commit_tool):
+    assert github_commit_tool.resource == "Tool"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+def test_ubc_type(github_commit_tool):
+    assert github_commit_tool.type == "GithubCommitTool"
+
+
+@pytest.mark.unit
+def test_initialization(github_commit_tool):
+    assert type(github_commit_tool.id) == str
+
+
+@pytest.mark.unit
+def test_serialization(github_commit_tool):
+    assert (
+        github_commit_tool.id
+        == Tool.model_validate_json(github_commit_tool.model_dump_json()).id
+    )
 
 
 @pytest.mark.parametrize(
@@ -79,16 +74,10 @@ def test_serialization():
         ("invalid_action", {}, None),
     ],
 )
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
 @patch("swarmauri_community.tools.concrete.GithubCommitTool.Github")
-def test_call(mock_github, action, kwargs, method_called):
+def test_call(mock_github, github_commit_tool, action, kwargs, method_called):
     expected_keys = {action}
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
 
     mock_github.return_value = MagicMock()
 
@@ -98,7 +87,7 @@ def test_call(mock_github, action, kwargs, method_called):
             method_called,
             return_value="performed a test action successfully",
         ) as mock_method:
-            result = tool(action=action, **kwargs)
+            result = github_commit_tool(action=action, **kwargs)
 
             mock_method.assert_called_once_with(**kwargs)
 
@@ -114,4 +103,4 @@ def test_call(mock_github, action, kwargs, method_called):
             assert result == {f"{action}": "performed a test action successfully"}
     else:
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
-            tool(action=action, **kwargs)
+            github_commit_tool(action=action, **kwargs)

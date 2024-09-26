@@ -7,50 +7,45 @@ from swarmauri_community.tools.concrete.GithubBranchTool import (
     GithubBranchTool as Tool,
 )
 
+# Load environment variables from the .env file
 load_dotenv()
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_resource():
+# Fixture for retrieving GitHub token and skipping tests if not available
+@pytest.fixture(scope="module")
+def github_token():
     token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.resource == "Tool"
+    if not token:
+        pytest.skip("Skipping due to GITHUBTOOL_TEST_TOKEN not set")
+    return token
 
 
-@pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_ubc_type():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    assert Tool(token=token).type == "GithubBranchTool"
+# Fixture for initializing the GithubBranchTool
+@pytest.fixture(scope="module")
+def github_branch_tool(github_token):
+    return Tool(token=github_token)
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_initialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert type(tool.id) == str
+def test_ubc_resource(github_branch_tool):
+    assert github_branch_tool.resource == "Tool"
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
-def test_serialization():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
-    assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
+def test_ubc_type(github_branch_tool):
+    assert github_branch_tool.type == "GithubBranchTool"
+
+
+@pytest.mark.unit
+def test_initialization(github_branch_tool):
+    assert type(github_branch_tool.id) == str
+
+
+@pytest.mark.unit
+def test_serialization(github_branch_tool):
+    serialized_data = github_branch_tool.model_dump_json()
+    deserialized_tool = Tool.model_validate_json(serialized_data)
+    assert github_branch_tool.id == deserialized_tool.id
 
 
 @pytest.mark.parametrize(
@@ -76,17 +71,12 @@ def test_serialization():
         ("invalid_action", {}, None),
     ],
 )
-@pytest.mark.skipif(
-    not os.getenv("GITHUBTOOL_TEST_TOKEN"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
 @patch("swarmauri_community.tools.concrete.GithubTool.Github")
-def test_call(mock_github, action, kwargs, method_called):
+def test_call(mock_github, github_branch_tool, action, kwargs, method_called):
     expected_keys = {action}
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    tool = Tool(token=token)
 
+    # Mock the GitHub object
     mock_github.return_value = MagicMock()
 
     if method_called is not None:
@@ -95,10 +85,12 @@ def test_call(mock_github, action, kwargs, method_called):
             method_called,
             return_value="performed a test action successfully",
         ) as mock_method:
-            result = tool(action=action, **kwargs)
+            result = github_branch_tool(action=action, **kwargs)
 
+            # Verify the method is called with the correct arguments
             mock_method.assert_called_once_with(**kwargs)
 
+            # Check the result
             assert isinstance(
                 result, dict
             ), f"Expected dict, but got {type(result).__name__}"
@@ -107,8 +99,9 @@ def test_call(mock_github, action, kwargs, method_called):
             ), f"Expected keys {expected_keys} but got {result.keys()}"
             assert isinstance(
                 result.get(action), str
-            ), f"Expected int, but got {type(result.get(action)).__name__}"
+            ), f"Expected str, but got {type(result.get(action)).__name__}"
             assert result == {f"{action}": "performed a test action successfully"}
     else:
+        # If an invalid action is provided, it should raise a ValueError
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
-            tool(action=action, **kwargs)
+            github_branch_tool(action=action, **kwargs)
