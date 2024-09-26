@@ -16,19 +16,20 @@ class PerplexityModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        "llama-3-sonar-small-32k-chat",
-        "llama-3-sonar-small-32k-online",
-        "llama-3-sonar-large-32k-chat",
-        "llama-3-sonar-large-32k-online",
-        "llama-3-8b-instruct",
-        "llama-3-70b-instruct",
-        "llama-3.1-70b-instruct",
         "llama-3.1-sonar-small-128k-online",
         "llama-3.1-sonar-large-128k-online",
         "llama-3.1-sonar-huge-128k-online",
         "llama-3.1-sonar-small-128k-chat",
         "llama-3.1-sonar-large-128k-chat",
         "llama-3.1-8b-instruct",
+        "llama-3.1-70b-instruct",
+        # deprecated: https://docs.perplexity.ai/changelog/changelog#introducing-new-and-improved-sonar-models
+        # "llama-3-sonar-small-32k-chat",
+        # "llama-3-sonar-small-32k-online",
+        # "llama-3-sonar-large-32k-chat",
+        # "llama-3-sonar-large-32k-online",
+        # "llama-3-8b-instruct",
+        # "llama-3-70b-instruct",
     ]
     name: str = "llama-3.1-70b-instruct"
     type: Literal["PerplexityModel"] = "PerplexityModel"
