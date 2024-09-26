@@ -24,6 +24,7 @@ def get_allowed_models():
     if not API_KEY:
         return []
     llm = LLM(api_key=API_KEY)
+    llm.allowed_models.remove("llava-v1.5-7b-4096-preview")
     return llm.allowed_models
 
 
@@ -66,6 +67,35 @@ def test_no_system_context(groq_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+    conversation = Conversation()
+
+    system_context = 'You only respond with the following phrase, "Jeff"'
+    human_message = SystemMessage(content=system_context)
+    conversation.add_message(human_message)
+
+    input_data = "Hi"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
+    assert type(prediction) == str
+    assert "Jeff" in prediction
+
+
+@pytest.mark.unit
+def test_preamble_system_context_custom():
+    """
+    specifically for llava-v1.5-7b-4096-preview
+    """
+    if not API_KEY:
+        return []
+
+    groq_model = LLM(api_key=API_KEY)
+    model_name = "llava-v1.5-7b-4096-preview"
+
     model = groq_model
     model.name = model_name
     conversation = Conversation()

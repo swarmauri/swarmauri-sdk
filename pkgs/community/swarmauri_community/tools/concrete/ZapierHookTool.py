@@ -6,6 +6,22 @@ from swarmauri.tools.concrete.Parameter import Parameter
 from pydantic import Field
 
 
+"""
+- Zapier's webhooks do not require authentication for basic usage,
+    as they are designed to be secure via their unique URLs.
+- The webhook URL (https://hooks.zapier.com/hooks/catch/{zap_id}/) includes
+    a randomly generated identifier that is private to you,
+    ensuring that only those with the specific URL can trigger the Zap.
+
+Reference
+---------------
+- https://www.switchlabs.dev/resources/locating-your-webhook-url-in-zapier
+- https://zapier.com/apps/webhook/integrations
+- https://zapier.com/engineering/webhook-design/
+
+"""
+
+
 class ZapierHookTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(

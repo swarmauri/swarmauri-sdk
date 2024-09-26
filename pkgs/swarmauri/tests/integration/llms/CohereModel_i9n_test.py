@@ -40,7 +40,7 @@ def test_nonpreamble_system_context(cohere_model):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
+    model.predict(conversation=conversation, temperature=0)
     prediction = conversation.get_last().content
     assert "Jeff" in prediction
 
@@ -68,7 +68,7 @@ def test_multiple_system_contexts(cohere_model):
     human_message = HumanMessage(content=input_data_2)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
+    model.predict(conversation=conversation, temperature=0)
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Ben" in prediction
