@@ -63,9 +63,11 @@ setup(
             "pygithub",
             "pacmap",
             "tf-keras",
-            "pinecone",
+            "pinecone[grpc]",
             "neo4j",
             "tiktoken",
+            "redis",
+            "textstat",
         ]
     },
     classifiers=[

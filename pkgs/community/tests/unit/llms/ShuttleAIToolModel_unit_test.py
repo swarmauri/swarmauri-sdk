@@ -48,6 +48,8 @@ def test_agent_exec(shuttleai_tool_model):
     tool = AdditionTool()
     toolkit.add_tool(tool)
 
-    agent = ToolAgent(llm=llm, conversation=conversation, toolkit=toolkit)
+    agent = ToolAgent(
+        llm=shuttleai_tool_model, conversation=conversation, toolkit=toolkit
+    )
     result = agent.exec("Add 512+671")
     assert type(result) == str

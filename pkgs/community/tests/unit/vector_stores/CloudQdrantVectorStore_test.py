@@ -5,69 +5,50 @@ from swarmauri_community.vector_stores.CloudQdrantVectorStore import (
     CloudQdrantVectorStore,
 )
 
-API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
-URL = os.getenv("QDRANT_URL_KEY")
 
+# Fixture to initialize CloudQdrantVectorStore and check for required environment variables
+@pytest.fixture(scope="module")
+def cloud_qdrant_vector_store():
+    API_KEY = os.getenv("QDRANT_API_KEY")
+    COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME")
+    URL = os.getenv("QDRANT_URL_KEY")
 
-@pytest.mark.skipif(
-    not os.getenv("QDRANT_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-@pytest.mark.unit
-def test_ubc_resource():
+    # Skip tests if required environment variables are not set
+    if not API_KEY or not COLLECTION_NAME or not URL:
+        pytest.skip("Skipping tests due to missing environment variables.")
+
+    # Return the initialized vector store
     vs = CloudQdrantVectorStore(
         api_key=API_KEY,
         collection_name=COLLECTION_NAME,
         vector_size=100,
         url=URL,
     )
+    return vs
+
+
+@pytest.mark.unit
+def test_ubc_resource(cloud_qdrant_vector_store):
+    vs = cloud_qdrant_vector_store
     assert vs.resource == "VectorStore"
     assert vs.embedder.resource == "Embedding"
 
 
-@pytest.mark.skipif(
-    not os.getenv("QDRANT_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_ubc_type():
-    vs = CloudQdrantVectorStore(
-        api_key=API_KEY,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-        url=URL,
-    )
+def test_ubc_type(cloud_qdrant_vector_store):
+    vs = cloud_qdrant_vector_store
     assert vs.type == "CloudQdrantVectorStore"
 
 
-@pytest.mark.skipif(
-    not os.getenv("QDRANT_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def test_serialization():
-    vs = CloudQdrantVectorStore(
-        api_key=API_KEY,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-        url=URL,
-    )
+def test_serialization(cloud_qdrant_vector_store):
+    vs = cloud_qdrant_vector_store
     assert vs.id == CloudQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
 
 
-@pytest.mark.skipif(
-    not os.getenv("QDRANT_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
 @pytest.mark.unit
-def top_k_test():
-    vs = CloudQdrantVectorStore(
-        api_key=API_KEY,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-        url=URL,
-    )
+def test_top_k(cloud_qdrant_vector_store):
+    vs = cloud_qdrant_vector_store
     documents = [
         Document(content="test"),
         Document(content="test1"),
