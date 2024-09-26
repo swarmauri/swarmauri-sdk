@@ -7,40 +7,34 @@ from swarmauri_community.tools.concrete.ZapierHookTool import (
     ZapierHookTool as Tool,
 )
 
-headers = {"Authorization": "Bearer dummy_token", "Content-Type": "application/json"}
-
 
 @pytest.mark.unit
 def test_ubc_resource():
-    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
+    tool = Tool(zap_url="dummy_zap_id")
     assert tool.resource == "Tool"
 
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert (
-        Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers).type
-        == "ZapierHookTool"
-    )
+    assert Tool(zap_url="dummy_zap_id").type == "ZapierHookTool"
 
 
 @pytest.mark.unit
 def test_initialization():
-    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
+    tool = Tool(zap_url="dummy_zap_id")
     assert type(tool.id) == str
 
 
 @pytest.mark.unit
 def test_serialization():
-    tool = Tool(auth_token="dummy_token", zap_id="dummy_zap_id", headers=headers)
+    tool = Tool(zap_url="dummy_zap_id")
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 
 @pytest.mark.parametrize(
-    "tool_type, payload, response_status, response_json, expected_output, should_raise",
+    "payload, response_status, response_json, expected_output, should_raise",
     [
         (
-            "ZapierHookTool",
             '{"key": "value"}',
             200,
             {"status": "success"},
@@ -48,7 +42,6 @@ def test_serialization():
             False,  # Add the missing value for 'should_raise'
         ),  # Valid case: successful zap execution
         (
-            "ZapierHookTool",
             '{"key": "value"}',
             404,
             None,
@@ -56,7 +49,6 @@ def test_serialization():
             True,  # Add the missing value for 'should_raise'
         ),  # Invalid case: 404 Not Found error
         (
-            "ZapierHookTool",
             '{"key": "value"}',
             500,
             None,
@@ -69,20 +61,13 @@ def test_serialization():
 @pytest.mark.unit
 def test_call(
     mock_post,
-    tool_type,
     payload,
     response_status,
     response_json,
     expected_output,
     should_raise,
 ):
-    tool = Tool(
-        auth_token="dummy_token",
-        zap_id="dummy_zap_id",
-        type=tool_type,
-        name=tool_type,
-        headers=headers,
-    )
+    tool = Tool(zap_url="dummy_zap_url")
     mock_response = mock_post.return_value
     mock_response.status_code = response_status
     if response_json is not None:
@@ -109,7 +94,6 @@ def test_call(
         assert output == expected_output
 
     mock_post.assert_called_with(
-        "https://hooks.zapier.com/hooks/catch/dummy_zap_id/",
-        headers=tool.headers,
+        "dummy_zap_url",
         json={"data": payload},
     )
