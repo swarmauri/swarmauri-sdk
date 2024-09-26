@@ -20,6 +20,8 @@ def openrouter_model():
 
 
 def get_allowed_models():
+    if not API_KEY:
+        return []
     llm = LLM(api_key=API_KEY)
     return llm.allowed_models
 
@@ -66,6 +68,7 @@ def test_no_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
+    failed_models = []
     model = openrouter_model
     model.name = model_name
     conversation = Conversation()
@@ -78,7 +81,12 @@ def test_preamble_system_context(openrouter_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
-    prediction = conversation.get_last().content
-    assert type(prediction) == str
-    assert "Jeff" in prediction
+    try:
+        model.predict(conversation=conversation)
+        prediction = conversation.get_last().content
+        assert isinstance(prediction, str)
+        assert "Jeff" in prediction
+    except Exception as e:
+        failed_models.append(model.name)
+        pytest.fail(f"Error: {e}")
+        # pytest.skip(f"Error: {e}")
