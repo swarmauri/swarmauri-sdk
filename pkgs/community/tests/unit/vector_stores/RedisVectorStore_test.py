@@ -1,4 +1,7 @@
 import pytest
+import numpy as np
+from swarmauri.documents.concrete.Document import Document
+from swarmauri_community.vector_stores.RedisVectorStore import RedisVectorStore  
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.vector_stores.concrete.RedisVectorStore import RedisVectorStore
 from dotenv import load_dotenv
