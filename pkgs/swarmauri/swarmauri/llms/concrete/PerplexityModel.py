@@ -11,7 +11,7 @@ from swarmauri.llms.base.LLMBase import LLMBase
 class PerplexityModel(LLMBase):
     """
     Provider resources: https://docs.perplexity.ai/guides/model-cards
-    Link to depreciated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
+    Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
 
     api_key: str
@@ -54,7 +54,6 @@ class PerplexityModel(LLMBase):
         presence_penalty: Optional[float] = None,
         frequency_penalty: Optional[float] = None,
     ):
-
         if top_p and top_k:
             raise ValueError("Do not set top_p and top_k")
 
