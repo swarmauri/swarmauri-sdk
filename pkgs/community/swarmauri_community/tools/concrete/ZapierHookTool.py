@@ -27,13 +27,6 @@ class ZapierHookTool(ToolBase):
     zap_id: str
     headers: Dict[str, str] = Field(init=False)
 
-    def authenticate(self):
-        """Set up the necessary headers for authentication."""
-        self.headers = {
-            "Authorization": f"Bearer {self.auth_token}",
-            "Content-Type": "application/json",
-        }
-
     def execute_zap(self, payload: str) -> str:
         """Execute a zap with given payload.
 
@@ -43,7 +36,11 @@ class ZapierHookTool(ToolBase):
         Returns:
             str: The response from Zapier API.
         """
-        self.authenticate()
+        self.headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Content-Type": "application/json",
+        }
+
         response = requests.post(
             f"https://hooks.zapier.com/hooks/catch/{self.zap_id}/",
             headers=self.headers,
