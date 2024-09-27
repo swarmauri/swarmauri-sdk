@@ -1,10 +1,10 @@
 import pytest
 import os
-from swarmauri.standard.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
-from swarmauri.standard.conversations.concrete.Conversation import Conversation
-from swarmauri.standard.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.standard.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.standard.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
+from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.messages.concrete.HumanMessage import HumanMessage
+from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
 
 @pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
