@@ -102,4 +102,5 @@ def test_call(
     mock_post.assert_called_with(
         "dummy_zap_url",
         json={"data": payload},
+        headers={"Content-Type": zapier_hook_tool.content_type},
     )
