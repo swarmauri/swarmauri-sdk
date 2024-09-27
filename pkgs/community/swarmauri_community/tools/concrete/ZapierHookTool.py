@@ -39,6 +39,7 @@ class ZapierHookTool(ToolBase):
     description: str = "Tool to authenticate with Zapier and execute zaps."
     type: Literal["ZapierHookTool"] = "ZapierHookTool"
 
+    content_type: str = "application/json"
     zap_url: str
 
     def execute_zap(self, payload: str) -> str:
@@ -50,10 +51,12 @@ class ZapierHookTool(ToolBase):
         Returns:
             str: The response from Zapier API.
         """
+        headers = {"Content-Type": self.content_type}
 
         response = requests.post(
             self.zap_url,
             json={"data": payload},
+            headers=headers,
         )
         # Checking the HTTP response status for success or failure
         if response.status_code == 200:
