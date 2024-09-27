@@ -16,7 +16,7 @@ def gemini_pro_model():
     return llm
 
 
-@pytest.fail(reason="This test is expected to fail")
+@pytest.mark.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context(gemini_pro_model):
     model = gemini_pro_model
@@ -45,7 +45,7 @@ def test_nonpreamble_system_context(gemini_pro_model):
     assert "Jeff" in prediction
 
 
-@pytest.fail(reason="This test is expected to fail")
+@pytest.mark.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
 def test_multiple_system_contexts(gemini_pro_model):
     model = gemini_pro_model

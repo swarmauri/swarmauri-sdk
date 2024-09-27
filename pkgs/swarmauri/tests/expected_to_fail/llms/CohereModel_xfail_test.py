@@ -16,7 +16,7 @@ def cohere_model():
     return llm
 
 
-@pytest.fail(reason="This test is expected to fail")
+@pytest.mark.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context(cohere_model):
     model = cohere_model
