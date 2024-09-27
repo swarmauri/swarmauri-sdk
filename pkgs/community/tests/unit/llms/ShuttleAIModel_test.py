@@ -5,7 +5,11 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from time import sleep
 from dotenv import load_dotenv
+
+def go_to_sleep():
+    sleep(0.1)
 
 load_dotenv()
 
@@ -52,6 +56,8 @@ def test_default_name(shuttleai_model):
 
 @pytest.mark.unit
 def test_no_system_context(shuttleai_model):
+    go_to_sleep()
+    
     model = shuttleai_model
     conversation = Conversation()
 
@@ -67,6 +73,8 @@ def test_no_system_context(shuttleai_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_nonpreamble_system_context(shuttleai_model, model_name):
+    go_to_sleep()
+    
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
@@ -97,6 +105,8 @@ def test_nonpreamble_system_context(shuttleai_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(shuttleai_model, model_name):
+    go_to_sleep()
+    
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
@@ -117,6 +127,8 @@ def test_preamble_system_context(shuttleai_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_multiple_system_contexts(shuttleai_model, model_name):
+    go_to_sleep()
+    
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
