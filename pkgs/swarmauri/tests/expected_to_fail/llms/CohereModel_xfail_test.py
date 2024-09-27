@@ -15,6 +15,7 @@ def cohere_model():
     llm = LLM(api_key=API_KEY)
     return llm
 
+
 @pytest.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context(cohere_model):

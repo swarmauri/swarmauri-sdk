@@ -6,6 +6,7 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 
+
 @pytest.fixture(scope="module")
 def gemini_pro_model():
     API_KEY = os.getenv("GEMINI_API_KEY")
@@ -13,6 +14,7 @@ def gemini_pro_model():
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
     return llm
+
 
 @pytest.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
@@ -41,6 +43,7 @@ def test_nonpreamble_system_context(gemini_pro_model):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert "Jeff" in prediction
+
 
 @pytest.fail(reason="This test is expected to fail")
 @pytest.mark.acceptance
