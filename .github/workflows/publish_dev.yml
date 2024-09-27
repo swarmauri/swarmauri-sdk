@@ -143,7 +143,7 @@ jobs:
 
       - name: Publish to PyPI
         if: success()
-        uses: pypa/gh-action-pypi-publish@v1.4.2
+        uses: pypa/gh-action-pypi-publish@v1.10
         with:
           user: cobycloud
           password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
