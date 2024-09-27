@@ -1,4 +1,4 @@
-__version__ = "0.5.0.dev11"
+__version__ = "0.5.0.dev12"
 __long_desc__ = """
 
 # Swarmauri Community
