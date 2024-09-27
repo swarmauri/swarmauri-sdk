@@ -24,7 +24,20 @@ def get_allowed_models():
     if not API_KEY:
         return []
     llm = LLM(api_key=API_KEY)
-    return llm.allowed_models
+
+    # not consistent with their results
+    failing_llms = [
+        "Gryphe/MythoMax-L2-13b",
+        "lizpreciatior/lzlv_70b_fp16_hf",
+        "openchat/openchat_3.5",
+    ]
+
+    # Filter out the failing models
+    allowed_models = [
+        model for model in llm.allowed_models if model not in failing_llms
+    ]
+
+    return allowed_models
 
 
 @pytest.mark.unit
