@@ -20,6 +20,7 @@ setup(
         "pydantic",
         "pymupdf",
         "neo4j",
+        "weaviate-client",
         "swarmauri-core==0.5.0.dev8",
         "swarmauri==0.5.0.dev8",
         "pygithub",
