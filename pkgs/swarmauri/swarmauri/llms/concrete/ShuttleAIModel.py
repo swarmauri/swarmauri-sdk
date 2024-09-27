@@ -56,7 +56,7 @@ class ShuttleAIModel(LLMBase):
         'shuttleai/shuttle-3-mini', 
     ]
     
-    name: str = "shuttle-2-turbo"
+    name: str = "shuttleai/shuttle-3"
     type: Literal["ShuttleAIModel"] = "ShuttleAIModel"
 
     def _format_messages(
