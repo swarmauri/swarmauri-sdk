@@ -5,6 +5,7 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
+from time import sleep
 
 load_dotenv()
 
@@ -18,6 +19,8 @@ def openrouter_model():
     llm = LLM(api_key=API_KEY)
     return llm
 
+def go_to_sleep():
+    sleep(0.25)
 
 def get_allowed_models():
     if not API_KEY:
@@ -61,6 +64,9 @@ def test_default_name(openrouter_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(openrouter_model, model_name):
+    
+    go_to_sleep() # we sleep to prevent 429 errors
+    
     model = openrouter_model
     model.name = model_name
     conversation = Conversation()
@@ -77,6 +83,9 @@ def test_no_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
+    
+    go_to_sleep() # we sleep to prevent 429 errors
+    
     model = openrouter_model
     model.name = model_name
     conversation = Conversation()
