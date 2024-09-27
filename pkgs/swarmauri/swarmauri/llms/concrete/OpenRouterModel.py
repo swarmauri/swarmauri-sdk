@@ -27,7 +27,7 @@ class OpenRouterModel(LLMBase):
         "deepseek/deepseek-chat",
         "google/gemini-flash-1.5",
         "google/gemini-flash-1.5-exp",
-        #"google/gemini-flash-8b-1.5-exp",
+        #"google/gemini-flash-8b-1.5-exp", # experimental model continues to report 429 errors
         "google/gemini-pro",
         "google/gemini-pro-1.5",
         "google/gemini-pro-1.5-exp",
