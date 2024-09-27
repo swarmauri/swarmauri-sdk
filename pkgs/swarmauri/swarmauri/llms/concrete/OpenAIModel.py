@@ -24,19 +24,19 @@ class OpenAIModel(LLMBase):
         "gpt-3.5-turbo",
         "gpt-4o-mini",
         "chatgpt-4o-latest",
-        "gpt-3.5-turbo-instruct",
-        "o1-preview",
-        "o1-mini",
         "gpt-4o-2024-05-13",
         "gpt-4o-2024-08-06",
         "gpt-4o-mini-2024-07-18",
-        "o1-preview-2024-09-12",
-        "o1-mini-2024-09-12",
         "gpt-4-turbo-2024-04-09",
         "gpt-4-0125-preview",
         "gpt-4-0613",
-        "gpt-4-0314",
         "gpt-3.5-turbo-0125",
+        # "gpt-3.5-turbo-instruct", # gpt-3.5-turbo-instruct does not support v1/chat/completions endpoint. only supports (/v1/completions)
+        # "o1-preview",   # Does not support max_tokens and temperature
+        # "o1-mini",      # Does not support max_tokens and temperature
+        # "o1-preview-2024-09-12", # Does not support max_tokens and temperature
+        # "o1-mini-2024-09-12",   # Does not support max_tokens and temperature
+        # "gpt-4-0314",  #  it's deprecated
     ]
     name: str = "gpt-3.5-turbo"
     type: Literal["OpenAIModel"] = "OpenAIModel"
@@ -57,7 +57,7 @@ class OpenAIModel(LLMBase):
         temperature=0.7,
         max_tokens=256,
         enable_json=False,
-        stop: List[str] = None,
+        stop: List[str] = ["\n"],
     ):
         """
         Generate predictions using the OpenAI model.
@@ -67,6 +67,9 @@ class OpenAIModel(LLMBase):
         - temperature (float): Sampling temperature.
         - max_tokens (int): Maximum number of tokens to generate.
         - enable_json (bool): Format response as JSON.
+        - stop (List[str]): List of tokens at which to stop generation.
+                being None causes some models to throw status 400
+                 (*chatgpt-4o-latest*)
 
         Returns:
         - The generated message content.
