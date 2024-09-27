@@ -3,7 +3,7 @@ from pydantic import Field
 from swarmauri.messages.base.MessageBase import MessageBase
 
 class AgentMessage(MessageBase):
-    content: Optional[str] = None
+    content: Optional[Union[str, Dict]] = None
     role: str = Field(default='assistant')
     #tool_calls: Optional[Any] = None
     name: Optional[str] = None
