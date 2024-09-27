@@ -74,7 +74,7 @@ def test_no_system_context(deepinfra_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation, llm_kwargs={"temperature": 0})
+    model.predict(conversation=conversation, {"temperature": 0})
     prediction = conversation.get_last().content
     assert type(prediction) is str
 
@@ -94,7 +94,7 @@ def test_preamble_system_context(deepinfra_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation, llm_kwargs={"temperature": 0})
+    model.predict(conversation=conversation, {"temperature": 0})
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Jeff" in prediction
