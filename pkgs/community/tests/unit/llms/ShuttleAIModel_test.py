@@ -20,6 +20,13 @@ def shuttleai_model():
     return llm
 
 
+def get_allowed_models():
+    if not API_KEY:
+        return []
+    llm = LLM(api_key=API_KEY)
+    return llm.allowed_models
+
+
 @pytest.mark.unit
 def test_ubc_resource(shuttleai_model):
     assert shuttleai_model.resource == "LLM"
@@ -57,9 +64,11 @@ def test_no_system_context(shuttleai_model):
     assert type(prediction) == str
 
 
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_nonpreamble_system_context(shuttleai_model):
+def test_nonpreamble_system_context(shuttleai_model, model_name):
     model = shuttleai_model
+    model.name = model_name
     conversation = Conversation()
 
     # Say hi
@@ -85,9 +94,11 @@ def test_nonpreamble_system_context(shuttleai_model):
     assert "Jeff" in prediction
 
 
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_preamble_system_context(shuttleai_model):
+def test_preamble_system_context(shuttleai_model, model_name):
     model = shuttleai_model
+    model.name = model_name
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -103,10 +114,11 @@ def test_preamble_system_context(shuttleai_model):
     assert type(prediction) == str
     assert "Jeff" in prediction
 
-
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_multiple_system_contexts(shuttleai_model):
+def test_multiple_system_contexts(shuttleai_model, model_name):
     model = shuttleai_model
+    model.name = model_name
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
