@@ -19,7 +19,7 @@ setup(
         "requests",
         "pydantic",
         "swarmauri-core==0.5.0.dev8",
-        "swarmauri==0.5.0.dev8"
+        "swarmauri==0.5.0.dev10"
     ],
     extras_require={
         "full": [
