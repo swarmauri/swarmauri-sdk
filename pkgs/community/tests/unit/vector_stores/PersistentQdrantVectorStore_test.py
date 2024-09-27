@@ -18,11 +18,13 @@ qdrant_not_configured = pytest.mark.skipif(
 # Fixture for creating a PersistentQdrantVectorStore instance
 @pytest.fixture
 def vector_store():
-    return PersistentQdrantVectorStore(
+    vs = PersistentQdrantVectorStore(
         collection_name=COLLECTION_NAME,
         vector_size=100,
         path=URL,
     )
+    vs.connect()
+    return vs
 
 
 @pytest.mark.unit

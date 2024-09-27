@@ -24,6 +24,7 @@ def cloud_qdrant_vector_store():
         vector_size=100,
         url=URL,
     )
+    vs.connect()
     return vs
 
 
