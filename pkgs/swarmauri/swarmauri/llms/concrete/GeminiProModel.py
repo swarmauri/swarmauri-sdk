@@ -14,7 +14,7 @@ class GeminiProModel(LLMBase):
     """
 
     api_key: str
-    allowed_models: List[str] = ["gemini-1.0-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
+    allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
     name: str = "gemini-1.5-pro"
     type: Literal["GeminiProModel"] = "GeminiProModel"
 
