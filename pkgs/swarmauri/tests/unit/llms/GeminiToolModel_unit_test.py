@@ -36,7 +36,7 @@ def test_serialization(gemini_tool_model):
 
 @pytest.mark.unit
 def test_default_name(gemini_tool_model):
-    assert gemini_tool_model.name == "gemini-1.5-pro-latest"
+    assert gemini_tool_model.name == "gemini-1.5-pro"
 
 
 @pytest.mark.unit

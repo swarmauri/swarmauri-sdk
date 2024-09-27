@@ -47,7 +47,7 @@ def test_serialization(geminipro_model):
 
 @pytest.mark.unit
 def test_default_name(geminipro_model):
-    assert geminipro_model.name == "gemini-1.5-pro-latest"
+    assert geminipro_model.name == "gemini-1.5-pro"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
