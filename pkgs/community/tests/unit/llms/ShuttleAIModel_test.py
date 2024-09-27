@@ -47,7 +47,7 @@ def test_serialization(shuttleai_model):
 
 @pytest.mark.unit
 def test_default_name(shuttleai_model):
-    assert shuttleai_model.name == "shuttle-2-turbo"
+    assert shuttleai_model.name == "shuttleai/shuttle-3"
 
 
 @pytest.mark.unit
