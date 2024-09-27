@@ -31,6 +31,7 @@ def get_allowed_models():
         "llama-3.2-90b-text-preview",
         "mixtral-8x7b-32768",
         "llava-v1.5-7b-4096-preview",
+        "llama-guard-3-8b",
     ]
 
     # Filter out the failing models
@@ -96,3 +97,28 @@ def test_preamble_system_context(groq_model, model_name):
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Jeff" in prediction
+
+
+@pytest.mark.unit
+def test_llama_guard_3_8b_no_system_context():
+    """
+    Test case specifically for the llama-guard-3-8b model.
+    This model is designed to classify inputs as safe or unsafe.
+
+    Reference: https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-3/
+    """
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+
+    model = LLM(api_key=API_KEY)
+    model.name = "llama-guard-3-8b"
+    conversation = Conversation()
+
+    input_data = "Hello, how are you?"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
+    assert isinstance(prediction, str)
+    assert "safe" in prediction.lower()
