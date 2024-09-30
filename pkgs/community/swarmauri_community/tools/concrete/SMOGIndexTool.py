@@ -10,7 +10,7 @@ from nltk.tokenize import sent_tokenize
 
 # Download required NLTK data once during module load
 
-nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
 
 
 class SMOGIndexTool(ToolBase):
