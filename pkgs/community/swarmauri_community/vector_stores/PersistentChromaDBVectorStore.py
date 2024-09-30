@@ -28,37 +28,18 @@ class PersistentChromaDBVectorStore(
 ):
     type: Literal["PersistentChromaDBVectorStore"] = "PersistentChromaDBVectorStore"
 
-    def __init__(
-        self,
-        collection_name: str,
-        vector_size: int,
-        path: str = "./chromadb_data",
-        **kwargs,
-    ):
+    def __init__(self, **kwargs):
         """
         Initialize the PersistentChromaDBVectorStore.
 
         Args:
-            collection_name (str): The name of the collection.
-            vector_size (int): The size of the vectors.
-            path (str): The directory where ChromaDB will store its data files.
+            Args:
+            **kwargs: keyword arguments.
         """
-        super().__init__(
-            collection_name=collection_name,
-            path=path,
-            vector_size=vector_size,
-            **kwargs,
-        )
+        super().__init__(**kwargs)
 
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-
-        self.collection_name = collection_name
-        self.path = path
-
-        # Initialize the client and collection later in the connect method
-        self.client = None
-        self.collection = None
 
     def connect(self) -> None:
         """
