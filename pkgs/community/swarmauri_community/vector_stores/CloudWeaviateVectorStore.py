@@ -24,7 +24,7 @@ from swarmauri.vector_stores.base.VectorStorePersistentMixin import (
     VectorStorePersistentMixin,
 )
 
-class CloudWeaviateVectorStore(    VectorStoreSaveLoadMixin,
+class CloudWeaviateVectorStore(VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
     VectorStorePersistentMixin,
     VectorStoreBase,
