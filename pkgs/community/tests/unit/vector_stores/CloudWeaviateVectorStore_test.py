@@ -10,7 +10,8 @@ load_dotenv()
 
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
 WEAVIATE_API_KEY = os.getenv("WEAVIATE_API_KEY")
-
+# WEAVIATE_URL = "https://p6grmuovrkqie6kafxts2a.c0.asia-southeast1.gcp.weaviate.cloud"
+# WEAVIATE_API_KEY = "kAF7ar7sZqgFyZEhS4hL9eVAJ3Br5PwJP6An"
 
 @pytest.fixture(scope="module")
 def vector_store():
@@ -38,7 +39,7 @@ def test_ubc_resource(vector_store):
 @pytest.mark.unit
 def test_serialization(vector_store):
     """
-    Test to verify serialization and deserialization of Neo4jVectorStore.
+    Test to verify serialization and deserialization of CloudWeaviateVectorStore.
     """
     assert (
         vector_store.id
@@ -61,7 +62,7 @@ def test_top_k(vector_store):
         content="The second document contains different information.",
         metadata={"author": "Bob", "date": "2024-09-26"},
     )
-
+    vector_store.connect()
     vector_store.add_document(document1)
     vector_store.add_document(document2)
     assert len(vector_store.retrieve(query="information", top_k=1)) == 1
