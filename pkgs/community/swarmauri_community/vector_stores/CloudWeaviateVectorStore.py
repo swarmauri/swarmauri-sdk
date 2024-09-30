@@ -3,7 +3,6 @@ from weaviate.classes.query import MetadataQuery
 import uuid
 import weaviate
 from weaviate.classes.init import Auth
-from weaviate.util import generate_uuid5
 from swarmauri.vectors.concrete.Vector import Vector
 
 from swarmauri.documents.concrete.Document import (
@@ -24,39 +23,53 @@ from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
     VectorStoreCloudMixin,
 )
 
-class CloudWeaviateVectorStore(
+class CloudQdrantVectorStore(
     VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
     VectorStoreCloudMixin,
-    VectorStoreBase,
+    VectorStoreBase,  # Inherit from VectorStoreBase
 ):
     """
-    CloudWeaviateVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging Weaviate as the backend.
+    CloudQdrantVectorStore is a concrete implementation that integrates functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
     """
 
-    type: Literal["CloudWeaviateVectorStore"] = "CloudWeaviateVectorStore"
+    type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
 
-    def __init__(
-        self, url: str, api_key: str, collection_name: str, vector_size: int, **kwargs
-    ):
 
-        super().__init__(
-            collection_name=collection_name,
-            vector_size=vector_size,
-            api_key=api_key,
-            **kwargs,
-        )
-        self.url = url
-        self.api_key = api_key
-        self.collection_name = collection_name
-        self.vector_size = vector_size
+    # Use PrivateAttr to make _embedder and _distance private
+    _embedder: Doc2VecEmbedding = PrivateAttr()
+    _distance: CosineDistance = PrivateAttr()
+    client: Union[QdrantClient, None] = Field(default=None, init=False)
 
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Initialize _embedder and _distance with private attributes
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
+        self._distance = CosineDistance()
 
-        self.namespace_uuid = uuid.uuid4()
+    def connect(self) -> None:
+        """
+        Connects to the Qdrant cloud vector store using the provided credentials.
+        """
+        if self.client is None:
+            self.client = QdrantClient(
+                api_key=self.api_key,
+                url=self.url,
+            )
 
-        self.client = None
+        # Check if the collection exists
+        existing_collections = self.client.get_collections().collections
+        collection_names = [collection.name for collection in existing_collections]
+
+        if self.collection_name not in collection_names:
+            # Ensure the collection exists with the desired configuration
+            self.client.recreate_collection(
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(
+                    size=self.vector_size, distance=Distance.COSINE
+                ),
+            )
 
     def connect(self, **kwargs) -> None:
         """
