@@ -21,7 +21,3 @@ class VectorStoreCloudMixin(ICloudVectorStore):
     client: Optional[object] = Field(
         None, description="Client object for interacting with the cloud-based store"
     )
-
-    vectorizer: Optional[object] = Field(
-        None, description="Vectorizer object for converting documents to vectors"
-    )

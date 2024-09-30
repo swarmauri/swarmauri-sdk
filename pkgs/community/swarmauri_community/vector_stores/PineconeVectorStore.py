@@ -54,7 +54,6 @@ class PineconeVectorStore(
         )
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
         self._distance = CosineDistance()
-        self.vectorizer = self._embedder
         self.client = None
 
     def delete(self):
@@ -121,9 +120,9 @@ class PineconeVectorStore(
         """
         embedding = None
         if not document.embedding:
-            self.vectorizer.fit([document.content])
+            self._embedder.fit([document.content])
             embedding = (
-                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
         else:
             embedding = document.embedding
@@ -306,7 +305,7 @@ class PineconeVectorStore(
         """
         try:
             embedding = (
-                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
             document.metadata["content"] = document.content
             self.client.update(
@@ -354,7 +353,7 @@ class PineconeVectorStore(
 
         """
         try:
-            query_embedding = self.vectorizer.infer_vector(query).value
+            query_embedding = self._embedder.infer_vector(query).value
             results = self.client.query(
                 vector=query_embedding,
                 top_k=top_k,

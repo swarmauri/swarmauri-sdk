@@ -41,7 +41,6 @@ class PersistentQdrantVectorStore(
             collection_name=collection_name, vector_size=vector_size, **kwargs
         )
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
-        self.vectorizer = self._embedder
         self._distance = CosineDistance()
 
         self.path = path
@@ -86,9 +85,9 @@ class PersistentQdrantVectorStore(
         """
         embedding = None
         if not document.embedding:
-            self.vectorizer.fit([document.content])  # Fit only once
+            self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
         else:
             embedding = document.embedding
@@ -116,7 +115,7 @@ class PersistentQdrantVectorStore(
             PointStruct(
                 id=doc.id,
                 vector=doc.embedding
-                or self.vectorizer.fit_transform([doc.content])[0].to_numpy().tolist(),
+                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
                 payload={"content": doc.content, "metadata": doc.metadata},
             )
             for doc in documents
@@ -184,7 +183,7 @@ class PersistentQdrantVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self.vectorizer.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform([updated_document.content])[0]
         else:
             document_vector = updated_document.embedding
 
@@ -231,7 +230,7 @@ class PersistentQdrantVectorStore(
         Returns:
             List[Document]: A list of the top_k most relevant documents.
         """
-        query_vector = self.vectorizer.infer_vector(query).value
+        query_vector = self._embedder.infer_vector(query).value
         results = self.client.search(
             collection_name=self.collection_name, query_vector=query_vector, limit=top_k
         )

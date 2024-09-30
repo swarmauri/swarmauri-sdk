@@ -53,7 +53,6 @@ class CloudWeaviateVectorStore(
         self.vector_size = vector_size
 
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
-        self.vectorizer = self._embedder
 
         self.namespace_uuid = uuid.uuid4()
 
@@ -93,7 +92,7 @@ class CloudWeaviateVectorStore(
             jeopardy = self.client.collections.get(self.collection_name)
 
             if not document.embedding:
-                embedding = self.vectorizer.fit_transform([document.content])[0]
+                embedding = self._embedder.fit_transform([document.content])[0]
             else:
                 embedding = document.embedding
 
@@ -205,7 +204,7 @@ class CloudWeaviateVectorStore(
         """
         try:
             jeopardy = self.client.collections.get(self.collection_name)
-            query_vector = self.vectorizer.infer_vector(query)
+            query_vector = self._embedder.infer_vector(query)
             response = jeopardy.query.near_vector(
                 near_vector=query_vector.value,  # your query vector goes here
                 limit=top_k,
