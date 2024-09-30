@@ -40,6 +40,13 @@ class CloudWeaviateVectorStore(
     def __init__(
         self, url: str, api_key: str, collection_name: str, vector_size: int, **kwargs
     ):
+
+        super().__init__(
+            collection_name=collection_name,
+            vector_size=vector_size,
+            api_key=api_key,
+            **kwargs,
+        )
         self.url = url
         self.api_key = api_key
         self.collection_name = collection_name
@@ -68,6 +75,12 @@ class CloudWeaviateVectorStore(
         """
         Disconnects from the Qdrant cloud vector store.
         """
+        try:
+            self.client.close()
+        except Exception as e:
+            print(f"Error closing connection: {e}")
+            raise
+
         if self.client is not None:
             self.client = None
 
@@ -210,16 +223,6 @@ class CloudWeaviateVectorStore(
         except Exception as e:
             print(f"Error retrieving documents for query '{query}': {e}")
             return []
-
-    def close(self):
-        """
-        Close the connection to the Weaviate server.
-        """
-        try:
-            self.client.close()
-        except Exception as e:
-            print(f"Error closing connection: {e}")
-            raise
 
     # Override the model_dump_json method
     def model_dump_json(self, *args, **kwargs) -> str:
