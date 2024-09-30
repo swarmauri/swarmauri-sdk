@@ -21,9 +21,9 @@ setup(
         "pymupdf",
         "neo4j",
         "weaviate-client",
-        "swarmauri-core==0.5.0.dev8",
-        "swarmauri==0.5.0.dev11",
         "pygithub",
+        "swarmauri-core==0.5.0",
+        "swarmauri==0.5.0"
     ],
     extras_require={
         "full": [
@@ -75,6 +75,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        'Programming Language :: Python :: 3.12'
     ],
     python_requires=">=3.10",
     setup_requires=["wheel"],
