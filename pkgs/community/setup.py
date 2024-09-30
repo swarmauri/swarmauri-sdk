@@ -22,7 +22,7 @@ setup(
         "neo4j",
         "weaviate-client",
         "swarmauri-core==0.5.0.dev8",
-        "swarmauri==0.5.0.dev8",
+        "swarmauri==0.5.0.dev10",
         "pygithub",
     ],
     extras_require={

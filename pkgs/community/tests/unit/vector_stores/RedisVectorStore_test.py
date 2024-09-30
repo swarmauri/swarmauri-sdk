@@ -9,7 +9,7 @@ from os import getenv
 load_dotenv()
 
 REDIS_HOST = getenv("REDIS_HOST")
-REDIS_PORT = getenv("REDIS_HOST", "12648")
+REDIS_PORT = getenv("REDIS_PORT", "12648")
 REDIS_PASSWORD = getenv("REDIS_PASSWORD")
 
 

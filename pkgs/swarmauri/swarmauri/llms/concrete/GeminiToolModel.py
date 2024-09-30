@@ -21,8 +21,8 @@ class GeminiToolModel(LLMBase):
     """
 
     api_key: str
-    allowed_models: List[str] = ["gemini-1.5-pro-latest"]
-    name: str = "gemini-1.5-pro-latest"
+    allowed_models: List[str] = ["gemini-1.0-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
+    name: str = "gemini-1.5-pro"
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:

@@ -26,11 +26,11 @@ class OpenRouterModel(LLMBase):
         "anthropic/claude-3.5-sonnet:beta",
         "deepseek/deepseek-chat",
         "google/gemini-flash-1.5",
-        "google/gemini-flash-1.5-exp",
-        "google/gemini-flash-8b-1.5-exp",
+        #"google/gemini-flash-1.5-exp", # experimental model continues to report 429 errors
+        #"google/gemini-flash-8b-1.5-exp", # experimental model continues to report 429 errors
         "google/gemini-pro",
         "google/gemini-pro-1.5",
-        "google/gemini-pro-1.5-exp",
+        #"google/gemini-pro-1.5-exp", # experimental model continues to report 429 errors
         "google/gemini-pro-vision",
         "meta-llama/llama-3-70b-instruct",
         "meta-llama/llama-3.1-405b-instruct",

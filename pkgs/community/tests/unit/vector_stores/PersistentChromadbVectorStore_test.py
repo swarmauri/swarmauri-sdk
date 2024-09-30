@@ -8,7 +8,7 @@ from swarmauri_community.vector_stores.PersistentChromaDBVectorStore import (
 URL = os.getenv(
     "./chromadb_data"
 )  # This is a placeholder, the actual value is not provided
-COLLECTION_NAME = os.getenv("Chromadb_COLLECTION_NAME", "test_collection")
+COLLECTION_NAME = os.getenv("CHROMADB_COLLECTION_NAME", "test_collection")
 
 
 # Fixture for creating a PersistentChromaDBVectorStore instance

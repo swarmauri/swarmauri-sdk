@@ -14,8 +14,8 @@ class GeminiProModel(LLMBase):
     """
 
     api_key: str
-    allowed_models: List[str] = ["gemini-1.5-pro-latest"]
-    name: str = "gemini-1.5-pro-latest"
+    allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
+    name: str = "gemini-1.5-pro"
     type: Literal["GeminiProModel"] = "GeminiProModel"
 
     def _format_messages(

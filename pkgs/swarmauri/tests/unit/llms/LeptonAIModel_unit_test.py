@@ -1,64 +1,45 @@
 import pytest
 import os
-from swarmauri_community.llms.concrete.ShuttleAIModel import ShuttleAIModel as LLM
+from swarmauri.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
-
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
-from time import sleep
-from dotenv import load_dotenv
-
-def go_to_sleep():
-    sleep(0.1)
-
-load_dotenv()
-
-API_KEY = os.getenv("SHUTTLEAI_API_KEY")
 
 
-@pytest.fixture(scope="module")
-def shuttleai_model():
-    if not API_KEY:
-        pytest.skip("Skipping due to environment variable not set")
-    llm = LLM(api_key=API_KEY)
-    return llm
-
-
-def get_allowed_models():
-    if not API_KEY:
-        return []
-    llm = LLM(api_key=API_KEY)
-    return llm.allowed_models
-
-
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_ubc_resource(shuttleai_model):
-    assert shuttleai_model.resource == "LLM"
+def test_ubc_resource():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    llm = LLM(api_key = API_KEY)
+    assert llm.resource == 'LLM'
 
-
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_ubc_type(shuttleai_model):
-    assert shuttleai_model.type == "ShuttleAIModel"
+def test_ubc_type():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    llm = LLM(api_key = API_KEY)
+    assert llm.type == 'LeptonAIModel'
 
-
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_serialization(shuttleai_model):
-    assert (
-        shuttleai_model.id
-        == LLM.model_validate_json(shuttleai_model.model_dump_json()).id
-    )
+def test_serialization():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    llm = LLM(api_key = API_KEY)
+    assert llm.id == LLM.model_validate_json(llm.model_dump_json()).id
 
-
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_default_name(shuttleai_model):
-    assert shuttleai_model.name == "shuttleai/shuttle-3"
+def test_default_name():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    model = LLM(api_key = API_KEY)
+    assert model.name == 'llama3-8b'
 
-
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_no_system_context(shuttleai_model):
-    go_to_sleep()
-    
-    model = shuttleai_model
+def test_no_system_context():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
     input_data = "Hello"
@@ -69,14 +50,11 @@ def test_no_system_context(shuttleai_model):
     prediction = conversation.get_last().content
     assert type(prediction) == str
 
-
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
-def test_nonpreamble_system_context(shuttleai_model, model_name):
-    go_to_sleep()
-    
-    model = shuttleai_model
-    model.name = model_name
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.acceptance
+def test_nonpreamble_system_context():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
     # Say hi
@@ -99,16 +77,14 @@ def test_nonpreamble_system_context(shuttleai_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert "Jeff" in prediction
+    assert 'Jeff' in prediction
 
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
 @pytest.mark.unit
-def test_preamble_system_context(shuttleai_model, model_name):
-    go_to_sleep()
-    
-    model = shuttleai_model
-    model.name = model_name
+def test_preamble_system_context():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -122,15 +98,13 @@ def test_preamble_system_context(shuttleai_model, model_name):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert "Jeff" in prediction
+    assert 'Jeff' in prediction
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
-def test_multiple_system_contexts(shuttleai_model, model_name):
-    go_to_sleep()
-    
-    model = shuttleai_model
-    model.name = model_name
+@pytest.mark.skipif(not os.getenv('LEPTON_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.acceptance
+def test_multiple_system_contexts():
+    API_KEY = os.getenv('LEPTON_API_KEY')
+    model = LLM(api_key = API_KEY)
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -154,4 +128,4 @@ def test_multiple_system_contexts(shuttleai_model, model_name):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
-    assert "Ben" in prediction
+    assert 'Ben' in prediction
