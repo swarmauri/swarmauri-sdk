@@ -6,7 +6,7 @@ from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
 
 # Download necessary NLTK resources
-nltk.download("punkt")
+nltk.download("punkt_tab")
 nltk.download("averaged_perceptron_tagger_eng")
 
 
