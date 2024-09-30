@@ -1,6 +1,6 @@
 from typing import List, Union, Literal
 from weaviate.classes.query import MetadataQuery
-import uuid as ud
+import uuid
 import weaviate
 from weaviate.classes.init import Auth
 from weaviate.util import generate_uuid5
@@ -48,14 +48,29 @@ class CloudWeaviateVectorStore(
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
         self.vectorizer = self._embedder
 
-        self.namespace_uuid = ud.uuid4()
+        self.namespace_uuid = uuid.uuid4()
 
-        # Initialize Weaviate client with v4 authentication
-        self.client = weaviate.connect_to_weaviate_cloud(
-            cluster_url=self.url,
-            auth_credentials=Auth.api_key(self.api_key),
-            headers=kwargs.get("headers", {}),
-        )
+        self.client = None
+
+    def connect(self) -> None:
+        """
+        Connects to the Qdrant cloud vector store using the provided credentials.
+        """
+        if self.client is None:
+            # Initialize Weaviate client with v4 authentication
+            self.client = weaviate.connect_to_weaviate_cloud(
+                cluster_url=self.url,
+                auth_credentials=Auth.api_key(self.api_key),
+                headers=kwargs.get("headers", {}),
+            )
+
+    def disconnect(self) -> None:
+        """
+        Disconnects from the Qdrant cloud vector store.
+        """
+        if self.client is not None:
+            self.client = None
+
 
     def add_document(self, document: Document) -> None:
         """
@@ -211,3 +226,11 @@ class CloudWeaviateVectorStore(
         except Exception as e:
             print(f"Error closing connection: {e}")
             raise
+
+    # Override the model_dump_json method
+    def model_dump_json(self, *args, **kwargs) -> str:
+        # Call the disconnect method before serialization
+        self.disconnect()
+
+        # Now proceed with the usual JSON serialization
+        return super().model_dump_json(*args, **kwargs)
