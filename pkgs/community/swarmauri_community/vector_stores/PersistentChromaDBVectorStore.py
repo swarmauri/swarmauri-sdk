@@ -52,7 +52,6 @@ class PersistentChromaDBVectorStore(
 
         self._embedder = Doc2VecEmbedding(vector_size=vector_size)
         self._distance = CosineDistance()
-        self.vectorizer = self._embedder
 
         self.collection_name = collection_name
         self.path = path
@@ -93,9 +92,9 @@ class PersistentChromaDBVectorStore(
     def add_document(self, document: Document) -> None:
         embedding = None
         if not document.embedding:
-            self.vectorizer.fit([document.content])  # Fit only once
+            self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
         else:
             embedding = document.embedding
@@ -150,7 +149,7 @@ class PersistentChromaDBVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self.vectorizer.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform([updated_document.content])[0]
         else:
             document_vector = updated_document.embedding
 
@@ -186,3 +185,11 @@ class PersistentChromaDBVectorStore(
             )
             for idx in range(len(results["ids"]))
         ]
+        
+    # Override the model_dump_json method
+    def model_dump_json(self, *args, **kwargs) -> str:
+        # Call the disconnect method before serialization
+        self.disconnect()
+
+        # Now proceed with the usual JSON serialization
+        return super().model_dump_json(*args, **kwargs)

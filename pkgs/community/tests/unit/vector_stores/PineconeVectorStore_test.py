@@ -2,18 +2,17 @@ import os
 import pytest
 from swarmauri.documents.concrete.Document import Document
 from swarmauri_community.vector_stores.PineconeVectorStore import PineconeVectorStore
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("PINECONE_API_KEY")
-
-# Skipif decorator
-pinecone_not_configured = pytest.mark.skipif(
-    not API_KEY, reason="Skipping due to PINECONE_API_KEY environment variable not set"
-)
-
 
 # Fixture for creating a PineconeVectorStore instance
 @pytest.fixture
 def vector_store():
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable 'PINECONE_API_KEY' not set")
     vs = PineconeVectorStore(
         api_key=API_KEY,
         collection_name="example",
@@ -24,20 +23,17 @@ def vector_store():
 
 
 @pytest.mark.unit
-@pinecone_not_configured
 def test_ubc_resource(vector_store):
     assert vector_store.resource == "VectorStore"
     assert vector_store.embedder.resource == "Embedding"
 
 
 @pytest.mark.unit
-@pinecone_not_configured
 def test_ubc_type(vector_store):
     assert vector_store.type == "PineconeVectorStore"
 
 
 @pytest.mark.unit
-@pinecone_not_configured
 def test_serialization(vector_store):
     assert (
         vector_store.id
@@ -46,7 +42,6 @@ def test_serialization(vector_store):
 
 
 @pytest.mark.unit
-@pinecone_not_configured
 def test_top_k(vector_store):
     documents = [
         Document(content="test"),

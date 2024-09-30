@@ -1,4 +1,7 @@
 from typing import List, Union, Literal
+
+from pydantic import PrivateAttr, Field, ConfigDict
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     PointStruct,
@@ -35,26 +38,19 @@ class CloudQdrantVectorStore(
 
     type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
 
-    def __init__(
-        self, api_key: str, url: str, collection_name: str, vector_size: int, **kwargs
-    ):
-        super().__init__(
-            api_key=api_key,
-            url=url,
-            collection_name=collection_name,
-            vector_size=vector_size,
-            **kwargs,
-        )
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
-        self.vectorizer = self._embedder
+    # allow arbitary types in the model config
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    # Use PrivateAttr to make _embedder and _distance private
+    _embedder: Doc2VecEmbedding = PrivateAttr()
+    _distance: CosineDistance = PrivateAttr()
+    client: Union[QdrantClient, None] = Field(default=None, init=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-
-        self.api_key = api_key
-        self.url = url
-        self.collection_name = collection_name
-        self.vector_size = vector_size
-
-        self.client = None
 
     def connect(self) -> None:
         """
@@ -96,9 +92,9 @@ class CloudQdrantVectorStore(
         """
         embedding = None
         if not document.embedding:
-            self.vectorizer.fit([document.content])  # Fit only once
+            self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self.vectorizer.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
         else:
             embedding = document.embedding
@@ -126,7 +122,7 @@ class CloudQdrantVectorStore(
             PointStruct(
                 id=doc.id,
                 vector=doc.embedding
-                or self.vectorizer.fit_transform([doc.content])[0].to_numpy().tolist(),
+                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
                 payload={"content": doc.content, "metadata": doc.metadata},
             )
             for doc in documents
@@ -194,7 +190,7 @@ class CloudQdrantVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self.vectorizer.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform([updated_document.content])[0]
         else:
             document_vector = updated_document.embedding
 
@@ -241,7 +237,7 @@ class CloudQdrantVectorStore(
         Returns:
             List[Document]: A list of the top_k most relevant documents.
         """
-        query_vector = self.vectorizer.infer_vector(query).value
+        query_vector = self._embedder.infer_vector(query).value
         results = self.client.search(
             collection_name=self.collection_name, query_vector=query_vector, limit=top_k
         )
@@ -254,3 +250,11 @@ class CloudQdrantVectorStore(
             )
             for res in results
         ]
+
+    # Override the model_dump_json method
+    def model_dump_json(self, *args, **kwargs) -> str:
+        # Call the disconnect method before serialization
+        self.disconnect()
+
+        # Now proceed with the usual JSON serialization
+        return super().model_dump_json(*args, **kwargs)
