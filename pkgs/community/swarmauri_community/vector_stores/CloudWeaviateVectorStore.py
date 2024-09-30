@@ -1,16 +1,15 @@
-from typing import List, Union, Literal
-from weaviate.classes.query import MetadataQuery
-import uuid
-import weaviate
-from weaviate.classes.init import Auth
-from swarmauri.vectors.concrete.Vector import Vector
+from typing import List, Union, Literal, Optional
+from pydantic import Field, PrivateAttr
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    PointStruct,
+    VectorParams,
+    Distance,
+)
 
-from swarmauri.documents.concrete.Document import (
-    Document,
-)  # Replace with your actual import
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import (
-    Doc2VecEmbedding,
-)  # Replace with your actual import
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
@@ -22,6 +21,7 @@ from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
 from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
     VectorStoreCloudMixin,
 )
+
 
 class CloudQdrantVectorStore(
     VectorStoreSaveLoadMixin,
@@ -35,8 +35,7 @@ class CloudQdrantVectorStore(
     """
 
     type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
-
-
+    
     # Use PrivateAttr to make _embedder and _distance private
     _embedder: Doc2VecEmbedding = PrivateAttr()
     _distance: CosineDistance = PrivateAttr()
@@ -71,170 +70,180 @@ class CloudQdrantVectorStore(
                 ),
             )
 
-    def connect(self, **kwargs) -> None:
-        """
-        Connects to the Qdrant cloud vector store using the provided credentials.
-        """
-        if self.client is None:
-            # Initialize Weaviate client with v4 authentication
-            self.client = weaviate.connect_to_weaviate_cloud(
-                cluster_url=self.url,
-                auth_credentials=Auth.api_key(self.api_key),
-                headers=kwargs.get("headers", {}),
-            )
-
     def disconnect(self) -> None:
         """
         Disconnects from the Qdrant cloud vector store.
         """
-        try:
-            self.client.close()
-        except Exception as e:
-            print(f"Error closing connection: {e}")
-            raise
-
         if self.client is not None:
             self.client = None
 
-
     def add_document(self, document: Document) -> None:
         """
-        Add a single document to the vector store.
+        Add a single document to the document store.
+
+        Parameters:
+            document (Document): The document to be added to the store.
         """
-        try:
-            jeopardy = self.client.collections.get(self.collection_name)
-
-            if not document.embedding:
-                embedding = self._embedder.fit_transform([document.content])[0]
-            else:
-                embedding = document.embedding
-
-            data_object = {
-                "content": document.content,
-                "metadata": document.metadata,
-            }
-
-            uuid = jeopardy.data.insert(
-                properties=data_object,
-                vector=embedding.value,
-                uuid=document.id,
+        embedding = None
+        if not document.embedding:
+            self._embedder.fit([document.content])  # Fit only once
+            embedding = (
+                self._embedder.transform([document.content])[0].to_numpy().tolist()
             )
+        else:
+            embedding = document.embedding
 
-            print(f"Document '{document.id}' added to Weaviate.")
-        except Exception as e:
-            print(f"Error adding document '{document.id}': {e}")
-            raise
+        payload = {
+            "content": document.content,
+            "metadata": document.metadata,
+        }
+
+        doc = PointStruct(id=document.id, vector=embedding, payload=payload)
+
+        self.client.upsert(
+            collection_name=self.collection_name,
+            points=[doc],
+        )
 
     def add_documents(self, documents: List[Document]) -> None:
         """
-        Add multiple documents to the vector store in a batch.
+        Add multiple documents to the document store in a batch operation.
+
+        Parameters:
+            documents (List[Document]): A list of documents to be added to the store.
         """
-        try:
-            for document in documents:
-                self.add_document(document)
+        points = [
+            PointStruct(
+                id=doc.id,
+                vector=doc.embedding
+                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
+                payload={"content": doc.content, "metadata": doc.metadata},
+            )
+            for doc in documents
+        ]
+        self.client.upsert(self.collection_name, points=points)
 
-            print(f"{len(documents)} documents added to Weaviate.")
-        except Exception as e:
-            print(f"Error adding documents: {e}")
-            raise
-
-    def get_document(self, id: str) -> Union[Document, None]:
+    def get_document(self, id: str) -> Optional[Document]:
         """
         Retrieve a single document by its identifier.
+
+        Parameters:
+            id (str): The unique identifier of the document to retrieve.
+
+        Returns:
+            Optional[Document]: The requested document if found; otherwise, None.
         """
-        try:
-            jeopardy = self.client.collections.get(self.collection_name)
-
-            result = jeopardy.query.fetch_object_by_id(id)
-
-            if result:
-
-                return Document(
-                    content=result.properties["content"],
-                    metadata=result.properties["metadata"],
-                )
-            return None
-        except Exception as e:
-            print(f"Error retrieving document '{id}': {e}")
-            return None
+        response = self.client.retrieve(
+            collection_name=self.collection_name,
+            ids=[id],
+        )
+        if response:
+            payload = response[0].payload
+            return Document(
+                id=id, content=payload["content"], metadata=payload["metadata"]
+            )
+        return None
 
     def get_all_documents(self) -> List[Document]:
         """
-        Retrieve all documents from the vector store.
-        """
-        try:
-            collection = self.client.collections.get(self.collection_name)
+        Retrieve all documents stored in the document store.
 
-            documents = [
-                Document(
-                    content=item.properties["content"],
-                    metadata=item.properties["metadata"],
-                    embedding=Vector(value=list(item.vector.values())[0]),
-                )
-                for item in collection.iterator(include_vector=True)
-            ]
-            print(documents[0])
-            return documents
-        except Exception as e:
-            print(f"Error retrieving all documents: {e}")
-            return []
+        Returns:
+            List[Document]: A list of all documents in the store.
+        """
+        response = self.client.scroll(
+            collection_name=self.collection_name,
+        )
+
+        return [
+            Document(
+                id=doc.id,
+                content=doc.payload["content"],
+                metadata=doc.payload["metadata"],
+            )
+            for doc in response[0]
+        ]
 
     def delete_document(self, id: str) -> None:
         """
-        Delete a document from the vector store by its identifier.
-        """
-        try:
-            collection = self.client.collections.get(self.collection_name)
-            collection.data.delete_by_id(id)
-            print(f"Document '{id}' has been deleted from Weaviate.")
-        except Exception as e:
-            print(f"Error deleting document '{id}': {e}")
-            raise
+        Delete a document from the document store by its identifier.
 
-    def update_document(self, document: Document) -> None:
-        self.delete_document(id)
-        self.add_document(document)
+        Parameters:
+            id (str): The unique identifier of the document to delete.
+        """
+        self.client.delete(self.collection_name, points_selector=[id])
+
+    def update_document(self, id: str, updated_document: Document) -> None:
+        """
+        Update a document in the document store.
+
+        Parameters:
+            id (str): The unique identifier of the document to update.
+            updated_document (Document): The updated document instance.
+        """
+        # Precompute the embedding outside the update process
+        if not updated_document.embedding:
+            # Transform without refitting to avoid vocabulary issues
+            document_vector = self._embedder.transform([updated_document.content])[0]
+        else:
+            document_vector = updated_document.embedding
+
+        document_vector = document_vector.to_numpy().tolist()
+
+        self.client.upsert(
+            self.collection_name,
+            points=[
+                PointStruct(
+                    id=id,
+                    vector=document_vector,
+                    payload={
+                        "content": updated_document.content,
+                        "metadata": updated_document.metadata,
+                    },
+                )
+            ],
+        )
+
+    def clear_documents(self) -> None:
+        """
+        Deletes all documents from the vector store
+        """
+        self.client.delete_collection(self.collection_name)
 
     def document_count(self) -> int:
         """
         Returns the number of documents in the store.
         """
-        try:
-            result = (
-                self.client.query.aggregate(self.collection_name).with_meta_count().do()
-            )
-            count = result["data"]["Aggregate"][self.collection_name][0]["meta"][
-                "count"
-            ]
-            return count
-        except Exception as e:
-            print(f"Error counting documents: {e}")
-            return 0
+        response = self.client.scroll(
+            collection_name=self.collection_name,
+        )
+        return len(response)
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve the top_k most relevant documents based on the given query.
-        """
-        try:
-            jeopardy = self.client.collections.get(self.collection_name)
-            query_vector = self._embedder.infer_vector(query)
-            response = jeopardy.query.near_vector(
-                near_vector=query_vector.value,  # your query vector goes here
-                limit=top_k,
-                return_metadata=MetadataQuery(distance=True),
-            )
+        For the purpose of this example, this method performs a basic search.
 
-            documents = [
-                Document(
-                    content=res.properties["content"],
-                    metadata=res.properties["metadata"],
-                )
-                for res in response.objects
-            ]
-            return documents
-        except Exception as e:
-            print(f"Error retrieving documents for query '{query}': {e}")
-            return []
+        Args:
+            query (str): The query string used for document retrieval.
+            top_k (int): The number of top relevant documents to retrieve.
+
+        Returns:
+            List[Document]: A list of the top_k most relevant documents.
+        """
+        query_vector = self._embedder.infer_vector(query).value
+        results = self.client.search(
+            collection_name=self.collection_name, query_vector=query_vector, limit=top_k
+        )
+
+        return [
+            Document(
+                id=res.id,
+                content=res.payload["content"],
+                metadata=res.payload["metadata"],
+            )
+            for res in results
+        ]
 
     # Override the model_dump_json method
     def model_dump_json(self, *args, **kwargs) -> str:
