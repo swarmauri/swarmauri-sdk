@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.TextLengthTool import TextLengthTool as Tool
+from swarmauri.tools.concrete import TextLengthTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
