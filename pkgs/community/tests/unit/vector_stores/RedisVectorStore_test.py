@@ -8,12 +8,10 @@ from os import getenv
 
 load_dotenv()
 
-REDIS_HOST = 'getenv("REDIS_HOST")'
+REDIS_HOST = getenv("REDIS_HOST")
 REDIS_PORT = getenv("REDIS_PORT", "12648")
 REDIS_PASSWORD = getenv("REDIS_PASSWORD")
-# REDIS_HOST = 'redis-15893.c305.ap-south-1-1.ec2.redns.redis-cloud.com'
-# REDIS_PORT = '15893'
-# REDIS_PASSWORD = 'jeIzN3EU3yf7oZrUfR9i1T8jaeGPGupb'
+
 
 @pytest.fixture(scope="module")
 def vector_store():
