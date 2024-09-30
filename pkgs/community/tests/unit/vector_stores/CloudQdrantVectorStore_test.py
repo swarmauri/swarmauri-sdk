@@ -24,7 +24,6 @@ def cloud_qdrant_vector_store():
         vector_size=100,
         url=URL,
     )
-    vs.connect()
     return vs
 
 
@@ -50,6 +49,10 @@ def test_serialization(cloud_qdrant_vector_store):
 @pytest.mark.unit
 def test_top_k(cloud_qdrant_vector_store):
     vs = cloud_qdrant_vector_store
+
+    # Connect to the Qdrant cloud vector store
+    vs.connect()
+
     documents = [
         Document(content="test"),
         Document(content="test1"),
