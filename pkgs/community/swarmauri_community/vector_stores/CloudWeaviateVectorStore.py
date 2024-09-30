@@ -13,8 +13,22 @@ from swarmauri.embeddings.concrete.Doc2VecEmbedding import (
     Doc2VecEmbedding,
 )  # Replace with your actual import
 
+from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+    VectorStoreRetrieveMixin,
+)
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+    VectorStoreSaveLoadMixin,
+)
+from swarmauri.vector_stores.base.VectorStorePersistentMixin import (
+    VectorStorePersistentMixin,
+)
 
-class CloudWeaviateVectorStore:
+class CloudWeaviateVectorStore(    VectorStoreSaveLoadMixin,
+    VectorStoreRetrieveMixin,
+    VectorStorePersistentMixin,
+    VectorStoreBase,
+):
     """
     CloudWeaviateVectorStore is a concrete implementation that integrates functionality
     for saving, loading, storing, and retrieving vector documents, leveraging Weaviate as the backend.
