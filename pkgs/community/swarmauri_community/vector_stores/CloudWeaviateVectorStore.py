@@ -1,75 +1,48 @@
 from typing import List, Union, Literal, Optional
-from pydantic import Field, PrivateAttr
-from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    PointStruct,
-    VectorParams,
-    Distance,
-)
+from pydantic import BaseModel, PrivateAttr
+import uuid as ud
+import weaviate
+from weaviate.classes.init import Auth
+from weaviate.util import generate_uuid5
+from weaviate.classes.query import MetadataQuery
 
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri.vectors.concrete.Vector import Vector
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
-    VectorStoreRetrieveMixin,
-)
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
-    VectorStoreSaveLoadMixin,
-)
-from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
-    VectorStoreCloudMixin,
-)
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin
+from swarmauri.vector_stores.base.VectorStoreCloudMixin import VectorStoreCloudMixin
 
 
-class CloudQdrantVectorStore(
-    VectorStoreSaveLoadMixin,
-    VectorStoreRetrieveMixin,
-    VectorStoreCloudMixin,
-    VectorStoreBase,  # Inherit from VectorStoreBase
-):
-    """
-    CloudQdrantVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
-    """
-
-    type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
+class CloudWeaviateVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, VectorStoreCloudMixin):
+    type: Literal["CloudWeaviateVectorStore"] = "CloudWeaviateVectorStore"
     
-    # Use PrivateAttr to make _embedder and _distance private
-    _embedder: Doc2VecEmbedding = PrivateAttr()
-    _distance: CosineDistance = PrivateAttr()
-    client: Union[QdrantClient, None] = Field(default=None, init=False)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Initialize _embedder and _distance with private attributes
+    # Private attributes
+    _client: Optional[weaviate.Client] = PrivateAttr(default=None)
+    _embedder: Doc2VecEmbedding = PrivateAttr(default=None)
+    _namespace_uuid: ud.UUID = PrivateAttr(default_factory=ud.uuid4)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        # Initialize the vectorizer and Weaviate client
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
-        self._distance = CosineDistance()
+        # self._initialize_client()
 
-    def connect(self) -> None:
+    def connect(self, **kwargs):
         """
-        Connects to the Qdrant cloud vector store using the provided credentials.
+        Initialize the Weaviate client.
         """
-        if self.client is None:
-            self.client = QdrantClient(
-                api_key=self.api_key,
-                url=self.url,
+        if self._client is None:
+            self._client = weaviate.connect_to_weaviate_cloud(
+                cluster_url=self.url,
+                auth_credentials=Auth.api_key(self.api_key),
+                headers=kwargs.get("headers", {})
             )
-
-        # Check if the collection exists
-        existing_collections = self.client.get_collections().collections
-        collection_names = [collection.name for collection in existing_collections]
-
-        if self.collection_name not in collection_names:
-            # Ensure the collection exists with the desired configuration
-            self.client.recreate_collection(
-                collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=self.vector_size, distance=Distance.COSINE
-                ),
-            )
-
+    
     def disconnect(self) -> None:
         """
         Disconnects from the Qdrant cloud vector store.
@@ -79,176 +52,167 @@ class CloudQdrantVectorStore(
 
     def add_document(self, document: Document) -> None:
         """
-        Add a single document to the document store.
+        Add a single document to the vector store.
 
-        Parameters:
-            document (Document): The document to be added to the store.
+        :param document: Document to add
         """
-        embedding = None
-        if not document.embedding:
-            self._embedder.fit([document.content])  # Fit only once
-            embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+        try:
+            collection = self._client.collections.get(self.collection_name)
+
+            # Generate or use existing embedding
+            embedding = document.embedding or self._embedder.fit_transform([document.content])[0]
+
+            data_object = {
+                "content": document.content,
+                "metadata": document.metadata,
+            }
+
+            # Generate UUID for document
+            uuid = (
+                str(ud.uuid5(self._namespace_uuid, document.id))
+                if document.id
+                else generate_uuid5(data_object)
             )
-        else:
-            embedding = document.embedding
 
-        payload = {
-            "content": document.content,
-            "metadata": document.metadata,
-        }
+            collection.data.insert(
+                properties=data_object,
+                vector=embedding.value,
+                uuid=uuid,
+            )
 
-        doc = PointStruct(id=document.id, vector=embedding, payload=payload)
-
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=[doc],
-        )
+            print(f"Document '{document.id}' added to Weaviate.")
+        except Exception as e:
+            print(f"Error adding document '{document.id}': {e}")
+            raise
 
     def add_documents(self, documents: List[Document]) -> None:
         """
-        Add multiple documents to the document store in a batch operation.
+        Add multiple documents to the vector store.
 
-        Parameters:
-            documents (List[Document]): A list of documents to be added to the store.
+        :param documents: List of documents to add
         """
-        points = [
-            PointStruct(
-                id=doc.id,
-                vector=doc.embedding
-                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
-                payload={"content": doc.content, "metadata": doc.metadata},
-            )
-            for doc in documents
-        ]
-        self.client.upsert(self.collection_name, points=points)
+        try:
+            for document in documents:
+                self.add_document(document)
 
-    def get_document(self, id: str) -> Optional[Document]:
+            print(f"{len(documents)} documents added to Weaviate.")
+        except Exception as e:
+            print(f"Error adding documents: {e}")
+            raise
+
+    def get_document(self, id: str) -> Union[Document, None]:
         """
-        Retrieve a single document by its identifier.
+        Retrieve a document by its ID.
 
-        Parameters:
-            id (str): The unique identifier of the document to retrieve.
-
-        Returns:
-            Optional[Document]: The requested document if found; otherwise, None.
+        :param id: Document ID
+        :return: Document object or None if not found
         """
-        response = self.client.retrieve(
-            collection_name=self.collection_name,
-            ids=[id],
-        )
-        if response:
-            payload = response[0].payload
-            return Document(
-                id=id, content=payload["content"], metadata=payload["metadata"]
-            )
-        return None
+        try:
+            collection = self._client.collections.get(self.collection_name)
+
+            result = collection.query.fetch_object_by_id(ud.uuid5(self._namespace_uuid, id))
+
+            if result:
+                return Document(
+                    id=id,
+                    content=result.properties["content"],
+                    metadata=result.properties["metadata"],
+                )
+            return None
+        except Exception as e:
+            print(f"Error retrieving document '{id}': {e}")
+            return None
 
     def get_all_documents(self) -> List[Document]:
         """
-        Retrieve all documents stored in the document store.
+        Retrieve all documents from the vector store.
 
-        Returns:
-            List[Document]: A list of all documents in the store.
+        :return: List of Document objects
         """
-        response = self.client.scroll(
-            collection_name=self.collection_name,
-        )
-
-        return [
-            Document(
-                id=doc.id,
-                content=doc.payload["content"],
-                metadata=doc.payload["metadata"],
-            )
-            for doc in response[0]
-        ]
+        try:
+            collection = self._client.collections.get(self.collection_name)
+            # return collection
+            documents = [
+                Document(
+                    content=item.properties["content"],
+                    metadata=item.properties["metadata"],
+                    embedding=Vector(value=list(item.vector.values())[0]),
+                )
+                for item in collection.iterator(include_vector=True)
+            ]
+            return documents
+        except Exception as e:
+            print(f"Error retrieving all documents: {e}")
+            return []
 
     def delete_document(self, id: str) -> None:
         """
-        Delete a document from the document store by its identifier.
+        Delete a document by its ID.
 
-        Parameters:
-            id (str): The unique identifier of the document to delete.
+        :param id: Document ID
         """
-        self.client.delete(self.collection_name, points_selector=[id])
+        try:
+            collection = self._client.collections.get(self.collection_name)
+            collection.data.delete_by_id(ud.uuid5(self._namespace_uuid, id))
+            print(f"Document '{id}' has been deleted from Weaviate.")
+        except Exception as e:
+            print(f"Error deleting document '{id}': {e}")
+            raise
 
-    def update_document(self, id: str, updated_document: Document) -> None:
+    def update_document(self, id: str, document: Document) -> None:
         """
-        Update a document in the document store.
+        Update an existing document.
 
-        Parameters:
-            id (str): The unique identifier of the document to update.
-            updated_document (Document): The updated document instance.
+        :param id: Document ID
+        :param updated_document: Document object with updated data
         """
-        # Precompute the embedding outside the update process
-        if not updated_document.embedding:
-            # Transform without refitting to avoid vocabulary issues
-            document_vector = self._embedder.transform([updated_document.content])[0]
-        else:
-            document_vector = updated_document.embedding
-
-        document_vector = document_vector.to_numpy().tolist()
-
-        self.client.upsert(
-            self.collection_name,
-            points=[
-                PointStruct(
-                    id=id,
-                    vector=document_vector,
-                    payload={
-                        "content": updated_document.content,
-                        "metadata": updated_document.metadata,
-                    },
-                )
-            ],
-        )
-
-    def clear_documents(self) -> None:
-        """
-        Deletes all documents from the vector store
-        """
-        self.client.delete_collection(self.collection_name)
-
-    def document_count(self) -> int:
-        """
-        Returns the number of documents in the store.
-        """
-        response = self.client.scroll(
-            collection_name=self.collection_name,
-        )
-        return len(response)
+        self.delete_document(id)
+        self.add_document(document)
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve the top_k most relevant documents based on the given query.
-        For the purpose of this example, this method performs a basic search.
 
-        Args:
-            query (str): The query string used for document retrieval.
-            top_k (int): The number of top relevant documents to retrieve.
-
-        Returns:
-            List[Document]: A list of the top_k most relevant documents.
+        :param query: Query string
+        :param top_k: Number of top similar documents to retrieve
+        :return: List of Document objects
         """
-        query_vector = self._embedder.infer_vector(query).value
-        results = self.client.search(
-            collection_name=self.collection_name, query_vector=query_vector, limit=top_k
-        )
-
-        return [
-            Document(
-                id=res.id,
-                content=res.payload["content"],
-                metadata=res.payload["metadata"],
+        try:
+            collection = self._client.collections.get(self.collection_name)
+            query_vector = self._embedder.infer_vector(query)
+            response = collection.query.near_vector(
+                near_vector=query_vector.value,
+                limit=top_k,
+                return_metadata=MetadataQuery(distance=True),
             )
-            for res in results
-        ]
 
-    # Override the model_dump_json method
+            documents = [
+                Document(
+                    # id=res.id,
+                    content=res.properties["content"],
+                    metadata=res.properties["metadata"],
+                )
+                for res in response.objects
+            ]
+            return documents
+        except Exception as e:
+            print(f"Error retrieving documents for query '{query}': {e}")
+            return []
+
+    def close(self):
+        """
+        Close the connection to the Weaviate server.
+        """
+        if self._client:
+            self._client.close()
+
     def model_dump_json(self, *args, **kwargs) -> str:
         # Call the disconnect method before serialization
         self.disconnect()
 
         # Now proceed with the usual JSON serialization
         return super().model_dump_json(*args, **kwargs)
+
+    
+    def __del__(self):
+        self.close()
