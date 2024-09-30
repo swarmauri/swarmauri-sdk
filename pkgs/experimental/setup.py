@@ -18,8 +18,8 @@ setup(
         "numpy",  # Common dependencies for all distributions
         "requests",
         "pydantic",
-        "swarmauri-core==0.5.0.dev8",
-        "swarmauri==0.5.0.dev10"
+        "swarmauri-core==0.5.0",
+        "swarmauri==0.5.0"
     ],
     extras_require={
         "full": [
