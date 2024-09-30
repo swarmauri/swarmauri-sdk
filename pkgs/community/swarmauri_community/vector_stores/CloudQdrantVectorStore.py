@@ -254,3 +254,11 @@ class CloudQdrantVectorStore(
             )
             for res in results
         ]
+
+    # Override the model_dump_json method
+    def model_dump_json(self, *args, **kwargs) -> str:
+        # Call the disconnect method before serialization
+        self.disconnect()
+
+        # Now proceed with the usual JSON serialization
+        return super().model_dump_json(*args, **kwargs)
