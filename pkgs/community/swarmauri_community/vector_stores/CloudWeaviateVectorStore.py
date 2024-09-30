@@ -20,13 +20,14 @@ from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
 from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri.vector_stores.base.VectorStorePersistentMixin import (
-    VectorStorePersistentMixin,
+from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
+    VectorStoreCloudMixin,
 )
 
-class CloudWeaviateVectorStore(VectorStoreSaveLoadMixin,
+class CloudWeaviateVectorStore(
+    VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,
-    VectorStorePersistentMixin,
+    VectorStoreCloudMixin,
     VectorStoreBase,
 ):
     """
