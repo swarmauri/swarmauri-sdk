@@ -5,8 +5,8 @@ from swarmauri_community.vector_stores.PersistentChromaDBVectorStore import (
     PersistentChromaDBVectorStore,
 )
 
-URL = os.getenv(
-    "./chromadb_data"
+PATH = os.getenv(
+    "CHROMADB_PATH", "./chromadb_data"
 )  # This is a placeholder, the actual value is not provided
 COLLECTION_NAME = os.getenv("CHROMADB_COLLECTION_NAME", "test_collection")
 
@@ -14,51 +14,39 @@ COLLECTION_NAME = os.getenv("CHROMADB_COLLECTION_NAME", "test_collection")
 # Fixture for creating a PersistentChromaDBVectorStore instance
 @pytest.fixture
 def vector_store():
-    return PersistentChromaDBVectorStore(
-        path=URL,
+    if not PATH or not COLLECTION_NAME:
+        pytest.skip("ChromaDB is not properly configured")
+    vs = PersistentChromaDBVectorStore(
+        path=PATH,
         collection_name=COLLECTION_NAME,
         vector_size=100,
     )
-
-
-# Skipif condition
-chromadb_not_configured = pytest.mark.skipif(
-    URL is None or COLLECTION_NAME is None, reason="ChromaDB is not properly configured"
-)
+    return vs
 
 
 @pytest.mark.unit
-@chromadb_not_configured
 def test_ubc_resource(vector_store):
     assert vector_store.resource == "VectorStore"
     assert vector_store.embedder.resource == "Embedding"
 
 
 @pytest.mark.unit
-@chromadb_not_configured
 def test_ubc_type(vector_store):
     assert vector_store.type == "PersistentChromaDBVectorStore"
 
 
 @pytest.mark.unit
-@chromadb_not_configured
 def test_serialization(vector_store):
     assert (
         vector_store.id
-        == PersistentChromaDBVectorStore.model_validate_json(
-            vector_store.model_dump_json()
-        ).id
+        == vector_store.model_validate_json(vector_store.model_dump_json()).id
     )
 
 
 @pytest.mark.unit
-@chromadb_not_configured
-def test_top_k():
-    vs = PersistentChromaDBVectorStore(
-        path=URL,
-        collection_name=COLLECTION_NAME,
-        vector_size=100,
-    )
+def test_top_k(vector_store):
+    vs = vector_store
+    vs.connect()
     documents = [
         Document(content="test"),
         Document(content="test1"),

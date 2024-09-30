@@ -28,51 +28,34 @@ class PersistentChromaDBVectorStore(
 ):
     type: Literal["PersistentChromaDBVectorStore"] = "PersistentChromaDBVectorStore"
 
-    def __init__(
-        self,
-        collection_name: str,
-        vector_size: int,
-        path: str = "./chromadb_data",
-        **kwargs,
-    ):
+    def __init__(self, **kwargs):
         """
         Initialize the PersistentChromaDBVectorStore.
 
         Args:
-            collection_name (str): The name of the collection.
-            vector_size (int): The size of the vectors.
-            path (str): The directory where ChromaDB will store its data files.
+            Args:
+            **kwargs: keyword arguments.
         """
-        super().__init__(
-            collection_name=collection_name,
-            path=path,
-            vector_size=vector_size,
-            **kwargs,
-        )
+        super().__init__(**kwargs)
 
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-
-        self.collection_name = collection_name
-        self.path = path
-
-        # Initialize the client and collection later in the connect method
-        self.client = None
-        self.collection = None
 
     def connect(self) -> None:
         """
         Establish a connection to ChromaDB and get or create the collection.
         """
-        settings = Settings(
-            chroma_api_impl="chromadb.api.fastapi.FastAPI",  # Use FastAPI if LocalAPI is not supported
-            chroma_server_host="localhost",  # Server host
-            chroma_server_http_port=8000,  # Server port
-        )
+        # settings = Settings(
+        #     chroma_api_impl="chromadb.api.fastapi.FastAPI",  # Use FastAPI if LocalAPI is not supported
+        #     chroma_server_host="localhost",  # Server host
+        #     chroma_server_http_port=8000,  # Server port
+        # )
+        #
+        # self.client = chromadb.Client(
+        #     settings=settings,
+        # )
+        self.client = chromadb.Client()
 
-        self.client = chromadb.Client(
-            settings=settings,
-        )
         self.collection = self.client.get_or_create_collection(
             name=self.collection_name
         )
@@ -109,17 +92,25 @@ class PersistentChromaDBVectorStore(
     def add_documents(self, documents: List[Document]) -> None:
         ids = [doc.id for doc in documents]
         texts = [doc.content for doc in documents]
+
+        for doc in documents:
+            self._embedder.fit([doc.content])
+
         embeddings = [
             self._embedder.infer_vector(doc.content).value for doc in documents
         ]
         metadatas = [doc.metadata for doc in documents]
-
-        self.collection.add(
-            ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas
-        )
+        if metadatas[0]:
+            self.collection.add(
+                ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas
+            )
+        else:
+            self.collection.add(ids=ids, documents=texts, embeddings=embeddings)
 
     def get_document(self, doc_id: str) -> Union[Document, None]:
         results = self.collection.get(ids=[doc_id])
+        if not results["metadatas"][0]:
+            results["metadatas"][0] = {}
         if results["ids"]:
             document = Document(
                 id=results["ids"][0],
@@ -170,22 +161,23 @@ class PersistentChromaDBVectorStore(
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         query_embedding = self._embedder.infer_vector(query).value
-        print(query_embedding)
+        # print(query_embedding)
 
         results = self.collection.query(
             query_embeddings=query_embedding, n_results=top_k
         )
 
-        print(results)
         return [
             Document(
                 id=results["ids"][0][idx],
                 content=results["documents"][0][idx],
-                metadata=results["metadatas"][0][idx],
+                metadata=(
+                    results["metadatas"][0][idx] if results["metadatas"][0][idx] else {}
+                ),
             )
-            for idx in range(len(results["ids"]))
+            for idx in range(len(results["ids"][0]))
         ]
-        
+
     # Override the model_dump_json method
     def model_dump_json(self, *args, **kwargs) -> str:
         # Call the disconnect method before serialization
