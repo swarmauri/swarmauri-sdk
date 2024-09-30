@@ -69,6 +69,8 @@ setup(
             "tiktoken",
             "redis",
             "textstat",
+            "deepface",
+            "tensorrt"
         ]
     },
     classifiers=[
