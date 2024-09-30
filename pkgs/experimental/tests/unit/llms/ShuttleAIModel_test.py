@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_community.llms.concrete.ShuttleAIModel import ShuttleAIModel as LLM
+from swarmauri_experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
