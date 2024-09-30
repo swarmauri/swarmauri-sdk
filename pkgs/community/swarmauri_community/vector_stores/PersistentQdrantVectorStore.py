@@ -1,4 +1,6 @@
 from typing import List, Union, Literal
+from pydantic import Field, PrivateAttr, ConfigDict
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     PointStruct,
@@ -36,18 +38,19 @@ class PersistentQdrantVectorStore(
 
     type: Literal["PersistentQdrantVectorStore"] = "PersistentQdrantVectorStore"
 
-    def __init__(self, path: str, collection_name: str, vector_size: int, **kwargs):
-        super().__init__(
-            collection_name=collection_name, vector_size=vector_size, **kwargs
-        )
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+    # allow arbitary types in the model config
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    # Use PrivateAttr to make _embedder and _distance private
+    _embedder: Doc2VecEmbedding = PrivateAttr()
+    _distance: CosineDistance = PrivateAttr()
+    client: Union[QdrantClient, None] = Field(default=None, init=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-
-        self.path = path
-        self.collection_name = collection_name
-        self.vector_size = vector_size
-
-        self.client = None
 
     def connect(self) -> None:
         """

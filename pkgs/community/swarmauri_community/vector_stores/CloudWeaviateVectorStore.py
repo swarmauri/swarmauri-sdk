@@ -1,110 +1,83 @@
-from typing import List, Union, Literal
-from weaviate.classes.query import MetadataQuery
-import uuid
+from typing import List, Union, Literal, Optional
+from pydantic import BaseModel, PrivateAttr
+import uuid as ud
 import weaviate
 from weaviate.classes.init import Auth
 from weaviate.util import generate_uuid5
+from weaviate.classes.query import MetadataQuery
+
+from swarmauri.documents.concrete.Document import Document
+from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.vectors.concrete.Vector import Vector
 
-from swarmauri.documents.concrete.Document import (
-    Document,
-)  # Replace with your actual import
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import (
-    Doc2VecEmbedding,
-)  # Replace with your actual import
-
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
-    VectorStoreRetrieveMixin,
-)
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
-    VectorStoreSaveLoadMixin,
-)
-from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
-    VectorStoreCloudMixin,
-)
+from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin
+from swarmauri.vector_stores.base.VectorStoreCloudMixin import VectorStoreCloudMixin
 
-class CloudWeaviateVectorStore(
-    VectorStoreSaveLoadMixin,
-    VectorStoreRetrieveMixin,
-    VectorStoreCloudMixin,
-    VectorStoreBase,
-):
-    """
-    CloudWeaviateVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging Weaviate as the backend.
-    """
 
+class CloudWeaviateVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, VectorStoreCloudMixin):
     type: Literal["CloudWeaviateVectorStore"] = "CloudWeaviateVectorStore"
+    
 
-    def __init__(
-        self, url: str, api_key: str, collection_name: str, vector_size: int, **kwargs
-    ):
+    # Private attributes
+    _client: Optional[weaviate.Client] = PrivateAttr(default=None)
+    _embedder: Doc2VecEmbedding = PrivateAttr(default=None)
+    _namespace_uuid: ud.UUID = PrivateAttr(default_factory=ud.uuid4)
 
-        super().__init__(
-            collection_name=collection_name,
-            vector_size=vector_size,
-            api_key=api_key,
-            **kwargs,
-        )
-        self.url = url
-        self.api_key = api_key
-        self.collection_name = collection_name
-        self.vector_size = vector_size
+    def __init__(self, **data):
+        super().__init__(**data)
 
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        # Initialize the vectorizer and Weaviate client
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
+        # self._initialize_client()
 
-        self.namespace_uuid = uuid.uuid4()
-
-        self.client = None
-
-    def connect(self, **kwargs) -> None:
+    def connect(self, **kwargs):
         """
-        Connects to the Qdrant cloud vector store using the provided credentials.
+        Initialize the Weaviate client.
         """
-        if self.client is None:
-            # Initialize Weaviate client with v4 authentication
-            self.client = weaviate.connect_to_weaviate_cloud(
+        if self._client is None:
+            self._client = weaviate.connect_to_weaviate_cloud(
                 cluster_url=self.url,
                 auth_credentials=Auth.api_key(self.api_key),
-                headers=kwargs.get("headers", {}),
+                headers=kwargs.get("headers", {})
             )
-
+    
     def disconnect(self) -> None:
         """
         Disconnects from the Qdrant cloud vector store.
         """
-        try:
-            self.client.close()
-        except Exception as e:
-            print(f"Error closing connection: {e}")
-            raise
-
         if self.client is not None:
             self.client = None
-
 
     def add_document(self, document: Document) -> None:
         """
         Add a single document to the vector store.
+
+        :param document: Document to add
         """
         try:
-            jeopardy = self.client.collections.get(self.collection_name)
+            collection = self._client.collections.get(self.collection_name)
 
-            if not document.embedding:
-                embedding = self._embedder.fit_transform([document.content])[0]
-            else:
-                embedding = document.embedding
+            # Generate or use existing embedding
+            embedding = document.embedding or self._embedder.fit_transform([document.content])[0]
 
             data_object = {
                 "content": document.content,
                 "metadata": document.metadata,
             }
 
-            uuid = jeopardy.data.insert(
+            # Generate UUID for document
+            uuid = (
+                str(ud.uuid5(self._namespace_uuid, document.id))
+                if document.id
+                else generate_uuid5(data_object)
+            )
+
+            collection.data.insert(
                 properties=data_object,
                 vector=embedding.value,
-                uuid=document.id,
+                uuid=uuid,
             )
 
             print(f"Document '{document.id}' added to Weaviate.")
@@ -114,7 +87,9 @@ class CloudWeaviateVectorStore(
 
     def add_documents(self, documents: List[Document]) -> None:
         """
-        Add multiple documents to the vector store in a batch.
+        Add multiple documents to the vector store.
+
+        :param documents: List of documents to add
         """
         try:
             for document in documents:
@@ -127,16 +102,19 @@ class CloudWeaviateVectorStore(
 
     def get_document(self, id: str) -> Union[Document, None]:
         """
-        Retrieve a single document by its identifier.
+        Retrieve a document by its ID.
+
+        :param id: Document ID
+        :return: Document object or None if not found
         """
         try:
-            jeopardy = self.client.collections.get(self.collection_name)
+            collection = self._client.collections.get(self.collection_name)
 
-            result = jeopardy.query.fetch_object_by_id(id)
+            result = collection.query.fetch_object_by_id(ud.uuid5(self._namespace_uuid, id))
 
             if result:
-
                 return Document(
+                    id=id,
                     content=result.properties["content"],
                     metadata=result.properties["metadata"],
                 )
@@ -148,10 +126,12 @@ class CloudWeaviateVectorStore(
     def get_all_documents(self) -> List[Document]:
         """
         Retrieve all documents from the vector store.
+
+        :return: List of Document objects
         """
         try:
-            collection = self.client.collections.get(self.collection_name)
-
+            collection = self._client.collections.get(self.collection_name)
+            # return collection
             documents = [
                 Document(
                     content=item.properties["content"],
@@ -160,7 +140,6 @@ class CloudWeaviateVectorStore(
                 )
                 for item in collection.iterator(include_vector=True)
             ]
-            print(documents[0])
             return documents
         except Exception as e:
             print(f"Error retrieving all documents: {e}")
@@ -168,51 +147,48 @@ class CloudWeaviateVectorStore(
 
     def delete_document(self, id: str) -> None:
         """
-        Delete a document from the vector store by its identifier.
+        Delete a document by its ID.
+
+        :param id: Document ID
         """
         try:
-            collection = self.client.collections.get(self.collection_name)
-            collection.data.delete_by_id(id)
+            collection = self._client.collections.get(self.collection_name)
+            collection.data.delete_by_id(ud.uuid5(self._namespace_uuid, id))
             print(f"Document '{id}' has been deleted from Weaviate.")
         except Exception as e:
             print(f"Error deleting document '{id}': {e}")
             raise
 
-    def update_document(self, document: Document) -> None:
+    def update_document(self, id: str, document: Document) -> None:
+        """
+        Update an existing document.
+
+        :param id: Document ID
+        :param updated_document: Document object with updated data
+        """
         self.delete_document(id)
         self.add_document(document)
-
-    def document_count(self) -> int:
-        """
-        Returns the number of documents in the store.
-        """
-        try:
-            result = (
-                self.client.query.aggregate(self.collection_name).with_meta_count().do()
-            )
-            count = result["data"]["Aggregate"][self.collection_name][0]["meta"][
-                "count"
-            ]
-            return count
-        except Exception as e:
-            print(f"Error counting documents: {e}")
-            return 0
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve the top_k most relevant documents based on the given query.
+
+        :param query: Query string
+        :param top_k: Number of top similar documents to retrieve
+        :return: List of Document objects
         """
         try:
-            jeopardy = self.client.collections.get(self.collection_name)
+            collection = self._client.collections.get(self.collection_name)
             query_vector = self._embedder.infer_vector(query)
-            response = jeopardy.query.near_vector(
-                near_vector=query_vector.value,  # your query vector goes here
+            response = collection.query.near_vector(
+                near_vector=query_vector.value,
                 limit=top_k,
                 return_metadata=MetadataQuery(distance=True),
             )
 
             documents = [
                 Document(
+                    # id=res.id,
                     content=res.properties["content"],
                     metadata=res.properties["metadata"],
                 )
@@ -223,10 +199,20 @@ class CloudWeaviateVectorStore(
             print(f"Error retrieving documents for query '{query}': {e}")
             return []
 
-    # Override the model_dump_json method
+    def close(self):
+        """
+        Close the connection to the Weaviate server.
+        """
+        if self._client:
+            self._client.close()
+
     def model_dump_json(self, *args, **kwargs) -> str:
         # Call the disconnect method before serialization
         self.disconnect()
 
         # Now proceed with the usual JSON serialization
         return super().model_dump_json(*args, **kwargs)
+
+    
+    def __del__(self):
+        self.close()

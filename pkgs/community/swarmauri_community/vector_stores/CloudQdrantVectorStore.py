@@ -1,4 +1,7 @@
 from typing import List, Union, Literal
+
+from pydantic import PrivateAttr, Field, ConfigDict
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     PointStruct,
@@ -35,25 +38,19 @@ class CloudQdrantVectorStore(
 
     type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
 
-    def __init__(
-        self, api_key: str, url: str, collection_name: str, vector_size: int, **kwargs
-    ):
-        super().__init__(
-            api_key=api_key,
-            url=url,
-            collection_name=collection_name,
-            vector_size=vector_size,
-            **kwargs,
-        )
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+    # allow arbitary types in the model config
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    # Use PrivateAttr to make _embedder and _distance private
+    _embedder: Doc2VecEmbedding = PrivateAttr()
+    _distance: CosineDistance = PrivateAttr()
+    client: Union[QdrantClient, None] = Field(default=None, init=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-
-        self.api_key = api_key
-        self.url = url
-        self.collection_name = collection_name
-        self.vector_size = vector_size
-
-        self.client = None
 
     def connect(self) -> None:
         """

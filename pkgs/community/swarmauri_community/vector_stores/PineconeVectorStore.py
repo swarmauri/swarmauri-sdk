@@ -36,25 +36,15 @@ class PineconeVectorStore(
 
     type: Literal["PineconeVectorStore"] = "PineconeVectorStore"
 
-    def __init__(self, collection_name: str, vector_size: int, api_key: str, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize the PineconeVectorStore.
-
         Args:
-            collection_name (str): The name of the Pinecone index.
-            vector_size (int): The size of the vectors to be stored.
-            api_key (str): The API key for accessing Pinecone.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(
-            collection_name=collection_name,
-            vector_size=vector_size,
-            api_key=api_key,
-            **kwargs,
-        )
-        self._embedder = Doc2VecEmbedding(vector_size=vector_size)
+        super().__init__(**kwargs)
+        self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-        self.client = None
 
     def delete(self):
         """
