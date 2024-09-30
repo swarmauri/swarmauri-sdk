@@ -52,7 +52,7 @@ class CloudWeaviateVectorStore(
 
         self.client = None
 
-    def connect(self) -> None:
+    def connect(self, **kwargs) -> None:
         """
         Connects to the Qdrant cloud vector store using the provided credentials.
         """
@@ -92,11 +92,7 @@ class CloudWeaviateVectorStore(
             uuid = jeopardy.data.insert(
                 properties=data_object,
                 vector=embedding.value,
-                uuid=(
-                    str(ud.uuid5(self.namespace_uuid, document.id))
-                    if document.id
-                    else generate_uuid5(data_object)
-                ),
+                uuid=document.id,
             )
 
             print(f"Document '{document.id}' added to Weaviate.")
@@ -124,9 +120,7 @@ class CloudWeaviateVectorStore(
         try:
             jeopardy = self.client.collections.get(self.collection_name)
 
-            result = jeopardy.query.fetch_object_by_id(
-                ud.uuid5(self.namespace_uuid, id)
-            )
+            result = jeopardy.query.fetch_object_by_id(id)
 
             if result:
 
@@ -166,7 +160,7 @@ class CloudWeaviateVectorStore(
         """
         try:
             collection = self.client.collections.get(self.collection_name)
-            collection.data.delete_by_id(ud.uuid5(self.namespace_uuid, id))
+            collection.data.delete_by_id(id)
             print(f"Document '{id}' has been deleted from Weaviate.")
         except Exception as e:
             print(f"Error deleting document '{id}': {e}")
