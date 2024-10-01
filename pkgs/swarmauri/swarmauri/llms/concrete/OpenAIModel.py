@@ -57,7 +57,7 @@ class OpenAIModel(LLMBase):
         temperature=0.7,
         max_tokens=256,
         enable_json=False,
-        stop: List[str] = ["\n"],
+        stop: List[str] = [],
     ):
         """
         Generate predictions using the OpenAI model.
