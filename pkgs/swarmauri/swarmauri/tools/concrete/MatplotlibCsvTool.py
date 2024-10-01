@@ -1,3 +1,5 @@
+from swarmauri_core.typing import SubclassUnion
+
 # standard/tools/concrete/MatplotlibCsvTool.py
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -75,3 +77,8 @@ class MatplotlibCsvTool(ToolBase):
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
         return {"img_path": output_file, "img_base64": encoded_image, "data": []}
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="MatplotlibCsvTool", obj=MatplotlibCsvTool
+)

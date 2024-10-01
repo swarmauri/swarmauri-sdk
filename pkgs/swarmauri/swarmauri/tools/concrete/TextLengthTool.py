@@ -1,8 +1,8 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
-import re
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 
@@ -98,3 +98,10 @@ class TextLengthTool(ToolBase):
         """
         sentences = sent_tokenize(text)
         return len(sentences)
+
+
+SubclassUnion.update(
+    baseclass=ToolBase,
+    type_name="TextLengthTool",
+    obj=TextLengthTool,
+)

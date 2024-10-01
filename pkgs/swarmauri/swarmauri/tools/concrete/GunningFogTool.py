@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import re
 from typing import Any, Dict, List, Literal
 from swarmauri.tools.base.ToolBase import ToolBase
@@ -146,3 +147,6 @@ class GunningFogTool(ToolBase):
             and "input_text" in data
             and isinstance(data["input_text"], str)
         )
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="GunningFogTool", obj=GunningFogTool)

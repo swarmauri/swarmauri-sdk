@@ -1,6 +1,6 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
-import subprocess as sp
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
 
@@ -29,3 +29,6 @@ class TestTool(ToolBase):
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return {"program": f"Program Opened: {program}"}
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="TestTool", obj=TestTool)

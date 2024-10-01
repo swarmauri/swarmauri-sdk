@@ -3,7 +3,7 @@ import pytest
 import warnings
 
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.AccessibilityToolkit import (
+from swarmauri.toolkits.concrete import (
     AccessibilityToolkit as Toolkit,
 )
 

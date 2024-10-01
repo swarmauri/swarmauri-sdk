@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
@@ -32,3 +33,6 @@ class WeatherTool(ToolBase):
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return {"weather_info": str(weather_info)}
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="WeatherTool", obj=WeatherTool)

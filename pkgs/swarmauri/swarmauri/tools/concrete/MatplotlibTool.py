@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import matplotlib.pyplot as plt
 from typing import List, Literal
 from pydantic import Field
@@ -115,3 +116,6 @@ class MatplotlibTool(ToolBase):
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
         return {"img_path": save_path, "img_base64": encoded_image, "data": []}
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="MatplotlibTool", obj=MatplotlibTool)
