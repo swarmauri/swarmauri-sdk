@@ -1,3 +1,7 @@
+import json
+import base64
+import logging
+
 import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel as LLM
@@ -10,6 +14,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
+
+logging.info(API_KEY)
+
+# Path to your image
+image_path = "/home/michaeldecent/Pictures/computer.jpg"
+
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+
+base64_image = encode_image(image_path)
 
 
 @pytest.fixture(scope="module")
@@ -78,12 +95,31 @@ def test_no_system_context(groq_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Hello"
+    input_data = [
+        {"type": "text", "text": "What’s in this image?"},
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
+            },
+        },
+    ]
+
+    # input_data = [
+    #     {"type": "text", "text": "What’s in this image?"},
+    #     {
+    #         "type": "image_url",
+    #         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+    #     },
+    # ]
+
+    # logging.info(HumanMessage.__annotations__["content"])
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    logging.info(prediction)
     assert type(prediction) == str
 
 
@@ -98,12 +134,30 @@ def test_preamble_system_context(groq_model, model_name):
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
-    input_data = "Hi"
-    human_message = HumanMessage(content=input_data)
+    input_data = [
+        {"type": "text", "text": "What’s in this image?"},
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
+            },
+        },
+    ]
+
+    # input_data = [
+    #     {"type": "text", "text": "What’s in this image?"},
+    #     {
+    #         "type": "image_url",
+    #         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+    #     },
+    # ]
+
+    human_message = HumanMessage(content=json.dumps(input_data))
     conversation.add_message(human_message)
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    logging.info(prediction)
     assert type(prediction) == str
     assert "Jeff" in prediction
 
