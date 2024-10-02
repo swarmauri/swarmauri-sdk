@@ -2,7 +2,7 @@ import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.agents.concrete.SimpleConversationAgent import SimpleConversationAgent
+from swarmauri.agents.concrete import SimpleConversationAgent
 from dotenv import load_dotenv
 
 load_dotenv()
