@@ -1,5 +1,6 @@
 import json
 from typing import List, Optional, Dict, Literal, Any
+
 from groq import Groq
 from swarmauri_core.typing import SubclassUnion
 
@@ -28,6 +29,8 @@ class GroqModel(LLMBase):
         "llama3-groq-8b-8192-tool-use-preview",
         "llava-v1.5-7b-4096-preview",
         "mixtral-8x7b-32768",
+        # multimodal modles
+        "llama-3.2-11b-vision-preview",
     ]
     name: str = "gemma-7b-it"
     type: Literal["GroqModel"] = "GroqModel"

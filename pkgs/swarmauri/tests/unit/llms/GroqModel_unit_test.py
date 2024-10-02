@@ -1,6 +1,6 @@
 import json
-import base64
 import logging
+from unittest.mock import patch
 
 import pytest
 import os
@@ -14,19 +14,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
+# image_path = "/home/michaeldecent/Downloads/carbon.png"
+image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
 
 logging.info(API_KEY)
-
-# Path to your image
-image_path = "/home/michaeldecent/Pictures/computer.jpg"
-
-
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-
-base64_image = encode_image(image_path)
 
 
 @pytest.fixture(scope="module")
@@ -34,15 +25,6 @@ def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
-    return llm
-
-
-@pytest.fixture(scope="module")
-def llama_guard_model():
-    if not API_KEY:
-        pytest.skip("Skipping due to environment variable not set")
-    llm = LLM(api_key=API_KEY)
-    llm.name = "llama-guard-3-8b"
     return llm
 
 
@@ -60,9 +42,14 @@ def get_allowed_models():
         "llama-guard-3-8b",
     ]
 
+    # multimodal models
+    multimodal_models = ["llama-3.2-11b-vision-preview"]
+
     # Filter out the failing models
     allowed_models = [
-        model for model in llm.allowed_models if model not in failing_llms
+        model
+        for model in llm.allowed_models
+        if model not in failing_llms and model not in multimodal_models
     ]
 
     return allowed_models
@@ -95,25 +82,8 @@ def test_no_system_context(groq_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = [
-        {"type": "text", "text": "What’s in this image?"},
-        {
-            "type": "image_url",
-            "image_url": {
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
-            },
-        },
-    ]
+    input_data = "Hello"
 
-    # input_data = [
-    #     {"type": "text", "text": "What’s in this image?"},
-    #     {
-    #         "type": "image_url",
-    #         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-    #     },
-    # ]
-
-    # logging.info(HumanMessage.__annotations__["content"])
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -134,23 +104,7 @@ def test_preamble_system_context(groq_model, model_name):
     human_message = SystemMessage(content=system_context)
     conversation.add_message(human_message)
 
-    input_data = [
-        {"type": "text", "text": "What’s in this image?"},
-        {
-            "type": "image_url",
-            "image_url": {
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
-            },
-        },
-    ]
-
-    # input_data = [
-    #     {"type": "text", "text": "What’s in this image?"},
-    #     {
-    #         "type": "image_url",
-    #         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-    #     },
-    # ]
+    input_data = "Hi"
 
     human_message = HumanMessage(content=json.dumps(input_data))
     conversation.add_message(human_message)
@@ -163,7 +117,7 @@ def test_preamble_system_context(groq_model, model_name):
 
 
 @pytest.mark.unit
-def test_llama_guard_3_8b_no_system_context(llama_guard_model):
+def test_llama_guard_3_8b_no_system_context(groq_model):
     """
     Test case specifically for the llama-guard-3-8b model.
     This model is designed to classify inputs as safe or unsafe.
@@ -176,7 +130,46 @@ def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    llama_guard_model.predict(conversation=conversation)
+    groq_model.name = "llama-guard-3-8b"
+
+    groq_model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert isinstance(prediction, str)
     assert "safe" in prediction.lower()
+
+
+@pytest.mark.parametrize(
+    "model_name, input_data",
+    [
+        (
+            "llama-3.2-11b-vision-preview",
+            [
+                {"type": "text", "text": "What’s in this image?"},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"{image_url}",
+                    },
+                },
+            ],
+        ),
+    ],
+)
+@pytest.mark.unit
+def test_multimodal_models_no_system_context(groq_model, model_name, input_data):
+    """
+    Test case specifically for the multimodal models.
+    This models are designed process a wide variety of inputs, including text, images, and audio,
+    as prompts and convert those prompts into various outputs, not just the source type.
+
+    """
+    conversation = Conversation()
+    groq_model.name = model_name
+
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    groq_model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
+    logging.info(prediction)
+    assert isinstance(prediction, str)
