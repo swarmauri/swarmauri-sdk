@@ -22,5 +22,5 @@ class VCMBase(IPredictVision, ComponentBase):
             )
         return values
 
-    def predict(self, *args, **kwargs):
+    def predict_vision(self, *args, **kwargs):
         raise NotImplementedError("Predict not implemented in subclass yet.")
