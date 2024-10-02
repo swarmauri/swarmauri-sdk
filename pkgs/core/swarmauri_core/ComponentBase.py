@@ -50,6 +50,7 @@ class ResourceTypes(Enum):
     UTIL = "Util"
     VECTOR_STORE = "VectorStore"
     VECTOR = "Vector"
+    VCM = "VCM"
 
 
 def generate_id() -> str:
