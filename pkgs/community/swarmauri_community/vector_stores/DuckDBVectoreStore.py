@@ -3,7 +3,7 @@ import duckdb
 import numpy as np
 import os
 from typing import List, Union, Literal, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
@@ -20,7 +20,7 @@ from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
 
 
 class DuckDBVectorStore(
-    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):
     type: Literal["DuckDBVectorStore"] = "DuckDBVectorStore"
     db_path: str
@@ -31,15 +31,8 @@ class DuckDBVectorStore(
     class Config:
         arbitrary_types_allowed = True
 
-    def __init__(
-        self, db_path: str, vector_size: int, metric: str = "cosine", **kwargs
-    ):
-        super().__init__(
-            db_path=db_path, vector_size=vector_size, metric=metric, **kwargs
-        )
-        self.db_path = db_path
-        self.vector_size = vector_size
-        self.metric = metric
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
         self.client = None
