@@ -1,15 +1,10 @@
-import json
-import duckdb
-import numpy as np
-import os
-from typing import List, Union, Literal, Dict, Any, Optional
+from typing import List, Union, Literal, Optional
 from pydantic import Field
-
+from llama_index.vector_stores.duckdb import DuckDBVectorStore as LlamaIndexDuckDB
+from llama_index.core import StorageContext, Document as LlamaDocument
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.vectors.concrete.Vector import Vector
-
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -20,305 +15,87 @@ from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
 
 
 class DuckDBVectorStore(
-    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
+    VectorStoreRetrieveMixin, VectorStoreSaveLoadMixin, VectorStoreBase
 ):
     type: Literal["DuckDBVectorStore"] = "DuckDBVectorStore"
-    db_path: str
+    db_path: str = Field(default=":memory:")
+    persist_dir: Optional[str] = Field(default=None)
+    table_name: str = Field(default="vectors")
+    client: Optional[LlamaIndexDuckDB] = Field(default=None, exclude=True)
     vector_size: int
-    metric: str
-    client: Optional[duckdb.DuckDBPyConnection] = Field(default=None, exclude=True)
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._distance = CosineDistance()
-        self.client = None
-        self._initialize_db()
+        self.connect()
 
-    def _initialize_db(self):
-        """Initialize the database with the VSS extension and create necessary tables."""
+    def connect(self):
         try:
-            # Always use in-memory connection for HNSW index
-            self.client = duckdb.connect(":memory:")
-
-            # Install and load the VSS extension
-            self.client.execute("INSTALL vss")
-            self.client.execute("LOAD vss")
-
-            # Create the documents table
-            self.client.execute(
-                f"""
-                CREATE TABLE IF NOT EXISTS documents (
-                    id VARCHAR PRIMARY KEY,
-                    content TEXT,
-                    metadata JSON,
-                    embedding FLOAT[{self.vector_size}]
-                )
-            """
+            self.client = LlamaIndexDuckDB(
+                database_name=self.db_path,
+                table_name=self.table_name,
+                persist_dir=self.persist_dir,
             )
-
-            # Create HNSW index
-            self.client.execute(
-                f"""
-                CREATE INDEX IF NOT EXISTS hnsw_idx
-                ON documents
-                USING HNSW (embedding)
-                WITH (metric = '{self.metric}')
-            """
-            )
-
-            # If using a file-based path, load existing data into memory
-            if self.db_path != ":memory:" and os.path.exists(self.db_path):
-                disk_conn = duckdb.connect(self.db_path)
-                existing_data = disk_conn.execute("SELECT * FROM documents").fetchall()
-                if existing_data:
-                    self.client.executemany(
-                        """
-                        INSERT INTO documents (id, content, metadata, embedding)
-                        VALUES (?, ?, ?, ?)
-                        """,
-                        existing_data,
-                    )
-                disk_conn.close()
-
         except Exception as e:
-            raise RuntimeError(f"Failed to initialize DuckDB with VSS: {str(e)}")
+            raise RuntimeError(f"Failed to connect to DuckDB: {str(e)}")
 
-    def _prepare_vector(self, document: Document) -> Vector:
-        """Prepare a vector for insertion into the DuckDB store."""
+    def disconnect(self):
+        self.client = None
+
+    def _convert_to_llama_doc(self, document: Document) -> LlamaDocument:
         if not document.embedding:
             self._embedder.fit([document.content])
-            embedding = Vector(value=self._embedder.transform([document.content])[0])
-            document.embedding = embedding
-        return document.embedding
+            embedding = self._embedder.transform([document.content])[0].to_numpy()
+            document.embedding = embedding.tolist()
+        return LlamaDocument(
+            text=document.content,
+            metadata=document.metadata,
+            embedding=document.embedding,
+            id_=document.id,
+        )
 
-    def _persist_to_disk(self):
-        """Persist in-memory data to disk if using file-based storage."""
-        if self.db_path != ":memory:":
-            disk_conn = duckdb.connect(self.db_path)
-            disk_conn.execute("DROP TABLE IF EXISTS documents")
-            self.client.sql("SELECT * FROM documents").to_df().to_sql(
-                "documents", disk_conn
-            )
-            disk_conn.close()
+    def _convert_from_llama_doc(self, llama_doc: LlamaDocument) -> Document:
+        return Document(
+            id=llama_doc.id_,
+            content=llama_doc.text,
+            metadata=llama_doc.metadata,
+            embedding=llama_doc.embedding,
+        )
 
     def add_document(self, document: Document) -> None:
-        """Add a single document to the DuckDB store."""
-        try:
-            embedding = self._prepare_vector(document)
-            embedding_list = (
-                embedding.value.tolist()
-                if isinstance(embedding.value, np.ndarray)
-                else embedding.value
-            )
+        llama_doc = self._convert_to_llama_doc(document)
+        self.client.add([llama_doc])
 
-            self.client.execute(
-                """
-                INSERT INTO documents (id, content, metadata, embedding)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    document.id,
-                    document.content,
-                    json.dumps(document.metadata),
-                    embedding_list,
-                ),
-            )
+    def add_documents(self, documents: List[Document]) -> None:
+        llama_docs = [self._convert_to_llama_doc(doc) for doc in documents]
+        self.client.add(llama_docs)
 
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to add document {document.id}: {str(e)}")
+    def get_document(self, id: str) -> Union[Document, None]:
+        results = self.client.get([id])
+        if results:
+            return self._convert_from_llama_doc(results[0])
+        return None
 
-    def add_documents(self, documents: List[Document], batch_size: int = 1000) -> None:
-        """Add multiple documents to the DuckDB store in batches."""
-        try:
-            for i in range(0, len(documents), batch_size):
-                batch = documents[i : i + batch_size]
-                data = [
-                    (
-                        d.id,
-                        d.content,
-                        json.dumps(d.metadata),
-                        self._prepare_vector(d).value,
-                    )
-                    for d in batch
-                ]
-                self.client.executemany(
-                    """
-                    INSERT INTO documents (id, content, metadata, embedding)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    data,
-                )
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
+        query_embedding = self._embedder.infer_vector(query).value
+        results = self.client.query(query_embedding, k=top_k)
+        return [self._convert_from_llama_doc(doc) for doc in results]
 
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to add documents in batch: {str(e)}")
-
-    def get_document(self, document_id: str) -> Optional[Document]:
-        """Retrieve a document by its ID."""
-        try:
-            result = self.client.execute(
-                """
-                SELECT id, content, metadata, embedding
-                FROM documents
-                WHERE id = ?
-                """,
-                [document_id],
-            ).fetchone()
-
-            if result:
-                return Document(
-                    id=result[0],
-                    content=result[1],
-                    metadata=json.loads(result[2]),
-                    embedding=Vector(value=result[3]),
-                )
-            return None
-        except Exception as e:
-            raise RuntimeError(f"Failed to get document {document_id}: {str(e)}")
+    def delete_document(self, id: str) -> None:
+        self.client.delete([id])
 
     def get_all_documents(self) -> List[Document]:
-        """Retrieve all documents from the store."""
-        try:
-            results = self.client.execute(
-                """
-                SELECT id, content, metadata, embedding
-                FROM documents
-                """
-            ).fetchall()
+        all_docs = self.client.get_all()
+        return [self._convert_from_llama_doc(doc) for doc in all_docs]
 
-            return [
-                Document(
-                    id=r[0],
-                    content=r[1],
-                    metadata=json.loads(r[2]),
-                    embedding=Vector(value=r[3]),
-                )
-                for r in results
-            ]
-        except Exception as e:
-            raise RuntimeError(f"Failed to get all documents: {str(e)}")
-
-    def update_document(self, document: Document) -> None:
-        """Update an existing document."""
-        try:
-            embedding = self._prepare_vector(document)
-            embedding_list = (
-                embedding.value.tolist()
-                if isinstance(embedding.value, np.ndarray)
-                else embedding.value
-            )
-
-            self.client.execute(
-                """
-                UPDATE documents
-                SET content = ?, metadata = ?, embedding = ?
-                WHERE id = ?
-                """,
-                (
-                    document.content,
-                    json.dumps(document.metadata),
-                    embedding_list,
-                    document.id,
-                ),
-            )
-
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to update document {document.id}: {str(e)}")
-
-    def delete_document(self, document_id: str) -> None:
-        """Delete a document by its ID."""
-        try:
-            self.client.execute("DELETE FROM documents WHERE id = ?", [document_id])
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to delete document {document_id}: {str(e)}")
+    def update_document(self, id: str, document: Document) -> None:
+        llama_doc = self._convert_to_llama_doc(document)
+        self.client.update([llama_doc])
 
     def clear_documents(self) -> None:
-        """Delete all documents from the store."""
-        try:
-            self.client.execute("DELETE FROM documents")
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to clear documents: {str(e)}")
+        self.client.delete_all()
 
-    def count_documents(self) -> int:
-        """Get the total number of documents in the store."""
-        try:
-            result = self.client.execute("SELECT COUNT(*) FROM documents").fetchone()
-            return result[0] if result else 0
-        except Exception as e:
-            raise RuntimeError(f"Failed to count documents: {str(e)}")
-
-    def retrieve(self, query_vector: Vector, top_k: int = 5) -> List[Dict[str, Any]]:
-        """Retrieve the top-k most similar documents to the query vector."""
-        try:
-            query_list = (
-                query_vector.value.tolist()
-                if isinstance(query_vector.value, np.ndarray)
-                else query_vector.value
-            )
-
-            distance_func = {
-                "cosine": "array_cosine_distance",
-                "l2sq": "array_distance",
-                "ip": "array_negative_inner_product",
-            }.get(self.metric, "array_cosine_distance")
-
-            results = self.client.execute(
-                f"""
-                SELECT
-                    id,
-                    content,
-                    metadata,
-                    embedding,
-                    {distance_func}(embedding, ?) as distance
-                FROM documents
-                ORDER BY {distance_func}(embedding, ?)
-                LIMIT ?
-                """,
-                [query_list, query_list, top_k],
-            ).fetchall()
-
-            return [
-                {
-                    "id": r[0],
-                    "content": r[1],
-                    "metadata": json.loads(r[2]),
-                    "embedding": Vector(value=r[3]),
-                    "distance": float(r[4]),
-                }
-                for r in results
-            ]
-        except Exception as e:
-            raise RuntimeError(f"Failed to retrieve similar documents: {str(e)}")
-
-    def delete_document(self, document_id: str) -> None:
-        """Delete a document by its ID."""
-        try:
-            self.client.execute("DELETE FROM documents WHERE id = ?", [document_id])
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to delete document {document_id}: {str(e)}")
-
-    def delete_documents(self, document_ids: List[str]) -> None:
-        """Delete multiple documents by their IDs."""
-        try:
-            placeholders = ",".join(["?" for _ in document_ids])
-            self.client.execute(
-                f"DELETE FROM documents WHERE id IN ({placeholders})", document_ids
-            )
-            self._persist_to_disk()
-        except Exception as e:
-            raise RuntimeError(f"Failed to delete documents: {str(e)}")
-
-    def model_dump_json(self, *args, **kwargs) -> str:
-        """Prepare the instance for JSON serialization."""
-        # Reset the client before serialization
-        self.client = None
-        return super().model_dump_json(*args, **kwargs)
+    @classmethod
+    def from_local(cls, db_path: str, persist_dir: Optional[str] = None, **kwargs):
+        return cls(db_path=db_path, persist_dir=persist_dir, **kwargs)
