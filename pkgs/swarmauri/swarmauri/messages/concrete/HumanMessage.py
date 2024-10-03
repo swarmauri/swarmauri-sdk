@@ -4,7 +4,7 @@ from swarmauri.messages.base.MessageBase import MessageBase
 from typing import Union, Dict
 from typing_extensions import TypedDict
 
-from swarmauri.utils.base64_image_encoder import is_url, encode_image
+from swarmauri.utils.base64_encoder import is_url, encode_file
 
 
 # Define specific content types
@@ -36,5 +36,5 @@ class HumanMessage(MessageBase):
                 image_data = item.get("image_url", {})
                 url = image_data.get("url")
                 if url and not is_url(url):
-                    image_data["url"] = encode_image(url)
+                    image_data["url"] = f"data:image/jpeg;base64,{encode_file(url)}"
         return content
