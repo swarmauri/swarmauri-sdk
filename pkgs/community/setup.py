@@ -19,6 +19,7 @@ setup(
         "requests",
         "pydantic",
         "pymupdf",
+        "pypdftk",
         "neo4j",
         "weaviate-client",
         "pygithub",
