@@ -7,7 +7,7 @@ from swarmauri.messages.concrete import HumanMessage
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.conversations.base.ConversationBase import ConversationBase
 
-from pkgs.swarmauri.swarmauri.messages.concrete.HumanMessage import contentItem
+from swarmauri.messages.concrete.HumanMessage import contentItem
 
 
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):

@@ -1,7 +1,5 @@
 import json
 import logging
-from unittest.mock import patch
-
 import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel as LLM
@@ -25,6 +23,15 @@ def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
     llm = LLM(api_key=API_KEY)
+    return llm
+
+
+@pytest.fixture(scope="module")
+def llama_guard_model():
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = LLM(api_key=API_KEY)
+    llm.name = "llama-guard-3-8b"
     return llm
 
 
@@ -117,7 +124,7 @@ def test_preamble_system_context(groq_model, model_name):
 
 
 @pytest.mark.unit
-def test_llama_guard_3_8b_no_system_context(groq_model):
+def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     """
     Test case specifically for the llama-guard-3-8b model.
     This model is designed to classify inputs as safe or unsafe.
@@ -130,9 +137,7 @@ def test_llama_guard_3_8b_no_system_context(groq_model):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    groq_model.name = "llama-guard-3-8b"
-
-    groq_model.predict(conversation=conversation)
+    llama_guard_model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert isinstance(prediction, str)
     assert "safe" in prediction.lower()
