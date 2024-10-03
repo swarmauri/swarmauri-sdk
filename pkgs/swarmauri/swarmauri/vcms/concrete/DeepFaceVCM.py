@@ -6,7 +6,7 @@ from swarmauri.vcms.base.VCMBase import VCMBase
 
 
 class DeepFaceVCM(VCMBase):
-    type: Literal["VCMBase"] = "DeepFaceVCM"  # Override type
+    type: Literal["VCMBase"] = "DeepFaceVCM" 
     detector_backend: str = Field(default="opencv", description="Backend to use for detection")
     align: bool = Field(default=True, description="Whether to align the face")
     enforce_detection: bool = Field(default=True, description="Enforce face detection")
@@ -41,5 +41,4 @@ class DeepFaceVCM(VCMBase):
             )
             return analysis
         except Exception as e:
-            # Handle exceptions or log as needed
             raise RuntimeError(f"DeepFace analysis failed: {e}") from e

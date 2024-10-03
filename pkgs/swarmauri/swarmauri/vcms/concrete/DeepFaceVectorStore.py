@@ -1,56 +1,57 @@
 from typing import Union, List
+from pydantic import Field
 import pandas as pd
 import numpy as np
 from deepface import DeepFace
+from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
+from swarmauri.vector_stores.base.VisionVectorStoreBase import VisionVectorStoreBase
 
-class DeepFaceVectorStore:
-    # Class Variables for Defaults and Validations
-    VALID_MODELS = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", 
-                   "DeepID", "Dlib", "ArcFace", "SFace", "GhostFaceNet"]
-    VALID_DISTANCE_METRICS = ["cosine", "euclidean", "euclidean_l2"]
-    DEFAULT_MODEL_NAME = "VGG-Face"
-    DEFAULT_DETECTOR_BACKEND = "opencv"
-    DEFAULT_DISTANCE_METRIC = "cosine"
-    DEFAULT_ALIGN = True
-    DEFAULT_ENFORCE_DETECTION = True
-    DEFAULT_EXPAND_PERCENTAGE = 0
-    DEFAULT_NORMALIZATION = "base"
-    DEFAULT_ANTI_SPOOFING = False
-
+class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
+    """
+    A class to handle vector store operations using DeepFace models.
+    Inherits common DeepFace settings from DeepFaceBase.
+    """
+    
     def __init__(self, **kwargs):
-        model_name = kwargs.get('model_name', self.DEFAULT_MODEL_NAME)
-        if model_name not in self.VALID_MODELS:
-            raise ValueError(f"Invalid model name. Expected one of {self.VALID_MODELS}")
-        self.model_name = model_name
+        super().__init__(**kwargs)  
 
-        distance_metric = kwargs.get('distance_metric', self.DEFAULT_DISTANCE_METRIC)
-        if distance_metric not in self.VALID_DISTANCE_METRICS:
-            raise ValueError(f"Invalid distance metric. Expected one of {self.VALID_DISTANCE_METRICS}")
-        self.distance_metric = distance_metric
-
-        self.detector_backend = kwargs.get('detector_backend', self.DEFAULT_DETECTOR_BACKEND)
-        self.align = kwargs.get('align', self.DEFAULT_ALIGN)
-        self.enforce_detection = kwargs.get('enforce_detection', self.DEFAULT_ENFORCE_DETECTION)
-        self.expand_percentage = kwargs.get('expand_percentage', self.DEFAULT_EXPAND_PERCENTAGE)
-        self.normalization = kwargs.get('normalization', self.DEFAULT_NORMALIZATION)
-        self.anti_spoofing = kwargs.get('anti_spoofing', self.DEFAULT_ANTI_SPOOFING)
-
+    distance_metric: str = Field(
+        default=DeepFaceBase.DEFAULT_DISTANCE_METRIC,
+        description="Distance metric to use for comparison."
+        )
     def find(self, img_path: Union[str, np.ndarray], db_path: str,
              threshold: float = None, silent: bool = False,
              refresh_database: bool = True) -> List[pd.DataFrame]:
-        result = DeepFace.find(
-            img_path=img_path, 
-            db_path=db_path, 
-            model_name=self.model_name,
-            detector_backend=self.detector_backend,
-            distance_metric=self.distance_metric,
-            align=self.align,
-            enforce_detection=self.enforce_detection,
-            expand_percentage=self.expand_percentage,
-            normalization=self.normalization,
-            threshold=threshold,
-            silent=silent,
-            refresh_database=refresh_database,
-            anti_spoofing=self.anti_spoofing
-        )
-        return result
+        """
+        Finds matching faces in the database for the given image.
+
+        Args:
+            img_path (Union[str, np.ndarray]): Path to the input image or NumPy array.
+            db_path (str): Path to the database of images.
+            threshold (float, optional): Similarity threshold. Defaults to None.
+            silent (bool, optional): If True, suppresses output. Defaults to False.
+            refresh_database (bool, optional): If True, refreshes the database. Defaults to True.
+
+        Returns:
+            List[pd.DataFrame]: List of DataFrames containing results.
+        """
+        
+        try:
+            result = DeepFace.find(
+                img_path=img_path,
+                db_path=db_path,
+                model_name=self.name,
+                detector_backend=self.detector_backend,
+                distance_metric=self.distance_metric,
+                align=self.align,
+                enforce_detection=self.enforce_detection,
+                expand_percentage=self.expand_percentage,
+                normalization=self.normalization,
+                threshold=threshold,
+                silent=silent,
+                refresh_database=refresh_database,
+                anti_spoofing=self.anti_spoofing
+            )
+            return result
+        except Exception as e:
+            raise RuntimeError(f"DeepFace find operation failed: {e}") from e
