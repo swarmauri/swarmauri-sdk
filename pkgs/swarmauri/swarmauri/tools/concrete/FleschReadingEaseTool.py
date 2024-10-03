@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import re
 from typing import List, Literal, Dict
 from pydantic import Field
@@ -95,3 +96,8 @@ class FleschReadingEaseTool(ToolBase):
 
         # Ensure at least one syllable per word
         return max(num_syllables, 1)
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="FleschReadingEaseTool", obj=FleschReadingEaseTool
+)

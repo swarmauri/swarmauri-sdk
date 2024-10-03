@@ -8,7 +8,7 @@ from unittest.mock import patch, mock_open
 
 import pytest
 import tempfile
-from swarmauri.tools.concrete.CodeExtractorTool import CodeExtractorTool as Tool
+from swarmauri.tools.concrete import CodeExtractorTool as Tool
 
 
 @pytest.mark.unit

@@ -7,7 +7,7 @@ from swarmauri.conversations.concrete.MaxSystemContextConversation import (
 from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.agents.concrete.RagAgent import RagAgent
+from swarmauri.agents.concrete import RagAgent
 from dotenv import load_dotenv
 
 load_dotenv()

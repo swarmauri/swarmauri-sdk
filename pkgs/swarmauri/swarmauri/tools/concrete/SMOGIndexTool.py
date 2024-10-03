@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
@@ -107,3 +108,6 @@ class SMOGIndexTool(ToolBase):
         if count == 0:
             count = 1
         return count
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="SMOGIndexTool", obj=SMOGIndexTool)

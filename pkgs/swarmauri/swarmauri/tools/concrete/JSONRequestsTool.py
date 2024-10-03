@@ -1,7 +1,9 @@
+from swarmauri_core.typing import SubclassUnion
+
 # Import necessary modules
 import requests
 from typing import Optional, Dict, Any, Literal, List
-from pydantic import BaseModel, Field, Extra
+from pydantic import Field
 from swarmauri.tools.base.ToolBase import (
     ToolBase,
 )  # Assuming the location of ToolBase import
@@ -181,3 +183,8 @@ class JSONRequestsTool(ToolBase):
                 "headers": dict(response.headers),
                 "content": response.text,
             }
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="JSONRequestsTool", obj=JSONRequestsTool
+)

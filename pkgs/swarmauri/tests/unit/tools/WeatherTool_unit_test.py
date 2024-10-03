@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.WeatherTool import WeatherTool as Tool
+from swarmauri.tools.concrete import WeatherTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

@@ -1,5 +1,6 @@
+from swarmauri_core.typing import SubclassUnion
 import re
-from typing import Any, Dict, List, Literal
+from typing import Dict, List, Literal
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
 
@@ -113,3 +114,10 @@ class AutomatedReadabilityIndexTool(ToolBase):
         if isinstance(input_text, str):
             return True
         return False
+
+
+SubclassUnion.update(
+    baseclass=ToolBase,
+    type_name="AutomatedReadabilityIndexTool",
+    obj=AutomatedReadabilityIndexTool,
+)

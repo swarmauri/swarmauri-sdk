@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.FleschKincaidTool import FleschKincaidTool as Tool
+from swarmauri.tools.concrete import FleschKincaidTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import sys
 import types
 import importlib
@@ -88,3 +89,8 @@ class ImportMemoryModuleTool(ToolBase):
             current_module = sys.modules[module_path]
 
         return current_module
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="ImportMemoryModuleTool", obj=ImportMemoryModuleTool
+)

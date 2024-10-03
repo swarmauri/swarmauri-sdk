@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.tools.concrete.MatplotlibTool import MatplotlibTool as Tool
+from swarmauri.tools.concrete import MatplotlibTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

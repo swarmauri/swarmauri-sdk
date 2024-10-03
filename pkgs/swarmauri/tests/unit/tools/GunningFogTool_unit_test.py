@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.GunningFogTool import GunningFogTool as Tool
+from swarmauri.tools.concrete import GunningFogTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

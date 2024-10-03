@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.TemperatureConverterTool import TemperatureConverterTool as Tool
+from swarmauri.tools.concrete import TemperatureConverterTool as Tool
 
 @pytest.mark.unit
 def test_initialization():
