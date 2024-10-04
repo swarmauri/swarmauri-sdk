@@ -15,8 +15,7 @@ setup(
     install_requires=[
         'numpy',
         'requests',
-        'pydantic',
-        "pandas"
+        'pydantic'
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
