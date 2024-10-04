@@ -48,25 +48,26 @@ def test_audio_transcription(groqai_model, model_name):
     model.name = model_name
 
     prediction = model.predict(
-        audio_path="/home/johnmkagunda/Downloads/videos/trial.mp3"
+        audio_path="./tests/unit/llms/static/audio/test.mp3",
     )
 
     logging.info(prediction)
 
+    assert "this is a test audio file" in prediction.lower()
     assert type(prediction) is str
 
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_audio_translation(groqai_model, model_name):
+def test_audio_translation(groqai_model):
     model = groqai_model
-    model.name = model_name
+    model.name = "whisper-large-v3"
 
     prediction = model.predict(
-        audio_path="/home/johnmkagunda/Downloads/videos/trial.mp3",
+        audio_path="./tests/unit/llms/static/audio/test_fr.mp3",
         task="translation",
     )
 
     logging.info(prediction)
 
+    assert "this is a test audio file" in prediction.lower()
     assert type(prediction) is str
