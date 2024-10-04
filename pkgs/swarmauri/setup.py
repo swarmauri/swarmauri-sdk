@@ -15,11 +15,8 @@ setup(
         include=["swarmauri*"]
     ),  # Include packages in your_package and libs directories
     install_requires=[
-        "numpy",  # Common dependencies for all distributions
-        "requests",
-        "pydantic",
-        "redis",
         "swarmauri_core==0.5.1.dev1",
+        "redis",
         "ai21>=2.2.0",
         "shuttleai",
         "transformers",
