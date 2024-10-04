@@ -4,7 +4,7 @@ from swarmauri.vcms.concrete.DeepFaceVectorStore import DeepFaceVectorStore
 
 @pytest.mark.unit
 def test_ubc_resource():
-    assert DeepFaceVectorStore().resource == "VCM"
+    assert DeepFaceVectorStore().resource == "VectorStore"
 
 
 @pytest.mark.unit

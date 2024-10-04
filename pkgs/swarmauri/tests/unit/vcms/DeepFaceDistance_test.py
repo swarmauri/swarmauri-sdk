@@ -4,7 +4,7 @@ from swarmauri.vcms.concrete.DeepFaceDistance import DeepFaceDistance
 
 @pytest.mark.unit
 def test_ubc_resource():
-    assert DeepFaceDistance().resource == "VCM"
+    assert DeepFaceDistance().resource == "Distance"
 
 
 @pytest.mark.unit

@@ -4,7 +4,7 @@ from swarmauri.vcms.concrete.DeepFaceEmbedder import DeepFaceEmbedder
 
 @pytest.mark.unit
 def test_ubc_resource():
-    assert DeepFaceEmbedder().resource == "VCM"
+    assert DeepFaceEmbedder().resource == "Embedding"
 
 
 @pytest.mark.unit
