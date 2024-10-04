@@ -1,11 +1,14 @@
-from typing import Union, List, Dict, Any, Optional
+from typing import Union, List, Dict, Any, Optional, Literal
 import numpy as np
 from deepface import DeepFace
-from pydantic import ValidationError
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
 from swarmauri.embeddings.base.VisionEmbeddingBase import VisionEmbeddingBase
+from pydantic import Field
+from swarmauri_core.ComponentBase import ResourceTypes
 
 class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
+    type: Literal["DeepFaceEmbedder"] = "DeepFaceEmbedder"
+    resource: str = Field(default="Embedding", description="VCM resource")
 
     def represent(
         self, 

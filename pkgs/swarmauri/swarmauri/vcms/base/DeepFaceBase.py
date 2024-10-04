@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any, List, ClassVar, Optional
+from typing import Union, Dict, Any, List, ClassVar, Literal
 import numpy as np
 from deepface import DeepFace
 from pydantic import BaseModel, Field, ValidationError, model_validator
@@ -6,6 +6,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class DeepFaceBase(ComponentBase, BaseModel):
 
+    type: Literal["DeepFaceBase"] = "DeepFaceBase"
     allowed_models: ClassVar[List[str]] = [
         "VGG-Face", "Facenet", "Facenet512", "OpenFace", 
         "DeepFace", "DeepID", "Dlib", "ArcFace", 

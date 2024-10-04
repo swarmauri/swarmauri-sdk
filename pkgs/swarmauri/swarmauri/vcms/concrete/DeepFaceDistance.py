@@ -1,14 +1,15 @@
-from typing import Union, Dict, Any, List, Optional
+from typing import Union, Dict, Any, List, Optional, Literal
 from pydantic import Field
 import numpy as np
 from deepface import DeepFace
-from pydantic import ValidationError
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
-
 from swarmauri.distances.base.VisionDistanceBase import VisionDistanceBase
 
 class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
-
+    
+    type: Literal["DeepFaceDistance"] = "DeepFaceDistance"
+    resource: str = Field(default="Distance", description="VCM resource")
+    
     def verify(
         self, 
         img1_path: Union[str, np.ndarray, List[float]], 
