@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Literal
 from pydantic import Field
 import pandas as pd
 import numpy as np
@@ -12,6 +12,8 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
     Inherits common DeepFace settings from DeepFaceBase.
     """
     
+    type: Literal["DeepFaceVectorStore"] = "DeepFaceVectorStore"
+    resource: str = Field(default="VectorStore", description="VCM resource")
     def __init__(self, **kwargs):
         super().__init__(**kwargs)  
 

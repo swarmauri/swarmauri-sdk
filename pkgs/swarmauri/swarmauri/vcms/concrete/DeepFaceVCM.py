@@ -1,12 +1,14 @@
 from typing import Any, Union, Optional, List, Literal, Tuple, Dict
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator, Field
+from pydantic import Field
 import numpy as np
 from deepface import DeepFace
 from swarmauri.vcms.base.VCMBase import VCMBase
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 
-class DeepFaceVCM(VCMBase):
-    type: Literal["VCMBase"] = "DeepFaceVCM" 
+class DeepFaceVCM(VCMBase, ComponentBase):
+    type: Literal["DeepFaceVCM"] = "DeepFaceVCM" 
+    resource: str = Field(default=ResourceTypes.VCM.value, description="VCM resource")
     detector_backend: str = Field(default="opencv", description="Backend to use for detection")
     align: bool = Field(default=True, description="Whether to align the face")
     enforce_detection: bool = Field(default=True, description="Enforce face detection")
