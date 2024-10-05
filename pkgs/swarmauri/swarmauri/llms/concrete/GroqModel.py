@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional, Dict, Literal, Any
+from typing import List, Optional, Dict, Literal
 from groq import Groq
 from swarmauri_core.typing import SubclassUnion
 
@@ -32,19 +32,14 @@ class GroqModel(LLMBase):
     name: str = "gemma-7b-it"
     type: Literal["GroqModel"] = "GroqModel"
 
-    def _format_messages(messages: List[SubclassUnion[MessageBase]]) -> List[Dict[str, Any]]:
-        formatted_messages = []
-        for message in messages:
-            formatted_message = message.model_dump(
-                include=["content", "role", "name"], exclude_none=True
-            )
-
-            if isinstance(formatted_message["content"], list):
-                formatted_message["content"] = [
-                    {"type": item["type"], **item} for item in formatted_message["content"]
-                ]
-
-            formatted_messages.append(formatted_message)
+    def _format_messages(
+        self, messages: List[SubclassUnion[MessageBase]]
+    ) -> List[Dict[str, str]]:
+        message_properties = ["content", "role", "name"]
+        formatted_messages = [
+            message.model_dump(include=message_properties, exclude_none=True)
+            for message in messages
+        ]
         return formatted_messages
 
     def predict(
