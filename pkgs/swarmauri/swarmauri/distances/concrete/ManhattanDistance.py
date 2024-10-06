@@ -37,7 +37,7 @@ class ManhattanDistance(DistanceBase):
             vector_b (Vector): The second vector in the comparison.
 
         Returns:
-            NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity measure.
+            NotImplementedError: This is intended as this distance measurement doesn't directly offer a similarity measure.
         """
         raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
         

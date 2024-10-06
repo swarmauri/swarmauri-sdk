@@ -5,7 +5,7 @@ from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class JaccardIndexDistance(DistanceBase):
     """
-    A class implementing Jaccard Index as a similarity and distance metric between two vectors.
+    A class implementing Jaccard Index as a similarity and distance measurement between two vectors.
     """    
     type: Literal['JaccardIndexDistance'] = 'JaccardIndexDistance'
     

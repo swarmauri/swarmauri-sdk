@@ -75,10 +75,10 @@ class IExperimentStore(ABC):
     @abstractmethod
     def evaluate_experiments(self, evaluation_criteria: Dict[str, Any]) -> Any:
         """
-        Evaluates the experiments stored in the experiment store based on given criteria and metrics.
+        Evaluates the experiments stored in the experiment store based on given criteria and measurements.
 
         Parameters:
-        - evaluation_criteria (Dict[str, Any]): The criteria and metrics to evaluate the experiments.
+        - evaluation_criteria (Dict[str, Any]): The criteria and measurements to evaluate the experiments.
 
         Returns:
         - Any: The evaluation results, which may vary depending on the evaluation criteria.

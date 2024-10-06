@@ -30,7 +30,7 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
             self.model = restore_model(model_path)
         else:
             self.model = None
-        self.metric = CosineDistance()
+        self.measurement = CosineDistance()
         self._load_documents()
         if not self.model:
             self._train_model()
@@ -90,6 +90,6 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
             self._train_model()
         query_vector = self.vectorizer.infer_vector(model=self.model, samples=[query])[0]
         document_vectors = [self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0] for doc in self.documents]
-        similarities = self.metric.distances(SimpleVector(data=query_vector), [SimpleVector(vector) for vector in document_vectors])
+        similarities = self.measurement.distances(SimpleVector(data=query_vector), [SimpleVector(vector) for vector in document_vectors])
         top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[:top_k]
         return [self.documents[i] for i in top_k_indices]

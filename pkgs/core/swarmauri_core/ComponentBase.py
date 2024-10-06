@@ -36,7 +36,7 @@ class ResourceTypes(Enum):
     EXCEPTION = "Exception"
     LLM = "LLM"
     MESSAGE = "Message"
-    METRIC = "Metric"
+    METRIC = "Measurement"
     PARSER = "Parser"
     PROMPT = "Prompt"
     STATE = "State"

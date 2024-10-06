@@ -20,7 +20,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         """
         self.model = Word2Vec(vector_size=100, window=5, min_count=1, workers=4)  # Example parameters; adjust as needed
         self.documents = []
-        self.metric = CosineDistance()
+        self.measurement = CosineDistance()
 
     def add_document(self, document: EmbeddedDocument) -> None:
         # Check if the document already has an embedding, if not generate one using _average_word_vectors
@@ -70,7 +70,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         query_vector = self._average_word_vectors(query.split())
         print('query_vector', query_vector)
         # Compute similarity scores between the query and each document's stored embedding
-        similarities = self.metric.similarities(SimpleVector(query_vector), [SimpleVector(doc.embedding) for doc in self.documents if doc.embedding])
+        similarities = self.measurement.similarities(SimpleVector(query_vector), [SimpleVector(doc.embedding) for doc in self.documents if doc.embedding])
         print('similarities', similarities)
         # Retrieve indices of top_k most similar documents
         top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i], reverse=True)[:top_k]

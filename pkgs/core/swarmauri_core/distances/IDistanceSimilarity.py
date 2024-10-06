@@ -6,7 +6,7 @@ class IDistanceSimilarity(ABC):
     """
     Interface for computing distances and similarities between high-dimensional data vectors. This interface
     abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
-    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
+    distance measurements such as Euclidean, Manhattan, Cosine similarity, etc.
     """
 
     @abstractmethod

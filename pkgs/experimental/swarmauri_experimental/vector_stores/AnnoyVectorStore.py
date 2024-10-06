@@ -18,12 +18,12 @@ class AnnoyVectorStore(SaveLoadStoreBase, VectorDocumentStoreRetrieveBase):
     for saving, loading, storing, and retrieving vector documents, leveraging Annoy as the backend.
     """
 
-    def __init__(self, dimension: int, metric='euclidean', num_trees=10):
+    def __init__(self, dimension: int, measurement='euclidean', num_trees=10):
         self.dimension = dimension
         self.vectorizer = Doc2VecVectorizer()
-        self.metric = metric
+        self.measurement = measurement
         self.num_trees = num_trees
-        self.index = AnnoyIndex(dimension, metric)
+        self.index = AnnoyIndex(dimension, measurement)
         self.documents = []  # List of documents
         self.id_to_index = {}  # Mapping from document ID to index in Annoy
         SaveLoadStoreBase.__init__(self, self.vectorizer, [])
@@ -142,7 +142,7 @@ class AnnoyVectorStore(SaveLoadStoreBase, VectorDocumentStoreRetrieveBase):
         """
         self.documents = []
         self.doc_id_to_index = {}
-        self.index = AnnoyIndex(self.dimension, self.metric)
+        self.index = AnnoyIndex(self.dimension, self.measurement)
 
     def document_count(self) -> int:
         """
@@ -264,7 +264,7 @@ class AnnoyVectorStore(SaveLoadStoreBase, VectorDocumentStoreRetrieveBase):
         """
         Rebuild the Annoy index from the current documents.
         """
-        self.index = AnnoyIndex(self.dimension, self.metric)
+        self.index = AnnoyIndex(self.dimension, self.measurement)
         for idx, document in enumerate(self.documents):
             self.index.add_item(idx, document.content)
         self.index.build(self.num_trees)

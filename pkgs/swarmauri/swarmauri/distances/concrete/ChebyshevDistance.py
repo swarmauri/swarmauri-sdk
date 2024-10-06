@@ -4,7 +4,7 @@ from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class ChebyshevDistance(DistanceBase):
     """
-    Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
+    Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance measurement.
     Chebyshev distance is the maximum absolute distance between two vectors' elements.
     """
     type: Literal['ChebyshevDistance'] = 'ChebyshevDistance'   

@@ -17,9 +17,9 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)  
 
-    distance_metric: str = Field(
+    distance_measurement: str = Field(
         default=DeepFaceBase.DEFAULT_DISTANCE_METRIC,
-        description="Distance metric to use for comparison."
+        description="Distance measurement to use for comparison."
         )
     def find(self, img_path: Union[str, np.ndarray], db_path: str,
              threshold: float = None, silent: bool = False,
@@ -44,7 +44,7 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
                 db_path=db_path,
                 model_name=self.name,
                 detector_backend=self.detector_backend,
-                distance_metric=self.distance_metric,
+                distance_measurement=self.distance_measurement,
                 align=self.align,
                 enforce_detection=self.enforce_detection,
                 expand_percentage=self.expand_percentage,
