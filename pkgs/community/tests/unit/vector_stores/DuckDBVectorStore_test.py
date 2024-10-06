@@ -3,6 +3,7 @@ import os
 import json
 from swarmauri.documents.concrete.Document import Document
 from swarmauri_community.vector_stores.DuckDBVectorStore import DuckDBVectorStore
+from swarmauri.vectors.concrete.Vector import Vector
 
 
 @pytest.fixture(params=[":memory:", "test_db.db"])
@@ -130,7 +131,9 @@ def test_retrieve(vector_store, sample_documents):
 
     results = vector_store.retrieve("fox jumping", top_k=2)
     assert len(results) == 2
-    assert all("fox" in doc.content.lower() for doc in results)
+
+    for result in results:
+        assert "fox" in result.content.lower()
 
 
 def test_embed_dim(tmp_path):
@@ -140,7 +143,9 @@ def test_embed_dim(tmp_path):
     )
     vs.connect()
 
-    doc = Document(id="embed_test", content="Test document", embedding=[0.1] * 128)
+    doc = Document(
+        id="embed_test", content="Test document", embedding=Vector(value=([0.1] * 128))
+    )
     vs.add_document(doc)
 
     retrieved_doc = vs.get_document("embed_test")

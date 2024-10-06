@@ -138,12 +138,14 @@ class DuckDBVectorStore(
         ids = [doc.id for doc in documents]
         contents = [doc.content for doc in documents]
 
-        for doc in documents:
-            self._embedder.fit([doc.content])
+        # the for loop should only be called once when fitting the embedder
+        self._embedder.fit([doc.content for doc in documents])
 
         embeddings = [
-            self._embedder.infer_vector(doc.content).value for doc in documents
+            self._embedder.transform([doc.content])[0].to_numpy().tolist()
+            for doc in documents
         ]
+
         metadatas = [doc.metadata for doc in documents]
 
         data_list = list(zip(ids, contents, embeddings, metadatas))
@@ -203,12 +205,14 @@ class DuckDBVectorStore(
                     cosine_sim_query, [query_embedding, top_k]
                 ).fetchall()
 
+        logging.info(f"results: {results}")
+
         return [
             Document(
                 id=row[0],
                 content=row[1],
                 metadata=json.loads(row[2]),
-                embedding=Vector(value=row[3]),
+                embedding=Vector(value=[row[3]]),
             )
             for row in results
         ]
