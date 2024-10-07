@@ -10,7 +10,7 @@ setup(
     long_description=swarmauri_experimental.__long_desc__,
     long_description_content_type="text/markdown",
     url="http://github.com/swarmauri/swarmauri-sdk",
-    license='Apache Software License',
+    license="Apache Software License",
     packages=find_packages(
         include=["swarmauri_experimental*"]
     ),  # Include packages in your_package and libs directories
@@ -19,13 +19,13 @@ setup(
         "requests",
         "pydantic",
         "swarmauri-core==0.5.0",
-        "swarmauri==0.5.0"
+        "swarmauri==0.5.0",
     ],
     extras_require={
         "full": [
             "ai21>=2.2.0",
             "shuttleai",
-            "transformers",
+            "transformers==4.45.0",
             "tensorflow",
             "typing_extensions",
             "google-api-python-client",
@@ -70,4 +70,3 @@ setup(
     python_requires=">=3.10",
     setup_requires=["wheel"],
 )
- 
