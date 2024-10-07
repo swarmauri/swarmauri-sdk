@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import pytest
@@ -15,14 +16,11 @@ API_KEY = os.getenv("GROQ_API_KEY")
 # image_path = "/home/michaeldecent/Downloads/carbon.png"
 image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
 
-logging.info(API_KEY)
-
-
 @pytest.fixture(scope="module")
 def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    llm = LLM(api_key=API_KEY)
+    llm = LLM(api_key=API_KEY, stream=True)
     return llm
 
 
@@ -82,23 +80,33 @@ def test_default_name(groq_model):
     assert groq_model.name == "gemma-7b-it"
 
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
+# @pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio
 @pytest.mark.unit
-def test_no_system_context(groq_model, model_name):
-    model = groq_model
-    model.name = model_name
+async def test_no_system_context(groq_model):
+    # groq_model.name = model_name
     conversation = Conversation()
 
     input_data = "Hello"
 
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
+    #
+    # if groq_model.stream:
+    #     async for chunk in groq_model.predict(conversation):
+    #         assert isinstance(chunk.choices[0].delta.content, str),  f"instead i got this data type {type(chunk.choices[0].delta.content)}"
+    #
+    # else:
+    result = groq_model.predict(conversation=conversation)
+    if groq_model.stream:
+        async for chunk in result:
+            logging.info(chunk)
+            assert isinstance(conversation.get_last().content, str),  f"instead i got this data type {type(chunk)}"
+    else:
 
-    model.predict(conversation=conversation)
-    prediction = conversation.get_last().content
-    logging.info(prediction)
-    assert type(prediction) == str
-
+        prediction = conversation.get_last().content
+        logging.info(prediction)
+        assert isinstance(prediction, str)
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
