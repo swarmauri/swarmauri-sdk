@@ -20,7 +20,7 @@ setup(
         "ai21>=2.2.0",
         # "shuttleai",
         "transformers==4.45.0",
-        "tensorflow",
+        # "tensorflow",
         "typing_extensions",
         "google-api-python-client",
         "google-auth-httplib2",
