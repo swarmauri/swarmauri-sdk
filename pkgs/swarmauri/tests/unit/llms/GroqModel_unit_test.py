@@ -80,28 +80,23 @@ def test_default_name(groq_model):
     assert groq_model.name == "gemma-7b-it"
 
 
-# @pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_no_system_context(groq_model):
-    # groq_model.name = model_name
+async def test_no_system_context(groq_model, model_name):
+    groq_model.name = model_name
     conversation = Conversation()
 
     input_data = "Hello"
 
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
-    #
-    # if groq_model.stream:
-    #     async for chunk in groq_model.predict(conversation):
-    #         assert isinstance(chunk.choices[0].delta.content, str),  f"instead i got this data type {type(chunk.choices[0].delta.content)}"
-    #
-    # else:
+
     result = groq_model.predict(conversation=conversation)
     if groq_model.stream:
         async for chunk in result:
             logging.info(chunk)
-            assert isinstance(conversation.get_last().content, str),  f"instead i got this data type {type(chunk)}"
+            assert isinstance(conversation.get_last().content, str)
     else:
 
         prediction = conversation.get_last().content
