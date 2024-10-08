@@ -37,13 +37,13 @@ class ManhattanDistance(DistanceBase):
             vector_b (Vector): The second vector in the comparison.
 
         Returns:
-            NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity measure.
+            NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity metric.
         """
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
+        raise NotImplementedError("ManhattanDistance does not directly provide a similarity metric.")
         
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
     
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity measure.")
+        raise NotImplementedError("ManhattanDistance does not directly provide a similarity metric.")
