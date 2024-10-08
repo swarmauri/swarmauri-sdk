@@ -47,7 +47,7 @@ class HierarchicalAttentionModel(IModel):
         
         # The model
         self._model = tf.keras.Model(inputs=sentence_input, outputs=[classifier, sentence_attention_weights])
-        self._model.compile(optimizer='adam', loss='binary_crossentropy', measurements=['accuracy'])
+        self._model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     def predict(self, input_data: Any) -> Any:
         """
