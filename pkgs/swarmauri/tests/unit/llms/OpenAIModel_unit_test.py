@@ -85,7 +85,7 @@ def test_preamble_system_context(openai_model, model_name):
 # New tests for streaming
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_stream_predict(openai_model, model_name):
+def test_stream(openai_model, model_name):
     model = openai_model
     model.name = model_name
     conversation = Conversation()
@@ -95,7 +95,7 @@ def test_stream_predict(openai_model, model_name):
     conversation.add_message(human_message)
 
     collected_tokens = []
-    for token in model.stream_predict(conversation=conversation):
+    for token in model.stream(conversation=conversation):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -123,7 +123,7 @@ async def test_apredict(openai_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_astream_predict(openai_model, model_name):
+async def test_astream(openai_model, model_name):
     model = openai_model
     model.name = model_name
     conversation = Conversation()
@@ -133,7 +133,7 @@ async def test_astream_predict(openai_model, model_name):
     conversation.add_message(human_message)
 
     collected_tokens = []
-    async for token in model.astream_predict(conversation=conversation):
+    async for token in model.astream(conversation=conversation):
         assert isinstance(token, str)
         collected_tokens.append(token)
 

@@ -17,21 +17,21 @@ class OpenAIModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        "gpt-4o",
-        "gpt-4-turbo",
-        "gpt-4-turbo-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-3.5-turbo-1106",
+        # "gpt-4o",
+        # "gpt-4-turbo",
+        # "gpt-4-turbo-preview",
+        # "gpt-4-1106-preview",
+        # "gpt-4",
+        # "gpt-3.5-turbo-1106",
         "gpt-3.5-turbo",
-        "gpt-4o-mini",
-        "gpt-4o-2024-05-13",
-        "gpt-4o-2024-08-06",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-0125-preview",
-        "gpt-4-0613",
-        "gpt-3.5-turbo-0125",
+        # "gpt-4o-mini",
+        # "gpt-4o-2024-05-13",
+        # "gpt-4o-2024-08-06",
+        # "gpt-4o-mini-2024-07-18",
+        # "gpt-4-turbo-2024-04-09",
+        # "gpt-4-0125-preview",
+        # "gpt-4-0613",
+        # "gpt-3.5-turbo-0125",
         # "chatgpt-4o-latest",
         # "gpt-3.5-turbo-instruct", # gpt-3.5-turbo-instruct does not support v1/chat/completions endpoint. only supports (/v1/completions)
         # "o1-preview",   # Does not support max_tokens and temperature
@@ -150,7 +150,7 @@ class OpenAIModel(LLMBase):
 
         return conversation
 
-    def stream_predict(
+    def stream(
         self,
         conversation,
         temperature=0.7,
@@ -179,7 +179,7 @@ class OpenAIModel(LLMBase):
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
 
-    async def astream_predict(
+    async def astream(
         self,
         conversation,
         temperature=0.7,
