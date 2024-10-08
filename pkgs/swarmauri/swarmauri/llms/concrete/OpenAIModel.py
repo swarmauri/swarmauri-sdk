@@ -1,6 +1,8 @@
 import json
-from typing import List, Dict, Literal
-from openai import OpenAI
+from pydantic import Field
+import asyncio
+from typing import List, Dict, Literal, AsyncIterator, Iterator
+from openai import OpenAI, AsyncOpenAI
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -23,7 +25,6 @@ class OpenAIModel(LLMBase):
         "gpt-3.5-turbo-1106",
         "gpt-3.5-turbo",
         "gpt-4o-mini",
-        "chatgpt-4o-latest",
         "gpt-4o-2024-05-13",
         "gpt-4o-2024-08-06",
         "gpt-4o-mini-2024-07-18",
@@ -31,6 +32,7 @@ class OpenAIModel(LLMBase):
         "gpt-4-0125-preview",
         "gpt-4-0613",
         "gpt-3.5-turbo-0125",
+        # "chatgpt-4o-latest",
         # "gpt-3.5-turbo-instruct", # gpt-3.5-turbo-instruct does not support v1/chat/completions endpoint. only supports (/v1/completions)
         # "o1-preview",   # Does not support max_tokens and temperature
         # "o1-mini",      # Does not support max_tokens and temperature
@@ -40,10 +42,19 @@ class OpenAIModel(LLMBase):
     ]
     name: str = "gpt-3.5-turbo"
     type: Literal["OpenAIModel"] = "OpenAIModel"
+    client: OpenAI = Field(default=None, exclude=True)
+    async_client: AsyncOpenAI = Field(default=None, exclude=True)
+    api_key: str
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.client = OpenAI(api_key=self.api_key)
+        self.async_client = AsyncOpenAI(api_key=self.api_key)
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
+
         message_properties = ["content", "role", "name"]
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
@@ -106,3 +117,138 @@ class OpenAIModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
+
+    async def apredict(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = [],
+    ):
+        """Asynchronous version of predict"""
+        formatted_messages = self._format_messages(conversation.history)
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "stop": stop,
+        }
+
+        if enable_json:
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = await self.async_client.chat.completions.create(**kwargs)
+        result = json.loads(response.model_dump_json())
+        message_content = result["choices"][0]["message"]["content"]
+        conversation.add_message(AgentMessage(content=message_content))
+
+        return conversation
+
+    def stream(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        stop: List[str] = [],
+    ) -> Iterator[str]:
+        """Synchronously stream the response token by token"""
+        formatted_messages = self._format_messages(conversation.history)
+
+        stream = self.client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+            stop=stop,
+        )
+
+        collected_content = []
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
+
+    async def astream(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        stop: List[str] = [],
+    ) -> AsyncIterator[str]:
+        """Asynchronously stream the response token by token"""
+        formatted_messages = self._format_messages(conversation.history)
+
+        stream = await self.async_client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+            stop=stop,
+        )
+
+        collected_content = []
+        async for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
+
+    def batch(
+        self,
+        conversations: List,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = [],
+    ) -> List:
+        """Synchronously process multiple conversations"""
+        return [
+            self.predict(
+                conv,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                enable_json=enable_json,
+                stop=stop,
+            )
+            for conv in conversations
+        ]
+
+    async def abatch(
+        self,
+        conversations: List,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = [],
+        max_concurrent=5,  # New parameter to control concurrency
+    ) -> List:
+        """Process multiple conversations in parallel with controlled concurrency"""
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conversation(conv):
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    enable_json=enable_json,
+                    stop=stop,
+                )
+
+        tasks = [process_conversation(conv) for conv in conversations]
+        return await asyncio.gather(*tasks)
