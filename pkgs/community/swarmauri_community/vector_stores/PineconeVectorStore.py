@@ -60,12 +60,12 @@ class PineconeVectorStore(
                 f"Failed to delete index {self.collection_name}: {str(e)}"
             )
 
-    def connect(self, measurement: Optional[str] = "cosine", cloud: Optional[str] = "aws", region: Optional[str] = "us-east-1"):
+    def connect(self, metric: Optional[str] = "cosine", cloud: Optional[str] = "aws", region: Optional[str] = "us-east-1"):
         """
         Connect to the Pinecone index, creating it if it doesn't exist.
 
         Args:
-            measurement (Optional[str]): The distance measurement to use. Defaults to "cosine".
+            metric (Optional[str]): The distance metric to use. Defaults to "cosine".
             cloud (Optional[str]): The cloud provider to use. Defaults to "aws".
             region (Optional[str]): The region to use. Defaults to "us-east-1".
 
@@ -76,7 +76,7 @@ class PineconeVectorStore(
                 pc.create_index(
                     name=self.collection_name,
                     dimension=self.vector_size,
-                    measurement=measurement,
+                    metric=metric,
                     spec=ServerlessSpec(
                         cloud=cloud,
                         region=region,
