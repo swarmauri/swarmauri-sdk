@@ -12,7 +12,7 @@ class DeepFaceBase(ComponentBase, BaseModel):
         "DeepFace", "DeepID", "Dlib", "ArcFace", 
         "SFace", "GhostFaceNet"
     ]
-    allowed_distance_measurements: ClassVar[List[str]] = ["cosine", "euclidean", "euclidean_l2"]
+    allowed_distance_metrics: ClassVar[List[str]] = ["cosine", "euclidean", "euclidean_l2"]
     allowed_detector_backends: ClassVar[List[str]] = [
         "opencv", "retinaface", "mtcnn", "ssd", 
         "dlib", "mediapipe", "yolov8", "centerface", "skip"
