@@ -1,7 +1,10 @@
+import asyncio
 import json
-from typing import List, Optional, Dict, Literal, Any
+import logging
+from swarmauri.conversations.concrete.Conversation import Conversation
+from typing import List, Optional, Dict, Literal, Any, Union, AsyncGenerator
 
-from groq import Groq
+from groq import Groq, AsyncGroq
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -29,7 +32,7 @@ class GroqModel(LLMBase):
         "llama3-groq-8b-8192-tool-use-preview",
         "llava-v1.5-7b-4096-preview",
         "mixtral-8x7b-32768",
-        # multimodal modles
+        # multimodal models
         "llama-3.2-11b-vision-preview",
     ]
     name: str = "gemma-7b-it"
@@ -62,27 +65,176 @@ class GroqModel(LLMBase):
         top_p: float = 1.0,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ) -> str:
+    ) -> Union[str, AsyncGenerator[str, None]]:
 
         formatted_messages = self._format_messages(conversation.history)
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "response_format": response_format,
+            "stop": stop or [],
+        }
 
         client = Groq(api_key=self.api_key)
-        stop = stop or []
+        response = client.chat.completions.create(**kwargs)
 
-        response_format = {"type": "json_object"} if enable_json else None
-        response = client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            response_format=response_format,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=stop,
-        )
-
-        result = json.loads(response.json())
+        result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
         return conversation
+
+    async def apredict(
+        self,
+        conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> Union[str, AsyncGenerator[str, None]]:
+
+        formatted_messages = self._format_messages(conversation.history)
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "response_format": response_format,
+            "stop": stop or [],
+        }
+
+        client = AsyncGroq(api_key=self.api_key)
+        response = await client.chat.completions.create(**kwargs)
+
+        result = json.loads(response.model_dump_json())
+        message_content = result["choices"][0]["message"]["content"]
+        conversation.add_message(AgentMessage(content=message_content))
+        return conversation
+
+    def stream(
+        self,
+        conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> Union[str, AsyncGenerator[str, None]]:
+
+        formatted_messages = self._format_messages(conversation.history)
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "response_format": response_format,
+            "stop": stop or [],
+            "stream": True,
+        }
+
+        client = Groq(api_key=self.api_key)
+        stream = client.chat.completions.create(**kwargs)
+        message_content = ""
+
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+        conversation.add_message(AgentMessage(content=message_content))
+
+    async def astream(
+        self,
+        conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> AsyncGenerator[str, None]:
+
+        formatted_messages = self._format_messages(conversation.history)
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "response_format": response_format,
+            "stop": stop or [],
+            "stream": True,
+        }
+
+        client = AsyncGroq(api_key=self.api_key)
+        stream = await client.chat.completions.create(**kwargs)
+        message_content = ""
+
+        async for chunk in stream:
+            await asyncio.sleep(0.01)
+            if chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+        conversation.add_message(AgentMessage(content=message_content))
+
+    def batch(
+        self,
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> List:
+        """Synchronously process multiple conversations"""
+        return [
+            self.predict(
+                conv,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                enable_json=enable_json,
+                stop=stop,
+            )
+            for conv in conversations
+        ]
+
+    async def abatch(
+        self,
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+        max_concurrent=5,
+    ) -> List:
+        """Process multiple conversations in parallel with controlled concurrency"""
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conversation(conv):
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    enable_json=enable_json,
+                    stop=stop,
+                )
+
+        tasks = [process_conversation(conv) for conv in conversations]
+        return await asyncio.gather(*tasks)
