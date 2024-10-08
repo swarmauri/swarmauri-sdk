@@ -88,13 +88,12 @@ class AnthropicModel(LLMBase):
         }
 
         if system_context:
-            response = client.messages.create(system=system_context, **kwargs)
+            response = await client.messages.create(system=system_context, **kwargs)
         else:
             response = await client.messages.create(**kwargs)
 
         message_content = response.content[0].text
         conversation.add_message(AgentMessage(content=message_content))
-
         return conversation
 
     def stream(self, conversation: Conversation, temperature=0.7, max_tokens=256):
@@ -117,7 +116,7 @@ class AnthropicModel(LLMBase):
             stream = client.messages.create(**kwargs)
 
         for event in stream:
-            if event.type == "content_block_delta":
+            if event.type == "content_block_delta" and event.delta.text is not None:
                 yield event.delta.text
 
     async def astream(
