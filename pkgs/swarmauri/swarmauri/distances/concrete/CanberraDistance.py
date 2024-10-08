@@ -6,7 +6,7 @@ from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class CanberraDistance(DistanceBase):
     """
-    Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance measurement.
+    Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
     This class now processes Vector instances instead of raw lists.
     """
     type: Literal['CanberraDistance'] = 'CanberraDistance'   
@@ -38,7 +38,7 @@ class CanberraDistance(DistanceBase):
     
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Compute similarity using the Canberra distance. Since this distance measurement isn't
+        Compute similarity using the Canberra distance. Since this distance metric isn't
         directly interpretable as a similarity, a transformation is applied to map the distance
         to a similarity score.
 
