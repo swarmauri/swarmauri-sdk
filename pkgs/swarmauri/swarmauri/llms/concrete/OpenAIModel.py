@@ -235,16 +235,20 @@ class OpenAIModel(LLMBase):
         max_tokens=256,
         enable_json=False,
         stop: List[str] = [],
+        max_concurrent=5,  # New parameter to control concurrency
     ) -> List:
-        """Process multiple conversations in parallel"""
-        tasks = [
-            self.apredict(
-                conv,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                enable_json=enable_json,
-                stop=stop,
-            )
-            for conv in conversations
-        ]
+        """Process multiple conversations in parallel with controlled concurrency"""
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conversation(conv):
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    enable_json=enable_json,
+                    stop=stop,
+                )
+
+        tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
