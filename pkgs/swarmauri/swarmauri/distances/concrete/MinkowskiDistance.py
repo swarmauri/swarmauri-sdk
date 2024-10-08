@@ -5,8 +5,8 @@ from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class MinkowskiDistance(DistanceBase):
     """
-    Implementation of the IDistanceSimiliarity interface using the Minkowski distance measurement.
-    Minkowski distance is a generalized measurement form that includes Euclidean distance,
+    Implementation of the IDistanceSimiliarity interface using the Minkowski distance metric.
+    Minkowski distance is a generalized metric form that includes Euclidean distance,
     Manhattan distance, and others depending on the order (p) parameter.
 
     The class provides methods to compute the Minkowski distance between two vectors.
