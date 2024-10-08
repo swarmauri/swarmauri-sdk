@@ -36,7 +36,7 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
                 img2_path=img2_path, 
                 model_name=self.name,
                 detector_backend=self.detector_backend,
-                distance_measurement=self.distance_measurement,  # This field is specific to Distance
+                distance_metric=self.distance_metric,  # This field is specific to Distance
                 align=self.align,
                 enforce_detection=self.enforce_detection,
                 expand_percentage=self.expand_percentage,
@@ -122,7 +122,7 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
             raise ValueError("Distance value is not available in the result")
 
         # Inverse the distance to compute similarity
-        similarity_score = 1 / (1 + distance) if self.distance_measurement != "cosine" else 1 - distance
+        similarity_score = 1 / (1 + distance) if self.distance_metric != "cosine" else 1 - distance
         print(f"Similarity score:::::: {similarity_score}")
         return similarity_score
 
