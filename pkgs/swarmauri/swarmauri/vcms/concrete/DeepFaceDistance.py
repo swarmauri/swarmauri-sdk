@@ -176,7 +176,7 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
 
 
 
-    distance_measurement: str = Field(
+    distance_metrict: str = Field(
         default=DeepFaceBase.DEFAULT_DISTANCE_METRIC,
-        description="Distance measurement to use for comparison."
+        description="Distance metric to use for comparison."
     )
