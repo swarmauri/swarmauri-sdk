@@ -5,7 +5,7 @@ from swarmauri.distances.base.DistanceBase import DistanceBase
 
 class ChiSquaredDistance(DistanceBase):
     """
-    Implementation of the IDistanceSimilarity interface using Chi-squared distance measurement.
+    Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
     """    
     type: Literal['ChiSquaredDistance'] = 'ChiSquaredDistance'
 
