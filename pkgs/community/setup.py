@@ -24,13 +24,13 @@ setup(
         "weaviate-client",
         "pygithub",
         "swarmauri-core==0.5.0",
-        "swarmauri==0.5.0"
+        "swarmauri==0.5.0",
     ],
     extras_require={
         "full": [
             "ai21>=2.2.0",
             "shuttleai",
-            "transformers",
+            "transformers>=4.45.0",
             "tensorflow",
             "typing_extensions",
             "google-api-python-client",
@@ -76,7 +76,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
-        'Programming Language :: Python :: 3.12'
+        "Programming Language :: Python :: 3.12",
     ],
     python_requires=">=3.10",
     setup_requires=["wheel"],
