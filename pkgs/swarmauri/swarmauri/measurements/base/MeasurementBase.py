@@ -10,7 +10,7 @@ class MeasurementBase(IMeasurement, ComponentBase):
     """
     unit: str
     value: Any = None
-    resource: Optional[str] =  Field(default=ResourceTypes.METRIC.value, frozen=True)
+    resource: Optional[str] =  Field(default=ResourceTypes.MEASUREMENT.value, frozen=True)
     type: Literal['MeasurementBase'] = 'MeasurementBase'
 
     def __call__(self, **kwargs) -> Any:
