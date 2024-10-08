@@ -60,13 +60,21 @@ class GroqModel(LLMBase):
     @staticmethod
     async def _predict_async(
             client: Union[Groq, AsyncGroq],
+            conversation,
             **kwargs
     ) -> AsyncGenerator[str, None]:
         response = await client.chat.completions.create(**kwargs)
+        message_content = ""
 
-        async for chunk in response:
-            await asyncio.sleep(0.05)
-            yield chunk.choices[0].delta.content
+        try:
+            async for chunk in response:
+                await asyncio.sleep(0.1)
+                if chunk.choices[0].delta.content == None:
+                    raise StopAsyncIteration
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+        except StopAsyncIteration:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @staticmethod
     def _predict_sync(
@@ -105,7 +113,7 @@ class GroqModel(LLMBase):
 
         if self.stream:
             client = AsyncGroq(api_key=self.api_key)
-            return self._predict_async(client, **kwargs)
+            return self._predict_async(client, conversation, **kwargs)
         else:
             client = Groq(api_key=self.api_key)
             message_content = self._predict_sync(client, **kwargs)

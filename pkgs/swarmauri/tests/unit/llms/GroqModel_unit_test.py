@@ -20,7 +20,7 @@ image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisco
 def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    llm = LLM(api_key=API_KEY, stream=True)
+    llm = LLM(api_key=API_KEY)
     return llm
 
 
@@ -79,12 +79,11 @@ def test_serialization(groq_model):
 def test_default_name(groq_model):
     assert groq_model.name == "gemma-7b-it"
 
-
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.asyncio
 @pytest.mark.unit
-async def test_no_system_context(groq_model, model_name):
+def test_no_system_context_sync(groq_model, model_name):
     groq_model.name = model_name
+
     conversation = Conversation()
 
     input_data = "Hello"
@@ -92,22 +91,16 @@ async def test_no_system_context(groq_model, model_name):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    result = groq_model.predict(conversation=conversation)
-    if groq_model.stream:
-        async for chunk in result:
-            logging.info(chunk)
-            assert isinstance(conversation.get_last().content, str)
-    else:
+    groq_model.predict(conversation=conversation)
 
-        prediction = conversation.get_last().content
-        logging.info(prediction)
-        assert isinstance(prediction, str)
+    prediction = conversation.get_last().content
+    logging.info(prediction)
+    assert isinstance(prediction, str)
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_preamble_system_context(groq_model, model_name):
-    model = groq_model
-    model.name = model_name
+def test_preamble_system_context_sync(groq_model, model_name):
+    groq_model.name = model_name
     conversation = Conversation()
 
     system_context = 'You only respond with the following phrase, "Jeff"'
@@ -119,12 +112,12 @@ def test_preamble_system_context(groq_model, model_name):
     human_message = HumanMessage(content=json.dumps(input_data))
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
+    groq_model.predict(conversation=conversation)
+
     prediction = conversation.get_last().content
     logging.info(prediction)
     assert type(prediction) == str
     assert "Jeff" in prediction
-
 
 @pytest.mark.unit
 def test_llama_guard_3_8b_no_system_context(llama_guard_model):
@@ -181,3 +174,56 @@ def test_multimodal_models_no_system_context(groq_model, model_name, input_data)
     prediction = conversation.get_last().content
     logging.info(prediction)
     assert isinstance(prediction, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.unit
+async def test_no_system_context_async(groq_model, model_name):
+    groq_model.name = model_name
+    groq_model.stream = True
+
+    conversation = Conversation()
+
+    input_data = "Hello"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    result = groq_model.predict(conversation=conversation)
+    async for chunk in result:
+        logging.info(chunk)
+        assert isinstance(chunk, str)
+
+    prediction = conversation.get_last().content
+    logging.info(prediction)
+    assert isinstance(prediction, str)
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.unit
+async def test_preamble_system_context_async(groq_model, model_name):
+    groq_model.name = model_name
+    groq_model.stream = True
+
+    conversation = Conversation()
+
+    system_context = 'You only respond with the following phrase, "Jeff"'
+    human_message = SystemMessage(content=system_context)
+    conversation.add_message(human_message)
+
+    input_data = "Hi"
+
+    human_message = HumanMessage(content=json.dumps(input_data))
+    conversation.add_message(human_message)
+
+    result = groq_model.predict(conversation=conversation)
+
+    async for chunk in result:
+        logging.info(chunk)
+        assert isinstance(chunk, str)
+
+    prediction = conversation.get_last().content
+    logging.info(prediction)
+    assert type(prediction) == str
+    assert "Jeff" in prediction
+
