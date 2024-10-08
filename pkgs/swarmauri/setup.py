@@ -26,7 +26,7 @@ setup(
         "google-auth-httplib2",
         "google-auth-oauthlib",
         "boto3",
-        "yake",
+        #"yake",
         "torch",
         "scikit-learn",
         "gensim",
