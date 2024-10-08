@@ -23,4 +23,19 @@ class LLMBase(IPredict, ComponentBase):
         return values
 
     def predict(self, *args, **kwargs):
-        raise NotImplementedError("Predict not implemented in subclass yet.")
+        raise NotImplementedError("predict() not implemented in subclass yet.")
+
+    async def apredict(self, *args, **kwargs):
+        raise NotImplementedError("apredict() not implemented in subclass yet.")
+
+    def stream(self, *args, **kwargs):
+        raise NotImplementedError("stream() not implemented in subclass yet.")
+
+    async def astream(self, *args, **kwargs):
+        raise NotImplementedError("astream() not implemented in subclass yet.")
+
+    def batch(self, *args, **kwargs):
+        raise NotImplementedError("batch() not implemented in subclass yet.")
+
+    async def abatch(self, *args, **kwargs):
+        raise NotImplementedError("abatch() not implemented in subclass yet.")
