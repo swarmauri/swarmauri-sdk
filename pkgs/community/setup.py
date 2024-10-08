@@ -69,9 +69,7 @@ setup(
             "tiktoken",
             "redis",
             "textstat",
-            "llama-index",
             "duckdb",
-            "llama-index-vector-stores-duckdb",
         ]
     },
     classifiers=[
