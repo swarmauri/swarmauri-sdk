@@ -48,15 +48,12 @@ bs4 = "*"
 pygithub = "*"
 torch = "*"
 yake = "==0.4.8"
+tf-keras = "==2.17.0"
 
-# Updated versions of numpy for general use
-numpy = "^1.26.0"
-numba = "*"
 
 # Pacmap requires specific versions of numpy and numba
-pacmap = {version = "==0.7.3", extras = ["numba"], numpy = "^1.21.0", numba = "<0.56.0"}
+pacmap = "==0.7.3"
 
-tf-keras = "==2.17.0"
 
 
 [tool.poetry.dev-dependencies]
