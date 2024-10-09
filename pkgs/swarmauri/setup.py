@@ -52,7 +52,7 @@ setup(
         "pygithub",
         "torch",
         # "pacmap",
-        "tf-keras",
+        "tf-keras==2.17.0",
         "yake",
     ],
     classifiers=[
