@@ -137,11 +137,11 @@ jobs:
 
       - name: Output test results for debugging
         run: |
-          cat results.xml
+          cat pkgs/${{ matrix.package }}/results.xml
 
       - name: Classify test results
         run: |
-          python scripts/classify_results.py results.xml
+          python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
