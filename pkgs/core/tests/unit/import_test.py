@@ -1,1 +1,1 @@
-import swarmauri_core
+from swarmauri_core.messages.IMessage import IMessage
