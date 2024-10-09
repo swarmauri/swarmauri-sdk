@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-core"
-version = "0.5.1.dev14"
+version = "0.5.1.dev15"
 description = "This repository includes core interfaces for the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -21,8 +21,8 @@ pydantic = "^2.0"
 pandas = ">2.2"
 
 [tool.poetry.dev-dependencies]
-flake8 = "^5.0"  # Add flake8 as a development dependency
-pytest = "^7.0"  # Ensure pytest is also added if you run tests
+flake8 = "^7.0"  # Add flake8 as a development dependency
+pytest = "^8.0"  # Ensure pytest is also added if you run tests
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
