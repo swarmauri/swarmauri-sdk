@@ -52,7 +52,7 @@ setup(
         "bs4",
         "pygithub",
         "torch",
-        "pacmap",
+        "pacmap==0.7.3",
         "tf-keras==2.17.0",
         "yake==0.4.8",
     ],
