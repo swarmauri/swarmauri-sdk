@@ -107,7 +107,7 @@ jobs:
       - name: Install dependencies with Poetry
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry install 
+          poetry install --no-cache
 
       - name: Lint with flake8
         run: |
