@@ -105,8 +105,9 @@ def test_stream(openai_model, model_name):
 
 
 # New tests for async operations
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
 async def test_apredict(openai_model, model_name):
     model = openai_model
     model.name = model_name
@@ -121,8 +122,9 @@ async def test_apredict(openai_model, model_name):
     assert isinstance(prediction, str)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
 async def test_astream(openai_model, model_name):
     model = openai_model
     model.name = model_name
@@ -161,8 +163,9 @@ def test_batch(openai_model, model_name):
         assert isinstance(result.get_last().content, str)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
 async def test_abatch(openai_model, model_name):
     model = openai_model
     model.name = model_name

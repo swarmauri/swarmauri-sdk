@@ -44,7 +44,6 @@ class OpenAIModel(LLMBase):
     type: Literal["OpenAIModel"] = "OpenAIModel"
     client: OpenAI = Field(default=None, exclude=True)
     async_client: AsyncOpenAI = Field(default=None, exclude=True)
-    api_key: str
 
     def __init__(self, **data):
         super().__init__(**data)

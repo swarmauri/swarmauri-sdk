@@ -1,5 +1,6 @@
 import os
 import pytest
+import asyncio
 from swarmauri.llms.concrete.AI21StudioModel import AI21StudioModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
@@ -86,3 +87,103 @@ def test_preamble_system_context(ai21studio_model, model_name):
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Jeff" in prediction, f"Test failed for model: {model_name}"
+
+
+# New tests for streaming
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_stream(ai21studio_model, model_name):
+    model = ai21studio_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a cat."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    for token in model.stream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+
+
+# New tests for async operations
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_apredict(ai21studio_model, model_name):
+    model = ai21studio_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Hello"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    result = await model.apredict(conversation=conversation)
+    prediction = result.get_last().content
+    assert isinstance(prediction, str)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_astream(ai21studio_model, model_name):
+    model = ai21studio_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a dog."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    async for token in model.astream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+
+
+# New tests for batch operations
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(ai21studio_model, model_name):
+    model = ai21studio_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = model.batch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_abatch(ai21studio_model, model_name):
+    model = ai21studio_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = await model.abatch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
