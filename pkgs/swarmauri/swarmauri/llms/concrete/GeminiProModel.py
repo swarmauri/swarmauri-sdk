@@ -197,7 +197,7 @@ class GeminiProModel(LLMBase):
         conversations: List[Conversation],
         temperature: float = 0.7,
         max_tokens: int = 256,
-        max_concurrent: int =5,
+        max_concurrent: int = 5,
     ) -> List:
         """Process multiple conversations in parallel with controlled concurrency"""
         semaphore = asyncio.Semaphore(max_concurrent)
