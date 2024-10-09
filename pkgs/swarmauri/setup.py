@@ -15,7 +15,7 @@ setup(
         include=["swarmauri*"]
     ),  # Include packages in your_package and libs directories
     install_requires=[
-        "swarmauri_core==0.5.1.dev7",
+        "swarmauri_core==0.5.1.dev8",
         "keras==3.5.0",
         "redis",
         "ai21>=2.2.0",
