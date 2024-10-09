@@ -13,7 +13,7 @@ setup(
     license='Apache Software License',
     packages=find_packages(include=['swarmauri_core*']),  # Include packages in your_package and libs directories
     install_requires=[
-        'numpy==2.1.2',
+        'numpy==1.26.4',
         'requests',
         'pydantic',
         'pandas>2.2'
