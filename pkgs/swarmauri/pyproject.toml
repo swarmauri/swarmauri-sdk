@@ -52,7 +52,7 @@ tf-keras = "==2.17.0"
 
 
 # Pacmap requires specific versions of numpy and numba
-pacmap = "==0.7.3"
+#pacmap = "==0.7.3"
 
 
 
