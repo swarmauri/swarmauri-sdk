@@ -1,6 +1,8 @@
 import json
-from typing import List, Dict, Literal
-from openai import OpenAI
+from typing import List, Dict, Literal, AsyncIterator, Iterator
+from openai import OpenAI, AsyncOpenAI
+from pydantic import Field
+import asyncio
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -11,7 +13,6 @@ from swarmauri.llms.base.LLMBase import LLMBase
 class DeepInfraModel(LLMBase):
     """
     Provider resources: https://deepinfra.com/models/text-generation
-
     """
 
     api_key: str
@@ -69,6 +70,17 @@ class DeepInfraModel(LLMBase):
 
     name: str = "Qwen/Qwen2-72B-Instruct"
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
+    client: OpenAI = Field(default=None, exclude=True)
+    async_client: AsyncOpenAI = Field(default=None, exclude=True)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.client = OpenAI(
+            api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
+        )
+        self.async_client = AsyncOpenAI(
+            api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -88,50 +100,157 @@ class DeepInfraModel(LLMBase):
         enable_json=False,
         stop: List[str] = None,
     ):
-        """
-        Generate predictions using the DeepInfra model.
-
-        Parameters:
-        - conversation: Conversation object containing message history.
-        - temperature (float): Sampling temperature.
-        - max_tokens (int): Maximum number of tokens to generate.
-        - enable_json (bool): Format response as JSON.
-        - stop (List[str]): List of stop sequences.
-
-        Returns:
-        - The updated conversation with the model's response.
-        """
         formatted_messages = self._format_messages(conversation.history)
-        client = OpenAI(
-            api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
-        )
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "stop": stop,
+        }
 
         if enable_json:
-            response = client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                response_format={"type": "json_object"},
-                max_tokens=max_tokens,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stop=stop,
-            )
-        else:
-            response = client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stop=stop,
-            )
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = self.client.chat.completions.create(**kwargs)
 
         result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
+
+    async def apredict(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = None,
+    ):
+        formatted_messages = self._format_messages(conversation.history)
+
+        kwargs = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "stop": stop,
+        }
+
+        if enable_json:
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = await self.async_client.chat.completions.create(**kwargs)
+
+        result = json.loads(response.model_dump_json())
+        message_content = result["choices"][0]["message"]["content"]
+        conversation.add_message(AgentMessage(content=message_content))
+
+        return conversation
+
+    def stream(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        stop: List[str] = None,
+    ) -> Iterator[str]:
+        formatted_messages = self._format_messages(conversation.history)
+
+        stream = self.client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+            stop=stop,
+        )
+
+        collected_content = []
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
+
+    async def astream(
+        self,
+        conversation,
+        temperature=0.7,
+        max_tokens=256,
+        stop: List[str] = None,
+    ) -> AsyncIterator[str]:
+        formatted_messages = self._format_messages(conversation.history)
+
+        stream = await self.async_client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+            stop=stop,
+        )
+
+        collected_content = []
+        async for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
+
+    def batch(
+        self,
+        conversations: List,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = None,
+    ) -> List:
+        return [
+            self.predict(
+                conv,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                enable_json=enable_json,
+                stop=stop,
+            )
+            for conv in conversations
+        ]
+
+    async def abatch(
+        self,
+        conversations: List,
+        temperature=0.7,
+        max_tokens=256,
+        enable_json=False,
+        stop: List[str] = None,
+        max_concurrent=5,
+    ) -> List:
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conversation(conv):
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    enable_json=enable_json,
+                    stop=stop,
+                )
+
+        tasks = [process_conversation(conv) for conv in conversations]
+        return await asyncio.gather(*tasks)
