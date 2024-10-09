@@ -133,7 +133,7 @@ jobs:
         continue-on-error: true
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry run pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
+          poetry run pytest -v . --junitxml=results.xml
 
       - name: Output test results for debugging
         run: |
