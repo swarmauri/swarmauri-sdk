@@ -16,7 +16,7 @@ setup(
         'numpy',
         'requests',
         'pydantic',
-        'pandas'
+        'pandas>2.2'
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
