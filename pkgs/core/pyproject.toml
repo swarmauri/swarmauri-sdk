@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "swarmauri-core"
+version = "{version_from_swarmauri_core}"
+description = "This repository includes core interfaces for the Swarmauri framework."
+authors = ["Jacob Stewart <corporate@swarmauri.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+numpy = "==1.26.4"
+requests = "^2.0"
+pydantic = "^2.0"
+pandas = ">2.2"
+
+[tool.poetry.classifiers]
+"License :: OSI Approved :: Apache Software License"
+"Programming Language :: Python :: 3.10"
+"Programming Language :: Python :: 3.11"
+"Programming Language :: Python :: 3.12"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
