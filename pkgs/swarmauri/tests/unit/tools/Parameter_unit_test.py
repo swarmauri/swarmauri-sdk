@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri.tools.concrete import Parameter
 
 @pytest.mark.unit
 def test_ubc_resource():

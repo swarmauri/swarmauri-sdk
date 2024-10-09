@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool as Tool
+from swarmauri.tools.concrete import FleschReadingEaseTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

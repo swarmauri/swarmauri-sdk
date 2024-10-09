@@ -1,3 +1,5 @@
+import json
+import logging
 import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel as LLM
@@ -10,6 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
+# image_path = "/home/michaeldecent/Downloads/carbon.png"
+image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+
+logging.info(API_KEY)
 
 
 @pytest.fixture(scope="module")
@@ -43,9 +49,14 @@ def get_allowed_models():
         "llama-guard-3-8b",
     ]
 
+    # multimodal models
+    multimodal_models = ["llama-3.2-11b-vision-preview"]
+
     # Filter out the failing models
     allowed_models = [
-        model for model in llm.allowed_models if model not in failing_llms
+        model
+        for model in llm.allowed_models
+        if model not in failing_llms and model not in multimodal_models
     ]
 
     return allowed_models
@@ -79,11 +90,13 @@ def test_no_system_context(groq_model, model_name):
     conversation = Conversation()
 
     input_data = "Hello"
+
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    logging.info(prediction)
     assert type(prediction) == str
 
 
@@ -99,11 +112,13 @@ def test_preamble_system_context(groq_model, model_name):
     conversation.add_message(human_message)
 
     input_data = "Hi"
-    human_message = HumanMessage(content=input_data)
+
+    human_message = HumanMessage(content=json.dumps(input_data))
     conversation.add_message(human_message)
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    logging.info(prediction)
     assert type(prediction) == str
     assert "Jeff" in prediction
 
@@ -126,3 +141,137 @@ def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     prediction = conversation.get_last().content
     assert isinstance(prediction, str)
     assert "safe" in prediction.lower()
+
+
+@pytest.mark.parametrize(
+    "model_name, input_data",
+    [
+        (
+            "llama-3.2-11b-vision-preview",
+            [
+                {"type": "text", "text": "What’s in this image?"},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"{image_url}",
+                    },
+                },
+            ],
+        ),
+    ],
+)
+@pytest.mark.unit
+def test_multimodal_models_no_system_context(groq_model, model_name, input_data):
+    """
+    Test case specifically for the multimodal models.
+    This models are designed process a wide variety of inputs, including text, images, and audio,
+    as prompts and convert those prompts into various outputs, not just the source type.
+
+    """
+    conversation = Conversation()
+    groq_model.name = model_name
+
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    groq_model.predict(conversation=conversation)
+    prediction = conversation.get_last().content
+    logging.info(prediction)
+    assert isinstance(prediction, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_stream(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a cat."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    for token in model.stream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = model.batch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.unit
+async def test_apredict(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Hello"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    result = await model.apredict(conversation=conversation)
+    prediction = result.get_last().content
+    assert isinstance(prediction, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.unit
+async def test_astream(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a dog."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    async for token in model.astream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.unit
+async def test_abatch(groq_model, model_name):
+    model = groq_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = await model.abatch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)

@@ -50,31 +50,31 @@ class GithubToolkit(ToolkitBase, BaseModel):
         self.add_tool(self.github_commit_tool)
         self.add_tool(self.github_branch_tool)
 
-    @model_validator(mode="wrap")
-    @classmethod
-    def validate_model(cls, values: Any, handler: Any):
-        # Extract the tools and validate their types manually
-        tools = values.get("tools", {})
+    # @model_validator(mode="wrap")
+    # @classmethod
+    # def validate_model(cls, values: Any, handler: Any):
+    #     # Extract the tools and validate their types manually
+    #     tools = values.get("tools", {})
 
-        for tool_name, tool_data in tools.items():
-            if isinstance(tool_data, dict):
-                tool_type = tool_data.get("type")
-                tool_id = tool_data.get("id")  # Preserve the ID if it exists
+    #     for tool_name, tool_data in tools.items():
+    #         if isinstance(tool_data, dict):
+    #             tool_type = tool_data.get("type")
+    #             tool_id = tool_data.get("id")  # Preserve the ID if it exists
 
-                try:
-                    tool_class = next(
-                        sub_cls
-                        for sub_cls in SubclassUnion.__swm__get_subclasses__(ToolBase)
-                        if sub_cls.__name__ == tool_type
-                    )
+    #             try:
+    #                 tool_class = next(
+    #                     sub_cls
+    #                     for sub_cls in SubclassUnion.__swm__get_subclasses__(ToolBase)
+    #                     if sub_cls.__name__ == tool_type
+    #                 )
 
-                    # # Create an instance of the tool class
-                    tools[tool_name] = tool_class(**tool_data)
-                    tools[tool_name].id = (
-                        tool_id  # Ensure the tool ID is not changed unintentionally
-                    )
-                except StopIteration:
-                    raise ValueError(f"Unknown tool type: {tool_type}")
+    #                 # # Create an instance of the tool class
+    #                 tools[tool_name] = tool_class(**tool_data)
+    #                 tools[tool_name].id = (
+    #                     tool_id  # Ensure the tool ID is not changed unintentionally
+    #                 )
+    #             except StopIteration:
+    #                 raise ValueError(f"Unknown tool type: {tool_type}")
 
-        values["tools"] = tools
-        return handler(values)
+    #     values["tools"] = tools
+    #     return handler(values)

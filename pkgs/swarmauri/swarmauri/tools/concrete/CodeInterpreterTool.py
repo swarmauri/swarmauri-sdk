@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import sys
 import io
 from typing import List, Literal, Dict
@@ -61,3 +62,8 @@ class CodeInterpreterTool(ToolBase):
         except Exception as e:
             sys.stdout = old_stdout
             return f"An error occurred: {str(e)}"
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="CodeInterpreterTool", obj=CodeInterpreterTool
+)

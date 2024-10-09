@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
@@ -74,3 +75,10 @@ tool = TemperatureConverterTool()
 print(tool("celsius", "fahrenheit", 25))  # Should output: 77.0
 print(tool("kelvin", "celsius", 0))  # Should output: -273.15
 print(tool("fahrenheit", "kelvin", 32))  # Should output: 273.15
+
+
+SubclassUnion.update(
+    baseclass=ToolBase,
+    type_name="TemperatureConverterTool",
+    obj=TemperatureConverterTool,
+)

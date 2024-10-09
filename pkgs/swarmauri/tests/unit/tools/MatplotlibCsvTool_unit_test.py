@@ -2,7 +2,7 @@ import os
 from tempfile import NamedTemporaryFile
 
 import pytest
-from swarmauri.tools.concrete.MatplotlibCsvTool import MatplotlibCsvTool as Tool
+from swarmauri.tools.concrete import MatplotlibCsvTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

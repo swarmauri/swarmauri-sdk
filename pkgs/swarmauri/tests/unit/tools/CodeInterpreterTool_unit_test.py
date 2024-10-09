@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.CodeInterpreterTool import CodeInterpreterTool as Tool
+from swarmauri.tools.concrete import CodeInterpreterTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

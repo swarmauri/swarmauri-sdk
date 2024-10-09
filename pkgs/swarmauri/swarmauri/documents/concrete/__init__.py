@@ -1,1 +1,1 @@
-from .Document import Document
+from swarmauri.documents.concrete import *
