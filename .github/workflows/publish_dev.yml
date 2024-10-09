@@ -111,6 +111,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
+          cd pkgs/${{ matrix.package }}
           poetry run flake8 pkgs/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
           poetry run flake8 pkgs/${{ matrix.package }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
@@ -131,6 +132,7 @@ jobs:
       - name: Run tests
         continue-on-error: true
         run: |
+          cd pkgs/${{ matrix.package }}
           poetry run pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
 
       - name: Output test results for debugging
