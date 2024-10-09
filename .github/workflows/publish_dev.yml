@@ -107,13 +107,13 @@ jobs:
       - name: Install dependencies with Poetry
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry install --no-root
+          poetry install 
 
       - name: Lint with flake8
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry run flake8 pkgs/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
-          poetry run flake8 pkgs/${{ matrix.package }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build package with Poetry
         run: |
@@ -133,7 +133,7 @@ jobs:
         continue-on-error: true
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry run pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
+          poetry run pytest -v . --junitxml=results.xml
 
       - name: Output test results for debugging
         run: |
