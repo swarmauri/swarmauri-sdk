@@ -16,6 +16,7 @@ setup(
     ),  # Include packages in your_package and libs directories
     install_requires=[
         "swarmauri_core==0.5.1.dev5",
+        "keras==3.5.0",
         "redis",
         "ai21>=2.2.0",
         # "shuttleai",
