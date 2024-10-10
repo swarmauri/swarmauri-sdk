@@ -1,7 +1,11 @@
+import asyncio
+
 from groq import Groq, AsyncGroq
 import json
-from typing import List, Literal, Dict, Any
+from typing import List, Literal, Dict, Any, Optional
 import logging
+
+from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -148,7 +152,7 @@ class GroqToolModel(LLMBase):
 
         logging.info(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
-        agent_response = client.chat.completions.create(
+        agent_response = await client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             max_tokens=max_tokens,
@@ -230,11 +234,11 @@ class GroqToolModel(LLMBase):
     ):
         formatted_messages = self._format_messages(conversation.history)
 
-        client = Groq(api_key=self.api_key)
+        client = AsyncGroq(api_key=self.api_key)
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = client.chat.completions.create(
+        tool_response = await client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -265,7 +269,7 @@ class GroqToolModel(LLMBase):
 
         logging.info(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
-        agent_response = client.chat.completions.create(
+        agent_response = await client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             max_tokens=max_tokens,
@@ -274,9 +278,60 @@ class GroqToolModel(LLMBase):
         )
         message_content = ""
 
-        for chunk in agent_response:
+        async for chunk in agent_response:
             if chunk.choices[0].delta.content:
                 message_content += chunk.choices[0].delta.content
                 yield chunk.choices[0].delta.content
 
         conversation.add_message(AgentMessage(content=message_content))
+
+    def batch(
+        self,
+        conversations: List[Conversation],
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ) -> List:
+        """Synchronously process multiple conversations"""
+        if toolkit and not tool_choice:
+            tool_choice = "auto"
+
+        return [
+            self.predict(
+                conv,
+                toolkit=toolkit,
+                tool_choice=tool_choice,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            for conv in conversations
+        ]
+
+    async def abatch(
+        self,
+        conversations: List[Conversation],
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+        max_concurrent=5,
+    ) -> List:
+        """Process multiple conversations in parallel with controlled concurrency"""
+        if toolkit and not tool_choice:
+            tool_choice = "auto"
+
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def process_conversation(conv):
+            async with semaphore:
+                return await self.apredict(
+                    conv,
+                    toolkit=toolkit,
+                    tool_choice=tool_choice,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+
+        tasks = [process_conversation(conv) for conv in conversations]
+        return await asyncio.gather(*tasks)
