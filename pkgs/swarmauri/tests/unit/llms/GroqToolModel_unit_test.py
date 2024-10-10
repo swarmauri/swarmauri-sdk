@@ -23,7 +23,6 @@ def groq_tool_model():
     return llm
 
 
-@pytest.fixture(scope="module")
 def get_allowed_models():
     if not API_KEY:
         return []
