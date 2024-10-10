@@ -1,4 +1,4 @@
-from groq import Groq
+from groq import Groq, AsyncGroq
 import json
 from typing import List, Literal, Dict, Any
 import logging
@@ -29,7 +29,7 @@ class GroqToolModel(LLMBase):
         "llama3-groq-8b-8192-tool-use-preview",
         "llama-3.1-405b-reasoning",
         "llama-3.1-70b-versatile",
-        "llama-3.1-8b-instant"
+        "llama-3.1-8b-instant",
     ]
     name: str = "llama3-groq-70b-8192-tool-use-preview"
     type: Literal["GroqToolModel"] = "GroqToolModel"
@@ -102,3 +102,181 @@ class GroqToolModel(LLMBase):
         agent_message = AgentMessage(content=agent_response.choices[0].message.content)
         conversation.add_message(agent_message)
         return conversation
+
+    async def apredict(
+        self,
+        conversation,
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ):
+        formatted_messages = self._format_messages(conversation.history)
+
+        client = AsyncGroq(api_key=self.api_key)
+        if toolkit and not tool_choice:
+            tool_choice = "auto"
+
+        tool_response = await client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+        )
+        logging.info(tool_response)
+
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content)
+        conversation.add_message(agent_message)
+
+        tool_calls = tool_response.choices[0].message.tool_calls
+        if tool_calls:
+            for tool_call in tool_calls:
+                func_name = tool_call.function.name
+
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = json.loads(tool_call.function.arguments)
+                func_result = func_call(**func_args)
+
+                func_message = FunctionMessage(
+                    content=json.dumps(func_result),
+                    name=func_name,
+                    tool_call_id=tool_call.id,
+                )
+                conversation.add_message(func_message)
+
+        logging.info(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        logging.info(agent_response)
+        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
+        conversation.add_message(agent_message)
+        return conversation
+
+    def stream(
+        self,
+        conversation,
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ):
+        formatted_messages = self._format_messages(conversation.history)
+
+        client = Groq(api_key=self.api_key)
+        if toolkit and not tool_choice:
+            tool_choice = "auto"
+
+        tool_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+        )
+        logging.info(tool_response)
+
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content)
+        conversation.add_message(agent_message)
+
+        tool_calls = tool_response.choices[0].message.tool_calls
+        if tool_calls:
+            for tool_call in tool_calls:
+                func_name = tool_call.function.name
+
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = json.loads(tool_call.function.arguments)
+                func_result = func_call(**func_args)
+
+                func_message = FunctionMessage(
+                    content=json.dumps(func_result),
+                    name=func_name,
+                    tool_call_id=tool_call.id,
+                )
+                conversation.add_message(func_message)
+
+        logging.info(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=True,
+        )
+        message_content = ""
+
+        for chunk in agent_response:
+            if chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+        conversation.add_message(AgentMessage(content=message_content))
+
+    async def astream(
+        self,
+        conversation,
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ):
+        formatted_messages = self._format_messages(conversation.history)
+
+        client = Groq(api_key=self.api_key)
+        if toolkit and not tool_choice:
+            tool_choice = "auto"
+
+        tool_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+        )
+        logging.info(tool_response)
+
+        agent_message = AgentMessage(content=tool_response.choices[0].message.content)
+        conversation.add_message(agent_message)
+
+        tool_calls = tool_response.choices[0].message.tool_calls
+        if tool_calls:
+            for tool_call in tool_calls:
+                func_name = tool_call.function.name
+
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = json.loads(tool_call.function.arguments)
+                func_result = func_call(**func_args)
+
+                func_message = FunctionMessage(
+                    content=json.dumps(func_result),
+                    name=func_name,
+                    tool_call_id=tool_call.id,
+                )
+                conversation.add_message(func_message)
+
+        logging.info(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        agent_response = client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=True,
+        )
+        message_content = ""
+
+        for chunk in agent_response:
+            if chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+        conversation.add_message(AgentMessage(content=message_content))
