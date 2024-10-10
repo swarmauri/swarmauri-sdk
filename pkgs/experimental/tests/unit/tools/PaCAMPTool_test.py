@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from pkgs.experimental.swarmauri_experimental.tools.PaCMAPTool import PaCMAPTool as Tool
+from swarmauri_experimental.tools.PaCMAPTool import PaCMAPTool as Tool
 
 
 @pytest.mark.unit
