@@ -22,7 +22,7 @@ class OpenAIToolModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        "gpt-4o",
+        # "gpt-4o", # Returns "HTTP/1.1 404 Not Found"
         "gpt-4o-2024-05-13",
         "gpt-4-turbo",
         "gpt-4o-mini",
