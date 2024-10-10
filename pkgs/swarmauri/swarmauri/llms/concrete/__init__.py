@@ -16,7 +16,6 @@ from swarmauri.llms.concrete.MistralToolModel import MistralToolModel
 # from swarmauri.llms.concrete.OpenAIImageGeneratorModel import OpenAIImageGeneratorModel
 from swarmauri.llms.concrete.OpenAIModel import OpenAIModel
 from swarmauri.llms.concrete.OpenAIToolModel import OpenAIToolModel
-from swarmauri.llms.concrete.OpenRouterModel import OpenRouterModel
 from swarmauri.llms.concrete.PerplexityModel import PerplexityModel
 
 __all__ = [
@@ -36,6 +35,5 @@ __all__ = [
     "MistralToolModel",
     "OpenAIModel",
     "OpenAIToolModel",
-    "OpenRouterModel",
     "PerplexityModel",
 ]
