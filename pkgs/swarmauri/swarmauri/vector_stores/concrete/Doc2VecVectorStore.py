@@ -2,7 +2,7 @@ from typing import List, Union, Literal
 from pydantic import PrivateAttr
 
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
+from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
@@ -15,7 +15,7 @@ class Doc2VecVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vec
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._embedder = TfidfEmbedding()
+        self._embedder = Doc2VecEmbedding()
         self._distance = CosineDistance()
       
 
