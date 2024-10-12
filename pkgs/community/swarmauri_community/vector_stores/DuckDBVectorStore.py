@@ -1,9 +1,9 @@
-from typing import List, Union, Literal, Dict, Any, Optional
+from typing import List, Literal, Dict, Any, Optional
 import os
 import json
 import duckdb
 from pydantic import Field, PrivateAttr
-import logging
+import numpy as np
 
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.documents.concrete.Document import Document
@@ -20,9 +20,7 @@ from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
 
 
 class DuckDBVectorStore(
-    VectorStoreSaveLoadMixin,
-    VectorStoreRetrieveMixin,
-    VectorStoreBase,
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):
     """A vector store implementation using DuckDB as the backend."""
 
@@ -46,16 +44,21 @@ class DuckDBVectorStore(
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._embedder = Doc2VecEmbedding(vector_size=100)
+        self._embedder = Doc2VecEmbedding()
         self._distance = CosineDistance()
+
+        if not os.path.exists(self.persist_dir):
+            os.makedirs(self.persist_dir)
 
         if self.database_name == ":memory:":
             self._conn = duckdb.connect(self.database_name)
             self._setup_extensions(self._conn)
+            self._initialize_table(self._conn)
         else:
-            if not os.path.exists(self.persist_dir):
-                os.makedirs(self.persist_dir)
             self._database_path = os.path.join(self.persist_dir, self.database_name)
+            with duckdb.connect(self._database_path) as conn:
+                self._setup_extensions(conn)
+                self._initialize_table(conn)
 
     @staticmethod
     def _setup_extensions(conn):
@@ -63,6 +66,13 @@ class DuckDBVectorStore(
         conn.load_extension("json")
         conn.install_extension("fts")
         conn.load_extension("fts")
+
+    @staticmethod
+    def _cosine_similarity(vec1, vec2):
+        dot_product = np.dot(vec1, vec2)
+        norm_vec1 = np.linalg.norm(vec1)
+        norm_vec2 = np.linalg.norm(vec2)
+        return dot_product / (norm_vec1 * norm_vec2)
 
     def connect(self) -> None:
         """Connect to the DuckDB database and initialize if necessary."""
@@ -84,8 +94,7 @@ class DuckDBVectorStore(
                 content TEXT,
                 embedding FLOAT{embed_dim_str},
                 metadata JSON
-            )
-        """
+            )"""
         )
 
     def disconnect(self) -> None:
@@ -116,7 +125,7 @@ class DuckDBVectorStore(
         }
 
     def add_document(self, document: Document) -> None:
-        # self.connect()
+        # Ensure the document is properly prepared before insertion
         data = self._prepare_document(document)
         query = f"""
             INSERT OR REPLACE INTO {self.table_name} (id, content, embedding, metadata)
@@ -138,15 +147,13 @@ class DuckDBVectorStore(
         ids = [doc.id for doc in documents]
         contents = [doc.content for doc in documents]
 
-        # the for loop should only be called once when fitting the embedder
-        self._embedder.fit([doc.content for doc in documents])
+        self._embedder.fit(contents)  # Fit the embedder once with all contents
 
         embeddings = [
             self._embedder.transform([doc.content])[0].to_numpy().tolist()
             for doc in documents
         ]
-
-        metadatas = [doc.metadata for doc in documents]
+        metadatas = [json.dumps(doc.metadata or {}) for doc in documents]
 
         data_list = list(zip(ids, contents, embeddings, metadatas))
 
@@ -156,22 +163,12 @@ class DuckDBVectorStore(
         """
 
         if self.database_name == ":memory:":
-            self._conn.executemany(
-                query,
-                data_list,
-            )
+            self._conn.executemany(query, data_list)
         else:
             with duckdb.connect(self._database_path) as conn:
-                conn.executemany(
-                    query,
-                    data_list,
-                )
-
-        # for document in documents:
-        #     self.add_document(document)
+                conn.executemany(query, data_list)
 
     def get_document(self, id: str) -> Optional[Document]:
-        # self.connect()
         query = f"SELECT id, content, metadata FROM {self.table_name} WHERE id = ?"
         if self.database_name == ":memory:":
             result = self._conn.execute(query, [id]).fetchone()
@@ -186,39 +183,44 @@ class DuckDBVectorStore(
         return None
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        # self.connect()
-        query_embedding = self._embedder.transform([query])[0].value
-        cosine_sim_query = f"""
-            SELECT id, content, metadata,
-                   list_cosine_similarity(embedding, ?) as similarity
+        query_embedding = self._embedder.transform([query])[0].to_numpy().tolist()
+        select_query = f"""
+            SELECT id, content, metadata, embedding
             FROM {self.table_name}
-            ORDER BY similarity DESC
-            LIMIT ?
         """
+
         if self.database_name == ":memory:":
-            results = self._conn.execute(
-                cosine_sim_query, [query_embedding, top_k]
-            ).fetchall()
+            results = self._conn.execute(select_query).fetchall()
         else:
             with duckdb.connect(self._database_path) as conn:
-                results = conn.execute(
-                    cosine_sim_query, [query_embedding, top_k]
-                ).fetchall()
+                results = conn.execute(select_query).fetchall()
 
-        logging.info(f"results: {results}")
+        # Calculate cosine similarities
+        similarities = [
+            (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                self._cosine_similarity(query_embedding, row[3]),
+            )
+            for row in results
+        ]
+
+        # Get top-k results sorted by similarity
+        top_results = sorted(similarities, key=lambda x: x[4], reverse=True)[:top_k]
 
         return [
             Document(
                 id=row[0],
                 content=row[1],
                 metadata=json.loads(row[2]),
-                embedding=Vector(value=[row[3]]),
+                embedding=Vector(value=row[3]),
             )
-            for row in results
+            for row in top_results
         ]
 
     def delete_document(self, id: str) -> None:
-        # self.connect()
         query = f"DELETE FROM {self.table_name} WHERE id = ?"
         if self.database_name == ":memory:":
             self._conn.execute(query, [id])
@@ -227,7 +229,6 @@ class DuckDBVectorStore(
                 conn.execute(query, [id])
 
     def get_all_documents(self) -> List[Document]:
-        # self.connect()
         query = f"SELECT id, content, metadata FROM {self.table_name}"
         if self.database_name == ":memory:":
             results = self._conn.execute(query).fetchall()
@@ -244,14 +245,21 @@ class DuckDBVectorStore(
         """Update an existing document in the DuckDB store."""
         try:
             data = self._prepare_document(new_document)
-            self._client.execute(
-                """
-                UPDATE documents
+            query = f"""
+                UPDATE {self.table_name}
                 SET content = ?, embedding = ?, metadata = ?
                 WHERE id = ?
-                """,
-                [data["content"], data["embedding"], data["metadata"], id],
-            )
+            """
+            if self.database_name == ":memory:":
+                self._conn.execute(
+                    query, [data["content"], data["embedding"], data["metadata"], id]
+                )
+            else:
+                with duckdb.connect(self._database_path) as conn:
+                    conn.execute(
+                        query,
+                        [data["content"], data["embedding"], data["metadata"], id],
+                    )
         except Exception as e:
             raise RuntimeError(f"Failed to update document {id}: {str(e)}")
 

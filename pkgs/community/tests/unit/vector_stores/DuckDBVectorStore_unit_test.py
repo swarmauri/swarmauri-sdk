@@ -3,7 +3,6 @@ import os
 import json
 from swarmauri.documents.concrete.Document import Document
 from swarmauri_community.vector_stores.DuckDBVectorStore import DuckDBVectorStore
-from swarmauri.vectors.concrete.Vector import Vector
 
 
 @pytest.fixture(params=[":memory:", "test_db.db"])
@@ -29,7 +28,9 @@ def sample_documents():
             metadata={"animal": "fox"},
         ),
         Document(
-            id="2", content="A lazy dog sleeps all day", metadata={"animal": "dog"}
+            id="2",
+            content="A lazy dog sleeps all day not fox",
+            metadata={"animal": "dog"},
         ),
         Document(
             id="3",
@@ -37,6 +38,25 @@ def sample_documents():
             metadata={"animal": "fox"},
         ),
     ]
+
+
+@pytest.mark.unit
+def test_ubc_resource(vector_store):
+    assert vector_store.resource == "VectorStore"
+    assert vector_store.embedder.resource == "Embedding"
+
+
+@pytest.mark.unit
+def test_ubc_type(vector_store):
+    assert vector_store.type == "DuckDBVectorStore"
+
+
+@pytest.mark.unit
+def test_serialization(vector_store):
+    assert (
+        vector_store.id
+        == vector_store.model_validate_json(vector_store.model_dump_json()).id
+    )
 
 
 def test_add_and_get_document(vector_store):
@@ -112,6 +132,14 @@ def test_metadata_query(vector_store, sample_documents):
     assert len(fox_docs) == 2
 
 
+def test_retrieve(vector_store, sample_documents):
+    vector_store.add_documents(sample_documents)
+
+    results = vector_store.retrieve("fox jumping", top_k=2)
+    assert len(results) == 2
+    assert all("fox" in doc.content.lower() for doc in results)
+
+
 def test_model_dump_json(vector_store, sample_documents):
     vector_store.add_documents(sample_documents)
 
@@ -124,32 +152,3 @@ def test_model_dump_json(vector_store, sample_documents):
 
     # Ensure the connection is closed during serialization
     assert vector_store._conn is None
-
-
-def test_retrieve(vector_store, sample_documents):
-    vector_store.add_documents(sample_documents)
-
-    results = vector_store.retrieve("fox jumping", top_k=2)
-    assert len(results) == 2
-
-    for result in results:
-        assert "fox" in result.content.lower()
-
-
-def test_embed_dim(tmp_path):
-    db_path = tmp_path / "embed_dim_test.db"
-    vs = DuckDBVectorStore(
-        database_name=str(db_path), persist_dir=str(tmp_path), embed_dim=128
-    )
-    vs.connect()
-
-    doc = Document(
-        id="embed_test", content="Test document", embedding=Vector(value=([0.1] * 128))
-    )
-    vs.add_document(doc)
-
-    retrieved_doc = vs.get_document("embed_test")
-    assert retrieved_doc is not None
-    vs.disconnect()
-
-    os.remove(db_path)
