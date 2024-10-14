@@ -16,7 +16,6 @@ from swarmauri_community.tools.concrete.GithubTool import GithubTool
 from swarmauri_community.tools.concrete.GmailReadTool import GmailReadTool
 from swarmauri_community.tools.concrete.GmailSendTool import GmailSendTool
 from swarmauri_community.tools.concrete.LexicalDensityTool import LexicalDensityTool
-from swarmauri_community.tools.concrete.PaCMAPTool import PaCMAPTool
 from swarmauri_community.tools.concrete.PsutilTool import PsutilTool
 from swarmauri_community.tools.concrete.QrCodeGeneratorTool import QrCodeGeneratorTool
 from swarmauri_community.tools.concrete.SentenceComplexityTool import (
@@ -28,3 +27,5 @@ from swarmauri_community.tools.concrete.SentimentAnalysisTool import (
 from swarmauri_community.tools.concrete.SMOGIndexTool import SMOGIndexTool
 from swarmauri_community.tools.concrete.WebScrapingTool import WebScrapingTool
 from swarmauri_community.tools.concrete.ZapierHookTool import ZapierHookTool
+
+# from swarmauri_community.tools.concrete.PaCMAPTool import PaCMAPTool
