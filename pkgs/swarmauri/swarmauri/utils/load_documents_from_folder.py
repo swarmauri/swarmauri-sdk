@@ -1,4 +1,5 @@
 import os
+import json
 from swarmauri.documents.concrete.Document import Document
 
 def load_documents_from_folder(self, folder_path: str):
