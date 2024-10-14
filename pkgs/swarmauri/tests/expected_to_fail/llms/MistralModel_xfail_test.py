@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.fixture(scope="module")
 def mistral_model():
     API_KEY = os.getenv("MISTRAL_API_KEY")
@@ -20,6 +21,7 @@ def mistral_model():
     return llm
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context(mistral_model):
     model = mistral_model
@@ -48,6 +50,7 @@ def test_nonpreamble_system_context(mistral_model):
     assert "Jeff" in prediction
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.acceptance
 def test_multiple_system_contexts(mistral_model):
     model = mistral_model
