@@ -8,6 +8,9 @@ from swarmauri.messages.concrete import HumanMessage
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -72,7 +75,8 @@ def test_default_name(gemini_tool_model):
 
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-def test_agent_exec(gemini_tool_model, toolkit):
+def test_agent_exec(gemini_tool_model, toolkit, model_name):
+    gemini_tool_model.name = model_name
     conversation = Conversation()
 
     # Use geminitool_model from the fixture
@@ -87,7 +91,6 @@ def test_predict(gemini_tool_model, toolkit, conversation, model_name):
     gemini_tool_model.name = model_name
 
     conversation = gemini_tool_model.predict(conversation=conversation, toolkit=toolkit)
-    logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) == str
 
@@ -127,10 +130,10 @@ def test_batch(gemini_tool_model, toolkit, model_name):
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
-    mistral_tool_model.name = model_name
+async def test_apredict(gemini_tool_model, toolkit, conversation, model_name):
+    gemini_tool_model.name = model_name
 
-    result = await mistral_tool_model.apredict(
+    result = await gemini_tool_model.apredict(
         conversation=conversation, toolkit=toolkit
     )
     prediction = result.get_last().content
@@ -140,11 +143,11 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
-    mistral_tool_model.name = model_name
+async def test_astream(gemini_tool_model, toolkit, conversation, model_name):
+    gemini_tool_model.name = model_name
 
     collected_tokens = []
-    async for token in mistral_tool_model.astream(
+    async for token in gemini_tool_model.astream(
         conversation=conversation, toolkit=toolkit
     ):
         assert isinstance(token, str)

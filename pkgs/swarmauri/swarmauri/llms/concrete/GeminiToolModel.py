@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import json
 from typing import List, Literal, Dict, Any
-import google.generativeai as genai
 from google.generativeai.protos import FunctionDeclaration
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
