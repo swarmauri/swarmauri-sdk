@@ -1,5 +1,6 @@
 import pytest
 import os
+import asyncio
 from swarmauri_experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
@@ -8,8 +9,10 @@ from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from time import sleep
 from dotenv import load_dotenv
 
+
 def go_to_sleep():
     sleep(0.1)
+
 
 load_dotenv()
 
@@ -57,7 +60,7 @@ def test_default_name(shuttleai_model):
 @pytest.mark.unit
 def test_no_system_context(shuttleai_model):
     go_to_sleep()
-    
+
     model = shuttleai_model
     conversation = Conversation()
 
@@ -74,7 +77,7 @@ def test_no_system_context(shuttleai_model):
 @pytest.mark.unit
 def test_nonpreamble_system_context(shuttleai_model, model_name):
     go_to_sleep()
-    
+
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
@@ -106,7 +109,7 @@ def test_nonpreamble_system_context(shuttleai_model, model_name):
 @pytest.mark.unit
 def test_preamble_system_context(shuttleai_model, model_name):
     go_to_sleep()
-    
+
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
@@ -124,11 +127,12 @@ def test_preamble_system_context(shuttleai_model, model_name):
     assert type(prediction) == str
     assert "Jeff" in prediction
 
+
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_multiple_system_contexts(shuttleai_model, model_name):
     go_to_sleep()
-    
+
     model = shuttleai_model
     model.name = model_name
     conversation = Conversation()
@@ -155,3 +159,112 @@ def test_multiple_system_contexts(shuttleai_model, model_name):
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Ben" in prediction
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_apredict(shuttleai_model, model_name):
+    go_to_sleep()
+
+    model = shuttleai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Hello"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    result = await model.apredict(conversation=conversation)
+    prediction = result.get_last().content
+    assert isinstance(prediction, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(shuttleai_model, model_name):
+    go_to_sleep()
+
+    model = shuttleai_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = model.batch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_abatch(shuttleai_model, model_name):
+    go_to_sleep()
+
+    model = shuttleai_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = await model.abatch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+
+
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_stream(shuttleai_model, model_name):
+    go_to_sleep()
+
+    model = shuttleai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a cat."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    for token in model.stream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0, "No tokens were received from the stream"
+    assert conversation.get_last().content == full_response
+    print(f"Received response: {full_response}")  # Add this line for debugging
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_astream(shuttleai_model, model_name):
+    go_to_sleep()
+
+    model = shuttleai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a dog."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    async for token in model.astream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0, "No tokens were received from the stream"
+    assert conversation.get_last().content == full_response
+    print(f"Received response: {full_response}")  # Add this line for debugging
