@@ -14,7 +14,7 @@ from swarmauri.schema_converters.concrete.GeminiSchemaConverter import (
 )
 import google.generativeai as genai
 
-from pkgs.swarmauri.swarmauri.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.toolkits.concrete.Toolkit import Toolkit
 
 
 class GeminiToolModel(LLMBase):
