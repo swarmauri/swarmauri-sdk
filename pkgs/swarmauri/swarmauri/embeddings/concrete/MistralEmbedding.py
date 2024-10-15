@@ -1,4 +1,4 @@
-from mistralai import Mistral
+import mistralai
 from typing import List, Literal
 from pydantic import PrivateAttr
 from swarmauri.vectors.concrete.Vector import Vector
@@ -26,14 +26,11 @@ class MistralEmbedding(EmbeddingBase):
 
     type: Literal["MistralEmbedding"] = "MistralEmbedding"
 
-    _allowed_models: List[str] = PrivateAttr(
-        default=["mistral-embed"]
-    )
-    
+    _allowed_models: List[str] = PrivateAttr(default=["mistral-embed"])
 
     model: str = "mistral-embed"
     api_key: str = None
-    _client: Mistral = PrivateAttr()
+    _client: mistralai.Mistral = PrivateAttr()
 
     def __init__(
         self,
@@ -49,7 +46,7 @@ class MistralEmbedding(EmbeddingBase):
             )
 
         self.model = model
-        self._client = Mistral(api_key=api_key)
+        self._client = mistralai.Mistral(api_key=api_key)
 
     def infer_vector(self, data: List[str]) -> List[Vector]:
         """
@@ -71,7 +68,7 @@ class MistralEmbedding(EmbeddingBase):
                 model=self.model,
                 inputs=data,
             )
-            
+
             embeddings = [Vector(value=item.embedding) for item in response.data]
             return embeddings
 
