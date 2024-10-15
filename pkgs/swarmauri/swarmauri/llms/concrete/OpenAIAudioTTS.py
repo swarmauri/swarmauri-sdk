@@ -3,6 +3,7 @@ from typing import List, Literal
 from openai import OpenAI
 from swarmauri.llms.base.LLMBase import LLMBase
 
+
 class OpenAIAudioTTS(LLMBase):
     """
     https://platform.openai.com/docs/guides/text-to-speech/overview
@@ -18,12 +19,12 @@ class OpenAIAudioTTS(LLMBase):
 
     def predict(self, text: str) -> io.BytesIO:
         """
-        Convert text to speech using OpenAI's TTS API and save as an audio file.
+        Convert text to speech using OpenAI's TTS API.
 
         Parameters:
             text (str): The text to convert to speech.
         Returns:
-                str: Absolute path to the saved audio file.
+                bytes: bytes of the audio.
         """
 
         client = OpenAI(api_key=self.api_key)

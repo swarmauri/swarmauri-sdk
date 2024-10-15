@@ -2,6 +2,9 @@ import logging
 import pytest
 import os
 from swarmauri.llms.concrete.OpenAIAudio import OpenAIAudio as LLM
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -48,7 +51,7 @@ def test_audio_transcription(openai_model, model_name):
     model.name = model_name
 
     prediction = model.predict(
-        audio_path="/home/johnmkagunda/Downloads/videos/trial.mp3"
+        audio_path="pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3"
     )
 
     logging.info(prediction)
@@ -63,7 +66,7 @@ def test_audio_translation(openai_model, model_name):
     model.name = model_name
 
     prediction = model.predict(
-        audio_path="/home/johnmkagunda/Downloads/videos/trial.mp3",
+        audio_path="pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3",
         task="translation",
     )
 
