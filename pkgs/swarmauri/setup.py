@@ -56,6 +56,7 @@ setup(
         "tf-keras==2.17.0",
         "yake==0.4.8",
         "deepface",
+        "aiohttp",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
