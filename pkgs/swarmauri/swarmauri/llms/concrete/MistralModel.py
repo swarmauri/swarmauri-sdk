@@ -1,7 +1,8 @@
 import asyncio
 import json
 from typing import List, Literal, Dict
-from mistralai import Mistral
+import mistralai
+from anyio import sleep
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -48,7 +49,7 @@ class MistralModel(LLMBase):
         safe_prompt: bool = False,
     ):
         formatted_messages = self._format_messages(conversation.history)
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
 
         if enable_json:
             response = client.chat.complete(
@@ -86,7 +87,7 @@ class MistralModel(LLMBase):
         safe_prompt: bool = False,
     ):
         formatted_messages = self._format_messages(conversation.history)
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
 
         if enable_json:
             response = await client.chat.complete_async(
@@ -123,7 +124,7 @@ class MistralModel(LLMBase):
         safe_prompt: bool = False,
     ):
         formatted_messages = self._format_messages(conversation.history)
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
 
         stream_response = client.chat.stream(
             model=self.name,
@@ -151,7 +152,7 @@ class MistralModel(LLMBase):
         safe_prompt: bool = False,
     ):
         formatted_messages = self._format_messages(conversation.history)
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
 
         stream_response = await client.chat.stream_async(
             model=self.name,
