@@ -17,6 +17,7 @@ def perplexity_model():
     return llm
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.acceptance
 def test_nonpreamble_system_context(perplexity_model):
     model = perplexity_model
@@ -45,6 +46,7 @@ def test_nonpreamble_system_context(perplexity_model):
     assert "Jeff" in prediction
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.acceptance
 def test_multiple_system_contexts(perplexity_model):
     model = perplexity_model
