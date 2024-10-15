@@ -1,3 +1,4 @@
+import io
 import logging
 import pytest
 import os
@@ -49,12 +50,14 @@ def test_default_name(openai_model):
 def test_predict(openai_model, model_name):
     openai_model.name = model_name
 
-    text = "Hello what is your name"
+    text = "Hello, this is a test of streaming text-to-speech output."
 
-    prediction = openai_model.predict(
-        text=text,
-        audio_path="pkgs/swarmauri/tests/unit/llms/static/audio/test_tts.mp3",
-    )
-    logging.info(prediction)
+    audio_bytes = openai_model.predict(text=text)
 
-    assert type(prediction) is str
+    # audio_bytes.seek(0)
+    # audio = AudioSegment.from_file(audio_bytes, format="mp3")
+    # play(audio)
+
+    logging.info(audio_bytes)
+
+    assert isinstance(audio_bytes, io.BytesIO)
