@@ -57,6 +57,7 @@ setup(
         "yake==0.4.8",
         "deepface",
         "aiohttp",
+        "Pillow",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
