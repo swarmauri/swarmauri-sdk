@@ -51,6 +51,7 @@ yake = "==0.4.8"
 tf-keras = "==2.17.0"
 deepface = "*"
 aiohttp = "*"
+Pillow = "*"
 
 
 # Pacmap requires specific version of numba
