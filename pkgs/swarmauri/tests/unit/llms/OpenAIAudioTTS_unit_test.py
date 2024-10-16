@@ -1,7 +1,8 @@
+import io
 import logging
 import pytest
 import os
-from swarmauri.llms.concrete.OpenAIAudio import OpenAIAudio as LLM
+from swarmauri.llms.concrete.OpenAIAudioTTS import OpenAIAudioTTS as LLM
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -31,7 +32,7 @@ def test_ubc_resource(openai_model):
 
 @pytest.mark.unit
 def test_ubc_type(openai_model):
-    assert openai_model.type == "OpenAIAudio"
+    assert openai_model.type == "OpenAIAudioTTS"
 
 
 @pytest.mark.unit
@@ -41,35 +42,22 @@ def test_serialization(openai_model):
 
 @pytest.mark.unit
 def test_default_name(openai_model):
-    assert openai_model.name == "whisper-1"
+    assert openai_model.name == "tts-1"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_audio_transcription(openai_model, model_name):
-    model = openai_model
-    model.name = model_name
+def test_predict(openai_model, model_name):
+    openai_model.name = model_name
 
-    prediction = model.predict(
-        audio_path="pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3"
-    )
+    text = "Hello, this is a test of streaming text-to-speech output."
 
-    logging.info(prediction)
+    audio_bytes = openai_model.predict(text=text)
 
-    assert type(prediction) is str
+    # audio_bytes.seek(0)
+    # audio = AudioSegment.from_file(audio_bytes, format="mp3")
+    # play(audio)
 
+    logging.info(audio_bytes)
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
-def test_audio_translation(openai_model, model_name):
-    model = openai_model
-    model.name = model_name
-
-    prediction = model.predict(
-        audio_path="pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3",
-        task="translation",
-    )
-
-    logging.info(prediction)
-
-    assert type(prediction) is str
+    assert isinstance(audio_bytes, io.BytesIO)
