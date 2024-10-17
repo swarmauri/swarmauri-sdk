@@ -1,15 +1,19 @@
 import pytest
-from swarmauri.utils.file_path_to_base64 import file_path_to_base64  # Adjust the path
+import base64
+from swarmauri.utils.file_path_to_base64 import file_path_to_base64
 
-@pytest.fixture
-def mock_file_path(tmp_path):
-    file_path = tmp_path / "test_image.jpg"
-    with open(file_path, 'wb') as f:
-        f.write(b'test image data')
-    return file_path
+test_image_path = "pkgs/swarmauri/tests/static/cityscape.png"
 
-@pytest.mark.unit
-def test_file_path_to_base64(mock_file_path):
-    img_base64 = file_path_to_base64(mock_file_path)
-    assert isinstance(img_base64, str)
-    assert img_base64.startswith('iVBOR')  # Checking for common base64 header
+
+def test_file_path_to_base64():
+    # Call the function to get the base64 result
+    result = file_path_to_base64(test_image_path)
+
+    # Manually load the image and convert it to base64 to compare
+    with open(test_image_path, "rb") as img_file:
+        expected = base64.b64encode(img_file.read()).decode("utf-8")
+
+    # Assert the result is the expected base64 string
+    assert (
+        result == expected
+    ), "Base64 conversion of the image does not match the expected output."
