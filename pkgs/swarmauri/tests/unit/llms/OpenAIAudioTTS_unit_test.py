@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("OPENAI_API_KEY")
-file_path = "pkgs/swarmauri/tests/unit/llms/static/audio/test_tts.mp3"
+file_path = "pkgs/swarmauri/tests/static/test_tts.mp3"
 
 
 @pytest.fixture(scope="module")
