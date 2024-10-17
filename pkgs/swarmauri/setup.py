@@ -58,6 +58,7 @@ setup(
         "deepface",
         "aiohttp",
         "Pillow",
+        "fal-client",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
