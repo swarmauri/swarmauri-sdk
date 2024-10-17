@@ -48,7 +48,7 @@ def test_audio_transcription(groqai_model, model_name):
     model.name = model_name
 
     prediction = model.predict(
-        audio_path="./tests/unit/llms/static/audio/test.mp3",
+        audio_path="pkgs/swarmauri/tests/static/test.mp3",
     )
 
     logging.info(prediction)
@@ -63,7 +63,7 @@ def test_audio_translation(groqai_model):
     model.name = "whisper-large-v3"
 
     prediction = model.predict(
-        audio_path="./tests/unit/llms/static/audio/test_fr.mp3",
+        audio_path="pkgs/swarmauri/tests/static/test_fr.mp3",
         task="translation",
     )
 
