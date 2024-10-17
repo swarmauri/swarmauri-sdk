@@ -1,7 +1,5 @@
 import requests
 import base64
-from io import BytesIO
-from PIL import Image
 from typing import List, Literal
 from pydantic import Field
 from swarmauri.llms.base.LLMBase import LLMBase
@@ -42,67 +40,44 @@ class DeepInfraImgGenModel(LLMBase):
         else:
             raise Exception(f"Error: {response.status_code}, {response.text}")
 
-    def generate_image(self, prompt: str, save_path: str = "generated_image.png"):
-        """Generates an image based on the prompt and saves it to the specified path."""
+    def generate_image_base64(self, prompt: str) -> str:
+        """Generates an image based on the prompt and returns the base64-encoded string."""
         # Send request to DeepInfra API
         response_data = self._send_request(prompt)
 
-        # Extract and decode the base64 image
+        # Extract the base64 image (the part after the data type prefix)
         image_base64 = response_data["images"][0].split(",")[1]
 
-        image_data = base64.b64decode(image_base64)
+        return image_base64
 
-        # Create image from the decoded data
-        image = Image.open(BytesIO(image_data))
-
-        # Save the image to the file system
-        image.save(save_path)
-        print(f"Image saved to {save_path}")
-
-    async def agenerate_image(
-        self, prompt: str, save_path: str = "generated_image.png"
-    ):
-        """Asynchronously generates an image based on the prompt."""
+    async def agenerate_image_base64(self, prompt: str) -> str:
+        """Asynchronously generates an image based on the prompt and returns the base64-encoded string."""
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self.generate_image, prompt, save_path)
+        return await loop.run_in_executor(None, self.generate_image_base64, prompt)
 
-    def batch(self, prompts: List[str], save_paths: List[str] = None) -> List[str]:
+    def batch_base64(self, prompts: List[str]) -> List[str]:
         """
-        Generates images for a batch of prompts and saves them to specified paths.
-        Returns a list of saved image paths.
+        Generates base64-encoded images for a batch of prompts.
+        Returns a list of base64 strings.
         """
-        if save_paths is None:
-            save_paths = [f"generated_image_{i}.png" for i in range(len(prompts))]
+        base64_images = []
+        for prompt in prompts:
+            base64_images.append(self.generate_image_base64(prompt=prompt))
 
-        saved_paths = []
-        for prompt, save_path in zip(prompts, save_paths):
-            self.generate_image(prompt=prompt, save_path=save_path)
-            saved_paths.append(save_path)
+        return base64_images
 
-        return saved_paths
-
-    import asyncio
-
-    async def abatch(
-        self, prompts: List[str], save_paths: List[str] = None, max_concurrent: int = 5
+    async def abatch_base64(
+        self, prompts: List[str], max_concurrent: int = 5
     ) -> List[str]:
         """
-        Asynchronously generates images for a batch of prompts and saves them to specified paths.
-        Returns a list of saved image paths.
+        Asynchronously generates base64-encoded images for a batch of prompts.
+        Returns a list of base64 strings.
         """
-        if save_paths is None:
-            save_paths = [f"generated_image_{i}.png" for i in range(len(prompts))]
-
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_prompt(prompt, save_path):
+        async def process_prompt(prompt):
             async with semaphore:
-                await self.agenerate_image(prompt=prompt, save_path=save_path)
+                return await self.agenerate_image_base64(prompt=prompt)
 
-        tasks = [
-            process_prompt(prompt, save_path)
-            for prompt, save_path in zip(prompts, save_paths)
-        ]
-        await asyncio.gather(*tasks)
-
-        return save_paths
+        tasks = [process_prompt(prompt) for prompt in prompts]
+        return await asyncio.gather(*tasks)
