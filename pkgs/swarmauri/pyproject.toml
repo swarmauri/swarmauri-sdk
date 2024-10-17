@@ -52,6 +52,7 @@ tf-keras = "==2.17.0"
 deepface = "*"
 aiohttp = "*"
 Pillow = "*"
+python-dotenv = "*"
 
 
 # Pacmap requires specific version of numba
