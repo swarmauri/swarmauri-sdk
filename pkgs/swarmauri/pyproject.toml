@@ -52,7 +52,7 @@ tf-keras = "==2.17.0"
 deepface = "*"
 aiohttp = "*"
 Pillow = "*"
-
+fal-client = "*"
 
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"
