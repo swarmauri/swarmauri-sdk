@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-swarmauri_core = "==0.5.1.dev18"
+swarmauri_core = "==0.5.1.dev20"
 swarmauri = ">=0.5.0"
 gensim = "*"
 neo4j = "*"
