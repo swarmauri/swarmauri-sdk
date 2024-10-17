@@ -28,13 +28,6 @@ torch = "*"
 transformers = ">=4.45.0"
 typing_extensions = "*"
 
-
-# Pacmap requires specific version of numba
-#numba = ">=0.59.0"
-#pacmap = "==0.7.3"
-
-
-
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency
 pytest = "^8.0"  # Ensure pytest is also added if you run tests
