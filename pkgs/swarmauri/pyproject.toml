@@ -53,6 +53,8 @@ deepface = "*"
 aiohttp = "*"
 Pillow = "*"
 fal-client = "*"
+joblib = "*"
+
 
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"

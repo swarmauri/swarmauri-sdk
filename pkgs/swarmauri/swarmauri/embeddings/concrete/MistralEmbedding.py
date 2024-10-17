@@ -1,5 +1,7 @@
+import logging
+
 import mistralai
-from typing import List, Literal
+from typing import List, Literal, Any
 from pydantic import PrivateAttr
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
@@ -30,7 +32,7 @@ class MistralEmbedding(EmbeddingBase):
 
     model: str = "mistral-embed"
     api_key: str = None
-    _client: mistralai.Mistral = PrivateAttr()
+    _client: Any = PrivateAttr()
 
     def __init__(
         self,
@@ -47,6 +49,9 @@ class MistralEmbedding(EmbeddingBase):
 
         self.model = model
         self._client = mistralai.Mistral(api_key=api_key)
+        logging.info("Testing")
+        if not isinstance(self._client, mistralai.Mistral):
+            raise ValueError("client must be an instance of mistralai.Mistral")
 
     def infer_vector(self, data: List[str]) -> List[Vector]:
         """
