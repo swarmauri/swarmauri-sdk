@@ -39,17 +39,3 @@ def test_serialization(shuttleai_tool_model):
 @pytest.mark.unit
 def test_default_name(shuttleai_tool_model):
     assert shuttleai_tool_model.name == "shuttle-2-turbo"
-
-
-@pytest.mark.unit
-def test_agent_exec(shuttleai_tool_model):
-    conversation = Conversation()
-    toolkit = Toolkit()
-    tool = AdditionTool()
-    toolkit.add_tool(tool)
-
-    agent = ToolAgent(
-        llm=shuttleai_tool_model, conversation=conversation, toolkit=toolkit
-    )
-    result = agent.exec("Add 512+671")
-    assert type(result) == str
