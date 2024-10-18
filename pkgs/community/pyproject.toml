@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri-core"
-version = "0.5.1.dev21"
-description = "This repository includes core interfaces for the Swarmauri framework."
+name = "swarmauri-community"
+version = "0.5.1.dev8"
+description = "This repository includes community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,10 +15,33 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-#numpy = "==1.26.4"
-#requests = "^2.0"
-pydantic = "^2.0"
-#pandas = ">2.2"
+captcha = "*"
+chromadb = "*"
+duckdb = "*"
+folium = "*"
+google-generativeai = "*"
+gradio = "*"
+neo4j = "*"
+nltk = "*"
+numpy = "*"
+pandas = "*"
+psutil = "*"
+pydantic = "*"
+pygithub = "*"
+python-dotenv = "*"
+qrcode = "*"
+redis = "^4.0"
+requests = "*"
+swarmauri = ">=0.5.0"
+textstat = "*"
+transformers = ">=4.45.0"
+typing_extensions = "*"
+
+# Pacmap requires specific version of numba
+#numba = ">=0.59.0"
+#pacmap = "==0.7.3"
+
+
 
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency

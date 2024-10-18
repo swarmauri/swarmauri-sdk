@@ -1,4 +1,3 @@
-__version__ = "0.5.1.dev7"
 __long_desc__ = """
 # Swarmauri Standard SDK
 

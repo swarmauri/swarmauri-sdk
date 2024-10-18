@@ -102,8 +102,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install flake8 pytest python-dotenv
           python -m pip install textblob
-          python -m textblob.download_corpora
-          if [ -f pkgs/${{ matrix.package }}/requirements.txt ]; then pip install -r pkgs/${{ matrix.package }}/requirements.txt; fi
+          python -m textblob.download_corpora          
 
       - name: Lint with flake8
         run: |

@@ -12,7 +12,7 @@ on:
 
 jobs:
   detect-changes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
 
@@ -40,7 +40,7 @@ jobs:
 
   test:
     needs: detect-changes
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -107,7 +107,7 @@ jobs:
       - name: Install dependencies with Poetry
         run: |
           cd pkgs/${{ matrix.package }}
-          poetry install --no-cache
+          poetry install --no-cache -vv
 
       - name: Lint with flake8
         run: |
@@ -137,6 +137,13 @@ jobs:
 
       - name: Output test results for debugging
         run: |
+          cd pkgs/${{ matrix.package }}
+          ls > log.out
+          cat log.out
+
+      - name: Output test results for debugging
+        run: |
+          ls
           cat pkgs/${{ matrix.package }}/results.xml
 
       - name: Classify test results

@@ -1,9 +1,9 @@
 import asyncio
 import json
 import logging
-import time
+from time import sleep
 from typing import List, Literal, Dict, Any
-from mistralai import Mistral
+import mistralai
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -56,7 +56,7 @@ class MistralToolModel(LLMBase):
         max_tokens=1024,
         safe_prompt: bool = False,
     ):
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
@@ -111,7 +111,7 @@ class MistralToolModel(LLMBase):
         max_tokens=1024,
         safe_prompt: bool = False,
     ):
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
@@ -169,7 +169,7 @@ class MistralToolModel(LLMBase):
         max_tokens=1024,
         safe_prompt: bool = False,
     ):
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
@@ -229,7 +229,7 @@ class MistralToolModel(LLMBase):
         max_tokens=1024,
         safe_prompt: bool = False,
     ):
-        client = Mistral(api_key=self.api_key)
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
