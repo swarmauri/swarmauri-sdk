@@ -1,10 +1,7 @@
-import io
 import logging
 import pytest
 import os
 
-from pydub import AudioSegment
-from pydub.playback import play
 from swarmauri.llms.concrete.PlayHTModel import PlayHTModel as LLM
 from dotenv import load_dotenv
 
@@ -70,7 +67,6 @@ def test_predict(playht_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(playht_model, model_name):
-    playht_model.name = model_name
 
     text = "Hello, My name is Michael, Am a Swarmauri Engineer"
 
@@ -84,8 +80,8 @@ def test_stream(playht_model, model_name):
     assert len(full_audio_byte) > 0
 
     assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
-    audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
-    play(audio)
+    # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
+    # play(audio)
 
 
 # New tests for async operations

@@ -1,12 +1,13 @@
 import asyncio
 import io
+import json
 import os
 
 import aiohttp
 import requests
 from typing import List, Literal, Dict
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -15,20 +16,67 @@ class PlayHTModel(LLMBase):
     Play.ht TTS class for text-to-speech synthesis
     """
 
+    allowed_models: List[str] = Field(
+        default=["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
+    )
+
+    allowed_voices: Dict[
+        Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"], List[str]
+    ] = Field(default_factory=dict)
+
+    voice: str = (
+        "s3://voice-cloning-zero-shot/9a5deeda-3025-49c5-831a-ac98f86f2a37/aprilsaad/manifest.json"
+    )
+
     api_key: str
     user_id: str
-    allowed_models: List[str] = Field(default=["Play3.0-mini", "PlayHT2.0-turbo"])
-    allowed_voices: List[str] = Field(
-        default=[
-            "s3://voice-cloning-zero-shot/775ae416-49bb-4fb6-bd45-740f205d20a1/jennifersaad/manifest.json"
-        ]
-    )
-    voice: str = (
-        "s3://voice-cloning-zero-shot/775ae416-49bb-4fb6-bd45-740f205d20a1/jennifersaad/manifest.json"
-    )
     name: str = "Play3.0-mini"
     output_format: str = "mp3"
     base_url: str = "https://api.play.ht/api/v2/tts/stream"
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.allowed_voices = self._fetch_allowed_voices()
+        self._validate_voice_in_allowed_voices()
+
+    def _validate_voice_in_allowed_voices(self):
+        voice = self.voice
+        model = self.name
+
+        if model in self.allowed_models:
+            allowed_voices = self.allowed_voices.get(model, [])
+            allowed_voices.extend(self.allowed_voices.get("PlayHT2.0"))
+        else:
+            raise ValueError(
+                f"{model} voice engine not allowed. Choose from {self.allowed_models}"
+            )
+        if voice and voice not in allowed_voices:
+            raise ValueError(
+                f"Voice name {voice} is not allowed for this {model} voice engine. Choose from {allowed_voices}"
+            )
+
+    def _fetch_allowed_voices(self) -> Dict[str, List[str]]:
+        """
+        Fetch the allowed voices from Play.ht's API and return the dictionary.
+        """
+        url = "https://api.play.ht/api/v2/voices"
+        headers = {
+            "accept": "application/json",
+            "AUTHORIZATION": self.api_key,
+            "X-USER-ID": self.user_id,
+        }
+
+        response = requests.get(url, headers=headers)
+        allowed_voices = {}
+
+        for item in json.loads(response.text):
+            voice_engine = item.get("voice_engine")
+            if voice_engine in self.allowed_models:
+                if voice_engine not in allowed_voices:
+                    allowed_voices[voice_engine] = [item.get("id")]
+                allowed_voices[voice_engine].append(item.get("id"))
+
+        return allowed_voices
 
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
