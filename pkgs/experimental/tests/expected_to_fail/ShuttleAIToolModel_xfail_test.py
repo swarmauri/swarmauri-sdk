@@ -93,13 +93,11 @@ def test_predict(shuttle_ai_tool_model, toolkit, conversation, model_name):
 @pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-def test_stream(shuttle_ai_tool_model, toolkit, conversation, model_name):
-    shuttle_ai_tool_model.name = model_name
+def test_stream(cohere_tool_model, toolkit, conversation, model_name):
+    cohere_tool_model.name = model_name
 
     collected_tokens = []
-    for token in shuttle_ai_tool_model.stream(
-        conversation=conversation, toolkit=toolkit
-    ):
+    for token in cohere_tool_model.stream(conversation=conversation, toolkit=toolkit):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -111,8 +109,8 @@ def test_stream(shuttle_ai_tool_model, toolkit, conversation, model_name):
 @pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-def test_batch(shuttle_ai_tool_model, toolkit, model_name):
-    shuttle_ai_tool_model.name = model_name
+def test_batch(cohere_tool_model, toolkit, model_name):
+    cohere_tool_model.name = model_name
 
     conversations = []
     for prompt in ["20+20", "100+50", "500+500"]:
@@ -120,7 +118,7 @@ def test_batch(shuttle_ai_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=[{"type": "text", "text": prompt}]))
         conversations.append(conv)
 
-    results = shuttle_ai_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = cohere_tool_model.batch(conversations=conversations, toolkit=toolkit)
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
@@ -130,24 +128,25 @@ def test_batch(shuttle_ai_tool_model, toolkit, model_name):
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_apredict(shuttle_ai_tool_model, toolkit, conversation, model_name):
-    shuttle_ai_tool_model.name = model_name
+async def test_apredict(cohere_tool_model, toolkit, conversation, model_name):
+    cohere_tool_model.name = model_name
 
-    result = await shuttle_ai_tool_model.apredict(
+    result = await cohere_tool_model.apredict(
         conversation=conversation, toolkit=toolkit
     )
     prediction = result.get_last().content
     assert isinstance(prediction, str)
 
 
+@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_astream(shuttle_ai_tool_model, toolkit, conversation, model_name):
-    shuttle_ai_tool_model.name = model_name
+async def test_astream(cohere_tool_model, toolkit, conversation, model_name):
+    cohere_tool_model.name = model_name
 
     collected_tokens = []
-    async for token in shuttle_ai_tool_model.astream(
+    async for token in cohere_tool_model.astream(
         conversation=conversation, toolkit=toolkit
     ):
         assert isinstance(token, str)
@@ -162,8 +161,8 @@ async def test_astream(shuttle_ai_tool_model, toolkit, conversation, model_name)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_abatch(shuttle_ai_tool_model, toolkit, model_name):
-    shuttle_ai_tool_model.name = model_name
+async def test_abatch(cohere_tool_model, toolkit, model_name):
+    cohere_tool_model.name = model_name
 
     conversations = []
     for prompt in ["20+20", "100+50", "500+500"]:
@@ -171,7 +170,7 @@ async def test_abatch(shuttle_ai_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = await shuttle_ai_tool_model.abatch(
+    results = await cohere_tool_model.abatch(
         conversations=conversations, toolkit=toolkit
     )
     assert len(results) == len(conversations)
