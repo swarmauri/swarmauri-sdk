@@ -137,6 +137,12 @@ jobs:
 
       - name: Output test results for debugging
         run: |
+          cd pkgs/${{ matrix.package }}
+          ls > log.out
+          cat log.out
+
+      - name: Output test results for debugging
+        run: |
           ls
           cat pkgs/${{ matrix.package }}/results.xml
 
