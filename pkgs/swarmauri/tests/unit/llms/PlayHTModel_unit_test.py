@@ -1,7 +1,10 @@
+import io
 import logging
 import pytest
 import os
 
+from pydub import AudioSegment
+from pydub.playback import play
 from swarmauri.llms.concrete.PlayHTModel import PlayHTModel as LLM
 from dotenv import load_dotenv
 
@@ -80,8 +83,8 @@ def test_stream(playht_model, model_name):
     assert len(full_audio_byte) > 0
 
     assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
-    # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
-    # play(audio)
+    audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
+    play(audio)
 
 
 # New tests for async operations
@@ -153,3 +156,46 @@ async def test_abatch(playht_model, model_name):
     assert len(results) == len(text_path_dict)
     for result in results:
         assert isinstance(result, str)
+
+
+def test_create_cloned_voice_with_file(playht_model):
+    voice_name = "test-voice"
+
+    response = playht_model.clone_voice_from_file(voice_name, file_path)
+
+    assert response is not None
+    assert "id" in response or "error" not in response
+    print(f"Create Cloned Voice Response: {response}")
+
+
+def test_create_cloned_voice_with_url(playht_model):
+    sample_file_url = "https://example.com/"
+    voice_name = "mikel-voice"
+
+    response = playht_model.create_cloned_voice_with_url(sample_file_url, voice_name)
+
+    assert response is not None
+    assert "id" in response or "error" not in response
+    print(f"Create Cloned Voice With URL Response: {response}")
+
+
+def test_delete_cloned_voice(playht_model):
+    voice_id = playht_model.get_cloned_voices()[0].get("id")
+
+    response = playht_model.delete_cloned_voice(voice_id)
+
+    assert response is not None
+    assert (
+        response.get("message") == "Voice deleted successfully"
+        or "error" not in response
+    )
+    print(f"Delete Cloned Voice Response: {response}")
+
+
+def test_get_cloned_voices(playht_model):
+    response = playht_model.get_cloned_voices()
+
+    assert response is not None
+    assert isinstance(response, list)
+    assert "id" in response or "error" not in response
+    print(f"Get Cloned Voices Response: {response}")

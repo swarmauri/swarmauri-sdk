@@ -7,7 +7,7 @@ import aiohttp
 import requests
 from typing import List, Literal, Dict
 
-from pydantic import Field, model_validator
+from pydantic import Field
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -25,14 +25,14 @@ class PlayHTModel(LLMBase):
     ] = Field(default_factory=dict)
 
     voice: str = (
-        "s3://voice-cloning-zero-shot/9a5deeda-3025-49c5-831a-ac98f86f2a37/aprilsaad/manifest.json"
+        "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json"
     )
 
     api_key: str
     user_id: str
     name: str = "Play3.0-mini"
     output_format: str = "mp3"
-    base_url: str = "https://api.play.ht/api/v2/tts/stream"
+    base_url: str = "https://api.play.ht/api/v2"
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -59,22 +59,26 @@ class PlayHTModel(LLMBase):
         """
         Fetch the allowed voices from Play.ht's API and return the dictionary.
         """
-        url = "https://api.play.ht/api/v2/voices"
+        url = f"{self.base_url}/voices"
         headers = {
             "accept": "application/json",
             "AUTHORIZATION": self.api_key,
             "X-USER-ID": self.user_id,
         }
-
-        response = requests.get(url, headers=headers)
+        voice_response = requests.get(url, headers=headers)
         allowed_voices = {}
 
-        for item in json.loads(response.text):
+        for item in json.loads(voice_response.text):
             voice_engine = item.get("voice_engine")
             if voice_engine in self.allowed_models:
                 if voice_engine not in allowed_voices:
                     allowed_voices[voice_engine] = [item.get("id")]
                 allowed_voices[voice_engine].append(item.get("id"))
+
+        cloned_voice_response = self.get_cloned_voices()
+        if cloned_voice_response:
+            for item in cloned_voice_response:
+                allowed_voices["PlayHT2.0"].append(item.get("id"))
 
         return allowed_voices
 
@@ -102,7 +106,9 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            response = requests.post(self.base_url, json=payload, headers=headers)
+            response = requests.post(
+                f"{self.base_url}/tts/stream", json=payload, headers=headers
+            )
             response.raise_for_status()
 
             with open(audio_path, "wb") as f:
@@ -132,7 +138,7 @@ class PlayHTModel(LLMBase):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    self.base_url, json=payload, headers=headers
+                    f"{self.base_url}/tts/stream", json=payload, headers=headers
                 ) as response:
                     if response.status != 200:
                         raise RuntimeError(
@@ -169,7 +175,10 @@ class PlayHTModel(LLMBase):
 
         try:
             response = requests.post(
-                self.base_url, json=payload, headers=headers, stream=True
+                f"{self.base_url}/tts/stream",
+                json=payload,
+                headers=headers,
+                stream=True,
             )
             response.raise_for_status()
 
@@ -201,7 +210,7 @@ class PlayHTModel(LLMBase):
             audio_bytes = io.BytesIO()
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    self.base_url, json=payload, headers=headers
+                    f"{self.base_url}/tts/stream", json=payload, headers=headers
                 ) as response:
                     if response.status != 200:
                         raise RuntimeError(
@@ -244,3 +253,120 @@ class PlayHTModel(LLMBase):
 
         tasks = [process_text(text, path) for text, path in text_path_dict.items()]
         return await asyncio.gather(*tasks)
+
+    def clone_voice_from_file(self, voice_name: str, sample_file_path: str) -> dict:
+        """
+        Clone a voice by sending a sample audio file to Play.ht API.
+
+        :param voice_name: The name for the cloned voice.
+        :param sample_file_path: The path to the audio file to be used for cloning the voice.
+        :return: A dictionary containing the response from the Play.ht API.
+        """
+        url = f"{self.base_url}/cloned-voices/instant"
+
+        files = {
+            "sample_file": (
+                sample_file_path.split("/")[-1],
+                open(sample_file_path, "rb"),
+                "audio/mp4",
+            )
+        }
+        payload = {"voice_name": voice_name}
+
+        headers = {
+            "accept": "application/json",
+            "AUTHORIZATION": self.api_key,
+            "X-USER-ID": self.user_id,
+        }
+
+        try:
+            response = requests.post(url, data=payload, files=files, headers=headers)
+            response.raise_for_status()
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while cloning the voice: {e}")
+            return {"error": str(e)}
+
+    def clone_voice_from_url(self, voice_name: str, sample_file_url: str) -> dict:
+        """
+        Clone a voice by sending a URL to an audio file to Play.ht API.
+
+        :param voice_name: The name for the cloned voice.
+        :param sample_file_url: The URL to the audio file to be used for cloning the voice.
+        :return: A dictionary containing the response from the Play.ht API.
+        """
+        url = f"{self.base_url}/cloned-voices/instant"
+
+        # Constructing the payload with the sample file URL
+        payload = f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n{sample_file_url}\r\n-----011000010111000001101001--; name="voice_name"\r\n\r\n{voice_name}\r\n-----011000010111000001101001--'
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "multipart/form-data; boundary=---011000010111000001101001",
+            "AUTHORIZATION": self.api_key,
+            "X-USER-ID": self.user_id,
+        }
+
+        try:
+            response = requests.post(url, data=payload, headers=headers)
+            response.raise_for_status()
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while cloning the voice: {e}")
+            return {"error": str(e)}
+
+    def delete_cloned_voice(self, voice_id: str) -> dict:
+        """
+        Delete a cloned voice using its voice_id from Play.ht.
+
+        :param voice_id: The ID of the cloned voice to delete.
+        :return: A dictionary containing the response from the Play.ht API.
+        """
+        url = f"{self.base_url}/cloned-voices/"
+
+        payload = {"voice_id": voice_id}
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "AUTHORIZATION": self.api_key,
+            "X-USER-ID": self.user_id,
+        }
+
+        try:
+            response = requests.delete(url, json=payload, headers=headers)
+            response.raise_for_status()
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while deleting the cloned voice: {e}")
+            return {"error": str(e)}
+
+    def get_cloned_voices(self) -> dict:
+        """
+        Get a list of cloned voices from Play.ht.
+
+        :return: A dictionary containing the cloned voices or an error message.
+        """
+        url = f"{self.base_url}/cloned-voices"
+
+        headers = {
+            "accept": "application/json",
+            "AUTHORIZATION": self.api_key,
+            "X-USER-ID": self.user_id,
+        }
+
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while retrieving cloned voices: {e}")
+            return {"error": str(e)}
