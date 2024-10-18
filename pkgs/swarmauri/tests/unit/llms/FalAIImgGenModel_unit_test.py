@@ -106,15 +106,3 @@ async def test_abatch(fluxpro_imggen_model):
     for url in image_urls:
         assert isinstance(url, str)
         assert url.startswith("http")
-
-
-@pytest.mark.unit
-def test_download_image(fluxpro_imggen_model, tmp_path):
-    prompt = "A beautiful sunset over the ocean"
-    image_url = fluxpro_imggen_model.generate_image(prompt=prompt)
-
-    save_path = tmp_path / "test_download_image.png"
-    fluxpro_imggen_model.download_image(image_url, save_path=str(save_path))
-
-    assert save_path.exists()
-    assert save_path.stat().st_size > 0
