@@ -137,6 +137,7 @@ jobs:
 
       - name: Output test results for debugging
         run: |
+          ls
           cat pkgs/${{ matrix.package }}/results.xml
 
       - name: Classify test results
