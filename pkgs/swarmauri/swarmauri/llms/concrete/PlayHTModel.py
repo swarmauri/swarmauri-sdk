@@ -31,6 +31,7 @@ class PlayHTModel(LLMBase):
     api_key: str
     user_id: str
     name: str = "Play3.0-mini"
+    type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
     base_url: str = "https://api.play.ht/api/v2"
 
