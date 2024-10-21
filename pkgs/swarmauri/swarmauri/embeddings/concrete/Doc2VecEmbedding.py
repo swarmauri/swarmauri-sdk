@@ -36,9 +36,6 @@ class Doc2VecEmbedding(EmbeddingBase):
         return [Vector(value=vector) for vector in vectors]
 
     def fit_transform(self, documents: List[str], **kwargs) -> List[Vector]:
-        """
-        Fine-tunes the MLM and generates embeddings for the provided documents.
-        """
         self.fit(documents, **kwargs)
         return self.transform(documents)
 
