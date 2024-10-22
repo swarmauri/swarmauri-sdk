@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import List, Dict, Literal
 from anthropic import AsyncAnthropic, Anthropic
 from swarmauri_core.typing import SubclassUnion
@@ -7,6 +8,8 @@ from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 from swarmauri.conversations.concrete.Conversation import Conversation
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
 
 
 class AnthropicModel(LLMBase):
@@ -47,6 +50,37 @@ class AnthropicModel(LLMBase):
                 system_context = message.content
         return system_context
 
+    def _prepare_usage_data(
+        self,
+        usage_data,
+        prompt_start_time: float,
+        completion_start_time: float,
+        completion_end_time: float,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+        prompt_time = completion_start_time - prompt_start_time
+        completion_time = completion_end_time - completion_start_time
+        total_time = completion_end_time - prompt_start_time
+
+        prompt_tokens = usage_data.get("input_tokens", 0)
+
+        completion_tokens = usage_data.get("output_tokens", 0)
+
+        total_token = prompt_tokens + completion_tokens
+
+        usage = UsageData(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_token,
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+
+        return usage
+
     def predict(self, conversation: Conversation, temperature=0.7, max_tokens=256):
         # Create client
         client = Anthropic(api_key=self.api_key)
@@ -63,12 +97,26 @@ class AnthropicModel(LLMBase):
         }
 
         if system_context:
+            prompt_start_time = time.time()
             response = client.messages.create(system=system_context, **kwargs)
         else:
+            prompt_start_time = time.time()
             response = client.messages.create(**kwargs)
 
+        completion_start_time = time.time()
         message_content = response.content[0].text
-        conversation.add_message(AgentMessage(content=message_content))
+        completion_end_time = time.time()
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(
+            usage_data.model_dump(),
+            prompt_start_time,
+            completion_start_time,
+            completion_end_time,
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
@@ -88,12 +136,27 @@ class AnthropicModel(LLMBase):
         }
 
         if system_context:
+            prompt_start_time = time.time()
             response = await client.messages.create(system=system_context, **kwargs)
         else:
+            prompt_start_time = time.time()
             response = await client.messages.create(**kwargs)
 
+        completion_start_time = time.time()
         message_content = response.content[0].text
-        conversation.add_message(AgentMessage(content=message_content))
+        completion_end_time = time.time()
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(
+            usage_data.model_dump(),
+            prompt_start_time,
+            completion_start_time,
+            completion_end_time,
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+
         return conversation
 
     def stream(self, conversation: Conversation, temperature=0.7, max_tokens=256):
@@ -110,19 +173,37 @@ class AnthropicModel(LLMBase):
             "max_tokens": max_tokens,
             "stream": True,
         }
+        collected_content = ""
+        usage_data = {}
+
         if system_context:
+            prompt_start_time = time.time()
             stream = client.messages.create(system=system_context, **kwargs)
         else:
+            prompt_start_time = time.time()
             stream = client.messages.create(**kwargs)
 
+        completion_start_time = time.time()
         for event in stream:
-            if event.type == "content_block_delta" and event.delta.text is not None:
+            if event.type == "content_block_delta" and event.delta.text:
+                collected_content += event.delta.text
                 yield event.delta.text
+            if event.type == "message_start":
+                usage_data["input_tokens"] = event.message.usage.input_tokens
+            if event.type == "message_delta":
+                usage_data["output_tokens"] = event.usage.output_tokens
+
+        completion_end_time = time.time()
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=collected_content, usage=usage))
 
     async def astream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ):
-        client = AsyncAnthropic(api_key=self.api_key)
+        async_client = AsyncAnthropic(api_key=self.api_key)
 
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
@@ -132,17 +213,35 @@ class AnthropicModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "stream": True,
         }
+
+        usage_data = {}
+        collected_content = ""
+
         if system_context:
-            async with client.messages.stream(
-                system=system_context, **kwargs
-            ) as stream:
-                async for text in stream.text_stream:
-                    yield text
+            prompt_start_time = time.time()
+            stream = await async_client.messages.create(system=system_context, **kwargs)
         else:
-            async with client.messages.stream(**kwargs) as stream:
-                async for text in stream.text_stream:
-                    yield text
+            prompt_start_time = time.time()
+            stream = await async_client.messages.create(**kwargs)
+
+        completion_start_time = time.time()
+        async for event in stream:
+            if event.type == "content_block_delta" and event.delta.text:
+                collected_content += event.delta.text
+                yield event.delta.text
+            if event.type == "message_start":
+                usage_data["input_tokens"] = event.message.usage.input_tokens
+            if event.type == "message_delta":
+                usage_data["output_tokens"] = event.usage.output_tokens
+
+        completion_end_time = time.time()
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=collected_content, usage=usage))
 
     def batch(
         self,

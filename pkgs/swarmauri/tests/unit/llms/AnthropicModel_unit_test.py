@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import os
 from swarmauri.llms.concrete.AnthropicModel import AnthropicModel as LLM
@@ -6,6 +8,8 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
 
 load_dotenv()
 
@@ -65,6 +69,8 @@ def test_no_system_context(anthropic_model, model_name):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     assert type(prediction) == str
+    assert isinstance(conversation.get_last().usage, UsageData)
+    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -86,6 +92,7 @@ def test_preamble_system_context(anthropic_model, model_name):
     prediction = conversation.get_last().content
     assert type(prediction) == str
     assert "Jeff" in prediction
+    assert isinstance(conversation.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -107,6 +114,8 @@ def test_stream(anthropic_model, model_name):
     full_response = "".join(collected_tokens)
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+    assert isinstance(conversation.get_last().usage, UsageData)
+    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -125,6 +134,7 @@ def test_batch(anthropic_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -142,6 +152,7 @@ async def test_apredict(anthropic_model, model_name):
     result = await model.apredict(conversation=conversation)
     prediction = result.get_last().content
     assert isinstance(prediction, str)
+    assert isinstance(conversation.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -164,6 +175,8 @@ async def test_astream(anthropic_model, model_name):
     full_response = "".join(collected_tokens)
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+    assert isinstance(conversation.get_last().usage, UsageData)
+    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -183,3 +196,4 @@ async def test_abatch(anthropic_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)
