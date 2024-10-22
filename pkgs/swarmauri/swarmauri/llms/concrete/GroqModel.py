@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 from swarmauri.conversations.concrete.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, Union, AsyncGenerator
 
@@ -10,6 +9,8 @@ from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
 
 
 class GroqModel(LLMBase):
@@ -57,6 +58,17 @@ class GroqModel(LLMBase):
             formatted_messages.append(formatted_message)
         return formatted_messages
 
+    def _prepare_usage_data(
+        self,
+        usage_data,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+
+        usage = UsageData.model_validate(usage_data)
+        return usage
+
     def predict(
         self,
         conversation,
@@ -65,7 +77,7 @@ class GroqModel(LLMBase):
         top_p: float = 1.0,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ) -> Union[str, AsyncGenerator[str, None]]:
+    ):
 
         formatted_messages = self._format_messages(conversation.history)
         response_format = {"type": "json_object"} if enable_json else None
@@ -85,7 +97,11 @@ class GroqModel(LLMBase):
 
         result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
-        conversation.add_message(AgentMessage(content=message_content))
+        usage_data = result.get("usage", {})
+
+        usage = self._prepare_usage_data(usage_data)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     async def apredict(
@@ -116,7 +132,11 @@ class GroqModel(LLMBase):
 
         result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
-        conversation.add_message(AgentMessage(content=message_content))
+        usage_data = result.get("usage", {})
+
+        usage = self._prepare_usage_data(usage_data)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     def stream(
@@ -139,20 +159,27 @@ class GroqModel(LLMBase):
             "max_tokens": max_tokens,
             "top_p": top_p,
             "response_format": response_format,
-            "stop": stop or [],
             "stream": True,
+            "stop": stop or [],
+            "stream_options": {"include_usage": True},
         }
 
         client = Groq(api_key=self.api_key)
         stream = client.chat.completions.create(**kwargs)
         message_content = ""
+        usage_data = {}
 
         for chunk in stream:
-            if chunk.choices[0].delta.content:
+            if chunk.choices and chunk.choices[0].delta.content:
                 message_content += chunk.choices[0].delta.content
                 yield chunk.choices[0].delta.content
 
-        conversation.add_message(AgentMessage(content=message_content))
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
+
+        usage = self._prepare_usage_data(usage_data)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     async def astream(
         self,
@@ -176,19 +203,25 @@ class GroqModel(LLMBase):
             "response_format": response_format,
             "stop": stop or [],
             "stream": True,
+            "stream_options": {"include_usage": True},
         }
 
         client = AsyncGroq(api_key=self.api_key)
         stream = await client.chat.completions.create(**kwargs)
+
         message_content = ""
+        usage_data = {}
 
         async for chunk in stream:
-            await asyncio.sleep(0.01)
-            if chunk.choices[0].delta.content:
+            if chunk.choices and chunk.choices[0].delta.content:
                 message_content += chunk.choices[0].delta.content
                 yield chunk.choices[0].delta.content
 
-        conversation.add_message(AgentMessage(content=message_content))
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
+
+        usage = self._prepare_usage_data(usage_data)
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     def batch(
         self,

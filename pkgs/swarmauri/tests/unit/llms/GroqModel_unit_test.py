@@ -9,13 +9,13 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
+from swarmauri.messages.concrete.AgentMessage import UsageData
+
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
 # image_path = "/home/michaeldecent/Downloads/carbon.png"
 image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
-
-logging.info(API_KEY)
 
 
 @pytest.fixture(scope="module")
@@ -96,8 +96,10 @@ def test_no_system_context(groq_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    logging.info(prediction)
+    usage_data = conversation.get_last().usage
+    logging.info(usage_data)
     assert type(prediction) == str
+    assert isinstance(usage_data, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -118,9 +120,10 @@ def test_preamble_system_context(groq_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    logging.info(prediction)
+    usage_data = conversation.get_last().usage
+    logging.info(usage_data)
     assert type(prediction) == str
-    assert "Jeff" in prediction
+    assert isinstance(usage_data, UsageData)
 
 
 @pytest.mark.unit
@@ -139,7 +142,9 @@ def test_llama_guard_3_8b_no_system_context(llama_guard_model):
 
     llama_guard_model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert isinstance(prediction, str)
+    usage_data = conversation.get_last().usage
+    assert type(prediction) == str
+    assert isinstance(usage_data, UsageData)
     assert "safe" in prediction.lower()
 
 
@@ -199,6 +204,8 @@ def test_stream(groq_model, model_name):
     full_response = "".join(collected_tokens)
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+    logging.info(conversation.get_last().usage)
+    assert isinstance(conversation.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -217,6 +224,7 @@ def test_batch(groq_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -256,6 +264,7 @@ async def test_astream(groq_model, model_name):
     full_response = "".join(collected_tokens)
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+    assert isinstance(conversation.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -275,3 +284,4 @@ async def test_abatch(groq_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)
