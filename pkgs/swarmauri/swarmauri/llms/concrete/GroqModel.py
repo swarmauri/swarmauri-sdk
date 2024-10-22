@@ -161,25 +161,25 @@ class GroqModel(LLMBase):
             "response_format": response_format,
             "stream": True,
             "stop": stop or [],
-            "stream_options": {"include_usage": True},
+            # "stream_options": {"include_usage": True},
         }
 
         client = Groq(api_key=self.api_key)
         stream = client.chat.completions.create(**kwargs)
         message_content = ""
-        usage_data = {}
+        # usage_data = {}
 
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 message_content += chunk.choices[0].delta.content
                 yield chunk.choices[0].delta.content
 
-                if hasattr(chunk, "usage") and chunk.usage is not None:
-                    usage_data = chunk.usage
+                # if hasattr(chunk, "usage") and chunk.usage is not None:
+                #     usage_data = chunk.usage
 
-        usage = self._prepare_usage_data(usage_data)
+        # usage = self._prepare_usage_data(usage_data)
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(AgentMessage(content=message_content))
 
     async def astream(
         self,
@@ -203,25 +203,25 @@ class GroqModel(LLMBase):
             "response_format": response_format,
             "stop": stop or [],
             "stream": True,
-            "stream_options": {"include_usage": True},
+            # "stream_options": {"include_usage": True},
         }
 
         client = AsyncGroq(api_key=self.api_key)
         stream = await client.chat.completions.create(**kwargs)
 
         message_content = ""
-        usage_data = {}
+        # usage_data = {}
 
         async for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 message_content += chunk.choices[0].delta.content
                 yield chunk.choices[0].delta.content
 
-                if hasattr(chunk, "usage") and chunk.usage is not None:
-                    usage_data = chunk.usage
+                # if hasattr(chunk, "usage") and chunk.usage is not None:
+                #     usage_data = chunk.usage
 
-        usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        # usage = self._prepare_usage_data(usage_data)
+        conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
