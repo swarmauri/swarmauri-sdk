@@ -91,7 +91,7 @@ def test_serialization(vector_store):
     reason="Skipping due to environment variable not set",
 )
 @pytest.mark.unit
-def top_k_test(vector_store):
+def test_top_k(vector_store):
     documents = [
         Document(id="doc_test_1", content="test", metadata={}),
         Document(id="doc_test_2", content="test1", metadata={}),
