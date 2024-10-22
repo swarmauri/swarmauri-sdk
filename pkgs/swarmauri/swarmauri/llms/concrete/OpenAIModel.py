@@ -13,6 +13,8 @@ from swarmauri.llms.base.LLMBase import LLMBase
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
+from swarmauri.utils.duration_manager import DurationManager
+
 
 class OpenAIModel(LLMBase):
     """
@@ -68,16 +70,13 @@ class OpenAIModel(LLMBase):
     def _prepare_usage_data(
         self,
         usage_data,
-        prompt_start_time: float,
-        completion_start_time: float,
-        completion_end_time: float,
+        prompt_time: float,
+        completion_time: float,
     ):
         """
         Prepares and extracts usage data and response timing.
         """
-        prompt_time = completion_start_time - prompt_start_time
-        completion_time = completion_end_time - completion_start_time
-        total_time = completion_end_time - prompt_start_time
+        total_time = prompt_time + completion_time
 
         # Filter usage data for relevant keys
         filtered_usage_data = {
@@ -131,18 +130,19 @@ class OpenAIModel(LLMBase):
         if enable_json:
             kwargs["response_format"] = {"type": "json_object"}
 
-        prompt_start_time = time.time()
-        response = self.client.chat.completions.create(**kwargs)
-        completion_start_time = time.time()
+        with DurationManager() as prompt_timer:
+            response = self.client.chat.completions.create(**kwargs)
 
-        result = json.loads(response.model_dump_json())
-        message_content = result["choices"][0]["message"]["content"]
-        completion_end_time = time.time()
+        with DurationManager() as completion_timer:
+            result = json.loads(response.model_dump_json())
+            message_content = result["choices"][0]["message"]["content"]
 
         usage_data = result.get("usage", {})
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_start_time, completion_start_time, completion_end_time
+            usage_data,
+            prompt_timer.duration,
+            completion_timer.duration,
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -173,18 +173,21 @@ class OpenAIModel(LLMBase):
         if enable_json:
             kwargs["response_format"] = {"type": "json_object"}
 
-        prompt_start_time = time.time()
-        response = await self.async_client.chat.completions.create(**kwargs)
-        completion_start_time = time.time()
+        with DurationManager() as prompt_timer:
+            response = await self.async_client.chat.completions.create(**kwargs)
 
-        result = json.loads(response.model_dump_json())
-        message_content = result["choices"][0]["message"]["content"]
+        with DurationManager() as completion_timer:
+            result = json.loads(response.model_dump_json())
+            message_content = result["choices"][0]["message"]["content"]
+
         completion_end_time = time.time()
 
         usage_data = result.get("usage", {})
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_start_time, completion_start_time, completion_end_time
+            usage_data,
+            prompt_timer.duration,
+            completion_timer.duration,
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -196,38 +199,36 @@ class OpenAIModel(LLMBase):
         """Synchronously stream the response token by token."""
         formatted_messages = self._format_messages(conversation.history)
 
-        prompt_start_time = time.time()
-        stream = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=True,
-            stop=stop,
-            stream_options={"include_usage": True},
-        )
+        with DurationManager() as prompt_timer:
+            stream = self.client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=True,
+                stop=stop,
+                stream_options={"include_usage": True},
+            )
 
         collected_content = []
         usage_data = {}
 
-        for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        with DurationManager() as completion_timer:
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
 
-            if hasattr(chunk, "usage") and chunk.usage is not None:
-                usage_data = chunk.usage
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
 
-        completion_start_time = time.time()
         full_content = "".join(collected_content)
-        completion_end_time = time.time()
 
         usage = self._prepare_usage_data(
             usage_data.model_dump(),
-            prompt_start_time,
-            completion_start_time,
-            completion_end_time,
+            prompt_timer.duration,
+            completion_timer.duration,
         )
 
         conversation.add_message(AgentMessage(content=full_content, usage=usage))
@@ -238,39 +239,37 @@ class OpenAIModel(LLMBase):
         """Asynchronously stream the response token by token."""
         formatted_messages = self._format_messages(conversation.history)
 
-        prompt_start_time = time.time()
-        stream = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=True,
-            stop=stop,
-            stream_options={"include_usage": True},
-        )
+        with DurationManager() as prompt_timer:
+            stream = await self.async_client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=True,
+                stop=stop,
+                stream_options={"include_usage": True},
+            )
 
         usage_data = {}
         collected_content = []
-        async for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
 
-            if hasattr(chunk, "usage") and chunk.usage is not None:
-                usage_data = chunk.usage
+        with DurationManager() as completion_timer:
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
 
-        completion_start_time = time.time()
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
+
         full_content = "".join(collected_content)
-        completion_end_time = time.time()
 
         usage = self._prepare_usage_data(
             usage_data.model_dump(),
-            prompt_start_time,
-            completion_start_time,
-            completion_end_time,
+            prompt_timer.duration,
+            completion_timer.duration,
         )
-
         conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     def batch(

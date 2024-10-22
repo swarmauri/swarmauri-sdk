@@ -100,7 +100,7 @@ def test_stream(geminipro_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a cat."
+    input_data = "Hello how are you?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -161,7 +161,7 @@ async def test_astream(geminipro_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a dog."
+    input_data = "Hello how are you?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 

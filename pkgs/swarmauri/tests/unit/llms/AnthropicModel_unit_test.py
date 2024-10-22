@@ -102,7 +102,7 @@ def test_stream(anthropic_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a cat."
+    input_data = "How how do you do?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -163,7 +163,7 @@ async def test_astream(anthropic_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a dog."
+    input_data = "How how do you do?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
