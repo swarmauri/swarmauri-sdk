@@ -46,10 +46,10 @@ def test_adding_more_doc():
         Document(content="test3"),
     ]
     documents_batch_2 = [
-        Document(content="test4"),
-        Document(content="test5"),
-        Document(content="test6"),
-        Document(content="test7"),
+        Document(content="This is a test. Test number 4"),
+        Document(content="This is a test. Test number 5"),
+        Document(content="This is a test. Test number 6"),
+        Document(content="This is a test. Test number 7"),
     ]
     doc_count = len(documents_batch_1) + len(documents_batch_2)
 
