@@ -104,6 +104,11 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
+      - name: Install OpenGL
+        run: |
+          sudo apt update
+          sudo apt install libgl1-mesa-glx -y
+
       - name: Install dependencies with Poetry
         run: |
           cd pkgs/${{ matrix.package }}

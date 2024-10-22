@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri"
-version = "0.5.1.dev12"
+version = "0.5.1.dev13"
 description = "This repository includes base classes, concrete generics, and concrete standard components within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -57,6 +57,7 @@ scikit-learn="^1.4.2"
 flake8 = "^7.0"  # Add flake8 as a development dependency
 pytest = "^8.0"  # Ensure pytest is also added if you run tests
 pytest-asyncio = ">=0.24.0"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

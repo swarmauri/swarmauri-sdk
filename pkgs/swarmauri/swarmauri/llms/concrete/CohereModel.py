@@ -1,5 +1,6 @@
 import json
 import asyncio
+import time
 from typing import List, Dict, Literal, AsyncIterator, Iterator
 from pydantic import Field
 import cohere
@@ -8,6 +9,8 @@ from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
 
 
 class CohereModel(LLMBase):
@@ -44,9 +47,37 @@ class CohereModel(LLMBase):
             formatted_messages.append({"role": role, "content": message.content})
         return formatted_messages
 
+    def _prepare_usage_data(
+        self,
+        usage_data,
+        prompt_start_time: float,
+        completion_start_time: float,
+        completion_end_time: float,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+        prompt_time = completion_start_time - prompt_start_time
+        completion_time = completion_end_time - completion_start_time
+        total_time = completion_end_time - prompt_start_time
+
+        tokens_data = usage_data.tokens
+        total_token = tokens_data.input_tokens + tokens_data.output_tokens
+
+        usage = UsageData(
+            prompt_tokens=tokens_data.input_tokens,
+            completion_tokens=tokens_data.output_tokens,
+            total_tokens=total_token,
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+        return usage
+
     def predict(self, conversation, temperature=0.7, max_tokens=256):
         formatted_messages = self._format_messages(conversation.history)
 
+        prompt_start_time = time.time()
         response = self.client.chat(
             model=self.name,
             messages=formatted_messages,
@@ -54,13 +85,23 @@ class CohereModel(LLMBase):
             max_tokens=max_tokens,
         )
 
+        completion_start_time = time.time()
         message_content = response.message.content[0].text
-        conversation.add_message(AgentMessage(content=message_content))
+        completion_end_time = time.time()
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     async def apredict(self, conversation, temperature=0.7, max_tokens=256):
         formatted_messages = self._format_messages(conversation.history)
 
+        prompt_start_time = time.time()
         response = await asyncio.to_thread(
             self.client.chat,
             model=self.name,
@@ -68,36 +109,57 @@ class CohereModel(LLMBase):
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        completion_start_time = time.time()
 
         message_content = response.message.content[0].text
-        conversation.add_message(AgentMessage(content=message_content))
+        completion_end_time = time.time()
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
         formatted_messages = self._format_messages(conversation.history)
 
+        prompt_start_time = time.time()
         stream = self.client.chat_stream(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        completion_start_time = time.time()
 
+        usage_data = {}
         collected_content = []
         for chunk in stream:
             if chunk and chunk.type == "content-delta":
                 content = chunk.delta.message.content.text
                 collected_content.append(content)
                 yield content
+            elif chunk and chunk.type == "message-end":
+                usage_data = chunk.delta.usage
+
+        completion_end_time = time.time()
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     async def astream(
         self, conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:
         formatted_messages = self._format_messages(conversation.history)
 
+        prompt_start_time = time.time()
         stream = await asyncio.to_thread(
             self.client.chat_stream,
             model=self.name,
@@ -105,17 +167,29 @@ class CohereModel(LLMBase):
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        completion_start_time = time.time()
 
+        usage_data = {}
         collected_content = []
+
         for chunk in stream:
             if chunk and chunk.type == "content-delta":
                 content = chunk.delta.message.content.text
                 collected_content.append(content)
                 yield content
+
+            elif chunk and chunk.type == "message-end":
+                usage_data = chunk.delta.usage
             await asyncio.sleep(0)  # Allow other tasks to run
 
+        completion_end_time = time.time()
+
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_start_time, completion_start_time, completion_end_time
+        )
+
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     def batch(self, conversations: List, temperature=0.7, max_tokens=256) -> List:
         return [
