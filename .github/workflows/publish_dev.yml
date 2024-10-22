@@ -107,7 +107,7 @@ jobs:
       - name: Install OpenGL
         run: |
           sudo apt update
-          sudo apt install libgl1-mesa-glx
+          sudo apt install libgl1-mesa-glx -y
 
       - name: Install dependencies with Poetry
         run: |
