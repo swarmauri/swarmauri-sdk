@@ -22,7 +22,6 @@ class OpenAIToolModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        # "gpt-4o", # Returns "HTTP/1.1 404 Not Found"
         "gpt-4o-2024-05-13",
         "gpt-4-turbo",
         "gpt-4o-mini",
@@ -37,7 +36,6 @@ class OpenAIToolModel(LLMBase):
         "gpt-3.5-turbo",
         "gpt-3.5-turbo-0125",
         "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-0613",
     ]
     name: str = "gpt-3.5-turbo-0125"
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
