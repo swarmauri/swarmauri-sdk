@@ -8,6 +8,10 @@ from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 
+from swarmauri.messages.concrete.AgentMessage import UsageData
+
+from swarmauri.utils.duration_manager import DurationManager
+
 
 class LeptonAIModel(LLMBase):
     """
@@ -70,6 +74,28 @@ class LeptonAIModel(LLMBase):
             ]
         return formatted_messages
 
+    def _prepare_usage_data(
+        self,
+        usage_data,
+        prompt_time: float = 0.0,
+        completion_time: float = 0.0,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+        total_time = prompt_time + completion_time
+
+        usage = UsageData(
+            prompt_tokens=usage_data.get("prompt_tokens", 0),
+            completion_tokens=usage_data.get("completion_tokens", 0),
+            total_tokens=usage_data.get("total_tokens", 0),
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+
+        return usage
+
     def predict(
         self,
         conversation,
@@ -80,19 +106,26 @@ class LeptonAIModel(LLMBase):
     ):
         formatted_messages = self._prepare_messages(conversation)
 
-        response = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stream=stream,
-        )
+        with DurationManager() as prompt_timer:
+            response = self.client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=stream,
+            )
 
         result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
-        conversation.add_message(AgentMessage(content=message_content))
+        usage_data = result.get("usage", {})
 
+        usage = self._prepare_usage_data(
+            usage_data,
+            prompt_timer.duration,
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     async def apredict(
@@ -105,18 +138,25 @@ class LeptonAIModel(LLMBase):
         """Asynchronous version of predict"""
         formatted_messages = self._prepare_messages(conversation)
 
-        response = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
+        with DurationManager() as prompt_timer:
+            response = await self.async_client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+            )
 
         result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
-        conversation.add_message(AgentMessage(content=message_content))
+        usage_data = result.get("usage", {})
 
+        usage = self._prepare_usage_data(
+            usage_data,
+            prompt_timer.duration,
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     def stream(
@@ -129,24 +169,38 @@ class LeptonAIModel(LLMBase):
         """Synchronously stream the response token by token"""
         formatted_messages = self._prepare_messages(conversation)
 
-        stream = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stream=True,
-        )
+        with DurationManager() as prompt_timer:
+            stream = self.client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=True,
+                stream_options={"include_usage": True},
+            )
 
         collected_content = []
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        usage_data = {}
+
+        with DurationManager() as completion_timer:
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
+
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data.model_dump(),
+            prompt_timer.duration,
+            completion_timer.duration,
+        )
+
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     async def astream(
         self,
@@ -158,24 +212,38 @@ class LeptonAIModel(LLMBase):
         """Asynchronously stream the response token by token"""
         formatted_messages = self._prepare_messages(conversation)
 
-        stream = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stream=True,
-        )
+        with DurationManager() as prompt_timer:
+            stream = await self.async_client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=True,
+                stream_options={"include_usage": True},
+            )
 
+        usage_data = {}
         collected_content = []
-        async for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+
+        with DurationManager() as completion_timer:
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
+
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+
+        usage = self._prepare_usage_data(
+            usage_data.model_dump(),
+            prompt_timer.duration,
+            completion_timer.duration,
+        )
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     def batch(
         self,
