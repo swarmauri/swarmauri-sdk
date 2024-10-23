@@ -91,6 +91,7 @@ def test_predict(anthropic_tool_model, toolkit, conversation, model_name):
     assert isinstance(conversation.get_last().content, str)
 
 
+@pytest.mark.timeout(30)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_stream(anthropic_tool_model, toolkit, conversation, model_name):
@@ -133,6 +134,7 @@ async def test_apredict(anthropic_tool_model, toolkit, conversation, model_name)
     assert isinstance(prediction, str)
 
 
+@pytest.mark.timeout(30)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
