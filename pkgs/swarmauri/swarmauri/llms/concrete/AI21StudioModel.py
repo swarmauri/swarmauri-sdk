@@ -1,6 +1,5 @@
 from pydantic import Field
 import asyncio
-import logging
 from typing import List, Literal, AsyncIterator, Iterator
 import ai21
 from ai21 import AsyncAI21Client
@@ -48,8 +47,8 @@ class AI21StudioModel(LLMBase):
     def _prepare_usage_data(
         self,
         usage_data,
-        prompt_time: float,
-        completion_time: float,
+        prompt_time: float = 0,
+        completion_time: float = 0,
     ):
         """
         Prepares and extracts usage data and response timing.
@@ -89,13 +88,12 @@ class AI21StudioModel(LLMBase):
                 n=n,
             )
 
-        with DurationManager() as completion_timer:
-            message_content = response.choices[0].message.content
+        message_content = response.choices[0].message.content
 
         usage_data = response.usage
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
+            usage_data, prompt_timer.duration
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -123,13 +121,13 @@ class AI21StudioModel(LLMBase):
                 stop=stop,
                 n=n,
             )
-        with DurationManager() as completion_timer:
-            message_content = response.choices[0].message.content
+
+        message_content = response.choices[0].message.content
 
         usage_data = response.usage
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
+            usage_data, prompt_timer.duration,
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
