@@ -68,17 +68,3 @@ class TemperatureConverterTool(ToolBase):
             return {f"temperature_in_{to_unit}": str(result)}
         except Exception as e:
             raise f"An error occurred: {str(e)}"
-
-
-# Example usage:
-tool = TemperatureConverterTool()
-print(tool("celsius", "fahrenheit", 25))  # Should output: 77.0
-print(tool("kelvin", "celsius", 0))  # Should output: -273.15
-print(tool("fahrenheit", "kelvin", 32))  # Should output: 273.15
-
-
-SubclassUnion.update(
-    baseclass=ToolBase,
-    type_name="TemperatureConverterTool",
-    obj=TemperatureConverterTool,
-)
