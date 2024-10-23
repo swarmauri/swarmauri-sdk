@@ -1,7 +1,5 @@
-import time
 from typing import List, Dict, Literal
 import google.generativeai as genai
-import logging
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -10,6 +8,8 @@ from swarmauri.llms.base.LLMBase import LLMBase
 import asyncio
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
+
+from swarmauri.utils.duration_manager import DurationManager
 
 
 class GeminiProModel(LLMBase):
@@ -52,16 +52,14 @@ class GeminiProModel(LLMBase):
     def _prepare_usage_data(
         self,
         usage_data,
-        prompt_start_time: float,
-        completion_start_time: float,
-        completion_end_time: float,
+        prompt_time: float,
+        completion_time: float,
     ):
         """
         Prepares and extracts usage data and response timing.
         """
-        prompt_time = completion_start_time - prompt_start_time
-        completion_time = completion_end_time - completion_start_time
-        total_time = completion_end_time - prompt_start_time
+
+        total_time = prompt_time + completion_time
 
         usage = UsageData(
             prompt_tokens=usage_data.prompt_token_count,
@@ -114,21 +112,21 @@ class GeminiProModel(LLMBase):
             system_instruction=system_context,
         )
 
-        prompt_start_time = time.time()
-        convo = client.start_chat(
-            history=formatted_messages,
-        )
+        with DurationManager() as prompt_timer:
+            convo = client.start_chat(
+                history=formatted_messages,
+            )
 
-        completion_start_time = time.time()
-        response = convo.send_message(next_message["parts"])
-
-        message_content = convo.last.text
-        completion_end_time = time.time()
+        with DurationManager() as completion_timer:
+            response = convo.send_message(next_message["parts"])
+            message_content = convo.last.text
 
         usage_data = response.usage_metadata
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_start_time, completion_start_time, completion_end_time
+            usage_data,
+            prompt_timer.duration,
+            completion_timer.duration,
         )
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
@@ -180,25 +178,24 @@ class GeminiProModel(LLMBase):
             system_instruction=system_context,
         )
 
-        prompt_start_time = time.time()
-        convo = client.start_chat(
-            history=formatted_messages,
-        )
+        with DurationManager() as prompt_timer:
+            convo = client.start_chat(
+                history=formatted_messages,
+            )
 
-        completion_start_time = time.time()
-        response = convo.send_message(next_message["parts"], stream=True)
+        with DurationManager() as completion_timer:
+            response = convo.send_message(next_message["parts"], stream=True)
 
-        full_response = ""
-        for chunk in response:
-            chunk_text = chunk.text
-            full_response += chunk_text
-            yield chunk_text
+            full_response = ""
+            for chunk in response:
+                chunk_text = chunk.text
+                full_response += chunk_text
+                yield chunk_text
 
-        completion_end_time = time.time()
         usage_data = response.usage_metadata
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_start_time, completion_start_time, completion_end_time
+            usage_data, prompt_timer.duration, completion_timer.duartion
         )
         conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
