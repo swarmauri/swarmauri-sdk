@@ -91,7 +91,6 @@ def test_preamble_system_context(perplexity_model, model_name):
     assert type(prediction) == str
     assert "Jeff" in prediction
     assert isinstance(conversation.get_last().usage, UsageData)
-    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -114,7 +113,6 @@ def test_stream(perplexity_model, model_name):
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
     assert isinstance(conversation.get_last().usage, UsageData)
-    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -133,7 +131,7 @@ def test_batch(perplexity_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
-        assert isinstance(result.get_last().usage, str)
+        assert isinstance(result.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -195,4 +193,4 @@ async def test_abatch(perplexity_model, model_name):
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
-        assert isinstance(result.get_last().usage, str)
+        assert isinstance(result.get_last().usage, UsageData)
