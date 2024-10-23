@@ -92,9 +92,7 @@ class AI21StudioModel(LLMBase):
 
         usage_data = response.usage
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration
-        )
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
@@ -127,7 +125,8 @@ class AI21StudioModel(LLMBase):
         usage_data = response.usage
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration,
+            usage_data,
+            prompt_timer.duration,
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
