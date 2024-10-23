@@ -27,8 +27,6 @@ class CohereToolModel(LLMBase):
         "command-r-08-2024",
         "command-r-plus",
         "command-r-plus-08-2024",
-        "command",
-        "command-light",
     ]
     name: str = "command-r"
     type: Literal["CohereToolModel"] = "CohereToolModel"
