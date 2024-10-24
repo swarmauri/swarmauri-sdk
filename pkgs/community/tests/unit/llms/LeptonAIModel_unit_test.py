@@ -4,7 +4,7 @@ import pytest
 import time
 import os
 import asyncio
-from swarmauri.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
+from swarmauri_community.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
