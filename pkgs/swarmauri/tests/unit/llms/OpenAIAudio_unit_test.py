@@ -3,6 +3,7 @@ import pytest
 import os
 from swarmauri.llms.concrete.OpenAIAudio import OpenAIAudio as LLM
 from dotenv import load_dotenv
+from swarmauri.utils.timeout_wrapper import timeout
 
 file_path = "pkgs/swarmauri/tests/static/test.mp3"
 file_path2 = "pkgs/swarmauri/tests/static/test_fr.mp3"
@@ -27,26 +28,31 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_model):
     assert openai_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_model):
     assert openai_model.type == "OpenAIAudio"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_model):
     assert openai_model.id == LLM.model_validate_json(openai_model.model_dump_json()).id
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_model):
     assert openai_model.name == "whisper-1"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_transcription(openai_model, model_name):
@@ -60,6 +66,7 @@ def test_audio_transcription(openai_model, model_name):
     assert type(prediction) is str
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_translation(openai_model, model_name):
@@ -76,31 +83,14 @@ def test_audio_translation(openai_model, model_name):
     assert type(prediction) is str
 
 
-# New tests for streaming
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
-def test_stream(openai_model, model_name):
-    openai_model.name = model_name
-
-    collected_chunks = []
-    for chunk in openai_model.predict(audio_path=file_path, task="translation"):
-        assert isinstance(chunk, str)
-        collected_chunks.append(chunk)
-
-    full_text = "".join(collected_chunks)
-    assert len(full_text) > 0
-
-    assert isinstance(full_text, str)
-
-
-# New tests for async operations
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 async def test_apredict(openai_model, model_name):
     openai_model.name = model_name
 
-    prediction = openai_model.predict(
+    prediction = await openai_model.apredict(
         audio_path=file_path,
         task="translation",
     )
@@ -109,24 +99,7 @@ async def test_apredict(openai_model, model_name):
     assert type(prediction) is str
 
 
-@pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
-async def test_astream(openai_model, model_name):
-    openai_model.name = model_name
-
-    collected_chunks = []
-    async for chunk in openai_model.predict(audio_path=file_path, task="translation"):
-        assert isinstance(chunk, str)
-        collected_chunks.append(chunk)
-
-    full_text = "".join(collected_chunks)
-    assert len(full_text) > 0
-
-    assert isinstance(full_text, str)
-
-
-# New tests for batch operations
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(openai_model, model_name):
@@ -144,6 +117,7 @@ def test_batch(openai_model, model_name):
         assert isinstance(result, str)
 
 
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

@@ -1,8 +1,9 @@
 import asyncio
 import io
 import os
-from typing import List, Literal, Dict, Generator
+from typing import List, Literal, Dict
 from openai import OpenAI, AsyncOpenAI
+from pydantic import model_validator
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -17,7 +18,18 @@ class OpenAIAudioTTS(LLMBase):
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
     name: str = "tts-1"
     type: Literal["OpenAIAudioTTS"] = "OpenAIAudioTTS"
-    voice_name: str = "alloy"
+    voice: str = "alloy"
+
+    @model_validator(mode="after")
+    @classmethod
+    def _validate_name_in_allowed_models(cls, values):
+        voice = values.voice
+        allowed_voices = values.allowed_voices
+        if voice and voice not in allowed_voices:
+            raise ValueError(
+                f"Model name {voice} is not allowed. Choose from {allowed_voices}"
+            )
+        return values
 
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
@@ -33,7 +45,7 @@ class OpenAIAudioTTS(LLMBase):
 
         try:
             response = client.audio.speech.create(
-                model=self.name, voice=self.voice_name, input=text
+                model=self.name, voice=self.voice, input=text
             )
             response.stream_to_file(audio_path)
             return os.path.abspath(audio_path)
@@ -54,7 +66,7 @@ class OpenAIAudioTTS(LLMBase):
 
         try:
             response = await async_client.audio.speech.create(
-                model=self.name, voice=self.voice_name, input=text
+                model=self.name, voice=self.voice, input=text
             )
             await response.astream_to_file(audio_path)
             return os.path.abspath(audio_path)
@@ -75,7 +87,7 @@ class OpenAIAudioTTS(LLMBase):
 
         try:
             response = client.audio.speech.create(
-                model=self.name, voice=self.voice_name, input=text
+                model=self.name, voice=self.voice, input=text
             )
 
             audio_bytes = io.BytesIO()
@@ -102,12 +114,12 @@ class OpenAIAudioTTS(LLMBase):
 
         try:
             response = await async_client.audio.speech.create(
-                model=self.name, voice=self.voice_name, input=text
+                model=self.name, voice=self.voice, input=text
             )
 
             audio_bytes = io.BytesIO()
 
-            async for chunk in response.aiter_bytes(chunk_size=1024):
+            async for chunk in await response.aiter_bytes(chunk_size=1024):
                 if chunk:
                     yield chunk
                     audio_bytes.write(chunk)
