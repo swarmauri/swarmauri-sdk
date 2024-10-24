@@ -1,6 +1,6 @@
 from pydantic import Field
 import asyncio
-from typing import List, Dict, Literal, AsyncIterator, Iterator
+from typing import List, Literal, AsyncIterator, Iterator
 import ai21
 from ai21 import AsyncAI21Client
 from ai21.models.chat import ChatMessage
@@ -9,6 +9,8 @@ from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri.utils.duration_manager import DurationManager
 
 
 class AI21StudioModel(LLMBase):
@@ -42,6 +44,28 @@ class AI21StudioModel(LLMBase):
             for message in messages
         ]
 
+    def _prepare_usage_data(
+        self,
+        usage_data,
+        prompt_time: float = 0,
+        completion_time: float = 0,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+        total_time = prompt_time + completion_time
+
+        usage = UsageData(
+            prompt_tokens=usage_data.prompt_tokens,
+            completion_tokens=usage_data.completion_tokens,
+            total_tokens=usage_data.total_tokens,
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+
+        return usage
+
     def predict(
         self,
         conversation,
@@ -53,18 +77,24 @@ class AI21StudioModel(LLMBase):
     ):
         formatted_messages = self._format_messages(conversation.history)
 
-        response = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stop=stop,
-            n=n,
-        )
+        with DurationManager() as prompt_timer:
+            response = self.client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stop=stop,
+                n=n,
+            )
 
         message_content = response.choices[0].message.content
-        conversation.add_message(AgentMessage(content=message_content))
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
@@ -79,18 +109,27 @@ class AI21StudioModel(LLMBase):
     ):
         formatted_messages = self._format_messages(conversation.history)
 
-        response = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stop=stop,
-            n=n,
-        )
+        with DurationManager() as prompt_timer:
+            response = await self.async_client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stop=stop,
+                n=n,
+            )
 
         message_content = response.choices[0].message.content
-        conversation.add_message(AgentMessage(content=message_content))
+
+        usage_data = response.usage
+
+        usage = self._prepare_usage_data(
+            usage_data,
+            prompt_timer.duration,
+        )
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
@@ -104,25 +143,37 @@ class AI21StudioModel(LLMBase):
     ) -> Iterator[str]:
         formatted_messages = self._format_messages(conversation.history)
 
-        stream = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stop=stop,
-            stream=True,
-        )
+        with DurationManager() as prompt_timer:
+            stream = self.client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stop=stop,
+                stream=True,
+            )
 
         collected_content = []
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        usage_data = {}
+
+        with DurationManager() as completion_timer:
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
+
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     async def astream(
         self,
@@ -134,25 +185,37 @@ class AI21StudioModel(LLMBase):
     ) -> AsyncIterator[str]:
         formatted_messages = self._format_messages(conversation.history)
 
-        stream = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            stop=stop,
-            stream=True,
-        )
+        with DurationManager() as prompt_timer:
+            stream = await self.async_client.chat.completions.create(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stop=stop,
+                stream=True,
+            )
 
         collected_content = []
-        async for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        usage_data = {}
+
+        with DurationManager() as completion_timer:
+            async for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    content = chunk.choices[0].delta.content
+                    collected_content.append(content)
+                    yield content
+
+                if hasattr(chunk, "usage") and chunk.usage is not None:
+                    usage_data = chunk.usage
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     def batch(
         self,
