@@ -1,5 +1,5 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
-import json
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
@@ -34,3 +34,6 @@ class AdditionTool(ToolBase):
         - Dict[str, str]: Containing the function result
         """
         return {"sum": str(x + y)}
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="AdditionTool", obj=AdditionTool)

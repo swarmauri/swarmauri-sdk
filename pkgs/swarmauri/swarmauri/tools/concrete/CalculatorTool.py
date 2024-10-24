@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
@@ -50,3 +51,6 @@ class CalculatorTool(ToolBase):
             return {"operation": operation, "calculated_result": str(result)}
         except Exception as e:
             return f"An error occurred: {str(e)}"
+
+
+SubclassUnion.update(baseclass=ToolBase, type_name="CalculatorTool", obj=CalculatorTool)

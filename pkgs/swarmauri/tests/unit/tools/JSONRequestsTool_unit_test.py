@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.JSONRequestsTool import JSONRequestsTool as Tool
+from swarmauri.tools.concrete import JSONRequestsTool as Tool
 
 
 @pytest.mark.unit

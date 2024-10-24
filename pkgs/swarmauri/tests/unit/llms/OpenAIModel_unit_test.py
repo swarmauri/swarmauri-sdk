@@ -1,10 +1,18 @@
+import logging
+
 import pytest
 import os
+
 from swarmauri.llms.concrete.OpenAIModel import OpenAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from dotenv import load_dotenv
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
+
+load_dotenv()
 
 API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -57,7 +65,12 @@ def test_no_system_context(openai_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    usage_data = conversation.get_last().usage
+
+    logging.info(usage_data)
+
     assert type(prediction) == str
+    assert isinstance(usage_data, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -77,5 +90,114 @@ def test_preamble_system_context(openai_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
+    usage_data = conversation.get_last().usage
+
+    logging.info(usage_data)
+
     assert type(prediction) == str
     assert "Jeff" in prediction
+    assert isinstance(usage_data, UsageData)
+
+
+# New tests for streaming
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_stream(openai_model, model_name):
+    model = openai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a cat."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    for token in model.stream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+    assert isinstance(conversation.get_last().usage, UsageData)
+
+# New tests for async operations
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_apredict(openai_model, model_name):
+    model = openai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Hello"
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    result = await model.apredict(conversation=conversation)
+    prediction = result.get_last().content
+    assert isinstance(prediction, str)
+    assert isinstance(conversation.get_last().usage, UsageData)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_astream(openai_model, model_name):
+    model = openai_model
+    model.name = model_name
+    conversation = Conversation()
+
+    input_data = "Write a short story about a dog."
+    human_message = HumanMessage(content=input_data)
+    conversation.add_message(human_message)
+
+    collected_tokens = []
+    async for token in model.astream(conversation=conversation):
+        assert isinstance(token, str)
+        collected_tokens.append(token)
+
+    full_response = "".join(collected_tokens)
+    assert len(full_response) > 0
+    assert conversation.get_last().content == full_response
+    assert isinstance(conversation.get_last().usage, UsageData)
+
+
+# New tests for batch operations
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(openai_model, model_name):
+    model = openai_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = model.batch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_abatch(openai_model, model_name):
+    model = openai_model
+    model.name = model_name
+
+    conversations = []
+    for prompt in ["Hello", "Hi there", "Good morning"]:
+        conv = Conversation()
+        conv.add_message(HumanMessage(content=prompt))
+        conversations.append(conv)
+
+    results = await model.abatch(conversations=conversations)
+    assert len(results) == len(conversations)
+    for result in results:
+        assert isinstance(result.get_last().content, str)
+        assert isinstance(result.get_last().usage, UsageData)

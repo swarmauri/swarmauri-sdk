@@ -36,7 +36,7 @@ class ResourceTypes(Enum):
     EXCEPTION = "Exception"
     LLM = "LLM"
     MESSAGE = "Message"
-    METRIC = "Metric"
+    MEASUREMENT = "Measurement"
     PARSER = "Parser"
     PROMPT = "Prompt"
     STATE = "State"
@@ -50,6 +50,7 @@ class ResourceTypes(Enum):
     UTIL = "Util"
     VECTOR_STORE = "VectorStore"
     VECTOR = "Vector"
+    VCM = "VCM"
 
 
 def generate_id() -> str:

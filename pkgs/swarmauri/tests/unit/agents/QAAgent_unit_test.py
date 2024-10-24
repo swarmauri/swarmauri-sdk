@@ -1,7 +1,7 @@
 import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.agents.concrete.QAAgent import QAAgent
+from swarmauri.agents.concrete import QAAgent
 from dotenv import load_dotenv
 
 load_dotenv()

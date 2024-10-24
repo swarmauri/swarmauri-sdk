@@ -2,7 +2,7 @@ name: Test and Publish Dev Release
 
 on:
   push:
-    branches: ["*.dev*"]
+    branches: ["*dev*"]
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -40,7 +40,7 @@ jobs:
 
   test:
     needs: detect-changes
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -95,33 +95,35 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install flake8 pytest
-          python -m pip install textblob
-          python -m textblob.download_corpora
-          if [ -f pkgs/${{ matrix.package }}/requirements.txt ]; then pip install -r pkgs/${{ matrix.package }}/requirements.txt; fi
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Install dependencies with Poetry
+        run: |
+          cd pkgs/${{ matrix.package }}
+          poetry install --no-cache -vv
 
       - name: Lint with flake8
         run: |
-          flake8 pkgs/${{ matrix.package }} --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 pkgs/${{ matrix.package }} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          cd pkgs/${{ matrix.package }}
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Build package
+      - name: Build package with Poetry
         run: |
           cd pkgs/${{ matrix.package }}
-          python -m pip install build
-          python -m build
+          poetry build
 
-      - name: Install package
+      - name: Install built package
         run: |
           LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
-          python -m pip install "$LATEST_WHL"[full]
+          python -m pip install "$LATEST_WHL" --no-cache-dir
 
       - name: Get pip freeze
         run: |
@@ -130,15 +132,17 @@ jobs:
       - name: Run tests
         continue-on-error: true
         run: |
-          pytest -v pkgs/${{ matrix.package }}/tests --junitxml=results.xml
+          cd pkgs/${{ matrix.package }}
+          poetry run pytest -v . --junitxml=results.xml
 
       - name: Output test results for debugging
         run: |
-          cat results.xml
+          ls
+          cat pkgs/${{ matrix.package }}/results.xml
 
       - name: Classify test results
         run: |
-          python scripts/classify_results.py results.xml
+          python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
         continue-on-error: false
 
       - name: Publish to PyPI

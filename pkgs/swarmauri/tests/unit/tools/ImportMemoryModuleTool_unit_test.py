@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete.ImportMemoryModuleTool import ImportMemoryModuleTool as Tool
+from swarmauri.tools.concrete import ImportMemoryModuleTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():

@@ -47,7 +47,7 @@ def test_ubc_type(vector_store):
 
 
 @pytest.mark.unit
-def top_k_test(vector_store):
+def test_top_k(vector_store):
     documents = [
         Document(content="test"),
         Document(content="test1"),

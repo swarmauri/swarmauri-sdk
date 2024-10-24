@@ -1,6 +1,6 @@
 import pytest
 from swarmauri.tools.concrete.AdditionTool import AdditionTool as Tool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.toolkits.concrete import Toolkit
 
 
 @pytest.mark.unit

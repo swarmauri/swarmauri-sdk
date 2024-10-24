@@ -3,7 +3,7 @@ import numpy as np
 from gensim.models import Word2Vec
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.retrievers.IRetriever import IRetriever
-from swarmauri.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri.documents.concrete.Document import Document
 from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
 from swarmauri.vectors.concrete.SimpleVector import SimpleVector
 import gensim.downloader as api
@@ -22,7 +22,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         self.documents = []
         self.metric = CosineDistance()
 
-    def add_document(self, document: EmbeddedDocument) -> None:
+    def add_document(self, document: Document) -> None:
         # Check if the document already has an embedding, if not generate one using _average_word_vectors
         if not hasattr(document, 'embedding') or document.embedding is None:
             words = document.content.split()  # Simple tokenization, consider using a better tokenizer
@@ -31,22 +31,22 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
             print(document.embedding)
         self.documents.append(document)
         
-    def add_documents(self, documents: List[EmbeddedDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         self.documents.extend(documents)
         
-    def get_document(self, doc_id: str) -> Union[EmbeddedDocument, None]:
+    def get_document(self, doc_id: str) -> Union[Document, None]:
         for document in self.documents:
             if document.id == doc_id:
                 return document
         return None
         
-    def get_all_documents(self) -> List[EmbeddedDocument]:
+    def get_all_documents(self) -> List[Document]:
         return self.documents
         
     def delete_document(self, doc_id: str) -> None:
         self.documents = [doc for doc in self.documents if doc.id != doc_id]
 
-    def update_document(self, doc_id: str, updated_document: EmbeddedDocument) -> None:
+    def update_document(self, doc_id: str, updated_document: Document) -> None:
         for i, document in enumerate(self.documents):
             if document.id == doc_id:
                 self.documents[i] = updated_document
@@ -63,7 +63,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         else:
             return np.zeros(self.model.vector_size)
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[EmbeddedDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve documents similar to the query string based on Word2Vec embeddings.
         """

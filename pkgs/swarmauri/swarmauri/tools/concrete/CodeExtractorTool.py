@@ -1,3 +1,4 @@
+from swarmauri_core.typing import SubclassUnion
 import ast
 from typing import List, Literal, Dict
 from pydantic import Field
@@ -132,3 +133,8 @@ class CodeExtractorTool(ToolBase):
 
         # Return the cleaned code
         return cleaned_code
+
+
+SubclassUnion.update(
+    baseclass=ToolBase, type_name="CodeExtractorTool", obj=CodeExtractorTool
+)
