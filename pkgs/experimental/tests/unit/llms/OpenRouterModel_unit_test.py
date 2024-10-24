@@ -4,6 +4,7 @@ from swarmauri_experimental.llms.OpenRouterModel import OpenRouterModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.utils.timeout_wrapper import timeout
 from dotenv import load_dotenv
 from time import sleep
 
@@ -63,6 +64,7 @@ def test_default_name(openrouter_model):
     assert openrouter_model.name == "mistralai/mistral-7b-instruct-v0.1"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(openrouter_model, model_name):
@@ -82,6 +84,7 @@ def test_no_system_context(openrouter_model, model_name):
     assert type(prediction) == str
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
@@ -110,7 +113,7 @@ def test_preamble_system_context(openrouter_model, model_name):
         # pytest.skip(f"Error: {e}")
 
 
-# New tests for streaming
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(openrouter_model, model_name):
@@ -135,7 +138,7 @@ def test_stream(openrouter_model, model_name):
     assert conversation.get_last().content == full_response
 
 
-# New tests for async operations
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -156,6 +159,7 @@ async def test_apredict(openrouter_model, model_name):
     assert isinstance(prediction, str)
 
 
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -181,7 +185,7 @@ async def test_astream(openrouter_model, model_name):
     assert conversation.get_last().content == full_response
 
 
-# New tests for batch operations
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(openrouter_model, model_name):
@@ -203,6 +207,7 @@ def test_batch(openrouter_model, model_name):
         assert isinstance(result.get_last().content, str)
 
 
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
