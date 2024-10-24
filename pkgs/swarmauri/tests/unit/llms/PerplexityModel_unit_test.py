@@ -93,6 +93,7 @@ def test_preamble_system_context(perplexity_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@pytest.mark.timeout(30)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(perplexity_model, model_name):
