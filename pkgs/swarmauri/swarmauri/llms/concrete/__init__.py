@@ -9,7 +9,6 @@ from swarmauri.llms.concrete.GeminiProModel import GeminiProModel
 from swarmauri.llms.concrete.GeminiToolModel import GeminiToolModel
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.llms.concrete.GroqToolModel import GroqToolModel
-from swarmauri.llms.concrete.LeptonAIModel import LeptonAIModel
 from swarmauri.llms.concrete.MistralModel import MistralModel
 from swarmauri.llms.concrete.MistralToolModel import MistralToolModel
 
@@ -30,7 +29,6 @@ __all__ = [
     "GeminiToolModel",
     "GroqModel",
     "GroqToolModel",
-    "LeptonAIModel",
     "MistralModel",
     "MistralToolModel",
     "OpenAIModel",
