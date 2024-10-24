@@ -14,7 +14,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.10,<3.13"
 beautifulsoup4 = "04.12.3"
 captcha = "*"
 chromadb = "*"
