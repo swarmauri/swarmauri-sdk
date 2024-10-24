@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.llms.concrete.LeptonAIImgGenModel import LeptonAIImgGenModel
+from swarmauri_community.llms.concrete.LeptonAIImgGenModel import LeptonAIImgGenModel
 from dotenv import load_dotenv
 
 load_dotenv()
