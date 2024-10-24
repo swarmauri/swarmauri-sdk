@@ -5,6 +5,8 @@ from swarmauri.llms.concrete.BlackForestImgGenModel import (
     BlackForestImgGenModel,
 )
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("BLACKFOREST_API_KEY")
@@ -25,16 +27,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_model_resource(blackforest_imggen_model):
     assert blackforest_imggen_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_model_type(blackforest_imggen_model):
     assert blackforest_imggen_model.type == "BlackForestImgGenModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(blackforest_imggen_model):
     assert (
@@ -45,11 +50,13 @@ def test_serialization(blackforest_imggen_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_model_name(blackforest_imggen_model):
     assert blackforest_imggen_model.name == "flux-pro"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_generate_image(blackforest_imggen_model, model_name):
@@ -63,6 +70,7 @@ def test_generate_image(blackforest_imggen_model, model_name):
     assert image_url.startswith("http")
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -77,6 +85,7 @@ async def test_agenerate_image(blackforest_imggen_model, model_name):
     assert image_url.startswith("http")
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_batch_generate(blackforest_imggen_model):
     prompts = [
@@ -93,6 +102,7 @@ def test_batch_generate(blackforest_imggen_model):
         assert url.startswith("http")
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.unit
 async def test_abatch_generate(blackforest_imggen_model):

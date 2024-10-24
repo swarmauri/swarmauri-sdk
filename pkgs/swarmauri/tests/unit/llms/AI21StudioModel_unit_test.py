@@ -10,11 +10,14 @@ from dotenv import load_dotenv
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("AI21STUDIO_API_KEY")
 
 
+@timeout(5)
 @pytest.fixture(scope="module")
 def ai21studio_model():
     if not API_KEY:
@@ -23,6 +26,7 @@ def ai21studio_model():
     return llm
 
 
+@timeout(5)
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -30,16 +34,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(ai21studio_model):
     assert ai21studio_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(ai21studio_model):
     assert ai21studio_model.type == "AI21StudioModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(ai21studio_model):
     assert (
@@ -48,11 +55,13 @@ def test_serialization(ai21studio_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(ai21studio_model):
     assert ai21studio_model.name == "jamba-1.5-mini"
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_no_system_context(ai21studio_model, model_name):
@@ -71,6 +80,7 @@ def test_no_system_context(ai21studio_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_preamble_system_context(ai21studio_model, model_name):
@@ -94,7 +104,7 @@ def test_preamble_system_context(ai21studio_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-# New tests for streaming
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(ai21studio_model, model_name):
@@ -118,7 +128,7 @@ def test_stream(ai21studio_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
-# New tests for async operations
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -137,6 +147,7 @@ async def test_apredict(ai21studio_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -160,7 +171,7 @@ async def test_astream(ai21studio_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-# New tests for batch operations
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(ai21studio_model, model_name):
@@ -180,6 +191,7 @@ def test_batch(ai21studio_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

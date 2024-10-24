@@ -2,6 +2,7 @@ import logging
 import pytest
 import os
 from swarmauri.llms.concrete.GroqAIAudio import GroqAIAudio as LLM
+from swarmauri.utils.timeout_wrapper import timeout
 
 API_KEY = os.getenv("GROQ_API_KEY")
 
@@ -21,27 +22,32 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_groqai_resource(groqai_model):
     assert groqai_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_groqai_type(groqai_model):
     assert groqai_model.type == "GroqAIAudio"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(groqai_model):
     assert groqai_model.id == LLM.model_validate_json(groqai_model.model_dump_json()).id
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(groqai_model):
     assert groqai_model.name == "distil-whisper-large-v3-en"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_audio_transcription(groqai_model, model_name):
     model = groqai_model
@@ -57,6 +63,7 @@ def test_audio_transcription(groqai_model, model_name):
     assert type(prediction) is str
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_audio_translation(groqai_model):
     model = groqai_model

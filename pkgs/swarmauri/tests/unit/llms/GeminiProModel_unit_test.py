@@ -8,7 +8,7 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
-
+from swarmauri.utils.timeout_wrapper import timeout
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
 load_dotenv()
@@ -31,16 +31,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(geminipro_model):
     assert geminipro_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(geminipro_model):
     assert geminipro_model.type == "GeminiProModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(geminipro_model):
     assert (
@@ -49,12 +52,14 @@ def test_serialization(geminipro_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(geminipro_model):
     assert geminipro_model.name == "gemini-1.5-pro"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_no_system_context(geminipro_model, model_name):
     model = geminipro_model
@@ -72,6 +77,7 @@ def test_no_system_context(geminipro_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(geminipro_model, model_name):
     model = geminipro_model
@@ -94,6 +100,7 @@ def test_preamble_system_context(geminipro_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_stream(geminipro_model, model_name):
     model = geminipro_model
@@ -116,6 +123,7 @@ def test_stream(geminipro_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_batch(geminipro_model, model_name):
     model = geminipro_model
@@ -136,6 +144,7 @@ def test_batch(geminipro_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
+@timeout(5)
 @pytest.mark.unit
 async def test_apredict(geminipro_model, model_name):
     model = geminipro_model
@@ -155,6 +164,7 @@ async def test_apredict(geminipro_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
+@timeout(5)
 @pytest.mark.unit
 async def test_astream(geminipro_model, model_name):
     model = geminipro_model
@@ -179,6 +189,7 @@ async def test_astream(geminipro_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
+@timeout(5)
 @pytest.mark.unit
 async def test_abatch(geminipro_model, model_name):
     model = geminipro_model

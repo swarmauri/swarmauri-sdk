@@ -4,6 +4,7 @@ import os
 
 from swarmauri.llms.concrete.PlayHTModel import PlayHTModel as LLM
 from dotenv import load_dotenv
+from swarmauri.utils.timeout_wrapper import timeout
 
 file_path = "pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3"
 file_path2 = "pkgs/swarmauri/tests/unit/llms/static/audio/test_fr.mp3"
@@ -29,27 +30,32 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(playht_model):
     assert playht_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(playht_model):
     assert playht_model.type == "PlayHTModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(playht_model):
     assert playht_model.id == LLM.model_validate_json(playht_model.model_dump_json()).id
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(playht_model):
     assert playht_model.name == "Play3.0-mini"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_predict(playht_model, model_name):
     playht_model.name = model_name
@@ -65,6 +71,7 @@ def test_predict(playht_model, model_name):
 
 # New tests for streaming
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_stream(playht_model, model_name):
 
@@ -87,6 +94,7 @@ def test_stream(playht_model, model_name):
 # New tests for async operations
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_apredict(playht_model, model_name):
     playht_model.name = model_name
@@ -102,6 +110,7 @@ async def test_apredict(playht_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_astream(playht_model, model_name):
     playht_model.name = model_name
@@ -121,6 +130,7 @@ async def test_astream(playht_model, model_name):
 
 # New tests for batch operations
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_batch(playht_model, model_name):
     model = playht_model
@@ -139,6 +149,7 @@ def test_batch(playht_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_abatch(playht_model, model_name):
     model = playht_model
@@ -155,6 +166,8 @@ async def test_abatch(playht_model, model_name):
         assert isinstance(result, str)
 
 
+@timeout(5)
+@pytest.mark.unit
 def test_create_cloned_voice_with_file(playht_model):
     voice_name = "test-voice"
 
@@ -164,6 +177,8 @@ def test_create_cloned_voice_with_file(playht_model):
     assert "id" in response or "error" not in response
 
 
+@timeout(5)
+@pytest.mark.unit
 def test_create_cloned_voice_with_url(playht_model):
     sample_file_url = "https://drive.google.com/file/d/1JUzRWEu0iDl9gVKthOg2z3ENkx_dya5y/view?usp=sharing"
     voice_name = "mikel-voice"
@@ -174,6 +189,8 @@ def test_create_cloned_voice_with_url(playht_model):
     assert "id" in response or "error" not in response
 
 
+@timeout(5)
+@pytest.mark.unit
 def test_delete_cloned_voice(playht_model):
     cloned_voices = playht_model.get_cloned_voices()
     if cloned_voices:
