@@ -95,6 +95,7 @@ def test_preamble_system_context(anthropic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@pytest.mark.timeout(30)  # 30 second timeout
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(anthropic_model, model_name):
@@ -155,6 +156,7 @@ async def test_apredict(anthropic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@pytest.mark.timeout(30)  # 30 second timeout
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
