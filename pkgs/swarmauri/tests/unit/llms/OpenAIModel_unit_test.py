@@ -25,31 +25,37 @@ def openai_model():
     llm = LLM(api_key=API_KEY)
     return llm
 
+
 def get_allowed_models():
     if not API_KEY:
         return []
     llm = LLM(api_key=API_KEY)
     return llm.allowed_models
 
+
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_model):
     assert openai_model.resource == "LLM"
+
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_model):
     assert openai_model.type == "OpenAIModel"
 
+
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_model):
     assert openai_model.id == LLM.model_validate_json(openai_model.model_dump_json()).id
 
+
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_model):
     assert openai_model.name == "gpt-3.5-turbo"
+
 
 @timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -71,6 +77,7 @@ def test_no_system_context(openai_model, model_name):
 
     assert type(prediction) == str
     assert isinstance(usage_data, UsageData)
+
 
 @timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -140,6 +147,7 @@ async def test_apredict(openai_model, model_name):
     assert isinstance(prediction, str)
     assert isinstance(conversation.get_last().usage, UsageData)
 
+
 @timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -182,6 +190,7 @@ def test_batch(openai_model, model_name):
     for result in results:
         assert isinstance(result.get_last().content, str)
         assert isinstance(result.get_last().usage, UsageData)
+
 
 @timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
