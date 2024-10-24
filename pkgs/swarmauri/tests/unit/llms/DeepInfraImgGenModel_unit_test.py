@@ -3,6 +3,8 @@ import os
 from swarmauri.llms.concrete.DeepInfraImgGenModel import DeepInfraImgGenModel
 from dotenv import load_dotenv
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("DEEPINFRA_API_KEY")
@@ -23,16 +25,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(deepinfra_imggen_model):
     assert deepinfra_imggen_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(deepinfra_imggen_model):
     assert deepinfra_imggen_model.type == "DeepInfraImgGenModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(deepinfra_imggen_model):
     assert (
@@ -43,11 +48,13 @@ def test_serialization(deepinfra_imggen_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(deepinfra_imggen_model):
     assert deepinfra_imggen_model.name == "stabilityai/stable-diffusion-2-1"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_generate_image_base64(deepinfra_imggen_model, model_name):
@@ -62,6 +69,7 @@ def test_generate_image_base64(deepinfra_imggen_model, model_name):
     assert len(image_base64) > 0
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -77,6 +85,7 @@ async def test_agenerate_image_base64(deepinfra_imggen_model, model_name):
     assert len(image_base64) > 0
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_batch_base64(deepinfra_imggen_model):
     prompts = [
@@ -93,6 +102,7 @@ def test_batch_base64(deepinfra_imggen_model):
         assert len(image_base64) > 0
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.unit
 async def test_abatch_base64(deepinfra_imggen_model):

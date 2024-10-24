@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("COHERE_API_KEY")
@@ -30,26 +32,31 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(cohere_model):
     assert cohere_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(cohere_model):
     assert cohere_model.type == "CohereModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(cohere_model):
     assert cohere_model.id == LLM.model_validate_json(cohere_model.model_dump_json()).id
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(cohere_model):
     assert cohere_model.name == "command"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(cohere_model, model_name):
@@ -67,6 +74,7 @@ def test_no_system_context(cohere_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(cohere_model, model_name):
@@ -89,6 +97,7 @@ def test_preamble_system_context(cohere_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(cohere_model, model_name):
@@ -112,6 +121,7 @@ def test_stream(cohere_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -130,6 +140,7 @@ async def test_apredict(cohere_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -153,6 +164,7 @@ async def test_astream(cohere_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(cohere_model, model_name):
@@ -173,6 +185,7 @@ def test_batch(cohere_model, model_name):
         logging.info(result.get_last().usage)
 
 
+@timeout(5)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

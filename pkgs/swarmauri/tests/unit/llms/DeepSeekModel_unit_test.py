@@ -7,6 +7,8 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("DEEPSEEK_API_KEY")
@@ -27,16 +29,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(deepseek_model):
     assert deepseek_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(deepseek_model):
     assert deepseek_model.type == "DeepSeekModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(deepseek_model):
     assert (
@@ -45,11 +50,13 @@ def test_serialization(deepseek_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(deepseek_model):
     assert deepseek_model.name == "deepseek-chat"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_no_system_context(deepseek_model):
     model = deepseek_model
@@ -64,6 +71,7 @@ def test_no_system_context(deepseek_model):
     assert type(prediction) == str
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(deepseek_model):
     model = deepseek_model
@@ -85,6 +93,7 @@ def test_preamble_system_context(deepseek_model):
 
 # New tests for streaming
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_stream(deepseek_model, model_name):
     model = deepseek_model
@@ -108,6 +117,7 @@ def test_stream(deepseek_model, model_name):
 # New tests for async operations
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_apredict(deepseek_model, model_name):
     model = deepseek_model
@@ -125,6 +135,7 @@ async def test_apredict(deepseek_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_astream(deepseek_model, model_name):
     model = deepseek_model
@@ -147,6 +158,7 @@ async def test_astream(deepseek_model, model_name):
 
 # New tests for batch operations
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_batch(deepseek_model, model_name):
     model = deepseek_model
@@ -166,6 +178,7 @@ def test_batch(deepseek_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_abatch(deepseek_model, model_name):
     model = deepseek_model

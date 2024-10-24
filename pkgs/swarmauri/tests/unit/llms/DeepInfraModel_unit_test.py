@@ -7,6 +7,8 @@ from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("DEEPINFRA_API_KEY")
@@ -40,16 +42,19 @@ def get_allowed_models():
     return allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(deepinfra_model):
     assert deepinfra_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(deepinfra_model):
     assert deepinfra_model.type == "DeepInfraModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(deepinfra_model):
     assert (
@@ -58,12 +63,14 @@ def test_serialization(deepinfra_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(deepinfra_model):
     assert deepinfra_model.name == "Qwen/Qwen2-72B-Instruct"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_no_system_context(deepinfra_model, model_name):
     model = deepinfra_model
@@ -80,6 +87,7 @@ def test_no_system_context(deepinfra_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(deepinfra_model, model_name):
     model = deepinfra_model
@@ -102,6 +110,7 @@ def test_preamble_system_context(deepinfra_model, model_name):
 
 # New tests for streaming
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_stream(deepinfra_model, model_name):
     model = deepinfra_model
@@ -125,6 +134,7 @@ def test_stream(deepinfra_model, model_name):
 # New tests for async operations
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_apredict(deepinfra_model, model_name):
     model = deepinfra_model
@@ -142,6 +152,7 @@ async def test_apredict(deepinfra_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_astream(deepinfra_model, model_name):
     model = deepinfra_model
@@ -164,6 +175,7 @@ async def test_astream(deepinfra_model, model_name):
 
 # New tests for batch operations
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_batch(deepinfra_model, model_name):
     model = deepinfra_model
@@ -183,6 +195,7 @@ def test_batch(deepinfra_model, model_name):
 
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_abatch(deepinfra_model, model_name):
     model = deepinfra_model

@@ -5,7 +5,7 @@ import asyncio  # <-- Required to handle async functions
 
 
 # Timeout decorator that supports async functions
-def timeout(seconds):
+def timeout(seconds=5):
     def decorator(func):
         def _handle_timeout(signum, frame):
             raise TimeoutError(f"Test exceeded timeout of {seconds} seconds")

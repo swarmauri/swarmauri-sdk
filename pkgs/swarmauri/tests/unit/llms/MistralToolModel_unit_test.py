@@ -9,6 +9,7 @@ from swarmauri.messages.concrete import HumanMessage
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -50,16 +51,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(mistral_tool_model):
     assert mistral_tool_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(mistral_tool_model):
     assert mistral_tool_model.type == "MistralToolModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(mistral_tool_model):
     assert (
@@ -68,11 +72,13 @@ def test_serialization(mistral_tool_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(mistral_tool_model):
     assert mistral_tool_model.name == "open-mixtral-8x22b"
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_agent_exec(mistral_tool_model, toolkit, model_name):
@@ -87,6 +93,7 @@ def test_agent_exec(mistral_tool_model, toolkit, model_name):
     assert type(result) == str
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_predict(mistral_tool_model, toolkit, conversation, model_name):
@@ -100,6 +107,7 @@ def test_predict(mistral_tool_model, toolkit, conversation, model_name):
     assert type(conversation.get_last().content) == str
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_stream(mistral_tool_model, toolkit, conversation, model_name):
@@ -115,6 +123,7 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(mistral_tool_model, toolkit, model_name):
@@ -132,6 +141,7 @@ def test_batch(mistral_tool_model, toolkit, model_name):
         assert isinstance(result.get_last().content, str)
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -145,6 +155,7 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -163,6 +174,7 @@ async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
