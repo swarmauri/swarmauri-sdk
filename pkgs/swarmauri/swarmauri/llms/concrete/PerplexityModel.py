@@ -1,11 +1,20 @@
 import asyncio
+import json
+import logging
 from typing import List, Dict, Literal, Optional
+
+import httpx
 import requests
 import aiohttp  # for async requests
+from matplotlib.font_manager import json_dump
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
+
+from swarmauri.messages.concrete.AgentMessage import UsageData
+
+from swarmauri.utils.duration_manager import DurationManager
 
 
 class PerplexityModel(LLMBase):
@@ -36,6 +45,28 @@ class PerplexityModel(LLMBase):
             for message in messages
         ]
         return formatted_messages
+
+    def _prepare_usage_data(
+        self,
+        usage_data,
+        prompt_time: float = 0,
+        completion_time: float = 0,
+    ):
+        """
+        Prepares and extracts usage data and response timing.
+        """
+        total_time = prompt_time + completion_time
+
+        usage = UsageData(
+            prompt_tokens=usage_data.get("prompt_tokens", 0),
+            completion_tokens=usage_data.get("completion_tokens", 0),
+            total_tokens=usage_data.get("total_tokens", 0),
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+
+        return usage
 
     def predict(
         self,
@@ -72,9 +103,17 @@ class PerplexityModel(LLMBase):
             "authorization": f"Bearer {self.api_key}",
         }
 
-        response = requests.post(url, json=payload, headers=headers)
-        message_content = response.text
-        conversation.add_message(AgentMessage(content=message_content))
+        with DurationManager() as prompt_timer:
+            response = requests.post(url, json=payload, headers=headers)
+
+        result = response.json()
+        message_content = result["choices"][0]["message"]["content"]
+
+        usage_data = result.get("usage", {})
+
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     async def apredict(
@@ -112,10 +151,17 @@ class PerplexityModel(LLMBase):
             "authorization": f"Bearer {self.api_key}",
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
-                message_content = await response.text()
-                conversation.add_message(AgentMessage(content=message_content))
+        with DurationManager() as prompt_timer:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload, headers=headers) as response:
+                    result = await response.json()
+
+        message_content = result["choices"][0]["message"]["content"]
+
+        usage_data = result.get("usage", {})
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+
         return conversation
 
     def stream(
@@ -146,6 +192,7 @@ class PerplexityModel(LLMBase):
             "top_k": top_k,
             "presence_penalty": presence_penalty,
             "frequency_penalty": frequency_penalty,
+            "stream": True,
         }
         headers = {
             "accept": "application/json",
@@ -153,14 +200,28 @@ class PerplexityModel(LLMBase):
             "authorization": f"Bearer {self.api_key}",
         }
 
-        with requests.post(url, json=payload, headers=headers, stream=True) as response:
-            response.raise_for_status()
-            message_content = ""
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    message_content += chunk.decode()
-                    yield chunk.decode()
-        conversation.add_message(AgentMessage(content=message_content))
+        with DurationManager() as prompt_timer:
+            with requests.post(url, json=payload, headers=headers) as response:
+                response.raise_for_status()
+                message_content = ""
+                for chunk in response.iter_lines(decode_unicode=True):
+                    json_string = chunk.replace("data: ", "", 1)
+                    if json_string:
+                        chunk_data = json.loads(json_string)
+                        delta_content = (
+                            chunk_data.get("choices", [{}])[0]
+                            .get("delta", {})
+                            .get("content", "")
+                        )
+                        message_content += delta_content
+                        yield delta_content
+
+                        if chunk_data["usage"]:
+                            usage_data = chunk_data["usage"]
+
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     async def astream(
         self,
@@ -190,6 +251,7 @@ class PerplexityModel(LLMBase):
             "top_k": top_k,
             "presence_penalty": presence_penalty,
             "frequency_penalty": frequency_penalty,
+            "stream": True,
         }
         headers = {
             "accept": "application/json",
@@ -197,14 +259,31 @@ class PerplexityModel(LLMBase):
             "authorization": f"Bearer {self.api_key}",
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
+        with DurationManager() as prompt_timer:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url, json=payload, headers=headers, timeout=None
+                )
                 message_content = ""
-                async for chunk in response.content.iter_any():
-                    message_content += chunk.decode()
-                    yield chunk.decode()
+                usage_data = {}
 
-        conversation.add_message(AgentMessage(content=message_content))
+                async for line in response.aiter_lines():
+                    json_string = line.replace("data: ", "", 1)
+                    if json_string:  # Ensure it's not empty
+                        chunk_data = json.loads(json_string)
+                        delta_content = (
+                            chunk_data.get("choices", [{}])[0]
+                            .get("delta", {})
+                            .get("content", "")
+                        )
+                        message_content += delta_content
+
+                        yield delta_content
+
+                        usage_data = chunk_data.get("usage", usage_data)
+
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     def batch(
         self,
