@@ -62,63 +62,6 @@ class OpenAIAudio(LLMBase):
 
         return response.text
 
-    def stream(
-        self,
-        audio_path: str,
-        task: Literal["transcription", "translation"] = "transcription",
-    ) -> str:
-        client = OpenAI(api_key=self.api_key)
-        actions = {
-            "transcription": client.audio.transcriptions,
-            "translation": client.audio.translations,
-        }
-
-        if task not in actions:
-            raise ValueError(f"Task {task} not supported. Choose from {list(actions)}")
-
-        kwargs = {
-            "model": self.name,
-        }
-
-        with open(audio_path, "rb") as audio_file:
-            stream_response = actions[task].create(
-                **kwargs, file=audio_file, stream=True
-            )
-
-        for chunk in stream_response:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                yield content
-
-    async def astream(
-        self,
-        audio_path: str,
-        task: Literal["transcription", "translation"] = "transcription",
-    ) -> str:
-        async_client = AsyncOpenAI(api_key=self.api_key)
-
-        actions = {
-            "transcription": async_client.audio.transcriptions,
-            "translation": async_client.audio.translations,
-        }
-
-        if task not in actions:
-            raise ValueError(f"Task {task} not supported. Choose from {list(actions)}")
-
-        kwargs = {
-            "model": self.name,
-        }
-
-        with open(audio_path, "rb") as audio_file:
-            stream_response = await actions[task].create(
-                **kwargs, file=audio_file, stream=True
-            )
-
-        for chunk in stream_response:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                yield content
-
     def batch(
         self,
         path_task_dict: Dict[str, Literal["transcription", "translation"]],
