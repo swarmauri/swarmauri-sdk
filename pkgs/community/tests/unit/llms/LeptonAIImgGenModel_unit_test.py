@@ -1,6 +1,7 @@
 import pytest
 import os
 from swarmauri_community.llms.concrete.LeptonAIImgGenModel import LeptonAIImgGenModel
+from swarmauri.utils.timeout_wrapper import timeout
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,6 +30,7 @@ def test_serialization(lepton_ai_imggen_model):
     )
 
 
+@timeout(5)
 def test_generate_image(lepton_ai_imggen_model):
     prompt = "A cute cat playing with a ball of yarn"
     image_bytes = lepton_ai_imggen_model.generate_image(prompt=prompt)
@@ -36,6 +38,7 @@ def test_generate_image(lepton_ai_imggen_model):
     assert len(image_bytes) > 0
 
 
+@timeout(5)
 @pytest.mark.asyncio
 async def test_agenerate_image(lepton_ai_imggen_model):
     prompt = "A serene landscape with mountains and a lake"
@@ -44,6 +47,7 @@ async def test_agenerate_image(lepton_ai_imggen_model):
     assert len(image_bytes) > 0
 
 
+@timeout(5)
 def test_batch(lepton_ai_imggen_model):
     prompts = [
         "A futuristic city skyline",
@@ -57,6 +61,7 @@ def test_batch(lepton_ai_imggen_model):
         assert len(image_bytes) > 0
 
 
+@timeout(5)
 @pytest.mark.asyncio
 async def test_abatch(lepton_ai_imggen_model):
     prompts = [

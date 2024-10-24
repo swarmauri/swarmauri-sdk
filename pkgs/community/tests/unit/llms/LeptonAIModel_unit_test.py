@@ -8,6 +8,7 @@ from swarmauri_community.llms.concrete.LeptonAIModel import LeptonAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.utils.timeout_wrapper import timeout
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
 from dotenv import load_dotenv
@@ -55,6 +56,7 @@ def test_default_name(leptonai_model):
     assert leptonai_model.name == "llama3-8b"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(leptonai_model, model_name):
@@ -74,6 +76,7 @@ def test_no_system_context(leptonai_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(leptonai_model, model_name):
@@ -97,6 +100,7 @@ def test_preamble_system_context(leptonai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(leptonai_model, model_name):
@@ -120,6 +124,7 @@ def test_stream(leptonai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -140,6 +145,7 @@ async def test_apredict(leptonai_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -165,6 +171,7 @@ async def test_astream(leptonai_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(leptonai_model, model_name):
@@ -184,6 +191,7 @@ def test_batch(leptonai_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
