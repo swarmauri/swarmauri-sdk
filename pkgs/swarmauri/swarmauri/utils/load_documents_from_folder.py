@@ -1,9 +1,8 @@
 import os
+import logging
 import json
 from swarmauri.documents.concrete.Document import Document
 
-import os
-import json
 
 def load_documents_from_folder(folder_path: str, include_extensions=None, exclude_extensions=None,
                                include_folders=None, exclude_folders=None):
@@ -30,10 +29,10 @@ def load_documents_from_folder(folder_path: str, include_extensions=None, exclud
         current_folder_name = os.path.basename(root)
         if not include_all_folders:
             if include_folders and current_folder_name not in include_folders:
-                print(f"Skipping folder due to inclusion filter: {current_folder_name}")
+                logging.info(f"Skipping folder due to inclusion filter: {current_folder_name}")
                 continue
             if exclude_folders and current_folder_name in exclude_folders:
-                print(f"Skipping folder due to exclusion filter: {current_folder_name}")
+                logging.info(f"Skipping folder due to exclusion filter: {current_folder_name}")
                 continue
 
         for file_name in files:
@@ -50,10 +49,10 @@ def load_documents_from_folder(folder_path: str, include_extensions=None, exclud
                         document = Document(content=file_content, metadata={"filepath": file_path})
                         documents.append(document)
                 except json.JSONDecodeError:
-                    print(f"Skipping invalid JSON file: {file_name}")
+                    logging.warning(f"Skipping invalid JSON file: {file_name}")
                 except Exception as e:
-                    print(f"Error reading file {file_name}: {e}")
+                    logging.error(f"Error reading file {file_name}: {e}")
             else:
-                print(f"Skipping file due to file filter: {file_name}")
+                logging.info(f"Skipping file due to file filter: {file_name}")
                 
     return documents
