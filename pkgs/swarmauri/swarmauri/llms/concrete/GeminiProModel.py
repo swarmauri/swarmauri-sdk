@@ -182,10 +182,9 @@ class GeminiProModel(LLMBase):
             convo = client.start_chat(
                 history=formatted_messages,
             )
-
-        with DurationManager() as completion_timer:
             response = convo.send_message(next_message["parts"], stream=True)
 
+        with DurationManager() as completion_timer:
             full_response = ""
             for chunk in response:
                 chunk_text = chunk.text
@@ -195,7 +194,7 @@ class GeminiProModel(LLMBase):
         usage_data = response.usage_metadata
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duartion
+            usage_data, prompt_timer.duration, completion_timer.duration
         )
         conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
