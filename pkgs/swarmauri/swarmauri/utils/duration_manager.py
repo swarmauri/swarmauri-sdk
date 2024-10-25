@@ -11,5 +11,3 @@ class DurationManager:
         # Calculate the duration when exiting the context
         self.end_time = time.time()
         self.duration = self.end_time - self.start_time
-        # Optionally, you can print or log the duration if needed
-        print(f"Total duration: {self.duration:.4f} seconds")

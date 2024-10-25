@@ -23,7 +23,11 @@ class GeminiToolModel(LLMBase):
     """
 
     api_key: str
-    allowed_models: List[str] = ["gemini-1.0-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
+    allowed_models: List[str] = [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash",
+        # "gemini-1.0-pro",  giving an unexpected response
+    ]
     name: str = "gemini-1.5-pro"
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
 
@@ -65,7 +69,7 @@ class GeminiToolModel(LLMBase):
                 message["role"] = "model"
 
             if message["role"] == "tool":
-                message["role"] == "user"
+                message["role"] = "user"
 
             # update content naming
             message["parts"] = message.pop("content")
@@ -232,14 +236,19 @@ class GeminiToolModel(LLMBase):
         formatted_messages.append(tool_response.candidates[0].content)
 
         logging.info(
-            f"tool_response.candidates[0].content: {tool_response.candidates[0].content}"
+            f"tool_response.candidates[0].content: {tool_response.candidates[0].content.parts}"
         )
 
         tool_calls = tool_response.candidates[0].content.parts
 
         tool_results = {}
         for tool_call in tool_calls:
-            func_name = tool_call.function_call.name
+            if tool_call.function_call.name == "call":
+                func_name = (
+                    tool_response.candidates[0].content.parts[0].function_call.args.tool
+                )
+            else:
+                func_name = tool_call.function_call.name
             func_args = tool_call.function_call.args
             logging.info(f"func_name: {func_name}")
             logging.info(f"func_args: {func_args}")

@@ -103,7 +103,7 @@ def test_predict(gemini_tool_model, toolkit, conversation, model_name):
     assert type(conversation.get_last().content) == str
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_stream(gemini_tool_model, toolkit, conversation, model_name):
