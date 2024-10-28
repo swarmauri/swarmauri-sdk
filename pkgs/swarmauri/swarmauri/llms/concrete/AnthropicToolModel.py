@@ -1,14 +1,14 @@
-import json
 import asyncio
+import json
 from typing import AsyncIterator, Iterator
 from typing import List, Dict, Literal, Any
 import logging
-import anthropic
+from anthropic import AsyncAnthropic, Anthropic
+from swarmauri.messages.concrete import FunctionMessage
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.messages.concrete.FunctionMessage import FunctionMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 from swarmauri.schema_converters.concrete.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
@@ -44,6 +44,7 @@ class AnthropicToolModel(LLMBase):
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
+            if message.role != "assistant"
         ]
         return formatted_messages
 
@@ -58,7 +59,7 @@ class AnthropicToolModel(LLMBase):
 
         formatted_messages = self._format_messages(conversation.history)
 
-        client = anthropic.Anthropic(api_key=self.api_key)
+        client = Anthropic(api_key=self.api_key)
         if toolkit and not tool_choice:
             tool_choice = {"type": "auto"}
 
@@ -102,13 +103,15 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ):
-        client = anthropic.Anthropic(api_key=self.api_key)
+        async_client = AsyncAnthropic(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
+
+        logging.info(f"formatted_messages: {formatted_messages}")
 
         if toolkit and not tool_choice:
             tool_choice = {"type": "auto"}
 
-        tool_response = await client.messages.create(
+        tool_response = await async_client.messages.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -140,73 +143,110 @@ class AnthropicToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
-    def stream(
-        self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> Iterator[str]:
-        client = anthropic.Anthropic(api_key=self.api_key)
-        formatted_messages = self._format_messages(conversation.history)
-
-        if toolkit and not tool_choice:
-            tool_choice = {"type": "auto"}
-
-        stream = client.messages.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            tool_choice=tool_choice,
-            stream=True,
-        )
-
-        collected_content = []
-        for chunk in stream:
-            if chunk.type == "content_block_delta":
-                if chunk.delta.type == "text":
-                    collected_content.append(chunk.delta.text)
-                    yield chunk.delta.text
-
-        full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
-
-    async def astream(
-        self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> AsyncIterator[str]:
-        client = anthropic.Anthropic(api_key=self.api_key)
-        formatted_messages = self._format_messages(conversation.history)
-
-        if toolkit and not tool_choice:
-            tool_choice = {"type": "auto"}
-
-        stream = await client.messages.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            tool_choice=tool_choice,
-            stream=True,
-        )
-
-        collected_content = []
-        async for chunk in stream:
-            if chunk.type == "content_block_delta":
-                if chunk.delta.type == "text":
-                    collected_content.append(chunk.delta.text)
-                    yield chunk.delta.text
-
-        full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+    #
+    # def stream(
+    #     self,
+    #     conversation,
+    #     toolkit=None,
+    #     tool_choice=None,
+    #     temperature=0.7,
+    #     max_tokens=1024,
+    # ) -> Iterator[str]:
+    #     client = Anthropic(api_key=self.api_key)
+    #     formatted_messages = self._format_messages(conversation.history)
+    #
+    #     if toolkit and not tool_choice:
+    #         tool_choice = {"type": "auto"}
+    #
+    #     tool_response = client.messages.create(
+    #         model=self.name,
+    #         messages=formatted_messages,
+    #         temperature=temperature,
+    #         max_tokens=max_tokens,
+    #         tools=self._schema_convert_tools(toolkit.tools) if toolkit else None,
+    #         tool_choice=tool_choice,
+    #     )
+    #
+    #     logging.info(f"tool_response: {tool_response}")
+    #     tool_text_response = None
+    #     if tool_response.content[0].type == "text":
+    #         tool_text_response = tool_response.content[0].text
+    #         logging.info(f"tool_text_response: {tool_text_response}")
+    #
+    #     agent_message = AgentMessage(content=tool_text_response)
+    #     conversation.add_message(agent_message)
+    #
+    #     # logging.info(messages)
+    #
+    #     for tool_call in tool_response.content:
+    #         if tool_call.type == "tool_use":
+    #             func_name = tool_call.name
+    #             func_call = toolkit.get_tool_by_name(func_name)
+    #             func_args = tool_call.input
+    #             func_result = func_call(**func_args)
+    #
+    #             func_message = FunctionMessage(
+    #                 content=json.dumps(func_result),
+    #                 name=func_name,
+    #                 tool_call_id=tool_call.id,
+    #             )
+    #             conversation.add_message(func_message)
+    #
+    #     logging.info(conversation.history)
+    #     formatted_messages = self._format_messages(conversation.history)
+    #
+    #     stream_response = client.messages.create(
+    #         max_tokens=max_tokens,
+    #         messages=formatted_messages,
+    #         model=self.name,
+    #         stream=True,
+    #     )
+    #     message_content = ""
+    #
+    #     for chunk in stream_response:
+    #         logging.info(chunk)
+    #         if chunk.type == "content_block_delta":
+    #             if chunk.delta.type == "text":
+    #                 logging.info(chunk.delta.text)
+    #                 message_content += chunk.delta.text
+    #                 yield chunk.delta.text
+    #
+    #     conversation.add_message(AgentMessage(content=message_content))
+    #
+    # async def astream(
+    #     self,
+    #     conversation,
+    #     toolkit=None,
+    #     tool_choice=None,
+    #     temperature=0.7,
+    #     max_tokens=1024,
+    # ) -> AsyncIterator[str]:
+    #     async_client = AsyncAnthropic(api_key=self.api_key)
+    #     formatted_messages = self._format_messages(conversation.history)
+    #
+    #     if toolkit and not tool_choice:
+    #         tool_choice = {"type": "auto"}
+    #
+    #     stream = await async_client.messages.create(
+    #         model=self.name,
+    #         messages=formatted_messages,
+    #         temperature=temperature,
+    #         max_tokens=max_tokens,
+    #         tools=self._schema_convert_tools(toolkit.tools) if toolkit else None,
+    #         tool_choice=tool_choice,
+    #         stream=True,
+    #     )
+    #
+    #     collected_content = []
+    #     async for chunk in stream:
+    #         if chunk.type == "content_block_delta":
+    #             logging.info(chunk.delta)
+    #             if chunk.delta.type == "text":
+    #                 collected_content.append(chunk.delta.text)
+    #                 yield chunk.delta.text
+    #
+    #     full_content = "".join(collected_content)
+    #     conversation.add_message(AgentMessage(content=full_content))
 
     def batch(
         self,
