@@ -31,7 +31,6 @@ class GroqToolModel(LLMBase):
         "gemma2-9b-it",
         "llama3-groq-70b-8192-tool-use-preview",
         "llama3-groq-8b-8192-tool-use-preview",
-        "llama-3.1-405b-reasoning",
         "llama-3.1-70b-versatile",
         "llama-3.1-8b-instant",
     ]
