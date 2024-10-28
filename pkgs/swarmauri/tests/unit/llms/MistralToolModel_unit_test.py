@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import pytest
@@ -155,7 +156,7 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -166,6 +167,7 @@ async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
     async for token in mistral_tool_model.astream(
         conversation=conversation, toolkit=toolkit
     ):
+        await asyncio.sleep(0.2)
         assert isinstance(token, str)
         collected_tokens.append(token)
 

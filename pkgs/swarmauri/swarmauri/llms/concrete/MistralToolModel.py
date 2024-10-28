@@ -274,7 +274,8 @@ class MistralToolModel(LLMBase):
         )
         message_content = ""
 
-        for chunk in stream_response:
+        async for chunk in stream_response:
+            await asyncio.sleep(0.2)
             if chunk.data.choices[0].delta.content:
                 message_content += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
