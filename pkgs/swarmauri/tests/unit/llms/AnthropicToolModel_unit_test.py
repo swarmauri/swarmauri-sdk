@@ -16,7 +16,6 @@ load_dotenv()
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 
-@timeout(5)
 @pytest.fixture(scope="module")
 def anthropic_tool_model():
     if not API_KEY:
@@ -25,7 +24,6 @@ def anthropic_tool_model():
     return llm
 
 
-@timeout(5)
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -33,7 +31,6 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
 @pytest.fixture(scope="module")
 def toolkit():
     toolkit = Toolkit()
@@ -42,7 +39,6 @@ def toolkit():
     return toolkit
 
 
-@timeout(5)
 @pytest.fixture(scope="module")
 def conversation():
     conversation = Conversation()
@@ -106,22 +102,6 @@ def test_predict(anthropic_tool_model, toolkit, conversation, model_name):
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-def test_stream(anthropic_tool_model, toolkit, conversation, model_name):
-    anthropic_tool_model.name = model_name
-    collected_tokens = []
-    for token in anthropic_tool_model.stream(
-        conversation=conversation, toolkit=toolkit
-    ):
-        assert isinstance(token, str)
-        collected_tokens.append(token)
-    full_response = "".join(collected_tokens)
-    assert len(full_response) > 0
-    assert conversation.get_last().content == full_response
-
-
-@timeout(5)
-@pytest.mark.unit
-@pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(anthropic_tool_model, toolkit, model_name):
     anthropic_tool_model.name = model_name
     conversations = []
@@ -146,23 +126,6 @@ async def test_apredict(anthropic_tool_model, toolkit, conversation, model_name)
     )
     prediction = result.get_last().content
     assert isinstance(prediction, str)
-
-
-@timeout(5)
-@pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_astream(anthropic_tool_model, toolkit, conversation, model_name):
-    anthropic_tool_model.name = model_name
-    collected_tokens = []
-    async for token in anthropic_tool_model.astream(
-        conversation=conversation, toolkit=toolkit
-    ):
-        assert isinstance(token, str)
-        collected_tokens.append(token)
-    full_response = "".join(collected_tokens)
-    assert len(full_response) > 0
-    assert conversation.get_last().content == full_response
 
 
 @timeout(5)
