@@ -48,13 +48,6 @@ class OpenAIModel(LLMBase):
     ]
     name: str = "gpt-3.5-turbo"
     type: Literal["OpenAIModel"] = "OpenAIModel"
-    client: OpenAI = Field(default=None, exclude=True)
-    async_client: AsyncOpenAI = Field(default=None, exclude=True)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.client = OpenAI(api_key=self.api_key)
-        self.async_client = AsyncOpenAI(api_key=self.api_key)
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -115,6 +108,7 @@ class OpenAIModel(LLMBase):
     ):
         """Generates predictions using the OpenAI model."""
         formatted_messages = self._format_messages(conversation.history)
+        client = OpenAI(api_key=self.api_key)
 
         kwargs = {
             "model": self.name,
@@ -131,7 +125,7 @@ class OpenAIModel(LLMBase):
             kwargs["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = self.client.chat.completions.create(**kwargs)
+            response = client.chat.completions.create(**kwargs)
 
         with DurationManager() as completion_timer:
             result = json.loads(response.model_dump_json())
@@ -157,6 +151,8 @@ class OpenAIModel(LLMBase):
         stop: List[str] = [],
     ):
         """Asynchronous version of predict."""
+        async_client = AsyncOpenAI(api_key=self.api_key)
+
         formatted_messages = self._format_messages(conversation.history)
 
         kwargs = {
@@ -174,13 +170,11 @@ class OpenAIModel(LLMBase):
             kwargs["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = await self.async_client.chat.completions.create(**kwargs)
+            response = await async_client.chat.completions.create(**kwargs)
 
         with DurationManager() as completion_timer:
             result = json.loads(response.model_dump_json())
             message_content = result["choices"][0]["message"]["content"]
-
-        completion_end_time = time.time()
 
         usage_data = result.get("usage", {})
 
@@ -197,10 +191,11 @@ class OpenAIModel(LLMBase):
         self, conversation, temperature=0.7, max_tokens=256, stop: List[str] = []
     ) -> Iterator[str]:
         """Synchronously stream the response token by token."""
+        client = OpenAI(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         with DurationManager() as prompt_timer:
-            stream = self.client.chat.completions.create(
+            stream = client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,
@@ -238,9 +233,10 @@ class OpenAIModel(LLMBase):
     ) -> AsyncIterator[str]:
         """Asynchronously stream the response token by token."""
         formatted_messages = self._format_messages(conversation.history)
+        async_client = AsyncOpenAI(api_key=self.api_key)
 
         with DurationManager() as prompt_timer:
-            stream = await self.async_client.chat.completions.create(
+            stream = await async_client.chat.completions.create(
                 model=self.name,
                 messages=formatted_messages,
                 temperature=temperature,

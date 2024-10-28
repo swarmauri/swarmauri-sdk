@@ -6,8 +6,8 @@ from swarmauri.llms.concrete.PlayHTModel import PlayHTModel as LLM
 from dotenv import load_dotenv
 from swarmauri.utils.timeout_wrapper import timeout
 
-file_path = "pkgs/swarmauri/tests/unit/llms/static/audio/test.mp3"
-file_path2 = "pkgs/swarmauri/tests/unit/llms/static/audio/test_fr.mp3"
+file_path = "pkgs/swarmauri/tests/static/test.mp3"
+file_path2 = "pkgs/swarmauri/tests/static/test_fr.mp3"
 
 load_dotenv()
 

@@ -166,7 +166,7 @@ async def test_astream(groq_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())

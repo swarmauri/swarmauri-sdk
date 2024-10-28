@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from time import sleep
 
 import pytest
 import os
@@ -124,7 +125,7 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(mistral_tool_model, toolkit, model_name):
@@ -136,6 +137,7 @@ def test_batch(mistral_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
+    sleep(1)
     results = mistral_tool_model.batch(conversations=conversations, toolkit=toolkit)
     assert len(results) == len(conversations)
     for result in results:
