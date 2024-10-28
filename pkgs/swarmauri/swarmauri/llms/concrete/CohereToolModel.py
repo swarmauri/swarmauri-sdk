@@ -24,7 +24,6 @@ class CohereToolModel(LLMBase):
     _client: Optional[cohere.Client] = PrivateAttr(default=None)
     allowed_models: List[str] = [
         "command-r",
-        "command-r-08-2024",
         "command-r-plus",
         "command-r-plus-08-2024",
     ]
