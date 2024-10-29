@@ -20,7 +20,7 @@ aiohttp = "^3.10.10"
 anthropic = "^0.36.2"
 beautifulsoup4 = "04.12.3"
 cohere = "^5.11.0"
-deepface = "^0.0.93"
+#deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
 gensim = "==4.3.3"
 google-generativeai = "^0.8.3"
 gradio = "==5.1.0"
