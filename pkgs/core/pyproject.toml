@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-core"
-version = "0.5.1.dev21"
+version = "0.5.1"
 description = "This repository includes core interfaces for the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
