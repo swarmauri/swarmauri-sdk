@@ -22,7 +22,7 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 pip install swarmauri[full]
 ```
 
-# Want to help?
+## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
 
