@@ -27,7 +27,7 @@ class AnthropicToolModel(LLMBase):
         "claude-3-5-sonnet-20240620",
         "claude-3-sonnet-20240229",
     ]
-    name: str = "claude-3-haiku-20240307"
+    name: str = "claude-3-sonnet-20240229"
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:

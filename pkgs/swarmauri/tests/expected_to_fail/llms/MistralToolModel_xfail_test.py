@@ -16,6 +16,8 @@ load_dotenv()
 
 API_KEY = os.getenv("MISTRAL_API_KEY")
 
+failing_llms = ["mistral-small-latest"]
+
 
 @pytest.fixture(scope="module")
 def mistral_tool_model():
@@ -45,50 +47,10 @@ def conversation():
     return conversation
 
 
-def get_allowed_models():
-    if not API_KEY:
-        return []
-    llm = LLM(api_key=API_KEY)
-
-    failing_llms = ["mistral-small-latest"]
-
-    allowed_models = [
-        model for model in llm.allowed_models if model not in failing_llms
-    ]
-
-    return allowed_models
-
-
 @timeout(5)
 @pytest.mark.unit
-def test_ubc_resource(mistral_tool_model):
-    assert mistral_tool_model.resource == "LLM"
-
-
-@timeout(5)
-@pytest.mark.unit
-def test_ubc_type(mistral_tool_model):
-    assert mistral_tool_model.type == "MistralToolModel"
-
-
-@timeout(5)
-@pytest.mark.unit
-def test_serialization(mistral_tool_model):
-    assert (
-        mistral_tool_model.id
-        == LLM.model_validate_json(mistral_tool_model.model_dump_json()).id
-    )
-
-
-@timeout(5)
-@pytest.mark.unit
-def test_default_name(mistral_tool_model):
-    assert mistral_tool_model.name == "open-mixtral-8x22b"
-
-
-@timeout(5)
-@pytest.mark.unit
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 def test_agent_exec(mistral_tool_model, toolkit, model_name):
     mistral_tool_model.name = model_name
     conversation = Conversation()
@@ -103,21 +65,22 @@ def test_agent_exec(mistral_tool_model, toolkit, model_name):
 
 @timeout(5)
 @pytest.mark.unit
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 def test_predict(mistral_tool_model, toolkit, conversation, model_name):
     mistral_tool_model.name = model_name
 
     conversation = mistral_tool_model.predict(
         conversation=conversation, toolkit=toolkit
     )
-    logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) == str
 
 
 @timeout(5)
 @pytest.mark.unit
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     mistral_tool_model.name = model_name
 
@@ -133,7 +96,8 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
 
 @timeout(10)
 @pytest.mark.unit
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 def test_batch(mistral_tool_model, toolkit, model_name):
     mistral_tool_model.name = model_name
 
@@ -152,7 +116,8 @@ def test_batch(mistral_tool_model, toolkit, model_name):
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
     mistral_tool_model.name = model_name
 
@@ -166,7 +131,8 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
     mistral_tool_model.name = model_name
 
@@ -174,7 +140,6 @@ async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
     async for token in mistral_tool_model.astream(
         conversation=conversation, toolkit=toolkit
     ):
-        await asyncio.sleep(0.2)
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -186,7 +151,8 @@ async def test_astream(mistral_tool_model, toolkit, conversation, model_name):
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.xfail(reason="These models are expected to fail")
+@pytest.mark.parametrize("model_name", failing_llms)
 async def test_abatch(mistral_tool_model, toolkit, model_name):
     mistral_tool_model.name = model_name
 
