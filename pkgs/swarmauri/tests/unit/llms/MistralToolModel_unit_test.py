@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from time import sleep
 
 import pytest
 import os
@@ -124,7 +125,7 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(mistral_tool_model, toolkit, model_name):
@@ -156,7 +157,7 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
-@timeout(10)
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())

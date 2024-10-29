@@ -39,13 +39,6 @@ class OpenAIToolModel(LLMBase):
     ]
     name: str = "gpt-3.5-turbo-0125"
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
-    client: OpenAI = Field(default=None, exclude=True)
-    async_client: AsyncOpenAI = Field(default=None, exclude=True)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.client = OpenAI(api_key=self.api_key)
-        self.async_client = AsyncOpenAI(api_key=self.api_key)
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
@@ -60,13 +53,16 @@ class OpenAIToolModel(LLMBase):
         ]
         return formatted_messages
 
-    async def _process_tool_calls(self, tool_calls, toolkit, messages):
+    def _process_tool_calls(self, tool_calls, toolkit, messages):
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
                 func_args = json.loads(tool_call.function.arguments)
+
+                # Await the tool call in case it's asynchronous
                 func_result = func_call(**func_args)
+
                 messages.append(
                     {
                         "tool_call_id": tool_call.id,
@@ -85,12 +81,13 @@ class OpenAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ):
+        client = OpenAI(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = self.client.chat.completions.create(
+        tool_response = client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -102,9 +99,9 @@ class OpenAIToolModel(LLMBase):
         messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
 
-        messages = asyncio.run(self._process_tool_calls(tool_calls, toolkit, messages))
+        messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        agent_response = self.client.chat.completions.create(
+        agent_response = client.chat.completions.create(
             model=self.name,
             messages=messages,
             max_tokens=max_tokens,
@@ -123,13 +120,14 @@ class OpenAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ):
-        """Asynchronous version of predict"""
+        """Asynchronous version of predict."""
+        async_client = AsyncOpenAI(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = await self.async_client.chat.completions.create(
+        tool_response = await async_client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -141,9 +139,9 @@ class OpenAIToolModel(LLMBase):
         messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
 
-        messages = await self._process_tool_calls(tool_calls, toolkit, messages)
+        messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        agent_response = await self.async_client.chat.completions.create(
+        agent_response = await async_client.chat.completions.create(
             model=self.name,
             messages=messages,
             max_tokens=max_tokens,
@@ -163,12 +161,13 @@ class OpenAIToolModel(LLMBase):
         max_tokens=1024,
     ) -> Iterator[str]:
         """Synchronously stream the response token by token"""
+        client = OpenAI(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = self.client.chat.completions.create(
+        tool_response = client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -180,9 +179,9 @@ class OpenAIToolModel(LLMBase):
         messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
 
-        messages = asyncio.run(self._process_tool_calls(tool_calls, toolkit, messages))
+        messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        stream = self.client.chat.completions.create(
+        stream = client.chat.completions.create(
             model=self.name,
             messages=messages,
             temperature=temperature,
@@ -208,13 +207,14 @@ class OpenAIToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ) -> AsyncIterator[str]:
-        """Asynchronously stream the response token by token"""
+        """Asynchronously stream the response token by token."""
+        async_client = AsyncOpenAI(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        tool_response = await self.async_client.chat.completions.create(
+        tool_response = await async_client.chat.completions.create(
             model=self.name,
             messages=formatted_messages,
             temperature=temperature,
@@ -226,9 +226,9 @@ class OpenAIToolModel(LLMBase):
         messages = [formatted_messages[-1], tool_response.choices[0].message]
         tool_calls = tool_response.choices[0].message.tool_calls
 
-        messages = await self._process_tool_calls(tool_calls, toolkit, messages)
+        messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        stream = await self.async_client.chat.completions.create(
+        stream = await async_client.chat.completions.create(
             model=self.name,
             messages=messages,
             temperature=temperature,

@@ -7,12 +7,14 @@ from dotenv import load_dotenv
 from swarmauri.utils.timeout_wrapper import timeout
 from pathlib import Path
 
+
 # Get the current working directory
 root_dir = Path(__file__).resolve().parents[2]
 
 # Construct file paths dynamically
 file_path = os.path.join(root_dir, "static", "test.mp3")
 file_path2 = os.path.join(root_dir, "static", "test_fr.mp3")
+
 
 load_dotenv()
 
