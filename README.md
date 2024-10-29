@@ -17,9 +17,12 @@
 This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
 
 
-## Steps to compile python package from source
+## Steps to install via pypi
 ```bash
-pip install swarmauri[full]
+pip install swarmauri_core
+pip install swarmauri
+pip install swarmauri_community
+pip install swarmauri_experimental
 ```
 
 ## Want to help?
