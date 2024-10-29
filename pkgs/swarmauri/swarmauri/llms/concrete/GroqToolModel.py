@@ -26,13 +26,14 @@ class GroqToolModel(LLMBase):
     allowed_models: List[str] = [
         "llama3-8b-8192",
         "llama3-70b-8192",
-        "mixtral-8x7b-32768",
-        "gemma-7b-it",
-        "gemma2-9b-it",
         "llama3-groq-70b-8192-tool-use-preview",
         "llama3-groq-8b-8192-tool-use-preview",
         "llama-3.1-70b-versatile",
         "llama-3.1-8b-instant",
+        # parallel tool use not supported
+        # "mixtral-8x7b-32768",
+        # "gemma-7b-it",
+        # "gemma2-9b-it",
     ]
     name: str = "llama3-groq-70b-8192-tool-use-preview"
     type: Literal["GroqToolModel"] = "GroqToolModel"

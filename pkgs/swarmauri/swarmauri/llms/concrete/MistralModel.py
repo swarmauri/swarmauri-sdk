@@ -41,6 +41,7 @@ class MistralModel(LLMBase):
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
+            if message.role != "assistant"
         ]
         return formatted_messages
 
