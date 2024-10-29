@@ -1,17 +1,17 @@
 import pytest
 import os
+
 from swarmauri.llms.concrete.MistralModel import MistralModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 
-@pytest.mark.xfail(reason="These models are expected to fail")
 @pytest.fixture(scope="module")
 def mistral_model():
     API_KEY = os.getenv("MISTRAL_API_KEY")

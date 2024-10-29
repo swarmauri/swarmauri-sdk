@@ -1,5 +1,7 @@
 import json
+import os
 import sqlite3
+import tempfile
 from typing import List, Optional, Literal, Dict
 import numpy as np
 from swarmauri.vectors.concrete.Vector import Vector
@@ -18,13 +20,14 @@ class SqliteVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):
     type: Literal["SqliteVectorStore"] = "SqliteVectorStore"
-    db_path: str = ""
+    db_path: str = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
 
-    def __init__(self, db_path: str, **kwargs):
+    def __init__(self, db_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self._distance = CosineDistance()
         self.documents: List[Document] = []
-        self.db_path = db_path
+        if db_path is not None:
+            self.db_path = db_path
 
         # Create the SQLite database and table if they don't exist
         self._create_table()
@@ -34,11 +37,13 @@ class SqliteVectorStore(
         c = conn.cursor()
 
         # Create the documents table
-        c.execute("""CREATE TABLE IF NOT EXISTS documents
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS documents
                      (id TEXT PRIMARY KEY,
                       content TEXT,
                       metadata TEXT,
-                      embedding BLOB)""")
+                      embedding BLOB)"""
+        )
 
         conn.commit()
         conn.close()
@@ -161,3 +166,8 @@ class SqliteVectorStore(
         # Get top_k results
         top_results = [doc_id for doc_id, _ in results[:top_k]]
         return top_results
+
+    def close(self):
+        # Clean up the database file
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)

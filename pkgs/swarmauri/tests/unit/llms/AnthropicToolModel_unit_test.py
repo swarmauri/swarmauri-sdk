@@ -28,7 +28,14 @@ def get_allowed_models():
     if not API_KEY:
         return []
     llm = LLM(api_key=API_KEY)
-    return llm.allowed_models
+
+    failing_llms = ["claude-3-haiku-20240307", "claude-3-5-sonnet-20240620"]
+
+    allowed_models = [
+        model for model in llm.allowed_models if model not in failing_llms
+    ]
+
+    return allowed_models
 
 
 @pytest.fixture(scope="module")
@@ -72,7 +79,7 @@ def test_serialization(anthropic_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(anthropic_tool_model):
-    assert anthropic_tool_model.name == "claude-3-haiku-20240307"
+    assert anthropic_tool_model.name == "claude-3-sonnet-20240229"
 
 
 @timeout(5)

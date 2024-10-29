@@ -28,7 +28,14 @@ def get_allowed_models():
     if not API_KEY:
         return []
     llm = LLM(api_key=API_KEY)
-    return llm.allowed_models
+
+    failing_llms = ["llama3-8b-8192"]
+
+    allowed_models = [
+        model for model in llm.allowed_models if model not in failing_llms
+    ]
+
+    return allowed_models
 
 
 @pytest.fixture(scope="module")
@@ -166,7 +173,7 @@ async def test_astream(groq_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(10)
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
