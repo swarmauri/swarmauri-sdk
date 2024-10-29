@@ -1,5 +1,6 @@
-# Swarmauri SDK
-This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div style="text-align: center;">
 
 [![Star on GitHub](https://img.shields.io/github/stars/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/stargazers) [![Fork on GitHub](https://img.shields.io/github/forks/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/network/members) [![Watch on GitHub](https://img.shields.io/github/watchers/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/watchers)
 
@@ -8,8 +9,20 @@ This repository includes core interfaces, standard ABCs, and standard concrete r
 
 [![Stable](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/publish_stable.yml/badge.svg)](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/publish_stable.yml)
 [![Staging](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/staging.yml/badge.svg)](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/staging.yml)
+</div>
+
+---
+
+# Swarmauri SDK
+This repository includes core interfaces, standard ABCs, and standard concrete references of the SwarmaURI Framework.
+
 
 ## Steps to compile python package from source
 ```bash
 pip install swarmauri[full]
 ```
+
+# Want to help?
+
+If you want to contribute to Swarmakit, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
