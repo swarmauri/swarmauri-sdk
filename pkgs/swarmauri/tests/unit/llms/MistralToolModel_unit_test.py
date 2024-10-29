@@ -137,7 +137,6 @@ def test_batch(mistral_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    sleep(1)
     results = mistral_tool_model.batch(conversations=conversations, toolkit=toolkit)
     assert len(results) == len(conversations)
     for result in results:
@@ -158,7 +157,7 @@ async def test_apredict(mistral_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
-@timeout(10)
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
