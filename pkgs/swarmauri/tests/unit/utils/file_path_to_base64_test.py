@@ -1,8 +1,13 @@
 import pytest
 import base64
 from swarmauri.utils.file_path_to_base64 import file_path_to_base64
+import os
+from pathlib import Path
 
-test_image_path = "pkgs/swarmauri/tests/static/cityscape.png"
+# Get the current working directory
+root_dir = Path(__file__).resolve().parents[2]
+
+test_image_path = os.path.join(root_dir, "static", "cityscape.png")
 
 
 def test_file_path_to_base64():
