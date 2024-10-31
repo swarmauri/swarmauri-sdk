@@ -37,6 +37,12 @@ swarmauri = ">=0.5.1"
 textstat = "*"
 transformers = ">=4.45.0"
 typing_extensions = "*"
+tiktoken = "*"
+pymupdf = "*"
+annoy = "*"
+qdrant_client = "*"
+weaviate = "*"
+pinecone = "*"
 
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"

@@ -55,6 +55,12 @@ setup(
         # "pacmap",
         "tf-keras",
         "duckdb",
+        "tiktoken",
+        "pymupdf",
+        "annoy",
+        "qdrant_client",
+        "weaviate",
+        "pinecone",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
