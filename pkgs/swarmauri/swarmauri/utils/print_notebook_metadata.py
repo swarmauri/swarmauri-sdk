@@ -2,8 +2,22 @@ import os
 import platform
 import sys
 from datetime import datetime
+from importlib.metadata import version, PackageNotFoundError
+
 from IPython import get_ipython
 from urllib.parse import unquote
+
+import toml
+
+
+def get_version_from_pyproject():
+    try:
+        pyproject_data = toml.load("pyproject.toml")
+        version = pyproject_data["tool"]["poetry"]["version"]  # Adjust for your tool
+        return version
+    except Exception as e:
+        print(f"Error retrieving version: {e}")
+        return None
 
 
 def get_notebook_name():
@@ -74,8 +88,7 @@ def print_notebook_metadata(author_name, github_username):
     print(f"Python Version: {sys.version}")
 
     try:
-        import swarmauri
-
-        print(f"Swarmauri Version: {swarmauri.__version__}")
-    except ImportError:
-        print("Swarmauri is not installed.")
+        swarmauri_version = version("swarmauri")
+        print(f"Swarmauri Version: {swarmauri_version}")
+    except PackageNotFoundError:
+        print("Swarmauri version information is unavailable. Ensure it is installed properly.")
