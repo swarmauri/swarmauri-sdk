@@ -14,7 +14,20 @@ from swarmauri.messages.concrete.AgentMessage import UsageData
 
 
 class GroqModel(LLMBase):
-    """Provider resources: https://console.groq.com/docs/models"""
+    """
+    GroqModel class for interacting with the Groq language models API. This class
+    provides synchronous and asynchronous methods to send conversation data to the
+    model, receive predictions, and stream responses.
+
+    Attributes:
+        api_key (str): API key for authenticating requests to the Groq API.
+        allowed_models (List[str]): List of allowed model names that can be used.
+        name (str): The default model name to use for predictions.
+        type (Literal["GroqModel"]): The type identifier for this class.
+
+
+    Allowed Models resources: https://console.groq.com/docs/models
+    """
 
     api_key: str
     allowed_models: List[str] = [
@@ -33,8 +46,6 @@ class GroqModel(LLMBase):
         "llama3-groq-8b-8192-tool-use-preview",
         "llava-v1.5-7b-4096-preview",
         "mixtral-8x7b-32768",
-        # multimodal models
-        "llama-3.2-11b-vision-preview",
     ]
     name: str = "gemma-7b-it"
     type: Literal["GroqModel"] = "GroqModel"
@@ -43,6 +54,15 @@ class GroqModel(LLMBase):
         self,
         messages: List[SubclassUnion[MessageBase]],
     ) -> List[Dict[str, Any]]:
+        """
+        Formats conversation messages into the structure expected by the API.
+
+        Args:
+            messages (List[MessageBase]): List of message objects from the conversation history.
+
+        Returns:
+            List[Dict[str, Any]]: List of formatted message dictionaries.
+        """
         formatted_messages = []
         for message in messages:
             formatted_message = message.model_dump(
@@ -63,7 +83,13 @@ class GroqModel(LLMBase):
         usage_data,
     ) -> UsageData:
         """
-        Prepares and extracts usage data and response timing.
+        Prepares and validates usage data received from the API response.
+
+        Args:
+            usage_data (dict): Raw usage data from the API response.
+
+        Returns:
+            UsageData: Validated usage data instance.
         """
 
         usage = UsageData.model_validate(usage_data)
@@ -78,6 +104,20 @@ class GroqModel(LLMBase):
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Conversation:
+        """
+        Generates a response from the model based on the given conversation.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for the model's response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Returns:
+            Conversation: Updated conversation with the model's response.
+        """
 
         formatted_messages = self._format_messages(conversation.history)
         response_format = {"type": "json_object"} if enable_json else None
@@ -113,6 +153,20 @@ class GroqModel(LLMBase):
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Conversation:
+        """
+        Async method to generate a response from the model based on the given conversation.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for the model's response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Returns:
+            Conversation: Updated conversation with the model's response.
+        """
 
         formatted_messages = self._format_messages(conversation.history)
         response_format = {"type": "json_object"} if enable_json else None
@@ -148,6 +202,20 @@ class GroqModel(LLMBase):
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Union[str, Generator[str, str, None]]:
+        """
+        Streams response text from the model in real-time.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for the model's response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Yields:
+            str: Partial response content from the model.
+        """
 
         formatted_messages = self._format_messages(conversation.history)
         response_format = {"type": "json_object"} if enable_json else None
@@ -190,6 +258,20 @@ class GroqModel(LLMBase):
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
+        """
+        Async generator that streams response text from the model in real-time.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for the model's response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Yields:
+            str: Partial response content from the model.
+        """
 
         formatted_messages = self._format_messages(conversation.history)
         response_format = {"type": "json_object"} if enable_json else None
@@ -232,7 +314,20 @@ class GroqModel(LLMBase):
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> List[Conversation]:
-        """Synchronously process multiple conversations"""
+        """
+        Processes a batch of conversations and generates responses for each sequentially.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for each response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Returns:
+            List[Conversation]: List of updated conversations with model responses.
+        """
         return [
             self.predict(
                 conv,
@@ -255,7 +350,21 @@ class GroqModel(LLMBase):
         stop: Optional[List[str]] = None,
         max_concurrent=5,
     ) -> List[Conversation]:
-        """Process multiple conversations in parallel with controlled concurrency"""
+        """
+        Async method for processing a batch of conversations concurrently.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for each response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+            max_concurrent (int): Maximum number of concurrent requests.
+
+        Returns:
+            List[Conversation]: List of updated conversations with model responses.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv) -> str | AsyncGenerator[str, None]:
