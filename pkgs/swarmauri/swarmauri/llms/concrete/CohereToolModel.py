@@ -19,8 +19,7 @@ from swarmauri.utils.duration_manager import DurationManager
 
 class CohereToolModel(LLMBase):
     """
-    A REST-based implementation of the Cohere tool-augmented chat API. This class provides
-    synchronous and asynchronous methods to interact with Cohere's language models for text generation,
+    This class provides synchronous and asynchronous methods to interact with Cohere's language models for text generation,
     as well as methods to process tool calls and conversation history.
 
     Attributes:
