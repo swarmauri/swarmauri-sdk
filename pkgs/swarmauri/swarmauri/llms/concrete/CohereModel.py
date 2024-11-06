@@ -27,7 +27,7 @@ class CohereModel(LLMBase):
         base_url (str): The base URL for Cohere's API endpoints.
         headers (Dict[str, str]): HTTP headers used for API requests.
 
-    API Reference: https://docs.cohere.com/reference/chat
+    Link to Allowed Models: https://docs.cohere.com/docs/models
     Link to API Key: https://dashboard.cohere.com/api-keys
     """
 

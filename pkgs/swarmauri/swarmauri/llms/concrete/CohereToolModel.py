@@ -31,7 +31,7 @@ class CohereToolModel(LLMBase):
         base_url (str): The base URL for the Cohere API.
         headers (Dict[str, str]): The headers used for HTTP requests, which includes authorization.
 
-    Provider resources: https://docs.cohere.com/docs/models#command
+    Link to Allowed Models: https://docs.cohere.com/docs/models#command
     Link to API Key: https://dashboard.cohere.com/api-keys
 
     """
