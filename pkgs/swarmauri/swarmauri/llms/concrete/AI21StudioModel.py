@@ -1,4 +1,3 @@
-from email import message
 import json
 import logging
 import httpx
@@ -18,6 +17,18 @@ from swarmauri.utils.duration_manager import DurationManager
 
 class AI21StudioModel(LLMBase):
     """
+    A model class for interacting with the AI21 Studio's language models via HTTP API calls.
+
+    This class supports synchronous and asynchronous methods for text generation, message streaming,
+    and batch processing, allowing it to work with conversations and handle different text generation
+    parameters such as temperature, max tokens, and more.
+
+    Attributes:
+        api_key (str): API key for authenticating with AI21 Studio's API.
+        allowed_models (List[str]): List of model names allowed by the provider.
+        name (str): Default model name to use.
+        type (Literal): Specifies the model type, used for internal consistency.
+
     Provider resources: https://docs.ai21.com/reference/jamba-15-api-ref
     """
 
@@ -34,6 +45,9 @@ class AI21StudioModel(LLMBase):
     )
 
     def __init__(self, **data) -> None:
+        """
+        Initializes AI21StudioModel with API key and sets up headers for authorization.
+        """
         super().__init__(**data)
         self._headers = {
             "Content-Type": "application/json",
@@ -43,6 +57,15 @@ class AI21StudioModel(LLMBase):
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[dict]:
+        """
+        Formats messages for API request payload.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): List of messages in the conversation.
+
+        Returns:
+            List[dict]: Formatted list of message dictionaries.
+        """
         return [
             {"content": message.content, "role": message.role} for message in messages
         ]
@@ -50,6 +73,17 @@ class AI21StudioModel(LLMBase):
     def _prepare_usage_data(
         self, usage_data, prompt_time: float = 0, completion_time: float = 0
     ) -> UsageData:
+        """
+        Prepares usage data from the API response for tracking token usage and time.
+
+        Args:
+            usage_data (dict): Raw usage data from API response.
+            prompt_time (float): Time taken for prompt processing.
+            completion_time (float): Time taken for completion processing.
+
+        Returns:
+            UsageData: Structured usage data object.
+        """
         total_time = prompt_time + completion_time
         usage = UsageData(
             prompt_tokens=usage_data.get("prompt_tokens", 0),
@@ -70,6 +104,20 @@ class AI21StudioModel(LLMBase):
         stop="\n",
         n=1,
     ) -> Conversation:
+        """
+        Synchronously generates a response for a given conversation.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+            n (int): Number of completions to generate.
+
+        Returns:
+            Conversation: Updated conversation with generated message.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -108,6 +156,20 @@ class AI21StudioModel(LLMBase):
         stop="\n",
         n=1,
     ) -> Conversation:
+        """
+        Asynchronously generates a response for a given conversation.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+            n (int): Number of completions to generate.
+
+        Returns:
+            Conversation: Updated conversation with generated message.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -144,6 +206,19 @@ class AI21StudioModel(LLMBase):
         top_p=1.0,
         stop="\n",
     ) -> Iterator[str]:
+        """
+        Synchronously streams responses for a conversation, yielding each chunk.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+
+        Yields:
+            Iterator[str]: Chunks of the response content as they are generated.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -174,7 +249,8 @@ class AI21StudioModel(LLMBase):
                     if json_str:
                         chunk = json.loads(json_str)
                         if (
-                            chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                            chunk["choices"][0]["delta"]
+                            and "content" in chunk["choices"][0]["delta"]
                         ):
                             delta = chunk["choices"][0]["delta"]["content"]
                             message_content += delta
@@ -198,6 +274,19 @@ class AI21StudioModel(LLMBase):
         top_p=1.0,
         stop="\n",
     ) -> AsyncIterator[str]:
+        """
+        Asynchronously streams responses for a conversation, yielding each chunk.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+
+        Yields:
+            AsyncIterator[str]: Chunks of the response content as they are generated.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -213,7 +302,9 @@ class AI21StudioModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient() as client:
-                response = await client.post(self._api_url, headers=self._headers, json=payload)
+                response = await client.post(
+                    self._api_url, headers=self._headers, json=payload
+                )
                 response.raise_for_status()
 
                 usage_data = {}
@@ -226,7 +317,8 @@ class AI21StudioModel(LLMBase):
                             chunk = json.loads(json_str)
                             logging.info(chunk)
                             if (
-                                chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                                chunk["choices"][0]["delta"]
+                                and "content" in chunk["choices"][0]["delta"]
                             ):
                                 delta = chunk["choices"][0]["delta"]["content"]
                                 message_content += delta
@@ -249,6 +341,20 @@ class AI21StudioModel(LLMBase):
         stop="\n",
         n=1,
     ) -> List[Conversation]:
+        """
+        Processes a batch of conversations synchronously, generating responses for each.
+
+        Args:
+            conversations (List[Conversation]): List of conversation objects.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+            n (int): Number of completions to generate per conversation.
+
+        Returns:
+            List[Conversation]: List of updated conversations.
+        """
         return [
             self.predict(
                 conv,
@@ -271,6 +377,21 @@ class AI21StudioModel(LLMBase):
         n=1,
         max_concurrent=5,
     ) -> List[Conversation]:
+        """
+        Processes a batch of conversations asynchronously, generating responses for each.
+
+        Args:
+            conversations (List): List of conversation objects.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum number of tokens in the response.
+            top_p (float): Nucleus sampling parameter.
+            stop (str): Stop sequence to halt generation.
+            n (int): Number of completions to generate per conversation.
+            max_concurrent (int): Maximum number of concurrent requests.
+
+        Returns:
+            List[Conversation]: List of updated conversations.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv) -> Conversation:
