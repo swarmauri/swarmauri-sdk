@@ -1,11 +1,14 @@
-from pydantic import Field
+from email import message
+import json
+import logging
+import httpx
+from pydantic import PrivateAttr
+import requests
 import asyncio
 from typing import List, Literal, AsyncIterator, Iterator
-import ai21
-from ai21 import AsyncAI21Client
-from ai21.models.chat import ChatMessage
 from swarmauri_core.typing import SubclassUnion
 
+from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
@@ -25,155 +28,167 @@ class AI21StudioModel(LLMBase):
     ]
     name: str = "jamba-1.5-mini"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
-    client: ai21.AI21Client = Field(default=None, exclude=True)
-    async_client: AsyncAI21Client = Field(default=None, exclude=True)
+    _headers: dict = PrivateAttr(default=None)
+    _api_url: str = PrivateAttr(
+        default="https://api.ai21.com/studio/v1/chat/completions"
+    )
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
-        self.client = ai21.AI21Client(api_key=self.api_key)
-        self.async_client = AsyncAI21Client(api_key=self.api_key)
+        self._headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
-    ) -> List[ChatMessage]:
+    ) -> List[dict]:
         return [
-            ChatMessage(content=message.content, role=message.role)
-            for message in messages
+            {"content": message.content, "role": message.role} for message in messages
         ]
 
     def _prepare_usage_data(
-        self,
-        usage_data,
-        prompt_time: float = 0,
-        completion_time: float = 0,
-    ):
-        """
-        Prepares and extracts usage data and response timing.
-        """
+        self, usage_data, prompt_time: float = 0, completion_time: float = 0
+    ) -> UsageData:
         total_time = prompt_time + completion_time
-
         usage = UsageData(
-            prompt_tokens=usage_data.prompt_tokens,
-            completion_tokens=usage_data.completion_tokens,
-            total_tokens=usage_data.total_tokens,
+            prompt_tokens=usage_data.get("prompt_tokens", 0),
+            completion_tokens=usage_data.get("completion_tokens", 0),
+            total_tokens=usage_data.get("total_tokens", 0),
             prompt_time=prompt_time,
             completion_time=completion_time,
             total_time=total_time,
         )
-
         return usage
 
     def predict(
         self,
-        conversation,
+        conversation: Conversation,
         temperature=0.7,
         max_tokens=256,
         top_p=1.0,
         stop="\n",
         n=1,
-    ):
+    ) -> Conversation:
         formatted_messages = self._format_messages(conversation.history)
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "n": n,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stop": [stop] if stop else [],
+            "response_format": {"type": "text"},
+        }
 
         with DurationManager() as prompt_timer:
-            response = self.client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                stop=stop,
-                n=n,
+            response = requests.post(
+                self._api_url,
+                headers=self._headers,
+                json=payload,
             )
+        response.raise_for_status()
 
-        message_content = response.choices[0].message.content
-
-        usage_data = response.usage
+        response_data = response.json()
+        message_content = response_data["choices"][0]["message"]["content"]
+        usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
     async def apredict(
         self,
-        conversation,
+        conversation: Conversation,
         temperature=0.7,
         max_tokens=256,
         top_p=1.0,
         stop="\n",
         n=1,
-    ):
+    ) -> Conversation:
         formatted_messages = self._format_messages(conversation.history)
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "n": n,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stop": [stop] if stop else [],
+            "response_format": {"type": "text"},
+        }
 
         with DurationManager() as prompt_timer:
-            response = await self.async_client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                stop=stop,
-                n=n,
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self._api_url, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
 
-        message_content = response.choices[0].message.content
+        response_data = response.json()
+        message_content = response_data["choices"][0]["message"]["content"]
+        usage_data = response_data.get("usage", {})
 
-        usage_data = response.usage
-
-        usage = self._prepare_usage_data(
-            usage_data,
-            prompt_timer.duration,
-        )
-
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
     def stream(
         self,
-        conversation,
+        conversation: Conversation,
         temperature=0.7,
         max_tokens=256,
         top_p=1.0,
         stop="\n",
     ) -> Iterator[str]:
         formatted_messages = self._format_messages(conversation.history)
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "n": 1,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stop": [stop] if stop else [],
+            "response_format": {"type": "text"},
+            "stream": True,
+        }
 
         with DurationManager() as prompt_timer:
-            stream = self.client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                stop=stop,
-                stream=True,
+            response = requests.post(
+                self._api_url,
+                headers=self._headers,
+                json=payload,
             )
 
-        collected_content = []
-        usage_data = {}
+            usage_data = {}
+            message_content = ""
 
         with DurationManager() as completion_timer:
-            for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    collected_content.append(content)
-                    yield content
-
-                if hasattr(chunk, "usage") and chunk.usage is not None:
-                    usage_data = chunk.usage
-
-        full_content = "".join(collected_content)
+            for line in response.iter_lines(decode_unicode=True):
+                json_str = line.replace("data: ", "")
+                try:
+                    if json_str:
+                        chunk = json.loads(json_str)
+                        if (
+                            chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                        ):
+                            delta = chunk["choices"][0]["delta"]["content"]
+                            message_content += delta
+                            yield delta
+                        if "usage" in chunk:
+                            usage_data = chunk.get("usage", {})
+                except json.JSONDecodeError:
+                    pass
 
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
         )
 
-        conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     async def astream(
         self,
@@ -184,48 +199,56 @@ class AI21StudioModel(LLMBase):
         stop="\n",
     ) -> AsyncIterator[str]:
         formatted_messages = self._format_messages(conversation.history)
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "n": 1,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stop": [stop] if stop else [],
+            "response_format": {"type": "text"},
+            "stream": True,
+        }
 
         with DurationManager() as prompt_timer:
-            stream = await self.async_client.chat.completions.create(
-                model=self.name,
-                messages=formatted_messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                stop=stop,
-                stream=True,
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(self._api_url, headers=self._headers, json=payload)
+                response.raise_for_status()
 
-        collected_content = []
-        usage_data = {}
+                usage_data = {}
+                message_content = ""
 
-        with DurationManager() as completion_timer:
-            async for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    collected_content.append(content)
-                    yield content
+                async for line in response.aiter_lines():
+                    json_str = line.replace("data: ", "")
+                    try:
+                        if json_str:
+                            chunk = json.loads(json_str)
+                            logging.info(chunk)
+                            if (
+                                chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                            ):
+                                delta = chunk["choices"][0]["delta"]["content"]
+                                message_content += delta
+                                yield delta
+                            if "usage" in chunk:
+                                usage_data = chunk.get("usage", {})
+                    except json.JSONDecodeError:
+                        pass
 
-                if hasattr(chunk, "usage") and chunk.usage is not None:
-                    usage_data = chunk.usage
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
 
-        full_content = "".join(collected_content)
-
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     def batch(
         self,
-        conversations: List,
+        conversations: List[Conversation],
         temperature=0.7,
         max_tokens=256,
         top_p=1.0,
         stop="\n",
         n=1,
-    ) -> List:
+    ) -> List[Conversation]:
         return [
             self.predict(
                 conv,
@@ -247,10 +270,10 @@ class AI21StudioModel(LLMBase):
         stop="\n",
         n=1,
         max_concurrent=5,
-    ) -> List:
+    ) -> List[Conversation]:
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,
