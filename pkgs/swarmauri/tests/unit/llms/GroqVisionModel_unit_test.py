@@ -1,6 +1,3 @@
-import json
-import logging
-
 import pytest
 import os
 from swarmauri.llms.concrete.GroqVisionModel import GroqVisionModel as LLM
@@ -101,7 +98,6 @@ def test_stream(groq_model, model_name, input_data):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a cat."
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -143,7 +139,6 @@ async def test_apredict(groq_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Hello"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -161,7 +156,6 @@ async def test_astream(groq_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Write a short story about a dog."
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
