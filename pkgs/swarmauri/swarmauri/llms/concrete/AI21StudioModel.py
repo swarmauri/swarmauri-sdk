@@ -307,28 +307,29 @@ class AI21StudioModel(LLMBase):
                 )
                 response.raise_for_status()
 
-                usage_data = {}
-                message_content = ""
+        usage_data = {}
+        message_content = ""
 
-                async for line in response.aiter_lines():
-                    json_str = line.replace("data: ", "")
-                    try:
-                        if json_str:
-                            chunk = json.loads(json_str)
-                            logging.info(chunk)
-                            if (
-                                chunk["choices"][0]["delta"]
-                                and "content" in chunk["choices"][0]["delta"]
-                            ):
-                                delta = chunk["choices"][0]["delta"]["content"]
-                                message_content += delta
-                                yield delta
-                            if "usage" in chunk:
-                                usage_data = chunk.get("usage", {})
-                    except json.JSONDecodeError:
-                        pass
+        with DurationManager() as completion_timer:
+            async for line in response.aiter_lines():
+                json_str = line.replace("data: ", "")
+                try:
+                    if json_str:
+                        chunk = json.loads(json_str)
+                        logging.info(chunk)
+                        if (
+                            chunk["choices"][0]["delta"]
+                            and "content" in chunk["choices"][0]["delta"]
+                        ):
+                            delta = chunk["choices"][0]["delta"]["content"]
+                            message_content += delta
+                            yield delta
+                        if "usage" in chunk:
+                            usage_data = chunk.get("usage", {})
+                except json.JSONDecodeError:
+                    pass
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration, completion_timer.duration)
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
