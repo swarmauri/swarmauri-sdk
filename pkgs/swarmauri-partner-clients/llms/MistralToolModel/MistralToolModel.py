@@ -2,10 +2,7 @@ import asyncio
 import json
 import logging
 from typing import AsyncIterator, Iterator, List, Literal, Dict, Any
-import httpx
 import mistralai
-from pydantic import PrivateAttr
-import requests
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -42,21 +39,6 @@ class MistralToolModel(LLMBase):
     ]
     name: str = "open-mixtral-8x22b"
     type: Literal["MistralToolModel"] = "MistralToolModel"
-    _headers: Dict[str, str] = PrivateAttr(default=None)
-    _api_url: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
-
-    def __init__(self, **data) -> None:
-        """
-        Initializes the GroqToolModel instance, setting up headers for API requests.
-
-        Parameters:
-            **data: Arbitrary keyword arguments for initialization.
-        """
-        super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -114,58 +96,50 @@ class MistralToolModel(LLMBase):
         Returns:
             Conversation: The updated conversation object.
         """
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
+        tool_response = client.chat.complete(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+            safe_prompt=safe_prompt,
+        )
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-            "safe_prompt": safe_prompt,
-        }
+        logging.info(f"tool_response: {tool_response}")
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
-        response.raise_for_status()
-
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
+        tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
+                logging.info(type(tool_call.function.arguments))
+                logging.info(tool_call.function.arguments)
+
+                func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
+                func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
 
                 messages.append(
                     {
-                        "tool_call_id": tool_call["id"],
+                        "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": func_name,
                         "content": json.dumps(func_result),
                     }
                 )
+        logging.info(f"messages: {messages}")
 
-        payload["messages"] = messages
-
-        logging.info(f"messages: {payload}")
-
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
-        response.raise_for_status()
-
-        agent_response = response.json()
-
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
-        )
+        agent_response = client.chat.complete(model=self.name, messages=messages)
+        logging.info(f"agent_response: {agent_response}")
+        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
         conversation.add_message(agent_message)
+        logging.info(f"conversation: {conversation}")
         return conversation
 
     async def apredict(
@@ -191,60 +165,53 @@ class MistralToolModel(LLMBase):
         Returns:
             Conversation: The updated conversation object.
         """
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
+
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-            "safe_prompt": safe_prompt,
-        }
+        tool_response = await client.chat.complete_async(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+            safe_prompt=safe_prompt,
+        )
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        logging.info(f"tool_response: {tool_response}")
 
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
+        tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
+                logging.info(type(tool_call.function.arguments))
+                logging.info(tool_call.function.arguments)
+
+                func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
+                func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
 
                 messages.append(
                     {
-                        "tool_call_id": tool_call["id"],
+                        "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": func_name,
                         "content": json.dumps(func_result),
                     }
                 )
+        logging.info(f"messages: {messages}")
 
-        payload["messages"] = messages
-
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
-
-        agent_response = response.json()
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
+        agent_response = await client.chat.complete_async(
+            model=self.name, messages=messages
         )
+        logging.info(f"agent_response: {agent_response}")
+        agent_message = AgentMessage(content=agent_response.choices[0].message.content)
         conversation.add_message(agent_message)
+        logging.info(f"conversation: {conversation}")
         return conversation
 
     def stream(
@@ -270,68 +237,54 @@ class MistralToolModel(LLMBase):
         Yields:
             Iterator[str]: The streaming response content.
         """
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-            "safe_prompt": safe_prompt,
-        }
+        tool_response = client.chat.complete(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+            safe_prompt=safe_prompt,
+        )
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
-        response.raise_for_status()
+        logging.info(f"tool_response: {tool_response}")
 
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
+        tool_calls = tool_response.choices[0].message.tool_calls
 
         if tool_calls:
             for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
+                logging.info(type(tool_call.function.arguments))
+                logging.info(tool_call.function.arguments)
+
+                func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
+                func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
 
                 messages.append(
                     {
-                        "tool_call_id": tool_call["id"],
+                        "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": func_name,
                         "content": json.dumps(func_result),
                     }
                 )
-
-        payload["messages"] = messages
-        payload["stream"] = True
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
         logging.info(f"messages: {messages}")
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
-        response.raise_for_status()
-
+        stream_response = client.chat.stream(model=self.name, messages=messages)
         message_content = ""
 
-        for line in response.iter_lines(decode_unicode=True):
-            json_str = line.replace('data: ', '')
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
-                        message_content += delta
-                        yield delta
-            except json.JSONDecodeError:
-                pass
+        for chunk in stream_response:
+            if chunk.data.choices[0].delta.content:
+                message_content += chunk.data.choices[0].delta.content
+                yield chunk.data.choices[0].delta.content
 
         conversation.add_message(AgentMessage(content=message_content))
 
@@ -358,74 +311,56 @@ class MistralToolModel(LLMBase):
         Yields:
             AsyncIterator[str]: The streaming response content.
         """
+        client = mistralai.Mistral(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
         if toolkit and not tool_choice:
             tool_choice = "auto"
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-            "safe_prompt": safe_prompt,
-        }
+        tool_response = await client.chat.complete_async(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            tools=self._schema_convert_tools(toolkit.tools),
+            tool_choice=tool_choice,
+            safe_prompt=safe_prompt,
+        )
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        logging.info(f"tool_response: {tool_response}")
 
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
+        messages = [formatted_messages[-1], tool_response.choices[0].message]
+        tool_calls = tool_response.choices[0].message.tool_calls
         if tool_calls:
             for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
+                logging.info(type(tool_call.function.arguments))
+                logging.info(tool_call.function.arguments)
+
+                func_name = tool_call.function.name
                 func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
+                func_args = json.loads(tool_call.function.arguments)
                 func_result = func_call(**func_args)
 
                 messages.append(
                     {
-                        "tool_call_id": tool_call["id"],
+                        "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": func_name,
                         "content": json.dumps(func_result),
                     }
                 )
-
-        payload["messages"] = messages
-        payload["stream"] = True
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
         logging.info(f"messages: {messages}")
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
-
+        stream_response = await client.chat.stream_async(
+            model=self.name, messages=messages
+        )
         message_content = ""
 
-        async for line in response.aiter_lines():
-            json_str = line.replace('data: ', '')
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
-                        message_content += delta
-                        yield delta
-            except json.JSONDecodeError:
-                pass
+        async for chunk in stream_response:
+            await asyncio.sleep(0.2) # 🚧 this is not an ideal permanent fix
+            if chunk.data.choices[0].delta.content:
+                message_content += chunk.data.choices[0].delta.content
+                yield chunk.data.choices[0].delta.content
 
         conversation.add_message(AgentMessage(content=message_content))
 
