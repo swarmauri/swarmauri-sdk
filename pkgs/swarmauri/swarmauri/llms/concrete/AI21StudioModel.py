@@ -316,7 +316,6 @@ class AI21StudioModel(LLMBase):
                 try:
                     if json_str:
                         chunk = json.loads(json_str)
-                        logging.info(chunk)
                         if (
                             chunk["choices"][0]["delta"]
                             and "content" in chunk["choices"][0]["delta"]
