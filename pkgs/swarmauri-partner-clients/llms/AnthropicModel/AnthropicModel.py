@@ -14,7 +14,11 @@ from swarmauri.utils.duration_manager import DurationManager
 
 class AnthropicModel(LLMBase):
     """
-    Provider resources: https://docs.anthropic.com/en/docs/about-claude/models#model-names
+    A class for integrating with the Anthropic API to facilitate interaction with various Claude models.
+    This class supports synchronous and asynchronous prediction, streaming, and batch processing of conversations.
+
+    Link to Allowed Models: https://docs.anthropic.com/en/docs/about-claude/models#model-names
+    Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
     api_key: str
@@ -32,7 +36,16 @@ class AnthropicModel(LLMBase):
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
-        # Get only the properties that we require
+        """
+        Formats messages by extracting necessary properties to prepare them for the model.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): The list of messages to format.
+
+        Returns:
+            List[Dict[str, str]]: A list of formatted message dictionaries.
+        """
+
         message_properties = ["content", "role"]
 
         # Exclude FunctionMessages
@@ -44,6 +57,15 @@ class AnthropicModel(LLMBase):
         return formatted_messages
 
     def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+        """
+        Extracts the system context from a list of messages if available.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): The list of messages to search through.
+
+        Returns:
+            str: The content of the system message if found; otherwise, None.
+        """
         system_context = None
         for message in messages:
             if message.role == "system":
@@ -57,7 +79,15 @@ class AnthropicModel(LLMBase):
         completion_time: float,
     ):
         """
-        Prepares and extracts usage data and response timing.
+        Prepares and extracts usage data along with timing information for prompt and completion.
+
+        Args:
+            usage_data (dict): The usage data from the model response.
+            prompt_time (float): The duration of the prompt phase.
+            completion_time (float): The duration of the completion phase.
+
+        Returns:
+            UsageData: A structured data object containing token counts and timing.
         """
         total_time = prompt_time + completion_time
 
@@ -79,7 +109,17 @@ class AnthropicModel(LLMBase):
         return usage
 
     def predict(self, conversation: Conversation, temperature=0.7, max_tokens=256):
-        # Create client
+        """
+        Generates a response synchronously based on the provided conversation context.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+
+        Returns:
+            Conversation: The updated conversation with the new response appended.
+        """
         client = Anthropic(api_key=self.api_key)
 
         # Get system_context from last message with system context in it
@@ -114,6 +154,17 @@ class AnthropicModel(LLMBase):
     async def apredict(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ):
+        """
+        Asynchronously generates a response based on the provided conversation context.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+
+        Returns:
+            Conversation: The updated conversation with the new response appended.
+        """
         client = AsyncAnthropic(api_key=self.api_key)
 
         system_context = self._get_system_context(conversation.history)
@@ -148,7 +199,17 @@ class AnthropicModel(LLMBase):
         return conversation
 
     def stream(self, conversation: Conversation, temperature=0.7, max_tokens=256):
-        # Create client
+        """
+        Streams the response in real-time for the given conversation.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+
+        Yields:
+            str: Segments of the streamed response.
+        """
         client = Anthropic(api_key=self.api_key)
 
         # Get system_context from last message with system context in it
@@ -189,6 +250,17 @@ class AnthropicModel(LLMBase):
     async def astream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ):
+        """
+        Asynchronously streams the response in real-time for the given conversation.
+
+        Args:
+            conversation (Conversation): The conversation object containing the message history.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+
+        Yields:
+            str: Segments of the streamed response.
+        """
         async_client = AsyncAnthropic(api_key=self.api_key)
 
         system_context = self._get_system_context(conversation.history)
@@ -237,7 +309,17 @@ class AnthropicModel(LLMBase):
         temperature=0.7,
         max_tokens=256,
     ) -> List:
-        """Synchronously process multiple conversations"""
+        """
+        Processes multiple conversations synchronously in a batch.
+
+        Args:
+            conversations (List[Conversation]): A list of conversation objects to process.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+
+        Returns:
+            List[Conversation]: A list of updated conversations with responses appended.
+        """
         return [
             self.predict(
                 conv,
@@ -254,7 +336,18 @@ class AnthropicModel(LLMBase):
         max_tokens=256,
         max_concurrent=5,
     ) -> List:
-        """Process multiple conversations in parallel with controlled concurrency"""
+        """
+        Processes multiple conversations asynchronously in parallel with a limit on concurrency.
+
+        Args:
+            conversations (List[Conversation]): A list of conversation objects to process.
+            temperature (float, optional): The temperature for sampling. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the response. Defaults to 256.
+            max_concurrent (int, optional): The maximum number of concurrent tasks. Defaults to 5.
+
+        Returns:
+            List[Conversation]: A list of updated conversations with responses appended.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):

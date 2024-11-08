@@ -28,7 +28,7 @@ class AnthropicToolModel(LLMBase):
         name (str): The default model name used for predictions.
         type (Literal): The type of the model, which is set to "AnthropicToolModel".
 
-    Provider resources: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+    Linked to Allowed Models: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
     Link to API KEY: https://console.anthropic.com/settings/keys
     """
 

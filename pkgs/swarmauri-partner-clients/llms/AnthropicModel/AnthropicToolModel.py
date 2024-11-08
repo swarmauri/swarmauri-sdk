@@ -17,20 +17,42 @@ from swarmauri.schema_converters.concrete.AnthropicSchemaConverter import (
 
 class AnthropicToolModel(LLMBase):
     """
-    Provider resources: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+    A specialized LLM class for interacting with Anthropic's models, including tool use capabilities.
+
+    This class facilitates model predictions, streaming, and batch processing with support for
+    tools. It integrates with the Anthropic API for model interactions and handles both synchronous
+    and asynchronous operations.
+
+    Attributes:
+        api_key (str): The API key for accessing Anthropic's services.
+        allowed_models (List[str]): A list of supported Anthropic model names.
+        name (str): The name of the default model used for predictions.
+        type (Literal): Specifies the class type as "AnthropicToolModel".
+
+    Linked to Allowed Models: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+    Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
     api_key: str
     allowed_models: List[str] = [
-        # "claude-3-haiku-20240307",
-        # "claude-3-opus-20240229",
-        # "claude-3-5-sonnet-20240620",
+        "claude-3-haiku-20240307",
+        "claude-3-opus-20240229",
+        "claude-3-5-sonnet-20240620",
         "claude-3-sonnet-20240229",
     ]
     name: str = "claude-3-sonnet-20240229"
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+        """
+        Converts a list of tools into a format compatible with Anthropic's API schema.
+
+        Args:
+            tools: A dictionary of tools to be converted.
+
+        Returns:
+            A list of dictionaries formatted for use with Anthropic's tool schema.
+        """
         schema_result = [
             AnthropicSchemaConverter().convert(tools[tool]) for tool in tools
         ]
@@ -40,6 +62,15 @@ class AnthropicToolModel(LLMBase):
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
+        """
+        Formats a list of conversation messages for Anthropic's API.
+
+        Args:
+            messages: A list of message objects.
+
+        Returns:
+            A list of dictionaries with formatted message data.
+        """
         message_properties = ["content", "role", "tool_call_id", "tool_calls"]
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
@@ -56,7 +87,19 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ):
+        """
+        Generates a prediction using Anthropic's model and handles tool interactions if necessary.
 
+        Args:
+            conversation: The conversation object containing the current conversation state.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+
+        Returns:
+            Updated conversation object with the model's response.
+        """
         formatted_messages = self._format_messages(conversation.history)
 
         client = Anthropic(api_key=self.api_key)
@@ -103,6 +146,19 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ):
+        """
+        Asynchronously generates a prediction using Anthropic's model and handles tool interactions if necessary.
+
+        Args:
+            conversation: The conversation object containing the current conversation state.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+
+        Returns:
+            Updated conversation object with the model's response.
+        """
         async_client = AsyncAnthropic(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -153,6 +209,19 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ) -> Iterator[str]:
+        """
+        Streams model responses in real-time for interactive conversations.
+
+        Args:
+            conversation: The conversation object containing the current conversation state.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+
+        Yields:
+            Chunks of response text as they are received from the model.
+        """
         client = Anthropic(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -220,6 +289,19 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ) -> AsyncIterator[str]:
+        """
+        Asynchronously streams model responses in real-time for interactive conversations.
+
+        Args:
+            conversation: The conversation object containing the current conversation state.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+
+        Yields:
+            Chunks of response text or JSON as they are received from the model.
+        """
         async_client = AsyncAnthropic(api_key=self.api_key)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -263,6 +345,19 @@ class AnthropicToolModel(LLMBase):
         temperature=0.7,
         max_tokens=1024,
     ) -> List:
+        """
+        Processes a batch of conversations sequentially for model predictions.
+
+        Args:
+            conversations: A list of conversation objects.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+
+        Returns:
+            A list of updated conversation objects with model responses.
+        """
         results = []
         for conv in conversations:
             result = self.predict(
@@ -284,6 +379,20 @@ class AnthropicToolModel(LLMBase):
         max_tokens=1024,
         max_concurrent=5,
     ) -> List:
+        """
+        Asynchronously processes a batch of conversations for model predictions with concurrency control.
+
+        Args:
+            conversations: A list of conversation objects.
+            toolkit: An optional toolkit for tool usage in the conversation.
+            tool_choice: Specifies the tool choice for the model (e.g., "auto").
+            temperature: The temperature for sampling output (default is 0.7).
+            max_tokens: The maximum number of tokens to generate (default is 1024).
+            max_concurrent: The maximum number of concurrent requests (default is 5).
+
+        Returns:
+            A list of updated conversation objects with model responses.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):

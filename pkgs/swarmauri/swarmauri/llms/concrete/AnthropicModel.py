@@ -20,7 +20,7 @@ class AnthropicModel(LLMBase):
         name (str): The default model name.
         type (Literal): Specifies the type of the model as "AnthropicModel".
 
-    Provider resources: https://docs.anthropic.com/en/docs/about-claude/models#model-names
+    Link to Allowed Models: https://docs.anthropic.com/en/docs/about-claude/models#model-names
     Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
