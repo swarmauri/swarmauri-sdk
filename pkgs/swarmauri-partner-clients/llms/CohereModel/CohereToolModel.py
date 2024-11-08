@@ -17,7 +17,19 @@ from swarmauri.schema_converters.concrete.CohereSchemaConverter import (
 class CohereToolModel(LLMBase):
     """
     A model for interacting with Cohere's API for tool-augmented conversations.
-    Provider resources: https://docs.cohere.com/docs/models#command
+    This class facilitates the integration with Cohere's conversational models
+    and supports both synchronous and asynchronous operations.
+
+    Attributes:
+        api_key (str): API key for authenticating with Cohere's API.
+        _client (Optional[cohere.Client]): Internal client for Cohere's API.
+        allowed_models (List[str]): List of supported model names.
+        name (str): Name of the Cohere model to be used.
+        type (Literal): Type of the model, fixed as 'CohereToolModel'.
+        resource (str): Resource type, defaulting to "LLM".
+
+    Link to Allowed Models: https://docs.cohere.com/docs/models#command
+    Link to API Key: https://dashboard.cohere.com/api-keys
     """
 
     api_key: str
@@ -32,19 +44,52 @@ class CohereToolModel(LLMBase):
     resource: str = "LLM"
 
     def __init__(self, **data):
+        """
+        Initializes a CohereToolModel instance with provided configuration.
+
+        Args:
+            **data: Keyword arguments for initialization, including API key.
+        """
         super().__init__(**data)
         self._client = cohere.Client(api_key=self.api_key)
 
     def model_dump(self, **kwargs):
+        """
+        Dumps the model's data excluding the internal client for safe serialization.
+
+        Args:
+            **kwargs: Additional arguments for the dump method.
+
+        Returns:
+            Dict: A dictionary representation of the model's data.
+        """
         dump = super().model_dump(**kwargs)
         return {k: v for k, v in dump.items() if k != "_client"}
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+        """
+        Converts tool specifications using the Cohere schema converter.
+
+        Args:
+            tools: A dictionary of tools to be converted.
+
+        Returns:
+            List[Dict[str, Any]]: A list of converted tool specifications.
+        """
         if not tools:
             return []
         return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _extract_text_content(self, content: Union[str, List[contentItem]]) -> str:
+        """
+        Extracts text content from message content items.
+
+        Args:
+            content (Union[str, List[contentItem]]): The content to be processed.
+
+        Returns:
+            str: Extracted text content.
+        """
         if isinstance(content, str):
             return content
         elif isinstance(content, list):
@@ -61,6 +106,15 @@ class CohereToolModel(LLMBase):
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
+        """
+        Formats conversation messages into a structure compatible with Cohere.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): List of messages to format.
+
+        Returns:
+            List[Dict[str, str]]: A formatted list of message dictionaries.
+        """
         formatted_messages = []
         role_mapping = {
             "human": "User",
@@ -96,6 +150,15 @@ class CohereToolModel(LLMBase):
         return formatted_messages
 
     def _ensure_conversation_has_message(self, conversation):
+        """
+        Ensures that a conversation has at least one initial message.
+
+        Args:
+            conversation: The conversation object.
+
+        Returns:
+            The updated conversation object.
+        """
         if not conversation.history:
             conversation.add_message(
                 HumanMessage(content=[{"type": "text", "text": "Hello"}])
@@ -103,6 +166,16 @@ class CohereToolModel(LLMBase):
         return conversation
 
     def _process_tool_calls(self, response, toolkit):
+        """
+        Processes tool calls from the Cohere API response.
+
+        Args:
+            response: The API response containing tool calls.
+            toolkit: The toolkit object with callable tools.
+
+        Returns:
+            List[Dict[str, Any]]: List of processed tool call results.
+        """
         tool_results = []
         if hasattr(response, "tool_calls") and response.tool_calls:
             for tool_call in response.tool_calls:
@@ -118,6 +191,18 @@ class CohereToolModel(LLMBase):
         return tool_results
 
     def predict(self, conversation, toolkit=None, temperature=0.3, max_tokens=1024):
+        """
+        Generates a response from the model for a given conversation.
+
+        Args:
+            conversation: The conversation object.
+            toolkit: The toolkit object with callable tools (optional).
+            temperature (float): The temperature for the model's output.
+            max_tokens (int): The maximum number of tokens for the output.
+
+        Returns:
+            The updated conversation object with the model's response.
+        """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
@@ -152,6 +237,18 @@ class CohereToolModel(LLMBase):
     def stream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> Iterator[str]:
+        """
+        Streams the model's response chunk by chunk for real-time interaction.
+
+        Args:
+            conversation: The conversation object.
+            toolkit: The toolkit object with callable tools (optional).
+            temperature (float): The temperature for the model's output.
+            max_tokens (int): The maximum number of tokens for the output.
+
+        Yields:
+            str: Chunks of the model's response text.
+        """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
@@ -192,6 +289,18 @@ class CohereToolModel(LLMBase):
     def batch(
         self, conversations: List, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> List:
+        """
+        Processes multiple conversations synchronously in batch mode.
+
+        Args:
+            conversations (List): A list of conversation objects to process.
+            toolkit (optional): Toolkit object for tool usage.
+            temperature (float, optional): Controls response randomness. Defaults to 0.3.
+            max_tokens (int, optional): Maximum tokens in each response. Defaults to 1024.
+
+        Returns:
+            List: A list of updated conversation objects with responses.
+        """
         results = []
         for conv in conversations:
             result = self.predict(
@@ -206,6 +315,18 @@ class CohereToolModel(LLMBase):
     async def apredict(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ):
+        """
+        Makes an asynchronous prediction by sending a conversation request to Cohere's API.
+
+        Args:
+            conversation: The conversation object to process.
+            toolkit (optional): Toolkit object for tool usage.
+            temperature (float, optional): Controls response randomness. Defaults to 0.3.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
+
+        Returns:
+            Updated conversation object with the predicted response.
+        """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
@@ -242,6 +363,18 @@ class CohereToolModel(LLMBase):
     async def astream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> AsyncIterator[str]:
+        """
+        Streams response content asynchronously as it is received from Cohere's API.
+
+        Args:
+            conversation: The conversation object to process.
+            toolkit (optional): Toolkit object for tool usage.
+            temperature (float, optional): Controls response randomness. Defaults to 0.3.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
+
+        Yields:
+            AsyncIterator[str]: Streamed content as it is received.
+        """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
@@ -290,6 +423,19 @@ class CohereToolModel(LLMBase):
         max_tokens=1024,
         max_concurrent=5,
     ) -> List:
+        """
+        Processes multiple conversations asynchronously in batch mode with concurrency control.
+
+        Args:
+            conversations (List): A list of conversation objects to process.
+            toolkit (optional): Toolkit object for tool usage.
+            temperature (float, optional): Controls response randomness. Defaults to 0.3.
+            max_tokens (int, optional): Maximum tokens in each response. Defaults to 1024.
+            max_concurrent (int, optional): Maximum concurrent requests allowed. Defaults to 5.
+
+        Returns:
+            List: A list of updated conversation objects with responses.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
