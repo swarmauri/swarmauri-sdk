@@ -16,9 +16,12 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 aiohttp = "^3.10.10"
-anthropic = "^0.36.2"
-beautifulsoup4 = "04.12.3"
-#cohere = "^5.11.0" # Implemented REST-based version of Cohere
+
+#anthropic = "^0.36.2" # Moving this out, we are now using the anthropic rest api.
+# cohere = "^5.11.0"
+# anthropic = "^0.36.2"
+# beautifulsoup4 = "04.12.3"
+
 #deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
 gensim = "==4.3.3"
 google-generativeai = "^0.8.3"
@@ -27,6 +30,7 @@ joblib = "^1.4.0"
 nltk = "^3.9.1"
 numpy = "*"
 openai = "^1.52.0"
+
 #opencv-python = "^4.10.0.84"
 pandas = "*"
 pydantic = "^2.9.2"
