@@ -1,12 +1,11 @@
 import asyncio
 import json
-from pydantic import PrivateAttr
-import httpx
-import requests
 from swarmauri.conversations.concrete.Conversation import Conversation
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
+from typing import Generator, List, Optional, Dict, Literal, Any, Union, AsyncGenerator
 
+from groq import Groq, AsyncGroq
 from swarmauri_core.typing import SubclassUnion
+
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
@@ -50,7 +49,6 @@ class GroqModel(LLMBase):
     ]
     name: str = "gemma-7b-it"
     type: Literal["GroqModel"] = "GroqModel"
-    _api_url: str = PrivateAttr("https://api.groq.com/openai/v1/chat/completions")
 
     def _format_messages(
         self,
@@ -65,7 +63,6 @@ class GroqModel(LLMBase):
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
         """
-
         formatted_messages = []
         for message in messages:
             formatted_message = message.model_dump(
@@ -81,7 +78,10 @@ class GroqModel(LLMBase):
             formatted_messages.append(formatted_message)
         return formatted_messages
 
-    def _prepare_usage_data(self, usage_data) -> UsageData:
+    def _prepare_usage_data(
+        self,
+        usage_data,
+    ) -> UsageData:
         """
         Prepares and validates usage data received from the API response.
 
@@ -91,29 +91,13 @@ class GroqModel(LLMBase):
         Returns:
             UsageData: Validated usage data instance.
         """
-        return UsageData.model_validate(usage_data)
 
-    def _make_request(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Sends a synchronous HTTP POST request to the API and retrieves the response.
-
-        Args:
-            data (dict): Payload data to be sent in the API request.
-
-        Returns:
-            dict: Parsed JSON response from the API.
-        """
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
-        response = requests.post(self._api_url, headers=headers, json=data)
-        response.raise_for_status()  # Raise an error for HTTP issues
-        return response.json()
+        usage = UsageData.model_validate(usage_data)
+        return usage
 
     def predict(
         self,
-        conversation: Conversation,
+        conversation,
         temperature: float = 0.7,
         max_tokens: int = 256,
         top_p: float = 1.0,
@@ -134,29 +118,35 @@ class GroqModel(LLMBase):
         Returns:
             Conversation: Updated conversation with the model's response.
         """
+
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "top_p": top_p,
+            "response_format": response_format,
             "stop": stop or [],
         }
-        if enable_json:
-            data["response_format"] = "json_object"
 
-        result = self._make_request(data)
+        client = Groq(api_key=self.api_key)
+        response = client.chat.completions.create(**kwargs)
+
+        result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
         usage_data = result.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
+
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     async def apredict(
         self,
-        conversation: Conversation,
+        conversation,
         temperature: float = 0.7,
         max_tokens: int = 256,
         top_p: float = 1.0,
@@ -177,36 +167,41 @@ class GroqModel(LLMBase):
         Returns:
             Conversation: Updated conversation with the model's response.
         """
+
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "top_p": top_p,
+            "response_format": response_format,
             "stop": stop or [],
         }
-        if enable_json:
-            data["response_format"] = "json_object"
 
-        # Use asyncio's to_thread to call synchronous code in an async context
-        result = await asyncio.to_thread(self._make_request, data)
+        client = AsyncGroq(api_key=self.api_key)
+        response = await client.chat.completions.create(**kwargs)
+
+        result = json.loads(response.model_dump_json())
         message_content = result["choices"][0]["message"]["content"]
         usage_data = result.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
+
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     def stream(
         self,
-        conversation: Conversation,
+        conversation,
         temperature: float = 0.7,
         max_tokens: int = 256,
         top_p: float = 1.0,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ) -> Generator[str, None, None]:
+    ) -> Union[str, Generator[str, str, None]]:
         """
         Streams response text from the model in real-time.
 
@@ -223,45 +218,40 @@ class GroqModel(LLMBase):
         """
 
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "top_p": top_p,
+            "response_format": response_format,
             "stream": True,
             "stop": stop or [],
-        }
-        if enable_json:
-            data["response_format"] = "json_object"
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            # "stream_options": {"include_usage": True},
         }
 
-        with requests.post(
-            self._api_url, headers=headers, json=data, stream=True
-        ) as response:
-            response.raise_for_status()
-            message_content = ""
-            for line in response.iter_lines(decode_unicode=True):
-                json_str = line.replace('data: ', '')
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                except json.JSONDecodeError:
-                    pass
+        client = Groq(api_key=self.api_key)
+        stream = client.chat.completions.create(**kwargs)
+        message_content = ""
+        # usage_data = {}
 
-            conversation.add_message(AgentMessage(content=message_content))
+        for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+                # if hasattr(chunk, "usage") and chunk.usage is not None:
+                #     usage_data = chunk.usage
+
+        # usage = self._prepare_usage_data(usage_data)
+
+        conversation.add_message(AgentMessage(content=message_content))
 
     async def astream(
         self,
-        conversation: Conversation,
+        conversation,
         temperature: float = 0.7,
         max_tokens: int = 256,
         top_p: float = 1.0,
@@ -284,40 +274,35 @@ class GroqModel(LLMBase):
         """
 
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        response_format = {"type": "json_object"} if enable_json else None
+
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "top_p": top_p,
-            "stream": True,
+            "response_format": response_format,
             "stop": stop or [],
-        }
-        if enable_json:
-            data["response_format"] = "json_object"
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            "stream": True,
+            # "stream_options": {"include_usage": True},
         }
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self._api_url, headers=headers, json=data, timeout=None)
+        client = AsyncGroq(api_key=self.api_key)
+        stream = await client.chat.completions.create(**kwargs)
 
-            response.raise_for_status()
-            message_content = ""
-            async for line in response.aiter_lines():
-                json_str = line.replace('data: ', '')
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                except json.JSONDecodeError:
-                    pass
+        message_content = ""
+        # usage_data = {}
 
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                message_content += chunk.choices[0].delta.content
+                yield chunk.choices[0].delta.content
+
+                # if hasattr(chunk, "usage") and chunk.usage is not None:
+                #     usage_data = chunk.usage
+
+        # usage = self._prepare_usage_data(usage_data)
         conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
@@ -343,18 +328,17 @@ class GroqModel(LLMBase):
         Returns:
             List[Conversation]: List of updated conversations with model responses.
         """
-        results = []
-        for conversation in conversations:
-            result_conversation = self.predict(
-                conversation,
+        return [
+            self.predict(
+                conv,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,
                 enable_json=enable_json,
                 stop=stop,
             )
-            results.append(result_conversation)
-        return results
+            for conv in conversations
+        ]
 
     async def abatch(
         self,
@@ -383,7 +367,7 @@ class GroqModel(LLMBase):
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv: Conversation) -> Conversation:
+        async def process_conversation(conv) -> str | AsyncGenerator[str, None]:
             async with semaphore:
                 return await self.apredict(
                     conv,
