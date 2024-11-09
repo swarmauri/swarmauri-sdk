@@ -72,7 +72,7 @@ def test_no_system_context(mistral_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(conversation.get_last().usage, UsageData)
     logging.info(conversation.get_last().usage)
 
@@ -97,7 +97,7 @@ def test_preamble_system_context(mistral_model, model_name):
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
 
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Jeff" in prediction
     assert isinstance(conversation.get_last().usage, UsageData)
 

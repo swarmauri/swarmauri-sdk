@@ -1,9 +1,8 @@
 import asyncio
 import json
 from typing import AsyncIterator, Iterator, List, Literal, Dict
-import httpx
-from pydantic import PrivateAttr
-import requests
+import mistralai
+from anyio import sleep
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -31,7 +30,6 @@ class MistralModel(LLMBase):
 
     Provider resources: https://docs.mistral.ai/getting-started/models/
     """
-
     api_key: str
     allowed_models: List[str] = [
         "open-mistral-7b",
@@ -46,16 +44,6 @@ class MistralModel(LLMBase):
     ]
     name: str = "open-mixtral-8x7b"
     type: Literal["MistralModel"] = "MistralModel"
-    _api_url: str = PrivateAttr("https://api.mistral.ai/v1/chat/completions")
-    _headers: Dict[str, str] = PrivateAttr(None)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -79,9 +67,9 @@ class MistralModel(LLMBase):
 
     def _prepare_usage_data(
         self,
-        usage_data: Dict[str, float],
-        prompt_time: float = 0,
-        completion_time: float = 0,
+        usage_data,
+        prompt_time: float,
+        completion_time: float,
     ) -> UsageData:
         """
         Prepare usage data by combining token counts and timing information.
@@ -130,8 +118,9 @@ class MistralModel(LLMBase):
             Conversation: Updated conversation with the model response.
         """
         formatted_messages = self._format_messages(conversation.history)
+        client = mistralai.Mistral(api_key=self.api_key)
 
-        payload = {
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -141,22 +130,20 @@ class MistralModel(LLMBase):
         }
 
         if enable_json:
-            payload["response_format"] = {"type": "json_object"}
+            kwargs["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
-            )
-            response.raise_for_status()
+            response = client.chat.complete(**kwargs)
 
-        response_data = response.json()
-        message_content = response_data["choices"][0]["message"]["content"]
+        with DurationManager() as completion_timer:
+            result = json.loads(response.model_dump_json())
+            message_content = result["choices"][0]["message"]["content"]
 
-        usage_data = response_data.get("usage", {})
+        usage_data = result.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
@@ -186,8 +173,9 @@ class MistralModel(LLMBase):
             Conversation: Updated conversation with the model response.
         """
         formatted_messages = self._format_messages(conversation.history)
+        client = mistralai.Mistral(api_key=self.api_key)
 
-        payload = {
+        kwargs = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -197,22 +185,21 @@ class MistralModel(LLMBase):
         }
 
         if enable_json:
-            payload["response_format"] = {"type": "json_object"}
+            kwargs["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = await client.chat.complete_async(**kwargs)
+            await sleep(0.2)
 
-        response_data = response.json()
+        with DurationManager() as completion_timer:
+            result = json.loads(response.model_dump_json())
+            message_content = result["choices"][0]["message"]["content"]
 
-        message_content = response_data["choices"][0]["message"]["content"]
+        usage_data = result.get("usage", {})
 
-        usage_data = response_data.get("usage", {})
-
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
@@ -240,48 +227,32 @@ class MistralModel(LLMBase):
             str: Chunks of response content.
         """
         formatted_messages = self._format_messages(conversation.history)
-
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "safe_prompt": safe_prompt,
-            "stream": True,
-        }
+        client = mistralai.Mistral(api_key=self.api_key)
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
+            stream_response = client.chat.stream(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                safe_prompt=safe_prompt,
             )
-            response.raise_for_status()
 
-        usage_data = {}
         message_content = ""
+        usage_data = {}
 
         with DurationManager() as completion_timer:
-            for line in response.iter_lines(decode_unicode=True):
-                json_str = line.replace("data: ", "")
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if (
-                            chunk["choices"][0]["delta"]
-                            and "content" in chunk["choices"][0]["delta"]
-                        ):
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                        if "usage" in chunk:
-                            usage_data = chunk.get("usage", {})
-                except json.JSONDecodeError:
-                    pass
+            for chunk in stream_response:
+                if chunk.data.choices[0].delta.content:
+                    message_content += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+                if hasattr(chunk.data, "usage") and chunk.data.usage is not None:
+                    usage_data = chunk.data.usage
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
+            usage_data.model_dump(), prompt_timer.duration, completion_timer.duration
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -308,46 +279,32 @@ class MistralModel(LLMBase):
             str: Chunks of response content.
         """
         formatted_messages = self._format_messages(conversation.history)
-
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "safe_prompt": safe_prompt,
-            "stream": True,
-        }
+        client = mistralai.Mistral(api_key=self.api_key)
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            stream_response = await client.chat.stream_async(
+                model=self.name,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                safe_prompt=safe_prompt,
+            )
 
-                usage_data = {}
-                message_content = ""
+        usage_data = {}
+        message_content = ""
 
         with DurationManager() as completion_timer:
-            async for line in response.aiter_lines():
-                json_str = line.replace("data: ", "")
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if (
-                            chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
-                        ):
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                        if "usage" in chunk:
-                            usage_data = chunk.get("usage", {})
-                except json.JSONDecodeError:
-                    pass
+            async for chunk in stream_response:
+                if chunk.data.choices[0].delta.content:
+                    message_content += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+                if hasattr(chunk.data, "usage") and chunk.data.usage is not None:
+                    usage_data = chunk.data.usage
 
         usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
+            usage_data.model_dump(), prompt_timer.duration, completion_timer.duration
         )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
