@@ -1,13 +1,14 @@
 import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
+import openai
+from openai import AsyncOpenAI
 import asyncio
-import httpx
 from pydantic import Field
 from swarmauri_core.typing import SubclassUnion
+
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
-import logging
 
 
 class DeepSeekModel(LLMBase):
@@ -34,18 +35,16 @@ class DeepSeekModel(LLMBase):
     allowed_models: List[str] = ["deepseek-chat"]
     name: str = "deepseek-chat"
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
-    client: httpx.Client = Field(default=None, exclude=True)
-    async_client: httpx.AsyncClient = Field(default=None, exclude=True)
+    client: openai.OpenAI = Field(default=None, exclude=True)
+    async_client: AsyncOpenAI = Field(default=None, exclude=True)
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url="https://api.deepseek.com",
+        self.client = openai.OpenAI(
+            api_key=self.api_key, base_url="https://api.deepseek.com"
         )
-        self.async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url="https://api.deepseek.com",
+        self.async_client = AsyncOpenAI(
+            api_key=self.api_key, base_url="https://api.deepseek.com"
         )
 
     def _format_messages(
@@ -92,21 +91,21 @@ class DeepSeekModel(LLMBase):
             Updated conversation object with the generated response added.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "messages": formatted_messages,
-            "model": self.name,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "response_format": {"type": "text"},
-            "stop": stop,
-            "top_p": top_p,
-        }
-        response = self.client.post("/v1/chat/completions", json=payload)
-        response.raise_for_status()
-        message_content = response.json()["choices"][0]["message"]["content"]
+
+        response = self.client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stop=stop,
+            top_p=top_p,
+        )
+
+        message_content = response.choices[0].message.content
         conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     async def apredict(
@@ -135,21 +134,21 @@ class DeepSeekModel(LLMBase):
             Updated conversation object with the generated response added.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "messages": formatted_messages,
-            "model": self.name,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "response_format": {"type": "text"},
-            "stop": stop,
-            "top_p": top_p,
-        }
-        response = await self.async_client.post("/v1/chat/completions", json=payload)
-        response.raise_for_status()
-        message_content = response.json()["choices"][0]["message"]["content"]
+
+        response = await self.async_client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stop=stop,
+            top_p=top_p,
+        )
+
+        message_content = response.choices[0].message.content
         conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     def stream(
@@ -178,37 +177,28 @@ class DeepSeekModel(LLMBase):
             str: Token of the response being streamed.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "messages": formatted_messages,
-            "model": self.name,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "response_format": {"type": "text"},
-            "stop": stop,
-            "top_p": top_p,
-            "stream": True,
-        }
-        with self.client.stream(
-            "POST", "/v1/chat/completions", json=payload
-        ) as response:
-            response.raise_for_status()
-            collected_content = []
-            for line in response.iter_lines():
-                json_str = line.replace("data: ", "")
-                if json_str:
-                    try:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]["content"]:
-                            content = chunk["choices"][0]["delta"]["content"]
-                            collected_content.append(content)
-                            yield content
-                    except json.JSONDecodeError:
-                        pass
 
-            full_content = "".join(collected_content)
-            conversation.add_message(AgentMessage(content=full_content))
+        stream = self.client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stop=stop,
+            stream=True,
+            top_p=top_p,
+        )
+
+        collected_content = []
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
 
     async def astream(
         self,
@@ -236,36 +226,28 @@ class DeepSeekModel(LLMBase):
             str: Token of the response being streamed.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "messages": formatted_messages,
-            "model": self.name,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "response_format": {"type": "text"},
-            "stop": stop,
-            "top_p": top_p,
-            "stream": True,
-        }
-        async with self.async_client.stream(
-            "POST", "/v1/chat/completions", json=payload
-        ) as response:
-            response.raise_for_status()
-            collected_content = []
-            async for line in response.aiter_lines():
-                json_str = line.replace("data: ", "")
-                if json_str:
-                    try:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]["content"]:
-                            content = chunk["choices"][0]["delta"]["content"]
-                            collected_content.append(content)
-                            yield content
-                    except json.JSONDecodeError:
-                        pass
-            full_content = "".join(collected_content)
-            conversation.add_message(AgentMessage(content=full_content))
+
+        stream = await self.async_client.chat.completions.create(
+            model=self.name,
+            messages=formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stop=stop,
+            stream=True,
+            top_p=top_p,
+        )
+
+        collected_content = []
+        async for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                yield content
+
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
 
     def batch(
         self,

@@ -98,7 +98,7 @@ def test_agent_exec(mistral_tool_model, toolkit, model_name):
         llm=mistral_tool_model, conversation=conversation, toolkit=toolkit
     )
     result = agent.exec("Add 512+671")
-    assert type(result) == str
+    assert type(result) is str
 
 
 @timeout(5)

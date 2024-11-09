@@ -42,11 +42,11 @@ pymupdf = "*"
 annoy = "*"
 qdrant_client = "*"
 weaviate = "*"
-pinecone = { version = "*", extras = ["grpc"] }
+pinecone-client = { version = "*", extras = ["grpc"] }
 PyPDF2 = "*"
 pypdftk = "*"
 weaviate-client = "*"
-
+protobuf = "^3.20.0"
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"
 #pacmap = "==0.7.3"
