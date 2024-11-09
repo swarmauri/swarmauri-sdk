@@ -1,8 +1,9 @@
 import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
-from openai import OpenAI, AsyncOpenAI
-from pydantic import Field
+import requests
+import aiohttp
 import asyncio
+from pydantic import Field, BaseModel
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -12,7 +13,32 @@ from swarmauri.llms.base.LLMBase import LLMBase
 
 class DeepInfraModel(LLMBase):
     """
-    Provider resources: https://deepinfra.com/models/text-generation
+    A class for interacting with DeepInfra's model API for text generation.
+
+    This implementation directly sends HTTP requests to DeepInfra's API,
+    providing support for synchronous and asynchronous predictions,
+    streaming responses, and batch processing.
+
+    Attributes:
+        api_key (str): DeepInfra API key for authentication
+            Can be obtained from: https://deepinfra.com/dash/api_keys
+
+        allowed_models (List[str]): List of supported model identifiers on DeepInfra
+            Full list available at: https://deepinfra.com/models/text-generation
+
+        name (str): The currently selected model name
+            Defaults to "Qwen/Qwen2-72B-Instruct"
+
+        type (Literal["DeepInfraModel"]): Type identifier for the model class
+
+        base_url (str): Base URL for the DeepInfra API
+            Set to "https://api.deepinfra.com/v1/openai"
+
+        headers (Dict[str, str]): HTTP headers for API requests
+            Automatically configured with authentication and content type
+
+    Link to Allowed Models: https://deepinfra.com/models/text-generation
+    Link to API KEY: https://deepinfra.com/dash/api_keys
     """
 
     api_key: str
@@ -70,27 +96,82 @@ class DeepInfraModel(LLMBase):
 
     name: str = "Qwen/Qwen2-72B-Instruct"
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
-    client: OpenAI = Field(default=None, exclude=True)
-    async_client: AsyncOpenAI = Field(default=None, exclude=True)
+    base_url: str = "https://api.deepinfra.com/v1/openai"
+    headers: Dict[str, str] = Field(default_factory=dict, exclude=True)
 
     def __init__(self, **data):
+        """
+        Initializes the DeepInfraModel instance with the provided API key
+        and headers for authorization.
+
+        Args:
+            **data: Keyword arguments for model initialization.
+        """
         super().__init__(**data)
-        self.client = OpenAI(
-            api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
-        )
-        self.async_client = AsyncOpenAI(
-            api_key=self.api_key, base_url="https://api.deepinfra.com/v1/openai"
-        )
+        self.headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
+        """
+        Formats conversation history into a list of dictionaries suitable for API requests.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): The conversation history.
+
+        Returns:
+            List[Dict[str, str]]: Formatted message list.
+        """
         message_properties = ["content", "role", "name"]
-        formatted_messages = [
+        return [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
         ]
-        return formatted_messages
+
+    def _create_request_payload(
+        self,
+        formatted_messages: List[Dict[str, str]],
+        temperature: float,
+        max_tokens: int,
+        enable_json: bool,
+        stop: List[str] = None,
+        stream: bool = False,
+    ) -> Dict:
+        """
+        Creates the payload for the API request.
+
+        Args:
+            formatted_messages (List[Dict[str, str]]): Formatted messages for the conversation.
+            temperature (float): Sampling temperature for the response.
+            max_tokens (int): Maximum number of tokens to generate.
+            enable_json (bool): Whether to enable JSON response format.
+            stop (List[str], optional): Stop sequences.
+            stream (bool): Whether to stream the response.
+
+        Returns:
+            Dict: Payload for the API request.
+        """
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "stream": stream,
+        }
+
+        if stop:
+            payload["stop"] = stop
+
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        return payload
 
     def predict(
         self,
@@ -100,25 +181,30 @@ class DeepInfraModel(LLMBase):
         enable_json=False,
         stop: List[str] = None,
     ):
+        """
+        Sends a synchronous request to generate a response from the model.
+
+        Args:
+            conversation: The conversation object containing message history.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            enable_json (bool): Flag for enabling JSON response format.
+            stop (List[str], optional): Stop sequences for the response.
+
+        Returns:
+            Updated conversation with the model's response.
+        """
         formatted_messages = self._format_messages(conversation.history)
+        payload = self._create_request_payload(
+            formatted_messages, temperature, max_tokens, enable_json, stop
+        )
 
-        kwargs = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": 1,
-            "frequency_penalty": 0,
-            "presence_penalty": 0,
-            "stop": stop,
-        }
+        response = requests.post(
+            f"{self.base_url}/chat/completions", headers=self.headers, json=payload
+        )
+        response.raise_for_status()
 
-        if enable_json:
-            kwargs["response_format"] = {"type": "json_object"}
-
-        response = self.client.chat.completions.create(**kwargs)
-
-        result = json.loads(response.model_dump_json())
+        result = response.json()
         message_content = result["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
 
@@ -132,27 +218,36 @@ class DeepInfraModel(LLMBase):
         enable_json=False,
         stop: List[str] = None,
     ):
+        """
+        Sends an asynchronous request to generate a response from the model.
+
+        Args:
+            conversation: The conversation object containing message history.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            enable_json (bool): Flag for enabling JSON response format.
+            stop (List[str], optional): Stop sequences for the response.
+
+        Returns:
+            Updated conversation with the model's response.
+        """
         formatted_messages = self._format_messages(conversation.history)
+        payload = self._create_request_payload(
+            formatted_messages, temperature, max_tokens, enable_json, stop
+        )
 
-        kwargs = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": 1,
-            "frequency_penalty": 0,
-            "presence_penalty": 0,
-            "stop": stop,
-        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.base_url}/chat/completions", headers=self.headers, json=payload
+            ) as response:
+                if response.status != 200:
+                    raise aiohttp.ClientResponseError(
+                        response.request_info, response.history, status=response.status
+                    )
 
-        if enable_json:
-            kwargs["response_format"] = {"type": "json_object"}
-
-        response = await self.async_client.chat.completions.create(**kwargs)
-
-        result = json.loads(response.model_dump_json())
-        message_content = result["choices"][0]["message"]["content"]
-        conversation.add_message(AgentMessage(content=message_content))
+                result = await response.json()
+                message_content = result["choices"][0]["message"]["content"]
+                conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -163,23 +258,43 @@ class DeepInfraModel(LLMBase):
         max_tokens=256,
         stop: List[str] = None,
     ) -> Iterator[str]:
-        formatted_messages = self._format_messages(conversation.history)
+        """
+        Streams response content from the model synchronously.
 
-        stream = self.client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=True,
-            stop=stop,
+        Args:
+            conversation: The conversation object containing message history.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            stop (List[str], optional): Stop sequences for the response.
+
+        Yields:
+            str: Chunks of content from the model's response.
+        """
+        formatted_messages = self._format_messages(conversation.history)
+        payload = self._create_request_payload(
+            formatted_messages, temperature, max_tokens, False, stop, stream=True
         )
 
+        response = requests.post(
+            f"{self.base_url}/chat/completions",
+            headers=self.headers,
+            json=payload,
+            stream=True,
+        )
+        response.raise_for_status()
+
         collected_content = []
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        for line in response.iter_lines():
+            if line:
+                line = line.decode("utf-8")
+                if line.startswith("data: "):
+                    line = line[6:]  # Remove 'data: ' prefix
+                    if line != "[DONE]":
+                        chunk = json.loads(line)
+                        if chunk["choices"][0]["delta"].get("content"):
+                            content = chunk["choices"][0]["delta"]["content"]
+                            collected_content.append(content)
+                            yield content
 
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
@@ -191,23 +306,43 @@ class DeepInfraModel(LLMBase):
         max_tokens=256,
         stop: List[str] = None,
     ) -> AsyncIterator[str]:
-        formatted_messages = self._format_messages(conversation.history)
+        """
+        Streams response content from the model asynchronously.
 
-        stream = await self.async_client.chat.completions.create(
-            model=self.name,
-            messages=formatted_messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=True,
-            stop=stop,
+        Args:
+            conversation: The conversation object containing message history.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            stop (List[str], optional): Stop sequences for the response.
+
+        Yields:
+            str: Chunks of content from the model's response.
+        """
+        formatted_messages = self._format_messages(conversation.history)
+        payload = self._create_request_payload(
+            formatted_messages, temperature, max_tokens, False, stop, stream=True
         )
 
         collected_content = []
-        async for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                collected_content.append(content)
-                yield content
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.base_url}/chat/completions", headers=self.headers, json=payload
+            ) as response:
+                if response.status != 200:
+                    raise aiohttp.ClientResponseError(
+                        response.request_info, response.history, status=response.status
+                    )
+
+                async for line in response.content:
+                    line = line.decode("utf-8").strip()
+                    if line.startswith("data: "):
+                        line = line[6:]  # Remove 'data: ' prefix
+                        if line != "[DONE]":
+                            chunk = json.loads(line)
+                            if chunk["choices"][0]["delta"].get("content"):
+                                content = chunk["choices"][0]["delta"]["content"]
+                                collected_content.append(content)
+                                yield content
 
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
@@ -220,6 +355,19 @@ class DeepInfraModel(LLMBase):
         enable_json=False,
         stop: List[str] = None,
     ) -> List:
+        """
+        Processes multiple conversations in a batch synchronously.
+
+        Args:
+            conversations (List): List of conversation objects.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            enable_json (bool): Flag for enabling JSON response format.
+            stop (List[str], optional): Stop sequences for responses.
+
+        Returns:
+            List: List of updated conversations with model responses.
+        """
         return [
             self.predict(
                 conv,
@@ -240,6 +388,20 @@ class DeepInfraModel(LLMBase):
         stop: List[str] = None,
         max_concurrent=5,
     ) -> List:
+        """
+        Processes multiple conversations asynchronously, with concurrency control.
+
+        Args:
+            conversations (List): List of conversation objects.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum number of tokens to generate.
+            enable_json (bool): Flag for enabling JSON response format.
+            stop (List[str], optional): Stop sequences for responses.
+            max_concurrent (int): Maximum number of concurrent tasks.
+
+        Returns:
+            List: List of updated conversations with model responses.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
