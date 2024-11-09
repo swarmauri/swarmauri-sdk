@@ -51,7 +51,7 @@ def toolkit():
 def conversation():
     conversation = Conversation()
 
-    input_data = "Add 512+671"
+    input_data = "what will the sum of 512 boys and 671 boys"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -93,7 +93,7 @@ def test_agent_exec(groq_tool_model, toolkit, conversation, model_name):
 
     agent = ToolAgent(llm=groq_tool_model, conversation=conversation, toolkit=toolkit)
     result = agent.exec("Add 512+671")
-    assert type(result) == str
+    assert type(result) is str
 
 
 @timeout(5)
@@ -116,6 +116,7 @@ def test_stream(groq_tool_model, toolkit, conversation, model_name):
 
     collected_tokens = []
     for token in groq_tool_model.stream(conversation=conversation, toolkit=toolkit):
+        logging.info(token)
         assert isinstance(token, str)
         collected_tokens.append(token)
 
