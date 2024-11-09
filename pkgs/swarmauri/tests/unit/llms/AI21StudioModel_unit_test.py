@@ -99,7 +99,7 @@ def test_preamble_system_context(ai21studio_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Jeff" in prediction, f"Test failed for model: {model_name}"
     assert isinstance(conversation.get_last().usage, UsageData)
 
