@@ -16,6 +16,8 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 aiohttp = "^3.10.10"
+groq = "^0.11.0"
+toml = "^0.10.2"
 
 # anthropic = "^0.36.2" # Moving this out, we are now using the anthropic rest api.
  cohere = "^5.11.0"
