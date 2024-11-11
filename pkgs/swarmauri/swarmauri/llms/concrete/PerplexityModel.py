@@ -174,11 +174,11 @@ class PerplexityModel(LLMBase):
     ):
         if top_p and top_k:
             raise ValueError("Do not set top_p and top_k")
-
+    
         formatted_messages = self._format_messages(conversation.history)
-
+    
         url = "https://api.perplexity.ai/chat/completions"
-
+    
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -196,30 +196,35 @@ class PerplexityModel(LLMBase):
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
-
+    
         with DurationManager() as prompt_timer:
             with httpx.Client() as client:
                 with client.stream("POST", url, json=payload, headers=headers) as response:
                     response.raise_for_status()
                     message_content = ""
+                    usage_data = None
                     for chunk in response.iter_text():
-                        json_string = chunk.replace("data: ", "", 1)
+                        json_string = chunk.replace("data: ", "", 1).strip()
                         if json_string:
-                            chunk_data = json.loads(json_string)
-                            delta_content = (
-                                chunk_data.get("choices", [{}])[0]
-                                .get("delta", {})
-                                .get("content", "")
-                            )
-                            message_content += delta_content
-                            yield delta_content
-
-                            if chunk_data["usage"]:
-                                usage_data = chunk_data["usage"]
-
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+                            try:
+                                chunk_data = json.loads(json_string)
+                                delta_content = (
+                                    chunk_data.get("choices", [{}])[0]
+                                    .get("delta", {})
+                                    .get("content", "")
+                                )
+                                message_content += delta_content
+                                yield delta_content
+    
+                                if "usage" in chunk_data:
+                                    usage_data = chunk_data["usage"]
+                            except json.JSONDecodeError:
+                                # Handle or log the decoding error if needed
+                                continue  # Skip invalid JSON
+    
+        if usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     async def astream(
         self,
@@ -234,11 +239,11 @@ class PerplexityModel(LLMBase):
     ):
         if top_p and top_k:
             raise ValueError("Do not set top_p and top_k")
-
+    
         formatted_messages = self._format_messages(conversation.history)
-
+    
         url = "https://api.perplexity.ai/chat/completions"
-
+    
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -256,30 +261,36 @@ class PerplexityModel(LLMBase):
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
-
+    
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient() as client:
                 async with client.stream("POST", url, json=payload, headers=headers) as response:
                     message_content = ""
-                    usage_data = {}
-
+                    usage_data = None
+    
                     async for line in response.aiter_text():
-                        json_string = line.replace("data: ", "", 1)
-                        if json_string:  # Ensure it's not empty
-                            chunk_data = json.loads(json_string)
-                            delta_content = (
-                                chunk_data.get("choices", [{}])[0]
-                                .get("delta", {})
-                                .get("content", "")
-                            )
-                            message_content += delta_content
+                        json_string = line.replace("data: ", "", 1).strip()
+                        if json_string:
+                            try:
+                                chunk_data = json.loads(json_string)
+                                delta_content = (
+                                    chunk_data.get("choices", [{}])[0]
+                                    .get("delta", {})
+                                    .get("content", "")
+                                )
+                                message_content += delta_content
+    
+                                yield delta_content
+    
+                                if "usage" in chunk_data:
+                                    usage_data = chunk_data["usage"]
+                            except json.JSONDecodeError:
+                                continue  # Skip invalid JSON
+    
+        if usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
-                            yield delta_content
-
-                            usage_data = chunk_data.get("usage", usage_data)
-
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     def batch(
         self,
