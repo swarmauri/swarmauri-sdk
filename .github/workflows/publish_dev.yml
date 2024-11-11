@@ -1,8 +1,9 @@
-name: Test and Publish Dev Release
+name: Test and Publish Release
 
 on:
   push:
     branches: ["*dev*"]
+    tags: ["v*"]  # Only trigger for tags starting with 'v' (e.g., v1.0.0)
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -12,7 +13,7 @@ on:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
 
@@ -34,9 +35,7 @@ jobs:
           fi
 
           # Export it to GITHUB_OUTPUT in JSON format
-          echo "packages=$CHANGED_PACKAGES_ARRAY"
           echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
- 
 
   test:
     needs: detect-changes
@@ -87,9 +86,6 @@ jobs:
       # Miscellaneous Tokens
       DANGER_MASTER_PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-
-      
 
     steps:
       - uses: actions/checkout@v4
@@ -146,9 +142,9 @@ jobs:
         continue-on-error: false
 
       - name: Publish to PyPI
-        if: success()
+        if: github.ref_type == 'tag' && success()  # Only publish on tag
         uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
-          user: cobycloud
+          user: __token__
           password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
           packages_dir: pkgs/${{ matrix.package }}/dist
