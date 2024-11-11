@@ -2,7 +2,7 @@ import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
 import asyncio
 import httpx
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
@@ -23,29 +23,29 @@ class DeepSeekModel(LLMBase):
         allowed_models (List[str]): List of models supported by DeepSeek, defaulting to ["deepseek-chat"].
         name (str): The model name, defaulting to "deepseek-chat".
         type (Literal): The class type for identifying the LLM, set to "DeepSeekModel".
-        client (httpx.Client): The HTTP client for synchronous API requests.
-        async_client (httpx.AsyncClient): The HTTP client for asynchronous API requests.
 
     Link to Allowed Models: https://platform.deepseek.com/api-docs/quick_start/pricing
     Link to API KEY: https://platform.deepseek.com/api_keys
     """
 
+    _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
+
     api_key: str
     allowed_models: List[str] = ["deepseek-chat"]
     name: str = "deepseek-chat"
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
-    client: httpx.Client = Field(default=None, exclude=True)
-    async_client: httpx.AsyncClient = Field(default=None, exclude=True)
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.client = httpx.Client(
+        self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url="https://api.deepseek.com",
+            base_url=self._BASE_URL,
         )
-        self.async_client = httpx.AsyncClient(
+        self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url="https://api.deepseek.com",
+            base_url=self._BASE_URL,
         )
 
     def _format_messages(
@@ -103,7 +103,7 @@ class DeepSeekModel(LLMBase):
             "stop": stop,
             "top_p": top_p,
         }
-        response = self.client.post("/v1/chat/completions", json=payload)
+        response = self._client.post("/chat/completions", json=payload)
         response.raise_for_status()
         message_content = response.json()["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
@@ -146,7 +146,7 @@ class DeepSeekModel(LLMBase):
             "stop": stop,
             "top_p": top_p,
         }
-        response = await self.async_client.post("/v1/chat/completions", json=payload)
+        response = await self._async_client.post("/chat/completions", json=payload)
         response.raise_for_status()
         message_content = response.json()["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
@@ -190,9 +190,7 @@ class DeepSeekModel(LLMBase):
             "top_p": top_p,
             "stream": True,
         }
-        with self.client.stream(
-            "POST", "/v1/chat/completions", json=payload
-        ) as response:
+        with self._client.stream("POST", "/chat/completions", json=payload) as response:
             response.raise_for_status()
             collected_content = []
             for line in response.iter_lines():
@@ -248,8 +246,8 @@ class DeepSeekModel(LLMBase):
             "top_p": top_p,
             "stream": True,
         }
-        async with self.async_client.stream(
-            "POST", "/v1/chat/completions", json=payload
+        async with self._async_client.stream(
+            "POST", "/chat/completions", json=payload
         ) as response:
             response.raise_for_status()
             collected_content = []
@@ -264,6 +262,7 @@ class DeepSeekModel(LLMBase):
                             yield content
                     except json.JSONDecodeError:
                         pass
+
             full_content = "".join(collected_content)
             conversation.add_message(AgentMessage(content=full_content))
 
