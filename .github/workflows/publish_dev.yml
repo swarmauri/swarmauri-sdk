@@ -127,25 +127,8 @@ jobs:
 
       - name: List package sizes
         run: |
-          packages=$(pip list --format=freeze)
-          while IFS= read -r package; do
-              package_name=$(echo "$package" | cut -d'=' -f1)
-              package_path=$(python -c "
-          try:
-              import $package_name
-              import os
-              print(os.path.dirname($package_name.__file__))
-          except ImportError:
-              pass
-          " 2>/dev/null)
-              if [ -n "$package_path" ]; then
-                  du -sh "$package_path" 2>/dev/null
-              else
-                  echo "Could not determine path for package: $package_name"
-              fi
-          done <<< "$packages"
-
-
+          python scripts/list_package_sizes.py
+        continue-on-error: false
 
       - name: Run tests
         continue-on-error: true
