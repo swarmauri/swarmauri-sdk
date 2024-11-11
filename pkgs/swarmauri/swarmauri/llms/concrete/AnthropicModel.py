@@ -1,7 +1,8 @@
-import asyncio
 import json
-import requests
-from typing import List, Dict, Literal, AsyncGenerator, Generator
+from typing import List, Dict, Literal, AsyncIterator, Iterator
+import asyncio
+import httpx
+from pydantic import Field, PrivateAttr
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage, UsageData
@@ -24,6 +25,10 @@ class AnthropicModel(LLMBase):
     Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
+    _BASE_URL: str = PrivateAttr("https://api.anthropic.com/v1")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
+
     api_key: str
     allowed_models: List[str] = [
         "claude-3-haiku-20240307",
@@ -35,6 +40,16 @@ class AnthropicModel(LLMBase):
     ]
     name: str = "claude-3-haiku-20240307"
     type: Literal["AnthropicModel"] = "AnthropicModel"
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+        }
+        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -49,7 +64,6 @@ class AnthropicModel(LLMBase):
             List[Dict[str, str]]: A list of dictionaries containing the 'content' and 'role' of each message,
                                   excluding system messages.
         """
-
         message_properties = ["content", "role"]
         formatted_messages = [
             message.model_dump(include=message_properties)
@@ -68,12 +82,10 @@ class AnthropicModel(LLMBase):
         Returns:
             str: The content of the system context if present, otherwise None.
         """
-
-        system_context = None
         for message in messages:
             if message.role == "system":
-                system_context = message.content
-        return system_context
+                return message.content
+        return None
 
     def _prepare_usage_data(
         self,
@@ -90,8 +102,7 @@ class AnthropicModel(LLMBase):
             completion_time (float): The duration of the completion phase.
 
         Returns:
-            UsageData: A data object encapsulating the prompt, completion, and total token counts,
-                       along with the timing information.
+            UsageData: A data object encapsulating the usage information.
         """
         total_time = prompt_time + completion_time
         prompt_tokens = usage_data.get("input_tokens", 0)
@@ -113,13 +124,12 @@ class AnthropicModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): The temperature setting for controlling response randomness. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens for the generated response. Defaults to 256.
+            temperature (float, optional): The temperature setting for controlling response randomness.
+            max_tokens (int, optional): The maximum number of tokens for the generated response.
 
         Returns:
             Conversation: The updated conversation object with the generated response added.
         """
-
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -134,15 +144,8 @@ class AnthropicModel(LLMBase):
             payload["system"] = system_context
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-            )
+            response = self._client.post("/messages", json=payload)
+            response.raise_for_status()
             response_data = response.json()
 
         with DurationManager() as completion_timer:
@@ -156,19 +159,20 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
-    def stream(self, conversation: Conversation, temperature=0.7, max_tokens=256):
+    def stream(
+        self, conversation: Conversation, temperature=0.7, max_tokens=256
+    ) -> Iterator[str]:
         """
         Streams the response from the model in real-time.
 
         Args:
             conversation (Conversation): The conversation history and context.
-            temperature (float, optional): Sampling temperature for the model. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens for the response. Defaults to 256.
+            temperature (float, optional): Sampling temperature for the model.
+            max_tokens (int, optional): Maximum number of tokens for the response.
 
         Yields:
             str: Incremental parts of the model's response as they are received.
         """
-
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -187,46 +191,48 @@ class AnthropicModel(LLMBase):
         usage_data = {"input_tokens": 0, "output_tokens": 0}
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-                stream=True,
-            )
+            with self._client.stream("POST", "/messages", json=payload) as response:
+                response.raise_for_status()
+                with DurationManager() as completion_timer:
+                    for line in response.iter_lines():
+                        if line:
+                            try:
+                                # Handle the case where line might be bytes or str
+                                line_text = (
+                                    line
+                                    if isinstance(line, str)
+                                    else line.decode("utf-8")
+                                )
+                                if line_text.startswith("data: "):
+                                    line_text = line_text.removeprefix("data: ")
 
-            with DurationManager() as completion_timer:
-                for line in response.iter_lines():
-                    if line:
-                        try:
-                            event = json.loads(
-                                line.decode("utf-8").removeprefix("data: ")
-                            )
-                            if event["type"] == "message_start":
-                                usage_data["input_tokens"] = event["message"]["usage"][
-                                    "input_tokens"
-                                ]
-                            elif event["type"] == "content_block_start":
+                                if not line_text or line_text == "[DONE]":
+                                    continue
+
+                                event = json.loads(line_text)
+                                if event["type"] == "message_start":
+                                    usage_data["input_tokens"] = event["message"][
+                                        "usage"
+                                    ]["input_tokens"]
+                                elif event["type"] == "content_block_start":
+                                    continue
+                                elif event["type"] == "content_block_delta":
+                                    delta = event["delta"]["text"]
+                                    message_content += delta
+                                    yield delta
+                                elif event["type"] == "message_delta":
+                                    if "usage" in event:
+                                        usage_data["output_tokens"] = event["usage"][
+                                            "output_tokens"
+                                        ]
+                                elif event["type"] == "message_stop":
+                                    if (
+                                        "message" in event
+                                        and "usage" in event["message"]
+                                    ):
+                                        usage_data = event["message"]["usage"]
+                            except (json.JSONDecodeError, KeyError) as e:
                                 continue
-                            elif event["type"] == "content_block_delta":
-                                delta = event["delta"]["text"]
-                                message_content += delta
-                                yield delta  # Yield each token as it comes
-                            elif event["type"] == "message_delta":
-                                if "usage" in event:
-                                    usage_data["output_tokens"] = event["usage"][
-                                        "output_tokens"
-                                    ]
-                            elif event["type"] == "message_stop":
-                                if "message" in event and "usage" in event["message"]:
-                                    usage_data = event["message"]["usage"]
-                        except json.JSONDecodeError:
-                            continue
-                        except KeyError:
-                            continue
 
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
@@ -241,8 +247,8 @@ class AnthropicModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation history and context.
-            temperature (float, optional): Sampling temperature for the model. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens for the response. Defaults to 256.
+            temperature (float, optional): Sampling temperature for the model.
+            max_tokens (int, optional): Maximum number of tokens for the response.
 
         Returns:
             Conversation: The updated conversation including the model's response.
@@ -261,16 +267,8 @@ class AnthropicModel(LLMBase):
             payload["system"] = system_context
 
         with DurationManager() as prompt_timer:
-            response = await asyncio.to_thread(
-                requests.post,
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-            )
+            response = await self._async_client.post("/messages", json=payload)
+            response.raise_for_status()
             response_data = response.json()
 
         with DurationManager() as completion_timer:
@@ -286,19 +284,18 @@ class AnthropicModel(LLMBase):
 
     async def astream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
-    ):
+    ) -> AsyncIterator[str]:
         """
         Asynchronously streams the response from the model in real-time.
 
         Args:
             conversation (Conversation): The conversation history and context.
-            temperature (float, optional): Sampling temperature for the model. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens for the response. Defaults to 256.
+            temperature (float, optional): Sampling temperature for the model.
+            max_tokens (int, optional): Maximum number of tokens for the response.
 
         Yields:
             str: Incremental parts of the model's response as they are received.
         """
-
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
@@ -316,65 +313,51 @@ class AnthropicModel(LLMBase):
         message_content = ""
         usage_data = {"input_tokens": 0, "output_tokens": 0}
 
-        class AsyncLineIterator:
-            def __init__(self, response):
-                self.response = response
-                self._iter = response.iter_lines()
-
-            def __aiter__(self):
-                return self
-
-            async def __anext__(self):
-                try:
-                    line = await asyncio.to_thread(next, self._iter)
-                    if line is None:
-                        raise StopAsyncIteration
-                    return line
-                except StopIteration:
-                    raise StopAsyncIteration
-
         with DurationManager() as prompt_timer:
-            response = await asyncio.to_thread(
-                requests.post,
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-                stream=True,
-            )
+            async with self._async_client.stream(
+                "POST", "/messages", json=payload
+            ) as response:
+                response.raise_for_status()
+                with DurationManager() as completion_timer:
+                    async for line in response.aiter_lines():
+                        if line:
+                            try:
+                                # Handle the case where line might be bytes or str
+                                line_text = (
+                                    line
+                                    if isinstance(line, str)
+                                    else line.decode("utf-8")
+                                )
+                                if line_text.startswith("data: "):
+                                    line_text = line_text.removeprefix("data: ")
 
-            with DurationManager() as completion_timer:
-                async for line in AsyncLineIterator(response):
-                    if line:
-                        try:
-                            event = json.loads(
-                                line.decode("utf-8").removeprefix("data: ")
-                            )
-                            if event["type"] == "message_start":
-                                usage_data["input_tokens"] = event["message"]["usage"][
-                                    "input_tokens"
-                                ]
-                            elif event["type"] == "content_block_start":
+                                if not line_text or line_text == "[DONE]":
+                                    continue
+
+                                event = json.loads(line_text)
+                                if event["type"] == "message_start":
+                                    usage_data["input_tokens"] = event["message"][
+                                        "usage"
+                                    ]["input_tokens"]
+                                elif event["type"] == "content_block_start":
+                                    continue
+                                elif event["type"] == "content_block_delta":
+                                    delta = event["delta"]["text"]
+                                    message_content += delta
+                                    yield delta
+                                elif event["type"] == "message_delta":
+                                    if "usage" in event:
+                                        usage_data["output_tokens"] = event["usage"][
+                                            "output_tokens"
+                                        ]
+                                elif event["type"] == "message_stop":
+                                    if (
+                                        "message" in event
+                                        and "usage" in event["message"]
+                                    ):
+                                        usage_data = event["message"]["usage"]
+                            except (json.JSONDecodeError, KeyError) as e:
                                 continue
-                            elif event["type"] == "content_block_delta":
-                                delta = event["delta"]["text"]
-                                message_content += delta
-                                yield delta  # Yield each token as it comes
-                            elif event["type"] == "message_delta":
-                                if "usage" in event:
-                                    usage_data["output_tokens"] = event["usage"][
-                                        "output_tokens"
-                                    ]
-                            elif event["type"] == "message_stop":
-                                if "message" in event and "usage" in event["message"]:
-                                    usage_data = event["message"]["usage"]
-                        except json.JSONDecodeError:
-                            continue
-                        except KeyError:
-                            continue
 
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
@@ -382,28 +365,21 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
     def batch(
-        self,
-        conversations: List[Conversation],
-        temperature=0.7,
-        max_tokens=256,
+        self, conversations: List[Conversation], temperature=0.7, max_tokens=256
     ) -> List:
         """
         Processes multiple conversations synchronously.
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
-            temperature (float, optional): Sampling temperature for the model. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens for the response. Defaults to 256.
+            temperature (float, optional): Sampling temperature for the model.
+            max_tokens (int, optional): Maximum number of tokens for the response.
 
         Returns:
             List[Conversation]: A list of updated conversations including the model's responses.
         """
         return [
-            self.predict(
-                conv,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            self.predict(conv, temperature=temperature, max_tokens=max_tokens)
             for conv in conversations
         ]
 
@@ -419,22 +395,19 @@ class AnthropicModel(LLMBase):
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
-            temperature (float, optional): Sampling temperature for the model. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens for the response. Defaults to 256.
-            max_concurrent (int, optional): Maximum number of concurrent tasks. Defaults to 5.
+            temperature (float, optional): Sampling temperature for the model.
+            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_concurrent (int, optional): Maximum number of concurrent tasks.
 
         Returns:
             List[Conversation]: A list of updated conversations including the model's responses.
         """
-
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
             async with semaphore:
                 return await self.apredict(
-                    conv,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
+                    conv, temperature=temperature, max_tokens=max_tokens
                 )
 
         tasks = [process_conversation(conv) for conv in conversations]

@@ -1,8 +1,9 @@
 import asyncio
 import json
-import requests
 from typing import List, Dict, Literal, Any, AsyncIterator, Iterator
 import logging
+import httpx
+from pydantic import PrivateAttr
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
@@ -32,6 +33,10 @@ class AnthropicToolModel(LLMBase):
     Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
+    _BASE_URL: str = PrivateAttr("https://api.anthropic.com/v1")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
+
     api_key: str
     allowed_models: List[str] = [
         "claude-3-sonnet-20240229",
@@ -41,6 +46,16 @@ class AnthropicToolModel(LLMBase):
     ]
     name: str = "claude-3-sonnet-20240229"
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+        }
+        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -52,7 +67,6 @@ class AnthropicToolModel(LLMBase):
         Returns:
             List[Dict[str, Any]]: A list of tool schemas converted to the Anthropic format.
         """
-
         schema_result = [
             AnthropicSchemaConverter().convert(tools[tool]) for tool in tools
         ]
@@ -112,15 +126,8 @@ class AnthropicToolModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-            )
+            response = self._client.post("/messages", json=payload)
+            response.raise_for_status()
             response_data = response.json()
 
         logging.info(f"tool_response: {response_data}")
@@ -129,6 +136,7 @@ class AnthropicToolModel(LLMBase):
             tool_text_response = response_data["content"][0]["text"]
             logging.info(f"tool_text_response: {tool_text_response}")
 
+        func_result = None
         for tool_call in response_data["content"]:
             if tool_call["type"] == "tool_use":
                 func_name = tool_call["name"]
@@ -167,9 +175,7 @@ class AnthropicToolModel(LLMBase):
         Returns:
             The conversation object updated with the assistant's response.
         """
-
         formatted_messages = self._format_messages(conversation.history)
-
         logging.info(f"formatted_messages: {formatted_messages}")
 
         payload = {
@@ -182,16 +188,8 @@ class AnthropicToolModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await asyncio.to_thread(
-                requests.post,
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-            )
+            response = await self._async_client.post("/messages", json=payload)
+            response.raise_for_status()
             response_data = response.json()
 
         logging.info(f"tool_response: {response_data}")
@@ -250,44 +248,42 @@ class AnthropicToolModel(LLMBase):
             "stream": True,
         }
 
-        with DurationManager() as prompt_timer:
-            response = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-                stream=True,
-            )
-
         message_content = ""
-        for chunk in response.iter_lines():
-            if chunk:
-                try:
-                    event = json.loads(chunk.decode("utf-8").removeprefix("data: "))
-                    if event["type"] == "content_block_delta":
-                        if event["delta"]["type"] == "text":
-                            delta = event["delta"]["text"]
-                            message_content += delta
-                            yield delta
-                    elif event["type"] == "tool_use":
-                        func_name = event["name"]
-                        func_call = toolkit.get_tool_by_name(func_name)
-                        func_args = event["input"]
-                        func_result = func_call(**func_args)
-
-                        func_message = FunctionMessage(
-                            content=json.dumps(func_result),
-                            name=func_name,
-                            tool_call_id=event["id"],
+        with self._client.stream("POST", "/messages", json=payload) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        # Handle the case where line might be bytes or str
+                        line_text = (
+                            line if isinstance(line, str) else line.decode("utf-8")
                         )
-                        conversation.add_message(func_message)
-                except json.JSONDecodeError:
-                    continue
-                except KeyError:
-                    continue
+                        if line_text.startswith("data: "):
+                            line_text = line_text.removeprefix("data: ")
+
+                        if not line_text or line_text == "[DONE]":
+                            continue
+
+                        event = json.loads(line_text)
+                        if event["type"] == "content_block_delta":
+                            if event["delta"]["type"] == "text":
+                                delta = event["delta"]["text"]
+                                message_content += delta
+                                yield delta
+                        elif event["type"] == "tool_use":
+                            func_name = event["name"]
+                            func_call = toolkit.get_tool_by_name(func_name)
+                            func_args = event["input"]
+                            func_result = func_call(**func_args)
+
+                            func_message = FunctionMessage(
+                                content=json.dumps(func_result),
+                                name=func_name,
+                                tool_call_id=event["id"],
+                            )
+                            conversation.add_message(func_message)
+                    except (json.JSONDecodeError, KeyError):
+                        continue
 
         agent_message = AgentMessage(content=message_content)
         conversation.add_message(agent_message)
@@ -315,7 +311,6 @@ class AnthropicToolModel(LLMBase):
             AsyncIterator[str]: Chunks of text received from the streaming response.
         """
         formatted_messages = self._format_messages(conversation.history)
-
         logging.info(formatted_messages)
 
         payload = {
@@ -328,47 +323,46 @@ class AnthropicToolModel(LLMBase):
             "stream": True,
         }
 
-        with DurationManager() as prompt_timer:
-            response = await asyncio.to_thread(
-                requests.post,
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                },
-                json=payload,
-                stream=True,
-            )
-
         collected_content = []
-        async for chunk in AsyncLineIterator(response):
-            if chunk:
-                try:
-                    event = json.loads(chunk.decode("utf-8").removeprefix("data: "))
-                    if event["type"] == "content_block_delta":
-                        if event["delta"]["type"] == "text_delta":
-                            collected_content.append(event["delta"]["text"])
-                            yield event["delta"]["text"]
-                        if event["delta"]["type"] == "input_json_delta":
-                            collected_content.append(event["delta"]["partial_json"])
-                            yield event["delta"]["partial_json"]
-                    elif event["type"] == "tool_use":
-                        func_name = event["name"]
-                        func_call = toolkit.get_tool_by_name(func_name)
-                        func_args = event["input"]
-                        func_result = func_call(**func_args)
-
-                        func_message = FunctionMessage(
-                            content=json.dumps(func_result),
-                            name=func_name,
-                            tool_call_id=event["id"],
+        async with self._async_client.stream(
+            "POST", "/messages", json=payload
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if line:
+                    try:
+                        # Handle the case where line might be bytes or str
+                        line_text = (
+                            line if isinstance(line, str) else line.decode("utf-8")
                         )
-                        conversation.add_message(func_message)
-                except json.JSONDecodeError:
-                    continue
-                except KeyError:
-                    continue
+                        if line_text.startswith("data: "):
+                            line_text = line_text.removeprefix("data: ")
+
+                        if not line_text or line_text == "[DONE]":
+                            continue
+
+                        event = json.loads(line_text)
+                        if event["type"] == "content_block_delta":
+                            if event["delta"]["type"] == "text_delta":
+                                collected_content.append(event["delta"]["text"])
+                                yield event["delta"]["text"]
+                            if event["delta"]["type"] == "input_json_delta":
+                                collected_content.append(event["delta"]["partial_json"])
+                                yield event["delta"]["partial_json"]
+                        elif event["type"] == "tool_use":
+                            func_name = event["name"]
+                            func_call = toolkit.get_tool_by_name(func_name)
+                            func_args = event["input"]
+                            func_result = func_call(**func_args)
+
+                            func_message = FunctionMessage(
+                                content=json.dumps(func_result),
+                                name=func_name,
+                                tool_call_id=event["id"],
+                            )
+                            conversation.add_message(func_message)
+                    except (json.JSONDecodeError, KeyError):
+                        continue
 
         full_content = "".join(collected_content)
         agent_message = AgentMessage(content=full_content)
@@ -430,6 +424,7 @@ class AnthropicToolModel(LLMBase):
         Returns:
             List: A list of conversation objects updated with the assistant's responses.
         """
+
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
@@ -444,43 +439,3 @@ class AnthropicToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
-
-
-class AsyncLineIterator:
-    """
-    An asynchronous iterator class for reading lines from an HTTP response in a non-blocking manner.
-
-    Attributes:
-        response: The HTTP response object to iterate over.
-    """
-
-    def __init__(self, response):
-        self.response = response
-        self._iter = response.iter_lines()
-
-    def __aiter__(self):
-        """
-        Initializes the asynchronous iteration.
-
-        Returns:
-            Self: Returns the iterator object.
-        """
-        return self
-
-    async def __anext__(self):
-        """
-        Returns the next line in the response stream asynchronously.
-
-        Returns:
-            str: The next line in the response.
-
-        Raises:
-            StopAsyncIteration: When there are no more lines to read.
-        """
-        try:
-            line = await asyncio.to_thread(next, self._iter)
-            if line is None:
-                raise StopAsyncIteration
-            return line
-        except StopIteration:
-            raise StopAsyncIteration
