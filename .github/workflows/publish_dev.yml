@@ -127,8 +127,15 @@ jobs:
 
       - name: List package sizes
         run: |
-          pip list --format=freeze | while read package; do du -sh $(python -c "import os; import $package.split('==')[0] as m; print(os.path.dirname(m.__file__))"); done
-          
+          pip list --format=freeze | while read package; do
+              package_name=$(echo $package | cut -d'=' -f1)
+              package_path=$(python -c "import $package_name, os; print(os.path.dirname($package_name.__file__))" 2>/dev/null)
+              if [ -n "$package_path" ]; then
+                  du -sh "$package_path" 2>/dev/null
+              else
+                  echo "Could not determine path for package: $package_name"
+              fi
+          done
 
 
       - name: Run tests
