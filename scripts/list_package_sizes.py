@@ -1,6 +1,7 @@
 import subprocess
 import os
 import sys
+import importlib.util
 
 def get_installed_packages():
     """Retrieve a list of installed packages with their names."""
@@ -22,6 +23,11 @@ def get_package_location(package_name):
     for line in result.stdout.splitlines():
         if line.startswith("Location:"):
             return line.split(":", 1)[1].strip()
+    
+    # Fallback to using importlib if pip show fails
+    spec = importlib.util.find_spec(package_name)
+    if spec and spec.origin:
+        return os.path.dirname(spec.origin)
     return None
 
 def get_directory_size(path):
@@ -51,6 +57,8 @@ def list_package_sizes():
             package_path = os.path.join(location, package)
             size = get_directory_size(package_path)
             print(f"{package}: {format_size(size)}")
+        elif location:
+            print(f"{package}: Path found at '{location}', but exact package directory '{package}' not found.")
         else:
             print(f"Could not determine path or size for package: {package}")
 
