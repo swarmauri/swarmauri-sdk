@@ -130,6 +130,11 @@ jobs:
           python scripts/list_package_sizes.py
         continue-on-error: false
 
+      - name: Show total package size
+        run: |
+          python scripts/total_site_packages_size.py
+        continue-on-error: false
+
       - name: Run tests
         continue-on-error: true
         run: |
