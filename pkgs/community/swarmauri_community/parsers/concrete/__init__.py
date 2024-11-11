@@ -2,3 +2,4 @@ from swarmauri_community.parsers.concrete.FitzPdfParser import PDFtoTextParser
 from swarmauri_community.parsers.concrete.PyPDF2Parser import PyPDF2Parser
 from swarmauri_community.parsers.concrete.PyPDFTKParser import PyPDFTKParser
 from swarmauri_community.parsers.concrete.PDFQueryParser import PDFQueryParser
+from swarmauri_community.parsers.concrete.PDFPlumberParser import PDFPlumberParser
