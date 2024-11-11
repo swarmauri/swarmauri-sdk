@@ -1,8 +1,6 @@
 import json
-import logging
 import httpx
 from pydantic import PrivateAttr
-import requests
 import asyncio
 from typing import List, Literal, AsyncIterator, Iterator
 from swarmauri_core.typing import SubclassUnion
@@ -39,20 +37,26 @@ class AI21StudioModel(LLMBase):
     ]
     name: str = "jamba-1.5-mini"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
-    _headers: dict = PrivateAttr(default=None)
-    _api_url: str = PrivateAttr(
-        default="https://api.ai21.com/studio/v1/chat/completions"
-    )
+    _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _BASE_URL: str = PrivateAttr(default="https://api.ai21.com/studio/v1/chat/completions")
 
     def __init__(self, **data) -> None:
         """
-        Initializes AI21StudioModel with API key and sets up headers for authorization.
+        Initializes the GroqToolModel instance, setting up headers for API requests.
+
+        Parameters:
+            **data: Arbitrary keyword arguments for initialization.
         """
         super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
+        self._client = httpx.Client(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
+        self._async_client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -131,12 +135,8 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
-            )
-        response.raise_for_status()
+            response = self._client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
         response_data = response.json()
         message_content = response_data["choices"][0]["message"]["content"]
@@ -183,11 +183,8 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
         response_data = response.json()
         message_content = response_data["choices"][0]["message"]["content"]
@@ -233,17 +230,14 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
-            )
+            response = self._client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
             usage_data = {}
             message_content = ""
 
         with DurationManager() as completion_timer:
-            for line in response.iter_lines(decode_unicode=True):
+            for line in response.iter_lines():
                 json_str = line.replace("data: ", "")
                 try:
                     if json_str:
@@ -301,11 +295,8 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
         usage_data = {}
         message_content = ""
