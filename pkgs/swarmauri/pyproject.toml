@@ -15,18 +15,20 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-aiohttp = "^3.10.10"
-groq = "^0.11.0"
+# aiohttp = "^3.10.10"
+
+# groq = "^0.11.0"
 toml = "^0.10.2"
+httpx = "^0.27.2"
 
 # anthropic = "^0.36.2" # Moving this out, we are now using the anthropic rest api.
- cohere = "^5.11.0"
+# cohere = "^5.11.0"
 # beautifulsoup4 = "04.12.3"
 
 #deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
 gensim = "==4.3.3"
 google-generativeai = "^0.8.3"
-gradio = "==5.1.0"
+# gradio = "==5.1.0"
 joblib = "^1.4.0"
 nltk = "^3.9.1"
 numpy = "*"
@@ -49,7 +51,7 @@ keras=">=3.2.0"
 matplotlib=">=3.9.2"
 scikit-learn="^1.4.2"
 tf-keras=">=2.16.0"
-fal-client=">=0.5.0"
+# fal-client=">=0.5.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency
