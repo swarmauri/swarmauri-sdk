@@ -1,9 +1,8 @@
 import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
-import requests
-import aiohttp
+import httpx
 import asyncio
-from pydantic import Field, BaseModel
+from pydantic import Field, PrivateAttr
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -15,9 +14,8 @@ class DeepInfraModel(LLMBase):
     """
     A class for interacting with DeepInfra's model API for text generation.
 
-    This implementation directly sends HTTP requests to DeepInfra's API,
-    providing support for synchronous and asynchronous predictions,
-    streaming responses, and batch processing.
+    This implementation uses httpx for both synchronous and asynchronous HTTP requests,
+    providing support for predictions, streaming responses, and batch processing.
 
     Attributes:
         api_key (str): DeepInfra API key for authentication
@@ -31,15 +29,13 @@ class DeepInfraModel(LLMBase):
 
         type (Literal["DeepInfraModel"]): Type identifier for the model class
 
-        base_url (str): Base URL for the DeepInfra API
-            Set to "https://api.deepinfra.com/v1/openai"
-
-        headers (Dict[str, str]): HTTP headers for API requests
-            Automatically configured with authentication and content type
-
     Link to Allowed Models: https://deepinfra.com/models/text-generation
     Link to API KEY: https://deepinfra.com/dash/api_keys
     """
+
+    _BASE_URL: str = PrivateAttr("https://api.deepinfra.com/v1/openai")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: str
     allowed_models: List[str] = [
@@ -96,22 +92,22 @@ class DeepInfraModel(LLMBase):
 
     name: str = "Qwen/Qwen2-72B-Instruct"
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
-    base_url: str = "https://api.deepinfra.com/v1/openai"
-    headers: Dict[str, str] = Field(default_factory=dict, exclude=True)
 
     def __init__(self, **data):
         """
         Initializes the DeepInfraModel instance with the provided API key
-        and headers for authorization.
+        and sets up httpx clients for both sync and async operations.
 
         Args:
             **data: Keyword arguments for model initialization.
         """
         super().__init__(**data)
-        self.headers = {
+        headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
+        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -199,9 +195,7 @@ class DeepInfraModel(LLMBase):
             formatted_messages, temperature, max_tokens, enable_json, stop
         )
 
-        response = requests.post(
-            f"{self.base_url}/chat/completions", headers=self.headers, json=payload
-        )
+        response = self._client.post("/chat/completions", json=payload)
         response.raise_for_status()
 
         result = response.json()
@@ -236,18 +230,12 @@ class DeepInfraModel(LLMBase):
             formatted_messages, temperature, max_tokens, enable_json, stop
         )
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions", headers=self.headers, json=payload
-            ) as response:
-                if response.status != 200:
-                    raise aiohttp.ClientResponseError(
-                        response.request_info, response.history, status=response.status
-                    )
+        response = await self._async_client.post("/chat/completions", json=payload)
+        response.raise_for_status()
 
-                result = await response.json()
-                message_content = result["choices"][0]["message"]["content"]
-                conversation.add_message(AgentMessage(content=message_content))
+        result = response.json()
+        message_content = result["choices"][0]["message"]["content"]
+        conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -275,18 +263,15 @@ class DeepInfraModel(LLMBase):
             formatted_messages, temperature, max_tokens, False, stop, stream=True
         )
 
-        response = requests.post(
-            f"{self.base_url}/chat/completions",
-            headers=self.headers,
-            json=payload,
-            stream=True,
-        )
-        response.raise_for_status()
+        with self._client.stream("POST", "/chat/completions", json=payload) as response:
+            response.raise_for_status()
+            collected_content = []
 
-        collected_content = []
-        for line in response.iter_lines():
-            if line:
-                line = line.decode("utf-8")
+            for line in response.iter_lines():
+                # Convert bytes to string if necessary
+                if isinstance(line, bytes):
+                    line = line.decode("utf-8")
+
                 if line.startswith("data: "):
                     line = line[6:]  # Remove 'data: ' prefix
                     if line != "[DONE]":
@@ -323,26 +308,21 @@ class DeepInfraModel(LLMBase):
             formatted_messages, temperature, max_tokens, False, stop, stream=True
         )
 
-        collected_content = []
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions", headers=self.headers, json=payload
-            ) as response:
-                if response.status != 200:
-                    raise aiohttp.ClientResponseError(
-                        response.request_info, response.history, status=response.status
-                    )
+        async with self._async_client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as response:
+            response.raise_for_status()
+            collected_content = []
 
-                async for line in response.content:
-                    line = line.decode("utf-8").strip()
-                    if line.startswith("data: "):
-                        line = line[6:]  # Remove 'data: ' prefix
-                        if line != "[DONE]":
-                            chunk = json.loads(line)
-                            if chunk["choices"][0]["delta"].get("content"):
-                                content = chunk["choices"][0]["delta"]["content"]
-                                collected_content.append(content)
-                                yield content
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    line = line[6:]  # Remove 'data: ' prefix
+                    if line != "[DONE]":
+                        chunk = json.loads(line)
+                        if chunk["choices"][0]["delta"].get("content"):
+                            content = chunk["choices"][0]["delta"]["content"]
+                            collected_content.append(content)
+                            yield content
 
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
@@ -356,7 +336,7 @@ class DeepInfraModel(LLMBase):
         stop: List[str] = None,
     ) -> List:
         """
-        Processes multiple conversations in a batch synchronously.
+        Processes multiple conversations in batch synchronously.
 
         Args:
             conversations (List): List of conversation objects.
