@@ -128,8 +128,6 @@ jobs:
       - name: List package sizes
         run: |
           packages=$(pip list --format=freeze)
-          
-          # Process each package line by line
           while IFS= read -r package; do
               package_name=$(echo "$package" | cut -d'=' -f1)
               package_path=$(python -c "
