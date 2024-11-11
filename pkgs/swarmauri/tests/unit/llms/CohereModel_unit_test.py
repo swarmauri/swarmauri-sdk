@@ -7,7 +7,7 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
-
+import asyncio
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
 from swarmauri.utils.timeout_wrapper import timeout
@@ -15,6 +15,13 @@ from swarmauri.utils.timeout_wrapper import timeout
 load_dotenv()
 
 API_KEY = os.getenv("COHERE_API_KEY")
+
+
+@pytest.fixture(scope="module")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="module")
