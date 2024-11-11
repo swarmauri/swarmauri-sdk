@@ -134,7 +134,7 @@ def test_batch(groq_model, model_name, input_data):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
-async def test_apredict(groq_model, model_name):
+async def test_apredict(groq_model, model_name, input_data):
     model = groq_model
     model.name = model_name
     conversation = Conversation()
@@ -151,7 +151,7 @@ async def test_apredict(groq_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
-async def test_astream(groq_model, model_name):
+async def test_astream(groq_model, model_name, input_data):
     model = groq_model
     model.name = model_name
     conversation = Conversation()
