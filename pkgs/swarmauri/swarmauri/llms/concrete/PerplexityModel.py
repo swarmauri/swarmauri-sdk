@@ -1,12 +1,8 @@
 import asyncio
 import json
-import logging
 from typing import List, Dict, Literal, Optional
 
 import httpx
-import requests
-import aiohttp  # for async requests
-from matplotlib.font_manager import json_dump
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
@@ -104,7 +100,8 @@ class PerplexityModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = requests.post(url, json=payload, headers=headers)
+            with httpx.Client() as client:
+                response = client.post(url, json=payload, headers=headers)
 
         result = response.json()
         message_content = result["choices"][0]["message"]["content"]
@@ -152,10 +149,10 @@ class PerplexityModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload, headers=headers) as response:
-                    result = await response.json()
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, headers=headers)
 
+        result = response.json()
         message_content = result["choices"][0]["message"]["content"]
 
         usage_data = result.get("usage", {})
@@ -201,23 +198,24 @@ class PerplexityModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            with requests.post(url, json=payload, headers=headers) as response:
-                response.raise_for_status()
-                message_content = ""
-                for chunk in response.iter_lines(decode_unicode=True):
-                    json_string = chunk.replace("data: ", "", 1)
-                    if json_string:
-                        chunk_data = json.loads(json_string)
-                        delta_content = (
-                            chunk_data.get("choices", [{}])[0]
-                            .get("delta", {})
-                            .get("content", "")
-                        )
-                        message_content += delta_content
-                        yield delta_content
+            with httpx.Client() as client:
+                with client.stream("POST", url, json=payload, headers=headers) as response:
+                    response.raise_for_status()
+                    message_content = ""
+                    for chunk in response.iter_text():
+                        json_string = chunk.replace("data: ", "", 1)
+                        if json_string:
+                            chunk_data = json.loads(json_string)
+                            delta_content = (
+                                chunk_data.get("choices", [{}])[0]
+                                .get("delta", {})
+                                .get("content", "")
+                            )
+                            message_content += delta_content
+                            yield delta_content
 
-                        if chunk_data["usage"]:
-                            usage_data = chunk_data["usage"]
+                            if chunk_data["usage"]:
+                                usage_data = chunk_data["usage"]
 
         usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
 
@@ -261,26 +259,24 @@ class PerplexityModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=headers, timeout=None
-                )
-                message_content = ""
-                usage_data = {}
+                async with client.stream("POST", url, json=payload, headers=headers) as response:
+                    message_content = ""
+                    usage_data = {}
 
-                async for line in response.aiter_lines():
-                    json_string = line.replace("data: ", "", 1)
-                    if json_string:  # Ensure it's not empty
-                        chunk_data = json.loads(json_string)
-                        delta_content = (
-                            chunk_data.get("choices", [{}])[0]
-                            .get("delta", {})
-                            .get("content", "")
-                        )
-                        message_content += delta_content
+                    async for line in response.aiter_text():
+                        json_string = line.replace("data: ", "", 1)
+                        if json_string:  # Ensure it's not empty
+                            chunk_data = json.loads(json_string)
+                            delta_content = (
+                                chunk_data.get("choices", [{}])[0]
+                                .get("delta", {})
+                                .get("content", "")
+                            )
+                            message_content += delta_content
 
-                        yield delta_content
+                            yield delta_content
 
-                        usage_data = chunk_data.get("usage", usage_data)
+                            usage_data = chunk_data.get("usage", usage_data)
 
         usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
         conversation.add_message(AgentMessage(content=message_content, usage=usage))

@@ -125,6 +125,12 @@ jobs:
         run: |
           pip freeze
 
+      - name: List package sizes
+        run: |
+          pip list --format=freeze | while read package; do du -sh $(python -c "import os; import $package.split('==')[0] as m; print(os.path.dirname(m.__file__))"); done
+          
+
+
       - name: Run tests
         continue-on-error: true
         run: |

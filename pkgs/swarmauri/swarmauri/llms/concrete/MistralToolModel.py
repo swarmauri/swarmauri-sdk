@@ -3,9 +3,7 @@ import json
 import logging
 from typing import AsyncIterator, Iterator, List, Literal, Dict, Any
 import httpx
-import mistralai
 from pydantic import PrivateAttr
-import requests
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -42,8 +40,9 @@ class MistralToolModel(LLMBase):
     ]
     name: str = "open-mixtral-8x22b"
     type: Literal["MistralToolModel"] = "MistralToolModel"
-    _headers: Dict[str, str] = PrivateAttr(default=None)
-    _api_url: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
+    _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
 
     def __init__(self, **data) -> None:
         """
@@ -53,10 +52,14 @@ class MistralToolModel(LLMBase):
             **data: Arbitrary keyword arguments for initialization.
         """
         super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
+        self._client = httpx.Client(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
+        self._async_client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -129,7 +132,8 @@ class MistralToolModel(LLMBase):
             "safe_prompt": safe_prompt,
         }
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
+        response = self._client.post(self._BASE_URL, json=payload)
+
         response.raise_for_status()
 
         tool_response = response.json()
@@ -155,9 +159,7 @@ class MistralToolModel(LLMBase):
 
         payload["messages"] = messages
 
-        logging.info(f"messages: {payload}")
-
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
+        response = self._client.post(self._BASE_URL, json=payload)
         response.raise_for_status()
 
         agent_response = response.json()
@@ -205,11 +207,8 @@ class MistralToolModel(LLMBase):
             "safe_prompt": safe_prompt,
         }
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+        response.raise_for_status()
 
         tool_response = response.json()
 
@@ -234,11 +233,8 @@ class MistralToolModel(LLMBase):
 
         payload["messages"] = messages
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+        response.raise_for_status()
 
         agent_response = response.json()
         agent_message = AgentMessage(
@@ -285,7 +281,7 @@ class MistralToolModel(LLMBase):
             "safe_prompt": safe_prompt,
         }
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
+        response = self._client.post(self._BASE_URL, json=payload)
         response.raise_for_status()
 
         tool_response = response.json()
@@ -316,7 +312,7 @@ class MistralToolModel(LLMBase):
 
         logging.info(f"messages: {messages}")
 
-        response = requests.post(self._api_url, headers=self._headers, json=payload)
+        response = self._client.post(self._api_url, json=payload)
         response.raise_for_status()
 
         message_content = ""
@@ -373,11 +369,9 @@ class MistralToolModel(LLMBase):
             "safe_prompt": safe_prompt,
         }
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+
+        response.raise_for_status()
 
         tool_response = response.json()
 
@@ -407,11 +401,9 @@ class MistralToolModel(LLMBase):
 
         logging.info(f"messages: {messages}")
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._api_url, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+
+        response.raise_for_status()
 
         message_content = ""
 

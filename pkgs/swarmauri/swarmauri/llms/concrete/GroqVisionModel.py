@@ -2,7 +2,6 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
-import requests
 from swarmauri.conversations.concrete.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
 
@@ -36,7 +35,26 @@ class GroqVisionModel(LLMBase):
     ]
     name: str = "llama-3.2-11b-vision-preview"
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
-    _api_url: str = PrivateAttr("https://api.groq.com/openai/v1/chat/completions")
+    _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/chat/completions")
+
+    def __init__(self, **data):
+        """
+        Initialize the GroqAIAudio class with the provided data.
+
+        Args:
+            **data: Arbitrary keyword arguments containing initialization data.
+        """
+        super().__init__(**data)
+        self._client = httpx.Client(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
+        self._async_client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
 
     def _format_messages(
         self,
@@ -79,24 +97,6 @@ class GroqVisionModel(LLMBase):
         """
         return UsageData.model_validate(usage_data)
 
-    def _make_request(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Sends a synchronous HTTP POST request to the API and retrieves the response.
-
-        Args:
-            data (dict): Payload data to be sent in the API request.
-
-        Returns:
-            dict: Parsed JSON response from the API.
-        """
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
-        response = requests.post(self._api_url, headers=headers, json=data)
-        response.raise_for_status()  # Raise an error for HTTP issues
-        return response.json()
-
     def predict(
         self,
         conversation: Conversation,
@@ -121,7 +121,7 @@ class GroqVisionModel(LLMBase):
             Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -130,11 +130,16 @@ class GroqVisionModel(LLMBase):
             "stop": stop or [],
         }
         if enable_json:
-            data["response_format"] = "json_object"
+            payload["response_format"] = "json_object"
 
-        result = self._make_request(data)
-        message_content = result["choices"][0]["message"]["content"]
-        usage_data = result.get("usage", {})
+        response = self._client.post(self._BASE_URL, json=payload)
+
+        response.raise_for_status()
+
+        response_data = response.json()
+
+        message_content = response_data["choices"][0]["message"]["content"]
+        usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -164,7 +169,7 @@ class GroqVisionModel(LLMBase):
             Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -173,12 +178,15 @@ class GroqVisionModel(LLMBase):
             "stop": stop or [],
         }
         if enable_json:
-            data["response_format"] = "json_object"
+            payload["response_format"] = "json_object"
 
-        # Use asyncio's to_thread to call synchronous code in an async context
-        result = await asyncio.to_thread(self._make_request, data)
-        message_content = result["choices"][0]["message"]["content"]
-        usage_data = result.get("usage", {})
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+        response.raise_for_status()
+
+        response_data = response.json()
+
+        message_content = response_data["choices"][0]["message"]["content"]
+        usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
@@ -209,7 +217,7 @@ class GroqVisionModel(LLMBase):
         """
 
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -219,31 +227,25 @@ class GroqVisionModel(LLMBase):
             "stop": stop or [],
         }
         if enable_json:
-            data["response_format"] = "json_object"
+            payload["response_format"] = "json_object"
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
+        response = self._client.post(self._BASE_URL, json=payload)
 
-        with requests.post(
-            self._api_url, headers=headers, json=data, stream=True
-        ) as response:
-            response.raise_for_status()
-            message_content = ""
-            for line in response.iter_lines(decode_unicode=True):
-                json_str = line.replace('data: ', '')
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                except json.JSONDecodeError:
-                    pass
+        response.raise_for_status()
+        message_content = ""
+        for line in response.iter_lines():
+            json_str = line.replace('data: ', '')
+            try:
+                if json_str:
+                    chunk = json.loads(json_str)
+                    if chunk["choices"][0]["delta"]:
+                        delta = chunk["choices"][0]["delta"]["content"]
+                        message_content += delta
+                        yield delta
+            except json.JSONDecodeError:
+                pass
 
-            conversation.add_message(AgentMessage(content=message_content))
+        conversation.add_message(AgentMessage(content=message_content))
 
     async def astream(
         self,
@@ -270,7 +272,7 @@ class GroqVisionModel(LLMBase):
         """
 
         formatted_messages = self._format_messages(conversation.history)
-        data = {
+        payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
@@ -280,29 +282,23 @@ class GroqVisionModel(LLMBase):
             "stop": stop or [],
         }
         if enable_json:
-            data["response_format"] = "json_object"
+            payload["response_format"] = "json_object"
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
+        response = await self._async_client.post(self._BASE_URL, json=payload)
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self._api_url, headers=headers, json=data, timeout=None)
-
-            response.raise_for_status()
-            message_content = ""
-            async for line in response.aiter_lines():
-                json_str = line.replace('data: ', '')
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                except json.JSONDecodeError:
-                    pass
+        response.raise_for_status()
+        message_content = ""
+        async for line in response.aiter_lines():
+            json_str = line.replace('data: ', '')
+            try:
+                if json_str:
+                    chunk = json.loads(json_str)
+                    if chunk["choices"][0]["delta"]:
+                        delta = chunk["choices"][0]["delta"]["content"]
+                        message_content += delta
+                        yield delta
+            except json.JSONDecodeError:
+                pass
 
         conversation.add_message(AgentMessage(content=message_content))
 
