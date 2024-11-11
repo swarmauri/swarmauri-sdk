@@ -3,7 +3,6 @@ import json
 from typing import AsyncIterator, Iterator, List, Literal, Dict
 import httpx
 from pydantic import PrivateAttr
-import requests
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -46,16 +45,26 @@ class MistralModel(LLMBase):
     ]
     name: str = "open-mixtral-8x7b"
     type: Literal["MistralModel"] = "MistralModel"
-    _api_url: str = PrivateAttr("https://api.mistral.ai/v1/chat/completions")
-    _headers: Dict[str, str] = PrivateAttr(None)
+    _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
 
     def __init__(self, **data):
+        """
+        Initialize the GroqAIAudio class with the provided data.
+
+        Args:
+            **data: Arbitrary keyword arguments containing initialization data.
+        """
         super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
+        self._client = httpx.Client(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
+        self._async_client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -144,11 +153,7 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
-            )
+            response = self._client.post(self._BASE_URL, json=payload)
             response.raise_for_status()
 
         response_data = response.json()
@@ -200,11 +205,8 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
         response_data = response.json()
 
@@ -252,18 +254,14 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                self._api_url,
-                headers=self._headers,
-                json=payload,
-            )
+            response = self._client.post(self._BASE_URL, json=payload)
             response.raise_for_status()
 
         usage_data = {}
         message_content = ""
 
         with DurationManager() as completion_timer:
-            for line in response.iter_lines(decode_unicode=True):
+            for line in response.iter_lines():
                 json_str = line.replace("data: ", "")
                 try:
                     if json_str:
@@ -320,14 +318,11 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self._api_url, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response.raise_for_status()
 
-                usage_data = {}
-                message_content = ""
+        usage_data = {}
+        message_content = ""
 
         with DurationManager() as completion_timer:
             async for line in response.aiter_lines():
