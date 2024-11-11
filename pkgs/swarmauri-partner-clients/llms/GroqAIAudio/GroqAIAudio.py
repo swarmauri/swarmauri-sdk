@@ -1,9 +1,7 @@
 import asyncio
 from typing import Dict, List, Literal
-from pydantic import PrivateAttr
+from groq import Groq, AsyncGroq
 from swarmauri.llms.base.LLMBase import LLMBase
-import httpx
-import aiofiles
 
 
 class GroqAIAudio(LLMBase):
@@ -27,26 +25,6 @@ class GroqAIAudio(LLMBase):
 
     name: str = "distil-whisper-large-v3-en"
     type: Literal["GroqAIAudio"] = "GroqAIAudio"
-    _client: httpx.Client = PrivateAttr(default=None)
-    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
-
-    def __init__(self, **data):
-        """
-        Initialize the GroqAIAudio class with the provided data.
-
-        Args:
-            **data: Arbitrary keyword arguments containing initialization data.
-        """
-        super().__init__(**data)
-        self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url=self._BASE_URL,
-        )
-        self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            base_url=self._BASE_URL,
-        )
 
     def predict(
         self,
@@ -67,6 +45,15 @@ class GroqAIAudio(LLMBase):
             ValueError: If the specified task is not supported.
             httpx.HTTPStatusError: If the API request fails.
         """
+        client = Groq(api_key=self.api_key)
+        actions = {
+            "transcription": client.audio.transcriptions,
+            "translation": client.audio.translations,
+        }
+
+        if task not in actions:
+            raise ValueError(f"Task {task} not supported. Choose from {list(actions)}")
+
         kwargs = {
             "model": self.name,
         }
@@ -75,26 +62,9 @@ class GroqAIAudio(LLMBase):
             kwargs["model"] = "whisper-large-v3"
 
         with open(audio_path, "rb") as audio_file:
-            actions = {
-                "transcription": self._client.post(
-                    "transcriptions", files={"file": audio_file}, data=kwargs
-                ),
-                "translation": self._client.post(
-                    "translations", files={"file": audio_file}, data=kwargs
-                ),
-            }
+            response = actions[task].create(**kwargs, file=audio_file)
 
-            if task not in actions:
-                raise ValueError(
-                    f"Task {task} not supported. Choose from {list(actions)}"
-                )
-
-        response = actions[task]
-        response.raise_for_status()
-
-        response_data = response.json()
-
-        return response_data["text"]
+        return response.text
 
     async def apredict(
         self,
@@ -115,37 +85,27 @@ class GroqAIAudio(LLMBase):
             ValueError: If the specified task is not supported.
             httpx.HTTPStatusError: If the API request fails.
         """
+        async_client = AsyncGroq(api_key=self.api_key)
+
+        actions = {
+            "transcription": async_client.audio.transcriptions,
+            "translation": async_client.audio.translations,
+        }
+
+        if task not in actions:
+            raise ValueError(f"Task {task} not supported. Choose from {list(actions)}")
+
         kwargs = {
             "model": self.name,
         }
+
         if task == "translation":
             kwargs["model"] = "whisper-large-v3"
 
-        async with aiofiles.open(audio_path, "rb") as audio_file:
-            file_content = await audio_file.read()
-            file_name = audio_path.split("/")[-1]
-            actions = {
-                "transcription": await self._async_client.post(
-                    "transcriptions",
-                    files={"file": (file_name, file_content, "audio/wav")},
-                    data=kwargs,
-                ),
-                "translation": await self._async_client.post(
-                    "translations",
-                    files={"file": (file_name, file_content, "audio/wav")},
-                    data=kwargs,
-                ),
-            }
-            if task not in actions:
-                raise ValueError(
-                    f"Task {task} not supported. Choose from {list(actions)}"
-                )
+        with open(audio_path, "rb") as audio_file:
+            response = await actions[task].create(**kwargs, file=audio_file)
 
-            response = actions[task]
-            response.raise_for_status()
-
-            response_data = response.json()
-            return response_data["text"]
+        return response.text
 
     def batch(
         self,
@@ -169,7 +129,7 @@ class GroqAIAudio(LLMBase):
     async def abatch(
         self,
         path_task_dict: Dict[str, Literal["transcription", "translation"]],
-        max_concurrent=5,
+        max_concurrent=5,  # New parameter to control concurrency
     ) -> List:
         """
         Asynchronously process multiple audio files for transcription or translation
@@ -185,7 +145,7 @@ class GroqAIAudio(LLMBase):
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(path, task) -> str:
+        async def process_conversation(path, task):
             async with semaphore:
                 return await self.apredict(audio_path=path, task=task)
 

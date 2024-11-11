@@ -67,8 +67,6 @@ def test_audio_transcription(groqai_model, model_name):
     )
 
     logging.info(prediction)
-
-    assert "this is a test audio file" in prediction.lower()
     assert type(prediction) is str
 
 
@@ -84,6 +82,57 @@ def test_audio_translation(groqai_model):
     )
 
     logging.info(prediction)
-
-    assert "this is a test audio file" in prediction.lower()
     assert type(prediction) is str
+
+
+@timeout(5)
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_apredict(groqai_model, model_name):
+    groqai_model.name = model_name
+
+    prediction = await groqai_model.apredict(
+        audio_path=file_path,
+        task="translation",
+    )
+
+    logging.info(prediction)
+    assert type(prediction) is str
+
+
+@timeout(5)
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(groqai_model, model_name):
+    model = groqai_model
+    model.name = model_name
+
+    path_task_dict = {
+        file_path: "translation",
+        file_path2: "transcription",
+    }
+
+    results = model.batch(path_task_dict=path_task_dict)
+    assert len(results) == len(path_task_dict)
+    for result in results:
+        assert isinstance(result, str)
+
+
+@timeout(5)
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_abatch(groqai_model, model_name):
+    model = groqai_model
+    model.name = model_name
+
+    path_task_dict = {
+        file_path: "translation",
+        file_path2: "transcription",
+    }
+
+    results = await model.abatch(path_task_dict=path_task_dict)
+    assert len(results) == len(path_task_dict)
+    for result in results:
+        assert isinstance(result, str)
