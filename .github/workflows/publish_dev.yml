@@ -121,13 +121,13 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
-      - name: Show total package size
+      - name: List package sizes
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/list_site_package_sizes.py
         continue-on-error: false
 
-      - name: Show total package size
+      - name: Show total sitepackage size
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/total_site_packages_size.py
