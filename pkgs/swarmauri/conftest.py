@@ -34,7 +34,7 @@ def pytest_report_teststatus(report):
     line_number = location[1]
     
     # Construct the GitHub URL for the file at the given line number
-    github_url = f"https://tinyurl.com/df4nvgGhj78/{github_branch}/{PKG_PATH}/{file_path}#L{line_number}"
+    github_url = f"https://tinyurl.com/df4nvgGhj78/{github_branch}/{pkg_path}/{file_path}#L{line_number}"
     
     # Create the location string with the GitHub URL
     location_str = f" at {github_url}"
