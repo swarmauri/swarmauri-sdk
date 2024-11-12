@@ -2,9 +2,8 @@ import json
 import asyncio
 import time
 from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Optional, Union
-from pydantic import Field
-import requests
-import aiohttp
+from pydantic import PrivateAttr
+import httpx
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -19,58 +18,62 @@ from swarmauri.utils.duration_manager import DurationManager
 
 class CohereToolModel(LLMBase):
     """
-    This class provides synchronous and asynchronous methods to interact with Cohere's language models for text generation,
-    as well as methods to process tool calls and conversation history.
+    A language model implementation for interacting with Cohere's API, specifically designed for tool-augmented conversations.
+
+    This class provides both synchronous and asynchronous methods for generating responses,
+    handling tool calls, and managing conversations with the Cohere API. It supports streaming
+    responses and batch processing of multiple conversations.
 
     Attributes:
-        api_key (str): API key for authenticating with Cohere's API.
-        allowed_models (List[str]): A list of models allowed to be used with this tool.
-        name (str): The default model name to use.
-        type (Literal["CohereToolModel"]): A fixed attribute to identify this class as CohereToolModel.
-        resource (str): A string identifier for the resource type, here set as "LLM".
-        base_url (str): The base URL for the Cohere API.
-        headers (Dict[str, str]): The headers used for HTTP requests, which includes authorization.
+        api_key (str): The API key for authenticating with Cohere's API
+        allowed_models (List[str]): List of supported Cohere model names
+        name (str): The default model name to use
+        type (Literal["CohereToolModel"]): The type identifier for this model
+        resource (str): The resource type identifier
 
     Link to Allowed Models: https://docs.cohere.com/docs/models#command
     Link to API Key: https://dashboard.cohere.com/api-keys
-
     """
+
+    _BASE_URL: str = PrivateAttr("https://api.cohere.ai/v1")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: str
     allowed_models: List[str] = [
         "command-r",
-        "command-r-plus",
-        "command-r-plus-08-2024",
+        # "command-r-plus",
+        # "command-r-plus-08-2024",
     ]
     name: str = "command-r"
     type: Literal["CohereToolModel"] = "CohereToolModel"
     resource: str = "LLM"
-    base_url: str = Field(default="https://api.cohere.ai/v1")
-    headers: Dict[str, str] = Field(default=None, exclude=True)
 
     def __init__(self, **data):
         """
-        Initializes the CohereToolModel with API key and other configuration settings.
+        Initialize the CohereToolModel with the provided configuration.
 
         Args:
-            **data: Arbitrary keyword arguments used to initialize the model attributes.
+            **data: Keyword arguments for configuring the model, including api_key
         """
         super().__init__(**data)
-        self.headers = {
+        headers = {
             "accept": "application/json",
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
+        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
-        Converts the toolkit schema into the format required by Cohere's API.
+        Convert tool definitions to Cohere's expected schema format.
 
         Args:
-            tools: A dictionary containing tool configurations.
+            tools: Dictionary of tools to convert
 
         Returns:
-            List[Dict[str, Any]]: Converted tool configuration for Cohere's API.
+            List[Dict[str, Any]]: List of converted tool definitions
         """
         if not tools:
             return []
@@ -78,13 +81,13 @@ class CohereToolModel(LLMBase):
 
     def _extract_text_content(self, content: Union[str, List[contentItem]]) -> str:
         """
-        Extracts text content from a message content item or list of items.
+        Extract text content from either a string or a list of content items.
 
         Args:
-            content (Union[str, List[contentItem]]): A single text item or a list of content items.
+            content (Union[str, List[contentItem]]): The content to extract text from
 
         Returns:
-            str: Extracted and concatenated text.
+            str: The extracted text content
         """
         if isinstance(content, str):
             return content
@@ -103,13 +106,13 @@ class CohereToolModel(LLMBase):
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats messages to match Cohere's expected chat API format.
+        Format messages into Cohere's expected chat format.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): A list of message objects.
+            messages (List[SubclassUnion[MessageBase]]): List of messages to format
 
         Returns:
-            List[Dict[str, str]]: List of formatted message dictionaries.
+            List[Dict[str, str]]: Formatted messages for Cohere's API
         """
         formatted_messages = []
         role_mapping = {
@@ -141,13 +144,13 @@ class CohereToolModel(LLMBase):
 
     def _ensure_conversation_has_message(self, conversation):
         """
-        Ensures that a conversation contains at least one message by adding a default if empty.
+        Ensure that a conversation has at least one message by adding a default message if empty.
 
         Args:
-            conversation: The conversation object.
+            conversation: The conversation to check
 
         Returns:
-            The modified or original conversation.
+            The conversation, potentially with an added default message
         """
         if not conversation.history:
             conversation.add_message(
@@ -157,14 +160,14 @@ class CohereToolModel(LLMBase):
 
     def _process_tool_calls(self, response_data, toolkit):
         """
-        Processes tool calls from response data using the toolkit.
+        Process tool calls from the model's response and execute them using the provided toolkit.
 
         Args:
-            response_data (dict): The response data from Cohere's API.
-            toolkit: The toolkit used to process tool calls.
+            response_data: The response data containing tool calls
+            toolkit: The toolkit containing the tools to execute
 
         Returns:
-            List[Dict[str, Any]]: List of tool call results.
+            List[Dict[str, Any]]: Results of the tool executions
         """
         tool_results = []
         tool_calls = response_data.get("tool_calls", [])
@@ -191,18 +194,18 @@ class CohereToolModel(LLMBase):
         force_single_step: bool = True,
     ) -> Dict[str, Any]:
         """
-        Prepares the payload for a chat request.
+        Prepare the payload for a chat request to Cohere's API.
 
         Args:
-            message (str): The message to be sent.
-            chat_history (List[Dict[str, str]]): The chat history.
-            tools (List[Dict[str, Any]], optional): List of tools to be used. Defaults to None.
-            tool_results (List[Dict[str, Any]], optional): Tool results from previous calls. Defaults to None.
-            temperature (float, optional): Temperature for response randomness. Defaults to 0.3.
-            force_single_step (bool, optional): Flag for single-step responses. Defaults to True.
+            message (str): The current message to process
+            chat_history (List[Dict[str, str]]): Previous chat history
+            tools (List[Dict[str, Any]], optional): Available tools
+            tool_results (List[Dict[str, Any]], optional): Results from previous tool calls
+            temperature (float, optional): Sampling temperature
+            force_single_step (bool, optional): Whether to force single-step responses
 
         Returns:
-            Dict[str, Any]: The prepared chat payload.
+            Dict[str, Any]: The prepared payload for the API request
         """
         payload = {
             "message": message,
@@ -224,22 +227,21 @@ class CohereToolModel(LLMBase):
 
     def predict(self, conversation, toolkit=None, temperature=0.3, max_tokens=1024):
         """
-        Makes a synchronous prediction by sending a conversation request to Cohere's API.
+        Generate a response for a conversation synchronously.
 
         Args:
-            conversation: The conversation object.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
+            conversation: The conversation to generate a response for
+            toolkit: Optional toolkit containing available tools
+            temperature (float, optional): Sampling temperature
+            max_tokens (int, optional): Maximum number of tokens to generate
 
         Returns:
-            Updated conversation object with the predicted response.
+            The updated conversation with the model's response
         """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
 
-        # First chat request for tool calls
         with DurationManager() as tool_timer:
             tool_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
@@ -250,15 +252,12 @@ class CohereToolModel(LLMBase):
                 force_single_step=True,
             )
 
-            tool_response = requests.post(
-                f"{self.base_url}/chat", headers=self.headers, json=tool_payload
-            )
+            tool_response = self._client.post("/chat", json=tool_payload)
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
-        # Second chat request for final response
         with DurationManager() as response_timer:
             response_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
@@ -271,13 +270,10 @@ class CohereToolModel(LLMBase):
                 force_single_step=True,
             )
 
-            response = requests.post(
-                f"{self.base_url}/chat", headers=self.headers, json=response_payload
-            )
+            response = self._client.post("/chat", json=response_payload)
             response.raise_for_status()
             response_data = response.json()
 
-        # Prepare usage data
         usage = UsageData(
             prompt_tokens=response_data.get("usage", {}).get("input_tokens", 0),
             completion_tokens=response_data.get("usage", {}).get("output_tokens", 0),
@@ -296,22 +292,22 @@ class CohereToolModel(LLMBase):
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> Iterator[str]:
         """
-        Streams response content as it is received.
+        Stream a response for a conversation synchronously.
 
         Args:
-            conversation: The conversation object.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
+            conversation: The conversation to generate a response for
+            toolkit: Optional toolkit containing available tools
+            temperature (float, optional): Sampling temperature
+            max_tokens (int, optional): Maximum number of tokens to generate
 
-        Yields:
-            Iterator[str]: Streamed content as it is received.
+        Returns:
+            Iterator[str]: An iterator yielding response chunks
         """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
 
-        # First chat request for tool calls
+        # Handle tool call first
         tool_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
@@ -321,15 +317,13 @@ class CohereToolModel(LLMBase):
             force_single_step=True,
         )
 
-        with requests.post(
-            f"{self.base_url}/chat", headers=self.headers, json=tool_payload
-        ) as tool_response:
-            tool_response.raise_for_status()
-            tool_data = tool_response.json()
+        tool_response = self._client.post("/chat", json=tool_payload)
+        tool_response.raise_for_status()
+        tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
-        # Second chat request with streaming
+        # Prepare streaming payload
         stream_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
@@ -345,17 +339,11 @@ class CohereToolModel(LLMBase):
         collected_content = []
         usage_data = {}
 
-        with requests.post(
-            f"{self.base_url}/chat",
-            headers=self.headers,
-            json=stream_payload,
-            stream=True,
-        ) as response:
+        with self._client.stream("POST", "/chat", json=stream_payload) as response:
             response.raise_for_status()
-
             for line in response.iter_lines():
                 if line:
-                    chunk = json.loads(line.decode("utf-8"))
+                    chunk = json.loads(line)
                     if "text" in chunk:
                         content = chunk["text"]
                         collected_content.append(content)
@@ -370,104 +358,22 @@ class CohereToolModel(LLMBase):
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ):
         """
-        Makes an asynchronous prediction by sending a conversation request to Cohere's API.
+        Generate a response for a conversation asynchronously.
 
         Args:
-            conversation: The conversation object to process.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Controls response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
+            conversation: The conversation to generate a response for
+            toolkit: Optional toolkit containing available tools
+            temperature (float, optional): Sampling temperature
+            max_tokens (int, optional): Maximum number of tokens to generate
 
         Returns:
-            Updated conversation object with the predicted response.
+            The updated conversation with the model's response
         """
         conversation = self._ensure_conversation_has_message(conversation)
         formatted_messages = self._format_messages(conversation.history)
         tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
 
-        async with aiohttp.ClientSession() as session:
-            # First chat request for tool calls
-            with DurationManager() as tool_timer:
-                tool_payload = self._prepare_chat_payload(
-                    message=formatted_messages[-1]["message"],
-                    chat_history=(
-                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
-                    ),
-                    tools=tools,
-                    force_single_step=True,
-                )
-
-                async with session.post(
-                    f"{self.base_url}/chat", headers=self.headers, json=tool_payload
-                ) as tool_response:
-                    if tool_response.status != 200:
-                        raise Exception(
-                            f"API request failed with status {tool_response.status}"
-                        )
-                    tool_data = await tool_response.json()
-
-            tool_results = self._process_tool_calls(tool_data, toolkit)
-
-            # Second chat request for final response
-            with DurationManager() as response_timer:
-                response_payload = self._prepare_chat_payload(
-                    message=formatted_messages[-1]["message"],
-                    chat_history=(
-                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
-                    ),
-                    tools=tools,
-                    tool_results=tool_results,
-                    temperature=temperature,
-                    force_single_step=True,
-                )
-
-                async with session.post(
-                    f"{self.base_url}/chat", headers=self.headers, json=response_payload
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(
-                            f"API request failed with status {response.status}"
-                        )
-                    response_data = await response.json()
-
-            # Prepare usage data
-            usage = UsageData(
-                prompt_tokens=response_data.get("usage", {}).get("input_tokens", 0),
-                completion_tokens=response_data.get("usage", {}).get(
-                    "output_tokens", 0
-                ),
-                total_tokens=response_data.get("usage", {}).get("total_tokens", 0),
-                prompt_time=tool_timer.duration,
-                completion_time=response_timer.duration,
-                total_time=tool_timer.duration + response_timer.duration,
-            )
-
-            conversation.add_message(
-                AgentMessage(content=response_data.get("text", ""), usage=usage)
-            )
-            return conversation
-
-    async def astream(
-        self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
-    ) -> AsyncIterator[str]:
-        """
-        Streams response content asynchronously as it is received from Cohere's API.
-
-        Args:
-            conversation: The conversation object to process.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Controls response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024.
-
-        Yields:
-            AsyncIterator[str]: Streamed content as it is received.
-        """
-        conversation = self._ensure_conversation_has_message(conversation)
-        formatted_messages = self._format_messages(conversation.history)
-        tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
-
-        async with aiohttp.ClientSession() as session:
-            # First chat request for tool calls
+        with DurationManager() as tool_timer:
             tool_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
                 chat_history=(
@@ -477,19 +383,14 @@ class CohereToolModel(LLMBase):
                 force_single_step=True,
             )
 
-            async with session.post(
-                f"{self.base_url}/chat", headers=self.headers, json=tool_payload
-            ) as tool_response:
-                if tool_response.status != 200:
-                    raise Exception(
-                        f"API request failed with status {tool_response.status}"
-                    )
-                tool_data = await tool_response.json()
+            tool_response = await self._async_client.post("/chat", json=tool_payload)
+            tool_response.raise_for_status()
+            tool_data = tool_response.json()
 
-            tool_results = self._process_tool_calls(tool_data, toolkit)
+        tool_results = self._process_tool_calls(tool_data, toolkit)
 
-            # Second chat request with streaming
-            stream_payload = self._prepare_chat_payload(
+        with DurationManager() as response_timer:
+            response_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
                 chat_history=(
                     formatted_messages[:-1] if len(formatted_messages) > 1 else None
@@ -499,41 +400,116 @@ class CohereToolModel(LLMBase):
                 temperature=temperature,
                 force_single_step=True,
             )
-            stream_payload["stream"] = True
 
-            collected_content = []
-            async with session.post(
-                f"{self.base_url}/chat", headers=self.headers, json=stream_payload
-            ) as response:
-                if response.status != 200:
-                    raise Exception(f"API request failed with status {response.status}")
+            response = await self._async_client.post("/chat", json=response_payload)
+            response.raise_for_status()
+            response_data = response.json()
 
-                async for line in response.content:
-                    if line:
-                        chunk = json.loads(line.decode("utf-8"))
+        usage = UsageData(
+            prompt_tokens=response_data.get("usage", {}).get("input_tokens", 0),
+            completion_tokens=response_data.get("usage", {}).get("output_tokens", 0),
+            total_tokens=response_data.get("usage", {}).get("total_tokens", 0),
+            prompt_time=tool_timer.duration,
+            completion_time=response_timer.duration,
+            total_time=tool_timer.duration + response_timer.duration,
+        )
+
+        conversation.add_message(
+            AgentMessage(content=response_data.get("text", ""), usage=usage)
+        )
+        return conversation
+
+    async def astream(
+        self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
+    ) -> AsyncIterator[str]:
+        """
+        Stream a response for a conversation asynchronously.
+
+        Args:
+            conversation: The conversation to generate a response for
+            toolkit: Optional toolkit containing available tools
+            temperature (float, optional): Sampling temperature
+            max_tokens (int, optional): Maximum number of tokens to generate
+
+        Returns:
+            AsyncIterator[str]: An async iterator yielding response chunks
+        """
+        conversation = self._ensure_conversation_has_message(conversation)
+        formatted_messages = self._format_messages(conversation.history)
+        tools = self._schema_convert_tools(toolkit.tools) if toolkit else None
+
+        # Handle tool call first
+        tool_payload = self._prepare_chat_payload(
+            message=formatted_messages[-1]["message"],
+            chat_history=(
+                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+            ),
+            tools=tools,
+            force_single_step=True,
+        )
+
+        tool_response = await self._async_client.post("/chat", json=tool_payload)
+        tool_response.raise_for_status()
+        tool_data = tool_response.json()
+
+        tool_results = self._process_tool_calls(tool_data, toolkit)
+
+        # Prepare streaming payload
+        stream_payload = self._prepare_chat_payload(
+            message=formatted_messages[-1]["message"],
+            chat_history=(
+                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+            ),
+            tools=tools,
+            tool_results=tool_results,
+            temperature=temperature,
+            force_single_step=True,
+        )
+        stream_payload["stream"] = True
+
+        collected_content = []
+        usage_data = {}
+
+        async with self._async_client.stream(
+            "POST", "/chat", json=stream_payload
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if line:
+                    try:
+                        chunk = json.loads(line)
                         if "text" in chunk:
                             content = chunk["text"]
                             collected_content.append(content)
                             yield content
-                    await asyncio.sleep(0)
+                        elif "usage" in chunk:
+                            usage_data = chunk["usage"]
+                    except json.JSONDecodeError:
+                        continue
 
-            full_content = "".join(collected_content)
-            conversation.add_message(AgentMessage(content=full_content))
+        full_content = "".join(collected_content)
+        conversation.add_message(AgentMessage(content=full_content))
 
     def batch(
         self, conversations: List, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> List:
         """
-        Processes multiple conversations synchronously in batch mode.
+        Process multiple conversations in batch mode synchronously.
+
+        This method takes a list of conversations and processes them sequentially using
+        the predict method. Each conversation is processed independently with the same
+        parameters.
 
         Args:
-            conversations (List): A list of conversation objects to process.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Controls response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in each response. Defaults to 1024.
+            conversations (List): A list of conversation objects to process
+            toolkit (optional): The toolkit containing available tools for the model
+            temperature (float, optional): The sampling temperature for response generation.
+                Defaults to 0.3
+            max_tokens (int, optional): The maximum number of tokens to generate for each
+                response. Defaults to 1024
 
         Returns:
-            List: A list of updated conversation objects with responses.
+            List: A list of processed conversations with their respective responses
         """
         return [
             self.predict(
@@ -551,17 +527,29 @@ class CohereToolModel(LLMBase):
         max_concurrent=5,
     ) -> List:
         """
-        Processes multiple conversations asynchronously in batch mode with concurrency control.
+        Process multiple conversations in batch mode asynchronously.
+
+        This method processes multiple conversations concurrently while limiting the
+        maximum number of simultaneous requests using a semaphore. This helps prevent
+        overwhelming the API service while still maintaining efficient processing.
 
         Args:
-            conversations (List): A list of conversation objects to process.
-            toolkit (optional): Toolkit object for tool usage.
-            temperature (float, optional): Controls response randomness. Defaults to 0.3.
-            max_tokens (int, optional): Maximum tokens in each response. Defaults to 1024.
-            max_concurrent (int, optional): Maximum concurrent requests allowed. Defaults to 5.
+            conversations (List): A list of conversation objects to process
+            toolkit (optional): The toolkit containing available tools for the model
+            temperature (float, optional): The sampling temperature for response generation.
+                Defaults to 0.3
+            max_tokens (int, optional): The maximum number of tokens to generate for each
+                response. Defaults to 1024
+            max_concurrent (int, optional): The maximum number of conversations to process
+                simultaneously. Defaults to 5
 
         Returns:
-            List: A list of updated conversation objects with responses.
+            List: A list of processed conversations with their respective responses
+
+        Note:
+            The max_concurrent parameter helps control API usage and prevent rate limiting
+            while still allowing for parallel processing of multiple conversations.
+
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
