@@ -1,38 +1,17 @@
 import importlib
-import sys
 
-# Define a lazy loader function
+# Define a lazy loader function with a warning message if the module is not found
 def _lazy_import(module_name):
     try:
         return importlib.import_module(module_name)
     except ImportError:
+        # If module is not available, print a warning message
+        print(f"Warning: The module '{module_name}' is not available. "
+              f"Please install the necessary dependencies to enable this functionality.")
         return None
 
-# Lazy loading of tools based on available dependencies
-AdditionTool = _lazy_import("swarmauri.tools.concrete.AdditionTool") 
-AutomatedReadabilityIndexTool = _lazy_import("swarmauri.tools.concrete.AutomatedReadabilityIndexTool")
-CalculatorTool = _lazy_import("swarmauri.tools.concrete.CalculatorTool")
-CodeExtractorTool = _lazy_import("swarmauri.tools.concrete.CodeExtractorTool")
-CodeInterpreterTool = _lazy_import("swarmauri.tools.concrete.CodeInterpreterTool")
-ColemanLiauIndexTool = _lazy_import("swarmauri.tools.concrete.ColemanLiauIndexTool")
-FleschKincaidTool = _lazy_import("swarmauri.tools.concrete.FleschKincaidTool")
-FleschReadingEaseTool = _lazy_import("swarmauri.tools.concrete.FleschReadingEaseTool")
-GunningFogTool = _lazy_import("swarmauri.tools.concrete.GunningFogTool")
-ImportMemoryModuleTool = _lazy_import("swarmauri.tools.concrete.ImportMemoryModuleTool")
-JSONRequestsTool = _lazy_import("swarmauri.tools.concrete.JSONRequestsTool")
-MatplotlibCsvTool = _lazy_import("swarmauri.tools.concrete.MatplotlibCsvTool")
-MatplotlibTool = _lazy_import("swarmauri.tools.concrete.MatplotlibTool")
-
-Parameter = _lazy_import("swarmauri.tools.concrete.Parameter")
-SentenceComplexityTool = _lazy_import("swarmauri.tools.concrete.SentenceComplexityTool")
-SMOGIndexTool = _lazy_import("swarmauri.tools.concrete.SMOGIndexTool")
-TemperatureConverterTool = _lazy_import("swarmauri.tools.concrete.TemperatureConverterTool")
-TestTool = _lazy_import("swarmauri.tools.concrete.TestTool")
-TextLengthTool = _lazy_import("swarmauri.tools.concrete.TextLengthTool")
-WeatherTool = _lazy_import("swarmauri.tools.concrete.WeatherTool")
-
-
-__all__ = [
+# List of tool names (file names without the ".py" extension)
+tool_files = [
     "AdditionTool",
     "AutomatedReadabilityIndexTool",
     "CalculatorTool",
@@ -54,3 +33,10 @@ __all__ = [
     "TextLengthTool",
     "WeatherTool",
 ]
+
+# Lazy loading of tools, storing them in variables
+for tool in tool_files:
+    globals()[tool] = _lazy_import(f"swarmauri.tools.concrete.{tool}")
+
+# Adding the lazy-loaded tools to __all__
+__all__ = tool_files
