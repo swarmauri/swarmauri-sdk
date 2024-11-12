@@ -46,6 +46,7 @@ jobs:
 
     env: 
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
+      GITHUB_REF: ${{ github.ref }}
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
