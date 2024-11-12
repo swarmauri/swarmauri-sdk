@@ -78,7 +78,7 @@ full = [
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
-pytest-asyncio = ">=0.24.0"e
+pytest-asyncio = ">=0.24.0"
 pytest-timeout = "^2.3.1"
 pytest-xdist = "^3.6.1"
 python-dotenv = "^1.0.0"
