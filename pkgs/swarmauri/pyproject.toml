@@ -15,43 +15,51 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-aiohttp = "^3.10.10"
+swarmauri_core = "==0.5.1.dev21"
 
-# groq = "^0.11.0"
 toml = "^0.10.2"
 httpx = "^0.27.2"
 
 # anthropic = "^0.36.2" # Moving this out, we are now using the anthropic rest api.
+# groq = "^0.11.0"
 # cohere = "^5.11.0"
-# beautifulsoup4 = "04.12.3"
-
-#deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
+# gradio = "==5.1.0"
+# deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
+beautifulsoup4 = "04.12.3"
+mistralai = "^1.2.1"
+fal-client=">=0.5.0"
+aiohttp = "^3.10.10"
 gensim = "==4.3.3"
 google-generativeai = "^0.8.3"
-# gradio = "==5.1.0"
+openai = "^1.52.0"
+requests = "*"
+
 joblib = "^1.4.0"
 nltk = "^3.9.1"
 numpy = "*"
-openai = "^1.52.0"
-
-#opencv-python = "^4.10.0.84"
 pandas = "*"
 pydantic = "^2.9.2"
+
 Pillow = ">=8.0,<11.0"
-requests = "*"
-scipy = ">=1.7.0,<1.14.0"
-spacy = ">=3.0.0,<=3.8.2"
-swarmauri_core = "==0.5.1.dev21"
-textblob = "^0.18.0"
-torch = "^2.5.0"
-transformers = "^4.45.0"
+#opencv-python = "^4.10.0.84"
+
+
+
 typing_extensions = "*"
 yake = "==0.4.8"
-keras=">=3.2.0"
-matplotlib=">=3.9.2"
+
+scipy = ">=1.7.0,<1.14.0"
+spacy = ">=3.0.0,<=3.8.2"
 scikit-learn="^1.4.2"
+textblob = "^0.18.0"
+
+torch = "^2.5.0"
+transformers = "^4.45.0"
+keras=">=3.2.0"
 tf-keras=">=2.16.0"
-# fal-client=">=0.5.0"
+
+matplotlib=">=3.9.2"
+
 
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency
