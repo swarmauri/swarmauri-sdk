@@ -11,8 +11,6 @@ on:
       - 'pkgs/partners/**'
       - 'pkgs/swarmauri/**'
 
-env:
-  UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
 
 jobs:
   detect-changes:
@@ -47,6 +45,7 @@ jobs:
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
     env: 
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
