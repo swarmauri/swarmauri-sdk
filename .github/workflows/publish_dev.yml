@@ -138,7 +138,8 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry run pytest -v . --junitxml=results.xml
+          # Run pytest with xdist and loadfile distribution
+          poetry run pytest -v . --junitxml=results.xml -n 4 --dist=loadfile
 
       - name: Output test results for debugging
         run: |
