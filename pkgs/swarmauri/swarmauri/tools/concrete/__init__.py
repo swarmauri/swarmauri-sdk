@@ -1,48 +1,48 @@
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.tools.concrete.AutomatedReadabilityIndexTool import (
-    AutomatedReadabilityIndexTool,
-)
-from swarmauri.tools.concrete.CalculatorTool import CalculatorTool
-from swarmauri.tools.concrete.CodeExtractorTool import CodeExtractorTool
-from swarmauri.tools.concrete.CodeInterpreterTool import CodeInterpreterTool
-from swarmauri.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
-from swarmauri.tools.concrete.FleschKincaidTool import FleschKincaidTool
-from swarmauri.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool
-from swarmauri.tools.concrete.GunningFogTool import GunningFogTool
-from swarmauri.tools.concrete.ImportMemoryModuleTool import ImportMemoryModuleTool
-from swarmauri.tools.concrete.JSONRequestsTool import JSONRequestsTool
-from swarmauri.tools.concrete.MatplotlibCsvTool import MatplotlibCsvTool
-from swarmauri.tools.concrete.MatplotlibTool import MatplotlibTool
+import importlib
 
-from swarmauri.tools.concrete.Parameter import Parameter
-from swarmauri.tools.concrete.SentenceComplexityTool import SentenceComplexityTool
-from swarmauri.tools.concrete.SMOGIndexTool import SMOGIndexTool
-from swarmauri.tools.concrete.TemperatureConverterTool import TemperatureConverterTool
-from swarmauri.tools.concrete.TestTool import TestTool
-from swarmauri.tools.concrete.TextLengthTool import TextLengthTool
-from swarmauri.tools.concrete.WeatherTool import WeatherTool
+# Define a lazy loader function with a warning message if the module or class is not found
+def _lazy_import(module_name, class_name):
+    try:
+        # Import the module
+        module = importlib.import_module(module_name)
+        # Dynamically get the class from the module
+        return getattr(module, class_name)
+    except ImportError:
+        # If module is not available, print a warning message
+        print(f"Warning: The module '{module_name}' is not available. "
+              f"Please install the necessary dependencies to enable this functionality.")
+        return None
+    except AttributeError:
+        print(f"Warning: The class '{class_name}' was not found in module '{module_name}'.")
+        return None
 
-
-__all__ = [
-    "AdditionTool",
-    "AutomatedReadabilityIndexTool",
-    "CalculatorTool",
-    "CodeExtractorTool",
-    "CodeInterpreterTool",
-    "ColemanLiauIndexTool",
-    "FleschKincaidTool",
-    "FleschReadingEaseTool",
-    "GunningFogTool",
-    "ImportMemoryModuleTool",
-    "JSONRequestsTool",
-    "MatplotlibCsvTool",
-    "MatplotlibTool",
-    "Parameter",
-    "JSONRequestsTool",
-    "SentenceComplexityTool",
-    "SMOGIndexTool",
-    "TemperatureConverterTool",
-    "TestTool",
-    "TextLengthTool",
-    "WeatherTool",
+# List of tool names (file names without the ".py" extension) and corresponding class names
+tool_files = [
+    ("swarmauri.tools.concrete.AdditionTool", "AdditionTool"),
+    ("swarmauri.tools.concrete.AutomatedReadabilityIndexTool", "AutomatedReadabilityIndexTool"),
+    ("swarmauri.tools.concrete.CalculatorTool", "CalculatorTool"),
+    ("swarmauri.tools.concrete.CodeExtractorTool", "CodeExtractorTool"),
+    ("swarmauri.tools.concrete.CodeInterpreterTool", "CodeInterpreterTool"),
+    ("swarmauri.tools.concrete.ColemanLiauIndexTool", "ColemanLiauIndexTool"),
+    ("swarmauri.tools.concrete.FleschKincaidTool", "FleschKincaidTool"),
+    ("swarmauri.tools.concrete.FleschReadingEaseTool", "FleschReadingEaseTool"),
+    ("swarmauri.tools.concrete.GunningFogTool", "GunningFogTool"),
+    ("swarmauri.tools.concrete.ImportMemoryModuleTool", "ImportMemoryModuleTool"),
+    ("swarmauri.tools.concrete.JSONRequestsTool", "JSONRequestsTool"),
+    ("swarmauri.tools.concrete.MatplotlibCsvTool", "MatplotlibCsvTool"),
+    ("swarmauri.tools.concrete.MatplotlibTool", "MatplotlibTool"),
+    ("swarmauri.tools.concrete.Parameter", "Parameter"),
+    ("swarmauri.tools.concrete.SentenceComplexityTool", "SentenceComplexityTool"),
+    ("swarmauri.tools.concrete.SMOGIndexTool", "SMOGIndexTool"),
+    ("swarmauri.tools.concrete.TemperatureConverterTool", "TemperatureConverterTool"),
+    ("swarmauri.tools.concrete.TestTool", "TestTool"),
+    ("swarmauri.tools.concrete.TextLengthTool", "TextLengthTool"),
+    ("swarmauri.tools.concrete.WeatherTool", "WeatherTool"),
 ]
+
+# Lazy loading of tools, storing them in variables
+for module_name, class_name in tool_files:
+    globals()[class_name] = _lazy_import(module_name, class_name)
+
+# Adding the lazy-loaded tools to __all__
+__all__ = [class_name for _, class_name in tool_files]

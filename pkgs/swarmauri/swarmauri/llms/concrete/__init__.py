@@ -1,37 +1,47 @@
-from swarmauri.llms.concrete.AI21StudioModel import AI21StudioModel
-from swarmauri.llms.concrete.AnthropicModel import AnthropicModel
-from swarmauri.llms.concrete.AnthropicToolModel import AnthropicToolModel
-from swarmauri.llms.concrete.CohereModel import CohereModel
-from swarmauri.llms.concrete.CohereToolModel import CohereToolModel
-from swarmauri.llms.concrete.DeepInfraModel import DeepInfraModel
-from swarmauri.llms.concrete.DeepSeekModel import DeepSeekModel
-from swarmauri.llms.concrete.GeminiProModel import GeminiProModel
-from swarmauri.llms.concrete.GeminiToolModel import GeminiToolModel
-from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.llms.concrete.GroqToolModel import GroqToolModel
-from swarmauri.llms.concrete.MistralModel import MistralModel
-from swarmauri.llms.concrete.MistralToolModel import MistralToolModel
+import importlib
 
-# from swarmauri.llms.concrete.OpenAIImageGeneratorModel import OpenAIImageGeneratorModel
-from swarmauri.llms.concrete.OpenAIModel import OpenAIModel
-from swarmauri.llms.concrete.OpenAIToolModel import OpenAIToolModel
-from swarmauri.llms.concrete.PerplexityModel import PerplexityModel
+# Define a lazy loader function with a warning message if the module is not found
+def _lazy_import(module_name, module_description=None):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        # If module is not available, print a warning message
+        print(f"Warning: The module '{module_description or module_name}' is not available. "
+              f"Please install the necessary dependencies to enable this functionality.")
+        return None
 
-__all__ = [
+# List of model names (file names without the ".py" extension)
+model_files = [
     "AI21StudioModel",
     "AnthropicModel",
     "AnthropicToolModel",
+    "BlackForestimgGenModel",
     "CohereModel",
     "CohereToolModel",
+    "DeepInfraImgGenModel",
     "DeepInfraModel",
     "DeepSeekModel",
+    "FalAllImgGenModel",
+    "FalAVisionModel",
     "GeminiProModel",
     "GeminiToolModel",
+    "GroqAudio",
     "GroqModel",
     "GroqToolModel",
+    "GroqVisionModel",
     "MistralModel",
     "MistralToolModel",
+    "OpenAIGenModel",
     "OpenAIModel",
     "OpenAIToolModel",
     "PerplexityModel",
+    "PlayHTModel",
+    "WhisperLargeModel",
 ]
+
+# Lazy loading of models, storing them in variables
+for model in model_files:
+    globals()[model] = _lazy_import(f"swarmauri.llms.concrete.{model}", model)
+
+# Adding the lazy-loaded models to __all__
+__all__ = model_files
