@@ -13,7 +13,7 @@ def get_git_branch():
         return "main"  # Default to 'main' if git is not available or not in a git repo
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_report_teststatus(report):
+def pytest_runtest_logreport(report):
     status = report.outcome  # 'passed', 'failed', 'skipped', etc.
     
     # Get the current branch from the environment or git
@@ -26,8 +26,6 @@ def pytest_report_teststatus(report):
         # Fallback: get branch using git if not set in the environment
         github_branch = get_git_branch()
 
-    
-    
     # Get the location of the test (file path and line number)
     location = report.location
     file_path = location[0]
@@ -41,9 +39,5 @@ def pytest_report_teststatus(report):
     
     # Return different results based on the test outcome
     if status == "failed":
-        return status, report.nodeid, (f"Test failed: {report.longrepr}{location_str}", {"red": True})
+        report.longrepr = f"Test failed: {report.longrepr}{location_str}"
     elif status == "skipped":
-        return status, report.nodeid, (f"Test skipped: {report.longrepr}{location_str}", {"yellow": True})
-    
-    # For passed tests, we still include the GitHub URL
-    return status, report.nodeid, f"{report.longrepr}{location_str}"
