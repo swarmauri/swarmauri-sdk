@@ -162,13 +162,3 @@ class DeepInfraImgGenModel(LLMBase):
         tasks = [process_prompt(prompt) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
-    def __del__(self):
-        """
-        Cleans up HTTP clients by closing the connections.
-
-        Ensures that both synchronous and asynchronous HTTP clients are closed properly
-        when the instance is deleted.
-        """
-        self._client.close()
-        if not self._async_client.is_closed:
-            asyncio.run(self._async_client.aclose())

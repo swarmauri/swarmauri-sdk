@@ -3,6 +3,7 @@ import logging
 import httpx
 from functools import wraps
 from typing import List
+import asyncio  # Import asyncio to use async sleep
 
 def retry_on_status_codes(
     status_codes: List[int] = [429], 
@@ -20,17 +21,17 @@ def retry_on_status_codes(
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):  # Make the wrapper async
             attempt = 0
             while attempt < max_retries:
                 try:
-                    return func(*args, **kwargs)
+                    return await func(*args, **kwargs)  # Use await to call the async function
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code in status_codes:
                         attempt += 1
                         backoff_time = retry_delay * (2 ** (attempt - 1))  # Exponential backoff
                         logging.warning(f"Received status {e.response.status_code}. Retrying in {backoff_time} seconds... Attempt {attempt}/{max_retries}")
-                        time.sleep(backoff_time)
+                        await asyncio.sleep(backoff_time)  # Use asyncio.sleep for async functions
                     else:
                         # If the error code is not in the retry list, raise the error
                         raise
