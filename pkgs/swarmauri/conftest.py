@@ -39,7 +39,7 @@ def pytest_runtest_logreport(report):
     
     # Return different results based on the test outcome
     if status == "failed":
-        report.longrepr = f"Test failed: {report.longrepr}{location_str}"
+        report.longrepr = f"\e[0;33m Test failed: {report.longrepr}{location_str} \e[0m"
     elif status == "skipped":
-        report.longrepr = f"Test skipped: {report.longrepr}{location_str}"
+        report.longrepr = f"\e[0;33m Test skipped: {report.longrepr}{location_str} \e[0m"
         
