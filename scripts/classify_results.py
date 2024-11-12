@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print(f"Failures: {failures}/{results['total_cases']}")
     print(f"Passing: {results['total_cases'] - failures}/{results['total_cases']}")
     try:
-        print(f"Pass Rate: {(1 - int(failures) / int(results['total_cases'])*100 ):.2f}%")
+        print(f"Pass Rate: {(1 - int(failures) / int(results['total_cases'])) * 100:.2f}%")
     except ZeroDivisionError:
         print(f"Pass Rate: 0 out of 0")
 
