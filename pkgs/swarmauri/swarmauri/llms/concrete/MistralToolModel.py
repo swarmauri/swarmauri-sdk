@@ -317,7 +317,7 @@ class MistralToolModel(LLMBase):
 
         message_content = ""
 
-        for line in response.iter_lines(decode_unicode=True):
+        for line in response.iter_lines():
             json_str = line.replace('data: ', '')
             try:
                 if json_str:
