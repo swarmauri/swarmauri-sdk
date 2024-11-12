@@ -158,3 +158,8 @@ jobs:
           user: __token__
           password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
           packages_dir: dist
+
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
