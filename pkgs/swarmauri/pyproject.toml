@@ -19,58 +19,43 @@ swarmauri_core = "==0.5.1.dev21"
 
 toml = "^0.10.2"
 httpx = "^0.27.2"
-
-# anthropic = "^0.36.2" # Moving this out, we are now using the anthropic rest api.
-# groq = "^0.11.0"
-# gradio = "==5.1.0"
-# deepface = "^0.0.93" # Moving this out, we'll provide deepface wrappers independently
-
-aiofiles = "24.1.0"
-cohere = "^5.11.0"
-beautifulsoup4 = "04.12.3"
-mistralai = "^1.2.1"
-fal-client=">=0.5.0"
-aiohttp = "^3.10.10"
-gensim = "==4.3.3"
-google-generativeai = "^0.8.3"
-openai = "^1.52.0"
-requests = "*"
-
 joblib = "^1.4.0"
-nltk = "^3.9.1"
 numpy = "*"
 pandas = "*"
 pydantic = "^2.9.2"
-
 Pillow = ">=8.0,<11.0"
-#opencv-python = "^4.10.0.84"
-
-
-
 typing_extensions = "*"
-yake = "==0.4.8"
 
-scipy = ">=1.7.0,<1.14.0"
-spacy = ">=3.0.0,<=3.8.2"
-scikit-learn="^1.4.2"
-textblob = "^0.18.0"
+# Core dependencies remaining in main
+requests = "*"
 
-torch = "^2.5.0"
-transformers = "^4.45.0"
-keras=">=3.2.0"
-tf-keras=">=2.16.0"
-
-matplotlib=">=3.9.2"
-
+[tool.poetry.extras]
+# Extra dependencies grouped by functionality
+io = ["aiofiles = '24.1.0'", "aiohttp = '^3.10.10'"]
+llms = [
+    "cohere = '^5.11.0'",
+    "mistralai = '^1.2.1'",
+    "fal-client = '>=0.5.0'",
+    "google-generativeai = '^0.8.3'",
+    "openai = '^1.52.0'"
+]
+nlp = ["nltk = '^3.9.1'", "textblob = '^0.18.0'", "yake = '==0.4.8'"]
+nlp_tools = ["beautifulsoup4 = '04.12.3'"]
+ml_toolkits = ["gensim = '==4.3.3'", "scipy = '>=1.7.0,<1.14.0'", "scikit-learn = '^1.4.2'"]
+spacy = ["spacy = '>=3.0.0,<=3.8.2'"]
+transformers = ["transformers = '^4.45.0'"]
+torch = ["torch = '^2.5.0'"]
+tensorflow = ["keras = '>=3.2.0'", "tf-keras = '>=2.16.0'"]
+visualization = ["matplotlib = '>=3.9.2'"]
 
 [tool.poetry.dev-dependencies]
-flake8 = "^7.0"  # Add flake8 as a development dependency
-pytest = "^8.0"  # Ensure pytest is also added if you run tests
+flake8 = "^7.0"
+pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-timeout = "^2.3.1"
 python-dotenv = "^1.0.0"
 jsonschema = "^4.18.5"
-ipython ="8.28.0"
+ipython = "8.28.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
