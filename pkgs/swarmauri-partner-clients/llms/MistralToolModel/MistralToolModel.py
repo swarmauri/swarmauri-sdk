@@ -282,12 +282,10 @@ class MistralToolModel(LLMBase):
         message_content = ""
 
         for chunk in stream_response:
-            if hasattr(chunk, "data") and chunk.data.choices[0].delta.content:
-                # Manually decode each line
-                line = chunk.data.choices[0].delta.content.encode("utf-8").decode("utf-8")
-                message_content += line
-                yield line
-    
+            if chunk.data.choices[0].delta.content:
+                message_content += chunk.data.choices[0].delta.content
+                yield chunk.data.choices[0].delta.content
+
         conversation.add_message(AgentMessage(content=message_content))
 
     async def astream(
