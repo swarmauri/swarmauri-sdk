@@ -27,14 +27,11 @@ jobs:
           CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
     
           if [ -z "$CHANGED_PACKAGES" ]; then
-            # If no packages changed, set to an empty array
             CHANGED_PACKAGES_ARRAY="[]"
           else
-            # Convert the comma-separated packages to a JSON array format
             CHANGED_PACKAGES_ARRAY=$(echo "[\"$(echo $CHANGED_PACKAGES | sed 's/,/","/g')\"]")
           fi
 
-          # Export it to GITHUB_OUTPUT in JSON format
           echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
 
   test:
@@ -47,7 +44,6 @@ jobs:
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
     env:
-      # Model Provider Keys
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
@@ -61,8 +57,6 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
-      
-      # Database Keys
       CHROMADB_COLLECTION_NAME: ${{ secrets.CHROMADB_COLLECTION_NAME }}
       NEO4J_COLLECTION_NAME: ${{ secrets.NEO4J_COLLECTION_NAME }}
       NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
@@ -77,13 +71,9 @@ jobs:
       REDIS_PORT: ${{ secrets.REDIS_PORT }}
       WEAVIATE_API_KEY: ${{ secrets.WEAVIATE_API_KEY }}
       WEAVIATE_URL: ${{ secrets.WEAVIATE_URL }}
-      
-      # GitHub Keys
       GITHUBTOOL_TEST_REPO_NAME: ${{ secrets.GITHUBTOOL_TEST_REPO_NAME }}
       GITHUBTOOL_TEST_REPO_OWNER: ${{ secrets.GITHUBTOOL_TEST_REPO_OWNER }}
       GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
-      
-      # Miscellaneous Tokens
       DANGER_MASTER_PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
@@ -100,55 +90,67 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
+      - name: Create unique virtual environment for package
+        run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
+          python -m venv $UNIQUE_VENV_PATH
+          echo "source $(pwd)/$UNIQUE_VENV_PATH/bin/activate" >> $GITHUB_ENV
+          source $UNIQUE_VENV_PATH/bin/activate
+
       - name: Install dependencies with Poetry
         run: |
-          cd pkgs/${{ matrix.package }}
+          source $UNIQUE_VENV_PATH/bin/activate
           poetry install --no-cache -vv
 
       - name: Lint with flake8
         run: |
-          cd pkgs/${{ matrix.package }}
+          source $UNIQUE_VENV_PATH/bin/activate
           poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build package with Poetry
         run: |
-          cd pkgs/${{ matrix.package }}
+          source $UNIQUE_VENV_PATH/bin/activate
           poetry build
 
       - name: Install built package
         run: |
-          LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
+          source $UNIQUE_VENV_PATH/bin/activate
+          LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
           python -m pip install "$LATEST_WHL" --no-cache-dir
 
       - name: Get pip freeze
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
       - name: List package sizes
         run: |
-          python scripts/list_package_sizes.py
+          source $UNIQUE_VENV_PATH/bin/activate
+          python ../../scripts/list_package_sizes.py
         continue-on-error: false
 
       - name: Show total package size
         run: |
-          python scripts/total_site_packages_size.py
+          source $UNIQUE_VENV_PATH/bin/activate
+          python ../../scripts/total_site_packages_size.py
         continue-on-error: false
 
       - name: Run tests
         continue-on-error: true
         run: |
-          cd pkgs/${{ matrix.package }}
+          source $UNIQUE_VENV_PATH/bin/activate
           poetry run pytest -v . --junitxml=results.xml
 
       - name: Output test results for debugging
         run: |
           ls
-          cat pkgs/${{ matrix.package }}/results.xml
+          cat results.xml
 
       - name: Classify test results
         run: |
-          python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
+          source $UNIQUE_VENV_PATH/bin/activate
+          python ../../scripts/classify_results.py results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
@@ -157,4 +159,4 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
-          packages_dir: pkgs/${{ matrix.package }}/dist
+          packages_dir: dist
