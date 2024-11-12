@@ -1,19 +1,17 @@
-from swarmauri.distances.concrete.CanberraDistance import CanberraDistance
-from swarmauri.distances.concrete.ChebyshevDistance import ChebyshevDistance
-from swarmauri.distances.concrete.ChiSquaredDistance import ChiSquaredDistance
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
-from swarmauri.distances.concrete.EuclideanDistance import EuclideanDistance
-from swarmauri.distances.concrete.HaversineDistance import HaversineDistance
-from swarmauri.distances.concrete.JaccardIndexDistance import JaccardIndexDistance
-from swarmauri.distances.concrete.LevenshteinDistance import LevenshteinDistance
-from swarmauri.distances.concrete.ManhattanDistance import ManhattanDistance
-from swarmauri.distances.concrete.MinkowskiDistance import MinkowskiDistance
-from swarmauri.distances.concrete.SorensenDiceDistance import SorensenDiceDistance
-from swarmauri.distances.concrete.SquaredEuclideanDistance import (
-    SquaredEuclideanDistance,
-)
+import importlib
 
-__all__ = [
+# Define a lazy loader function with a warning message if the module is not found
+def _lazy_import(module_name, module_description=None):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        # If module is not available, print a warning message
+        print(f"Warning: The module '{module_description or module_name}' is not available. "
+              f"Please install the necessary dependencies to enable this functionality.")
+        return None
+
+# List of distance names (file names without the ".py" extension)
+distance_files = [
     "CanberraDistance",
     "ChebyshevDistance",
     "ChiSquaredDistance",
@@ -27,3 +25,10 @@ __all__ = [
     "SorensenDiceDistance",
     "SquaredEuclideanDistance",
 ]
+
+# Lazy loading of distance modules, storing them in variables
+for distance in distance_files:
+    globals()[distance] = _lazy_import(f"swarmauri.distances.concrete.{distance}", distance)
+
+# Adding the lazy-loaded distance modules to __all__
+__all__ = distance_files

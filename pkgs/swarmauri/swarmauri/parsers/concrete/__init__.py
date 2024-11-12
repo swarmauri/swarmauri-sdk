@@ -1,19 +1,37 @@
-from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
-    BeautifulSoupElementParser,
-)
-from swarmauri.parsers.concrete.BERTEmbeddingParser import BERTEmbeddingParser
-from swarmauri.parsers.concrete.CSVParser import CSVParser
-from swarmauri.parsers.concrete.EntityRecognitionParser import EntityRecognitionParser
-from swarmauri.parsers.concrete.HTMLTagStripParser import HTMLTagStripParser
-from swarmauri.parsers.concrete.KeywordExtractorParser import KeywordExtractorParser
-from swarmauri.parsers.concrete.Md2HtmlParser import Md2HtmlParser
-from swarmauri.parsers.concrete.OpenAPISpecParser import OpenAPISpecParser
-from swarmauri.parsers.concrete.PhoneNumberExtractorParser import (
-    PhoneNumberExtractorParser,
-)
-from swarmauri.parsers.concrete.PythonParser import PythonParser
-from swarmauri.parsers.concrete.RegExParser import RegExParser
-from swarmauri.parsers.concrete.TextBlobNounParser import TextBlobNounParser
-from swarmauri.parsers.concrete.TextBlobSentenceParser import TextBlobSentenceParser
-from swarmauri.parsers.concrete.URLExtractorParser import URLExtractorParser
-from swarmauri.parsers.concrete.XMLParser import XMLParser
+import importlib
+
+# Define a lazy loader function with a warning message if the module is not found
+def _lazy_import(module_name, module_description=None):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        # If module is not available, print a warning message
+        print(f"Warning: The module '{module_description or module_name}' is not available. "
+              f"Please install the necessary dependencies to enable this functionality.")
+        return None
+
+# List of parser names (file names without the ".py" extension)
+parser_files = [
+    "BeautifulSoupElementParser",
+    "BERTEmbeddingParser",
+    "CSVParser",
+    "EntityRecognitionParser",
+    "HTMLTagStripParser",
+    "KeywordExtractorParser",
+    "Md2HtmlParser",
+    "OpenAPISpecParser",
+    "PhoneNumberExtractorParser",
+    "PythonParser",
+    "RegExParser",
+    "TextBlobNounParser",
+    "TextBlobSentenceParser",
+    "URLExtractorParser",
+    "XMLParser",
+]
+
+# Lazy loading of parser modules, storing them in variables
+for parser in parser_files:
+    globals()[parser] = _lazy_import(f"swarmauri.parsers.concrete.{parser}", parser)
+
+# Adding the lazy-loaded parser modules to __all__
+__all__ = parser_files

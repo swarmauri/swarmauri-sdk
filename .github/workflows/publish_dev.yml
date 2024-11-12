@@ -2,7 +2,7 @@ name: Test and Publish Release
 
 on:
   push:
-    branches: ["*dev*"]
+    branches: ["*dev*", "swarm/*dev*"]
     tags: ["v*"]  # Only trigger for tags starting with 'v' (e.g., v1.0.0)
     paths:
       - 'pkgs/community/**'
@@ -46,6 +46,8 @@ jobs:
 
     env: 
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
+      GITHUB_REF: ${{ github.ref }}
+      PKG_PATH: "${{ matrix.package }}"
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
@@ -101,7 +103,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry install --no-cache -vv
+          poetry install --no-cache -vv --all-extras
 
       - name: Lint with flake8
         run: |
@@ -138,7 +140,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry run pytest -v . --junitxml=results.xml
+          poetry run pytest -v . --junitxml=results.xml -n 8 --dist=loadfile
 
       - name: Output test results for debugging
         run: |
