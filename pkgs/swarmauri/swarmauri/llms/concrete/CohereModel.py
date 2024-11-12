@@ -1,11 +1,8 @@
 import json
 import asyncio
-import time
 from typing import List, Dict, Literal, AsyncIterator, Iterator
-from pydantic import Field
-import requests
-import aiohttp
-from swarmauri_core.typing import SubclassUnion
+from pydantic import PrivateAttr
+import httpx
 
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
@@ -24,12 +21,14 @@ class CohereModel(LLMBase):
         allowed_models (List[str]): List of supported Cohere model identifiers.
         name (str): The default model name to use (defaults to "command").
         type (Literal["CohereModel"]): The type identifier for this model class.
-        base_url (str): The base URL for Cohere's API endpoints.
-        headers (Dict[str, str]): HTTP headers used for API requests.
 
     Link to Allowed Models: https://docs.cohere.com/docs/models
     Link to API Key: https://dashboard.cohere.com/api-keys
     """
+
+    _BASE_URL: str = PrivateAttr("https://api.cohere.ai/v1")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: str
     allowed_models: List[str] = [
@@ -42,8 +41,6 @@ class CohereModel(LLMBase):
     ]
     name: str = "command"
     type: Literal["CohereModel"] = "CohereModel"
-    base_url: str = Field(default="https://api.cohere.ai/v1")
-    headers: Dict[str, str] = Field(default=None, exclude=True)
 
     def __init__(self, **data):
         """
@@ -53,14 +50,16 @@ class CohereModel(LLMBase):
             **data: Keyword arguments for model configuration, must include 'api_key'.
         """
         super().__init__(**data)
-        self.headers = {
+        headers = {
             "accept": "application/json",
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
+        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[MessageBase]
     ) -> tuple[List[Dict[str, str]], str, str]:
         """
         Format a list of messages into Cohere's expected chat format.
@@ -145,7 +144,7 @@ class CohereModel(LLMBase):
             The updated conversation object with the model's response added
 
         Raises:
-            requests.exceptions.RequestException: If the API request fails
+            httpx.HTTPError: If the API request fails
         """
         chat_history, system_message, message = self._format_messages(
             conversation.history
@@ -169,9 +168,7 @@ class CohereModel(LLMBase):
             payload["preamble"] = system_message
 
         with DurationManager() as prompt_timer:
-            response = requests.post(
-                f"{self.base_url}/chat", headers=self.headers, json=payload
-            )
+            response = self._client.post("/chat", json=payload)
             response.raise_for_status()
             data = response.json()
 
@@ -200,7 +197,7 @@ class CohereModel(LLMBase):
             The updated conversation object with the model's response added
 
         Raises:
-            Exception: If the API request fails
+            httpx.HTTPError: If the API request fails
         """
         chat_history, system_message, message = self._format_messages(
             conversation.history
@@ -223,44 +220,24 @@ class CohereModel(LLMBase):
         if system_message:
             payload["preamble"] = system_message
 
-        async with aiohttp.ClientSession() as session:
-            with DurationManager() as prompt_timer:
-                async with session.post(
-                    f"{self.base_url}/chat", headers=self.headers, json=payload
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(
-                            f"API request failed with status {response.status}"
-                        )
-                    data = await response.json()
+        with DurationManager() as prompt_timer:
+            response = await self._async_client.post("/chat", json=payload)
+            response.raise_for_status()
+            data = response.json()
 
-            with DurationManager() as completion_timer:
-                message_content = data["text"]
+        with DurationManager() as completion_timer:
+            message_content = data["text"]
 
-            usage_data = data.get("usage", {})
+        usage_data = data.get("usage", {})
 
-            usage = self._prepare_usage_data(
-                usage_data, prompt_timer.duration, completion_timer.duration
-            )
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
 
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
-            return conversation
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        return conversation
 
     def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
-        """
-        Stream predictions from the model synchronously.
-
-        Args:
-            conversation: The conversation object containing message history
-            temperature (float, optional): Sampling temperature. Defaults to 0.7
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256
-
-        Yields:
-            str: Chunks of the generated text as they become available
-
-        Raises:
-            requests.exceptions.RequestException: If the API request fails
-        """
         chat_history, system_message, message = self._format_messages(
             conversation.history
         )
@@ -284,21 +261,19 @@ class CohereModel(LLMBase):
         usage_data = {}
 
         with DurationManager() as prompt_timer:
-            with requests.post(
-                f"{self.base_url}/chat", headers=self.headers, json=payload, stream=True
-            ) as response:
-                response.raise_for_status()
+            response = self._client.post("/chat", json=payload)
+            response.raise_for_status()
 
-                with DurationManager() as completion_timer:
-                    for line in response.iter_lines():
-                        if line:
-                            chunk = json.loads(line.decode("utf-8"))
-                            if "text" in chunk:
-                                content = chunk["text"]
-                                collected_content.append(content)
-                                yield content
-                            elif "usage" in chunk:
-                                usage_data = chunk["usage"]
+        with DurationManager() as completion_timer:
+            for line in response.iter_lines():
+                if line:
+                    chunk = json.loads(line)
+                    if "text" in chunk:
+                        content = chunk["text"]
+                        collected_content.append(content)
+                        yield content
+                    elif "usage" in chunk:
+                        usage_data = chunk["usage"]
 
         full_content = "".join(collected_content)
         usage = self._prepare_usage_data(
@@ -310,20 +285,6 @@ class CohereModel(LLMBase):
     async def astream(
         self, conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:
-        """
-        Stream predictions from the model asynchronously.
-
-        Args:
-            conversation: The conversation object containing message history
-            temperature (float, optional): Sampling temperature. Defaults to 0.7
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256
-
-        Yields:
-            str: Chunks of the generated text as they become available
-
-        Raises:
-            Exception: If the API request fails
-        """
         chat_history, system_message, message = self._format_messages(
             conversation.history
         )
@@ -349,34 +310,30 @@ class CohereModel(LLMBase):
         collected_content = []
         usage_data = {}
 
-        async with aiohttp.ClientSession() as session:
-            with DurationManager() as prompt_timer:
-                async with session.post(
-                    f"{self.base_url}/chat", headers=self.headers, json=payload
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(
-                            f"API request failed with status {response.status}"
-                        )
+        with DurationManager() as prompt_timer:
+            response = await self._async_client.post("/chat", json=payload)
+            response.raise_for_status()
 
-                    with DurationManager() as completion_timer:
-                        async for line in response.content:
-                            if line:
-                                chunk = json.loads(line.decode("utf-8"))
-                                if "text" in chunk:
-                                    content = chunk["text"]
-                                    collected_content.append(content)
-                                    yield content
-                                elif "usage" in chunk:
-                                    usage_data = chunk["usage"]
-                            await asyncio.sleep(0)
+        with DurationManager() as completion_timer:
+            async for line in response.aiter_lines():
+                if line:
+                    try:
+                        chunk = json.loads(line)
+                        if "text" in chunk:
+                            content = chunk["text"]
+                            collected_content.append(content)
+                            yield content
+                        elif "usage" in chunk:
+                            usage_data = chunk["usage"]
+                    except json.JSONDecodeError:
+                        continue
 
-            full_content = "".join(collected_content)
-            usage = self._prepare_usage_data(
-                usage_data, prompt_timer.duration, completion_timer.duration
-            )
+        full_content = "".join(collected_content)
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
 
-            conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
     def batch(self, conversations: List, temperature=0.7, max_tokens=256) -> List:
         """
