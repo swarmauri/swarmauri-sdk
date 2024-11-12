@@ -41,9 +41,9 @@ def pytest_report_teststatus(report):
     
     # Return different results based on the test outcome
     if status == "failed":
-        return status, "F", (f"Test failed: {report.longrepr}{location_str}", {"red": True})
+        return status, report.nodeid, (f"Test failed: {report.longrepr}{location_str}", {"red": True})
     elif status == "skipped":
-        return status, "s", (f"Test skipped: {report.longrepr}{location_str}", {"yellow": True})
+        return status, report.nodeid, (f"Test skipped: {report.longrepr}{location_str}", {"yellow": True})
     
     # For passed tests, we still include the GitHub URL
     return status, report.nodeid, f"{report.longrepr}{location_str}"
