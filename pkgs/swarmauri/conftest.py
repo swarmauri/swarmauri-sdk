@@ -7,8 +7,8 @@ def pytest_report_teststatus(report):
     status = report.outcome  # 'passed', 'failed', 'skipped', etc.
     
     if status == "failed":
-        return "F", "Custom failure", f"Test failed: {report.longrepr}"
+        return status, "Custom failure", (f"Test failed: {report.longrepr}", {"red": True})
     elif status == "skipped":
-        return "S", "Custom skipped", f"Test skipped: {report.longrepr}"
+        return status, "Custom skipped", f"Test skipped: {report.longrepr}", {"yellow": True})
     
-    return status[0].upper(), report.nodeid, report.longrepr
+    return status, report.nodeid, report.longrepr
