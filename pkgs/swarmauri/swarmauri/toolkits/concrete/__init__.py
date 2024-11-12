@@ -1,24 +1,31 @@
 import importlib
 
-# Define a lazy loader function with a warning message if the module is not found
-def _lazy_import(module_name, module_description=None):
+# Define a lazy loader function with a warning message if the module or class is not found
+def _lazy_import(module_name, class_name):
     try:
-        return importlib.import_module(module_name)
+        # Import the module
+        module = importlib.import_module(module_name)
+        # Dynamically get the class from the module
+        return getattr(module, class_name)
     except ImportError:
         # If module is not available, print a warning message
-        print(f"Warning: The module '{module_description or module_name}' is not available. "
+        print(f"Warning: The module '{module_name}' is not available. "
               f"Please install the necessary dependencies to enable this functionality.")
         return None
+    except AttributeError:
+        # If class is not found, print a warning message
+        print(f"Warning: The class '{class_name}' was not found in module '{module_name}'.")
+        return None
 
-# List of toolkit names (file names without the ".py" extension)
+# List of toolkit names (file names without the ".py" extension) and corresponding class names
 toolkit_files = [
-    "AccessibilityToolkit",
-    "Toolkit",
+    ("swarmauri.toolkits.concrete.AccessibilityToolkit", "AccessibilityToolkit"),
+    ("swarmauri.toolkits.concrete.Toolkit", "Toolkit"),
 ]
 
 # Lazy loading of toolkit modules, storing them in variables
-for toolkit in toolkit_files:
-    globals()[toolkit] = _lazy_import(f"swarmauri.toolkits.concrete.{toolkit}", toolkit)
+for module_name, class_name in toolkit_files:
+    globals()[class_name] = _lazy_import(module_name, class_name)
 
 # Adding the lazy-loaded toolkit modules to __all__
-__all__ = toolkit_files
+__all__ = [class_name for _, class_name in toolkit_files]
