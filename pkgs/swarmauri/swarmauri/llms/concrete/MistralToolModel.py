@@ -295,13 +295,10 @@ class MistralToolModel(LLMBase):
     
         # Prepare to accumulate the content for final message addition
         message_content = ""
-    
-        # Process the streaming response line by line
+
         for line in response.iter_lines():
-            # Decode each line from bytes to string, as needed
-            line = line.decode("utf-8") if isinstance(line, bytes) else line
-            json_str = line.replace('data: ', '')  # Remove data prefix, if present
-    
+            json_str = line.replace('data: ', '')
+
             try:
                 if json_str:
                     # Parse JSON to extract the content delta
