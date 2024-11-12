@@ -2,7 +2,7 @@ name: Test and Publish Release
 
 on:
   push:
-    branches: ["*dev*"]
+    branches: ["*dev*", "*-dev*"]
     tags: ["v*"]  # Only trigger for tags starting with 'v' (e.g., v1.0.0)
     paths:
       - 'pkgs/community/**'
