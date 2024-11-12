@@ -254,23 +254,31 @@ class MistralToolModel(LLMBase):
     ) -> Iterator[str]:
         """
         Stream a response from the Mistral API.
-
+    
+        This method sends a conversation and optional toolkit information to the Mistral API
+        and returns a generator that yields response content as it is received.
+    
         Args:
-            conversation (Conversation): The conversation object.
-            toolkit (Optional): The toolkit for tool assistance.
-            tool_choice (Optional): The tool choice strategy.
-            temperature (float): The temperature for response variability.
-            max_tokens (int): The maximum number of tokens for the response.
-            safe_prompt (bool): Whether to use a safer prompt.
-
+            conversation (Conversation): The conversation object containing the message history.
+            toolkit (Optional): The toolkit for tool assistance, providing external tools to be invoked.
+            tool_choice (Optional): The tool choice strategy, such as "auto" or "manual".
+            temperature (float): The sampling temperature for response variability.
+            max_tokens (int): The maximum number of tokens to generate in the response.
+            safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
+    
         Yields:
-            Iterator[str]: The streaming response content.
+            Iterator[str]: A streaming generator that yields the response content as text.
+    
+        Example:
+            for response_text in model.stream(conversation):
+                print(response_text)
         """
+        # Format the messages and create the payload for the API request
         formatted_messages = self._format_messages(conversation.history)
-
+    
         if toolkit and not tool_choice:
             tool_choice = "auto"
-
+    
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -280,56 +288,35 @@ class MistralToolModel(LLMBase):
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
-
+    
+        # Initial API request to get the response stream
         response = self._client.post(self._api_url, json=payload)
         response.raise_for_status()
-
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
-        if tool_calls:
-            for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
-                func_result = func_call(**func_args)
-
-                messages.append(
-                    {
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": func_name,
-                        "content": json.dumps(func_result),
-                    }
-                )
-
-        payload["messages"] = messages
-        payload["stream"] = True
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
-        logging.info(f"messages: {messages}")
-
-        response = self._client.post(self._api_url, json=payload)
-        response.raise_for_status()
-
+    
+        # Prepare to accumulate the content for final message addition
         message_content = ""
-
-        for line in response.iter_lines(decode_unicode=True):
-            json_str = line.replace('data: ', '')
+    
+        # Process the streaming response line by line
+        for line in response.iter_lines():
+            # Decode each line from bytes to string, as needed
+            line = line.decode("utf-8") if isinstance(line, bytes) else line
+            json_str = line.replace('data: ', '')  # Remove data prefix, if present
+    
             try:
                 if json_str:
+                    # Parse JSON to extract the content delta
                     chunk = json.loads(json_str)
                     if chunk["choices"][0]["delta"]:
                         delta = chunk["choices"][0]["delta"]["content"]
                         message_content += delta
-                        yield delta
+                        yield delta  # Yield each delta in the response stream
             except json.JSONDecodeError:
+                # Ignore any malformed JSON lines
                 pass
-
+    
+        # Add the accumulated message content to the conversation history
         conversation.add_message(AgentMessage(content=message_content))
+
 
     async def astream(
         self,
@@ -342,23 +329,31 @@ class MistralToolModel(LLMBase):
     ) -> AsyncIterator[str]:
         """
         Asynchronously stream a response from the Mistral API.
-
+    
+        This method sends a conversation and optional toolkit information to the Mistral API
+        and returns an asynchronous generator that yields response content as it is received.
+    
         Args:
-            conversation (Conversation): The conversation object.
-            toolkit (Optional): The toolkit for tool assistance.
-            tool_choice (Optional): The tool choice strategy.
-            temperature (float): The temperature for response variability.
-            max_tokens (int): The maximum number of tokens for the response.
-            safe_prompt (bool): Whether to use a safer prompt.
-
+            conversation (Conversation): The conversation object containing the message history.
+            toolkit (Optional): The toolkit for tool assistance, providing external tools to be invoked.
+            tool_choice (Optional): The tool choice strategy, such as "auto" or "manual".
+            temperature (float): The sampling temperature for response variability.
+            max_tokens (int): The maximum number of tokens to generate in the response.
+            safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
+    
         Yields:
-            AsyncIterator[str]: The streaming response content.
+            AsyncIterator[str]: An asynchronous streaming generator that yields the response content as text.
+    
+        Example:
+            async for response_text in model.astream(conversation):
+                print(response_text)
         """
+        # Format the messages and create the payload for the API request
         formatted_messages = self._format_messages(conversation.history)
-
+    
         if toolkit and not tool_choice:
             tool_choice = "auto"
-
+    
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -368,58 +363,35 @@ class MistralToolModel(LLMBase):
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
-
+    
+        # Initial API request to start the async response stream
         response = await self._async_client.post(self._api_url, json=payload)
-
         response.raise_for_status()
-
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
-        if tool_calls:
-            for tool_call in tool_calls:
-                func_name = tool_call["function"]["name"]
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = json.loads(tool_call["function"]["arguments"])
-                func_result = func_call(**func_args)
-
-                messages.append(
-                    {
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": func_name,
-                        "content": json.dumps(func_result),
-                    }
-                )
-
-        payload["messages"] = messages
-        payload["stream"] = True
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
-        logging.info(f"messages: {messages}")
-
-        response = await self._async_client.post(self._api_url, json=payload)
-
-        response.raise_for_status()
-
+    
+        # Prepare to accumulate the content for final message addition
         message_content = ""
-
+    
+        # Process the streaming response line by line asynchronously
         async for line in response.aiter_lines():
-            json_str = line.replace('data: ', '')
+            # Decode each line from bytes to string, as needed
+            line = line.decode("utf-8") if isinstance(line, bytes) else line
+            json_str = line.replace('data: ', '')  # Remove data prefix, if present
+    
             try:
                 if json_str:
+                    # Parse JSON to extract the content delta
                     chunk = json.loads(json_str)
                     if chunk["choices"][0]["delta"]:
                         delta = chunk["choices"][0]["delta"]["content"]
                         message_content += delta
-                        yield delta
+                        yield delta  # Yield each delta in the response stream
             except json.JSONDecodeError:
+                # Ignore any malformed JSON lines
                 pass
-
+    
+        # Add the accumulated message content to the conversation history
         conversation.add_message(AgentMessage(content=message_content))
+
 
     def batch(
         self,
