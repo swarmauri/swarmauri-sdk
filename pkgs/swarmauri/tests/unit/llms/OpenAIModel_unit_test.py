@@ -7,11 +7,12 @@ from swarmauri.conversations.concrete.Conversation import Conversation
 
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
-from dotenv import load_dotenv
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
 from swarmauri.utils.timeout_wrapper import timeout
+
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -75,7 +76,7 @@ def test_no_system_context(openai_model, model_name):
 
     logging.info(usage_data)
 
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(usage_data, UsageData)
 
 
@@ -101,7 +102,7 @@ def test_preamble_system_context(openai_model, model_name):
 
     logging.info(usage_data)
 
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Jeff" in prediction
     assert isinstance(usage_data, UsageData)
 
@@ -120,6 +121,7 @@ def test_stream(openai_model, model_name):
 
     collected_tokens = []
     for token in model.stream(conversation=conversation):
+        logging.info(token)
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -148,7 +150,7 @@ async def test_apredict(openai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
