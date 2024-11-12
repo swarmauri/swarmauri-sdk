@@ -33,11 +33,11 @@ class CohereModel(LLMBase):
     api_key: str
     allowed_models: List[str] = [
         "command",
-        # "command-r-plus-08-2024",
-        # "command-r-plus-04-2024",
-        # "command-r-03-2024",
-        # "command-r-08-2024",
-        # "command-light",
+        "command-r-plus-08-2024",
+        "command-r-plus-04-2024",
+        "command-r-03-2024",
+        "command-r-08-2024",
+        "command-light",
     ]
     name: str = "command"
     type: Literal["CohereModel"] = "CohereModel"
