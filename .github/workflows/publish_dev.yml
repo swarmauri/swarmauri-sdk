@@ -101,7 +101,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry install --no-cache -vv
+          poetry install --no-cache -vv --all-extras
 
       - name: Lint with flake8
         run: |
