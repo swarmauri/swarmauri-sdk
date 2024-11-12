@@ -41,3 +41,5 @@ def pytest_runtest_logreport(report):
     if status == "failed":
         report.longrepr = f"Test failed: {report.longrepr}{location_str}"
     elif status == "skipped":
+        report.longrepr = f"Test skipped: {report.longrepr}{location_str}"
+        
