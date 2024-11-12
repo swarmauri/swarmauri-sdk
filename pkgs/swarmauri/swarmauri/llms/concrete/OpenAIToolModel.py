@@ -2,7 +2,6 @@ import json
 import asyncio
 from typing import List, Literal, Dict, Any, Iterator, AsyncIterator
 import httpx
-from proto import Message
 from pydantic import PrivateAttr
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion

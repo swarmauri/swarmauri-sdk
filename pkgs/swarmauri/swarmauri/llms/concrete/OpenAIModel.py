@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 from pydantic import PrivateAttr
 import httpx
 from pkgs.swarmauri.swarmauri.utils.duration_manager import DurationManager
