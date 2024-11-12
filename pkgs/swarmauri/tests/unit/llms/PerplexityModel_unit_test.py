@@ -108,7 +108,7 @@ def test_stream(perplexity_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Hello"
+    input_data = "Hello, how are you?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
@@ -171,7 +171,7 @@ async def test_astream(perplexity_model, model_name):
     model.name = model_name
     conversation = Conversation()
 
-    input_data = "Hello how do you do?"
+    input_data = "Hello, how are you?"
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
