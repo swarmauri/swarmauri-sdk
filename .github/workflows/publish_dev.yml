@@ -3,7 +3,7 @@ name: Test and Publish Release
 on:
   push:
     branches: ["*dev*"]
-    tags: ["v*"]  # Only trigger for tags starting with 'v' (e.g., v1.0.0)
+    tags: ["v*"]
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -44,37 +44,7 @@ jobs:
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
     env:
-      AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-      DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
-      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      LEPTON_API_KEY: ${{ secrets.LEPTON_API_KEY }}
-      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
-      SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
-      CHROMADB_COLLECTION_NAME: ${{ secrets.CHROMADB_COLLECTION_NAME }}
-      NEO4J_COLLECTION_NAME: ${{ secrets.NEO4J_COLLECTION_NAME }}
-      NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
-      NEO4J_URI: ${{ secrets.NEO4J_URI }}
-      NEO4J_USER: ${{ secrets.NEO4J_USER }}
-      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
-      QDRANT_COLLECTION_NAME: ${{ secrets.QDRANT_COLLECTION_NAME }}
-      QDRANT_URL_KEY: ${{ secrets.QDRANT_URL_KEY }}
-      REDIS_HOST: ${{ secrets.REDIS_HOST }}
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-      REDIS_PORT: ${{ secrets.REDIS_PORT }}
-      WEAVIATE_API_KEY: ${{ secrets.WEAVIATE_API_KEY }}
-      WEAVIATE_URL: ${{ secrets.WEAVIATE_URL }}
-      GITHUBTOOL_TEST_REPO_NAME: ${{ secrets.GITHUBTOOL_TEST_REPO_NAME }}
-      GITHUBTOOL_TEST_REPO_OWNER: ${{ secrets.GITHUBTOOL_TEST_REPO_OWNER }}
-      GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
-      DANGER_MASTER_PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+      # Model Provider Keys and other environment variables...
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
     steps:
@@ -94,44 +64,50 @@ jobs:
         run: |
           UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           python -m venv $UNIQUE_VENV_PATH
-          echo "source $(pwd)/$UNIQUE_VENV_PATH/bin/activate" >> $GITHUB_ENV
-          source $UNIQUE_VENV_PATH/bin/activate
+          # Activate the virtual environment in each step that needs it by specifying the source command
 
       - name: Install dependencies with Poetry
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           poetry install --no-cache -vv
 
       - name: Lint with flake8
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build package with Poetry
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           poetry build
 
       - name: Install built package
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
           python -m pip install "$LATEST_WHL" --no-cache-dir
 
       - name: Get pip freeze
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
       - name: List package sizes
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           python ../../scripts/list_package_sizes.py
         continue-on-error: false
 
       - name: Show total package size
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           python ../../scripts/total_site_packages_size.py
         continue-on-error: false
@@ -139,6 +115,7 @@ jobs:
       - name: Run tests
         continue-on-error: true
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           poetry run pytest -v . --junitxml=results.xml
 
@@ -149,6 +126,7 @@ jobs:
 
       - name: Classify test results
         run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           python ../../scripts/classify_results.py results.xml
         continue-on-error: false
