@@ -4,7 +4,7 @@ version = "0.5.2.dev13"
 description = "This repository includes core interfaces for the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
-readme = "README.md"e
+readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
