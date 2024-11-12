@@ -137,7 +137,8 @@ jobs:
         continue-on-error: true
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          poetry run pytest -v pkgs/${{ matrix.package }}/. --junitxml=results.xml -n 8 --dist=loadfile
+          cd pkgs/${{ matrix.package }}
+          poetry run pytest -v . --junitxml=results.xml -n 8 --dist=loadfile
 
       - name: Output test results for debugging
         run: |
