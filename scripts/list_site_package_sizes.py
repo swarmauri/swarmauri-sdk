@@ -38,12 +38,12 @@ def list_all_folder_sizes():
             package_sizes[item] = size
 
     # Print alphabetically sorted list of packages
-    print("\nAlphabetical List of Packages and Sizes:")
+    print("\n\n\nAlphabetical List of Packages and Sizes:")
     for package, size in sorted(package_sizes.items()):
         print(f"{package}: {format_size(size)}")
 
     # Print size-based sorted list of packages in descending order
-    print("\nPackages Sorted by Size (Largest to Smallest):")
+    print("\n\n\nPackages Sorted by Size (Largest to Smallest):")
     for package, size in sorted(package_sizes.items(), key=lambda item: item[1], reverse=True):
         print(f"{package}: {format_size(size)}")
 
