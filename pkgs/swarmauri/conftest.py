@@ -1,14 +1,50 @@
 import pytest
 import os
-import inspect
+import subprocess
+
+# Function to get the current Git branch
+def get_git_branch():
+    try:
+        # Run the git command to get the current branch
+        branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip().decode()
+        return branch
+    except subprocess.CalledProcessError:
+        # Fallback if git command fails (e.g., not in a git repo)
+        return "main"  # Default to 'main' if git is not available or not in a git repo
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_report_teststatus(report):
     status = report.outcome  # 'passed', 'failed', 'skipped', etc.
     
-    if status == "failed":
-        return status, "Custom failure", (f"Test failed: {report.longrepr}", {"red": True})
-    elif status == "skipped":
-        return status, "Custom skipped", f"Test skipped: {report.longrepr}", {"yellow": True})
+    # Get the current branch from the environment or git
+    github_branch = os.getenv('GITHUB_REF', None)  # Try getting from environment first
+    if github_branch:
+        # Extract the branch name from the GITHUB_REF (if it's a GitHub Actions environment)
+        github_branch = github_branch.split('/')[-1]
+    else:
+        # Fallback: get branch using git if not set in the environment
+        github_branch = get_git_branch()
     
-    return status, report.nodeid, report.longrepr
+    # GitHub repository details
+    github_username = "swarmauri"  # Replace with your GitHub username
+    github_repo = "swarmauri-sdk"  # Replace with your GitHub repository name
+    
+    # Get the location of the test (file path and line number)
+    location = report.location
+    file_path = location[0]
+    line_number = location[1]
+    
+    # Construct the GitHub URL for the file at the given line number
+    github_url = f"https://github.com/{github_username}/{github_repo}/blob/{github_branch}/{file_path}#L{line_number}"
+    
+    # Create the location string with the GitHub URL
+    location_str = f" at {github_url}"
+    
+    # Return different results based on the test outcome
+    if status == "failed":
+        return status, "F", (f"Test failed: {report.longrepr}{location_str}", {"red": True})
+    elif status == "skipped":
+        return status, "s", (f"Test skipped: {report.longrepr}{location_str}", {"yellow": True})
+    
+    # For passed tests, we still include the GitHub URL
+    return status, report.nodeid, f"{report.longrepr}{location_str}"
