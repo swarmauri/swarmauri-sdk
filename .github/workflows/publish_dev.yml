@@ -11,6 +11,9 @@ on:
       - 'pkgs/partners/**'
       - 'pkgs/swarmauri/**'
 
+env:
+  UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
+
 jobs:
   detect-changes:
     runs-on: self-hosted
@@ -43,7 +46,7 @@ jobs:
         python-version: ["3.12"]
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
-    env:
+    env: 
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
@@ -97,14 +100,12 @@ jobs:
 
       - name: Install dependencies with Poetry
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
           poetry install --no-cache -vv
 
       - name: Lint with flake8
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
           poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -112,55 +113,49 @@ jobs:
 
       - name: Build package with Poetry
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
           poetry build
 
       - name: Install built package
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
-          LATEST_WHL=$(ls dist/*.whl | sort -V | tail -n 1)
+          LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
           python -m pip install "$LATEST_WHL" --no-cache-dir
 
       - name: Get pip freeze
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
       - name: List package sizes
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
-          python ../../scripts/list_package_sizes.py
+          python scripts/list_package_sizes.py
         continue-on-error: false
 
       - name: Show total package size
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
-          python ../../scripts/total_site_packages_size.py
+          python scripts/total_site_packages_size.py
         continue-on-error: false
 
       - name: Run tests
         continue-on-error: true
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs/${{ matrix.package }}
           poetry run pytest -v . --junitxml=results.xml
 
       - name: Output test results for debugging
         run: |
           ls
-          cat results.xml
+          cat pkgs/${{ matrix.package }}/results.xml
 
       - name: Classify test results
         run: |
-          UNIQUE_VENV_PATH="../../.venv_${{ github.run_id }}_${{ matrix.package }}"
           source $UNIQUE_VENV_PATH/bin/activate
-          python ../../scripts/classify_results.py results.xml
+          python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
         continue-on-error: false
 
       - name: Publish to PyPI
