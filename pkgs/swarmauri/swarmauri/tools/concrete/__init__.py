@@ -1,26 +1,35 @@
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.tools.concrete.AutomatedReadabilityIndexTool import (
-    AutomatedReadabilityIndexTool,
-)
-from swarmauri.tools.concrete.CalculatorTool import CalculatorTool
-from swarmauri.tools.concrete.CodeExtractorTool import CodeExtractorTool
-from swarmauri.tools.concrete.CodeInterpreterTool import CodeInterpreterTool
-from swarmauri.tools.concrete.ColemanLiauIndexTool import ColemanLiauIndexTool
-from swarmauri.tools.concrete.FleschKincaidTool import FleschKincaidTool
-from swarmauri.tools.concrete.FleschReadingEaseTool import FleschReadingEaseTool
-from swarmauri.tools.concrete.GunningFogTool import GunningFogTool
-from swarmauri.tools.concrete.ImportMemoryModuleTool import ImportMemoryModuleTool
-from swarmauri.tools.concrete.JSONRequestsTool import JSONRequestsTool
-from swarmauri.tools.concrete.MatplotlibCsvTool import MatplotlibCsvTool
-from swarmauri.tools.concrete.MatplotlibTool import MatplotlibTool
+import importlib
+import sys
 
-from swarmauri.tools.concrete.Parameter import Parameter
-from swarmauri.tools.concrete.SentenceComplexityTool import SentenceComplexityTool
-from swarmauri.tools.concrete.SMOGIndexTool import SMOGIndexTool
-from swarmauri.tools.concrete.TemperatureConverterTool import TemperatureConverterTool
-from swarmauri.tools.concrete.TestTool import TestTool
-from swarmauri.tools.concrete.TextLengthTool import TextLengthTool
-from swarmauri.tools.concrete.WeatherTool import WeatherTool
+# Define a lazy loader function
+def _lazy_import(module_name):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        return None
+
+# Lazy loading of tools based on available dependencies
+AdditionTool = _lazy_import("swarmauri.tools.concrete.AdditionTool") 
+AutomatedReadabilityIndexTool = _lazy_import("swarmauri.tools.concrete.AutomatedReadabilityIndexTool")
+CalculatorTool = _lazy_import("swarmauri.tools.concrete.CalculatorTool")
+CodeExtractorTool = _lazy_import("swarmauri.tools.concrete.CodeExtractorTool")
+CodeInterpreterTool = _lazy_import("swarmauri.tools.concrete.CodeInterpreterTool")
+ColemanLiauIndexTool = _lazy_import("swarmauri.tools.concrete.ColemanLiauIndexTool")
+FleschKincaidTool = _lazy_import("swarmauri.tools.concrete.FleschKincaidTool")
+FleschReadingEaseTool = _lazy_import("swarmauri.tools.concrete.FleschReadingEaseTool")
+GunningFogTool = _lazy_import("swarmauri.tools.concrete.GunningFogTool")
+ImportMemoryModuleTool = _lazy_import("swarmauri.tools.concrete.ImportMemoryModuleTool")
+JSONRequestsTool = _lazy_import("swarmauri.tools.concrete.JSONRequestsTool")
+MatplotlibCsvTool = _lazy_import("swarmauri.tools.concrete.MatplotlibCsvTool")
+MatplotlibTool = _lazy_import("swarmauri.tools.concrete.MatplotlibTool")
+
+Parameter = _lazy_import("swarmauri.tools.concrete.Parameter")
+SentenceComplexityTool = _lazy_import("swarmauri.tools.concrete.SentenceComplexityTool")
+SMOGIndexTool = _lazy_import("swarmauri.tools.concrete.SMOGIndexTool")
+TemperatureConverterTool = _lazy_import("swarmauri.tools.concrete.TemperatureConverterTool")
+TestTool = _lazy_import("swarmauri.tools.concrete.TestTool")
+TextLengthTool = _lazy_import("swarmauri.tools.concrete.TextLengthTool")
+WeatherTool = _lazy_import("swarmauri.tools.concrete.WeatherTool")
 
 
 __all__ = [
@@ -38,7 +47,6 @@ __all__ = [
     "MatplotlibCsvTool",
     "MatplotlibTool",
     "Parameter",
-    "JSONRequestsTool",
     "SentenceComplexityTool",
     "SMOGIndexTool",
     "TemperatureConverterTool",
