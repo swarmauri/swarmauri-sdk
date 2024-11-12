@@ -1,4 +1,4 @@
-import requests
+import httpx
 from typing import List, Literal, Any, Optional
 from pydantic import PrivateAttr
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
@@ -6,30 +6,31 @@ from swarmauri.vectors.concrete.Vector import Vector
 
 
 class VoyageEmbedding(EmbeddingBase):
-    """Class for embedding using VogageEmbedding
-    You can get your API KEY here: https://dash.voyageai.com/
+    """
+    Class for embedding using VogageEmbedding
+
+    LINK TO API KEY here: https://dash.voyageai.com/
     """
 
-    _allowed_models: List[str] = PrivateAttr(
-        default=[
-            "voyage-2",
-            "voyage-large-2",
-            "voyage-code-2",
-            "voyage-lite-02-instruct",
-        ]
-    )
+    allowed_models: List[str] = [
+        "voyage-2",
+        "voyage-large-2",
+        "voyage-code-2",
+        "voyage-lite-02-instruct",
+    ]
 
     model: str = "voyage-2"
     type: Literal["VoyageEmbedding"] = "VoyageEmbedding"
-    _api_url: str = PrivateAttr(default="https://api.voyageai.com/v1/embeddings")
+    _BASE_URL: str = PrivateAttr(default="https://api.voyageai.com/v1/embeddings")
     _headers: dict = PrivateAttr()
+    _client: httpx.Client = PrivateAttr()
 
     def __init__(self, api_key: str, model: str = "voyage-2", **kwargs):
         super().__init__(**kwargs)
 
-        if model not in self._allowed_models:
+        if model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{model}'. Allowed models are: {', '.join(self._allowed_models)}"
+                f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
         self.model = model
@@ -38,6 +39,7 @@ class VoyageEmbedding(EmbeddingBase):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         }
+        self._client = httpx.Client()
 
     def transform(self, data: List[str]) -> List[Vector]:
         """
@@ -59,7 +61,9 @@ class VoyageEmbedding(EmbeddingBase):
         }
 
         try:
-            response = requests.post(self._api_url, headers=self._headers, json=payload)
+            response = self._client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             result = response.json()
 
@@ -67,7 +71,7 @@ class VoyageEmbedding(EmbeddingBase):
             embeddings = [Vector(value=item["embedding"]) for item in result["data"]]
             return embeddings
 
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             raise ValueError(f"Error calling Voyage AI API: {str(e)}")
         except (KeyError, ValueError) as e:
             raise ValueError(f"Error processing Voyage AI API response: {str(e)}")
@@ -102,3 +106,10 @@ class VoyageEmbedding(EmbeddingBase):
         raise NotImplementedError(
             "extract_features is not applicable for Voyage embeddings"
         )
+
+    def __del__(self):
+        """
+        Clean up the httpx client when the instance is destroyed.
+        """
+        if hasattr(self, "_client"):
+            self._client.close()
