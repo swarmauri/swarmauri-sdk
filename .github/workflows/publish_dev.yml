@@ -133,6 +133,12 @@ jobs:
           python scripts/total_site_packages_size.py
         continue-on-error: false
 
+      - name: Show total package size
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/list_site_package_sizes.py
+        continue-on-error: false
+
       - name: Run tests
         continue-on-error: true
         run: |
