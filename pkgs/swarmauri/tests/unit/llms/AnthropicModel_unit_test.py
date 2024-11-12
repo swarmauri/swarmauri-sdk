@@ -12,9 +12,9 @@ from dotenv import load_dotenv
 from swarmauri.messages.concrete.AgentMessage import UsageData
 
 from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 load_dotenv()
-
 API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 
@@ -151,6 +151,7 @@ def test_batch(anthropic_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
+@retry_on_status_codes([429, 529])
 async def test_apredict(anthropic_model, model_name):
     model = anthropic_model
     model.name = model_name
