@@ -21,7 +21,7 @@ def pytest_report_teststatus(report):
     pkg_path = os.getenv('PKG_PATH', None)  # Try getting from environment first
     if github_branch:
         # Extract the branch name from the GITHUB_REF (if it's a GitHub Actions environment)
-        github_branch = github_branch
+        github_branch = github_branch.replace('refs/heads/', '')
     else:
         # Fallback: get branch using git if not set in the environment
         github_branch = get_git_branch()
@@ -34,7 +34,7 @@ def pytest_report_teststatus(report):
     line_number = location[1]
     
     # Construct the GitHub URL for the file at the given line number
-    github_url = f"https://tinyurl.com/df4nvgGhj78/{github_branch}/{pkg_path}/{file_path}#L{line_number}"
+    github_url = f"https://tinyurl.com/df4nvgGhj78/{github_branch}/pkgs/{pkg_path}/{file_path}#L{line_number}"
     
     # Create the location string with the GitHub URL
     location_str = f" at {github_url}"
