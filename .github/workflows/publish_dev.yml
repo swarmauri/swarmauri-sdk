@@ -116,12 +116,6 @@ jobs:
           cd pkgs/${{ matrix.package }}
           poetry build
 
-      - name: Install built package
-        run: |
-          source $UNIQUE_VENV_PATH/bin/activate
-          LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
-          python -m pip install "$LATEST_WHL" --no-cache-dir
-
       - name: Get pip freeze
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
