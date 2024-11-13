@@ -1,22 +1,22 @@
-import google.generativeai as genai
+import httpx
 from typing import List, Literal, Any, Optional
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, Field
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
 
 
 class GeminiEmbedding(EmbeddingBase):
     """
-    A class for generating embeddings using the Google Gemini API.
+    A class for generating embeddings using the Google Gemini API via REST endpoints.
 
     This class allows users to obtain embeddings for text data using specified models
-    from the Gemini API.
+    from the Gemini API through direct HTTP requests.
 
     Attributes:
         model (str): The model to use for generating embeddings. Defaults to 'text-embedding-004'.
-        task_type (str): The type of task for which the embeddings are generated. Defaults to 'unspecified'.
-        output_dimensionality (int): The desired dimensionality of the output embeddings.
-        api_key (str): API key for authenticating requests to the Gemini API.
+        allowed_models (List[str]): List of supported Gemini embedding models.
+        allowed_task_types (List[str]): List of supported task types for embeddings.
+        api_key (str): API key for authentication. Can be None for serialization.
 
     Raises:
         ValueError: If an invalid model or task type is provided during initialization.
@@ -27,32 +27,32 @@ class GeminiEmbedding(EmbeddingBase):
     """
 
     type: Literal["GeminiEmbedding"] = "GeminiEmbedding"
+    allowed_models: List[str] = ["text-embedding-004", "embedding-001"]
+    allowed_task_types: List[str] = [
+        "unspecified",
+        "retrieval_query",
+        "retrieval_document",
+        "semantic_similarity",
+        "classification",
+        "clustering",
+        "question_answering",
+        "fact_verification",
+    ]
 
-    _allowed_models: List[str] = PrivateAttr(
-        default=["text-embedding-004", "embedding-001"]
-    )
-    _allowed_task_types: List[str] = PrivateAttr(
-        default=[
-            "unspecified",
-            "retrieval_query",
-            "retrieval_document",
-            "semantic_similarity",
-            "classification",
-            "clustering",
-            "question_answering",
-            "fact_verification",
-        ]
-    )
+    model: str = Field(default="text-embedding-004")
+    api_key: Optional[str] = Field(default=None, exclude=True)
 
-    model: str = "text-embedding-004"
-    _task_type: str = PrivateAttr("unspecified")
-    _output_dimensionality: int = PrivateAttr(None)
-    api_key: str = None
-    _client: Any = PrivateAttr()
+    _BASE_URL: str = PrivateAttr(
+        default="https://generativelanguage.googleapis.com/v1beta"
+    )
+    _headers: dict = PrivateAttr(default_factory=dict)
+    _client: httpx.Client = PrivateAttr(default_factory=httpx.Client)
+    _task_type: str = PrivateAttr(default="unspecified")
+    _output_dimensionality: int = PrivateAttr(default=None)
 
     def __init__(
         self,
-        api_key: str = None,
+        api_key: Optional[str] = None,
         model: str = "text-embedding-004",
         task_type: Optional[str] = "unspecified",
         output_dimensionality: Optional[int] = None,
@@ -60,21 +60,26 @@ class GeminiEmbedding(EmbeddingBase):
     ):
         super().__init__(**kwargs)
 
-        if model not in self._allowed_models:
+        if model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{model}'. Allowed models are: {', '.join(self._allowed_models)}"
+                f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
-        if task_type not in self._allowed_task_types:
+        if task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{task_type}'. Allowed task types are: {', '.join(self._allowed_task_types)}"
+                f"Invalid task_type '{task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
             )
 
         self.model = model
+        self.api_key = api_key
         self._task_type = task_type
         self._output_dimensionality = output_dimensionality
-        self._client = genai
-        self._client.configure(api_key=api_key)
+
+        if api_key:
+            self._headers = {
+                "Content-Type": "application/json",
+            }
+            self._client = httpx.Client()
 
     def infer_vector(self, data: List[str]) -> List[Vector]:
         """
@@ -87,25 +92,56 @@ class GeminiEmbedding(EmbeddingBase):
             List[Vector]: A list of Vector objects containing the generated embeddings.
 
         Raises:
-            RuntimeError: If an error occurs during the embedding generation process.
+            ValueError: If an error occurs during the API request or response processing.
         """
+        if not self.api_key:
+            raise ValueError("API key must be provided for inference")
 
-        try:
+        if not data:
+            return []
 
-            response = self._client.embed_content(
-                model=f"models/{self.model}",
-                content=data,
-                task_type=self._task_type,
-                output_dimensionality=self._output_dimensionality,
-            )
+        embeddings = []
+        for text in data:
+            payload = {
+                "model": f"models/{self.model}",
+                "content": {"parts": [{"text": text}]},
+            }
 
-            embeddings = [Vector(value=item) for item in response["embedding"]]
-            return embeddings
+            if self._task_type != "unspecified":
+                payload["taskType"] = self._task_type
+            if self._output_dimensionality:
+                payload["outputDimensionality"] = self._output_dimensionality
 
-        except Exception as e:
-            raise RuntimeError(
-                f"An error occurred during embedding generation: {str(e)}"
-            )
+            try:
+                url = f"{self._BASE_URL}/models/{self.model}:embedContent?key={self.api_key}"
+                response = self._client.post(
+                    url, headers=self._headers, json=payload, timeout=30
+                )
+                response.raise_for_status()
+                result = response.json()
+
+                # Extract embedding from response
+                embedding = result["embedding"]
+                embeddings.append(Vector(value=embedding["values"]))
+
+            except httpx.HTTPError as e:
+                raise ValueError(f"Error calling Gemini AI API: {str(e)}")
+            except (KeyError, ValueError) as e:
+                raise ValueError(f"Error processing Gemini AI API response: {str(e)}")
+
+        return embeddings
+
+    def transform(self, data: List[str]) -> List[Vector]:
+        """
+        Transform a list of texts into embeddings.
+
+        Args:
+            data (List[str]): List of strings to transform into embeddings.
+
+        Returns:
+            List[Vector]: A list of vectors representing the transformed data.
+        """
+        return self.infer_vector(data)
 
     def save_model(self, path: str):
         raise NotImplementedError("save_model is not applicable for Gemini embeddings")
@@ -116,9 +152,6 @@ class GeminiEmbedding(EmbeddingBase):
     def fit(self, documents: List[str], labels=None):
         raise NotImplementedError("fit is not applicable for Gemini embeddings")
 
-    def transform(self, data: List[str]):
-        raise NotImplementedError("transform is not applicable for Gemini embeddings")
-
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(
             "fit_transform is not applicable for Gemini embeddings"
@@ -128,3 +161,10 @@ class GeminiEmbedding(EmbeddingBase):
         raise NotImplementedError(
             "extract_features is not applicable for Gemini embeddings"
         )
+
+    def __del__(self):
+        """
+        Clean up the httpx client when the instance is destroyed.
+        """
+        if hasattr(self, "_client"):
+            self._client.close()

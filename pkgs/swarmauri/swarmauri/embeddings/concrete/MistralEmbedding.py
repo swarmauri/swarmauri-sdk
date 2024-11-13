@@ -1,57 +1,62 @@
-import logging
-
-import mistralai
-from typing import List, Literal, Any
-from pydantic import PrivateAttr
+import httpx
+from typing import List, Literal, Any, Optional
+from pydantic import PrivateAttr, Field
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
 
 
 class MistralEmbedding(EmbeddingBase):
     """
-    A class for generating embeddings using the Mistral API.
+    A class for generating embeddings using the Mistral API via REST endpoints.
 
     This class allows users to obtain embeddings for text data using specified models
-    from the Mistral API.
+    from the Mistral API through direct HTTP requests.
 
     Attributes:
         model (str): The model to use for generating embeddings. Defaults to 'mistral-embed'.
-        api_key (str): API key for authenticating requests to the Mistral API.
+        allowed_models (List[str]): List of supported Mistral embedding models.
+        api_key (str): API key for authentication. Can be None for serialization.
 
     Raises:
-        ValueError: If an invalid model or task type is provided during initialization.
+        ValueError: If an invalid model is provided during initialization or if the API
+                   request fails.
 
     Example:
-        >>> mistral_embedding = MistralEmbedding(api_key='your_api_key', model='mistral_embed')
+        >>> mistral_embedding = MistralEmbedding(api_key='your_api_key')
         >>> embeddings = mistral_embedding.infer_vector(["Hello, world!", "Data science is awesome."])
     """
 
     type: Literal["MistralEmbedding"] = "MistralEmbedding"
+    allowed_models: List[str] = ["mistral-embed"]
+    model: str = Field(default="mistral-embed")
+    api_key: Optional[str] = Field(default=None, exclude=True)
 
-    _allowed_models: List[str] = PrivateAttr(default=["mistral-embed"])
-
-    model: str = "mistral-embed"
-    api_key: str = None
-    _client: Any = PrivateAttr()
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/embeddings")
+    _headers: dict = PrivateAttr(default_factory=dict)
+    _client: httpx.Client = PrivateAttr(default_factory=httpx.Client)
 
     def __init__(
         self,
-        api_key: str = None,
+        api_key: Optional[str] = None,
         model: str = "mistral-embed",
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        if model not in self._allowed_models:
+        if model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{model}'. Allowed models are: {', '.join(self._allowed_models)}"
+                f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
         self.model = model
-        self._client = mistralai.Mistral(api_key=api_key)
-        logging.info("Testing")
-        if not isinstance(self._client, mistralai.Mistral):
-            raise ValueError("client must be an instance of mistralai.Mistral")
+        self.api_key = api_key
+
+        if api_key:
+            self._headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            }
+            self._client = httpx.Client()
 
     def infer_vector(self, data: List[str]) -> List[Vector]:
         """
@@ -64,23 +69,43 @@ class MistralEmbedding(EmbeddingBase):
             List[Vector]: A list of Vector objects containing the generated embeddings.
 
         Raises:
-            RuntimeError: If an error occurs during the embedding generation process.
+            ValueError: If an error occurs during the API request or response processing.
         """
+        if not self.api_key:
+            raise ValueError("API key must be provided for inference")
+
+        if not data:
+            return []
+
+        payload = {"input": data, "model": self.model, "encoding_format": "float"}
 
         try:
-
-            response = self._client.embeddings.create(
-                model=self.model,
-                inputs=data,
+            response = self._client.post(
+                self._BASE_URL, headers=self._headers, json=payload, timeout=30
             )
+            response.raise_for_status()
+            result = response.json()
 
-            embeddings = [Vector(value=item.embedding) for item in response.data]
+            # Extract embeddings and convert to Vector objects
+            embeddings = [Vector(value=item["embedding"]) for item in result["data"]]
             return embeddings
 
-        except Exception as e:
-            raise RuntimeError(
-                f"An error occurred during embedding generation: {str(e)}"
-            )
+        except httpx.HTTPError as e:
+            raise ValueError(f"Error calling Mistral AI API: {str(e)}")
+        except (KeyError, ValueError) as e:
+            raise ValueError(f"Error processing Mistral AI API response: {str(e)}")
+
+    def transform(self, data: List[str]) -> List[Vector]:
+        """
+        Transform a list of texts into embeddings.
+
+        Args:
+            data (List[str]): List of strings to transform into embeddings.
+
+        Returns:
+            List[Vector]: A list of vectors representing the transformed data.
+        """
+        return self.infer_vector(data)
 
     def save_model(self, path: str):
         raise NotImplementedError("save_model is not applicable for Mistral embeddings")
@@ -91,9 +116,6 @@ class MistralEmbedding(EmbeddingBase):
     def fit(self, documents: List[str], labels=None):
         raise NotImplementedError("fit is not applicable for Mistral embeddings")
 
-    def transform(self, data: List[str]):
-        raise NotImplementedError("transform is not applicable for Mistral embeddings")
-
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(
             "fit_transform is not applicable for Mistral embeddings"
@@ -103,3 +125,10 @@ class MistralEmbedding(EmbeddingBase):
         raise NotImplementedError(
             "extract_features is not applicable for Mistral embeddings"
         )
+
+    def __del__(self):
+        """
+        Clean up the httpx client when the instance is destroyed.
+        """
+        if hasattr(self, "_client"):
+            self._client.close()

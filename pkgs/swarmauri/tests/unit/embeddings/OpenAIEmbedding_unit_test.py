@@ -12,7 +12,9 @@ def openai_embedder():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
 
-    embedder = OpenAIEmbedding(OPENAI_API_KEY=API_KEY)
+    embedder = OpenAIEmbedding(
+        api_key=API_KEY
+    )  # Changed from OPENAI_API_KEY to api_key
     return embedder
 
 
