@@ -17,6 +17,7 @@ class CohereEmbedding(EmbeddingBase):
         type (Literal["CohereEmbedding"]): The type identifier for this embedding class.
         model (str): The Cohere embedding model to use.
         api_key (str): The API key for accessing the Cohere API.
+        allowed_task_types (List[str]): List of supported task types for embeddings
 
     Link to Allowed Models: https://docs.cohere.com/reference/embed
     Linke to API KEY: https://dashboard.cohere.com/api-keys
@@ -36,15 +37,14 @@ class CohereEmbedding(EmbeddingBase):
 
     # Private attributes
     _BASE_URL: str = PrivateAttr(default="https://api.cohere.com/v2")
-    _allowed_task_types: List[str] = PrivateAttr(
-        default=[
-            "search_document",
-            "search_query",
-            "classification",
-            "clustering",
-            "image",
-        ]
-    )
+    allowed_task_types: List[str] = [
+        "search_document",
+        "search_query",
+        "classification",
+        "clustering",
+        "image",
+    ]
+
     _allowed_embedding_types: List[str] = PrivateAttr(
         default=["float", "int8", "uint8", "binary", "ubinary"]
     )
@@ -89,9 +89,9 @@ class CohereEmbedding(EmbeddingBase):
                 f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
-        if task_type not in self._allowed_task_types:
+        if task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{task_type}'. Allowed task types are: {', '.join(self._allowed_task_types)}"
+                f"Invalid task_type '{task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
             )
         if embedding_types not in self._allowed_embedding_types:
             raise ValueError(
