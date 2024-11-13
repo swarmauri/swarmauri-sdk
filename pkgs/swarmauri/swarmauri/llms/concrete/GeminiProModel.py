@@ -1,5 +1,7 @@
+import json
 from typing import List, Dict, Literal
-import google.generativeai as genai
+import httpx
+from pydantic import PrivateAttr
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -14,6 +16,14 @@ from swarmauri.utils.duration_manager import DurationManager
 
 class GeminiProModel(LLMBase):
     """
+    GeminiProModel is a class interface for interacting with the Gemini language model API.
+
+    Attributes:
+        api_key (str): API key for authentication with the Gemini API.
+        allowed_models (List[str]): List of allowed model names for selection.
+        name (str): Default name of the model in use.
+        type (Literal): Type identifier for GeminiProModel.
+
     Provider resources: https://deepmind.google/technologies/gemini/pro/
     """
 
@@ -21,11 +31,44 @@ class GeminiProModel(LLMBase):
     allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
     name: str = "gemini-1.5-pro"
     type: Literal["GeminiProModel"] = "GeminiProModel"
+    _BASE_URL: str = PrivateAttr(
+        default="https://generativelanguage.googleapis.com/v1beta/models"
+    )
+    _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
+
+    _safety_settings: List[Dict[str, str]] = PrivateAttr(
+        [
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+        ]
+    )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
-        # Remove system instruction from messages
+        """
+        Formats messages for API payload compatibility.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): List of message objects.
+
+        Returns:
+            List[Dict[str, str]]: List of formatted message dictionaries.
+        """
         message_properties = ["content", "role"]
         sanitized_messages = [
             message.model_dump(include=message_properties)
@@ -37,12 +80,22 @@ class GeminiProModel(LLMBase):
             if message["role"] == "assistant":
                 message["role"] = "model"
 
-            # update content naming
             message["parts"] = message.pop("content")
 
-        return sanitized_messages
+        return [
+            {"parts": [{"text": message["parts"]}]} for message in sanitized_messages
+        ]
 
     def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+        """
+        Retrieves the system message content from a conversation.
+
+        Args:
+            messages (List[SubclassUnion[MessageBase]]): List of message objects with message history.
+
+        Returns:
+            str: Content of the system message, if present; otherwise, None.
+        """
         system_context = None
         for message in messages:
             if message.role == "system":
@@ -52,9 +105,9 @@ class GeminiProModel(LLMBase):
     def _prepare_usage_data(
         self,
         usage_data,
-        prompt_time: float,
-        completion_time: float,
-    ):
+        prompt_time: float = 0.0,
+        completion_time: float = 0.0,
+    ) -> UsageData:
         """
         Prepares and extracts usage data and response timing.
         """
@@ -62,9 +115,9 @@ class GeminiProModel(LLMBase):
         total_time = prompt_time + completion_time
 
         usage = UsageData(
-            prompt_tokens=usage_data.prompt_token_count,
-            completion_tokens=usage_data.candidates_token_count,
-            total_tokens=usage_data.total_token_count,
+            prompt_tokens=usage_data["promptTokenCount"],
+            completion_tokens=usage_data["candidatesTokenCount"],
+            total_tokens=usage_data["totalTokenCount"],
             prompt_time=prompt_time,
             completion_time=completion_time,
             total_time=total_time,
@@ -73,7 +126,20 @@ class GeminiProModel(LLMBase):
         return usage
 
     def predict(self, conversation, temperature=0.7, max_tokens=256):
-        genai.configure(api_key=self.api_key)
+        """
+        Generates a prediction for the given conversation using the specified parameters.
+
+        Args:
+            conversation (Conversation): The conversation object containing the history of messages.
+            temperature (float, optional): The sampling temperature to use. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+
+        Returns:
+            Conversation: The updated conversation object with the new message added.
+
+        Raises:
+            httpx.HTTPStatusError: If the HTTP request to the generation endpoint fails.
+        """
         generation_config = {
             "temperature": temperature,
             "top_p": 0.95,
@@ -81,65 +147,56 @@ class GeminiProModel(LLMBase):
             "max_output_tokens": max_tokens,
         }
 
-        safety_settings = [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-        ]
-
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         next_message = formatted_messages.pop()
 
-        client = genai.GenerativeModel(
-            model_name=self.name,
-            safety_settings=safety_settings,
-            generation_config=generation_config,
-            system_instruction=system_context,
-        )
+        payload = {
+            "contents": next_message,
+            "generationConfig": generation_config,
+            "safetySettings": self._safety_settings,
+            "systemInstruction": system_context,
+        }
 
         with DurationManager() as prompt_timer:
-            convo = client.start_chat(
-                history=formatted_messages,
-            )
+            with httpx.Client(timeout=10.0) as client:
+                response = client.post(
+                    f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                    json=payload,
+                    headers=self._headers,
+                )
+                response.raise_for_status()
 
-        with DurationManager() as completion_timer:
-            response = convo.send_message(next_message["parts"])
-            message_content = convo.last.text
+        response_data = response.json()
 
-        usage_data = response.usage_metadata
+        message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
+
+        usage_data = response_data["usageMetadata"]
 
         usage = self._prepare_usage_data(
             usage_data,
             prompt_timer.duration,
-            completion_timer.duration,
         )
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
         return conversation
 
     async def apredict(self, conversation, temperature=0.7, max_tokens=256):
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, self.predict, conversation, temperature, max_tokens
-        )
+        """
+        Asynchronously generates a response for a given conversation using the GeminiProModel.
 
-    def stream(self, conversation, temperature=0.7, max_tokens=256):
-        genai.configure(api_key=self.api_key)
+        Args:
+            conversation (Conversation): The conversation object containing the history of messages.
+            temperature (float, optional): Sampling temperature for response generation. Defaults to 0.7.
+            max_tokens (int, optional): Maximum number of tokens in the generated response. Defaults to 256.
+
+        Returns:
+            Conversation: The updated conversation object with the generated response added.
+
+        Raises:
+            httpx.HTTPStatusError: If the HTTP request to the generation endpoint fails.
+        """
         generation_config = {
             "temperature": temperature,
             "top_p": 0.95,
@@ -147,51 +204,93 @@ class GeminiProModel(LLMBase):
             "max_output_tokens": max_tokens,
         }
 
-        safety_settings = [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-        ]
+        system_context = self._get_system_context(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+        next_message = formatted_messages.pop()
+
+        payload = {
+            "contents": next_message,
+            "generationConfig": generation_config,
+            "safetySettings": self._safety_settings,
+            "systemInstruction": system_context,
+        }
+
+        async with DurationManager() as prompt_timer:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                    json=payload,
+                    headers=self._headers,
+                )
+                response.raise_for_status()
+
+        response_data = response.json()
+        message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
+        usage_data = response_data["usageMetadata"]
+
+        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+
+        return conversation
+
+    def stream(self, conversation, temperature=0.7, max_tokens=256):
+        """
+        Streams the response from the model based on the given conversation.
+
+        Args:
+            conversation (Conversation): The conversation object containing the history of messages.
+            temperature (float, optional): The temperature setting for the generation. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+
+        Yields:
+            str: Chunks of the generated response text.
+
+        Raises:
+            httpx.HTTPStatusError: If the HTTP request to the model fails.
+
+        """
+        generation_config = {
+            "temperature": temperature,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": max_tokens,
+        }
 
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
 
         next_message = formatted_messages.pop()
 
-        client = genai.GenerativeModel(
-            model_name=self.name,
-            safety_settings=safety_settings,
-            generation_config=generation_config,
-            system_instruction=system_context,
-        )
+        payload = {
+            "contents": next_message,
+            "generationConfig": generation_config,
+            "safetySettings": self._safety_settings,
+            "systemInstruction": system_context,
+        }
 
         with DurationManager() as prompt_timer:
-            convo = client.start_chat(
-                history=formatted_messages,
-            )
-            response = convo.send_message(next_message["parts"], stream=True)
+            with httpx.Client(timeout=10.0) as client:
+                response = client.post(
+                    f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                    json=payload,
+                    headers=self._headers,
+                )
+                response.raise_for_status()
 
+        full_response = ""
         with DurationManager() as completion_timer:
-            full_response = ""
-            for chunk in response:
-                chunk_text = chunk.text
-                full_response += chunk_text
-                yield chunk_text
+            for line in response.iter_lines():
+                json_str = line.replace("data: ", "")
+                if json_str:
+                    response_data = json.loads(json_str)
+                    chunk = response_data["candidates"][0]["content"]["parts"][0][
+                        "text"
+                    ]
+                    full_response += chunk
+                    yield chunk
 
-        usage_data = response.usage_metadata
+                    if "usageMetadata" in response_data:
+                        usage_data = response_data["usageMetadata"]
 
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
@@ -199,24 +298,68 @@ class GeminiProModel(LLMBase):
         conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
     async def astream(self, conversation, temperature=0.7, max_tokens=256):
-        loop = asyncio.get_event_loop()
-        stream_gen = self.stream(conversation, temperature, max_tokens)
+        """
+        Asynchronously streams generated content for a given conversation.
 
-        def safe_next(gen):
-            try:
-                return next(gen), False
-            except StopIteration:
-                return None, True
+        Args:
+            conversation (Conversation): The conversation object containing the history of messages.
+            temperature (float, optional): The temperature for the generation process. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
 
-        while True:
-            try:
-                chunk, done = await loop.run_in_executor(None, safe_next, stream_gen)
-                if done:
-                    break
-                yield chunk
-            except Exception as e:
-                print(f"Error in astream: {e}")
-                break
+        Yields:
+            str: Chunks of generated content as they are received.
+
+        Raises:
+            httpx.HTTPStatusError: If the HTTP request to the generation service fails.
+
+        """
+        generation_config = {
+            "temperature": temperature,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": max_tokens,
+        }
+
+        system_context = self._get_system_context(conversation.history)
+        formatted_messages = self._format_messages(conversation.history)
+
+        next_message = formatted_messages.pop()
+
+        payload = {
+            "contents": next_message,
+            "generationConfig": generation_config,
+            "safetySettings": self._safety_settings,
+            "systemInstruction": system_context,
+        }
+
+        with DurationManager() as prompt_timer:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                    json=payload,
+                    headers=self._headers,
+                )
+                response.raise_for_status()
+
+        full_response = ""
+        with DurationManager() as completion_timer:
+            async for line in response.aiter_lines():
+                json_str = line.replace("data: ", "")
+                if json_str:
+                    response_data = json.loads(json_str)
+                    chunk = response_data["candidates"][0]["content"]["parts"][0][
+                        "text"
+                    ]
+                    full_response += chunk
+                    yield chunk
+
+                    if "usageMetadata" in response_data:
+                        usage_data = response_data["usageMetadata"]
+
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+        conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
     def batch(
         self,
@@ -224,7 +367,17 @@ class GeminiProModel(LLMBase):
         temperature: float = 0.7,
         max_tokens: int = 256,
     ) -> List:
-        """Synchronously process multiple conversations"""
+        """
+        Synchronously process multiple conversations.
+
+        Args:
+            conversations (List[Conversation]): A list of Conversation objects to be processed.
+            temperature (float, optional): The sampling temperature to use. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+
+        Returns:
+            List: A list of predictions for each conversation.
+        """
         return [
             self.predict(
                 conv,
@@ -241,7 +394,18 @@ class GeminiProModel(LLMBase):
         max_tokens: int = 256,
         max_concurrent: int = 5,
     ) -> List:
-        """Process multiple conversations in parallel with controlled concurrency"""
+        """
+        Asynchronously processes a batch of conversations using the `apredict` method.
+
+        Args:
+            conversations (List[Conversation]): A list of Conversation objects to be processed.
+            temperature (float, optional): The temperature parameter for the prediction. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the prediction. Defaults to 256.
+            max_concurrent (int, optional): The maximum number of concurrent tasks. Defaults to 5.
+
+        Returns:
+            List: A list of results from the `apredict` method for each conversation.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
