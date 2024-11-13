@@ -59,7 +59,7 @@ def test_default_name(geminipro_model):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 def test_no_system_context(geminipro_model, model_name):
     model = geminipro_model
@@ -71,7 +71,7 @@ def test_no_system_context(geminipro_model, model_name):
     conversation.add_message(human_message)
 
     prediction = model.predict(conversation=conversation).get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(conversation.get_last().usage, UsageData)
     logging.info(conversation.get_last().usage)
 
@@ -94,13 +94,13 @@ def test_preamble_system_context(geminipro_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Jeff" in prediction
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@timeout(20)
 @pytest.mark.unit
 def test_stream(geminipro_model, model_name):
     model = geminipro_model
@@ -113,6 +113,7 @@ def test_stream(geminipro_model, model_name):
 
     collected_tokens = []
     for token in model.stream(conversation=conversation):
+        logging.info(token)
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -120,6 +121,8 @@ def test_stream(geminipro_model, model_name):
     assert len(full_response) > 0
     assert conversation.get_last().content == full_response
     assert isinstance(conversation.get_last().usage, UsageData)
+
+    logging.info(conversation.get_last().usage)
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

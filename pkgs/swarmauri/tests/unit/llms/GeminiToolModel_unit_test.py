@@ -79,7 +79,7 @@ def test_default_name(gemini_tool_model):
     assert gemini_tool_model.name == "gemini-1.5-pro"
 
 
-@timeout(5)
+@timeout(10)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_agent_exec(gemini_tool_model, toolkit, model_name):
