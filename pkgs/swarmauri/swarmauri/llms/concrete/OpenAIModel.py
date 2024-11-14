@@ -2,7 +2,7 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
-from pkgs.swarmauri.swarmauri.utils.duration_manager import DurationManager
+from swarmauri.utils.duration_manager import DurationManager
 from swarmauri.conversations.concrete.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
 
