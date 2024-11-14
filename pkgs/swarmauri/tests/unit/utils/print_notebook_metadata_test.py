@@ -1,8 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
-from importlib.metadata import PackageNotFoundError
-
+from importlib.metadata import PackageNotFoundError, version
 from swarmauri.utils.print_notebook_metadata import (
     get_notebook_name,
     print_notebook_metadata,
@@ -106,18 +105,18 @@ def test_print_notebook_metadata(mock_environment, capsys):
         assert "Last Modified: 2024-01-01 12:00:00" in output
         assert "Test OS 1.0" in output
         assert "Python Version: 3.8.0" in output
-        assert "Swarmauri version information is unavailable" in output
+        assert f"Swarmauri Version: {version('swarmauri')}" in output
 
 
 def test_print_notebook_metadata_with_swarmauri(mock_environment, capsys):
     """Test printing notebook metadata with Swarmauri installed"""
-    with patch("importlib.metadata.version", return_value="1.0.0"):
+    with patch("importlib.metadata.version", return_value=version("swarmauri")):
         print_notebook_metadata("Test Author", "testgithub")
 
         captured = capsys.readouterr()
         output = captured.out
 
-        assert "Swarmauri Version: 1.0.0" in output
+        assert f"Swarmauri Version: {version('swarmauri')}" in output
 
 
 def test_print_notebook_metadata_no_notebook(capsys):
