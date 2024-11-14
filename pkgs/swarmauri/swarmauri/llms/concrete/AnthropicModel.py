@@ -74,15 +74,16 @@ class AnthropicModel(LLMBase):
 
     def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
         """
-        Extracts the system context from a list of messages.
+        Extracts the most recent system context from a list of messages.
 
         Args:
             messages (List[SubclassUnion[MessageBase]]): A list of message objects from a conversation.
 
         Returns:
-            str: The content of the system context if present, otherwise None.
+            str: The content of the most recent system context if present, otherwise None.
         """
-        for message in messages:
+        # Iterate through messages in reverse to get the most recent system message
+        for message in reversed(messages):
             if message.role == "system":
                 return message.content
         return None
