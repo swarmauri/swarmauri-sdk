@@ -3,6 +3,7 @@ from typing import List, Literal, ClassVar
 from pydantic import Field, PrivateAttr
 from swarmauri.llms.base.LLMBase import LLMBase
 import asyncio
+import contextlib
 
 
 class DeepInfraImgGenModel(LLMBase):
@@ -22,7 +23,7 @@ class DeepInfraImgGenModel(LLMBase):
 
     _BASE_URL: str = PrivateAttr("https://api.deepinfra.com/v1/inference")
     _client: httpx.Client = PrivateAttr()
-    _async_client: httpx.AsyncClient = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     api_key: str
     allowed_models: List[str] = [
@@ -47,22 +48,31 @@ class DeepInfraImgGenModel(LLMBase):
             **data: Keyword arguments for model initialization.
         """
         super().__init__(**data)
-        headers = {
+        self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers)
-        self._async_client = httpx.AsyncClient(headers=headers)
+        self._client = httpx.Client(headers=self._headers)
+
+    async def _get_async_client(self) -> httpx.AsyncClient:
+        """
+        Gets or creates an async client instance.
+        """
+        if self._async_client is None or self._async_client.is_closed:
+            self._async_client = httpx.AsyncClient(headers=self._headers)
+        return self._async_client
+
+    async def _close_async_client(self):
+        """
+        Closes the async client if it exists and is open.
+        """
+        if self._async_client is not None and not self._async_client.is_closed:
+            await self._async_client.aclose()
+            self._async_client = None
 
     def _create_request_payload(self, prompt: str) -> dict:
         """
         Creates the payload for the image generation request.
-
-        Args:
-            prompt (str): The text prompt used for generating the image.
-
-        Returns:
-            dict: The request payload with the prompt.
         """
         return {"prompt": prompt}
 
@@ -76,6 +86,7 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             dict: The response data from the API.
         """
+
         url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt)
 
@@ -93,10 +104,12 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             dict: The response data from the API.
         """
+
+        client = await self._get_async_client()
         url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt)
 
-        response = await self._async_client.post(url, json=payload)
+        response = await client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -124,9 +137,12 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             str: The base64-encoded representation of the generated image.
         """
-        response_data = await self._async_send_request(prompt)
-        image_base64 = response_data["images"][0].split(",")[1]
-        return image_base64
+        try:
+            response_data = await self._async_send_request(prompt)
+            image_base64 = response_data["images"][0].split(",")[1]
+            return image_base64
+        finally:
+            await self._close_async_client()
 
     def batch_base64(self, prompts: List[str]) -> List[str]:
         """
@@ -153,12 +169,25 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             List[str]: A list of base64-encoded representations of the generated images.
         """
-        semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_prompt(prompt):
-            async with semaphore:
-                return await self.agenerate_image_base64(prompt)
+        try:
+            semaphore = asyncio.Semaphore(max_concurrent)
 
-        tasks = [process_prompt(prompt) for prompt in prompts]
-        return await asyncio.gather(*tasks)
+            async def process_prompt(prompt):
+                async with semaphore:
+                    response_data = await self._async_send_request(prompt)
+                    return response_data["images"][0].split(",")[1]
 
+            tasks = [process_prompt(prompt) for prompt in prompts]
+            return await asyncio.gather(*tasks)
+        finally:
+            await self._close_async_client()
+
+    def __del__(self):
+        """
+        Cleanup method to ensure clients are closed.
+        """
+        self._client.close()
+        if self._async_client is not None and not self._async_client.is_closed:
+            with contextlib.suppress(Exception):
+                asyncio.run(self._close_async_client())
