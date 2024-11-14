@@ -7,18 +7,6 @@ from importlib.metadata import version, PackageNotFoundError
 from IPython import get_ipython
 from urllib.parse import unquote
 
-import toml
-
-
-def get_version_from_pyproject():
-    try:
-        pyproject_data = toml.load("pyproject.toml")
-        version = pyproject_data["tool"]["poetry"]["version"]  # Adjust for your tool
-        return version
-    except Exception as e:
-        print(f"Error retrieving version: {e}")
-        return None
-
 
 def get_notebook_name():
     """
