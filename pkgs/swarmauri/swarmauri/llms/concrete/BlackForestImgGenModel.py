@@ -1,51 +1,83 @@
-import requests
+import httpx
 import time
-from typing import List, Literal, Optional, Union, Dict
-from pydantic import Field
+from typing import List, Literal, Optional, Union, Dict, ClassVar
+from pydantic import Field, PrivateAttr
 from swarmauri.llms.base.LLMBase import LLMBase
 import asyncio
-from typing import ClassVar
+import contextlib
 
 
 class BlackForestImgGenModel(LLMBase):
     """
     A model for generating images using FluxPro's image generation models through the Black Forest API.
-    Get your API key here: https://api.bfl.ml/auth/profile
+    Link to API key: https://api.bfl.ml/auth/profile
     """
 
+    _BASE_URL: str = PrivateAttr("https://api.bfl.ml")
+    _client: httpx.Client = PrivateAttr()
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+
     api_key: str
-    base_url: str = "https://api.bfl.ml"
     allowed_models: List[str] = ["flux-pro-1.1", "flux-pro", "flux-dev"]
 
     asyncio: ClassVar = asyncio
     name: str = "flux-pro"  # Default model
     type: Literal["BlackForestImgGenModel"] = "BlackForestImgGenModel"
 
-    def _send_request(self, endpoint: str, data: dict) -> dict:
-        """Send a request to FluxPro's API for image generation."""
-        url = f"{self.base_url}/{endpoint}"
-        headers = {
+    def __init__(self, **data):
+        """
+        Initializes the BlackForestImgGenModel instance with HTTP clients.
+        """
+        super().__init__(**data)
+        self._headers = {
             "Content-Type": "application/json",
             "X-Key": self.api_key,
         }
+        self._client = httpx.Client(headers=self._headers)
 
-        response = requests.post(url, headers=headers, json=data)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"Error: {response.status_code}, {response.text}")
+    async def _get_async_client(self) -> httpx.AsyncClient:
+        """Gets or creates an async client instance."""
+        if self._async_client is None or self._async_client.is_closed:
+            self._async_client = httpx.AsyncClient(headers=self._headers)
+        return self._async_client
+
+    async def _close_async_client(self):
+        """Closes the async client if it exists and is open."""
+        if self._async_client is not None and not self._async_client.is_closed:
+            await self._async_client.aclose()
+            self._async_client = None
+
+    def _send_request(self, endpoint: str, data: dict) -> dict:
+        """Send a synchronous request to FluxPro's API for image generation."""
+        url = f"{self._BASE_URL}/{endpoint}"
+        response = self._client.post(url, json=data)
+        response.raise_for_status()
+        return response.json()
+
+    async def _async_send_request(self, endpoint: str, data: dict) -> dict:
+        """Send an asynchronous request to FluxPro's API for image generation."""
+        client = await self._get_async_client()
+        url = f"{self._BASE_URL}/{endpoint}"
+        response = await client.post(url, json=data)
+        response.raise_for_status()
+        return response.json()
 
     def _get_result(self, task_id: str) -> dict:
-        """Get the result of a generation task."""
-        url = f"{self.base_url}/v1/get_result"
+        """Get the result of a generation task synchronously."""
+        url = f"{self._BASE_URL}/v1/get_result"
         params = {"id": task_id}
-        headers = {"X-Key": self.api_key}
+        response = self._client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
 
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"Error: {response.status_code}, {response.text}")
+    async def _async_get_result(self, task_id: str) -> dict:
+        """Get the result of a generation task asynchronously."""
+        client = await self._get_async_client()
+        url = f"{self._BASE_URL}/v1/get_result"
+        params = {"id": task_id}
+        response = await client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
 
     def generate_image(
         self,
@@ -62,11 +94,23 @@ class BlackForestImgGenModel(LLMBase):
         check_interval: int = 10,
     ) -> Dict:
         """
-        Generates an image based on the prompt and waits for the result.
+        Generates an image based on the prompt and waits for the result synchronously.
 
-        :param max_wait_time: Maximum time to wait for the result in seconds (default: 300)
-        :param check_interval: Time between status checks in seconds (default: 10)
-        :return: Dictionary containing the image URL and other result information
+        Args:
+            prompt (str): The text prompt for image generation
+            width (int): Image width in pixels
+            height (int): Image height in pixels
+            steps (Optional[int]): Number of inference steps
+            prompt_upsampling (bool): Whether to use prompt upsampling
+            seed (Optional[int]): Random seed for generation
+            guidance (Optional[float]): Guidance scale
+            safety_tolerance (Optional[int]): Safety tolerance level
+            interval (Optional[float]): Interval parameter (flux-pro only)
+            max_wait_time (int): Maximum time to wait for result in seconds
+            check_interval (int): Time between status checks in seconds
+
+        Returns:
+            Dict: Dictionary containing the image URL and other result information
         """
         endpoint = f"v1/{self.name}"
         data = {
@@ -106,32 +150,105 @@ class BlackForestImgGenModel(LLMBase):
         raise TimeoutError(f"Image generation timed out after {max_wait_time} seconds")
 
     async def agenerate_image(self, prompt: str, **kwargs) -> Dict:
-        """Asynchronously generates an image based on the prompt and waits for the result."""
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self.generate_image, prompt, **kwargs)
+        """
+        Asynchronously generates an image based on the prompt and waits for the result.
+
+        Args:
+            prompt (str): The text prompt for image generation
+            **kwargs: Additional arguments passed to generate_image
+
+        Returns:
+            Dict: Dictionary containing the image URL and other result information
+        """
+        try:
+            endpoint = f"v1/{self.name}"
+            data = {
+                "prompt": prompt,
+                "width": kwargs.get("width", 1024),
+                "height": kwargs.get("height", 768),
+                "prompt_upsampling": kwargs.get("prompt_upsampling", False),
+            }
+
+            optional_params = [
+                "steps",
+                "seed",
+                "guidance",
+                "safety_tolerance",
+            ]
+            for param in optional_params:
+                if param in kwargs:
+                    data[param] = kwargs[param]
+
+            if "interval" in kwargs and self.name == "flux-pro":
+                data["interval"] = kwargs["interval"]
+
+            response = await self._async_send_request(endpoint, data)
+            task_id = response["id"]
+
+            max_wait_time = kwargs.get("max_wait_time", 300)
+            check_interval = kwargs.get("check_interval", 10)
+            start_time = time.time()
+
+            while time.time() - start_time < max_wait_time:
+                result = await self._async_get_result(task_id)
+                if result["status"] == "Ready":
+                    return result["result"]["sample"]
+                elif result["status"] in [
+                    "Error",
+                    "Request Moderated",
+                    "Content Moderated",
+                ]:
+                    raise Exception(f"Task failed with status: {result['status']}")
+                await asyncio.sleep(check_interval)
+
+            raise TimeoutError(
+                f"Image generation timed out after {max_wait_time} seconds"
+            )
+        finally:
+            await self._close_async_client()
 
     def batch_generate(self, prompts: List[str], **kwargs) -> List[Dict]:
         """
-        Generates images for a batch of prompts and waits for all results.
-        Returns a list of result dictionaries.
+        Generates images for a batch of prompts synchronously.
+
+        Args:
+            prompts (List[str]): List of text prompts
+            **kwargs: Additional arguments passed to generate_image
+
+        Returns:
+            List[Dict]: List of result dictionaries
         """
-        results = []
-        for prompt in prompts:
-            results.append(self.generate_image(prompt=prompt, **kwargs))
-        return results
+        return [self.generate_image(prompt=prompt, **kwargs) for prompt in prompts]
 
     async def abatch_generate(
         self, prompts: List[str], max_concurrent: int = 5, **kwargs
     ) -> List[Dict]:
         """
-        Asynchronously generates images for a batch of prompts and waits for all results.
-        Returns a list of result dictionaries.
+        Asynchronously generates images for a batch of prompts.
+
+        Args:
+            prompts (List[str]): List of text prompts
+            max_concurrent (int): Maximum number of concurrent tasks
+            **kwargs: Additional arguments passed to agenerate_image
+
+        Returns:
+            List[Dict]: List of result dictionaries
         """
-        semaphore = asyncio.Semaphore(max_concurrent)
+        try:
+            semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_prompt(prompt):
-            async with semaphore:
-                return await self.agenerate_image(prompt=prompt, **kwargs)
+            async def process_prompt(prompt):
+                async with semaphore:
+                    return await self.agenerate_image(prompt=prompt, **kwargs)
 
-        tasks = [process_prompt(prompt) for prompt in prompts]
-        return await asyncio.gather(*tasks)
+            tasks = [process_prompt(prompt) for prompt in prompts]
+            return await asyncio.gather(*tasks)
+        finally:
+            await self._close_async_client()
+
+    def __del__(self):
+        """Cleanup method to ensure clients are closed."""
+        self._client.close()
+        if self._async_client is not None and not self._async_client.is_closed:
+            with contextlib.suppress(Exception):
+                asyncio.run(self._close_async_client())
