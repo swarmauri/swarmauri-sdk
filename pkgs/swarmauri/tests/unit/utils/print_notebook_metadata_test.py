@@ -1,89 +1,131 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import datetime
-from swarmauri.utils.print_notebook_metadata import print_notebook_metadata
+from importlib.metadata import PackageNotFoundError
+
+from swarmauri.utils.print_notebook_metadata import (
+    get_notebook_name,
+    print_notebook_metadata,
+)
 
 
 @pytest.fixture
-def mock_os_functions():
-    """Fixture to mock os.path functions for file time metadata"""
-    with patch("os.path.getmtime") as mock_getmtime:
-        mock_getmtime.return_value = datetime(
-            2024, 10, 23, 15, 0, 0
-        ).timestamp()  # Set a fixed modification date
-        yield mock_getmtime
+def mock_ipython():
+    """Fixture to create a mock IPython environment"""
+    mock_kernel = Mock()
+    mock_parent = {
+        "metadata": {
+            "filename": "test_notebook.ipynb",
+            "originalPath": "/path/to/test_notebook.ipynb",
+            "cellId": "some/path/test_notebook.ipynb",
+        }
+    }
+    mock_kernel.get_parent.return_value = mock_parent
+
+    mock_ip = Mock()
+    mock_ip.kernel = mock_kernel
+    return mock_ip
 
 
-@pytest.fixture
-def mock_get_notebook_name():
-    """Fixture to mock the IPython environment and metadata"""
+def test_get_notebook_name_success(mock_ipython):
+    """Test successful notebook name retrieval"""
     with patch(
-        "swarmauri.utils.print_notebook_metadata.get_notebook_name"
-    ) as mock_get_notebook_name:
-        mock_get_notebook_name.return_value = "sample_notebook.ipynb"
-        yield mock_get_notebook_name
+        "swarmauri.utils.print_notebook_metadata.get_ipython", return_value=mock_ipython
+    ):
+        result = get_notebook_name()
+        assert result == "test_notebook.ipynb"
+
+
+def test_get_notebook_name_no_ipython():
+    """Test when IPython is not available"""
+    with patch("swarmauri.utils.print_notebook_metadata.get_ipython", return_value=None):
+        result = get_notebook_name()
+        assert result is None
+
+
+def test_get_notebook_name_invalid_filename():
+    """Test with invalid filename format"""
+    mock_kernel = Mock()
+    mock_parent = {"metadata": {"filename": "invalid_file.txt"}}  # Not an ipynb file
+    mock_kernel.get_parent.return_value = mock_parent
+    mock_ip = Mock()
+    mock_ip.kernel = mock_kernel
+
+    with patch("swarmauri.utils.print_notebook_metadata.get_ipython", return_value=mock_ip):
+        result = get_notebook_name()
+        assert result is None
+
+
+def test_get_notebook_name_with_url_parameters():
+    """Test filename cleaning from URL parameters"""
+    mock_kernel = Mock()
+    mock_parent = {"metadata": {"filename": "notebook.ipynb?param=value#fragment"}}
+    mock_kernel.get_parent.return_value = mock_parent
+    mock_ip = Mock()
+    mock_ip.kernel = mock_kernel
+
+    with patch("swarmauri.utils.print_notebook_metadata.get_ipython", return_value=mock_ip):
+        result = get_notebook_name()
+        assert result == "notebook.ipynb"
+
+
+@pytest.mark.parametrize("exception_type", [AttributeError, KeyError, Exception])
+def test_get_notebook_name_exceptions(exception_type):
+    """Test exception handling"""
+    with patch("swarmauri.utils.print_notebook_metadata.get_ipython", side_effect=exception_type("Test error")):
+        result = get_notebook_name()
+        assert result is None
 
 
 @pytest.fixture
-def mock_platform():
-    """Fixture to mock platform information"""
-    with patch("platform.system") as mock_system, patch(
-        "platform.release"
-    ) as mock_release:
-        mock_system.return_value = "Linux"
-        mock_release.return_value = "5.4.0"
-        yield mock_system, mock_release
+def mock_environment():
+    """Fixture to mock environment-dependent functions"""
+    mock_datetime = datetime(2024, 1, 1, 12, 0)
+
+    with patch("os.path.getmtime", return_value=mock_datetime.timestamp()), patch(
+        "platform.system", return_value="Test OS"
+    ), patch("platform.release", return_value="1.0"), patch(
+        "sys.version", "3.8.0"
+    ), patch(
+        "swarmauri.utils.print_notebook_metadata.get_notebook_name", return_value="test_notebook.ipynb"
+    ):
+        yield mock_datetime
 
 
-@pytest.fixture
-def mock_sys_version():
-    """Fixture to mock sys version"""
-    with patch("sys.version", "3.9.7 (default, Oct 23 2024, 13:30:00) [GCC 9.3.0]"):
-        yield
+def test_print_notebook_metadata(mock_environment, capsys):
+    """Test printing notebook metadata"""
+    with patch("importlib.metadata.version", side_effect=PackageNotFoundError):
+        print_notebook_metadata("Test Author", "testgithub")
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert "Author: Test Author" in output
+        assert "GitHub Username: testgithub" in output
+        assert "Notebook File: test_notebook.ipynb" in output
+        assert "Last Modified: 2024-01-01 12:00:00" in output
+        assert "Test OS 1.0" in output
+        assert "Python Version: 3.8.0" in output
+        assert "Swarmauri version information is unavailable" in output
 
 
-@pytest.fixture
-def mock_swarmauri_import():
-    """Fixture to mock swarmauri import check"""
-    with patch("builtins.__import__") as mock_import:
-        # Mock swarmauri as an available module with a version
-        mock_swarmauri = MagicMock()
-        mock_swarmauri.__version__ = "1.0.0"
-        mock_import.return_value = mock_swarmauri
-        yield mock_import
+def test_print_notebook_metadata_with_swarmauri(mock_environment, capsys):
+    """Test printing notebook metadata with Swarmauri installed"""
+    with patch("importlib.metadata.version", return_value="1.0.0"):
+        print_notebook_metadata("Test Author", "testgithub")
+
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert "Swarmauri Version: 1.0.0" in output
 
 
-@pytest.fixture
-def mock_author_info():
-    """Fixture to provide author information"""
-    return {"author_name": "Test Author", "github_username": "testuser"}
+def test_print_notebook_metadata_no_notebook(capsys):
+    """Test printing metadata when notebook name cannot be determined"""
+    with patch("swarmauri.utils.print_notebook_metadata.get_notebook_name", return_value=None):
+        print_notebook_metadata("Test Author", "testgithub")
 
+        captured = capsys.readouterr()
+        output = captured.out
 
-def test_print_notebook_metadata_without_swarmauri(
-    mock_os_functions,
-    mock_get_notebook_name,
-    mock_platform,
-    mock_sys_version,
-    mock_author_info,
-):
-    """Test for print_notebook_metadata without Swarmauri is not installed"""
-
-    # Extract author info from the fixture
-    author_name = mock_author_info["author_name"]
-    github_username = mock_author_info["github_username"]
-
-    # Mocked print function to capture output
-    with patch("builtins.print") as mock_print:
-        with patch("builtins.__import__", side_effect=ImportError):
-            print_notebook_metadata(author_name, github_username)
-
-        # Check expected calls
-        mock_print.assert_any_call(f"Author: {author_name}")
-        mock_print.assert_any_call(f"GitHub Username: {github_username}")
-        mock_print.assert_any_call(f"Notebook File: sample_notebook.ipynb")
-        mock_print.assert_any_call("Last Modified: 2024-10-23 15:00:00")
-        mock_print.assert_any_call("Platform: Linux 5.4.0")
-        mock_print.assert_any_call(
-            "Python Version: 3.9.7 (default, Oct 23 2024, 13:30:00) [GCC 9.3.0]"
-        )
-        mock_print.assert_any_call("Swarmauri is not installed.")
+        assert "Could not detect the current notebook's filename" in output
