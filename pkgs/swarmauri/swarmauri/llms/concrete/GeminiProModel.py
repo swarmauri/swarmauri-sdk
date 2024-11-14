@@ -1,7 +1,5 @@
 import json
-import logging
 from typing import AsyncIterator, Iterator, List, Dict, Literal
-from venv import logger
 import httpx
 from pydantic import PrivateAttr
 from swarmauri.conversations.concrete import Conversation
@@ -66,21 +64,6 @@ class GeminiProModel(LLMBase):
             headers={"Content-Type": "application/json"},
         )
     )
-
-    # def __init__(self, **data) -> None:
-    #     """
-    #     Initializes the GroqToolModel instance, setting up headers for API requests.
-
-    #     Parameters:
-    #         **data: Arbitrary keyword arguments for initialization.
-    #     """
-    #     super().__init__(**data)
-    #     self._client = httpx.Client(
-    #         base_url=self._BASE_URL,
-    #     )
-    #     self._async_client = httpx.AsyncClient(
-    #         base_url=self._BASE_URL,
-    #     )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
