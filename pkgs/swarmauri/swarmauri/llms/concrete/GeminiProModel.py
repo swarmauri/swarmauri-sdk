@@ -1,5 +1,7 @@
 import json
-from typing import List, Dict, Literal
+import logging
+from typing import AsyncIterator, Iterator, List, Dict, Literal
+from venv import logger
 import httpx
 from pydantic import PrivateAttr
 from swarmauri.conversations.concrete import Conversation
@@ -31,11 +33,6 @@ class GeminiProModel(LLMBase):
     allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
     name: str = "gemini-1.5-pro"
     type: Literal["GeminiProModel"] = "GeminiProModel"
-    _BASE_URL: str = PrivateAttr(
-        default="https://generativelanguage.googleapis.com/v1beta/models"
-    )
-    _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
-
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
             {
@@ -56,6 +53,34 @@ class GeminiProModel(LLMBase):
             },
         ]
     )
+
+    _client: httpx.Client = PrivateAttr(
+        default_factory=lambda: httpx.Client(
+            base_url="https://generativelanguage.googleapis.com/v1beta/models",
+            headers={"Content-Type": "application/json"},
+        )
+    )
+    _async_client: httpx.AsyncClient = PrivateAttr(
+        default_factory=lambda: httpx.AsyncClient(
+            base_url="https://generativelanguage.googleapis.com/v1beta/models",
+            headers={"Content-Type": "application/json"},
+        )
+    )
+
+    # def __init__(self, **data) -> None:
+    #     """
+    #     Initializes the GroqToolModel instance, setting up headers for API requests.
+
+    #     Parameters:
+    #         **data: Arbitrary keyword arguments for initialization.
+    #     """
+    #     super().__init__(**data)
+    #     self._client = httpx.Client(
+    #         base_url=self._BASE_URL,
+    #     )
+    #     self._async_client = httpx.AsyncClient(
+    #         base_url=self._BASE_URL,
+    #     )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -100,11 +125,13 @@ class GeminiProModel(LLMBase):
         for message in messages:
             if message.role == "system":
                 system_context = message.content
-        return system_context
+        if system_context:
+            return {"parts": {"text": system_context}}
+        return None
 
     def _prepare_usage_data(
         self,
-        usage_data,
+        usage_data: UsageData,
         prompt_time: float = 0.0,
         completion_time: float = 0.0,
     ) -> UsageData:
@@ -125,7 +152,12 @@ class GeminiProModel(LLMBase):
 
         return usage
 
-    def predict(self, conversation, temperature=0.7, max_tokens=256):
+    def predict(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 25,
+    ) -> Conversation:
         """
         Generates a prediction for the given conversation using the specified parameters.
 
@@ -149,24 +181,21 @@ class GeminiProModel(LLMBase):
 
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
-
         next_message = formatted_messages.pop()
 
         payload = {
             "contents": next_message,
             "generationConfig": generation_config,
             "safetySettings": self._safety_settings,
-            "systemInstruction": system_context,
         }
+        if system_context:
+            payload["systemInstruction"] = system_context
 
         with DurationManager() as prompt_timer:
-            with httpx.Client(timeout=10.0) as client:
-                response = client.post(
-                    f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
-                    json=payload,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+            response = self._client.post(
+                f"/{self.name}:generateContent?key={self.api_key}", json=payload
+            )
+            response.raise_for_status()
 
         response_data = response.json()
 
@@ -182,7 +211,12 @@ class GeminiProModel(LLMBase):
 
         return conversation
 
-    async def apredict(self, conversation, temperature=0.7, max_tokens=256):
+    async def apredict(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> Conversation:
         """
         Asynchronously generates a response for a given conversation using the GeminiProModel.
 
@@ -212,17 +246,16 @@ class GeminiProModel(LLMBase):
             "contents": next_message,
             "generationConfig": generation_config,
             "safetySettings": self._safety_settings,
-            "systemInstruction": system_context,
         }
+        if system_context:
+            payload["systemInstruction"] = system_context
 
-        async with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
-                    json=payload,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+        with DurationManager() as prompt_timer:
+            response = await self._async_client.post(
+                f"/{self.name}:generateContent?key={self.api_key}",
+                json=payload,
+            )
+            response.raise_for_status()
 
         response_data = response.json()
         message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
@@ -233,7 +266,12 @@ class GeminiProModel(LLMBase):
 
         return conversation
 
-    def stream(self, conversation, temperature=0.7, max_tokens=256):
+    def stream(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> Iterator[str]:
         """
         Streams the response from the model based on the given conversation.
 
@@ -265,17 +303,17 @@ class GeminiProModel(LLMBase):
             "contents": next_message,
             "generationConfig": generation_config,
             "safetySettings": self._safety_settings,
-            "systemInstruction": system_context,
         }
+        if system_context:
+            payload["systemInstruction"] = system_context
 
         with DurationManager() as prompt_timer:
-            with httpx.Client(timeout=10.0) as client:
-                response = client.post(
-                    f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
-                    json=payload,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+            response = self._client.post(
+                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                json=payload,
+            )
+
+            response.raise_for_status()
 
         full_response = ""
         with DurationManager() as completion_timer:
@@ -297,7 +335,12 @@ class GeminiProModel(LLMBase):
         )
         conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
-    async def astream(self, conversation, temperature=0.7, max_tokens=256):
+    async def astream(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> AsyncIterator[str]:
         """
         Asynchronously streams generated content for a given conversation.
 
@@ -329,17 +372,16 @@ class GeminiProModel(LLMBase):
             "contents": next_message,
             "generationConfig": generation_config,
             "safetySettings": self._safety_settings,
-            "systemInstruction": system_context,
         }
+        if system_context:
+            payload["systemInstruction"] = system_context
 
         with DurationManager() as prompt_timer:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
-                    json=payload,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+            response = await self._async_client.post(
+                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                json=payload,
+            )
+            response.raise_for_status()
 
         full_response = ""
         with DurationManager() as completion_timer:
@@ -408,7 +450,7 @@ class GeminiProModel(LLMBase):
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,
