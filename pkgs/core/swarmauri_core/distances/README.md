@@ -10,7 +10,7 @@ Here are the four properties that a metric (ie: a distance component) must satis
 
 4.  **Triangle Inequality**: The direct distance between two points must be less than or equal to the sum of the distances between each point and a third point. This ensures consistency with the concept of distance.
 
-If a function does not satisfy all these properties, it cannot be considered a metric. Instead, it can be referred to as a distance-like function.
+If a function does not satisfy all these properties, it cannot be considered a metric. 
 
 Now, considering the definition of a distance:
 
