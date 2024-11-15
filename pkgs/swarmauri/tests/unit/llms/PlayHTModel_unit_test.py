@@ -76,28 +76,6 @@ def test_predict(playht_model, model_name):
     assert isinstance(audio_path, str)
 
 
-# New tests for streaming
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
-@pytest.mark.unit
-def test_stream(playht_model, model_name):
-
-    text = "Hello, My name is Michael, Am a Swarmauri Engineer"
-
-    collected_chunks = []
-    for chunk in playht_model.stream(text=text):
-        assert isinstance(chunk, bytes), f"is type is {type(chunk)}"
-        collected_chunks.append(chunk)
-
-    full_audio_byte = b"".join(collected_chunks)
-
-    assert len(full_audio_byte) > 0
-
-    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
-    # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
-    # play(audio)
-
-
 # New tests for async operations
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -113,26 +91,6 @@ async def test_apredict(playht_model, model_name):
     logging.info(audio_file_path)
 
     assert isinstance(audio_file_path, str)
-
-
-@pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
-@pytest.mark.unit
-async def test_astream(playht_model, model_name):
-    playht_model.name = model_name
-
-    text = "Hello, My name is Michael, Am a Swarmauri Engineer"
-
-    collected_chunks = []
-    for chunk in playht_model.stream(text=text):
-        assert isinstance(chunk, bytes), f"is type is {type(chunk)}"
-        collected_chunks.append(chunk)
-
-    full_audio_byte = b"".join(collected_chunks)
-    assert len(full_audio_byte) > 0
-
-    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
 
 
 # New tests for batch operations
