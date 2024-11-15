@@ -3,7 +3,6 @@ import logging
 import json
 from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
 
 from swarmauri.schema_converters.concrete.GeminiSchemaConverter import (
     GeminiSchemaConverter as Schema,
