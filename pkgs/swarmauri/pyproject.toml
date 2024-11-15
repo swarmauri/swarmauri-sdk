@@ -91,6 +91,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+asyncio_mode = "auto"
 
 markers = [
     "test: standard test",
