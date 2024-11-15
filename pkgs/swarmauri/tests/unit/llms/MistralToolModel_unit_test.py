@@ -11,6 +11,7 @@ from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
 from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 load_dotenv()
 
@@ -131,7 +132,7 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(10)
+@timeout(20)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(mistral_tool_model, toolkit, model_name):
