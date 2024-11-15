@@ -18,13 +18,6 @@ API_KEY = os.getenv("COHERE_API_KEY")
 
 
 @pytest.fixture(scope="module")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="module")
 def cohere_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
