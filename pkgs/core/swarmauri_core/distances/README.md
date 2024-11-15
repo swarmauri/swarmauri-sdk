@@ -26,4 +26,4 @@ For instance, cosine similarity is often treated as a distance, but it doesn't s
 
 However, in many situations, people use the term "distance" synonymously with "metric," not strictly adhering to the mathematical definition. Thus, the distinction between a distance and a metric can sometimes be blurred.
 
-In summary, while all metrics are distances, not all distances are metrics. A metric must satisfy the four properties of non-negativity, identity of indiscernibles, symmetry, and triangle inequality to be considered a true metric.
+In summary, a distance object's internal implementations must satisfy the four properties of non-negativity, identity of indiscernibles, symmetry, and triangle inequality to be considered a true metric.
