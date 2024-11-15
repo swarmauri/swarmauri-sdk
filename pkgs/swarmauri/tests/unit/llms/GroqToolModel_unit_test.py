@@ -24,7 +24,6 @@ def groq_tool_model():
     llm = LLM(api_key=API_KEY)
     return llm
 
-
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -96,11 +95,10 @@ def test_agent_exec(groq_tool_model, toolkit, conversation, model_name):
     result = agent.exec("Add 512+671")
     assert type(result) is str
 
-
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 def test_predict(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
@@ -109,11 +107,10 @@ def test_predict(groq_tool_model, toolkit, conversation, model_name):
 
     assert type(conversation.get_last().content) == str
 
-
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 def test_stream(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
@@ -127,11 +124,10 @@ def test_stream(groq_tool_model, toolkit, conversation, model_name):
     # assert len(full_response) > 0
     assert conversation.get_last().content == full_response
 
-
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 def test_batch(groq_tool_model, toolkit, model_name):
     groq_tool_model.name = model_name
 
@@ -147,11 +143,11 @@ def test_batch(groq_tool_model, toolkit, model_name):
         assert isinstance(result.get_last().content, str)
 
 
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
@@ -160,11 +156,12 @@ async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
+
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 async def test_astream(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
@@ -180,11 +177,11 @@ async def test_astream(groq_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
+@retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@retry_on_status_codes([429])
 async def test_abatch(groq_tool_model, toolkit, model_name):
     groq_tool_model.name = model_name
 
