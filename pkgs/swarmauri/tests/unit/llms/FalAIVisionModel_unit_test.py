@@ -6,7 +6,7 @@ from swarmauri.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
-API_KEY = os.getenv("FAL_API_KEY")
+API_KEY = os.getenv("FAL_AI_API_KEY")
 
 
 @pytest.fixture(scope="module")
