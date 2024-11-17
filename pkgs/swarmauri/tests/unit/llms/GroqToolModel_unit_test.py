@@ -24,6 +24,7 @@ def groq_tool_model():
     llm = LLM(api_key=API_KEY)
     return llm
 
+
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -95,6 +96,7 @@ def test_agent_exec(groq_tool_model, toolkit, conversation, model_name):
     result = agent.exec("Add 512+671")
     assert type(result) is str
 
+
 @retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
@@ -106,6 +108,7 @@ def test_predict(groq_tool_model, toolkit, conversation, model_name):
     logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) == str
+
 
 @retry_on_status_codes([429])
 @timeout(5)
@@ -123,6 +126,7 @@ def test_stream(groq_tool_model, toolkit, conversation, model_name):
     full_response = "".join(collected_tokens)
     # assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+
 
 @retry_on_status_codes([429])
 @timeout(5)
@@ -154,7 +158,6 @@ async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     result = await groq_tool_model.apredict(conversation=conversation, toolkit=toolkit)
     prediction = result.get_last().content
     assert isinstance(prediction, str)
-
 
 
 @retry_on_status_codes([429])
