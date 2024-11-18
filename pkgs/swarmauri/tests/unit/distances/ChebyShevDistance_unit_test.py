@@ -21,3 +21,4 @@ def test_distance():
 	    Vector(value=[1,2]), 
 	    Vector(value=[1,2])
 	    ) == 0.0
+
