@@ -1,15 +1,6 @@
 name: Test and Publish Release
 
 on:
-  
-  push:
-    branches: ["*dev*", "swarm/*dev*"]
-    paths:
-      - 'pkgs/community/**'
-      - 'pkgs/core/**'
-      - 'pkgs/experimental/**'
-      - 'pkgs/partners/**'
-      - 'pkgs/swarmauri/**'
   workflow_dispatch:
 
 jobs:
