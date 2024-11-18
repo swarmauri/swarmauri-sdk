@@ -21,3 +21,5 @@ def test_chunk_text():
 def test_serialization():
 	chunker = DelimiterBasedChunker()
 	assert chunker.id == DelimiterBasedChunker.model_validate_json(chunker.model_dump_json()).id
+
+
