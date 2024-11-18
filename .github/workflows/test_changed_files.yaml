@@ -1,0 +1,81 @@
+name: Test Changed Files
+
+on:
+  push:
+    paths:
+      - 'pkgs/**'
+  pull_request:
+    paths:
+      - 'pkgs/**'
+  workflow_dispatch:
+
+jobs:
+  detect-changed-files:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Detect changed files and map to packages and tests
+        id: detect
+        run: |
+          # Get changed files
+          git fetch origin ${{ github.event.before }}
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^pkgs/')
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Map changed files to packages and corresponding test files
+          PACKAGE_TEST_MAP=""
+          for FILE in $CHANGED_FILES; do
+            PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
+            TEST_FILE=$(echo "$FILE" | sed 's/\.py$/_test.py/' | sed 's|^pkgs/[^/]+/|tests/|')
+            PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$TEST_FILE\"},"
+          done
+
+          # Create JSON array for matrix
+          if [ -z "$PACKAGE_TEST_MAP" ]; then
+            MATRIX="[]"
+          else
+            MATRIX="[${PACKAGE_TEST_MAP%,}]"
+          fi
+
+          echo "Test matrix: $MATRIX"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  run-tests:
+    needs: detect-changed-files
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package_test: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Install package dependencies
+        run: |
+          cd pkgs/${{ matrix.package_test.package }}
+          poetry install --no-cache -vv
+
+      - name: Run specific tests
+        run: |
+          echo "Running tests for package: ${{ matrix.package_test.package }}"
+          echo "Test file: ${{ matrix.package_test.test }}"
+          poetry run pytest ${{ matrix.package_test.test }}
