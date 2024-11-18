@@ -36,24 +36,30 @@ jobs:
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
             COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
-            TEST_DIR="pkgs/$PACKAGE/tests"  # Test directory for the package
 
-            # Log detected package and component name
-            echo "Detected package: $PACKAGE"
-            echo "Component name: $COMPONENT_NAME"
-            echo "Searching for test files in: $TEST_DIR"
-
-            # Search for test files matching the component name
-            if [ -d "$TEST_DIR" ]; then
-              MATCHING_TEST_FILES=$(find $TEST_DIR -type f -name "*${COMPONENT_NAME}*_test.py")
-              echo "Matching test files: $MATCHING_TEST_FILES"
-
-              for TEST_FILE in $MATCHING_TEST_FILES; do
-                RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
-                PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
-              done
+            # Check if the file itself is a test file
+            if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+              # If it's a test file, map it directly to the matrix
+              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
+              PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
             else
-              echo "Warning: Test directory $TEST_DIR does not exist."
+              # If it's a source file, find corresponding test files
+              TEST_DIR="pkgs/$PACKAGE/tests"  # Test directory for the package
+
+              echo "Searching for test files related to: $COMPONENT_NAME in $TEST_DIR"
+
+              # Search for test files recursively matching the component name
+              if [ -d "$TEST_DIR" ]; then
+                MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
+                echo "Matching test files: $MATCHING_TEST_FILES"
+
+                for TEST_FILE in $MATCHING_TEST_FILES; do
+                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
+                  PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
+                done
+              else
+                echo "Warning: Test directory $TEST_DIR does not exist."
+              fi
             fi
           done
 
