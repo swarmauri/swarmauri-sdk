@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri-community"
-version = "0.5.1"
-description = "This repository includes community components."
+version = "0.5.2"
+description = "This repository includes Swarmauri community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -33,7 +33,7 @@ python-dotenv = "*"
 qrcode = "*"
 redis = "^4.0"
 scikit-learn="^1.4.2"
-swarmauri = ">=0.5.1"
+swarmauri = ">=0.5.2"
 textstat = "*"
 transformers = ">=4.45.0"
 typing_extensions = "*"
@@ -50,7 +50,6 @@ protobuf = "^3.20.0"
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"
 #pacmap = "==0.7.3"
-
 
 
 [tool.poetry.dev-dependencies]
