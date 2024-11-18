@@ -10,6 +10,8 @@ from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
 from dotenv import load_dotenv
 
+from swarmauri.utils.timeout_wrapper import timeout
+
 load_dotenv()
 
 API_KEY = os.getenv("COHERE_API_KEY")
@@ -30,6 +32,7 @@ def get_allowed_models():
     return llm.allowed_models
 
 
+@timeout(5)
 @pytest.fixture(scope="module")
 def toolkit():
     toolkit = Toolkit()
@@ -39,6 +42,7 @@ def toolkit():
     return toolkit
 
 
+@timeout(5)
 @pytest.fixture(scope="module")
 def conversation():
     conversation = Conversation()
@@ -51,16 +55,19 @@ def conversation():
     return conversation
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(cohere_tool_model):
     assert cohere_tool_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(cohere_tool_model):
     assert cohere_tool_model.type == "CohereToolModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(cohere_tool_model):
     assert (
@@ -69,11 +76,13 @@ def test_serialization(cohere_tool_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(cohere_tool_model):
     assert cohere_tool_model.name == "command-r"
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_agent_exec(cohere_tool_model, toolkit, conversation, model_name):
@@ -84,6 +93,7 @@ def test_agent_exec(cohere_tool_model, toolkit, conversation, model_name):
     assert type(result) == str
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_predict(cohere_tool_model, toolkit, conversation, model_name):
@@ -95,6 +105,7 @@ def test_predict(cohere_tool_model, toolkit, conversation, model_name):
     assert type(conversation.get_last().content) == str
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_stream(cohere_tool_model, toolkit, conversation, model_name):
@@ -110,6 +121,7 @@ def test_stream(cohere_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(cohere_tool_model, toolkit, model_name):
@@ -127,6 +139,7 @@ def test_batch(cohere_tool_model, toolkit, model_name):
         assert isinstance(result.get_last().content, str)
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -140,6 +153,7 @@ async def test_apredict(cohere_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -158,6 +172,7 @@ async def test_astream(cohere_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
+@timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())

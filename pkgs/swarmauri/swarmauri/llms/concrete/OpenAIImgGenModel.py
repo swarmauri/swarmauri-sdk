@@ -1,28 +1,45 @@
-import json
-from pydantic import Field
+from pydantic import PrivateAttr
 import asyncio
-from typing import List, Dict, Literal, Optional
-from openai import OpenAI, AsyncOpenAI
+import httpx
+from typing import Dict, List, Literal, Optional
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
 class OpenAIImgGenModel(LLMBase):
     """
-    Provider resources: https://platform.openai.com/docs/api-reference/images
+    OpenAIImgGenModel is a class for generating images using OpenAI's DALL-E models.
+
+    Attributes:
+        api_key (str): The API key for authenticating with the OpenAI API.
+        allowed_models (List[str]): List of allowed model names.
+        name (str): The name of the model to use.
+        type (Literal["OpenAIImgGenModel"]): The type of the model.
+
+    Provider Resources: https://platform.openai.com/docs/api-reference/images/generate
     """
 
     api_key: str
     allowed_models: List[str] = ["dall-e-2", "dall-e-3"]
     name: str = "dall-e-3"
     type: Literal["OpenAIImgGenModel"] = "OpenAIImgGenModel"
-    client: OpenAI = Field(default=None, exclude=True)
-    async_client: AsyncOpenAI = Field(default=None, exclude=True)
+    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
+    _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
+        """
+        Initialize the GroqAIAudio class with the provided data.
+
+        Args:
+            **data: Arbitrary keyword arguments containing initialization data.
+        """
         super().__init__(**data)
-        self.client = OpenAI(api_key=self.api_key)
-        self.async_client = AsyncOpenAI(api_key=self.api_key)
+        self._headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def generate_image(
         self,
         prompt: str,
@@ -32,14 +49,14 @@ class OpenAIImgGenModel(LLMBase):
         style: Optional[str] = None,
     ) -> List[str]:
         """
-        Generate images using the OpenAI DALL-E model.
+        Generate images using the OpenAI DALL-E model synchronously.
 
         Parameters:
         - prompt (str): The prompt to generate images from.
-        - size (str): Size of the generated images. Options: "256x256", "512x512", "1024x1024", "1024x1792", "1792x1024".
-        - quality (str): Quality of the generated images. Options: "standard", "hd" (only for DALL-E 3).
-        - n (int): Number of images to generate (max 10 for DALL-E 2, 1 for DALL-E 3).
-        - style (str): Optional. The style of the generated images. Options: "vivid", "natural" (only for DALL-E 3).
+        - size (str): Size of the generated images.
+        - quality (str): Quality of the generated images.
+        - n (int): Number of images to generate.
+        - style (str): Optional style of the generated images.
 
         Returns:
         - List of URLs of the generated images.
@@ -47,7 +64,7 @@ class OpenAIImgGenModel(LLMBase):
         if self.name == "dall-e-3" and n > 1:
             raise ValueError("DALL-E 3 only supports generating 1 image at a time.")
 
-        kwargs = {
+        payload = {
             "model": self.name,
             "prompt": prompt,
             "size": size,
@@ -56,11 +73,19 @@ class OpenAIImgGenModel(LLMBase):
         }
 
         if style and self.name == "dall-e-3":
-            kwargs["style"] = style
+            payload["style"] = style
 
-        response = self.client.images.generate(**kwargs)
-        return [image.url for image in response.data]
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                response = client.post(
+                    self._BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
+                return [image["url"] for image in response.json().get("data", [])]
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Image generation failed: {e}")
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def agenerate_image(
         self,
         prompt: str,
@@ -69,11 +94,23 @@ class OpenAIImgGenModel(LLMBase):
         n: int = 1,
         style: Optional[str] = None,
     ) -> List[str]:
-        """Asynchronous version of generate_image"""
+        """
+        Generate images using the OpenAI DALL-E model asynchronously.
+
+        Parameters:
+        - prompt (str): The prompt to generate images from.
+        - size (str): Size of the generated images.
+        - quality (str): Quality of the generated images.
+        - n (int): Number of images to generate.
+        - style (str): Optional style of the generated images.
+
+        Returns:
+        - List of URLs of the generated images.
+        """
         if self.name == "dall-e-3" and n > 1:
             raise ValueError("DALL-E 3 only supports generating 1 image at a time.")
 
-        kwargs = {
+        payload = {
             "model": self.name,
             "prompt": prompt,
             "size": size,
@@ -82,10 +119,17 @@ class OpenAIImgGenModel(LLMBase):
         }
 
         if style and self.name == "dall-e-3":
-            kwargs["style"] = style
+            payload["style"] = style
 
-        response = await self.async_client.images.generate(**kwargs)
-        return [image.url for image in response.data]
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    self._BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
+                return [image["url"] for image in response.json().get("data", [])]
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Image generation failed: {e}")
 
     def batch(
         self,
@@ -95,15 +139,21 @@ class OpenAIImgGenModel(LLMBase):
         n: int = 1,
         style: Optional[str] = None,
     ) -> List[List[str]]:
-        """Synchronously process multiple prompts"""
+        """
+        Synchronously process multiple prompts for image generation.
+
+        Parameters:
+        - prompts (List[str]): List of prompts.
+        - size (str): Size of the generated images.
+        - quality (str): Quality of the generated images.
+        - n (int): Number of images to generate.
+        - style (str): Optional style of the generated images.
+
+        Returns:
+        - List of lists of URLs of the generated images.
+        """
         return [
-            self.generate_image(
-                prompt,
-                size=size,
-                quality=quality,
-                n=n,
-                style=style,
-            )
+            self.generate_image(prompt, size=size, quality=quality, n=n, style=style)
             for prompt in prompts
         ]
 
@@ -116,17 +166,26 @@ class OpenAIImgGenModel(LLMBase):
         style: Optional[str] = None,
         max_concurrent: int = 5,
     ) -> List[List[str]]:
-        """Process multiple prompts in parallel with controlled concurrency"""
+        """
+        Asynchronously process multiple prompts for image generation with controlled concurrency.
+
+        Parameters:
+        - prompts (List[str]): List of prompts.
+        - size (str): Size of the generated images.
+        - quality (str): Quality of the generated images.
+        - n (int): Number of images to generate.
+        - style (str): Optional style of the generated images.
+        - max_concurrent (int): Maximum number of concurrent requests.
+
+        Returns:
+        - List of lists of URLs of the generated images.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_prompt(prompt):
+        async def process_prompt(prompt) -> List[str]:
             async with semaphore:
                 return await self.agenerate_image(
-                    prompt,
-                    size=size,
-                    quality=quality,
-                    n=n,
-                    style=style,
+                    prompt, size=size, quality=quality, n=n, style=style
                 )
 
         tasks = [process_prompt(prompt) for prompt in prompts]

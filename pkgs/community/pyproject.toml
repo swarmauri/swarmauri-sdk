@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri-community"
-version = "0.5.1.dev8"
-description = "This repository includes community components."
+version = "0.5.2"
+description = "This repository includes Swarmauri community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,7 +15,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-beautifulsoup4 = "04.12.3"
 captcha = "*"
 chromadb = "*"
 duckdb = "*"
@@ -26,32 +25,38 @@ gradio = "*"
 leptonai = "0.22.0"
 neo4j = "*"
 nltk = "*"
-numpy = "*"
 openai = "^1.52.0"
 pandas = "*"
 psutil = "*"
-pydantic = "*"
 pygithub = "*"
 python-dotenv = "*"
 qrcode = "*"
 redis = "^4.0"
-requests = "*"
 scikit-learn="^1.4.2"
-swarmauri = ">=0.5.0"
+swarmauri = "==0.5.2"
 textstat = "*"
 transformers = ">=4.45.0"
 typing_extensions = "*"
-
+tiktoken = "*"
+pymupdf = "*"
+annoy = "*"
+qdrant_client = "*"
+weaviate = "*"
+pinecone-client = { version = "*", extras = ["grpc"] }
+PyPDF2 = "*"
+pypdftk = "*"
+weaviate-client = "*"
+protobuf = "^3.20.0"
 # Pacmap requires specific version of numba
 #numba = ">=0.59.0"
 #pacmap = "==0.7.3"
-
 
 
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency
 pytest = "^8.0"  # Ensure pytest is also added if you run tests
 pytest-asyncio = ">=0.24.0"
+pytest-xdist = "^3.6.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -2,6 +2,7 @@ import pytest
 import os
 from dotenv import load_dotenv
 from swarmauri.llms.concrete.OpenAIImgGenModel import OpenAIImgGenModel
+from swarmauri.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -23,16 +24,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_image_model):
     assert openai_image_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_image_model):
     assert openai_image_model.type == "OpenAIImgGenModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_image_model):
     assert (
@@ -43,6 +47,7 @@ def test_serialization(openai_image_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_model_name(openai_image_model):
     assert openai_image_model.name == "dall-e-3"
@@ -108,6 +113,7 @@ async def test_abatch(openai_image_model):
         assert all(isinstance(url, str) and url.startswith("http") for url in result)
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_dall_e_3_single_image(openai_image_model):
     openai_image_model.name = "dall-e-3"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri"
-version = "0.5.1.dev13"
+version = "0.5.2"
 description = "This repository includes base classes, concrete generics, and concrete standard components within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -15,48 +15,75 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ai21 = ">=2.2.0"
-aiohttp = "^3.10.10"
-anthropic = "^0.36.2"
-beautifulsoup4 = "04.12.3"
-cohere = "^5.11.0"
-deepface = "^0.0.93"
-gensim = "==4.3.3"
-google-generativeai = "^0.8.3"
-gradio = "==5.1.0"
-groq = "^0.11.0"
+swarmauri_core = "==0.5.2"
+toml = "^0.10.2"
+httpx = "^0.27.2"
 joblib = "^1.4.0"
-mistralai = "^1.1.0"
-nltk = "^3.9.1"
 numpy = "*"
-openai = "^1.52.0"
-#opencv-python = "^4.10.0.84"
 pandas = "*"
 pydantic = "^2.9.2"
 Pillow = ">=8.0,<11.0"
-requests = "*"
-scipy = ">=1.7.0,<1.14.0"
-spacy = ">=3.0.0,<=3.8.2"
-swarmauri_core = "==0.5.1.dev21"
-textblob = "^0.18.0"
-torch = "^2.5.0"
-transformers = "^4.45.0"
 typing_extensions = "*"
-yake = "==0.4.8"
-keras=">=3.2.0"
-matplotlib=">=3.9.2"
-scikit-learn="^1.4.2"
-tf-keras=">=2.16.0"
-fal-client=">=0.5.0"
+requests = "*"
+
+# Optional dependencies with versions specified
+aiofiles = { version = "24.1.0", optional = true }
+aiohttp = { version = "^3.10.10", optional = true }
+#cohere = { version = "^5.11.0", optional = true }
+#mistralai = { version = "^1.2.1", optional = true }
+#fal-client = { version = ">=0.5.0", optional = true }
+#google-generativeai = { version = "^0.8.3", optional = true }
+#openai = { version = "^1.52.0", optional = true }
+nltk = { version = "^3.9.1", optional = true }
+textblob = { version = "^0.18.0", optional = true }
+yake = { version = "==0.4.8", optional = true }
+beautifulsoup4 = { version = "04.12.3", optional = true }
+gensim = { version = "==4.3.3", optional = true }
+scipy = { version = ">=1.7.0,<1.14.0", optional = true }
+scikit-learn = { version = "^1.4.2", optional = true }
+spacy = { version = ">=3.0.0,<=3.8.2", optional = true }
+transformers = { version = "^4.45.0", optional = true }
+torch = { version = "^2.5.0", optional = true }
+keras = { version = ">=3.2.0", optional = true }
+tf-keras = { version = ">=2.16.0", optional = true }
+matplotlib = { version = ">=3.9.2", optional = true }
+
+[tool.poetry.extras]
+# Extras without versioning, grouped for specific use cases
+io = ["aiofiles", "aiohttp"]
+#llms = ["cohere", "mistralai", "fal-client", "google-generativeai", "openai"]
+nlp = ["nltk", "textblob", "yake"]
+nlp_tools = ["beautifulsoup4"]
+ml_toolkits = ["gensim", "scipy", "scikit-learn"]
+spacy = ["spacy"]
+transformers = ["transformers"]
+torch = ["torch"]
+tensorflow = ["keras", "tf-keras"]
+visualization = ["matplotlib"]
+
+# Full option to install all extras
+full = [
+    "aiofiles", "aiohttp",
+    #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
+    "nltk", "textblob", "yake",
+    "beautifulsoup4",
+    "gensim", "scipy", "scikit-learn",
+    "spacy",
+    "transformers",
+    "torch",
+    "keras", "tf-keras",
+    "matplotlib"
+]
 
 [tool.poetry.dev-dependencies]
-flake8 = "^7.0"  # Add flake8 as a development dependency
-pytest = "^8.0"  # Ensure pytest is also added if you run tests
+flake8 = "^7.0"
+pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-timeout = "^2.3.1"
+pytest-xdist = "^3.6.1"
 python-dotenv = "^1.0.0"
 jsonschema = "^4.18.5"
-ipython ="8.28.0"
+ipython = "8.28.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -64,6 +91,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+asyncio_mode = "auto"
 
 markers = [
     "test: standard test",

@@ -1,18 +1,31 @@
-from typing import Dict, Any, Literal
-import google.generativeai as genai
+from typing import Dict, Any, Literal, List
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.tools.base.ToolBase import ToolBase
-from swarmauri.schema_converters.base.SchemaConverterBase import (
-    SchemaConverterBase,
-)
-
+from swarmauri.schema_converters.base.SchemaConverterBase import SchemaConverterBase
 
 class GeminiSchemaConverter(SchemaConverterBase):
     type: Literal["GeminiSchemaConverter"] = "GeminiSchemaConverter"
 
+    # Define type constants to replace genai.protos.Type
+    class Types:
+        STRING = "string"
+        INTEGER = "integer"
+        BOOLEAN = "boolean"
+        ARRAY = "array"
+        OBJECT = "object"
+
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
-        properties = {}
-        required = []
+        """
+        Convert a tool's parameters into a function declaration schema.
+        
+        Args:
+            tool: The tool to convert
+            
+        Returns:
+            Dict containing the function declaration schema
+        """
+        properties: Dict[str, Dict[str, str]] = {}
+        required: List[str] = []
 
         for param in tool.parameters:
             properties[param.name] = {
@@ -23,7 +36,7 @@ class GeminiSchemaConverter(SchemaConverterBase):
                 required.append(param.name)
 
         schema = {
-            "type": genai.protos.Type.OBJECT,
+            "type": self.Types.OBJECT,
             "properties": properties,
             "required": required,
         }
@@ -37,14 +50,23 @@ class GeminiSchemaConverter(SchemaConverterBase):
         return function_declaration
 
     def convert_type(self, param_type: str) -> str:
+        """
+        Convert a parameter type to its corresponding schema type.
+        
+        Args:
+            param_type: The parameter type to convert
+            
+        Returns:
+            The corresponding schema type string
+        """
         type_mapping = {
-            "string": genai.protos.Type.STRING,
-            "str": genai.protos.Type.STRING,
-            "integer": genai.protos.Type.INTEGER,
-            "int": genai.protos.Type.INTEGER,
-            "boolean": genai.protos.Type.BOOLEAN,
-            "bool": genai.protos.Type.BOOLEAN,
-            "array": genai.protos.Type.ARRAY,
-            "object": genai.protos.Type.OBJECT,
+            "string": self.Types.STRING,
+            "str": self.Types.STRING,
+            "integer": self.Types.INTEGER,
+            "int": self.Types.INTEGER,
+            "boolean": self.Types.BOOLEAN,
+            "bool": self.Types.BOOLEAN,
+            "array": self.Types.ARRAY,
+            "object": self.Types.OBJECT,
         }
-        return type_mapping.get(param_type, "string")
+        return type_mapping.get(param_type, self.Types.STRING)

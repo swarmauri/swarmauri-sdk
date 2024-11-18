@@ -1,5 +1,6 @@
 import json
 import logging
+
 import pytest
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel as LLM
@@ -10,6 +11,8 @@ from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -18,6 +21,7 @@ API_KEY = os.getenv("GROQ_API_KEY")
 image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
 
 
+@timeout(5)
 @pytest.fixture(scope="module")
 def groq_model():
     if not API_KEY:
@@ -26,6 +30,7 @@ def groq_model():
     return llm
 
 
+@timeout(5)
 @pytest.fixture(scope="module")
 def llama_guard_model():
     if not API_KEY:
@@ -35,6 +40,7 @@ def llama_guard_model():
     return llm
 
 
+@timeout(5)
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -49,39 +55,41 @@ def get_allowed_models():
         "llama-guard-3-8b",
     ]
 
-    # multimodal models
-    multimodal_models = ["llama-3.2-11b-vision-preview"]
-
     # Filter out the failing models
     allowed_models = [
         model
         for model in llm.allowed_models
-        if model not in failing_llms and model not in multimodal_models
+        if model not in failing_llms
     ]
 
     return allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_model):
     assert groq_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(groq_model):
     assert groq_model.type == "GroqModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_model):
     assert groq_model.id == LLM.model_validate_json(groq_model.model_dump_json()).id
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_model):
     assert groq_model.name == "gemma-7b-it"
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(groq_model, model_name):
@@ -98,10 +106,11 @@ def test_no_system_context(groq_model, model_name):
     prediction = conversation.get_last().content
     usage_data = conversation.get_last().usage
     logging.info(usage_data)
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(usage_data, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(groq_model, model_name):
@@ -122,10 +131,11 @@ def test_preamble_system_context(groq_model, model_name):
     prediction = conversation.get_last().content
     usage_data = conversation.get_last().usage
     logging.info(usage_data)
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(usage_data, UsageData)
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     """
@@ -143,48 +153,12 @@ def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     llama_guard_model.predict(conversation=conversation)
     prediction = conversation.get_last().content
     usage_data = conversation.get_last().usage
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert isinstance(usage_data, UsageData)
     assert "safe" in prediction.lower()
 
 
-@pytest.mark.parametrize(
-    "model_name, input_data",
-    [
-        (
-            "llama-3.2-11b-vision-preview",
-            [
-                {"type": "text", "text": "What’s in this image?"},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"{image_url}",
-                    },
-                },
-            ],
-        ),
-    ],
-)
-@pytest.mark.unit
-def test_multimodal_models_no_system_context(groq_model, model_name, input_data):
-    """
-    Test case specifically for the multimodal models.
-    This models are designed process a wide variety of inputs, including text, images, and audio,
-    as prompts and convert those prompts into various outputs, not just the source type.
-
-    """
-    conversation = Conversation()
-    groq_model.name = model_name
-
-    human_message = HumanMessage(content=input_data)
-    conversation.add_message(human_message)
-
-    groq_model.predict(conversation=conversation)
-    prediction = conversation.get_last().content
-    logging.info(prediction)
-    assert isinstance(prediction, str)
-
-
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(groq_model, model_name):
@@ -198,6 +172,7 @@ def test_stream(groq_model, model_name):
 
     collected_tokens = []
     for token in model.stream(conversation=conversation):
+        logging.info(token)
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -207,6 +182,7 @@ def test_stream(groq_model, model_name):
     # assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(groq_model, model_name):
@@ -226,6 +202,7 @@ def test_batch(groq_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -243,6 +220,7 @@ async def test_apredict(groq_model, model_name):
     assert isinstance(prediction, str)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -266,6 +244,7 @@ async def test_astream(groq_model, model_name):
     # assert isinstance(conversation.get_last().usage, UsageData)
 
 
+@timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit

@@ -1,14 +1,7 @@
-name: Test and Publish Dev Release
+name: Test Release
 
 on:
-  push:
-    branches: ["*dev*"]
-    paths:
-      - 'pkgs/community/**'
-      - 'pkgs/core/**'
-      - 'pkgs/experimental/**'
-      - 'pkgs/partners/**'
-      - 'pkgs/swarmauri/**'
+  workflow_dispatch:
 
 jobs:
   detect-changes:
@@ -26,17 +19,12 @@ jobs:
           CHANGED_PACKAGES=$(cat changed_files.txt | grep -oE '^pkgs/(community|core|experimental|partners|swarmauri)' | cut -d/ -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
     
           if [ -z "$CHANGED_PACKAGES" ]; then
-            # If no packages changed, set to an empty array
             CHANGED_PACKAGES_ARRAY="[]"
           else
-            # Convert the comma-separated packages to a JSON array format
             CHANGED_PACKAGES_ARRAY=$(echo "[\"$(echo $CHANGED_PACKAGES | sed 's/,/","/g')\"]")
           fi
 
-          # Export it to GITHUB_OUTPUT in JSON format
-          echo "packages=$CHANGED_PACKAGES_ARRAY"
           echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
- 
 
   test:
     needs: detect-changes
@@ -47,23 +35,25 @@ jobs:
         python-version: ["3.12"]
         package: ${{ fromJSON(needs.detect-changes.outputs.packages) }}
 
-    env:
-      # Model Provider Keys
+    env: 
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_${{ github.run_id }}_${{ matrix.package }}"
+      GITHUB_REF: ${{ github.ref }}
+      PKG_PATH: "${{ matrix.package }}"
       AI21STUDIO_API_KEY: ${{ secrets.AI21STUDIO_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      BLACKFOREST_API_KEY: ${{ secrets.BLACKFOREST_API_KEY }}
       DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
       LEPTON_API_KEY: ${{ secrets.LEPTON_API_KEY }}
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
       SHUTTLEAI_API_KEY: ${{ secrets.SHUTTLEAI_API_KEY }}
-      
-      # Database Keys
       CHROMADB_COLLECTION_NAME: ${{ secrets.CHROMADB_COLLECTION_NAME }}
       NEO4J_COLLECTION_NAME: ${{ secrets.NEO4J_COLLECTION_NAME }}
       NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
@@ -78,18 +68,9 @@ jobs:
       REDIS_PORT: ${{ secrets.REDIS_PORT }}
       WEAVIATE_API_KEY: ${{ secrets.WEAVIATE_API_KEY }}
       WEAVIATE_URL: ${{ secrets.WEAVIATE_URL }}
-      
-      # GitHub Keys
       GITHUBTOOL_TEST_REPO_NAME: ${{ secrets.GITHUBTOOL_TEST_REPO_NAME }}
       GITHUBTOOL_TEST_REPO_OWNER: ${{ secrets.GITHUBTOOL_TEST_REPO_OWNER }}
       GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
-      
-      # Miscellaneous Tokens
-      DANGER_MASTER_PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-
-      
 
     steps:
       - uses: actions/checkout@v4
@@ -104,36 +85,53 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
+      - name: Create unique virtual environment for package
+        run: |
+          UNIQUE_VENV_PATH=".venv_${{ github.run_id }}_${{ matrix.package }}"
+          python -m venv $UNIQUE_VENV_PATH
+
       - name: Install dependencies with Poetry
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry install --no-cache -vv
+          poetry install --no-cache -vv --all-extras
 
       - name: Lint with flake8
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
           poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build package with Poetry
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
           poetry build
 
-      - name: Install built package
-        run: |
-          LATEST_WHL=$(ls pkgs/${{ matrix.package }}/dist/*.whl | sort -V | tail -n 1)
-          python -m pip install "$LATEST_WHL" --no-cache-dir
-
       - name: Get pip freeze
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
+
+      - name: List package sizes
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/list_site_package_sizes.py
+        continue-on-error: false
+
+      - name: Show total sitepackage size
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/total_site_packages_size.py
+        continue-on-error: false
 
       - name: Run tests
         continue-on-error: true
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/${{ matrix.package }}
-          poetry run pytest -v . --junitxml=results.xml
+          poetry run pytest -v . --junitxml=results.xml -n 4 --dist=loadfile
 
       - name: Output test results for debugging
         run: |
@@ -142,13 +140,11 @@ jobs:
 
       - name: Classify test results
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
         continue-on-error: false
 
-      - name: Publish to PyPI
-        if: success()
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: cobycloud
-          password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
-          packages_dir: pkgs/${{ matrix.package }}/dist
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}

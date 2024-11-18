@@ -2,10 +2,11 @@ import pytest
 import os
 from swarmauri.llms.concrete.FalAIVisionModel import FalAIVisionModel
 from dotenv import load_dotenv
+from swarmauri.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
-API_KEY = os.getenv("FAL_KEY")
+API_KEY = os.getenv("FAL_API_KEY")
 
 
 @pytest.fixture(scope="module")
@@ -23,16 +24,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(falai_vision_model):
     assert falai_vision_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(falai_vision_model):
     assert falai_vision_model.type == "FalAIVisionModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(falai_vision_model):
     assert (
@@ -41,16 +45,18 @@ def test_serialization(falai_vision_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_model_name(falai_vision_model):
-    assert falai_vision_model.model_name == "fal-ai/llava-next"
+    assert falai_vision_model.name == "fal-ai/llava-next"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 def test_process_image(falai_vision_model, model_name):
     model = falai_vision_model
-    model.model_name = model_name
+    model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Who painted this artwork?"
@@ -62,10 +68,11 @@ def test_process_image(falai_vision_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
 async def test_aprocess_image(falai_vision_model, model_name):
     model = falai_vision_model
-    model.model_name = model_name
+    model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Describe the woman in the painting."
@@ -75,6 +82,7 @@ async def test_aprocess_image(falai_vision_model, model_name):
     assert len(result) > 0
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_batch(falai_vision_model):
     image_urls = [
@@ -95,6 +103,7 @@ def test_batch(falai_vision_model):
 
 
 @pytest.mark.asyncio
+@timeout(5)
 @pytest.mark.unit
 async def test_abatch(falai_vision_model):
     image_urls = [

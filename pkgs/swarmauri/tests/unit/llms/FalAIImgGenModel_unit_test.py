@@ -2,10 +2,11 @@ import pytest
 import os
 from swarmauri.llms.concrete.FalAIImgGenModel import FalAIImgGenModel
 from dotenv import load_dotenv
+from swarmauri.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
-API_KEY = os.getenv("FAL_KEY")
+API_KEY = os.getenv("FAL_API_KEY")
 
 
 @pytest.fixture(scope="module")
@@ -23,16 +24,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(fluxpro_imggen_model):
     assert fluxpro_imggen_model.resource == "LLM"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_ubc_type(fluxpro_imggen_model):
     assert fluxpro_imggen_model.type == "FalAIImgGenModel"
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_serialization(fluxpro_imggen_model):
     assert (
@@ -43,16 +47,18 @@ def test_serialization(fluxpro_imggen_model):
     )
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_default_model_name(fluxpro_imggen_model):
-    assert fluxpro_imggen_model.model_name == "fal-ai/flux-pro"
+    assert fluxpro_imggen_model.name == "fal-ai/flux-pro"
 
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
+@timeout(5)
 @pytest.mark.unit
+@pytest.mark.parametrize("model_name", get_allowed_models())
 def test_generate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
-    model.model_name = model_name
+    model.name = model_name
 
     prompt = "A cute cat playing with a ball of yarn"
     image_url = model.generate_image(prompt=prompt)
@@ -61,12 +67,13 @@ def test_generate_image(fluxpro_imggen_model, model_name):
     assert image_url.startswith("http")
 
 
+@timeout(5)
+@pytest.mark.unit
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@pytest.mark.unit
 async def test_agenerate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
-    model.model_name = model_name
+    model.name = model_name
 
     prompt = "A serene landscape with mountains and a lake"
     image_url = await model.agenerate_image(prompt=prompt)
@@ -75,6 +82,7 @@ async def test_agenerate_image(fluxpro_imggen_model, model_name):
     assert image_url.startswith("http")
 
 
+@timeout(5)
 @pytest.mark.unit
 def test_batch(fluxpro_imggen_model):
     prompts = [
@@ -91,8 +99,9 @@ def test_batch(fluxpro_imggen_model):
         assert url.startswith("http")
 
 
-@pytest.mark.asyncio
+@timeout(5)
 @pytest.mark.unit
+@pytest.mark.asyncio
 async def test_abatch(fluxpro_imggen_model):
     prompts = [
         "An abstract painting with vibrant colors",

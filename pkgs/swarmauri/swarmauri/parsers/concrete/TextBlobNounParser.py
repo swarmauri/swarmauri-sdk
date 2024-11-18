@@ -15,10 +15,17 @@ class TextBlobNounParser(ParserBase):
     type: Literal["TextBlobNounParser"] = "TextBlobNounParser"
 
     def __init__(self, **kwargs):
-        import nltk
+        try:
+            import nltk
 
-        nltk.download("punkt_tab")
-        super().__init__(**kwargs)
+            # Download required NLTK data
+            nltk.download("punkt")
+            nltk.download("averaged_perceptron_tagger")
+            nltk.download("brown")
+            nltk.download("wordnet")
+            super().__init__(**kwargs)
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize NLTK resources: {str(e)}")
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
@@ -35,15 +42,16 @@ class TextBlobNounParser(ParserBase):
         if not isinstance(data, str):
             raise ValueError("TextBlobParser expects a string as input data.")
 
-        # Use TextBlob for NLP tasks
-        blob = TextBlob(data)
+        try:
+            # Use TextBlob for NLP tasks
+            blob = TextBlob(data)
 
-        # Extracts noun phrases to demonstrate one of TextBlob's capabilities.
-        # In practice, this parser could be expanded to include more sophisticated processing.
-        noun_phrases = list(blob.noun_phrases)
+            # Extracts noun phrases to demonstrate one of TextBlob's capabilities.
+            noun_phrases = list(blob.noun_phrases)
 
-        # Example: Wrap the extracted noun phrases into an IDocument instance
-        # In real scenarios, you might want to include more details, like sentiment, POS tags, etc.
-        document = Document(content=data, metadata={"noun_phrases": noun_phrases})
+            # Create document with extracted information
+            document = Document(content=data, metadata={"noun_phrases": noun_phrases})
 
-        return [document]
+            return [document]
+        except Exception as e:
+            raise RuntimeError(f"Error during text parsing: {str(e)}")

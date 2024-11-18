@@ -4,13 +4,20 @@ import os
 from swarmauri.llms.concrete.OpenAIAudio import OpenAIAudio as LLM
 from dotenv import load_dotenv
 from swarmauri.utils.timeout_wrapper import timeout
+from pathlib import Path
 
-file_path = "pkgs/swarmauri/tests/static/test.mp3"
-file_path2 = "pkgs/swarmauri/tests/static/test_fr.mp3"
-
+# Load environment variables
 load_dotenv()
 
+# Retrieve API key from environment variable
 API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Get the current working directory
+root_dir = Path(__file__).resolve().parents[2]
+
+# Construct file paths dynamically
+file_path = os.path.join(root_dir, "static", "test.mp3")
+file_path2 = os.path.join(root_dir, "static", "test_fr.mp3")
 
 
 @pytest.fixture(scope="module")

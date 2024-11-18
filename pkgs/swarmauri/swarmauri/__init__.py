@@ -27,5 +27,11 @@ The Swarmauri Standard SDK offers a comprehensive suite of tools designed for bu
 The Swarmauri SDK is an evolving platform, and the community is encouraged to contribute to its growth. Upcoming releases will focus on enhancing the framework's modularity, providing more advanced serialization methods, and expanding the community-driven component library.
 
 Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri  
+Follow us at: https://github.com/swarmauri 
 """
+from .__version__ import __version__
+
+__all__ = [
+    "__version__",
+    # other packages you want to expose
+]
