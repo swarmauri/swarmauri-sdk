@@ -35,7 +35,7 @@ jobs:
 
           echo "packages=$CHANGED_PACKAGES_ARRAY" >> $GITHUB_OUTPUT
 
-  test:
+  build-publish:
     needs: detect-changes
     runs-on: self-hosted
     strategy:
