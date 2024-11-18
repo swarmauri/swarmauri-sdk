@@ -21,7 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
+
       - name: Detect changed files and group tests by package
+
         id: detect
         run: |
           # Determine base branch and head branch
@@ -44,6 +46,7 @@ jobs:
           # Initialize a dictionary to group test files by package
           declare -A PACKAGE_TEST_MAP
 
+
           # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
@@ -51,6 +54,7 @@ jobs:
 
             # Check if the file itself is a test file
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+
               # Directly add the test file to the package's test list
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
               PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
@@ -63,6 +67,7 @@ jobs:
                 for TEST_FILE in $MATCHING_TEST_FILES; do
                   RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
                   PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
+
                 done
               else
                 echo "Warning: Test directory $TEST_DIR does not exist."
@@ -111,6 +116,7 @@ jobs:
 
       - name: Run all tests for the package
         run: |
+
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
