@@ -78,4 +78,5 @@ jobs:
         run: |
           echo "Running tests for package: ${{ matrix.package_test.package }}"
           echo "Test file: ${{ matrix.package_test.test }}"
+          cd pkgs/${{ matrix.package_test.package }}
           poetry run pytest ${{ matrix.package_test.test }}
