@@ -1,13 +1,6 @@
 name: Publish Release
 
 on:
-  push:
-    paths:
-      - 'pkgs/community/**'
-      - 'pkgs/core/**'
-      - 'pkgs/experimental/**'
-      - 'pkgs/partners/**'
-      - 'pkgs/swarmauri/**'
   workflow_dispatch:
 
 jobs:
