@@ -10,7 +10,6 @@ from swarmauri.toolkits.concrete.Toolkit import Toolkit
 from swarmauri.agents.concrete.ToolAgent import ToolAgent
 from dotenv import load_dotenv
 from swarmauri.utils.timeout_wrapper import timeout
-from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 load_dotenv()
 

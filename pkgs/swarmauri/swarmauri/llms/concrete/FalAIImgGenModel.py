@@ -1,4 +1,3 @@
-import logging
 import httpx
 import asyncio
 from typing import List, Literal, Optional, Dict
