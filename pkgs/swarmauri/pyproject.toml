@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri"
-version = "0.5.2.dev22"
+version = "0.5.2"
 description = "This repository includes base classes, concrete generics, and concrete standard components within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-swarmauri_core = "==0.5.1.dev21"
+swarmauri_core = "==0.5.2"
 toml = "^0.10.2"
 httpx = "^0.27.2"
 joblib = "^1.4.0"
@@ -64,7 +64,7 @@ visualization = ["matplotlib"]
 # Full option to install all extras
 full = [
     "aiofiles", "aiohttp",
-    "cohere", "mistralai", "fal-client", "google-generativeai", "openai",
+    #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
     "nltk", "textblob", "yake",
     "beautifulsoup4",
     "gensim", "scipy", "scikit-learn",
