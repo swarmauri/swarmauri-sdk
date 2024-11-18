@@ -19,56 +19,42 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history
+          fetch-depth: 0
 
-      - name: Determine base branch and head branch
-        id: determine-branches
+
+      - name: Fetch branches or prepare for commit hash diff
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-            HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
-          elif [ "${{ github.event_name }}" == "push" ]; then
-            BASE_BRANCH="${{ github.event.before }}"
-            HEAD_BRANCH="${{ github.sha }}"
+          if [[ $BASE_BRANCH =~ ^[a-f0-9]{40}$ ]] && [[ $HEAD_BRANCH =~ ^[a-f0-9]{40}$ ]]; then
+            echo "Using commit hashes for comparison: $BASE_BRANCH...$HEAD_BRANCH"
+            FETCH_REQUIRED=false
           else
-            BASE_BRANCH="origin/${{ github.ref_name }}"
-            HEAD_BRANCH="origin/${{ github.ref_name }}"
-          fi
-
-          echo "Base branch: $BASE_BRANCH"
-          echo "Head branch: $HEAD_BRANCH"
-          echo "base_branch=$BASE_BRANCH" >> $GITHUB_ENV
-          echo "head_branch=$HEAD_BRANCH" >> $GITHUB_ENV
-
-      - name: Fetch branches or commits
-        run: |
-          if [ "$BASE_BRANCH" == "$HEAD_BRANCH" ]; then
-            echo "Warning: Base and head branches are the same. This may lead to no changes being detected."
-          fi
-          if [[ $BASE_BRANCH =~ ^[a-f0-9]{40}$ ]]; then
-            git fetch origin $HEAD_BRANCH
-          else
+            echo "Fetching base and head branches: $BASE_BRANCH and $HEAD_BRANCH"
             git fetch origin $BASE_BRANCH
             git fetch origin $HEAD_BRANCH
+            FETCH_REQUIRED=true
           fi
-
+          echo "fetch_required=$FETCH_REQUIRED" >> $GITHUB_ENV
+      
       - name: Detect changed files and group tests by package
         id: detect
         run: |
-          # Compare the source and target branches or commits
-          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...$HEAD_BRANCH | grep '^pkgs/')
-
+          if [ "$fetch_required" = "false" ]; then
+            CHANGED_FILES=$(git diff --name-only $BASE_BRANCH $HEAD_BRANCH | grep '^pkgs/')
+          else
+            CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...origin/$HEAD_BRANCH | grep '^pkgs/')
+          fi
+      
           echo "Changed files:"
           echo "$CHANGED_FILES"
-
+      
           # Initialize a dictionary to group test files by package
           declare -A PACKAGE_TEST_MAP
-
+      
           # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
             COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
-
+      
             # Check if the file itself is a test file
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
               # Directly add the test file to the package's test list
@@ -77,7 +63,7 @@ jobs:
             else
               # Search for test files related to the changed source file
               TEST_DIR="pkgs/$PACKAGE/tests"
-
+      
               if [ -d "$TEST_DIR" ]; then
                 MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
                 for TEST_FILE in $MATCHING_TEST_FILES; do
@@ -89,7 +75,7 @@ jobs:
               fi
             fi
           done
-
+      
           # Generate the final JSON matrix by grouping tests by package
           MATRIX="["
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
@@ -97,6 +83,42 @@ jobs:
             MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
           done
           MATRIX="${MATRIX%,}]"  # Remove trailing comma and close JSON array
-
+      
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  run-tests:
+    needs: detect-changed-files
+    runs-on: ubuntu-latest
+    if: needs.detect-changed-files.outputs.matrix != '[]'  # Skip if no tests to run
+    strategy:
+      fail-fast: false
+      matrix:
+        package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Install package dependencies
+        run: |
+          cd pkgs/${{ matrix.package_tests.package }}
+          poetry install --no-cache -vv
+
+      - name: Run all tests for the package
+        run: |
+
+          echo "Running tests for package: ${{ matrix.package_tests.package }}"
+          echo "Test files: ${{ matrix.package_tests.tests }}"
+          cd pkgs/${{ matrix.package_tests.package }}
+          poetry run pytest ${{ matrix.package_tests.tests }}
