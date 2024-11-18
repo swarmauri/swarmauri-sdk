@@ -7,7 +7,7 @@ from swarmauri.tools.concrete.Parameter import Parameter
 
 
 class FleschReadingEaseTool(ToolBase):
-    version: str = "0.1.0.dev8"
+    version: str = "0.1.0.dev9"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
