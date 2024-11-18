@@ -1,4 +1,4 @@
-name: Test and Publish Release
+name: Publish Release
 
 on:
   
