@@ -3,6 +3,7 @@ import httpx
 import asyncio
 from typing import List, Literal, Dict
 from pydantic import Field, PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 import time
 
@@ -52,6 +53,7 @@ class FalAIVisionModel(LLMBase):
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """
         Send a synchronous request to the vision model API for image processing.
@@ -76,6 +78,7 @@ class FalAIVisionModel(LLMBase):
             return self._wait_for_completion(response_data["request_id"])
         return response_data  # For immediate responses
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """
         Send an asynchronous request to the vision model API for image processing.
@@ -100,6 +103,7 @@ class FalAIVisionModel(LLMBase):
             return await self._async_wait_for_completion(response_data["request_id"])
         return response_data  # For immediate responses
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _check_status(self, request_id: str) -> Dict:
         """
         Check the status of a queued request.
@@ -115,6 +119,7 @@ class FalAIVisionModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_check_status(self, request_id: str) -> Dict:
         """
         Asynchronously check the status of a queued request.
@@ -131,6 +136,7 @@ class FalAIVisionModel(LLMBase):
             response.raise_for_status()
             return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _wait_for_completion(self, request_id: str) -> Dict:
         for _ in range(self.max_retries):
             status_data = self._check_status(request_id)
@@ -147,6 +153,7 @@ class FalAIVisionModel(LLMBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_wait_for_completion(self, request_id: str) -> Dict:
         for _ in range(self.max_retries):
             status_data = await self._async_check_status(request_id)

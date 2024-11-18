@@ -13,16 +13,12 @@ def retry_on_status_codes(
     """
     A decorator to retry both sync and async functions when specific status codes are encountered,
     with exponential backoff.
-
-    Parameters:
-    - status_codes: List of HTTP status codes that should trigger retries (default [429]).
-    - max_retries: The maximum number of retries (default 3).
-    - retry_delay: The initial delay between retries, in seconds (default 2).
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            last_exception = None
             attempt = 0
             while attempt < max_retries:
                 try:
@@ -30,27 +26,35 @@ def retry_on_status_codes(
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code in status_codes:
                         attempt += 1
+                        last_exception = e
                         if attempt == max_retries:
                             break
                         backoff_time = retry_delay * (2 ** (attempt - 1))
                         logging.warning(
-                            f"Received status {e.response.status_code}. "
-                            f"Retrying in {backoff_time} seconds... "
-                            f"Attempt {attempt}/{max_retries}"
+                            f"Retry attempt {attempt}/{max_retries}: "
+                            f"Received HTTP {e.response.status_code} for {func.__name__}. "
+                            f"Retrying in {backoff_time:.2f} seconds. "
+                            f"Original error: {str(e)}"
                         )
                         await asyncio.sleep(backoff_time)
                     else:
                         raise
 
-            logging.error(
-                f"Failed after {max_retries} retries due to rate limit or other status codes."
-            )
-            raise Exception(
-                f"Failed after {max_retries} retries due to {status_codes}."
+            if last_exception:
+                error_message = (
+                    f"Request to {func.__name__} failed after {max_retries} retries. "
+                    f"Last encountered status code: {last_exception.response.status_code}. "
+                    f"Last error details: {str(last_exception)}"
+                )
+                logging.error(error_message)
+                raise Exception(error_message)
+            raise RuntimeError(
+                f"Unexpected error in retry mechanism for {func.__name__}"
             )
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            last_exception = None
             attempt = 0
             while attempt < max_retries:
                 try:
@@ -58,23 +62,30 @@ def retry_on_status_codes(
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code in status_codes:
                         attempt += 1
+                        last_exception = e
                         if attempt == max_retries:
                             break
                         backoff_time = retry_delay * (2 ** (attempt - 1))
                         logging.warning(
-                            f"Received status {e.response.status_code}. "
-                            f"Retrying in {backoff_time} seconds... "
-                            f"Attempt {attempt}/{max_retries}"
+                            f"Retry attempt {attempt}/{max_retries}: "
+                            f"Received HTTP {e.response.status_code} for {func.__name__}. "
+                            f"Retrying in {backoff_time:.2f} seconds. "
+                            f"Original error: {str(e)}"
                         )
                         time.sleep(backoff_time)
                     else:
                         raise
 
-            logging.error(
-                f"Failed after {max_retries} retries due to rate limit or other status codes."
-            )
-            raise Exception(
-                f"Failed after {max_retries} retries due to {status_codes}."
+            if last_exception:
+                error_message = (
+                    f"Request to {func.__name__} failed after {max_retries} retries. "
+                    f"Last encountered status code: {last_exception.response.status_code}. "
+                    f"Last error details: {str(last_exception)}"
+                )
+                logging.error(error_message)
+                raise Exception(error_message)
+            raise RuntimeError(
+                f"Unexpected error in retry mechanism for {func.__name__}"
             )
 
         # Check if the function is async or sync and return appropriate wrapper
