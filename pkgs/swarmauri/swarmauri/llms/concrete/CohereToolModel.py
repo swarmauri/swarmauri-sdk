@@ -1,9 +1,9 @@
 import json
 import asyncio
-import time
-from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Optional, Union
+from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union
 from pydantic import PrivateAttr
 import httpx
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -62,8 +62,12 @@ class CohereToolModel(LLMBase):
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
-        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
+        self._client = httpx.Client(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
+        self._async_client = httpx.AsyncClient(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -141,6 +145,39 @@ class CohereToolModel(LLMBase):
             formatted_messages.append(message_dict)
 
         return formatted_messages
+
+    def _prepare_usage_data(
+        self,
+        usage_data: Dict[str, Any],
+        prompt_time: float = 0.0,
+        completion_time: float = 0.0,
+    ) -> UsageData:
+        """
+        Prepare usage statistics from API response and timing data.
+
+        Args:
+            usage_data: Dictionary containing token usage information from the API
+            prompt_time: Time taken to send the prompt
+            completion_time: Time taken to receive the completion
+
+        Returns:
+            UsageData: Object containing formatted usage statistics
+        """
+        total_time = prompt_time + completion_time
+
+        input_tokens = usage_data.get("input_tokens", 0)
+        output_tokens = usage_data.get("output_tokens", 0)
+        total_tokens = input_tokens + output_tokens
+
+        usage = UsageData(
+            prompt_tokens=input_tokens,
+            completion_tokens=output_tokens,
+            total_tokens=total_tokens,
+            prompt_time=prompt_time,
+            completion_time=completion_time,
+            total_time=total_time,
+        )
+        return usage
 
     def _ensure_conversation_has_message(self, conversation):
         """
@@ -225,6 +262,7 @@ class CohereToolModel(LLMBase):
 
         return payload
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(self, conversation, toolkit=None, temperature=0.3, max_tokens=1024):
         """
         Generate a response for a conversation synchronously.
@@ -274,13 +312,10 @@ class CohereToolModel(LLMBase):
             response.raise_for_status()
             response_data = response.json()
 
-        usage = UsageData(
-            prompt_tokens=response_data.get("usage", {}).get("input_tokens", 0),
-            completion_tokens=response_data.get("usage", {}).get("output_tokens", 0),
-            total_tokens=response_data.get("usage", {}).get("total_tokens", 0),
-            prompt_time=tool_timer.duration,
-            completion_time=response_timer.duration,
-            total_time=tool_timer.duration + response_timer.duration,
+            usage_data = response_data.get("usage", {})
+
+        usage = self._prepare_usage_data(
+            usage_data, tool_timer.duration, response_timer.duration
         )
 
         conversation.add_message(
@@ -288,6 +323,7 @@ class CohereToolModel(LLMBase):
         )
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def stream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> Iterator[str]:
@@ -354,6 +390,7 @@ class CohereToolModel(LLMBase):
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ):
@@ -405,13 +442,10 @@ class CohereToolModel(LLMBase):
             response.raise_for_status()
             response_data = response.json()
 
-        usage = UsageData(
-            prompt_tokens=response_data.get("usage", {}).get("input_tokens", 0),
-            completion_tokens=response_data.get("usage", {}).get("output_tokens", 0),
-            total_tokens=response_data.get("usage", {}).get("total_tokens", 0),
-            prompt_time=tool_timer.duration,
-            completion_time=response_timer.duration,
-            total_time=tool_timer.duration + response_timer.duration,
+            usage_data = response_data.get("usage", {})
+
+        usage = self._prepare_usage_data(
+            usage_data, tool_timer.duration, response_timer.duration
         )
 
         conversation.add_message(
@@ -419,6 +453,7 @@ class CohereToolModel(LLMBase):
         )
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def astream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> AsyncIterator[str]:

@@ -3,6 +3,7 @@ import asyncio
 from typing import List, Literal, Dict, Any, Iterator, AsyncIterator
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -16,6 +17,18 @@ from swarmauri.schema_converters.concrete.OpenAISchemaConverter import (
 
 class OpenAIToolModel(LLMBase):
     """
+    GroqToolModel provides an interface to interact with Groq's large language models for tool usage.
+
+    This class supports synchronous and asynchronous predictions, streaming of responses,
+    and batch processing. It communicates with the Groq API to manage conversations, format messages,
+    and handle tool-related functions.
+
+    Attributes:
+        api_key (str): API key to authenticate with Groq API.
+        allowed_models (List[str]): List of permissible model names.
+        name (str): Default model name for predictions.
+        type (Literal): Type identifier for the model.
+
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
 
@@ -43,7 +56,7 @@ class OpenAIToolModel(LLMBase):
 
     def __init__(self, **data):
         """
-        Initialize the OpenAIAudioTTS class with the provided data.
+        Initialize the OpenAIToolModel class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
@@ -98,14 +111,28 @@ class OpenAIToolModel(LLMBase):
                 )
         return messages
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(
         self,
-        conversation,
+        conversation: Conversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
-    ):
+    ) -> Conversation:
+        """
+        Makes a synchronous prediction using the Groq model.
+
+        Parameters:
+            conversation (Conversation): Conversation instance with message history.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
+
+        Returns:
+            Conversation: Updated conversation with agent responses and tool calls.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -116,7 +143,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client() as client:
+        with httpx.Client(timeout=30) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
             tool_response = response.json()
@@ -130,7 +157,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client() as client:
+        with httpx.Client(timeout=30) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -142,14 +169,28 @@ class OpenAIToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self,
-        conversation,
+        conversation: Conversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
-    ):
+    ) -> Conversation:
+        """
+        Makes an asynchronous prediction using the OpenAI model.
+
+        Parameters:
+            conversation (Conversation): Conversation instance with message history.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
+
+        Returns:
+            Conversation: Updated conversation with agent responses and tool calls.
+        """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -160,7 +201,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -175,7 +216,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -189,6 +230,7 @@ class OpenAIToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def stream(
         self,
         conversation: Conversation,
@@ -198,7 +240,7 @@ class OpenAIToolModel(LLMBase):
         max_tokens=1024,
     ) -> Iterator[str]:
         """
-        Streams response from Groq model in real-time.
+        Streams response from OpenAI model in real-time.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
@@ -222,7 +264,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client() as client:
+        with httpx.Client(timeout=30) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -258,9 +300,10 @@ class OpenAIToolModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def astream(
         self,
-        conversation,
+        conversation: Conversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
@@ -308,7 +351,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             agent_response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -330,13 +373,26 @@ class OpenAIToolModel(LLMBase):
 
     def batch(
         self,
-        conversations: List,
+        conversations: List[Conversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
-    ) -> List:
-        """Synchronously process multiple conversations"""
+    ) -> List[Conversation]:
+        """
+        Processes a batch of conversations and generates responses for each sequentially.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for each response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Returns:
+            List[Conversation]: List of updated conversations with model responses.
+        """
         return [
             self.predict(
                 conv,
@@ -350,14 +406,28 @@ class OpenAIToolModel(LLMBase):
 
     async def abatch(
         self,
-        conversations: List,
+        conversations: List[Conversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
         max_concurrent=5,
-    ) -> List:
-        """Process multiple conversations in parallel with controlled concurrency"""
+    ) -> List[Conversation]:
+        """
+        Async method for processing a batch of conversations concurrently.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            temperature (float): Sampling temperature for response diversity.
+            max_tokens (int): Maximum tokens for each response.
+            top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+            max_concurrent (int): Maximum number of concurrent requests.
+
+        Returns:
+            List[Conversation]: List of updated conversations with model responses.
+        """
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):

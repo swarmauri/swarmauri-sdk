@@ -131,7 +131,7 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     assert conversation.get_last().content == full_response
 
 
-@timeout(5)
+@timeout(60)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_batch(mistral_tool_model, toolkit, model_name):

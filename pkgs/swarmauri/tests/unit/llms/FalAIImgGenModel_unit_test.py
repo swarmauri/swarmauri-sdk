@@ -50,7 +50,7 @@ def test_serialization(fluxpro_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(fluxpro_imggen_model):
-    assert fluxpro_imggen_model.model_name == "fal-ai/flux-pro"
+    assert fluxpro_imggen_model.name == "fal-ai/flux-pro"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -58,7 +58,7 @@ def test_default_model_name(fluxpro_imggen_model):
 @pytest.mark.unit
 def test_generate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
-    model.model_name = model_name
+    model.name = model_name
 
     prompt = "A cute cat playing with a ball of yarn"
     image_url = model.generate_image(prompt=prompt)
@@ -69,11 +69,11 @@ def test_generate_image(fluxpro_imggen_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@timeout(30)
 @pytest.mark.unit
 async def test_agenerate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
-    model.model_name = model_name
+    model.name = model_name
 
     prompt = "A serene landscape with mountains and a lake"
     image_url = await model.agenerate_image(prompt=prompt)

@@ -1,7 +1,8 @@
 import httpx
 import time
-from typing import List, Literal, Optional, Union, Dict, ClassVar
-from pydantic import Field, PrivateAttr
+from typing import List, Literal, Optional, Dict, ClassVar
+from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 import asyncio
 import contextlib
@@ -33,12 +34,12 @@ class BlackForestImgGenModel(LLMBase):
             "Content-Type": "application/json",
             "X-Key": self.api_key,
         }
-        self._client = httpx.Client(headers=self._headers)
+        self._client = httpx.Client(headers=self._headers, timeout=30)
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """Gets or creates an async client instance."""
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers)
+            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
         return self._async_client
 
     async def _close_async_client(self):
@@ -47,6 +48,7 @@ class BlackForestImgGenModel(LLMBase):
             await self._async_client.aclose()
             self._async_client = None
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def _send_request(self, endpoint: str, data: dict) -> dict:
         """Send a synchronous request to FluxPro's API for image generation."""
         url = f"{self._BASE_URL}/{endpoint}"
@@ -54,6 +56,7 @@ class BlackForestImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def _async_send_request(self, endpoint: str, data: dict) -> dict:
         """Send an asynchronous request to FluxPro's API for image generation."""
         client = await self._get_async_client()
@@ -62,6 +65,7 @@ class BlackForestImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def _get_result(self, task_id: str) -> dict:
         """Get the result of a generation task synchronously."""
         url = f"{self._BASE_URL}/v1/get_result"
@@ -70,6 +74,7 @@ class BlackForestImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def _async_get_result(self, task_id: str) -> dict:
         """Get the result of a generation task asynchronously."""
         client = await self._get_async_client()

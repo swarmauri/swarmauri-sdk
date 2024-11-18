@@ -4,6 +4,7 @@ from typing import AsyncIterator, Iterator, List, Dict, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -60,10 +61,12 @@ class PerplexityModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _format_messages(
@@ -116,6 +119,7 @@ class PerplexityModel(LLMBase):
 
         return usage
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(
         self,
         conversation: Conversation,
@@ -180,6 +184,7 @@ class PerplexityModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self,
         conversation: Conversation,
@@ -246,6 +251,7 @@ class PerplexityModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def stream(
         self,
         conversation: Conversation,
@@ -325,6 +331,7 @@ class PerplexityModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def astream(
         self,
         conversation: Conversation,

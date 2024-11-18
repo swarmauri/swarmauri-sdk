@@ -4,6 +4,7 @@ import os
 from typing import AsyncIterator, Iterator, List, Literal, Dict
 import httpx
 from pydantic import PrivateAttr, model_validator
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -70,6 +71,7 @@ class OpenAIAudioTTS(LLMBase):
             )
         return values
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Synchronously converts text to speech using httpx.
@@ -82,7 +84,7 @@ class OpenAIAudioTTS(LLMBase):
         """
         payload = {"model": self.name, "voice": self.voice, "input": text}
 
-        with httpx.Client() as client:
+        with httpx.Client(timeout=30) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -102,7 +104,7 @@ class OpenAIAudioTTS(LLMBase):
         """
         payload = {"model": self.name, "voice": self.voice, "input": text}
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -112,6 +114,7 @@ class OpenAIAudioTTS(LLMBase):
                 audio_file.write(response.content)
             return os.path.abspath(audio_path)
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def stream(self, text: str) -> Iterator[bytes]:
         """
         Synchronously streams TTS audio using httpx.
@@ -129,7 +132,7 @@ class OpenAIAudioTTS(LLMBase):
         }
 
         try:
-            with httpx.Client() as client:
+            with httpx.Client(timeout=30) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -143,6 +146,7 @@ class OpenAIAudioTTS(LLMBase):
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Text-to-Speech streaming failed: {e}")
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def astream(self, text: str) -> AsyncIterator[bytes]:
         """
         Asynchronously streams TTS audio using httpx.
@@ -160,7 +164,7 @@ class OpenAIAudioTTS(LLMBase):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

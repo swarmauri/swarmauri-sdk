@@ -11,6 +11,7 @@ from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 
 class GroqVisionModel(LLMBase):
@@ -97,6 +98,7 @@ class GroqVisionModel(LLMBase):
         """
         return UsageData.model_validate(usage_data)
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(
         self,
         conversation: Conversation,
@@ -145,6 +147,7 @@ class GroqVisionModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self,
         conversation: Conversation,
@@ -192,6 +195,7 @@ class GroqVisionModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def stream(
         self,
         conversation: Conversation,
@@ -247,6 +251,7 @@ class GroqVisionModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def astream(
         self,
         conversation: Conversation,

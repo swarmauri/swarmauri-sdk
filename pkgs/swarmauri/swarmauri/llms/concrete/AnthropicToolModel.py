@@ -4,6 +4,7 @@ from typing import List, Dict, Literal, Any, AsyncIterator, Iterator
 import logging
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
@@ -12,8 +13,6 @@ from swarmauri.llms.base.LLMBase import LLMBase
 from swarmauri.schema_converters.concrete.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
-from swarmauri.utils.duration_manager import DurationManager
-
 
 class AnthropicToolModel(LLMBase):
     """
@@ -54,8 +53,12 @@ class AnthropicToolModel(LLMBase):
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
         }
-        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
-        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
+        self._client = httpx.Client(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
+        self._async_client = httpx.AsyncClient(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -125,10 +128,9 @@ class AnthropicToolModel(LLMBase):
             "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
         }
 
-        with DurationManager() as prompt_timer:
-            response = self._client.post("/messages", json=payload)
-            response.raise_for_status()
-            response_data = response.json()
+        response = self._client.post("/messages", json=payload)
+        response.raise_for_status()
+        response_data = response.json()
 
         logging.info(f"tool_response: {response_data}")
         tool_text_response = None
@@ -154,6 +156,7 @@ class AnthropicToolModel(LLMBase):
         logging.info(f"conversation: {conversation}")
         return conversation
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self,
         conversation,
@@ -187,10 +190,9 @@ class AnthropicToolModel(LLMBase):
             "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
         }
 
-        with DurationManager() as prompt_timer:
-            response = await self._async_client.post("/messages", json=payload)
-            response.raise_for_status()
-            response_data = response.json()
+        response = await self._async_client.post("/messages", json=payload)
+        response.raise_for_status()
+        response_data = response.json()
 
         logging.info(f"tool_response: {response_data}")
         tool_text_response = None

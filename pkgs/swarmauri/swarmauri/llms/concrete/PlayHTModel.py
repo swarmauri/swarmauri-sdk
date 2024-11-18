@@ -1,5 +1,4 @@
 import asyncio
-import io
 import json
 import os
 
@@ -7,6 +6,7 @@ import httpx
 from typing import List, Literal, Dict
 
 from pydantic import Field, PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -77,6 +77,7 @@ class PlayHTModel(LLMBase):
                 f"Voice name {voice} is not allowed for this {model} voice engine. Choose from {self.allowed_voices}"
             )
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def _fetch_prebuilt_voices(self) -> Dict[str, List[str]]:
         """
         Fetch prebuilt voices for each allowed model from the Play.ht API.
@@ -88,7 +89,7 @@ class PlayHTModel(LLMBase):
 
         self._headers["accept"] = "application/json"
 
-        with httpx.Client(base_url=self._BASE_URL) as client:
+        with httpx.Client(base_url=self._BASE_URL, timeout=30) as client:
             voice_response = client.get("/voices", headers=self._headers)
 
         for item in json.loads(voice_response.text):
@@ -143,6 +144,7 @@ class PlayHTModel(LLMBase):
 
         raise ValueError(f"Voice name {voice_name} not found in allowed voices.")
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Convert text to speech using Play.ht's API and save as an audio file.
@@ -161,7 +163,7 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as self._client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=30) as self._client:
                 response = self._client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )
@@ -174,6 +176,7 @@ class PlayHTModel(LLMBase):
         except Exception as e:
             raise RuntimeError(f"Text-to-Speech synthesis failed: {e}")
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Asynchronously convert text to speech and save it as an audio file.
@@ -193,7 +196,7 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            async with httpx.AsyncClient(base_url=self._BASE_URL) as async_client:
+            async with httpx.AsyncClient(base_url=self._BASE_URL, timeout=30) as async_client:
                 response = await async_client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )

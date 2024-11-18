@@ -1,8 +1,8 @@
 import os
 import httpx
 import asyncio
-from typing import List, Literal, Optional, Dict
-from pydantic import Field, ConfigDict, PrivateAttr
+from typing import List, Literal, Dict
+from pydantic import Field, PrivateAttr
 from swarmauri.llms.base.LLMBase import LLMBase
 import time
 
@@ -16,7 +16,7 @@ class FalAIVisionModel(LLMBase):
     Attributes:
         allowed_models (List[str]): List of allowed vision models.
         api_key (str): The API key for authentication.
-        model_name (str): The model name to use for image processing.
+        name (str): The model name to use for image processing.
         type (Literal): The type identifier for the model.
         max_retries (int): Maximum number of retries for status polling.
         retry_delay (float): Delay in seconds between retries.
@@ -33,34 +33,25 @@ class FalAIVisionModel(LLMBase):
         "fal-ai/llava-next",
     ]
     api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
-    model_name: str = Field(default="fal-ai/llava-next")
+    name: str = Field(default="fal-ai/llava-next")
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
-
-    model_config = ConfigDict(protected_namespaces=())
 
     def __init__(self, **data):
         """
         Initialize the FalAIVisionModel with API key, HTTP clients, and model name validation.
 
         Raises:
-            ValueError: If the provided model_name is not in allowed_models.
+            ValueError: If the provided name is not in allowed_models.
         """
         super().__init__(**data)
-        if self.api_key:
-            os.environ["FAL_KEY"] = self.api_key
-        if self.model_name not in self.allowed_models:
-            raise ValueError(
-                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"
-            )
-
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers)
-        self._async_client = httpx.AsyncClient(headers=headers)
+        self._client = httpx.Client(headers=headers, timeout=30)
+        self._async_client = httpx.AsyncClient(headers=headers, timeout=30)
 
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """
@@ -74,7 +65,7 @@ class FalAIVisionModel(LLMBase):
         Returns:
             Dict: The result of the image processing request.
         """
-        url = f"{self._BASE_URL}/{self.model_name}"
+        url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
 
         response = self._client.post(url, json=payload)
@@ -98,7 +89,7 @@ class FalAIVisionModel(LLMBase):
         Returns:
             Dict: The result of the image processing request.
         """
-        url = f"{self._BASE_URL}/{self.model_name}"
+        url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
 
         async with httpx.AsyncClient(headers=self._async_client.headers) as client:
@@ -123,7 +114,7 @@ class FalAIVisionModel(LLMBase):
         Returns:
             Dict: The status response.
         """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
         response = self._client.get(url)
         response.raise_for_status()
         return response.json()
@@ -138,7 +129,7 @@ class FalAIVisionModel(LLMBase):
         Returns:
             Dict: The status response.
         """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
         async with httpx.AsyncClient(headers=self._async_client.headers) as client:
             response = await client.get(url)
             response.raise_for_status()

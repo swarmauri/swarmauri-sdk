@@ -2,6 +2,7 @@ from pydantic import PrivateAttr
 import asyncio
 import httpx
 from typing import Dict, List, Literal, Optional
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -38,6 +39,7 @@ class OpenAIImgGenModel(LLMBase):
             "Content-Type": "application/json",
         }
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def generate_image(
         self,
         prompt: str,
@@ -74,7 +76,7 @@ class OpenAIImgGenModel(LLMBase):
             payload["style"] = style
 
         try:
-            with httpx.Client(timeout=20.0) as client:
+            with httpx.Client(timeout=30.0) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -83,6 +85,7 @@ class OpenAIImgGenModel(LLMBase):
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Image generation failed: {e}")
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def agenerate_image(
         self,
         prompt: str,
@@ -119,7 +122,7 @@ class OpenAIImgGenModel(LLMBase):
             payload["style"] = style
 
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

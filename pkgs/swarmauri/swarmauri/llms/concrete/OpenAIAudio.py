@@ -1,9 +1,9 @@
 import asyncio
-import logging
 from typing import List, Literal, Dict
 import aiofiles
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -50,6 +50,7 @@ class OpenAIAudio(LLMBase):
             base_url=self._BASE_URL,
         )
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     def predict(
         self,
         audio_path: str,
@@ -95,6 +96,7 @@ class OpenAIAudio(LLMBase):
 
         return response_data["text"]
 
+    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
     async def apredict(
         self,
         audio_path: str,
