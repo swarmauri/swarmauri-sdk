@@ -69,7 +69,7 @@ def test_generate_image(fluxpro_imggen_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(30)
+@timeout(5)
 @pytest.mark.unit
 async def test_agenerate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
