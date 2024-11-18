@@ -31,14 +31,12 @@ class FalAIVisionModel(LLMBase):
 
     allowed_models: List[str] = [
         "fal-ai/llava-next",
-        "fal-ai/llavav15-13b",
-        "fal-ai/any-llm/vision",
     ]
     api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     model_name: str = Field(default="fal-ai/llava-next")
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
-    max_retries: int = Field(default=60)  # Maximum number of status check retries
-    retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
+    max_retries: int = Field(default=60)
+    retry_delay: float = Field(default=1.0)
 
     model_config = ConfigDict(protected_namespaces=())
 
@@ -83,10 +81,10 @@ class FalAIVisionModel(LLMBase):
         response.raise_for_status()
         response_data = response.json()
 
-        if response_data["status"] == "COMPLETED":
-            return self._get_result(response_data["request_id"])
-        else:
+        # Handle both immediate completion and queued scenarios
+        if "request_id" in response_data:
             return self._wait_for_completion(response_data["request_id"])
+        return response_data  # For immediate responses
 
     async def _async_send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """
@@ -103,96 +101,17 @@ class FalAIVisionModel(LLMBase):
         url = f"{self._BASE_URL}/{self.model_name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
 
-        response = await self._async_client.post(url, json=payload)
-        response.raise_for_status()
-        response_data = response.json()
+        async with httpx.AsyncClient(headers=self._async_client.headers) as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            response_data = response.json()
 
-        if response_data["status"] == "COMPLETED":
-            return await self._async_get_result(response_data["request_id"])
-        else:
-            return await self._async_wait_for_completion(response_data["request_id"])
-
-    def _get_result(self, request_id: str) -> Dict:
-        """
-        Retrieve the final result of a completed request.
-
-        Args:
-            request_id (str): The ID of the request.
-
-        Returns:
-            Dict: The response containing the result.
-        """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}"
-        response = self._client.get(url)
-        response.raise_for_status()
-        return response.json()["response"]
-
-    async def _async_get_result(self, request_id: str) -> Dict:
-        """
-        Asynchronously retrieve the final result of a completed request.
-
-        Args:
-            request_id (str): The ID of the request.
-
-        Returns:
-            Dict: The response containing the result.
-        """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}"
-        response = await self._async_client.get(url)
-        response.raise_for_status()
-        return response.json()["response"]
-
-    def _wait_for_completion(self, request_id: str) -> Dict:
-        """
-        Wait for a request to complete by polling its status.
-
-        Args:
-            request_id (str): The ID of the request.
-
-        Returns:
-            Dict: The final result once the request is completed.
-
-        Raises:
-            TimeoutError: If the request does not complete within the retry limit.
-        """
-        for _ in range(self.max_retries):
-            status_data = self._check_status(request_id)
-            if status_data["status"] == "COMPLETED":
-                return self._get_result(request_id)
-            elif status_data["status"] in ["IN_QUEUE", "IN_PROGRESS"]:
-                time.sleep(self.retry_delay)
-            else:
-                raise RuntimeError(f"Unexpected status: {status_data}")
-
-        raise TimeoutError(
-            f"Request {request_id} did not complete within the timeout period"
-        )
-
-    async def _async_wait_for_completion(self, request_id: str) -> Dict:
-        """
-        Asynchronously wait for a request to complete by polling its status.
-
-        Args:
-            request_id (str): The ID of the request.
-
-        Returns:
-            Dict: The final result once the request is completed.
-
-        Raises:
-            TimeoutError: If the request does not complete within the retry limit.
-        """
-        for _ in range(self.max_retries):
-            status_data = await self._async_check_status(request_id)
-            if status_data["status"] == "COMPLETED":
-                return await self._async_get_result(request_id)
-            elif status_data["status"] in ["IN_QUEUE", "IN_PROGRESS"]:
-                await asyncio.sleep(self.retry_delay)
-            else:
-                raise RuntimeError(f"Unexpected status: {status_data}")
-
-        raise TimeoutError(
-            f"Request {request_id} did not complete within the timeout period"
-        )
+            # Handle both immediate completion and queued scenarios
+            if "request_id" in response_data:
+                return await self._async_wait_for_completion(
+                    response_data["request_id"]
+                )
+            return response_data  # For immediate responses
 
     def _check_status(self, request_id: str) -> Dict:
         """
@@ -205,7 +124,7 @@ class FalAIVisionModel(LLMBase):
             Dict: The status response.
         """
         url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
-        response = self._client.get(url, params={"logs": 1})
+        response = self._client.get(url)
         response.raise_for_status()
         return response.json()
 
@@ -220,9 +139,38 @@ class FalAIVisionModel(LLMBase):
             Dict: The status response.
         """
         url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
-        response = await self._async_client.get(url, params={"logs": 1})
-        response.raise_for_status()
-        return response.json()
+        async with httpx.AsyncClient(headers=self._async_client.headers) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.json()
+
+    def _wait_for_completion(self, request_id: str) -> Dict:
+        for _ in range(self.max_retries):
+            status_data = self._check_status(request_id)
+            if status_data.get("status") == "COMPLETED":
+                return status_data.get("response", {})
+            elif status_data.get("status") in ["IN_QUEUE", "IN_PROGRESS"]:
+                time.sleep(self.retry_delay)
+            else:
+                raise RuntimeError(f"Unexpected status: {status_data}")
+
+        raise TimeoutError(
+            f"Request {request_id} did not complete within the timeout period"
+        )
+
+    async def _async_wait_for_completion(self, request_id: str) -> Dict:
+        for _ in range(self.max_retries):
+            status_data = await self._async_check_status(request_id)
+            if status_data.get("status") == "COMPLETED":
+                return status_data.get("response", {})
+            elif status_data.get("status") in ["IN_QUEUE", "IN_PROGRESS"]:
+                await asyncio.sleep(self.retry_delay)
+            else:
+                raise RuntimeError(f"Unexpected status: {status_data}")
+
+        raise TimeoutError(
+            f"Request {request_id} did not complete within the timeout period"
+        )
 
     def process_image(self, image_url: str, prompt: str, **kwargs) -> str:
         """
@@ -237,7 +185,7 @@ class FalAIVisionModel(LLMBase):
             str: The answer or result of the image processing.
         """
         response_data = self._send_request(image_url, prompt, **kwargs)
-        return response_data["output"]
+        return response_data.get("output", "")
 
     async def aprocess_image(self, image_url: str, prompt: str, **kwargs) -> str:
         """
@@ -252,7 +200,7 @@ class FalAIVisionModel(LLMBase):
             str: The answer or result of the image processing.
         """
         response_data = await self._async_send_request(image_url, prompt, **kwargs)
-        return response_data["output"]
+        return response_data.get("output", "")
 
     def batch(self, image_urls: List[str], prompts: List[str], **kwargs) -> List[str]:
         """
@@ -266,7 +214,6 @@ class FalAIVisionModel(LLMBase):
         Returns:
             List[str]: A list of answers or results for each image.
         """
-
         return [
             self.process_image(image_url, prompt, **kwargs)
             for image_url, prompt in zip(image_urls, prompts)
@@ -289,14 +236,14 @@ class FalAIVisionModel(LLMBase):
         Raises:
             TimeoutError: If one or more requests do not complete within the timeout period.
         """
-        try:
-            return await asyncio.gather(
-                *[
-                    self.aprocess_image(image_url, prompt, **kwargs)
-                    for image_url, prompt in zip(image_urls, prompts)
-                ]
-            )
-        except TimeoutError:
-            raise TimeoutError(
-                "One or more requests did not complete within the timeout period"
-            )
+        async with httpx.AsyncClient(headers=self._async_client.headers) as client:
+            tasks = [
+                self.aprocess_image(image_url, prompt, **kwargs)
+                for image_url, prompt in zip(image_urls, prompts)
+            ]
+            return await asyncio.gather(*tasks)
+
+    def __del__(self):
+        self._client.close()
+        if not self._async_client.is_closed:
+            asyncio.create_task(self._async_client.aclose())
