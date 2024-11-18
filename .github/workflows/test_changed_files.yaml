@@ -18,13 +18,25 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for proper diff
 
       - name: Detect changed files and map to tests
         id: detect
         run: |
-          # Get changed files
-          git fetch origin ${{ github.event.before }}
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^pkgs/')
+          # Determine base branch and head branch
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH=${{ github.event.pull_request.head.ref }}
+
+          echo "Base branch: $BASE_BRANCH"
+          echo "Head branch: $HEAD_BRANCH"
+
+          # Fetch both branches
+          git fetch origin $BASE_BRANCH
+          git fetch origin $HEAD_BRANCH
+
+          # Compare the source and target branches
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...origin/$HEAD_BRANCH | grep '^pkgs/')
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
