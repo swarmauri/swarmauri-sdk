@@ -33,7 +33,7 @@ jobs:
         run: |
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs/swarmauri_core
+          cd pkgs/core
           poetry install --no-cache -vv --all-extras
           poetry build
           poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
@@ -109,7 +109,7 @@ jobs:
         run: |
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs/swarmauri_community
+          cd pkgs/community
           poetry install --no-cache -vv --all-extras
           poetry build
           poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
@@ -147,7 +147,7 @@ jobs:
         run: |
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs/swarmauri_experimental
+          cd pkgs/experimental
           poetry install --no-cache -vv --all-extras
           poetry build
           poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
