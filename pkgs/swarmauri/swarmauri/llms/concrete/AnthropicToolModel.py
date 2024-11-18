@@ -14,6 +14,7 @@ from swarmauri.schema_converters.concrete.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
 
+
 class AnthropicToolModel(LLMBase):
     """
     A model class for integrating with the Anthropic API to enable tool-assisted AI interactions.
@@ -156,7 +157,7 @@ class AnthropicToolModel(LLMBase):
         logging.info(f"conversation: {conversation}")
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation,

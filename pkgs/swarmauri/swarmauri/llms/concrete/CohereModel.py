@@ -139,7 +139,7 @@ class CohereModel(LLMBase):
         )
         return usage
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(self, conversation, temperature=0.7, max_tokens=256):
         """
         Generate a single prediction from the model synchronously.
@@ -193,7 +193,7 @@ class CohereModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(self, conversation, temperature=0.7, max_tokens=256):
         """
         Generate a single prediction from the model asynchronously.
@@ -250,7 +250,7 @@ class CohereModel(LLMBase):
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
             return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
         """
         Stream responses from the model synchronously, yielding content as it becomes available.
@@ -317,7 +317,7 @@ class CohereModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self, conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:

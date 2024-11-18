@@ -118,7 +118,7 @@ class MistralModel(LLMBase):
         )
         return usage
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -171,7 +171,7 @@ class MistralModel(LLMBase):
 
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -225,7 +225,7 @@ class MistralModel(LLMBase):
 
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -290,7 +290,7 @@ class MistralModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,
@@ -338,7 +338,8 @@ class MistralModel(LLMBase):
                     if json_str:
                         chunk = json.loads(json_str)
                         if (
-                            chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                            chunk["choices"][0]["delta"]
+                            and "content" in chunk["choices"][0]["delta"]
                         ):
                             delta = chunk["choices"][0]["delta"]["content"]
                             message_content += delta

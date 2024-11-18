@@ -107,8 +107,12 @@ class DeepInfraModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL, timeout=30)
-        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL, timeout=30)
+        self._client = httpx.Client(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
+        self._async_client = httpx.AsyncClient(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -170,7 +174,7 @@ class DeepInfraModel(LLMBase):
 
         return payload
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation,
@@ -206,7 +210,7 @@ class DeepInfraModel(LLMBase):
 
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation,
@@ -242,7 +246,7 @@ class DeepInfraModel(LLMBase):
 
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation,
@@ -288,7 +292,7 @@ class DeepInfraModel(LLMBase):
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,

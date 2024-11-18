@@ -29,9 +29,7 @@ class OpenAIAudio(LLMBase):
     type: Literal["OpenAIAudio"] = "OpenAIAudio"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.openai.com/v1/audio/"
-    )
+    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/")
 
     def __init__(self, **data):
         """
@@ -50,7 +48,7 @@ class OpenAIAudio(LLMBase):
             base_url=self._BASE_URL,
         )
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         audio_path: str,
@@ -96,7 +94,7 @@ class OpenAIAudio(LLMBase):
 
         return response_data["text"]
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         audio_path: str,

@@ -262,7 +262,7 @@ class CohereToolModel(LLMBase):
 
         return payload
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(self, conversation, toolkit=None, temperature=0.3, max_tokens=1024):
         """
         Generate a response for a conversation synchronously.
@@ -323,7 +323,7 @@ class CohereToolModel(LLMBase):
         )
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> Iterator[str]:
@@ -390,7 +390,7 @@ class CohereToolModel(LLMBase):
         full_content = "".join(collected_content)
         conversation.add_message(AgentMessage(content=full_content))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ):
@@ -453,7 +453,7 @@ class CohereToolModel(LLMBase):
         )
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
     ) -> AsyncIterator[str]:

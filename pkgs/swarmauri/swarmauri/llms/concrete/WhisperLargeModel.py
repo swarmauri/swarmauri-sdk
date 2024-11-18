@@ -27,6 +27,7 @@ class WhisperLargeModel(LLMBase):
         >>> text = model.predict("audio.mp3", task="transcription")
         >>> print(text)
     """
+
     allowed_models: List[str] = ["openai/whisper-large-v3"]
     name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeModel"] = "WhisperLargeModel"
@@ -52,7 +53,7 @@ class WhisperLargeModel(LLMBase):
         self._header = {"Authorization": f"Bearer {self.api_key}"}
         self._client = httpx.Client(header=self._header, timeout=30)
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         audio_path: str,
@@ -98,7 +99,7 @@ class WhisperLargeModel(LLMBase):
         else:
             raise Exception("Unexpected API response format")
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         audio_path: str,

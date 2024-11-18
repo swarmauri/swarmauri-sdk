@@ -138,7 +138,7 @@ class GroqToolModel(LLMBase):
         ]
         return formatted_messages
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation,
@@ -199,7 +199,7 @@ class GroqToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation,
@@ -260,7 +260,7 @@ class GroqToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -327,7 +327,7 @@ class GroqToolModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,

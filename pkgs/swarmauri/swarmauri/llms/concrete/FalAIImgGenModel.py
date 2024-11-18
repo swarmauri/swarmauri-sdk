@@ -83,7 +83,7 @@ class FalAIImgGenModel(LLMBase):
         """
         return {"prompt": prompt, **kwargs}
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str, **kwargs) -> Dict:
         """
         Sends an image generation request to the queue and returns the request ID.
@@ -102,7 +102,7 @@ class FalAIImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _check_status(self, request_id: str) -> Dict:
         """
         Checks the status of a queued image generation request.
@@ -118,7 +118,7 @@ class FalAIImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _get_result(self, request_id: str) -> Dict:
         """
         Retrieves the final result of a completed request.
@@ -134,7 +134,7 @@ class FalAIImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str, **kwargs) -> Dict:
         """
         Asynchronously sends an image generation request to the queue.
@@ -154,7 +154,7 @@ class FalAIImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_check_status(self, request_id: str) -> Dict:
         """
         Asynchronously checks the status of a queued request.
@@ -171,7 +171,7 @@ class FalAIImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_get_result(self, request_id: str) -> Dict:
         """
         Asynchronously retrieves the final result of a completed request.

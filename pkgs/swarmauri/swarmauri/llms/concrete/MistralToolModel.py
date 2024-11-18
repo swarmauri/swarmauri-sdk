@@ -97,7 +97,7 @@ class MistralToolModel(LLMBase):
         logging.info(formatted_messages)
         return formatted_messages
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -174,7 +174,7 @@ class MistralToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -248,7 +248,7 @@ class MistralToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -331,7 +331,7 @@ class MistralToolModel(LLMBase):
         message_content = ""
 
         for line in response.iter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)
@@ -344,7 +344,7 @@ class MistralToolModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,

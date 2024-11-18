@@ -71,7 +71,7 @@ class OpenAIAudioTTS(LLMBase):
             )
         return values
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Synchronously converts text to speech using httpx.
@@ -114,7 +114,7 @@ class OpenAIAudioTTS(LLMBase):
                 audio_file.write(response.content)
             return os.path.abspath(audio_path)
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(self, text: str) -> Iterator[bytes]:
         """
         Synchronously streams TTS audio using httpx.
@@ -146,7 +146,7 @@ class OpenAIAudioTTS(LLMBase):
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Text-to-Speech streaming failed: {e}")
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(self, text: str) -> AsyncIterator[bytes]:
         """
         Asynchronously streams TTS audio using httpx.

@@ -124,7 +124,7 @@ class AnthropicModel(LLMBase):
             total_time=total_time,
         )
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Conversation:
@@ -168,7 +168,7 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Iterator[str]:
@@ -249,7 +249,7 @@ class AnthropicModel(LLMBase):
         )
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Conversation:
@@ -293,7 +293,7 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:

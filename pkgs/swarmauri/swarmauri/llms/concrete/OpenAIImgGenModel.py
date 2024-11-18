@@ -39,7 +39,7 @@ class OpenAIImgGenModel(LLMBase):
             "Content-Type": "application/json",
         }
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def generate_image(
         self,
         prompt: str,
@@ -85,7 +85,7 @@ class OpenAIImgGenModel(LLMBase):
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Image generation failed: {e}")
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def agenerate_image(
         self,
         prompt: str,

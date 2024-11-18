@@ -76,7 +76,7 @@ class DeepInfraImgGenModel(LLMBase):
         """
         return {"prompt": prompt}
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str) -> dict:
         """
         Sends a synchronous request to the DeepInfra API for image generation.
@@ -95,7 +95,7 @@ class DeepInfraImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
-    @retry_on_status_codes((429, 400, 529, 500), max_retries=3)
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str) -> dict:
         """
         Sends an asynchronous request to the DeepInfra API for image generation.
