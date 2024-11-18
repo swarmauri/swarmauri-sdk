@@ -1,3 +1,4 @@
+import logging
 import httpx
 import asyncio
 from typing import List, Literal, Optional, Dict
@@ -254,7 +255,7 @@ class FalAIImgGenModel(LLMBase):
         initial_response = self._send_request(prompt, **kwargs)
         request_id = initial_response["request_id"]
         final_response = self._wait_for_completion(request_id)
-        return final_response["response"]["images"][0]["url"]
+        return final_response["images"][0]["url"]
 
     async def agenerate_image(self, prompt: str, **kwargs) -> str:
         """
@@ -271,7 +272,7 @@ class FalAIImgGenModel(LLMBase):
             initial_response = await self._async_send_request(prompt, **kwargs)
             request_id = initial_response["request_id"]
             final_response = await self._async_wait_for_completion(request_id)
-            return final_response["response"]["images"][0]["url"]
+            return final_response["images"][0]["url"]
         finally:
             await self._close_async_client()
 

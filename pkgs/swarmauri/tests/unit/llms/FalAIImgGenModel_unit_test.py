@@ -53,9 +53,9 @@ def test_default_model_name(fluxpro_imggen_model):
     assert fluxpro_imggen_model.name == "fal-ai/flux-pro"
 
 
-@pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
+@pytest.mark.parametrize("model_name", get_allowed_models())
 def test_generate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
     model.name = model_name
@@ -67,10 +67,10 @@ def test_generate_image(fluxpro_imggen_model, model_name):
     assert image_url.startswith("http")
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model_name", get_allowed_models())
 async def test_agenerate_image(fluxpro_imggen_model, model_name):
     model = fluxpro_imggen_model
     model.name = model_name
@@ -99,9 +99,9 @@ def test_batch(fluxpro_imggen_model):
         assert url.startswith("http")
 
 
-@pytest.mark.asyncio
 @timeout(5)
 @pytest.mark.unit
+@pytest.mark.asyncio
 async def test_abatch(fluxpro_imggen_model):
     prompts = [
         "An abstract painting with vibrant colors",
