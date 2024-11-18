@@ -20,7 +20,6 @@ def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
-
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "text, expected_score",
