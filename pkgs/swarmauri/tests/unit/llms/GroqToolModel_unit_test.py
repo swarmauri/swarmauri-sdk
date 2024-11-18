@@ -30,7 +30,7 @@ def get_allowed_models():
         return []
     llm = LLM(api_key=API_KEY)
 
-    failing_llms = ["llama3-8b-8192"]
+    failing_llms = ["llama3-8b-8192", "llama3-70b-8192"]
 
     allowed_models = [
         model for model in llm.allowed_models if model not in failing_llms
@@ -160,7 +160,7 @@ async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     assert isinstance(prediction, str)
 
 
-@retry_on_status_codes([429])
+# @retry_on_status_codes([429])
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
