@@ -19,19 +19,14 @@ class FalAIImgGenModel(LLMBase):
         type (Literal): The model type, fixed as "FalAIImgGenModel".
         max_retries (int): The maximum number of retries for polling request status.
         retry_delay (float): Delay in seconds between status check retries.
-
-    Link to API KEY: https://fal.ai/dashboard/keys
-    Link to Allowed Models: https://fal.ai/models?categories=text-to-image
     """
 
     _BASE_URL: str = PrivateAttr("https://queue.fal.run")
     _client: httpx.Client = PrivateAttr()
-    _async_client: httpx.AsyncClient = PrivateAttr()
+    _async_client: Optional[httpx.AsyncClient] = PrivateAttr(default=None)
 
     allowed_models: List[str] = [
         "fal-ai/flux-pro",
-        "fal-ai/flux-pro/new",
-        "fal-ai/flux-pro/v1.1",
     ]
     api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     model_name: str = Field(default="fal-ai/flux-pro")
@@ -43,7 +38,10 @@ class FalAIImgGenModel(LLMBase):
 
     def __init__(self, **data):
         """
-        Initializes the model with the specified API key, model name, and HTTP clients.
+        Initializes the model with the specified API key and model name.
+
+        Args:
+            **data: Configuration parameters for the model.
 
         Raises:
             ValueError: If an invalid model name is provided.
@@ -56,12 +54,30 @@ class FalAIImgGenModel(LLMBase):
                 f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
-        headers = {
+        self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers)
-        self._async_client = httpx.AsyncClient(headers=headers)
+        self._client = httpx.Client(headers=self._headers)
+
+    async def _get_async_client(self) -> httpx.AsyncClient:
+        """
+        Get or create the async client.
+
+        Returns:
+            httpx.AsyncClient: The async HTTP client instance.
+        """
+        if self._async_client is None or self._async_client.is_closed:
+            self._async_client = httpx.AsyncClient(headers=self._headers)
+        return self._async_client
+
+    async def _close_async_client(self):
+        """
+        Safely close the async client if it exists and is open.
+        """
+        if self._async_client is not None and not self._async_client.is_closed:
+            await self._async_client.aclose()
+            self._async_client = None
 
     def _create_request_payload(self, prompt: str, **kwargs) -> dict:
         """
@@ -135,10 +151,11 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the request ID.
         """
+        client = await self._get_async_client()
         url = f"{self._BASE_URL}/{self.model_name}"
         payload = self._create_request_payload(prompt, **kwargs)
 
-        response = await self._async_client.post(url, json=payload)
+        response = await client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -152,8 +169,9 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the request status.
         """
+        client = await self._get_async_client()
         url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
-        response = await self._async_client.get(url, params={"logs": 1})
+        response = await client.get(url, params={"logs": 1})
         response.raise_for_status()
         return response.json()
 
@@ -167,8 +185,9 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the generated image URL.
         """
+        client = await self._get_async_client()
         url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}"
-        response = await self._async_client.get(url)
+        response = await client.get(url)
         response.raise_for_status()
         return response.json()
 
@@ -251,10 +270,13 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             str: The URL of the generated image
         """
-        initial_response = await self._async_send_request(prompt, **kwargs)
-        request_id = initial_response["request_id"]
-        final_response = await self._async_wait_for_completion(request_id)
-        return final_response["response"]["images"][0]["url"]
+        try:
+            initial_response = await self._async_send_request(prompt, **kwargs)
+            request_id = initial_response["request_id"]
+            final_response = await self._async_wait_for_completion(request_id)
+            return final_response["response"]["images"][0]["url"]
+        finally:
+            await self._close_async_client()
 
     def batch(self, prompts: List[str], **kwargs) -> List[str]:
         """
@@ -283,17 +305,21 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             List[str]: List of image URLs
         """
-        semaphore = asyncio.Semaphore(max_concurrent)
+        try:
+            semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_prompt(prompt):
-            async with semaphore:
-                return await self.agenerate_image(prompt, **kwargs)
+            async def process_prompt(prompt):
+                async with semaphore:
+                    initial_response = await self._async_send_request(prompt, **kwargs)
+                    request_id = initial_response["request_id"]
+                    final_response = await self._async_wait_for_completion(request_id)
+                    return final_response["response"]["images"][0]["url"]
 
-        tasks = [process_prompt(prompt) for prompt in prompts]
-        return await asyncio.gather(*tasks)
+            tasks = [process_prompt(prompt) for prompt in prompts]
+            return await asyncio.gather(*tasks)
+        finally:
+            await self._close_async_client()
 
     def __del__(self):
         """Cleanup method to close HTTP clients."""
         self._client.close()
-        if not self._async_client.is_closed:
-            asyncio.run(self._async_client.aclose())
