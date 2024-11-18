@@ -38,9 +38,16 @@ jobs:
             COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
             TEST_DIR="pkgs/$PACKAGE/tests"  # Test directory for the package
 
+            # Log detected package and component name
+            echo "Detected package: $PACKAGE"
+            echo "Component name: $COMPONENT_NAME"
+            echo "Searching for test files in: $TEST_DIR"
+
             # Search for test files matching the component name
             if [ -d "$TEST_DIR" ]; then
               MATCHING_TEST_FILES=$(find $TEST_DIR -type f -name "*${COMPONENT_NAME}*_test.py")
+              echo "Matching test files: $MATCHING_TEST_FILES"
+
               for TEST_FILE in $MATCHING_TEST_FILES; do
                 RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
                 PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
