@@ -4,7 +4,6 @@ on:
   
   push:
     branches: ["*dev*", "swarm/*dev*"]
-    tags: ["v*"]  # Only trigger for tags starting with 'v' (e.g., v1.0.0)
     paths:
       - 'pkgs/community/**'
       - 'pkgs/core/**'
@@ -81,8 +80,6 @@ jobs:
       GITHUBTOOL_TEST_REPO_NAME: ${{ secrets.GITHUBTOOL_TEST_REPO_NAME }}
       GITHUBTOOL_TEST_REPO_OWNER: ${{ secrets.GITHUBTOOL_TEST_REPO_OWNER }}
       GITHUBTOOL_TEST_TOKEN: ${{ secrets.GITHUBTOOL_TEST_TOKEN }}
-      DANGER_MASTER_PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -155,14 +152,6 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/classify_results.py pkgs/${{ matrix.package }}/results.xml
         continue-on-error: false
-
-      - name: Publish to PyPI
-        if: github.ref_type == 'tag' && success()  # Only publish on tag
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: __token__
-          password: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
-          packages_dir: dist
 
       - name: Clean up virtual environment
         if: always()
