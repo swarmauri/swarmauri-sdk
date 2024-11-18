@@ -40,6 +40,11 @@ jobs:
         env:
           PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
 
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
+
   publish-swarmauri:
     needs: publish-swarmauri-core
     runs-on: self-hosted
@@ -73,6 +78,11 @@ jobs:
         env:
           PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
 
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
+
   publish-swarmauri-community:
     needs: publish-swarmauri
     runs-on: self-hosted
@@ -105,6 +115,11 @@ jobs:
           poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
         env:
           PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+          
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
 
   publish-swarmauri-experimental:
     needs: publish-swarmauri-community
@@ -138,3 +153,8 @@ jobs:
           poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
         env:
           PYPI_API_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
