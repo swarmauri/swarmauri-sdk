@@ -3,6 +3,7 @@ import httpx
 from pydantic import PrivateAttr
 import asyncio
 from typing import List, Literal, AsyncIterator, Iterator
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.conversations.concrete.Conversation import Conversation
@@ -39,7 +40,9 @@ class AI21StudioModel(LLMBase):
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.ai21.com/studio/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.ai21.com/studio/v1/chat/completions"
+    )
 
     def __init__(self, **data) -> None:
         """
@@ -52,10 +55,12 @@ class AI21StudioModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _format_messages(
@@ -99,6 +104,7 @@ class AI21StudioModel(LLMBase):
         )
         return usage
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -147,6 +153,7 @@ class AI21StudioModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -195,6 +202,7 @@ class AI21StudioModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -260,6 +268,7 @@ class AI21StudioModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,
@@ -319,7 +328,9 @@ class AI21StudioModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration, completion_timer.duration)
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 

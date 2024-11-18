@@ -2,6 +2,7 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.conversations.concrete.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
 
@@ -51,7 +52,9 @@ class GroqModel(LLMBase):
     type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.groq.com/openai/v1/chat/completions"
+    )
 
     def __init__(self, **data):
         """
@@ -64,10 +67,12 @@ class GroqModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _format_messages(
@@ -111,6 +116,7 @@ class GroqModel(LLMBase):
         """
         return UsageData.model_validate(usage_data)
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -159,6 +165,7 @@ class GroqModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -206,6 +213,7 @@ class GroqModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -249,7 +257,7 @@ class GroqModel(LLMBase):
 
         message_content = ""
         for line in response.iter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)
@@ -262,6 +270,7 @@ class GroqModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,
@@ -305,7 +314,7 @@ class GroqModel(LLMBase):
         message_content = ""
 
         async for line in response.aiter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)

@@ -13,6 +13,7 @@ from swarmauri.llms.base.LLMBase import LLMBase
 from swarmauri.schema_converters.concrete.MistralSchemaConverter import (
     MistralSchemaConverter,
 )
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 
 class MistralToolModel(LLMBase):
@@ -55,10 +56,12 @@ class MistralToolModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
@@ -94,6 +97,7 @@ class MistralToolModel(LLMBase):
         logging.info(formatted_messages)
         return formatted_messages
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -170,6 +174,7 @@ class MistralToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -243,6 +248,7 @@ class MistralToolModel(LLMBase):
         conversation.add_message(agent_message)
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -325,7 +331,7 @@ class MistralToolModel(LLMBase):
         message_content = ""
 
         for line in response.iter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)
@@ -338,6 +344,7 @@ class MistralToolModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,

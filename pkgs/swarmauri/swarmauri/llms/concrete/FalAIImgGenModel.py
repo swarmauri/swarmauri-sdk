@@ -1,8 +1,8 @@
-import os
 import httpx
 import asyncio
 from typing import List, Literal, Optional, Dict
-from pydantic import Field, ConfigDict, PrivateAttr
+from pydantic import Field, PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 import time
 
@@ -28,13 +28,11 @@ class FalAIImgGenModel(LLMBase):
     allowed_models: List[str] = [
         "fal-ai/flux-pro",
     ]
-    api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
-    model_name: str = Field(default="fal-ai/flux-pro")
+    api_key: str = Field(default=None)
+    name: str = Field(default="fal-ai/flux-pro")
     type: Literal["FalAIImgGenModel"] = "FalAIImgGenModel"
     max_retries: int = Field(default=60)  # Maximum number of status check retries
     retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
-
-    model_config = ConfigDict(protected_namespaces=())
 
     def __init__(self, **data):
         """
@@ -47,18 +45,11 @@ class FalAIImgGenModel(LLMBase):
             ValueError: If an invalid model name is provided.
         """
         super().__init__(**data)
-        if self.api_key:
-            os.environ["FAL_KEY"] = self.api_key
-        if self.model_name not in self.allowed_models:
-            raise ValueError(
-                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"
-            )
-
         self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key}",
         }
-        self._client = httpx.Client(headers=self._headers)
+        self._client = httpx.Client(headers=self._headers, timeout=30)
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """
@@ -68,7 +59,7 @@ class FalAIImgGenModel(LLMBase):
             httpx.AsyncClient: The async HTTP client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers)
+            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
         return self._async_client
 
     async def _close_async_client(self):
@@ -92,6 +83,7 @@ class FalAIImgGenModel(LLMBase):
         """
         return {"prompt": prompt, **kwargs}
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str, **kwargs) -> Dict:
         """
         Sends an image generation request to the queue and returns the request ID.
@@ -103,13 +95,14 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the request ID.
         """
-        url = f"{self._BASE_URL}/{self.model_name}"
+        url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt, **kwargs)
 
         response = self._client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _check_status(self, request_id: str) -> Dict:
         """
         Checks the status of a queued image generation request.
@@ -120,11 +113,12 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the request status.
         """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
         response = self._client.get(url, params={"logs": 1})
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _get_result(self, request_id: str) -> Dict:
         """
         Retrieves the final result of a completed request.
@@ -135,11 +129,12 @@ class FalAIImgGenModel(LLMBase):
         Returns:
             Dict: The response containing the generated image URL.
         """
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}"
         response = self._client.get(url)
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str, **kwargs) -> Dict:
         """
         Asynchronously sends an image generation request to the queue.
@@ -152,13 +147,14 @@ class FalAIImgGenModel(LLMBase):
             Dict: The response containing the request ID.
         """
         client = await self._get_async_client()
-        url = f"{self._BASE_URL}/{self.model_name}"
+        url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt, **kwargs)
 
         response = await client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_check_status(self, request_id: str) -> Dict:
         """
         Asynchronously checks the status of a queued request.
@@ -170,11 +166,12 @@ class FalAIImgGenModel(LLMBase):
             Dict: The response containing the request status.
         """
         client = await self._get_async_client()
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}/status"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
         response = await client.get(url, params={"logs": 1})
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_get_result(self, request_id: str) -> Dict:
         """
         Asynchronously retrieves the final result of a completed request.
@@ -186,7 +183,7 @@ class FalAIImgGenModel(LLMBase):
             Dict: The response containing the generated image URL.
         """
         client = await self._get_async_client()
-        url = f"{self._BASE_URL}/{self.model_name}/requests/{request_id}"
+        url = f"{self._BASE_URL}/{self.name}/requests/{request_id}"
         response = await client.get(url)
         response.raise_for_status()
         return response.json()

@@ -2,7 +2,8 @@ import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
 import asyncio
 import httpx
-from pydantic import Field, PrivateAttr
+from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage, UsageData
@@ -48,8 +49,12 @@ class AnthropicModel(LLMBase):
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
         }
-        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
-        self._async_client = httpx.AsyncClient(headers=headers, base_url=self._BASE_URL)
+        self._client = httpx.Client(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
+        self._async_client = httpx.AsyncClient(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -119,7 +124,10 @@ class AnthropicModel(LLMBase):
             total_time=total_time,
         )
 
-    def predict(self, conversation: Conversation, temperature=0.7, max_tokens=256):
+    @retry_on_status_codes((429, 529), max_retries=1)
+    def predict(
+        self, conversation: Conversation, temperature=0.7, max_tokens=256
+    ) -> Conversation:
         """
         Sends a prediction request to the Anthropic API and processes the response.
 
@@ -160,6 +168,7 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Iterator[str]:
@@ -240,9 +249,10 @@ class AnthropicModel(LLMBase):
         )
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
-    ):
+    ) -> Conversation:
         """
         Asynchronously sends a request to the model for generating a prediction.
 
@@ -283,6 +293,7 @@ class AnthropicModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:

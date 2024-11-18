@@ -2,6 +2,7 @@ import json
 from typing import AsyncIterator, Iterator, List, Dict, Literal
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
@@ -56,12 +57,14 @@ class GeminiProModel(LLMBase):
         default_factory=lambda: httpx.Client(
             base_url="https://generativelanguage.googleapis.com/v1beta/models",
             headers={"Content-Type": "application/json"},
+            timeout=30,
         )
     )
     _async_client: httpx.AsyncClient = PrivateAttr(
         default_factory=lambda: httpx.AsyncClient(
             base_url="https://generativelanguage.googleapis.com/v1beta/models",
             headers={"Content-Type": "application/json"},
+            timeout=30,
         )
     )
 
@@ -135,6 +138,7 @@ class GeminiProModel(LLMBase):
 
         return usage
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -194,6 +198,7 @@ class GeminiProModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -249,6 +254,7 @@ class GeminiProModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -318,6 +324,7 @@ class GeminiProModel(LLMBase):
         )
         conversation.add_message(AgentMessage(content=full_response, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,

@@ -14,6 +14,7 @@ from swarmauri.schema_converters.concrete.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
 from swarmauri.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 
 class GeminiToolModel(LLMBase):
@@ -172,6 +173,7 @@ class GeminiToolModel(LLMBase):
                 system_context = message.content
         return system_context
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -218,7 +220,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=30.0) as client:
             response = client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
                 json=payload,
@@ -238,7 +240,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=30.0) as client:
             response = client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
                 json=payload,
@@ -257,6 +259,7 @@ class GeminiToolModel(LLMBase):
         logging.info(f"conversation: {conversation}")
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -303,7 +306,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
                 json=payload,
@@ -323,7 +326,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
                 json=payload,
@@ -342,6 +345,7 @@ class GeminiToolModel(LLMBase):
         logging.info(f"conversation: {conversation}")
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -427,6 +431,7 @@ class GeminiToolModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=full_response))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,
@@ -473,7 +478,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
                 json=payload,
@@ -493,7 +498,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
                 json=payload,

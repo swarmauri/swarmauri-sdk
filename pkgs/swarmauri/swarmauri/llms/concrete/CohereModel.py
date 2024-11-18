@@ -4,6 +4,7 @@ from typing import List, Dict, Literal, AsyncIterator, Iterator
 from pydantic import PrivateAttr
 import httpx
 
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
@@ -54,7 +55,9 @@ class CohereModel(LLMBase):
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(headers=headers, base_url=self._BASE_URL)
+        self._client = httpx.Client(
+            headers=headers, base_url=self._BASE_URL, timeout=30
+        )
 
     def get_headers(self) -> Dict[str, str]:
         return {
@@ -136,6 +139,7 @@ class CohereModel(LLMBase):
         )
         return usage
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(self, conversation, temperature=0.7, max_tokens=256):
         """
         Generate a single prediction from the model synchronously.
@@ -189,6 +193,7 @@ class CohereModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(self, conversation, temperature=0.7, max_tokens=256):
         """
         Generate a single prediction from the model asynchronously.
@@ -245,6 +250,7 @@ class CohereModel(LLMBase):
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
             return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
         """
         Stream responses from the model synchronously, yielding content as it becomes available.
@@ -311,6 +317,7 @@ class CohereModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=full_content, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self, conversation, temperature=0.7, max_tokens=256
     ) -> AsyncIterator[str]:

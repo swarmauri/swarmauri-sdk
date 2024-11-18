@@ -3,6 +3,7 @@ import json
 from typing import AsyncIterator, Iterator, List, Literal, Dict
 import httpx
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.conversations.concrete import Conversation
 from swarmauri_core.typing import SubclassUnion
 
@@ -60,10 +61,12 @@ class MistralModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _format_messages(
@@ -115,6 +118,7 @@ class MistralModel(LLMBase):
         )
         return usage
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -167,6 +171,7 @@ class MistralModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -220,6 +225,7 @@ class MistralModel(LLMBase):
 
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -284,6 +290,7 @@ class MistralModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,
@@ -331,7 +338,8 @@ class MistralModel(LLMBase):
                     if json_str:
                         chunk = json.loads(json_str)
                         if (
-                            chunk["choices"][0]["delta"] and "content" in chunk["choices"][0]["delta"]
+                            chunk["choices"][0]["delta"]
+                            and "content" in chunk["choices"][0]["delta"]
                         ):
                             delta = chunk["choices"][0]["delta"]["content"]
                             message_content += delta

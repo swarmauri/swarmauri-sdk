@@ -2,6 +2,7 @@ from typing import List, Literal, Dict
 import httpx
 import asyncio
 from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 
 
@@ -27,15 +28,15 @@ class WhisperLargeModel(LLMBase):
         >>> print(text)
     """
 
-    _BASE_URL: str = PrivateAttr(
-        "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
-    )
-    _client: httpx.Client = PrivateAttr()
-
     allowed_models: List[str] = ["openai/whisper-large-v3"]
     name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeModel"] = "WhisperLargeModel"
     api_key: str
+    _BASE_URL: str = PrivateAttr(
+        "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
+    )
+    _client: httpx.Client = PrivateAttr()
+    _header: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **data):
         """
@@ -49,18 +50,10 @@ class WhisperLargeModel(LLMBase):
             ValueError: If required configuration parameters are missing.
         """
         super().__init__(**data)
-        headers = {"Authorization": f"Bearer {self.api_key}"}
-        self._client = httpx.Client(headers=headers)
+        self._header = {"Authorization": f"Bearer {self.api_key}"}
+        self._client = httpx.Client(header=self._header, timeout=30)
 
-    def get_headers(self) -> Dict[str, str]:
-        """
-        Get the HTTP headers required for API requests.
-
-        Returns:
-            Dict[str, str]: Dictionary containing authorization headers.
-        """
-        return {"Authorization": f"Bearer {self.api_key}"}
-
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         audio_path: str,
@@ -106,6 +99,7 @@ class WhisperLargeModel(LLMBase):
         else:
             raise Exception("Unexpected API response format")
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         audio_path: str,
@@ -143,7 +137,7 @@ class WhisperLargeModel(LLMBase):
         if task == "translation":
             params["language"] = "en"
 
-        async with httpx.AsyncClient(headers=self.get_headers()) as client:
+        async with httpx.AsyncClient(header=self._header) as client:
             response = await client.post(self._BASE_URL, data=data, params=params)
             response.raise_for_status()
             result = response.json()

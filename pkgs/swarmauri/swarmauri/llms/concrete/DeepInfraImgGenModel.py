@@ -1,6 +1,7 @@
 import httpx
-from typing import List, Literal, ClassVar
-from pydantic import Field, PrivateAttr
+from typing import List, Literal
+from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.llms.base.LLMBase import LLMBase
 import asyncio
 import contextlib
@@ -33,7 +34,6 @@ class DeepInfraImgGenModel(LLMBase):
         "stabilityai/stable-diffusion-2-1",
     ]
 
-    asyncio: ClassVar = asyncio
     name: str = "stabilityai/stable-diffusion-2-1"  # Default model
     type: Literal["DeepInfraImgGenModel"] = "DeepInfraImgGenModel"
 
@@ -52,14 +52,14 @@ class DeepInfraImgGenModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(headers=self._headers)
+        self._client = httpx.Client(headers=self._headers, timeout=30)
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """
         Gets or creates an async client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers)
+            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
         return self._async_client
 
     async def _close_async_client(self):
@@ -76,6 +76,7 @@ class DeepInfraImgGenModel(LLMBase):
         """
         return {"prompt": prompt}
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str) -> dict:
         """
         Sends a synchronous request to the DeepInfra API for image generation.
@@ -94,6 +95,7 @@ class DeepInfraImgGenModel(LLMBase):
         response.raise_for_status()
         return response.json()
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str) -> dict:
         """
         Sends an asynchronous request to the DeepInfra API for image generation.

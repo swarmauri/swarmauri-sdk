@@ -2,6 +2,7 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.utils.duration_manager import DurationManager
 from swarmauri.conversations.concrete.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
@@ -148,6 +149,7 @@ class OpenAIModel(LLMBase):
 
         return usage
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -184,7 +186,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            with httpx.Client() as client:
+            with httpx.Client(timeout=30) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -199,6 +201,7 @@ class OpenAIModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -235,7 +238,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -250,6 +253,7 @@ class OpenAIModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -289,7 +293,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            with httpx.Client() as client:
+            with httpx.Client(timeout=30) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -318,6 +322,7 @@ class OpenAIModel(LLMBase):
         )
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,
@@ -357,7 +362,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

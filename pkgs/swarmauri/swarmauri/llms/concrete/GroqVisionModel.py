@@ -11,6 +11,7 @@ from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 
 from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 
 
 class GroqVisionModel(LLMBase):
@@ -37,7 +38,9 @@ class GroqVisionModel(LLMBase):
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.groq.com/openai/v1/chat/completions"
+    )
 
     def __init__(self, **data):
         """
@@ -97,6 +100,7 @@ class GroqVisionModel(LLMBase):
         """
         return UsageData.model_validate(usage_data)
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -145,6 +149,7 @@ class GroqVisionModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation: Conversation,
@@ -192,6 +197,7 @@ class GroqVisionModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation: Conversation,
@@ -234,7 +240,7 @@ class GroqVisionModel(LLMBase):
         response.raise_for_status()
         message_content = ""
         for line in response.iter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)
@@ -247,6 +253,7 @@ class GroqVisionModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation: Conversation,
@@ -289,7 +296,7 @@ class GroqVisionModel(LLMBase):
         response.raise_for_status()
         message_content = ""
         async for line in response.aiter_lines():
-            json_str = line.replace('data: ', '')
+            json_str = line.replace("data: ", "")
             try:
                 if json_str:
                     chunk = json.loads(json_str)

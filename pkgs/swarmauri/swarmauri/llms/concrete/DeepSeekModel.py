@@ -2,12 +2,12 @@ import json
 from typing import List, Dict, Literal, AsyncIterator, Iterator
 import asyncio
 import httpx
-from pydantic import Field, PrivateAttr
+from pydantic import PrivateAttr
+from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
-import logging
 
 
 class DeepSeekModel(LLMBase):
@@ -42,10 +42,12 @@ class DeepSeekModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
+            timeout=30,
         )
 
     def _format_messages(
@@ -66,6 +68,7 @@ class DeepSeekModel(LLMBase):
         ]
         return formatted_messages
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation,
@@ -109,6 +112,7 @@ class DeepSeekModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
         conversation,
@@ -152,6 +156,7 @@ class DeepSeekModel(LLMBase):
         conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
         conversation,
@@ -208,6 +213,7 @@ class DeepSeekModel(LLMBase):
             full_content = "".join(collected_content)
             conversation.add_message(AgentMessage(content=full_content))
 
+    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
         conversation,
