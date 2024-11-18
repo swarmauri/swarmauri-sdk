@@ -19,7 +19,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Detect changed files and map to packages and tests
+      - name: Detect changed files and map to tests
         id: detect
         run: |
           # Get changed files
@@ -29,12 +29,23 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          # Map changed files to packages and corresponding test files
+          # Initialize package and test map
           PACKAGE_TEST_MAP=""
+
+          # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
-            TEST_FILE=$(echo "$FILE" | sed 's/\.py$/_test.py/' | sed 's|^pkgs/[^/]+/|tests/|')
-            PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$TEST_FILE\"},"
+            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
+            TEST_DIR="pkgs/$PACKAGE/tests"  # Test directory for the package
+
+            # Search for test files matching the component name
+            MATCHING_TEST_FILES=$(find $TEST_DIR -type f -name "*${COMPONENT_NAME}*_test.py")
+
+            # Map found test files to the package
+            for TEST_FILE in $MATCHING_TEST_FILES; do
+              RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from the package root
+              PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
+            done
           done
 
           # Create JSON array for matrix
