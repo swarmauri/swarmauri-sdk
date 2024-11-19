@@ -1,7 +1,7 @@
 name: Test Changed Files
 
 on:
-  push:
+  pull_request:
     paths:
       - 'pkgs/**'
   workflow_dispatch:
@@ -15,57 +15,83 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch entire history for diffing
 
-      - name: Detect changed files and map to tests
+      - name: Set up Git
+        run: |
+          git fetch --all
+
+      - name: Get Changed Files (Push)
+        if: github.event_name == 'push'
+        run: |
+          echo "Files changed in this push:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
+      - name: Get Changed Files (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Files changed in this pull request:"
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+
+      - name: Save Changed Files List (Push)
+        if: github.event_name == 'push'
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
+
+      - name: Save Changed Files List (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
+
+      - name: Output Changed Files
+        run: |
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Detect changes and generate test matrix
         id: detect
         run: |
-          # Get changed files
-          git fetch origin ${{ github.event.before }}
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^pkgs/')
+          echo "Detecting changes..."
+
+          CHANGED_FILES=$(cat changed_files.txt | grep '^pkgs/')
+
+          if [ -z "$CHANGED_FILES" ]; then
+              echo "No changes detected."
+              echo "matrix=[]" >> $GITHUB_OUTPUT
+              exit 0
+          fi
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          # Initialize package and test map
-          PACKAGE_TEST_MAP=""
-
-          # Iterate through changed files
+          declare -A PACKAGE_TEST_MAP
+          
           for FILE in $CHANGED_FILES; do
-            PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
-            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
+              PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
+              COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
 
-            # Check if the file itself is a test file
-            if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
-              # If it's a test file, map it directly to the matrix
-              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
-              PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
-            else
-              # If it's a source file, find corresponding test files
-              TEST_DIR="pkgs/$PACKAGE/tests"  # Test directory for the package
-
-              echo "Searching for test files related to: $COMPONENT_NAME in $TEST_DIR"
-
-              # Search for test files recursively matching the component name
-              if [ -d "$TEST_DIR" ]; then
-                MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
-                echo "Matching test files: $MATCHING_TEST_FILES"
-
-                for TEST_FILE in $MATCHING_TEST_FILES; do
-                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
-                  PACKAGE_TEST_MAP="$PACKAGE_TEST_MAP{\"package\":\"$PACKAGE\",\"test\":\"$RELATIVE_TEST_FILE\"},"
-                done
+              if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+                  RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
+                  PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
               else
-                echo "Warning: Test directory $TEST_DIR does not exist."
+                  TEST_DIR="pkgs/$PACKAGE/tests"
+                  if [ -d "$TEST_DIR" ]; then
+                      MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
+                      for TEST_FILE in $MATCHING_TEST_FILES; do
+                          RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")
+                          PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
+                      done
+                  fi
               fi
-            fi
           done
 
-          # Create JSON array for matrix
-          if [ -z "$PACKAGE_TEST_MAP" ]; then
-            MATRIX="[]"
-          else
-            MATRIX="[${PACKAGE_TEST_MAP%,}]"
-          fi
+          MATRIX="["  
+          for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
+              UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
+          done
+          MATRIX="${MATRIX%,}]"
 
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -73,15 +99,19 @@ jobs:
   run-tests:
     needs: detect-changed-files
     runs-on: ubuntu-latest
-    if: needs.detect-changed-files.outputs.matrix != '[]'  # Skip if no tests to run
+    if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        package_test: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+        package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Log matrix output
+        run: |
+          echo "Matrix: ${{ needs.detect-changed-files.outputs.matrix }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -95,12 +125,12 @@ jobs:
 
       - name: Install package dependencies
         run: |
-          cd pkgs/${{ matrix.package_test.package }}
+          cd pkgs/${{ matrix.package_tests.package }}
           poetry install --no-cache -vv
 
-      - name: Run specific tests
+      - name: Run all tests for the package
         run: |
-          echo "Running tests for package: ${{ matrix.package_test.package }}"
-          echo "Test file: ${{ matrix.package_test.test }}"
-          cd pkgs/${{ matrix.package_test.package }}
-          poetry run pytest ${{ matrix.package_test.test }}
+          echo "Running tests for package: ${{ matrix.package_tests.package }}"
+          echo "Test files: ${{ matrix.package_tests.tests }}"
+          cd pkgs/${{ matrix.package_tests.package }}
+          poetry run pytest ${{ matrix.package_tests.tests }}

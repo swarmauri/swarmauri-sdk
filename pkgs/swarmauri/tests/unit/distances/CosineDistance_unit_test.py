@@ -23,3 +23,4 @@ def test_distance():
 		Vector(value=[1,2])
 		) == 2.220446049250313e-16
 
+

@@ -3,9 +3,9 @@ import re
 from swarmauri.chunkers.base.ChunkerBase import ChunkerBase
 
 class MdSnippetChunker(ChunkerBase):
+    version: str = "0.1.0.dev1"
     language: Optional[str] = None
     type: Literal['MdSnippetChunker'] = 'MdSnippetChunker'
-    
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[tuple]:
         """
         Extracts paired comments and code blocks from Markdown content based on the 
