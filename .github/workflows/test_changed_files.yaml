@@ -1,7 +1,7 @@
 name: Test Changed Files
 
 on:
-  push:
+  pull_request:
     paths:
       - 'pkgs/**'
   workflow_dispatch:
