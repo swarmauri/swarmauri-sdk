@@ -18,12 +18,16 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Detect changed files and group tests by package
-        id: detect
+      - name: Set up Git
         run: |
+          git fetch --prune --unshallow
+
+      - name: Detect changes and generate test matrix
+        run: |
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH=${{ github.sha }}
+          
           echo "Comparing changes between $BASE_BRANCH and $HEAD_BRANCH..."
           
           # Validate branches
@@ -66,7 +70,7 @@ jobs:
             fi
           done
           
-          MATRIX="["
+          MATRIX="["  # Start building the matrix
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
             UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
             MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
@@ -75,7 +79,6 @@ jobs:
           
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-
 
   run-tests:
     needs: detect-changed-files
