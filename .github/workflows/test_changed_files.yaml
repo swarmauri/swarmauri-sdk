@@ -28,9 +28,16 @@ jobs:
             BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
             HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
           elif [ "${{ github.event_name }}" = "push" ]; then
-            BASE_BRANCH="origin/${{ github.ref_name }}"  # Current branch for push
-            git fetch origin $BASE_BRANCH
-            HEAD_BRANCH="HEAD"  # Compare with last commit
+            BASE_BRANCH="origin/${{ github.ref_name }}"  # The branch being pushed to
+            HEAD_BRANCH="HEAD"  # Compare against the current state
+            # Check if the branch exists remotely before fetching
+            if git ls-remote --exit-code origin $BASE_BRANCH; then
+              echo "Branch $BASE_BRANCH exists remotely. Fetching..."
+              git fetch origin $BASE_BRANCH
+            else
+              echo "Branch $BASE_BRANCH does not exist remotely. Comparing against HEAD^."
+              BASE_BRANCH="HEAD^"  # Compare against the previous commit
+            fi
           else
             echo "Unsupported event: ${{ github.event_name }}"
             exit 1
@@ -43,13 +50,8 @@ jobs:
       - name: Detect changed files and group tests by package
         id: detect
         run: |
-          # Use the base and head branches determined earlier
           BASE_BRANCH=$BASE_BRANCH
           HEAD_BRANCH=$HEAD_BRANCH
-
-          echo "Fetching branches..."
-          git fetch origin $BASE_BRANCH
-          git fetch origin $HEAD_BRANCH
 
           echo "Comparing changes..."
           CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...$HEAD_BRANCH | grep '^pkgs/')
@@ -57,13 +59,11 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          # Initialize a dictionary to group test files by package
           declare -A PACKAGE_TEST_MAP
 
-          # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
-            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract base name
+            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
 
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
@@ -91,14 +91,6 @@ jobs:
 
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-
-      - name: Debug environment
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Branch name: ${{ github.ref_name }}"
-          echo "Base branch: $BASE_BRANCH"
-          echo "Head branch: $HEAD_BRANCH"
-          git log -n 5 --oneline
 
   run-tests:
     needs: detect-changed-files
