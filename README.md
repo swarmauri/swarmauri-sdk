@@ -2,13 +2,26 @@
 
 <div style="text-align: center;">
 
-[![Star on GitHub](https://img.shields.io/github/stars/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/stargazers) [![Fork on GitHub](https://img.shields.io/github/forks/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/network/members) [![Watch on GitHub](https://img.shields.io/github/watchers/swarmauri/swarmauri-sdk?style=social)](https://github.com/swarmauri/swarmauri-sdk/watchers)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri)
+![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false) 
+![GitHub repo size](https://img.shields.io/github/repo-size/swarmauri/swarmauri-sdk)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri) ![PyPI - License](https://img.shields.io/pypi/l/swarmauri)
 
 
-![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false) ![v0.5.1](https://img.shields.io/badge/Version-v0.5.0-green) ![Stable](https://img.shields.io/github/actions/workflow/status/swarmauri/swarmauri-sdk/publish_stable.yml)  ![Staging](https://img.shields.io/github/actions/workflow/status/swarmauri/swarmauri-sdk/staging.yml) [![License: MIT](https://img.shields.io/badge/License-Apache-yellow.svg)]([https://github.com/swarmauri/swarmauri-sdk/LICENSE](https://github.com/swarmauri/swarmauri-sdk?tab=Apache-2.0-1-ov-file#readme)) 
 
-[![Stable](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/publish_stable.yml/badge.svg)](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/publish_stable.yml)
-[![Staging](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/staging.yml/badge.svg)](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/staging.yml)
+
+
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_core&color=green)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_community&color=yellow)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_experimental&color=yellow)
+
+
+
+
+
+
+
 </div>
 
 ---
