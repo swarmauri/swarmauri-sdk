@@ -18,44 +18,62 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch entire history for diffing
 
       - name: Set up Git
         run: |
-          git fetch --prune --unshallow
+          git fetch --all
+
+      - name: Get Changed Files (Push)
+        if: github.event_name == 'push'
+        run: |
+          echo "Files changed in this push:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
+      - name: Get Changed Files (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Files changed in this pull request:"
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+
+      - name: Save Changed Files List (Push)
+        if: github.event_name == 'push'
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
+
+      - name: Save Changed Files List (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
+
+      - name: Output Changed Files
+        run: |
+          echo "Changed files:"
+          cat changed_files.txt
 
       - name: Detect changes and generate test matrix
         id: detect
         run: |
-          echo "Comparing changes between previous commit and current commit..."
+          echo "Detecting changes..."
 
-          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-              BASE_BRANCH=${{ github.event.pull_request.base.ref }}
-              HEAD_BRANCH=${{ github.sha }}
-          elif [[ $GITHUB_EVENT_NAME == "push" ]]; then
-              BASE_BRANCH="HEAD~1"
-              HEAD_BRANCH=${{ github.sha }}
-          else
-              echo "Unsupported event type: $GITHUB_EVENT_NAME"
-              exit 1
-          fi
-          
-          git rev-parse $BASE_BRANCH || { echo "Invalid BASE_BRANCH: $BASE_BRANCH"; exit 1; }
-          git rev-parse $HEAD_BRANCH || { echo "Invalid HEAD_BRANCH: $HEAD_BRANCH"; exit 1; }
-          
-          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH $HEAD_BRANCH | grep '^pkgs/')
-          
+          CHANGED_FILES=$(cat changed_files.txt | grep '^pkgs/')
+
           if [ -z "$CHANGED_FILES" ]; then
               echo "No changes detected."
               echo "matrix=[]" >> $GITHUB_OUTPUT
               exit 0
           fi
-          
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
           declare -A PACKAGE_TEST_MAP
           
           for FILE in $CHANGED_FILES; do
               PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
               COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
-          
+
               if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
                   RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
                   PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
@@ -70,11 +88,11 @@ jobs:
                   fi
               fi
           done
-          
+
           MATRIX="["  
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
               UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"${UNIQUE_TEST_FILES// /}\"},"
+              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
           done
           MATRIX="${MATRIX%,}]"
 
