@@ -21,24 +21,38 @@ jobs:
         with:
           fetch-depth: 0
 
-
-      - name: Detect changed files and group tests by package
-
-        id: detect
+      - name: Determine base and head branches
+        id: determine-branches
         run: |
-          # Determine base branch and head branch
-          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
-          HEAD_BRANCH=${{ github.event.pull_request.head.ref }}
-
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+            HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            BASE_BRANCH="origin/${{ github.ref_name }}"  # Current branch for push
+            git fetch origin $BASE_BRANCH
+            HEAD_BRANCH="HEAD"  # Compare with last commit
+          else
+            echo "Unsupported event: ${{ github.event_name }}"
+            exit 1
+          fi
           echo "Base branch: $BASE_BRANCH"
           echo "Head branch: $HEAD_BRANCH"
+          echo "base_branch=$BASE_BRANCH" >> $GITHUB_ENV
+          echo "head_branch=$HEAD_BRANCH" >> $GITHUB_ENV
 
-          # Fetch both branches
+      - name: Detect changed files and group tests by package
+        id: detect
+        run: |
+          # Use the base and head branches determined earlier
+          BASE_BRANCH=$BASE_BRANCH
+          HEAD_BRANCH=$HEAD_BRANCH
+
+          echo "Fetching branches..."
           git fetch origin $BASE_BRANCH
           git fetch origin $HEAD_BRANCH
 
-          # Compare the source and target branches
-          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...origin/$HEAD_BRANCH | grep '^pkgs/')
+          echo "Comparing changes..."
+          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...$HEAD_BRANCH | grep '^pkgs/')
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
@@ -46,28 +60,21 @@ jobs:
           # Initialize a dictionary to group test files by package
           declare -A PACKAGE_TEST_MAP
 
-
           # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
-            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
+            COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract base name
 
-            # Check if the file itself is a test file
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
-
-              # Directly add the test file to the package's test list
-              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
+              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
               PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
             else
-              # Search for test files related to the changed source file
               TEST_DIR="pkgs/$PACKAGE/tests"
-
               if [ -d "$TEST_DIR" ]; then
                 MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
                 for TEST_FILE in $MATCHING_TEST_FILES; do
-                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
+                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")
                   PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
-
                 done
               else
                 echo "Warning: Test directory $TEST_DIR does not exist."
@@ -75,21 +82,28 @@ jobs:
             fi
           done
 
-          # Generate the final JSON matrix by grouping tests by package
           MATRIX="["
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
             UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
             MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
           done
-          MATRIX="${MATRIX%,}]"  # Remove trailing comma and close JSON array
+          MATRIX="${MATRIX%,}]"  # Remove trailing comma
 
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
+      - name: Debug environment
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Branch name: ${{ github.ref_name }}"
+          echo "Base branch: $BASE_BRANCH"
+          echo "Head branch: $HEAD_BRANCH"
+          git log -n 5 --oneline
+
   run-tests:
     needs: detect-changed-files
     runs-on: ubuntu-latest
-    if: needs.detect-changed-files.outputs.matrix != '[]'  # Skip if no tests to run
+    if: needs.detect-changed-files.outputs.matrix && needs.detect-changed-files.outputs.matrix != '[]'
     strategy:
       fail-fast: false
       matrix:
@@ -116,7 +130,6 @@ jobs:
 
       - name: Run all tests for the package
         run: |
-
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
