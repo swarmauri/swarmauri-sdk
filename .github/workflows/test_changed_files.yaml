@@ -4,9 +4,6 @@ on:
   push:
     paths:
       - 'pkgs/**'
-  pull_request:
-    paths:
-      - 'pkgs/**'
   workflow_dispatch:
 
 jobs:
