@@ -22,60 +22,59 @@ jobs:
           fetch-depth: 0
 
 
-      - name: Fetch branches or prepare for commit hash diff
-        run: |
-          if [[ $BASE_BRANCH =~ ^[a-f0-9]{40}$ ]] && [[ $HEAD_BRANCH =~ ^[a-f0-9]{40}$ ]]; then
-            echo "Using commit hashes for comparison: $BASE_BRANCH...$HEAD_BRANCH"
-            FETCH_REQUIRED=false
-          else
-            echo "Fetching base and head branches: $BASE_BRANCH and $HEAD_BRANCH"
-            git fetch origin $BASE_BRANCH
-            git fetch origin $HEAD_BRANCH
-            FETCH_REQUIRED=true
-          fi
-          echo "fetch_required=$FETCH_REQUIRED" >> $GITHUB_ENV
-      
       - name: Detect changed files and group tests by package
+
         id: detect
         run: |
-          if [ "$fetch_required" = "false" ]; then
-            CHANGED_FILES=$(git diff --name-only $BASE_BRANCH $HEAD_BRANCH | grep '^pkgs/')
-          else
-            CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...origin/$HEAD_BRANCH | grep '^pkgs/')
-          fi
-      
+          # Determine base branch and head branch
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH=${{ github.event.pull_request.head.ref }}
+
+          echo "Base branch: $BASE_BRANCH"
+          echo "Head branch: $HEAD_BRANCH"
+
+          # Fetch both branches
+          git fetch origin $BASE_BRANCH
+          git fetch origin $HEAD_BRANCH
+
+          # Compare the source and target branches
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...origin/$HEAD_BRANCH | grep '^pkgs/')
+
           echo "Changed files:"
           echo "$CHANGED_FILES"
-      
+
           # Initialize a dictionary to group test files by package
           declare -A PACKAGE_TEST_MAP
-      
+
+
           # Iterate through changed files
           for FILE in $CHANGED_FILES; do
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
             COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')  # Extract the base name of the file without extension
-      
+
             # Check if the file itself is a test file
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+
               # Directly add the test file to the package's test list
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
               PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
             else
               # Search for test files related to the changed source file
               TEST_DIR="pkgs/$PACKAGE/tests"
-      
+
               if [ -d "$TEST_DIR" ]; then
                 MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
                 for TEST_FILE in $MATCHING_TEST_FILES; do
                   RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")  # Relative path from package root
                   PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
+
                 done
               else
                 echo "Warning: Test directory $TEST_DIR does not exist."
               fi
             fi
           done
-      
+
           # Generate the final JSON matrix by grouping tests by package
           MATRIX="["
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
@@ -83,7 +82,7 @@ jobs:
             MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
           done
           MATRIX="${MATRIX%,}]"  # Remove trailing comma and close JSON array
-      
+
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
