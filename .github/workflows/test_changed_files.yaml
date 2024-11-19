@@ -28,20 +28,13 @@ jobs:
             BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
             HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
           elif [ "${{ github.event_name }}" = "push" ]; then
-            BASE_BRANCH="origin/${{ github.ref_name }}"  # The branch being pushed to
-            HEAD_BRANCH="HEAD"  # Compare against the current state
-            # Check if the branch exists remotely before fetching
-            if git ls-remote --exit-code origin $BASE_BRANCH; then
-              echo "Branch $BASE_BRANCH exists remotely. Fetching..."
-              git fetch origin $BASE_BRANCH
-            else
-              echo "Branch $BASE_BRANCH does not exist remotely. Comparing against HEAD^."
-              BASE_BRANCH="HEAD^"  # Compare against the previous commit
-            fi
+            BASE_BRANCH="HEAD^"  # Last commit on the same branch
+            HEAD_BRANCH="HEAD"   # Current commit
           else
             echo "Unsupported event: ${{ github.event_name }}"
             exit 1
           fi
+
           echo "Base branch: $BASE_BRANCH"
           echo "Head branch: $HEAD_BRANCH"
           echo "base_branch=$BASE_BRANCH" >> $GITHUB_ENV
@@ -53,8 +46,8 @@ jobs:
           BASE_BRANCH=$BASE_BRANCH
           HEAD_BRANCH=$HEAD_BRANCH
 
-          echo "Comparing changes..."
-          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...$HEAD_BRANCH | grep '^pkgs/')
+          echo "Comparing changes between $BASE_BRANCH and $HEAD_BRANCH..."
+          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH $HEAD_BRANCH | grep '^pkgs/')
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
