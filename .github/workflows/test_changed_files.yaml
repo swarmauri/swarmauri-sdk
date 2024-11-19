@@ -29,11 +29,9 @@ jobs:
 
           # Set the HEAD commit and previous commit for push events
           if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-              # For pull request events, use the base and head commit from the PR
               BASE_BRANCH=${{ github.event.pull_request.base.ref }}
               HEAD_BRANCH=${{ github.sha }}
           elif [[ $GITHUB_EVENT_NAME == "push" ]]; then
-              # For push events, compare HEAD with the previous commit (HEAD~1)
               BASE_BRANCH="HEAD~1"
               HEAD_BRANCH=${{ github.sha }}
           else
@@ -41,7 +39,6 @@ jobs:
               exit 1
           fi
           
-          # Validate the commits
           git rev-parse $BASE_BRANCH || { echo "Invalid BASE_BRANCH: $BASE_BRANCH"; exit 1; }
           git rev-parse $HEAD_BRANCH || { echo "Invalid HEAD_BRANCH: $HEAD_BRANCH"; exit 1; }
           
@@ -60,7 +57,6 @@ jobs:
           declare -A PACKAGE_TEST_MAP
           
           for FILE in $CHANGED_FILES; do
-              echo "Processing file: $FILE"
               PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
               COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
           
@@ -84,14 +80,12 @@ jobs:
           MATRIX="["  # Start building the matrix
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
               UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
+              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"${UNIQUE_TEST_FILES// /}\"},"
           done
           MATRIX="${MATRIX%,}]"  # Remove trailing comma
           
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-
-
 
   run-tests:
     needs: detect-changed-files
@@ -105,6 +99,10 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Log matrix output
+        run: |
+          echo "Matrix output: ${{ needs.detect-changed-files.outputs.matrix }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
