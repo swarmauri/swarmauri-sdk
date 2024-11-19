@@ -21,43 +21,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine base and head branches
-        id: determine-branches
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-            HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            BASE_BRANCH="HEAD^"  # Last commit on the same branch
-            HEAD_BRANCH="HEAD"   # Current commit
-          else
-            echo "Unsupported event: ${{ github.event_name }}"
-            exit 1
-          fi
-
-          echo "Base branch: $BASE_BRANCH"
-          echo "Head branch: $HEAD_BRANCH"
-          echo "base_branch=$BASE_BRANCH" >> $GITHUB_ENV
-          echo "head_branch=$HEAD_BRANCH" >> $GITHUB_ENV
-
       - name: Detect changed files and group tests by package
         id: detect
         run: |
-          BASE_BRANCH=$BASE_BRANCH
-          HEAD_BRANCH=$HEAD_BRANCH
-
           echo "Comparing changes between $BASE_BRANCH and $HEAD_BRANCH..."
+          
+          # Validate branches
+          git rev-parse $BASE_BRANCH || { echo "Invalid BASE_BRANCH: $BASE_BRANCH"; exit 1; }
+          git rev-parse $HEAD_BRANCH || { echo "Invalid HEAD_BRANCH: $HEAD_BRANCH"; exit 1; }
+          
+          # Run git diff to find changed files
           CHANGED_FILES=$(git diff --name-only $BASE_BRANCH $HEAD_BRANCH | grep '^pkgs/')
-
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes detected between $BASE_BRANCH and $HEAD_BRANCH."
+            echo "matrix=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           echo "Changed files:"
           echo "$CHANGED_FILES"
-
+          
           declare -A PACKAGE_TEST_MAP
-
+          
           for FILE in $CHANGED_FILES; do
+            echo "Processing file: $FILE"
             PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
             COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
-
+          
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
               PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
@@ -74,16 +65,17 @@ jobs:
               fi
             fi
           done
-
+          
           MATRIX="["
           for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
             UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
             MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"$UNIQUE_TEST_FILES\"},"
           done
           MATRIX="${MATRIX%,}]"  # Remove trailing comma
-
+          
           echo "Final test matrix: $MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
 
   run-tests:
     needs: detect-changed-files
