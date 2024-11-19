@@ -6,7 +6,7 @@ class DelimiterBasedChunker(ChunkerBase):
     """
     A concrete implementation of IChunker that splits text into chunks based on specified delimiters.
     """
-    version: str = "0.1.0.dev2"
+    version: str = "0.1.0.dev3"
     delimiters: List[str] = ['.', '!', '?']
     type: Literal['DelimiterBasedChunker'] = 'DelimiterBasedChunker'
     
