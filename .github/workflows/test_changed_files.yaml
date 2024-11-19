@@ -34,7 +34,7 @@ jobs:
               HEAD_BRANCH=${{ github.sha }}
           elif [[ $GITHUB_EVENT_NAME == "push" ]]; then
               # For push events, use the base branch of your repo (usually 'main' or 'master')
-              BASE_BRANCH="main"  # Or whatever your default branch is
+              BASE_BRANCH="master"  # Or whatever your default branch is
               HEAD_BRANCH=${{ github.sha }}
           else
               echo "Unsupported event type: $GITHUB_EVENT_NAME"
