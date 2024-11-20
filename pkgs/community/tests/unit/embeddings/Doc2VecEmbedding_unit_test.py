@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 
 @pytest.mark.unit
 def test_ubc_resource():

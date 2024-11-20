@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.embeddings.concrete.MlmEmbedding import MlmEmbedding
+from swarmauri_community.embeddings.concrete.MlmEmbedding import MlmEmbedding
 
 @pytest.mark.unit
 def test_ubc_resource():
