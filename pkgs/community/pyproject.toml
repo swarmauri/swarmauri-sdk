@@ -26,6 +26,7 @@ textblob = { version = "^0.18.0", optional = true }
 torch = { version = "^2.5.0", optional = true }
 leptonai = { version = "==0.22.0", optional = true }
 redis = { version = "^4.0", optional = true }
+pinecone-client = { version = ">=2.0.0", optional = true, extras = ["grpc"] }
 #protobuf = { version = "^3.20.0", optional = true }
 #numba = { version = ">=0.59.0", optional = true }
 #pacmap = { version = "==0.7.3", optional = true }
@@ -35,7 +36,7 @@ redis = { version = "^4.0", optional = true }
 nlp = ["nltk", "textblob", "textstat", "gensim"]
 ml_toolkits = ["transformers", "annoy"]
 visualization = ["folium", "matplotlib"]
-storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client[grpc]"]
+storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client"]
 document_processing = ["PyPDF2", "pymupdf", "pypdftk"]
 cloud_integration = ["psutil", "qrcode", "pygithub"]
 spacy = ["spacy"]
@@ -52,7 +53,7 @@ full = [
     "nltk", "gensim", "textstat",
     "transformers", "annoy",
     "folium", "matplotlib",
-    "redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client[grpc]",
+    "redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client",
     "PyPDF2", "pymupdf", "pypdftk",
     "psutil", "qrcode", "pygithub",
     "scipy", "spacy",
