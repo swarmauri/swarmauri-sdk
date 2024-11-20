@@ -1,6 +1,6 @@
 import pytest
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.vector_stores.concrete.MlmVectorStore import MlmVectorStore
+from swarmauri_community.vector_stores.MlmVectorStore import MlmVectorStore
 
 
 @pytest.mark.unit
