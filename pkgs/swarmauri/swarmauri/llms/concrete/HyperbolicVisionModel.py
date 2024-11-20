@@ -25,6 +25,9 @@ class HyperbolicVisionModel(LLMBase):
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
         type (Literal["HyperbolicVisionModel"]): The type identifier for this class.
+
+    Link to Allowed Models: https://app.hyperbolic.xyz/models
+    Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
     api_key: str
