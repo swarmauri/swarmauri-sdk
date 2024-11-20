@@ -9,7 +9,7 @@ class ImageGenBase(IGenImage, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.IMAGE_GEN.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    type: Literal["LLMBase"] = "LLMBase"
+    type: Literal["ImageGenBase"] = "ImageGenBase"
 
     @model_validator(mode="after")
     @classmethod
