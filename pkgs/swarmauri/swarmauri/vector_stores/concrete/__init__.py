@@ -12,7 +12,7 @@ def _lazy_import(module_name, module_description=None):
 
 # List of vector store names (file names without the ".py" extension)
 vector_store_files = [
-    "Doc2VecVectorStore",
+    # "Doc2VecVectorStore",
     "MlmVectorStore",
     "SqliteVectorStore",
     "TfidfVectorStore",

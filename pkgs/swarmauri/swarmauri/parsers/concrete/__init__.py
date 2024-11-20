@@ -24,7 +24,7 @@ parser_files = [
     "PythonParser",
     "RegExParser",
     "TextBlobNounParser",
-    "TextBlobSentenceParser",
+    # "TextBlobSentenceParser",
     "URLExtractorParser",
     "XMLParser",
 ]
