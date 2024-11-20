@@ -13,7 +13,7 @@ def _lazy_import(module_name, module_description=None):
 # List of parser names (file names without the ".py" extension)
 parser_files = [
     "BeautifulSoupElementParser",
-    "BERTEmbeddingParser",
+    # "BERTEmbeddingParser",
     "CSVParser",
     "EntityRecognitionParser",
     "HTMLTagStripParser",
@@ -23,8 +23,8 @@ parser_files = [
     "PhoneNumberExtractorParser",
     "PythonParser",
     "RegExParser",
-    "TextBlobNounParser",
-    "TextBlobSentenceParser",
+    # "TextBlobNounParser",
+    # "TextBlobSentenceParser",
     "URLExtractorParser",
     "XMLParser",
 ]

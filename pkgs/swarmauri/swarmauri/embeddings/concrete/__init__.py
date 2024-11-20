@@ -11,20 +11,20 @@ def _lazy_import(module_name, module_description=None):
         return None
 
 # Lazy loading of embeddings with descriptive names
-Doc2VecEmbedding = _lazy_import("swarmauri.embeddings.concrete.Doc2VecEmbedding", "Doc2VecEmbedding")
+# Doc2VecEmbedding = _lazy_import("swarmauri.embeddings.concrete.Doc2VecEmbedding", "Doc2VecEmbedding")
 GeminiEmbedding = _lazy_import("swarmauri.embeddings.concrete.GeminiEmbedding", "GeminiEmbedding")
 MistralEmbedding = _lazy_import("swarmauri.embeddings.concrete.MistralEmbedding", "MistralEmbedding")
-MlmEmbedding = _lazy_import("swarmauri.embeddings.concrete.MlmEmbedding", "MlmEmbedding")
+# MlmEmbedding = _lazy_import("swarmauri.embeddings.concrete.MlmEmbedding", "MlmEmbedding")
 NmfEmbedding = _lazy_import("swarmauri.embeddings.concrete.NmfEmbedding", "NmfEmbedding")
 OpenAIEmbedding = _lazy_import("swarmauri.embeddings.concrete.OpenAIEmbedding", "OpenAIEmbedding")
 TfidfEmbedding = _lazy_import("swarmauri.embeddings.concrete.TfidfEmbedding", "TfidfEmbedding")
 
 # Adding lazy-loaded modules to __all__
 __all__ = [
-    "Doc2VecEmbedding",
+    # "Doc2VecEmbedding",
     "GeminiEmbedding",
     "MistralEmbedding",
-    "MlmEmbedding",
+    # "MlmEmbedding",
     "NmfEmbedding",
     "OpenAIEmbedding",
     "TfidfEmbedding",
