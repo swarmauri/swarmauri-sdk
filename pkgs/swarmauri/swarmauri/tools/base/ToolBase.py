@@ -19,9 +19,6 @@ class ToolBase(ITool, ComponentBase, ABC):
     @abstractmethod
     def __call__(self, *args, **kwargs):
         raise NotImplementedError("Subclasses must implement the __call__ method.")
-    
-    def extract_signature_details(self):
-        pass
 
 
 # #def __getstate__(self):
