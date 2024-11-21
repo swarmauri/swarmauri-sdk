@@ -1,5 +1,5 @@
 from typing import List, Union, Literal, Optional
-from pydantic import BaseModel, PrivateAttr, field_validator
+from pydantic import BaseModel, PrivateAttr
 from neo4j import GraphDatabase
 import json
 

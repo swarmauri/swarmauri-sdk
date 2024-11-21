@@ -41,14 +41,16 @@ pinecone-client = { version = "^5.0.1", optional = true, extras = ["grpc"] }
 pypdf = { version = "^5.0.1", optional = true }
 pypdftk = { version = "^0.5", optional = true }
 weaviate-client = { version = "^4.9.2", optional = true }
+textblob = { version = "^0.18.0", optional = true }
+torch = { version = "^2.4.1", optional = true}
 #protobuf = { version = "^3.20.0", optional = true }
 
 [tool.poetry.extras]
 # Grouped optional dependencies
-nlp = ["nltk", "gensim", "textstat"]
+nlp = ["nltk", "gensim", "textstat", "textblob", "torch"]
 ml_toolkits = ["transformers", "annoy"]
 visualization = ["folium"]
-storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant-client", "weaviate", "pinecone-client"]
+storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant-client", "weaviate-client", "pinecone-client"]
 document_processing = ["pypdf", "PyMuPDF", "pypdftk"]
 cloud_integration = ["psutil", "qrcode", "pygithub"]
 gradio = ["gradio"]
@@ -57,10 +59,10 @@ tiktoken = ["tiktoken"]
 
 # Full installation
 full = [
-    "nltk", "gensim", "textstat",
+    "nltk", "gensim", "textstat", "textblob", "torch",
     "transformers", "annoy",
     "folium",
-    "redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate", "pinecone-client",
+    "redis", "duckdb", "neo4j", "chromadb", "qdrant-client", "weaviate-client", "pinecone-client",
     "pypdf", "PyMuPDF", "pypdftk",
     "psutil", "qrcode", "pygithub",
     "gradio",

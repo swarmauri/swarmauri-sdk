@@ -5,7 +5,7 @@ from chromadb.config import Settings
 from typing import List, Union, Literal
 
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase

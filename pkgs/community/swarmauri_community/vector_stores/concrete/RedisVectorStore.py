@@ -1,16 +1,15 @@
 import json
-from typing import List, Union, Literal, Dict, Optional
+from typing import List, Union, Literal, Optional
 from pydantic import PrivateAttr
 
 import numpy as np
 import redis
-from redis.commands.search.field import VectorField, TextField, TagField
+from redis.commands.search.field import VectorField, TextField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from redis.commands.search.query import Query
 
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding  # or your specific embedder
+from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding  # or your specific embedder
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
 from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin

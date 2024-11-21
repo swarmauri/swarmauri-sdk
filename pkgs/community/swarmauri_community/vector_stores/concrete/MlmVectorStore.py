@@ -5,7 +5,8 @@ from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin    
+from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin
+
 
 class MlmVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase):
     type: Literal['MlmVectorStore'] = 'MlmVectorStore'
