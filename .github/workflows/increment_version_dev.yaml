@@ -23,6 +23,8 @@ jobs:
 
       - name: Increment versions in pyproject.toml
         run: |
+          set -x
+          
           echo "Incrementing versions..."
           find . -name "pyproject.toml" | while read -r pyproject; do
               echo "Processing $pyproject"
@@ -34,14 +36,20 @@ jobs:
               with open('$pyproject', 'r') as f:
                   data = tomlkit.parse(f.read())
                   print(data['tool']['poetry']['version'])
+          except KeyError:
+              print(f'Error: Version key not found in {pyproject}', end='')
+              exit(1)
           except Exception as e:
-              print('Error reading version:', e)
+              print(f'Error reading version from {pyproject}: {e}', end='')
               exit(1)
           ")
           
+              echo "Extracted CURRENT_VERSION: $CURRENT_VERSION"
+          
               if [ -z "$CURRENT_VERSION" ]; then
                   echo "Error: Could not extract the current version from $pyproject"
-                  exit 1
+                  cat "$pyproject"
+                  continue
               fi
           
               # Increment version
