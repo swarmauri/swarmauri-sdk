@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-community"
-version = "0.5.3.dev2"
+version = "0.5.3.dev3"
 description = "This repository includes Swarmauri community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -88,4 +88,18 @@ python-dotenv = "^1.0.0"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pytest.ini
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "acceptance: Acceptance tests",
+    "experimental: Experimental tests"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
