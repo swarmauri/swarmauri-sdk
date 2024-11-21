@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri"
-version = "0.5.2"
+version = "0.5.3.dev2"
 description = "This repository includes base classes, concrete generics, and concrete standard components within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -52,7 +52,11 @@ matplotlib = { version = ">=3.9.2", optional = true }
 # Extras without versioning, grouped for specific use cases
 io = ["aiofiles", "aiohttp"]
 #llms = ["cohere", "mistralai", "fal-client", "google-generativeai", "openai"]
-nlp = ["nltk", "textblob", "yake"]
+nlp = [
+    #"nltk", 
+    #"textblob", 
+    "yake"
+]
 nlp_tools = ["beautifulsoup4"]
 #ml_toolkits = ["gensim", "scipy", "scikit-learn"]
 #spacy = ["spacy"]
