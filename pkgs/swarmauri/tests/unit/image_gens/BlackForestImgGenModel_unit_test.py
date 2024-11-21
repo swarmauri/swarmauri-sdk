@@ -1,7 +1,7 @@
 import pytest
 import os
 from dotenv import load_dotenv
-from swarmauri.llms.concrete.BlackForestImgGenModel import (
+from swarmauri.image_gens.concrete.BlackForestImgGenModel import (
     BlackForestImgGenModel,
 )
 
@@ -30,7 +30,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_model_resource(blackforest_imggen_model):
-    assert blackforest_imggen_model.resource == "LLM"
+    assert blackforest_imggen_model.resource == "ImageGen"
 
 
 @timeout(5)

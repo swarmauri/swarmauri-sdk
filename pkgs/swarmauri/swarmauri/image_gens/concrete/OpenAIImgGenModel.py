@@ -2,11 +2,11 @@ from pydantic import PrivateAttr
 import asyncio
 import httpx
 from typing import Dict, List, Literal, Optional
+from swarmauri.image_gens.base.ImageGenBase import ImageGenBase
 from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.llms.base.LLMBase import LLMBase
 
 
-class OpenAIImgGenModel(LLMBase):
+class OpenAIImgGenModel(ImageGenBase):
     """
     OpenAIImgGenModel is a class for generating images using OpenAI's DALL-E models.
 
@@ -26,14 +26,14 @@ class OpenAIImgGenModel(LLMBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
         """
-        super().__init__(**data)
+        super().__init__(**kwargs)
         self._headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",

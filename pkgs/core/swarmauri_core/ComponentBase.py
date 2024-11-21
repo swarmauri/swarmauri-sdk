@@ -34,6 +34,7 @@ class ResourceTypes(Enum):
     DOCUMENT = "Document"
     EMBEDDING = "Embedding"
     EXCEPTION = "Exception"
+    IMAGE_GEN = "ImageGen"
     LLM = "LLM"
     MESSAGE = "Message"
     MEASUREMENT = "Measurement"

@@ -3,11 +3,11 @@ import asyncio
 from typing import List, Literal, Optional, Dict
 from pydantic import Field, PrivateAttr
 from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.image_gens.base.ImageGenBase import ImageGenBase
 import time
 
 
-class FalAIImgGenModel(LLMBase):
+class FalAIImgGenModel(ImageGenBase):
     """
     A model class for generating images from text using FluxPro's image generation model,
     provided by FalAI. This class uses a queue-based API to handle image generation requests.
@@ -34,7 +34,7 @@ class FalAIImgGenModel(LLMBase):
     max_retries: int = Field(default=60)  # Maximum number of status check retries
     retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
 
-    def __init__(self, **data):
+    def __init__(self, **kwargs):
         """
         Initializes the model with the specified API key and model name.
 
@@ -44,7 +44,7 @@ class FalAIImgGenModel(LLMBase):
         Raises:
             ValueError: If an invalid model name is provided.
         """
-        super().__init__(**data)
+        super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key}",

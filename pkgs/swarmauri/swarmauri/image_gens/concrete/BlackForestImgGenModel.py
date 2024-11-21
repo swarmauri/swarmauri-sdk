@@ -1,35 +1,35 @@
 import httpx
 import time
-from typing import List, Literal, Optional, Dict, ClassVar
+from typing import List, Literal, Optional, Dict
 from pydantic import PrivateAttr
 from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.image_gens.base.ImageGenBase import ImageGenBase
 import asyncio
 import contextlib
 
 
-class BlackForestImgGenModel(LLMBase):
+class BlackForestImgGenModel(ImageGenBase):
     """
     A model for generating images using FluxPro's image generation models through the Black Forest API.
     Link to API key: https://api.bfl.ml/auth/profile
     """
 
     _BASE_URL: str = PrivateAttr("https://api.bfl.ml")
-    _client: httpx.Client = PrivateAttr()
+    _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _headers: Dict[str, str] = PrivateAttr(default=None)
 
     api_key: str
     allowed_models: List[str] = ["flux-pro-1.1", "flux-pro", "flux-dev"]
 
-    asyncio: ClassVar = asyncio
     name: str = "flux-pro"  # Default model
     type: Literal["BlackForestImgGenModel"] = "BlackForestImgGenModel"
 
-    def __init__(self, **data):
+    def __init__(self, **kwargs):
         """
         Initializes the BlackForestImgGenModel instance with HTTP clients.
         """
-        super().__init__(**data)
+        super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
             "X-Key": self.api_key,
