@@ -2,7 +2,7 @@ import pytest
 import os
 import json
 from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.vector_stores.DuckDBVectorStore import DuckDBVectorStore
+from swarmauri_community.vector_stores.concrete.DuckDBVectorStore import DuckDBVectorStore
 
 
 @pytest.fixture(params=[":memory:", "test_db.db"])
