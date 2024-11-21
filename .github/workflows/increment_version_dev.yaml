@@ -1,0 +1,85 @@
+name: Increment Versions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  increment-versions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install TOML editor
+        run: |
+          python -m pip install --upgrade pip
+          pip install tomlkit
+
+      - name: Increment versions in pyproject.toml
+        run: |
+          echo "Incrementing versions..."
+          find . -name "pyproject.toml" | while read -r pyproject; do
+            echo "Processing $pyproject"
+
+            # Extract current version
+            CURRENT_VERSION=$(python -c "
+import tomlkit
+with open('$pyproject', 'r') as f:
+    data = tomlkit.parse(f.read())
+    print(data['tool']['poetry']['version'])
+")
+
+            # Increment version
+            BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(.*)-dev.*/\1/')
+            DEV_PART=$(echo "$CURRENT_VERSION" | grep -oE 'dev[0-9]+$' | grep -oE '[0-9]+')
+            NEW_DEV_PART=$((DEV_PART + 1))
+            NEW_VERSION="${BASE_VERSION}-dev${NEW_DEV_PART:-1}"
+
+            echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
+
+            # Update version in pyproject.toml
+            python -c "
+import tomlkit
+with open('$pyproject', 'r') as f:
+    data = tomlkit.parse(f.read())
+data['tool']['poetry']['version'] = '$NEW_VERSION'
+with open('$pyproject', 'w') as f:
+    f.write(tomlkit.dumps(data))
+"
+
+            # Update dependencies starting with 'swarmauri'
+            python -c "
+import tomlkit
+with open('$pyproject', 'r') as f:
+    data = tomlkit.parse(f.read())
+dependencies = data['tool']['poetry'].get('dependencies', {})
+for dep, version in dependencies.items():
+    if dep.startswith('swarmauri') and isinstance(version, str):
+        base_version = version.split('-dev')[0]
+        dev_part = int(version.split('-dev')[-1]) if '-dev' in version else 0
+        new_version = f'{base_version}-dev{dev_part + 1}'
+        dependencies[dep] = new_version
+data['tool']['poetry']['dependencies'] = dependencies
+with open('$pyproject', 'w') as f:
+    f.write(tomlkit.dumps(data))
+"
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Incremented versions in pyproject.toml files"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
