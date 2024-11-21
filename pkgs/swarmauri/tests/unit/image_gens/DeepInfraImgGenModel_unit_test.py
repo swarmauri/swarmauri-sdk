@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.llms.concrete.DeepInfraImgGenModel import DeepInfraImgGenModel
+from swarmauri.image_gens.concrete.DeepInfraImgGenModel import DeepInfraImgGenModel
 from dotenv import load_dotenv
 
 from swarmauri.utils.timeout_wrapper import timeout

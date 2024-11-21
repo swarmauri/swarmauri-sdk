@@ -2,44 +2,59 @@ import httpx
 from typing import List, Literal
 from pydantic import PrivateAttr
 from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri.image_gens.base.ImageGenBase import ImageGenBase
 import asyncio
 import contextlib
 
 
-class DeepInfraImgGenModel(LLMBase):
+class HyperbolicImgGenModel(ImageGenBase):
     """
-    A model class for generating images from text prompts using DeepInfra's image generation API.
+    A model class for generating images from text prompts using Hyperbolic's image generation API.
 
     Attributes:
-        api_key (str): The API key for authenticating with the DeepInfra API.
+        api_key (str): The API key for authenticating with the Hyperbolic API.
         allowed_models (List[str]): A list of available models for image generation.
         asyncio (ClassVar): The asyncio module for handling asynchronous operations.
         name (str): The name of the model to be used for image generation.
-        type (Literal["DeepInfraImgGenModel"]): The type identifier for the model class.
+        type (Literal["HyperbolicImgGenModel"]): The type identifier for the model class.
+        height (int): Height of the generated image.
+        width (int): Width of the generated image.
+        steps (int): Number of inference steps.
+        cfg_scale (float): Classifier-free guidance scale.
+        enable_refiner (bool): Whether to enable the refiner model.
+        backend (str): Computational backend for the model.
 
-    Link to Allowed Models: https://deepinfra.com/models/text-to-image/
-    Link to API KEY: https://deepinfra.com/dash/api_keys
+    Link to Allowed Models: https://app.hyperbolic.xyz/models
+    Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    _BASE_URL: str = PrivateAttr("https://api.deepinfra.com/v1/inference")
-    _client: httpx.Client = PrivateAttr()
+    _BASE_URL: str = PrivateAttr("https://api.hyperbolic.xyz/v1/image/generation")
+    _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     api_key: str
     allowed_models: List[str] = [
-        "black-forest-labs/FLUX-1-dev",
-        "black-forest-labs/FLUX-1-schnell",
-        "stabilityai/sdxl-turbo",
-        "stabilityai/stable-diffusion-2-1",
+        "SDXL1.0-base",
+        "SD1.5",
+        "SSD",
+        "SD2",
+        "SDXL-turbo",
     ]
 
-    name: str = "stabilityai/stable-diffusion-2-1"  # Default model
-    type: Literal["DeepInfraImgGenModel"] = "DeepInfraImgGenModel"
+    name: str = "SDXL1.0-base"  # Default model
+    type: Literal["HyperbolicImgGenModel"] = "HyperbolicImgGenModel"
 
-    def __init__(self, **data):
+    # Additional configuration parameters
+    height: int = 1024
+    width: int = 1024
+    steps: int = 30
+    cfg_scale: float = 5.0
+    enable_refiner: bool = False
+    backend: str = "auto"
+
+    def __init__(self, **kwargs):
         """
-        Initializes the DeepInfraImgGenModel instance.
+        Initializes the HyperbolicImgGenModel instance.
 
         This constructor sets up HTTP clients for both synchronous and asynchronous
         operations and configures request headers with the provided API key.
@@ -47,7 +62,7 @@ class DeepInfraImgGenModel(LLMBase):
         Args:
             **data: Keyword arguments for model initialization.
         """
-        super().__init__(**data)
+        super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
@@ -74,12 +89,21 @@ class DeepInfraImgGenModel(LLMBase):
         """
         Creates the payload for the image generation request.
         """
-        return {"prompt": prompt}
+        return {
+            "model_name": self.name,
+            "prompt": prompt,
+            "height": self.height,
+            "width": self.width,
+            "steps": self.steps,
+            "cfg_scale": self.cfg_scale,
+            "enable_refiner": self.enable_refiner,
+            "backend": self.backend,
+        }
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str) -> dict:
         """
-        Sends a synchronous request to the DeepInfra API for image generation.
+        Sends a synchronous request to the Hyperbolic API for image generation.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -87,18 +111,15 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             dict: The response data from the API.
         """
-
-        url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt)
-
-        response = self._client.post(url, json=payload)
+        response = self._client.post(self._BASE_URL, json=payload)
         response.raise_for_status()
         return response.json()
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str) -> dict:
         """
-        Sends an asynchronous request to the DeepInfra API for image generation.
+        Sends an asynchronous request to the Hyperbolic API for image generation.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -106,12 +127,9 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             dict: The response data from the API.
         """
-
         client = await self._get_async_client()
-        url = f"{self._BASE_URL}/{self.name}"
         payload = self._create_request_payload(prompt)
-
-        response = await client.post(url, json=payload)
+        response = await client.post(self._BASE_URL, json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -126,8 +144,7 @@ class DeepInfraImgGenModel(LLMBase):
             str: The base64-encoded representation of the generated image.
         """
         response_data = self._send_request(prompt)
-        image_base64 = response_data["images"][0].split(",")[1]
-        return image_base64
+        return response_data["images"][0]["image"]
 
     async def agenerate_image_base64(self, prompt: str) -> str:
         """
@@ -141,8 +158,7 @@ class DeepInfraImgGenModel(LLMBase):
         """
         try:
             response_data = await self._async_send_request(prompt)
-            image_base64 = response_data["images"][0].split(",")[1]
-            return image_base64
+            return response_data["images"][0]["image"]
         finally:
             await self._close_async_client()
 
@@ -171,14 +187,13 @@ class DeepInfraImgGenModel(LLMBase):
         Returns:
             List[str]: A list of base64-encoded representations of the generated images.
         """
-
         try:
             semaphore = asyncio.Semaphore(max_concurrent)
 
             async def process_prompt(prompt):
                 async with semaphore:
                     response_data = await self._async_send_request(prompt)
-                    return response_data["images"][0].split(",")[1]
+                    return response_data["images"][0]["image"]
 
             tasks = [process_prompt(prompt) for prompt in prompts]
             return await asyncio.gather(*tasks)

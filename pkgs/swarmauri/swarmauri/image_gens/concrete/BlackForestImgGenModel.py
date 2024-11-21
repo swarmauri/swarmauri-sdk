@@ -1,6 +1,6 @@
 import httpx
 import time
-from typing import List, Literal, Optional, Dict, ClassVar
+from typing import List, Literal, Optional, Dict
 from pydantic import PrivateAttr
 from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.image_gens.base.ImageGenBase import ImageGenBase
@@ -21,15 +21,14 @@ class BlackForestImgGenModel(ImageGenBase):
     api_key: str
     allowed_models: List[str] = ["flux-pro-1.1", "flux-pro", "flux-dev"]
 
-    asyncio: ClassVar = asyncio
     name: str = "flux-pro"  # Default model
     type: Literal["BlackForestImgGenModel"] = "BlackForestImgGenModel"
 
-    def __init__(self, **data):
+    def __init__(self, **kwargs):
         """
         Initializes the BlackForestImgGenModel instance with HTTP clients.
         """
-        super().__init__(**data)
+        super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
             "X-Key": self.api_key,
