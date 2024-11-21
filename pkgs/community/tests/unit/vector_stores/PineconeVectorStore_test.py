@@ -1,7 +1,7 @@
 import os
 import pytest
 from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.vector_stores.PineconeVectorStore import PineconeVectorStore
+from swarmauri_community.vector_stores.concrete.PineconeVectorStore import PineconeVectorStore
 from dotenv import load_dotenv
 
 load_dotenv()

@@ -1,6 +1,6 @@
 import pytest
 from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.vector_stores.Doc2VecVectorStore import Doc2VecVectorStore
+from swarmauri_community.vector_stores.concrete.Doc2VecVectorStore import Doc2VecVectorStore
 
 
 @pytest.mark.unit
