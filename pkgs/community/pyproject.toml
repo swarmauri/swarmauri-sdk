@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-community"
-version = "0.5.2.dev20"
+version = "0.5.3.dev2"
 description = "This repository includes Swarmauri community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -27,9 +27,25 @@ torch = { version = "^2.5.0", optional = true }
 leptonai = { version = "==0.22.0", optional = true }
 redis = { version = "^4.0", optional = true }
 pinecone-client = { version = ">=2.0.0", optional = true, extras = ["grpc"] }
-#protobuf = { version = "^3.20.0", optional = true }
-#numba = { version = ">=0.59.0", optional = true }
-#pacmap = { version = "==0.7.3", optional = true }
+textstat = { version = "^0.7.0", optional = true }
+annoy = { version = "^1.17.1", optional = true }
+folium = { version = "^0.14.0", optional = true }
+duckdb = { version = "^0.8.1", optional = true }
+neo4j = { version = "^5.12.0", optional = true }
+chromadb = { version = "^0.4.4", optional = true }
+qdrant_client = { version = "^1.2.0", optional = true }
+weaviate-client = { version = "^3.12.0", optional = true }
+PyPDF2 = { version = "^3.0.0", optional = true }
+pymupdf = { version = "^1.21.1", optional = true }
+pypdftk = { version = "^0.4.1", optional = true }
+psutil = { version = "^5.9.5", optional = true }
+qrcode = { version = "^7.4.0", optional = true }
+pygithub = { version = "^1.58.0", optional = true }
+gradio = { version = "^3.40.0", optional = true }
+google-generativeai = { version = "^0.5.0", optional = true }
+openai = { version = "^0.27.0", optional = true }
+scipy = { version = "^1.11.0", optional = true }
+tiktoken = { version = "^0.3.0", optional = true }
 
 [tool.poetry.extras]
 # Grouped optional dependencies
@@ -45,8 +61,6 @@ torch = ["torch"]
 gradio = ["gradio"]
 model_clients = ["leptonai", "google-generativeai", "openai"]
 tiktoken = ["tiktoken"]
-#protobuf = ["protobuf"]
-#pacmap = ["numba", "pacmap"]
 
 # Full installation
 full = [
@@ -59,8 +73,8 @@ full = [
     "scipy", "spacy",
     "torch",
     "gradio",
-    "leptonai", "google-generativeai", "openai"
-    #"pacmap", "numba"
+    "leptonai", "google-generativeai", "openai",
+    "tiktoken"
 ]
 
 [tool.poetry.dev-dependencies]
@@ -74,18 +88,4 @@ python-dotenv = "^1.0.0"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pytest.ini_options]
-norecursedirs = ["combined", "scripts"]
-
-markers = [
-    "test: standard test",
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "acceptance: Acceptance tests",
-    "experimental: Experimental tests"
-]
-log_cli = true
-log_cli_level = "INFO"
-log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
-log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-asyncio_default_fixture_loop_scope = "function"
+[tool.pytest.ini
