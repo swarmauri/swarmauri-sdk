@@ -15,65 +15,58 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-swarmauri = "==0.5.3.dev1"
-typing_extensions = "*"
-matplotlib = { version = ">=3.9.2", optional = true }
-nltk = { version = "^3.9.1", optional = true }
-gensim = { version = "==4.3.3", optional = true }
-transformers = { version = "^4.45.0", optional = true }
-spacy = { version = ">=3.0.0,<=3.8.2", optional = true }
-textblob = { version = "^0.18.0", optional = true }
-torch = { version = "^2.5.0", optional = true }
-leptonai = { version = "==0.22.0", optional = true }
+captcha = "*"
+chromadb = { version = "*", optional = true }
+duckdb = { version = "*", optional = true }
+folium = { version = "*", optional = true }
+gensim = { version = "*", optional = true }
+gradio = { version = "*", optional = true }
+leptonai = { version = "0.22.0", optional = true }
+neo4j = { version = "*", optional = true }
+nltk = { version = "*", optional = true }
+pandas = "*"
+psutil = { version = "*", optional = true }
+pygithub = { version = "*", optional = true }
+python-dotenv = "*"
+qrcode = { version = "*", optional = true }
 redis = { version = "^4.0", optional = true }
-pinecone-client = { version = ">=2.0.0", optional = true, extras = ["grpc"] }
-textstat = { version = "^0.7.0", optional = true }
-annoy = { version = "^1.17.1", optional = true }
-folium = { version = "^0.14.0", optional = true }
-duckdb = { version = "^0.8.1", optional = true }
-neo4j = { version = "^5.12.0", optional = true }
-chromadb = { version = "^0.4.4", optional = true }
-qdrant_client = { version = "^1.2.0", optional = true }
-weaviate-client = { version = "^3.12.0", optional = true }
-PyPDF2 = { version = "^3.0.0", optional = true }
-pymupdf = { version = "^1.21.1", optional = true }
-pypdftk = { version = "^0.4.1", optional = true }
-psutil = { version = "^5.9.5", optional = true }
-qrcode = { version = "^7.4.0", optional = true }
-pygithub = { version = "^1.58.0", optional = true }
-gradio = { version = "^3.40.0", optional = true }
-google-generativeai = { version = "^0.5.0", optional = true }
-openai = { version = "^0.27.0", optional = true }
-scipy = { version = "^1.11.0", optional = true }
-tiktoken = { version = "^0.3.0", optional = true }
+swarmauri = "==0.5.3.dev1"
+textstat = { version = "*", optional = true }
+transformers = { version = ">=4.45.0", optional = true }
+typing_extensions = "*"
+tiktoken = { version = "*", optional = true }
+pymupdf = { version = "*", optional = true }
+annoy = { version = "*", optional = true }
+qdrant_client = { version = "*", optional = true }
+weaviate = { version = "*", optional = true }
+pinecone-client = { version = "*", optional = true, extras = ["grpc"] }
+PyPDF2 = { version = "*", optional = true }
+pypdftk = { version = "*", optional = true }
+weaviate-client = { version = "*", optional = true }
+protobuf = { version = "^3.20.0", optional = true }
 
 [tool.poetry.extras]
 # Grouped optional dependencies
-nlp = ["nltk", "textblob", "textstat", "gensim"]
+nlp = ["nltk", "gensim", "textstat"]
 ml_toolkits = ["transformers", "annoy"]
-visualization = ["folium", "matplotlib"]
-storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client"]
+visualization = ["folium"]
+storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate", "pinecone-client"]
 document_processing = ["PyPDF2", "pymupdf", "pypdftk"]
 cloud_integration = ["psutil", "qrcode", "pygithub"]
-spacy = ["spacy"]
-transformers = ["transformers"]
-torch = ["torch"]
 gradio = ["gradio"]
-model_clients = ["leptonai", "google-generativeai", "openai"]
+model_clients = ["leptonai"]
 tiktoken = ["tiktoken"]
 
 # Full installation
 full = [
     "nltk", "gensim", "textstat",
     "transformers", "annoy",
-    "folium", "matplotlib",
-    "redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate-client", "pinecone-client",
+    "folium",
+    "redis", "duckdb", "neo4j", "chromadb", "qdrant_client", "weaviate", "pinecone-client",
     "PyPDF2", "pymupdf", "pypdftk",
     "psutil", "qrcode", "pygithub",
-    "scipy", "spacy",
-    "torch",
     "gradio",
-    "leptonai", "google-generativeai", "openai",
+    "leptonai",
     "tiktoken"
 ]
 
@@ -82,7 +75,7 @@ flake8 = "^7.0"
 pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-xdist = "^3.6.1"
-python-dotenv = "^1.0.0"
+python-dotenv = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
