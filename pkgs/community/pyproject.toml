@@ -4,7 +4,7 @@ version = "0.5.3.dev3"
 description = "This repository includes Swarmauri community components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
-readme = "README.md"
+readme = "README.md"e
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -29,7 +29,7 @@ psutil = { version = "^6.1.0", optional = true }
 pygithub = { version = "^2.4.0", optional = true }
 qrcode = { version = "^8.0", optional = true }
 redis = { version = "^4.0", optional = true }
-swarmauri = "==0.5.3.dev1"
+swarmauri = "==0.5.3.dev3"
 textstat = { version = "^0.7.4", optional = true }
 transformers = { version = ">=4.45.0", optional = true }
 typing_extensions = "^4.12.2"
