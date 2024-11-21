@@ -25,10 +25,10 @@ jobs:
         run: |
           echo "Incrementing versions..."
           find . -name "pyproject.toml" | while read -r pyproject; do
-            echo "Processing $pyproject"
-
-           # Extract current version
-          CURRENT_VERSION=$(python -c "
+              echo "Processing $pyproject"
+          
+              # Extract current version
+              CURRENT_VERSION=$(python -c "
           import tomlkit
           try:
               with open('$pyproject', 'r') as f:
@@ -39,23 +39,25 @@ jobs:
               exit(1)
           ")
           
-          if [ -z "$CURRENT_VERSION" ]; then
-              echo "Error: Could not extract the current version from $pyproject"
-              exit 1
-          fi
+              if [ -z "$CURRENT_VERSION" ]; then
+                  echo "Error: Could not extract the current version from $pyproject"
+                  exit 1
+              fi
           
-          # Increment version
-          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(.*)-dev.*/\1/')
-          DEV_PART=$(echo "$CURRENT_VERSION" | grep -oE 'dev[0-9]+$' | grep -oE '[0-9]+')
+              # Increment version
+              BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(.*)-dev.*/\1/')
+              DEV_PART=$(echo "$CURRENT_VERSION" | grep -oE 'dev[0-9]+$' | grep -oE '[0-9]+')
           
-          if [ -z "$DEV_PART" ]; then
-              DEV_PART=0
-          fi
+              if [ -z "$DEV_PART" ]; then
+                  DEV_PART=0
+              fi
           
-          NEW_DEV_PART=$((DEV_PART + 1))
-          NEW_VERSION="${BASE_VERSION}-dev${NEW_DEV_PART}"
+              NEW_DEV_PART=$((DEV_PART + 1))
+              NEW_VERSION="${BASE_VERSION}-dev${NEW_DEV_PART}"
           
-          echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
+              echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
+          done
+
 
 
       - name: Commit changes
