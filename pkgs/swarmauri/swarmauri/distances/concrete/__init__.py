@@ -1,34 +1,27 @@
-import importlib
+from swarmauri.utils._lazy_import import _lazy_import
 
-# Define a lazy loader function with a warning message if the module is not found
-def _lazy_import(module_name, module_description=None):
-    try:
-        return importlib.import_module(module_name)
-    except ImportError:
-        # If module is not available, print a warning message
-        print(f"Warning: The module '{module_description or module_name}' is not available. "
-              f"Please install the necessary dependencies to enable this functionality.")
-        return None
-
-# List of distance names (file names without the ".py" extension)
-distance_files = [
-    "CanberraDistance",
-    "ChebyshevDistance",
-    "ChiSquaredDistance",
-    "CosineDistance",
-    "EuclideanDistance",
-    "HaversineDistance",
-    "JaccardIndexDistance",
-    "LevenshteinDistance",
-    "ManhattanDistance",
-    "MinkowskiDistance",
-    "SorensenDiceDistance",
-    "SquaredEuclideanDistance",
+# List of distances names (file names without the ".py" extension) and corresponding class names
+distances_files = [
+    ("swarmauri.distances.concrete.CanberraDistance", "CanberraDistance"),
+    ("swarmauri.distances.concrete.ChebyshevDistance", "ChebyshevDistance"),
+    ("swarmauri.distances.concrete.ChiSquaredDistance", "ChiSquaredDistance"),
+    ("swarmauri.distances.concrete.CosineDistance", "CosineDistance"),
+    ("swarmauri.distances.concrete.EuclideanDistance", "EuclideanDistance"),
+    ("swarmauri.distances.concrete.HaversineDistance", "HaversineDistance"),
+    ("swarmauri.distances.concrete.JaccardIndexDistance", "JaccardIndexDistance"),
+    ("swarmauri.distances.concrete.LevenshteinDistance", "LevenshteinDistance"),
+    ("swarmauri.distances.concrete.ManhattanDistance", "ManhattanDistance"),
+    ("swarmauri.distances.concrete.MinkowskiDistance", "MinkowskiDistance"),
+    ("swarmauri.distances.concrete.SorensenDiceDistance", "SorensenDiceDistance"),
+    (
+        "swarmauri.distances.concrete.SquaredEuclideanDistance",
+        "SquaredEuclideanDistance",
+    ),
 ]
 
-# Lazy loading of distance modules, storing them in variables
-for distance in distance_files:
-    globals()[distance] = _lazy_import(f"swarmauri.distances.concrete.{distance}", distance)
+# Lazy loading of distances classes, storing them in variables
+for module_name, class_name in distances_files:
+    globals()[class_name] = _lazy_import(module_name, class_name)
 
-# Adding the lazy-loaded distance modules to __all__
-__all__ = distance_files
+# Adding the lazy-loaded distances classes to __all__
+__all__ = [class_name for _, class_name in distances_files]
