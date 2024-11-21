@@ -15,8 +15,9 @@ class BlackForestImgGenModel(ImageGenBase):
     """
 
     _BASE_URL: str = PrivateAttr("https://api.bfl.ml")
-    _client: httpx.Client = PrivateAttr()
+    _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
+    _headers: Dict[str, str] = PrivateAttr(default=None)
 
     api_key: str
     allowed_models: List[str] = ["flux-pro-1.1", "flux-pro", "flux-dev"]
