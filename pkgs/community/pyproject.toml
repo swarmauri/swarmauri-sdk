@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-swarmauri = "==0.5.2"
+swarmauri = "==0.5.3.dev1"
 typing_extensions = "*"
 matplotlib = { version = ">=3.9.2", optional = true }
 nltk = { version = "^3.9.1", optional = true }
