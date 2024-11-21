@@ -27,49 +27,36 @@ jobs:
           find . -name "pyproject.toml" | while read -r pyproject; do
             echo "Processing $pyproject"
 
-            # Extract current version
-            CURRENT_VERSION=$(python -c "
-import tomlkit
-with open('$pyproject', 'r') as f:
-    data = tomlkit.parse(f.read())
-    print(data['tool']['poetry']['version'])
-")
+           # Extract current version
+          CURRENT_VERSION=$(python -c "
+          import tomlkit
+          try:
+              with open('$pyproject', 'r') as f:
+                  data = tomlkit.parse(f.read())
+                  print(data['tool']['poetry']['version'])
+          except Exception as e:
+              print('Error reading version:', e)
+              exit(1)
+          ")
+          
+          if [ -z "$CURRENT_VERSION" ]; then
+              echo "Error: Could not extract the current version from $pyproject"
+              exit 1
+          fi
+          
+          # Increment version
+          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(.*)-dev.*/\1/')
+          DEV_PART=$(echo "$CURRENT_VERSION" | grep -oE 'dev[0-9]+$' | grep -oE '[0-9]+')
+          
+          if [ -z "$DEV_PART" ]; then
+              DEV_PART=0
+          fi
+          
+          NEW_DEV_PART=$((DEV_PART + 1))
+          NEW_VERSION="${BASE_VERSION}-dev${NEW_DEV_PART}"
+          
+          echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
 
-            # Increment version
-            BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(.*)-dev.*/\1/')
-            DEV_PART=$(echo "$CURRENT_VERSION" | grep -oE 'dev[0-9]+$' | grep -oE '[0-9]+')
-            NEW_DEV_PART=$((DEV_PART + 1))
-            NEW_VERSION="${BASE_VERSION}-dev${NEW_DEV_PART:-1}"
-
-            echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
-
-            # Update version in pyproject.toml
-            python -c "
-import tomlkit
-with open('$pyproject', 'r') as f:
-    data = tomlkit.parse(f.read())
-data['tool']['poetry']['version'] = '$NEW_VERSION'
-with open('$pyproject', 'w') as f:
-    f.write(tomlkit.dumps(data))
-"
-
-            # Update dependencies starting with 'swarmauri'
-            python -c "
-import tomlkit
-with open('$pyproject', 'r') as f:
-    data = tomlkit.parse(f.read())
-dependencies = data['tool']['poetry'].get('dependencies', {})
-for dep, version in dependencies.items():
-    if dep.startswith('swarmauri') and isinstance(version, str):
-        base_version = version.split('-dev')[0]
-        dev_part = int(version.split('-dev')[-1]) if '-dev' in version else 0
-        new_version = f'{base_version}-dev{dev_part + 1}'
-        dependencies[dep] = new_version
-data['tool']['poetry']['dependencies'] = dependencies
-with open('$pyproject', 'w') as f:
-    f.write(tomlkit.dumps(data))
-"
-          done
 
       - name: Commit changes
         run: |
