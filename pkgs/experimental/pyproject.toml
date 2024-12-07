@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-experimental"
-version = "0.5.2"
+version = "0.5.3.dev5"
 description = "This repository includes experimental components."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -14,8 +14,8 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-swarmauri = "==0.5.2"
+python = ">=3.10,<3.13"
+swarmauri = "==0.5.3.dev5"
 gensim = "*"
 neo4j = "*"
 numpy = "*"

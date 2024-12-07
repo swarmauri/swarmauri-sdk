@@ -126,7 +126,7 @@ jobs:
       - name: Install package dependencies
         run: |
           cd pkgs/${{ matrix.package_tests.package }}
-          poetry install --no-cache -vv
+          poetry install --no-cache --all-extras -vv
 
       - name: Run all tests for the package
         run: |
