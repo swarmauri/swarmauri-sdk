@@ -7,7 +7,7 @@ from weaviate.util import generate_uuid5
 from weaviate.classes.query import MetadataQuery
 
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.vectors.concrete.Vector import Vector
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
