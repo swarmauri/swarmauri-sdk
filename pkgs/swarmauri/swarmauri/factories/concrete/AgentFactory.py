@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any, Dict, Literal, Type
 from swarmauri.factories.base.FactoryBase import FactoryBase, T
 
 
@@ -6,10 +6,8 @@ class AgentFactory(FactoryBase[T]):
     """
     Class-specific factory for managing resources and types.
     """
-
-    def __init__(self) -> None:
-        # Make _registry an instance-level variable.
-        self._registry: Dict[str, Type[T]] = {}
+    type: Literal['AgentFactory'] = 'AgentFactory'
+    _registry: Dict[str, Type[T]] = {}
 
     def register(self, type: str, resource_class: Type[T]) -> None:
         """

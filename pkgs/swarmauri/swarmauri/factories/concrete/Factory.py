@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any, Dict, Literal, Type
 from swarmauri.factories.base.FactoryBase import FactoryBase, T
 
 
@@ -6,11 +6,10 @@ class Factory(FactoryBase[T]):
     """
     Non-recursive factory extending FactoryBase.
     """
-    def __init__(self) -> None:
-        # Make _resource_registry an instance-level variable.
-        self._resource_registry: Dict[str, Dict[str, Type[T]]] = {}
+    type: Literal['Factory'] = 'Factory'
+    _resource_registry: Dict[str, Dict[str, Type[T]]] = {}
 
-    def register(self, resource: str, type: str, resource_class: Type[T]) -> None:
+    def register(self, resource: str, type: str) -> None:
         """
         Register a resource class under a specific resource and type.
         """
@@ -22,7 +21,7 @@ class Factory(FactoryBase[T]):
                 f"Type '{type}' is already registered under resource '{resource}'."
             )
 
-        self._resource_registry[resource][type] = resource_class
+        self._resource_registry[resource][type] = eval(type)
 
     def create(self, resource: str, type: str, *args: Any, **kwargs: Any) -> T:
         """

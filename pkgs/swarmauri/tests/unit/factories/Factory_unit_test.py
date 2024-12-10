@@ -2,6 +2,7 @@ import pytest
 from swarmauri.factories.concrete.Factory import Factory
 from swarmauri.parsers.concrete.BeautifulSoupElementParser import BeautifulSoupElementParser
 
+
 def test_factory_register_and_create():
     factory = Factory()
 
