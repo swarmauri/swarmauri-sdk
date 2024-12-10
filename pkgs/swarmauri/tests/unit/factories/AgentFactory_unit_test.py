@@ -39,7 +39,7 @@ def test_serialization(agent_factory):
         == AgentFactory.model_validate_json(agent_factory.model_dump_json()).id
     )
 
-
+@pytest.mark.unit
 def test_agent_factory_register_and_create(agent_factory, groq_model):
 
     agent_factory.register(type="QAAgent", resource_class=QAAgent)
@@ -49,14 +49,14 @@ def test_agent_factory_register_and_create(agent_factory, groq_model):
     assert isinstance(instance, QAAgent)
     assert instance.type == "QAAgent"
 
-
+@pytest.mark.unit
 def test_agent_factory_duplicate_register(agent_factory):
 
     # Attempt to register the same type again
     with pytest.raises(ValueError, match="Type 'QAAgent' is already registered."):
         agent_factory.register(type="QAAgent", resource_class=QAAgent)
 
-
+@pytest.mark.unit
 def test_agent_factory_create_unregistered_type(agent_factory):
 
     # Attempt to create an unregistered type

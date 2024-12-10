@@ -9,7 +9,7 @@ class Factory(FactoryBase[T]):
     type: Literal['Factory'] = 'Factory'
     _resource_registry: Dict[str, Dict[str, Type[T]]] = {}
 
-    def register(self, resource: str, type: str) -> None:
+    def register(self, resource: str, type: str, resource_class: Type[T]) -> None:
         """
         Register a resource class under a specific resource and type.
         """
@@ -21,7 +21,7 @@ class Factory(FactoryBase[T]):
                 f"Type '{type}' is already registered under resource '{resource}'."
             )
 
-        self._resource_registry[resource][type] = eval(type)
+        self._resource_registry[resource][type] = resource_class
 
     def create(self, resource: str, type: str, *args: Any, **kwargs: Any) -> T:
         """
