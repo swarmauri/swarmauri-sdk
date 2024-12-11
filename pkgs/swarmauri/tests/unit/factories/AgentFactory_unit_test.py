@@ -1,3 +1,4 @@
+import logging
 import pytest
 from swarmauri.factories.concrete.AgentFactory import AgentFactory
 import os
@@ -49,6 +50,7 @@ def test_agent_factory_register_and_create(agent_factory, groq_model):
     instance = agent_factory.create(type="QAAgent", llm=groq_model)
     assert isinstance(instance, QAAgent)
     assert instance.type == "QAAgent"
+    logging.info(instance.resource)
 
 
 @pytest.mark.unit

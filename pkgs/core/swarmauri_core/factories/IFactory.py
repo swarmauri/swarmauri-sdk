@@ -1,21 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Type, TypeVar
-
-# Generic type variable for flexible factory implementations
-T = TypeVar("T")
+from typing import Any
 
 
-class IFactory(ABC, Generic[T]):
+class IFactory(ABC):
     """
     Interface defining core methods for factories.
     """
 
     @abstractmethod
-    def create(self, *args: Any, **kwargs: Any) -> T:
-        """Create and return an instance of type T."""
+    def create(self, *args: Any, **kwargs: Any) -> Any:
+        """Create and return an instance."""
         pass
 
     @abstractmethod
-    def register(self, resource: str, name: str, resource_class: Type[T]) -> None:
+    def register(self, resource: str, name: str) -> None:
         """Register a class with the factory."""
         pass

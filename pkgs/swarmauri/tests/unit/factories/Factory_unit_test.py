@@ -3,7 +3,6 @@ from swarmauri.factories.concrete.Factory import Factory
 from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
     BeautifulSoupElementParser,
 )
-from swarmauri.parsers.base.ParserBase import ParserBase
 
 
 @pytest.fixture(scope="module")
