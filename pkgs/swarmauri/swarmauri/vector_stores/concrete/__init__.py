@@ -1,26 +1,14 @@
-import importlib
+from swarmauri.utils._lazy_import import _lazy_import
 
-# Define a lazy loader function with a warning message if the module is not found
-def _lazy_import(module_name, module_description=None):
-    try:
-        return importlib.import_module(module_name)
-    except ImportError:
-        # If module is not available, print a warning message
-        print(f"Warning: The module '{module_description or module_name}' is not available. "
-              f"Please install the necessary dependencies to enable this functionality.")
-        return None
-
-# List of vector store names (file names without the ".py" extension)
-vector_store_files = [
-    "Doc2VecVectorStore",
-    "MlmVectorStore",
-    "SqliteVectorStore",
-    "TfidfVectorStore",
+# List of vectore_stores names (file names without the ".py" extension) and corresponding class names
+vectore_stores_files = [
+    ("swarmauri.vector_stores.concrete.SqliteVectorStore", "SqliteVectorStore"),
+    ("swarmauri.vector_stores.concrete.TfidfVectorStore", "TfidfVectorStore"),
 ]
 
-# Lazy loading of vector stores, storing them in variables
-for vector_store in vector_store_files:
-    globals()[vector_store] = _lazy_import(f"swarmauri.vector_stores.concrete.{vector_store}", vector_store)
+# Lazy loading of vectore_storess, storing them in variables
+for module_name, class_name in vectore_stores_files:
+    globals()[class_name] = _lazy_import(module_name, class_name)
 
-# Adding the lazy-loaded vector stores to __all__
-__all__ = vector_store_files
+# Adding the lazy-loaded vectore_storess to __all__
+__all__ = [class_name for _, class_name in vectore_stores_files]

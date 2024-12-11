@@ -1,7 +1,7 @@
 import os
 import pytest
 from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.vector_stores.CloudQdrantVectorStore import (
+from swarmauri_community.vector_stores.concrete.CloudQdrantVectorStore import (
     CloudQdrantVectorStore,
 )
 
