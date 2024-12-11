@@ -1,4 +1,4 @@
-from typing import Any, Callable, Literal, Optional, Type
+from typing import Any, Callable, Literal, Optional
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri_core.factories.IFactory import IFactory
