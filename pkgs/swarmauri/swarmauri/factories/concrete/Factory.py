@@ -7,12 +7,13 @@ class Factory(FactoryBase):
     """
     Non-recursive factory extending FactoryBase.
     """
-    type: Literal['Factory'] = 'Factory'
+
+    type: Literal["Factory"] = "Factory"
     _resource_registry: Dict[str, Dict[str, Callable]] = {}
 
     def register(self, resource: str) -> None:
         """
-        Register a resource class under a specific resource
+        Register a resource class under a specific resource.
         """
         if resource not in self._resource_registry:
             self._resource_registry[resource] = get_classes_from_module(resource)

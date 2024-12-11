@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional, Type
+from typing import Any, Callable, Literal, Optional, Type
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri_core.factories.IFactory import IFactory
@@ -14,7 +14,7 @@ class FactoryBase(ComponentBase, IFactory):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["FactoryBase"] = "FactoryBase"
 
-    def register(self, resource: str, type: str) -> None:
+    def register(self, type: str, resource_class: Callable) -> None:
         """
         Register a resource class under a specific resource and type.
         """
@@ -22,7 +22,7 @@ class FactoryBase(ComponentBase, IFactory):
             "register method must be implemented in derived classes."
         )
 
-    def create(self, resource: str, type: str, *args: Any, **kwargs: Any) -> Any:
+    def create(self, type: str, *args: Any, **kwargs: Any) -> Any:
         """
         Create an instance of the class associated with the given resource and type.
         """

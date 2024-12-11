@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Callable
 
 
 class IFactory(ABC):
@@ -8,11 +8,11 @@ class IFactory(ABC):
     """
 
     @abstractmethod
-    def create(self, *args: Any, **kwargs: Any) -> Any:
+    def create(self, type: str, *args: Any, **kwargs: Any) -> Any:
         """Create and return an instance."""
         pass
 
     @abstractmethod
-    def register(self, resource: str, name: str) -> None:
+    def register(self, type: str, resource_class: Callable) -> None:
         """Register a class with the factory."""
         pass
