@@ -31,7 +31,7 @@ class Factory(FactoryBase):
         Create an instance of the class associated with the given resource and type.
         """
         if resource not in self._resource_registry:
-            raise ValueError(f"Resource '{resource}' is not registered.")
+            self._resource_registry[resource] = get_classes_from_module(resource)
 
         if type not in self._resource_registry[resource]:
             raise ValueError(

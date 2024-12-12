@@ -46,7 +46,7 @@ def test_factory_create_unregistered_resource(factory):
 
     # Attempt to create an instance of an unregistered resource
     with pytest.raises(
-        ValueError, match="Resource 'UnknownResource' is not registered."
+        ModuleNotFoundError, match="Resource 'UnknownResource' is not registered."
     ):
         factory.create("UnknownResource", "BeautifulSoupElementParser")
 

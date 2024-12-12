@@ -30,7 +30,7 @@ def get_classes_from_module(module_name: str):
         return classes_dict
     except ImportError as e:
         print(f"Error importing module {full_module_path}: {e}")
-        raise ModuleNotFoundError(f"Resource '{module_name}' is not found.")
+        raise ModuleNotFoundError(f"Resource '{module_name}' is not registered.")
     except AttributeError as e:
         print(f"Error accessing class in {full_module_path}: {e}")
         raise e
