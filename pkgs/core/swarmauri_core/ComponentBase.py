@@ -94,9 +94,6 @@ class ComponentBase(BaseModel):
                 f"Subclass {subclass.__name__} does not have a type annotation"
             )
 
-        # [subclass.__swm_reset_class__()  for subclass in cls.__swm_subclasses__
-        #  if hasattr(subclass, '__swm_reset_class__')]
-
     @classmethod
     def __swm_reset_class__(cls):
         logging.debug("__swm_reset_class__ executed\n")
@@ -129,9 +126,6 @@ class ComponentBase(BaseModel):
                                 cls.__annotations__[each] = sc
                                 cls.__fields__[each].annotation = sc
 
-        # This is not necessary as the model_rebuild address forward_refs
-        # https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel.model_post_init
-        # cls.update_forward_refs()
         cls.model_rebuild(force=True)
 
     @field_validator("type")
