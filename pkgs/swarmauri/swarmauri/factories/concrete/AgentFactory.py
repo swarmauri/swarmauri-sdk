@@ -1,6 +1,5 @@
 from typing import Any, Callable, Dict, Literal
 from swarmauri.factories.base.FactoryBase import FactoryBase
-from swarmauri.utils._get_subclasses import get_class_from_module
 
 
 class AgentFactory(FactoryBase):
