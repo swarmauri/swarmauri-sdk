@@ -53,6 +53,7 @@ class ResourceTypes(Enum):
     VECTOR = "Vector"
     VCM = "VCM"
     DATA_CONNECTOR = "DataConnector"
+    TRANSPORT = "Transport"
 
 
 def generate_id() -> str:

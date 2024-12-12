@@ -1,55 +1,48 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Literal
 from enum import Enum, auto
-import datetime
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.transport.ITransport import ITransport
+
 
 class TransportationProtocol(Enum):
     """
     Enumeration of transportation protocols supported by the transport layer
     """
+
     UNICAST = auto()
     MULTICAST = auto()
     BROADCAST = auto()
     PUBSUB = auto()
 
-class TransportBase(ITransport):
-    """
-    Base class for transport transportation with shared utilities
-    """
-    def __init__(self, name: str):
-        self.name = name
-        self.subscriptions: Dict[str, List[str]] = {}
-        self.message_history: List[Dict[str, Any]] = []
 
-    def log_message(self, sender: str, recipients: List[str], message: Any, protocol: TransportationProtocol):
-        """
-        Log transportation events
-        """
-        log_entry = {
-            'sender': sender,
-            'recipients': recipients,
-            'message': message,
-            'protocol': protocol,
-            'timestamp': datetime.now()
-        }
-        self.message_history.append(log_entry)
+class TransportBase(ITransport, ComponentBase):
+    allowed_protocols: List[TransportationProtocol] = []
+    resource: Optional[str] = ResourceTypes.TRANSPORT.value
+    type: Literal["TransportBase"] = "TransportBase"
 
     def send(self, sender: str, recipient: str, message: Any) -> None:
-        raise NotImplementedError("Subclasses must implement send method")
+        """
+        Send a message to a specific recipient.
+
+        Raises:
+            NotImplementedError: Subclasses must implement this method.
+        """
+        raise NotImplementedError("send() not implemented in subclass yet.")
 
     def broadcast(self, sender: str, message: Any) -> None:
-        raise NotImplementedError("Subclasses must implement broadcast method")
+        """
+        Broadcast a message to all potential recipients.
+
+        Raises:
+            NotImplementedError: Subclasses must implement this method.
+        """
+        raise NotImplementedError("broadcast() not implemented in subclass yet.")
 
     def multicast(self, sender: str, recipients: List[str], message: Any) -> None:
-        raise NotImplementedError("Subclasses must implement multicast method")
+        """
+        Send a message to multiple specific recipients.
 
-    def subscribe(self, topic: str, subscriber: str) -> None:
-        if topic not in self.subscriptions:
-            self.subscriptions[topic] = []
-        if subscriber not in self.subscriptions[topic]:
-            self.subscriptions[topic].append(subscriber)
-
-    def publish(self, topic: str, message: Any) -> None:
-        if topic in self.subscriptions:
-            for subscriber in self.subscriptions[topic]:
-                self.send(topic, subscriber, message)
+        Raises:
+            NotImplementedError: Subclasses must implement this method.
+        """
+        raise NotImplementedError("multicast() not implemented in subclass yet.")

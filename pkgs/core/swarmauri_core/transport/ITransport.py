@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 
 
-class ITransportComm(ABC):
+class ITransport(ABC):
     """
     Interface defining standard transportation methods for agent interactions
     """
+
     @abstractmethod
     def send(self, sender: str, recipient: str, message: Any) -> None:
         """
@@ -24,19 +25,5 @@ class ITransportComm(ABC):
     def multicast(self, sender: str, recipients: List[str], message: Any) -> None:
         """
         Send a message to multiple specific recipients
-        """
-        pass
-
-    @abstractmethod
-    def subscribe(self, topic: str, subscriber: str) -> None:
-        """
-        Subscribe to a specific transportation topic
-        """
-        pass
-
-    @abstractmethod
-    def publish(self, topic: str, message: Any) -> None:
-        """
-        Publish a message to a specific topic
         """
         pass
