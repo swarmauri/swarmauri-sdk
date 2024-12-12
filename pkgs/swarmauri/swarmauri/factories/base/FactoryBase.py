@@ -5,7 +5,7 @@ from swarmauri_core.factories.IFactory import IFactory
 from pydantic import ConfigDict, Field
 
 
-class FactoryBase(ComponentBase, IFactory):
+class FactoryBase(IFactory, ComponentBase):
     """
     Base factory class for registering and creating instances.
     """
