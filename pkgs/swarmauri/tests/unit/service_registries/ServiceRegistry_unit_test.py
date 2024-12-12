@@ -6,6 +6,7 @@ from swarmauri.service_registries.concrete.ServiceRegistry import ServiceRegistr
 def service_registry():
     return ServiceRegistry()
 
+
 @pytest.mark.unit
 def test_ubc_resource(service_registry):
     assert service_registry.resource == "ServiceRegistry"
@@ -18,14 +19,19 @@ def test_ubc_type(service_registry):
 
 @pytest.mark.unit
 def test_serialization(service_registry):
-    assert service_registry.id == service_registry.model_validate_json(service_registry.model_dump_json()).id
+    assert (
+        service_registry.id
+        == service_registry.model_validate_json(service_registry.model_dump_json()).id
+    )
 
 
+@pytest.mark.unit
 def test_register_service(service_registry):
     service_registry.register_service("auth", {"role": "authentication"})
     assert service_registry.services["auth"] == {"role": "authentication"}
 
 
+@pytest.mark.unit
 def test_get_service(service_registry):
     service_registry.register_service("auth", {"role": "authentication"})
     service = service_registry.get_service("auth")
@@ -33,6 +39,7 @@ def test_get_service(service_registry):
     assert service_registry.get_service("nonexistent") is None
 
 
+@pytest.mark.unit
 def test_get_services_by_roles(service_registry):
     service_registry.register_service("auth", {"role": "authentication"})
     service_registry.register_service("db", {"role": "database"})
@@ -40,7 +47,5 @@ def test_get_services_by_roles(service_registry):
     assert recipients == ["auth"]
     recipients = service_registry.get_services_by_roles(["database"])
     assert recipients == ["db"]
-    recipients = service_registry.get_services_by_roles(
-        ["authentication", "database"]
-    )
+    recipients = service_registry.get_services_by_roles(["authentication", "database"])
     assert set(recipients) == {"auth", "db"}
