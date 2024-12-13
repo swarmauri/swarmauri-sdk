@@ -29,9 +29,9 @@ class IServiceRegistry(ABC):
         pass
 
     @abstractmethod
-    def deregister_service(self, name: str) -> None:
+    def unregister_service(self, name: str) -> None:
         """
-        Deregister the service with the given name.
+        unregister the service with the given name.
         """
         pass
 

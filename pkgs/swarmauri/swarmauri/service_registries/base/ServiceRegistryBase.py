@@ -39,13 +39,13 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
             if details.get("role") in roles
         ]
 
-    def deregister_service(self, name: str) -> None:
+    def unregister_service(self, name: str) -> None:
         """
-        Deregister the service with the given name.
+        unregister the service with the given name.
         """
         if name in self.services:
             del self.services[name]
-            print(f"Service {name} deregistered.")
+            print(f"Service {name} unregistered.")
         else:
             raise ValueError(f"Service {name} not found.")
 

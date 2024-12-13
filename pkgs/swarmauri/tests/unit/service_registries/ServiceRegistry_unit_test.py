@@ -52,16 +52,16 @@ def test_get_services_by_roles(service_registry):
 
 
 @pytest.mark.unit
-def test_deregister_service(service_registry):
+def test_unregister_service(service_registry):
     service_registry.register_service("auth", {"role": "authentication"})
-    service_registry.deregister_service("auth")
+    service_registry.unregister_service("auth")
     assert "auth" not in service_registry.services
 
 
 @pytest.mark.unit
-def test_deregister_service_nonexistent(service_registry):
+def test_unregister_service_nonexistent(service_registry):
     with pytest.raises(ValueError) as exc_info:
-        service_registry.deregister_service("nonexistent")
+        service_registry.unregister_service("nonexistent")
     assert str(exc_info.value) == "Service nonexistent not found."
 
 
