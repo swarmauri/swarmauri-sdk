@@ -4,7 +4,7 @@ import asyncio
 from swarmauri.transport.base.TransportBase import TransportBase, TransportationProtocol
 
 
-class PubSubTransport:
+class PubSubTransport(TransportBase):
     allowed_protocols: List[TransportationProtocol] = [TransportationProtocol.PUBSUB]
     _topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
     _subscribers: Dict[str, asyncio.Queue] = {}
