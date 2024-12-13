@@ -1,4 +1,5 @@
 from typing import Dict, Any, List, Optional, Literal
+from pydantic import ConfigDict, Field
 from enum import Enum, auto
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.transport.ITransport import ITransport
@@ -17,7 +18,8 @@ class TransportationProtocol(Enum):
 
 class TransportBase(ITransport, ComponentBase):
     allowed_protocols: List[TransportationProtocol] = []
-    resource: Optional[str] = ResourceTypes.TRANSPORT.value
+    resource: Optional[str] = Field(default=ResourceTypes.TRANSPORT.value, frozen=True)
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TransportBase"] = "TransportBase"
 
     def send(self, sender: str, recipient: str, message: Any) -> None:

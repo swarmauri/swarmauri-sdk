@@ -6,12 +6,34 @@ from swarmauri.transport.concrete.PubSubTransport import (
     PubSubTransport,
 )
 from swarmauri.utils.timeout_wrapper import timeout
+import logging
 
 
 @pytest.fixture
-async def pubsub_transport():
+def pubsub_transport():
     transport = PubSubTransport()
-    yield transport
+    return transport
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_ubc_resource(pubsub_transport):
+    assert pubsub_transport.resource == "Transport"
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_ubc_type():
+    assert pubsub_transport.type == "PubSubTransport"
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_serialization(pubsub_transport):
+    assert (
+        pubsub_transport.id
+        == PubSubTransport.model_validate_json(pubsub_transport.model_dump_json()).id
+    )
 
 
 @timeout(5)

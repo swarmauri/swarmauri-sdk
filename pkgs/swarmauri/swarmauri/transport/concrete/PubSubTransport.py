@@ -1,24 +1,14 @@
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional, Set, Literal
 from uuid import uuid4
 import asyncio
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.transport.ITransport import ITransport
 from swarmauri.transport.base.TransportBase import TransportBase, TransportationProtocol
 
 
-class PubSubTransport(TransportBase):
+class PubSubTransport:
     allowed_protocols: List[TransportationProtocol] = [TransportationProtocol.PUBSUB]
-
-    def __init__(self):
-        """
-        Initialize the Publish-Subscribe Broker.
-        Manages topics and subscriptions for agents.
-        """
-        super().__init__()
-        self._topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
-        self._subscribers: Dict[str, asyncio.Queue] = (
-            {}
-        )  # Subscriber ID to message queue
+    _topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
+    _subscribers: Dict[str, asyncio.Queue] = {}
+    type: Literal["PubSubTransport"] = "PubSubTransport"
 
     async def subscribe(self, topic: str) -> str:
         """
@@ -30,9 +20,9 @@ class PubSubTransport(TransportBase):
         Returns:
             str: Unique subscriber ID
         """
-        subscriber_id = str(uuid4())
+        subscriber_id = self.id
 
-        # Create message queue for this subscriber
+        # Create message queue for this subscribere
         self._subscribers[subscriber_id] = asyncio.Queue()
 
         # Add subscriber to topic
@@ -42,7 +32,7 @@ class PubSubTransport(TransportBase):
 
         return subscriber_id
 
-    async def unsubscribe(self, topic: str, subscriber_id: str):
+    async def unsubscribe(self, topic: str):
         """
         Unsubscribe an agent from a topic.
 
@@ -50,6 +40,7 @@ class PubSubTransport(TransportBase):
             topic (str): The topic to unsubscribe from
             subscriber_id (str): Unique identifier of the subscriber
         """
+        subscriber_id = self.id
         if topic in self._topics and subscriber_id in self._topics[topic]:
             self._topics[topic].remove(subscriber_id)
 
@@ -72,7 +63,7 @@ class PubSubTransport(TransportBase):
         for subscriber_id in self._topics[topic]:
             await self._subscribers[subscriber_id].put(message)
 
-    async def receive(self, subscriber_id: str) -> Any:
+    async def receive(self) -> Any:
         """
         Receive messages for a specific subscriber.
 
@@ -82,7 +73,7 @@ class PubSubTransport(TransportBase):
         Returns:
             Any: Received message
         """
-        return await self._subscribers[subscriber_id].get()
+        return await self._subscribers[self.id].get()
 
     def send(self, sender: str, recipient: str, message: Any) -> None:
         """
@@ -120,3 +111,8 @@ class PubSubTransport(TransportBase):
         """
         for topic in recipients:
             asyncio.create_task(self.publish(topic, message))
+
+
+check = PubSubTransport()
+print(check.type)
+print("I am okay")
