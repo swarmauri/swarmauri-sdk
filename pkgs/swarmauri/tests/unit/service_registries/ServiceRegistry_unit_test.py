@@ -49,3 +49,34 @@ def test_get_services_by_roles(service_registry):
     assert recipients == ["db"]
     recipients = service_registry.get_services_by_roles(["authentication", "database"])
     assert set(recipients) == {"auth", "db"}
+
+
+@pytest.mark.unit
+def test_deregister_service(service_registry):
+    service_registry.register_service("auth", {"role": "authentication"})
+    service_registry.deregister_service("auth")
+    assert "auth" not in service_registry.services
+
+
+@pytest.mark.unit
+def test_deregister_service_nonexistent(service_registry):
+    with pytest.raises(ValueError) as exc_info:
+        service_registry.deregister_service("nonexistent")
+    assert str(exc_info.value) == "Service nonexistent not found."
+
+
+@pytest.mark.unit
+def test_update_service(service_registry):
+    service_registry.register_service("auth", {"role": "authentication"})
+    service_registry.update_service("auth", {"role": "auth_service", "version": "1.0"})
+    assert service_registry.services["auth"] == {
+        "role": "auth_service",
+        "version": "1.0",
+    }
+
+
+@pytest.mark.unit
+def test_update_service_nonexistent(service_registry):
+    with pytest.raises(ValueError) as exc_info:
+        service_registry.update_service("nonexistent", {"role": "new_role"})
+    assert str(exc_info.value) == "Service nonexistent not found."

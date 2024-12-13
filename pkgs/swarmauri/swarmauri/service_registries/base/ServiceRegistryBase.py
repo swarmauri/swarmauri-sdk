@@ -38,3 +38,23 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
             for name, details in self.services.items()
             if details.get("role") in roles
         ]
+
+    def deregister_service(self, name: str) -> None:
+        """
+        Deregister the service with the given name.
+        """
+        if name in self.services:
+            del self.services[name]
+            print(f"Service {name} deregistered.")
+        else:
+            raise ValueError(f"Service {name} not found.")
+
+    def update_service(self, name: str, details: Dict[str, Any]) -> None:
+        """
+        Update the details of the service with the given name.
+        """
+        if name in self.services:
+            self.services[name].update(details)
+            print(f"Service {name} updated with new details: {details}")
+        else:
+            raise ValueError(f"Service {name} not found.")

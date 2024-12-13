@@ -27,3 +27,17 @@ class IServiceRegistry(ABC):
         Get services filtered by their roles.
         """
         pass
+
+    @abstractmethod
+    def deregister_service(self, name: str) -> None:
+        """
+        Deregister the service with the given name.
+        """
+        pass
+
+    @abstractmethod
+    def update_service(self, name: str, details: Dict[str, Any]) -> None:
+        """
+        Update the details of the service with the given name.
+        """
+        pass
