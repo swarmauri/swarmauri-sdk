@@ -58,6 +58,7 @@ class ResourceTypes(Enum):
     VCM = "VCM"
     DATA_CONNECTOR = "DataConnector"
     FACTORY = "Factory"
+    PIPELINE = "Pipeline"
 
 
 def generate_id() -> str:
