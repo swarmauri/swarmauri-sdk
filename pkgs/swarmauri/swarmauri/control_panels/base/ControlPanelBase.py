@@ -1,3 +1,4 @@
+from swarmauri_core import ComponentBase
 from swarmauri_core.control_panels.IControlPanel import IControlPlane
 from typing import Any, List, Literal
 from pydantic import Field, ConfigDict
@@ -10,7 +11,7 @@ from swarmauri_core.typing import SubclassUnion
 import logging
 
 
-class ControlPanelBase(IControlPlane):
+class ControlPanelBase(IControlPlane, ComponentBase):
     """
     Implementation of the ControlPlane abstract class.
     This class orchestrates agents, manages tasks, and ensures task distribution
