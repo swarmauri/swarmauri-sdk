@@ -13,15 +13,12 @@ def control_panel():
 
 
 def test_create_agent(control_panel):
-    # Arrange
     control_panel.agent_factory.create_agent.return_value = "agent1"
     name = "agent1"
     role = "role1"
 
-    # Act
     result = control_panel.create_agent(name, role)
 
-    # Assert
     control_panel.agent_factory.create_agent.assert_called_with(name, role)
     control_panel.service_registry.register_service.assert_called_with(
         name, {"role": role, "status": "active"}
@@ -30,26 +27,20 @@ def test_create_agent(control_panel):
 
 
 def test_distribute_tasks(control_panel):
-    # Arrange
     task = "task1"
 
-    # Act
     control_panel.distribute_tasks(task)
 
-    # Assert
     control_panel.task_strategy.assign_task.assert_called_with(
         task, control_panel.agent_factory, control_panel.service_registry
     )
 
 
 def test_orchestrate_agents(control_panel):
-    # Arrange
     task = "task1"
 
-    # Act
     control_panel.orchestrate_agents(task)
 
-    # Assert
     with patch.object(control_panel, "manage_agents") as mock_manage_agents:
         mock_manage_agents.assert_called_once()
     control_panel.distribute_tasks.assert_called_with(task)
@@ -61,10 +52,8 @@ def test_remove_agent_success(control_panel):
     agent = MagicMock()
     control_panel.agent_factory.get_agent_by_name.return_value = agent
 
-    # Act
     control_panel.remove_agent(name)
 
-    # Assert
     control_panel.service_registry.unregister_service.assert_called_with(name)
     control_panel.agent_factory.delete_agent.assert_called_with(name)
 
@@ -88,9 +77,7 @@ def test_list_active_agents(control_panel):
     agent2.name = "agent2"
     control_panel.agent_factory.get_agents.return_value = [agent1, agent2]
 
-    # Act
     result = control_panel.list_active_agents()
 
-    # Assert
     control_panel.agent_factory.get_agents.assert_called_once()
     assert result == ["agent1", "agent2"]

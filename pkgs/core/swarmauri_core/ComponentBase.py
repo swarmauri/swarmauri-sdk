@@ -60,6 +60,7 @@ class ResourceTypes(Enum):
     FACTORY = "Factory"
     SERVICE_REGISTRY = "ServiceRegistry"
     CONTROL_PANEL = "ControlPanel"
+    TASK_MGT_STRATEGY = "TaskMgtStrategy"
 
 
 def generate_id() -> str:

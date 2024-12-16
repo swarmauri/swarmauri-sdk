@@ -4,7 +4,7 @@ from pydantic import Field, ConfigDict
 from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri.factories.base.FactoryBase import FactoryBase
-from swarmauri.task_strategies.base.TaskStrategyBase import TaskStrategyBase
+from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
 from swarmauri.transports.base.TransportBase import TransportBase
 from swarmauri_core.typing import SubclassUnion
 
@@ -20,7 +20,7 @@ class ControlPanelBase(IControlPlane):
 
     agent_factory: SubclassUnion[FactoryBase]
     service_registry: SubclassUnion[ServiceRegistryBase]
-    task_strategy: SubclassUnion[TaskStrategyBase]
+    task_mgt_strategy: SubclassUnion[TaskMgtStrategyBase]
     transport: SubclassUnion[TransportBase]
 
     def create_agent(self, name: str, role: str) -> Any:
@@ -35,13 +35,12 @@ class ControlPanelBase(IControlPlane):
         """
         Distribute tasks using the task strategy.
         """
-        self.task_strategy.assign_task(task, self.agent_factory, self.service_registry)
+        self.task_mgt_strategy.assign_task(task, self.service_registry)
 
     def orchestrate_agents(self, task: Any) -> None:
         """
         Orchestrate agents for task distribution.
         """
-        self.manage_agents()
         self.distribute_tasks(task)
 
     def remove_agent(self, name: str) -> None:
