@@ -1,67 +1,62 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict
-from datetime import datetime
-from swarmauri_core.agents.IAgent import IAgent
-from swarmauri_core.chains.ICallableChain import ICallableChain
+from typing import Any, List, Tuple
+
 
 class ISwarm(ABC):
-    """
-    Interface for a Swarm, representing a collective of agents capable of performing tasks, executing callable chains, and adaptable configurations.
-    """
-
-    # Abstract properties and setters
-    @property
-    @abstractmethod
-    def id(self) -> str:
-        """Unique identifier for the factory instance."""
-        pass
-
-    @id.setter
-    @abstractmethod
-    def id(self, value: str) -> None:
-        pass
+    """Abstract interface for swarm implementations with both sync/async operations."""
 
     @property
     @abstractmethod
-    def name(self) -> str:
+    def num_agents(self) -> int:
+        """Number of agents in the swarm."""
         pass
 
-    @name.setter
     @abstractmethod
-    def name(self, value: str) -> None:
+    def add_agent(self, agent: Any) -> None:
+        """Add an agent to the swarm."""
         pass
 
-    @property
     @abstractmethod
-    def type(self) -> str:
+    def remove_agent(self, agent_id: int) -> None:
+        """Remove an agent from the swarm."""
         pass
 
-    @type.setter
     @abstractmethod
-    def type(self, value: str) -> None:
+    def replace_agent(self, agent_id: int, new_agent: Any) -> None:
+        """Replace an agent in the swarm."""
         pass
 
-    @property
     @abstractmethod
-    def date_created(self) -> datetime:
+    def get_agent_statuses(self) -> List[Tuple[int, Any]]:
+        """Get status of all agents."""
         pass
 
-    @property
     @abstractmethod
-    def last_modified(self) -> datetime:
+    def distribute_task(self, task: Any) -> None:
+        """Distribute a task to the swarm."""
         pass
 
-    @last_modified.setter
     @abstractmethod
-    def last_modified(self, value: datetime) -> None:
+    def collect_results(self) -> List[Any]:
+        """Collect results from the swarm."""
         pass
 
-    def __hash__(self):
-        """
-        The __hash__ method allows objects of this class to be used in sets and as dictionary keys.
-        __hash__ should return an integer and be defined based on immutable properties.
-        This is generally implemented directly in concrete classes rather than in the interface,
-        but it's declared here to indicate that implementing classes must provide it.
-        """
+    @abstractmethod
+    def run(self, tasks: List[Any]) -> List[Any]:
+        """Execute tasks synchronously."""
         pass
 
+    @abstractmethod
+    async def arun(self, tasks: List[Any]) -> List[Any]:
+        """Execute tasks asynchronously."""
+        pass
+
+    @abstractmethod
+    def process_task(self, task: Any) -> Any:
+        """Process a single task synchronously."""
+        pass
+
+    @abstractmethod
+    async def aprocess_task(self, task: Any) -> Any:
+        """Process a single task asynchronously."""
+        pass
