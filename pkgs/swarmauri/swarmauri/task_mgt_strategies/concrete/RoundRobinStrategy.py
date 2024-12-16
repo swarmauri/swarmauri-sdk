@@ -57,14 +57,17 @@ class RoundRobinStrategy(TaskMgtStrategyBase):
         else:
             raise ValueError(f"Task '{task_id}' not found in assignments.")
 
-    def process_tasks(self, service_registry: Callable[[], List[str]]) -> None:
+    def process_tasks(self, service_registry: Callable[[], List[str]], transport: Callable) -> None:
         """
         Process tasks from the task queue and assign them to services.
         :param service_registry: Callable that returns available services.
+        :param transport: Callable used to send tasks to assigned services.
         """
         while not self.task_queue.empty():
             task = self.task_queue.get()
             try:
                 self.assign_task(task, service_registry)
+                assigned_service = self.task_assignments[task["task_id"]]
+                transport.send(task, assigned_service)
             except ValueError as e:
                 raise ValueError(f"Error assigning task: {e}")
