@@ -53,8 +53,8 @@ def load_pytest_results(report_file):
             })
     return failures
 
-def ask_groq_for_fix(test_name, failure_message, stack_trace):
-    """Ask GroqModel for suggestions on fixing the test failure."""
+def ask_agent_for_fix(test_name, failure_message, stack_trace):
+    """Ask the LLM Model for suggestions on fixing the test failure."""
     system_context = f"Utilizing the following codebase solve the user's problem.\nCodebase:"
     prompt = f"""
     \n\nUser Problem:
@@ -85,8 +85,8 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
         print(f"\nPrompt: \n{prompt}\n\n", '-'*10, f"Response: {response}\n\n", '='*10, '\n')
         return response
     except Exception as e:
-        print(f"Error communicating with Groq: {e}")
-        return "Unable to retrieve suggestions from Groq at this time."
+        print(f"Error communicating with LLM: {e}")
+        return "Unable to retrieve suggestions from LLM at this time."
 
 def get_existing_issues():
     """Retrieve all existing issues with the pytest-failure label."""
@@ -98,7 +98,7 @@ def get_existing_issues():
 
 def create_issue(test, package):
     """Create a new GitHub issue for the test failure."""
-    groq_suggestion = ask_groq_for_fix(test["name"], test["message"], test["message"])
+    suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues"
 
     # Construct the issue body
@@ -113,8 +113,8 @@ def create_issue(test, package):
 
 ---
 
-### Suggested Fix (via Groq):
-{groq_suggestion}
+### Suggested Fix (via Agent):
+{suggestion}
 
 ---
 
@@ -132,11 +132,11 @@ This issue is auto-labeled for the `{package}` package.
     }
     response = requests.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
-    print(f"Issue created for {test['name']} with Groq suggestion in package '{package}'.")
+    print(f"Issue created for {test['name']} with LLM suggestion in package '{package}'.")
 
 def add_comment_to_issue(issue_number, test, package):
     """Add a comment to an existing GitHub issue."""
-    groq_suggestion = ask_groq_for_fix(test["name"], test["message"], test["message"])
+    suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
     data = {"body": f"""
 New failure detected:
@@ -149,8 +149,8 @@ New failure detected:
 
 ---
 
-### Suggested Fix (via Groq):
-{groq_suggestion}
+### Suggested Fix (via Agent):
+{suggestion}
 
 ---
 
