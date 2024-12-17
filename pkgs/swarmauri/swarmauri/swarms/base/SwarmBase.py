@@ -50,7 +50,6 @@ class SwarmBase(ISwarm, ComponentBase):
     def queue_size(self) -> int:
         return self._task_queue.qsize()
 
-
     def get_swarm_status(self) -> Dict[int, SwarmStatus]:
         return self._status
 
@@ -60,7 +59,8 @@ class SwarmBase(ISwarm, ComponentBase):
             for _ in range(self.max_retries):
                 try:
                     result = await asyncio.wait_for(
-                        self._execute_task(task, agent_id, **kwargs), timeout=self.agent_timeout
+                        self._execute_task(task, agent_id, **kwargs),
+                        timeout=self.agent_timeout,
                     )
                     self._status[agent_id] = SwarmStatus.COMPLETED
                     return result
