@@ -6,15 +6,28 @@ from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistr
 from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
 from swarmauri.transports.base.TransportBase import TransportBase
 
+from unittest.mock import MagicMock
+from pydantic import BaseModel
+
+class SerializableMagicMock(MagicMock, BaseModel):
+    """A MagicMock class that can be serialized using Pydantic."""
+    
+    def dict(self, *args, **kwargs):
+        """Serialize the mock object to a dictionary."""
+        return {"mock_name": self._mock_name, "calls": self.mock_calls}
+    
+    def json(self, *args, **kwargs):
+        """Serialize the mock object to a JSON string."""
+        return super().json(*args, **kwargs)
 
 @pytest.fixture
 def control_panel():
     """Fixture to create a ControlPanel instance with mocked dependencies."""
-    agent_factory = MagicMock(spec=FactoryBase)
-    service_registry = MagicMock(spec=ServiceRegistryBase)
-    task_mgt_strategy = MagicMock(spec=TaskMgtStrategyBase)
-    transport = MagicMock(spec=TransportBase)
-
+    agent_factory = SerializableMagicMock(spec=FactoryBase)
+    service_registry = SerializableMagicMock(spec=ServiceRegistryBase)
+    task_mgt_strategy = SerializableMagicMock(spec=TaskMgtStrategyBase)
+    transport = SerializableMagicMock(spec=TransportBase)
+    
     return ControlPanel(
         agent_factory=agent_factory,
         service_registry=service_registry,
