@@ -99,6 +99,9 @@ jobs:
   run-tests:
     needs: detect-changed-files
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
