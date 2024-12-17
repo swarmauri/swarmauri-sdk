@@ -18,7 +18,7 @@ classifiers = [
 python = ">=3.10,<3.13"
 
 # Swarmauri
-swarmauri_core = { path = "./pkgs/core" }
+swarmauri_core = { path = "/pkgs/core" }
 
 # Dependencies
 toml = "^0.10.2"
