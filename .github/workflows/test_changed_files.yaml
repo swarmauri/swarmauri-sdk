@@ -147,5 +147,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          poetry run python .github/scripts/manage_issues.py
+          cd pkgs/${{ matrix.package_tests.package }}
+          poetry run python scripts/manage_issues.py
 
