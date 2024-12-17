@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional, Set, Literal
 from uuid import uuid4
 import asyncio
-from swarmauri.transport.base.TransportBase import TransportBase, TransportProtocol
+from swarmauri.transports.base.TransportBase import TransportBase, TransportProtocol
 
 
 class PubSubTransport(TransportBase):
