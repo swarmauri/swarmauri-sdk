@@ -22,19 +22,34 @@ class SerializableMagicMock(MagicMock, BaseModel):
 
 @pytest.fixture
 def control_panel():
-    """Fixture to create a ControlPanel instance with mocked dependencies."""
+    """Fixture to create a fully mocked ControlPanel instance with serializable mocks."""
+
+    # Create serializable mocks for all dependencies
     agent_factory = SerializableMagicMock(spec=FactoryBase)
+    agent_factory.create_agent = SerializableMagicMock(return_value="MockAgent")
+    agent_factory.get_agent_by_name = SerializableMagicMock(return_value="MockAgent")
+    agent_factory.delete_agent = SerializableMagicMock()
+    agent_factory.get_agents = SerializableMagicMock(return_value=["MockAgent1", "MockAgent2"])
+
     service_registry = SerializableMagicMock(spec=ServiceRegistryBase)
+    service_registry.register_service = SerializableMagicMock()
+    service_registry.unregister_service = SerializableMagicMock()
+    service_registry.get_services = SerializableMagicMock(return_value=["service1", "service2"])
+
     task_mgt_strategy = SerializableMagicMock(spec=TaskMgtStrategyBase)
+    task_mgt_strategy.add_task = SerializableMagicMock()
+    task_mgt_strategy.process_tasks = SerializableMagicMock()
+    task_mgt_strategy.assign_task = SerializableMagicMock()
+
     transport = SerializableMagicMock(spec=TransportBase)
-    
+
+    # Return the ControlPanel instance with mocked dependencies
     return ControlPanel(
         agent_factory=agent_factory,
         service_registry=service_registry,
         task_mgt_strategy=task_mgt_strategy,
         transport=transport,
     )
-
 
 def test_create_agent(control_panel):
     """Test the create_agent method."""
