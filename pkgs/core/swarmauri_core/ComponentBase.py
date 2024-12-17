@@ -59,6 +59,7 @@ class ResourceTypes(Enum):
     DATA_CONNECTOR = "DataConnector"
     TRANSPORT = "Transport"
     FACTORY = "Factory"
+    SERVICE_REGISTRY = "ServiceRegistry"
 
 
 def generate_id() -> str:
