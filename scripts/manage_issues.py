@@ -11,7 +11,7 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json",
 }
 
-BASE_BRANCH = os.getenv("GITHUB_REF", "unknown").split("/")[-1]
+BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
 WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
 
