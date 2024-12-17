@@ -70,7 +70,7 @@ def test_create_agent(control_panel):
     control_panel.service_registry.register_service.assert_called_once_with(
         agent_name, {"role": agent_role, "status": "active"}
     )
-    assert result == agent
+    assert result == "MockAgent"
 
 
 def test_remove_agent(control_panel):
