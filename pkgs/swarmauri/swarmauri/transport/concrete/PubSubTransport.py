@@ -112,7 +112,3 @@ class PubSubTransport(TransportBase):
         for topic in recipients:
             asyncio.create_task(self.publish(topic, message))
 
-
-check = PubSubTransport()
-print(check.type)
-print("I am okay")

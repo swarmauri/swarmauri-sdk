@@ -6,7 +6,7 @@ from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri.factories.base.FactoryBase import FactoryBase
 from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
-from swarmauri.transports.base.TransportBase import TransportBase
+from swarmauri.transport.base.TransportBase import TransportBase
 from swarmauri_core.typing import SubclassUnion
 import logging
 
