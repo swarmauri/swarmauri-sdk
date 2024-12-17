@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from swarmauri.utils.load_documents_from_folder import load_documents_from_folder
-from swarmauri.llms.concrete.GroqModel import GroqModel
+from swarmauri.llms.concrete.DeepInfraModel import DeepInfraModel
 from swarmauri.agents.concrete.RagAgent import RagAgent
 from swarmauri.conversations.concrete.Conversation import Conversation
 from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
@@ -21,9 +21,9 @@ BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown")
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
 WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
 
-# GroqModel Initialization
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-llm = GroqModel(api_key=GROQ_API_KEY)
+# DeepInfraModel Initialization
+DEEPINFRA_API_KEY = os.getenv("DEEPINFRA_API_KEY")
+llm = DeepInfraModel(api_key=DEEPINFRA_API_KEY, name="meta-llama/Meta-Llama-3.1-405B-Instruct")
 
 def parse_arguments():
     """Parse command-line arguments."""
