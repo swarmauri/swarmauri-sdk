@@ -134,9 +134,18 @@ jobs:
           cd pkgs/${{ matrix.package_tests.package }}
           poetry install --no-cache --all-extras -vv
 
-      - name: Run all tests for the package
+      - name: Run tests and save results
         run: |
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
-          poetry run pytest ${{ matrix.package_tests.tests }}
+          poetry run pytest ${{ matrix.package_tests.tests }} --tb=short --json-report --json-report-file=pytest_results.json || true
+
+      - name: Process test results and manage issues
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python .github/scripts/manage_issues.py
+
