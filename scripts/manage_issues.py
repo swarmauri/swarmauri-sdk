@@ -36,13 +36,19 @@ def load_pytest_results(report_file):
     # Extract failed test cases
     failures = []
     for test in report.get("tests", []):
-        if test["outcome"] == "failed":
+        if test.get("outcome") == "failed":
+            # Safely extract keys with defaults
+            test_name = test.get("nodeid", "Unknown test")
+            test_path = test.get("nodeid", "Unknown path")
+            failure_message = test.get("call", {}).get("longrepr", "No failure details available")
+
             failures.append({
-                "name": test["name"],
-                "path": test["nodeid"],
-                "message": test.get("call", {}).get("longrepr", "No details provided")
+                "name": test_name,
+                "path": test_path,
+                "message": failure_message
             })
     return failures
+
 
 def get_existing_issues():
     """Retrieve all existing issues with the pytest-failure label."""
