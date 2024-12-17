@@ -3,6 +3,7 @@ import json
 import requests
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.agents.concrete.SimpleConversationAgent import SimpleConversationAgent
+from swarmauri.conversations.concrete.Conversation import Conversation
 import argparse
 
 # GitHub API settings
@@ -16,7 +17,6 @@ HEADERS = {
 # GroqModel Initialization
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 llm = GroqModel(api_key=GROQ_API_KEY)
-agent = SimpleConversationAgent(llm=llm)
 
 BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
@@ -62,6 +62,7 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
     Can you help me identify the cause of this failure and suggest a fix?
     """
     try:
+        agent = SimpleConversationAgent(llm=llm, conversation=Conversation())
         response = agent.exec(input_str=prompt)
         return response
     except Exception as e:
