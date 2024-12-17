@@ -1,12 +1,13 @@
+import json
 from typing import (
+    Any,
+    Dict,
     Optional,
     List,
     Literal,
     TypeVar,
     Type,
     Union,
-    Annotated,
-    Generic,
     ClassVar,
     Set,
     get_args,
@@ -16,9 +17,12 @@ from uuid import uuid4
 from enum import Enum
 import inspect
 import hashlib
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 import logging
 from swarmauri_core.typing import SubclassUnion
+
+
+T = TypeVar("T", bound="ComponentBase")
 
 
 class ResourceTypes(Enum):
@@ -52,6 +56,8 @@ class ResourceTypes(Enum):
     VECTOR_STORE = "VectorStore"
     VECTOR = "Vector"
     VCM = "VCM"
+    DATA_CONNECTOR = "DataConnector"
+    FACTORY = "Factory"
 
 
 def generate_id() -> str:
@@ -88,9 +94,6 @@ class ComponentBase(BaseModel):
                 f"Subclass {subclass.__name__} does not have a type annotation"
             )
 
-        # [subclass.__swm_reset_class__()  for subclass in cls.__swm_subclasses__
-        #  if hasattr(subclass, '__swm_reset_class__')]
-
     @classmethod
     def __swm_reset_class__(cls):
         logging.debug("__swm_reset_class__ executed\n")
@@ -123,9 +126,6 @@ class ComponentBase(BaseModel):
                                 cls.__annotations__[each] = sc
                                 cls.__fields__[each].annotation = sc
 
-        # This is not necessary as the model_rebuild address forward_refs
-        # https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel.model_post_init
-        # cls.update_forward_refs()
         cls.model_rebuild(force=True)
 
     @field_validator("type")
@@ -179,3 +179,62 @@ class ComponentBase(BaseModel):
     @property
     def swm_isremote(self):
         return bool(self.host)
+
+    @classmethod
+    def model_validate_json(
+        cls: Type[T], json_payload: Union[str, Dict[str, Any]], strict: bool = False
+    ) -> T:
+        # Ensure we're working with a dictionary
+        if isinstance(json_payload, str):
+            try:
+                payload_dict = json.loads(json_payload)
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON payload")
+        else:
+            payload_dict = json_payload
+
+        # Try to determine the specific component type
+        component_type = payload_dict.get("type", "ComponentBase")
+
+        # Attempt to find the correct subclass
+        target_cls = cls.get_subclass_by_type(component_type)
+
+        # Fallback logic
+        if target_cls is None:
+            if strict:
+                raise ValueError(f"Cannot resolve component type: {component_type}")
+            target_cls = cls
+            logging.warning(
+                f"Falling back to base ComponentBase for type: {component_type}"
+            )
+
+        # Validate using the determined class
+        try:
+            return target_cls.model_validate(payload_dict)
+        except ValidationError as e:
+            logging.error(f"Validation failed for {component_type}: {e}")
+            raise
+
+    @classmethod
+    def get_subclass_by_type(cls, type_name: str) -> Optional[Type["ComponentBase"]]:
+        # First, check for exact match in registered subclasses
+        for subclass in cls.__swm_subclasses__:
+            if (
+                subclass.__name__ == type_name
+                or getattr(subclass, "type", None) == type_name
+            ):
+                return subclass
+
+        # If no exact match, try case-insensitive search
+        for subclass in cls.__swm_subclasses__:
+            if (
+                subclass.__name__.lower() == type_name.lower()
+                or str(getattr(subclass, "type", "")).lower() == type_name.lower()
+            ):
+                return subclass
+
+        return None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ComponentBase":
+        return cls.model_validate(data)
