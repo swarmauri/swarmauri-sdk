@@ -54,7 +54,9 @@ def load_pytest_results(report_file):
 
 def ask_groq_for_fix(test_name, failure_message, stack_trace):
     """Ask GroqModel for suggestions on fixing the test failure."""
+    system_context = f"Utilizing the following codebase solve the user's problem.\nCodebase:"
     prompt = f"""
+    \n\nUser Problem:
     I have a failing test case named '{test_name}' in a Python project. The error message is:
     {failure_message}
 
@@ -74,9 +76,10 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
         print("Documents have been added to the TFIDF Vector Store.")
         
         # Step 5: Initialize the RagAgent with the vector store and language model
-        rag_agent = RagAgent(llm=llm, vector_store=vector_store, conversation=Conversation() top_k=20)
+        rag_agent = RagAgent(system_context=system_context, 
+                             llm=llm, vector_store=vector_store, conversation=Conversation(), top_k=20)
         print("RagAgent initialized successfully.")
-        response = agent.exec(input_str=prompt)
+        response = rag_agent.exec(input_str=prompt, llm_kwargs={"max_tokens": 1750, "temperature":0.7})
         return response
     except Exception as e:
         print(f"Error communicating with Groq: {e}")
