@@ -99,7 +99,7 @@ pytest-json-report = "^1.5.0"
 python-dotenv = "^1.0.0"
 jsonschema = "^4.18.5"
 ipython = "8.28.0"
-
+requests = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
