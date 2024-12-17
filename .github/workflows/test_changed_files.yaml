@@ -152,6 +152,6 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
-          poetry run python ../../scripts/manage_issues.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
+          poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
 
 
