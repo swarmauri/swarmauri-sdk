@@ -4,7 +4,7 @@ import requests
 from swarmauri.utils.load_documents_from_folder import load_documents_from_folder
 from swarmauri.llms.concrete.DeepInfraModel import DeepInfraModel
 from swarmauri.agents.concrete.RagAgent import RagAgent
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri.conversations.concrete.SystemContextConversation import SystemContextConversation
 from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
 import argparse
 
@@ -79,7 +79,7 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
         
         # Step 5: Initialize the RagAgent with the vector store and language model
         rag_agent = RagAgent(system_context=system_context, 
-                             llm=llm, vector_store=vector_store, conversation=Conversation())
+                             llm=llm, vector_store=vector_store, conversation=SystemContextConversation())
         print("RagAgent initialized successfully.")
         response = rag_agent.exec(input_data=prompt, top_k=20, llm_kwargs={"max_tokens": 1750, "temperature":0.7})
         return response
