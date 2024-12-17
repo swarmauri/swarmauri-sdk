@@ -57,13 +57,15 @@ class ResourceTypes(Enum):
     VECTOR = "Vector"
     VCM = "VCM"
     DATA_CONNECTOR = "DataConnector"
+    TRANSPORT = "Transport"
     FACTORY = "Factory"
     PIPELINE = "Pipeline"
-
+    SERVICE_REGISTRY = "ServiceRegistry"
+    CONTROL_PANEL = "ControlPanel"
+    TASK_MGT_STRATEGY = "TaskMgtStrategy"
 
 def generate_id() -> str:
     return str(uuid4())
-
 
 class ComponentBase(BaseModel):
     name: Optional[str] = None
