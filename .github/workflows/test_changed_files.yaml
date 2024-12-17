@@ -147,6 +147,7 @@ jobs:
       - name: Process test results and manage issues
         if: always()
         env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
