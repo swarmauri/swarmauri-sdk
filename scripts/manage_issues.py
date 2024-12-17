@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import argparse
 
 # GitHub API settings
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -12,11 +13,21 @@ HEADERS = {
 
 ISSUE_LABEL = "pytest-failure"
 
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="Manage GitHub Issues for Test Failures")
+    parser.add_argument(
+        "--results-file",
+        type=str,
+        default="pytest_results.json",
+        help="Path to the pytest JSON report file (default: pytest_results.json)",
+    )
+    return parser.parse_args()
 
-def load_pytest_results(report_file="report.json"):
+def load_pytest_results(report_file):
     """Load pytest results from the JSON report."""
     if not os.path.exists(report_file):
-        print("No pytest report file found.")
+        print(f"Report file not found: {report_file}")
         return []
 
     with open(report_file, "r") as f:
@@ -33,7 +44,6 @@ def load_pytest_results(report_file="report.json"):
             })
     return failures
 
-
 def get_existing_issues():
     """Retrieve all existing issues with the pytest-failure label."""
     url = f"https://api.github.com/repos/{REPO}/issues"
@@ -41,7 +51,6 @@ def get_existing_issues():
     response = requests.get(url, headers=HEADERS, params=params)
     response.raise_for_status()
     return response.json()
-
 
 def create_issue(test):
     """Create a new GitHub issue for the test failure."""
@@ -55,7 +64,6 @@ def create_issue(test):
     response.raise_for_status()
     print(f"Issue created for {test['name']}")
 
-
 def add_comment_to_issue(issue_number, test):
     """Add a comment to an existing GitHub issue."""
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
@@ -64,10 +72,9 @@ def add_comment_to_issue(issue_number, test):
     response.raise_for_status()
     print(f"Comment added to issue {issue_number} for {test['name']}")
 
-
-def process_failures():
+def process_failures(report_file):
     """Process pytest failures and manage GitHub issues."""
-    failures = load_pytest_results()
+    failures = load_pytest_results(report_file)
     if not failures:
         print("No test failures found.")
         return
@@ -85,6 +92,6 @@ def process_failures():
         if not issue_exists:
             create_issue(test)
 
-
 if __name__ == "__main__":
-    process_failures()
+    args = parse_arguments()
+    process_failures(args.results_file)
