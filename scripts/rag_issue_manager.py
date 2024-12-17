@@ -16,13 +16,14 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json",
 }
 
-# GroqModel Initialization
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-llm = GroqModel(api_key=GROQ_API_KEY)
-
+# GitHub Metadata
 BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
 WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
+
+# GroqModel Initialization
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+llm = GroqModel(api_key=GROQ_API_KEY)
 
 def parse_arguments():
     """Parse command-line arguments."""
