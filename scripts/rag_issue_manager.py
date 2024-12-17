@@ -81,7 +81,7 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
         rag_agent = RagAgent(system_context=system_context, 
                              llm=llm, vector_store=vector_store, conversation=Conversation())
         print("RagAgent initialized successfully.")
-        response = rag_agent.exec(input_str=prompt, top_k=20, llm_kwargs={"max_tokens": 1750, "temperature":0.7})
+        response = rag_agent.exec(input_data=prompt, top_k=20, llm_kwargs={"max_tokens": 1750, "temperature":0.7})
         return response
     except Exception as e:
         print(f"Error communicating with Groq: {e}")
