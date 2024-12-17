@@ -68,7 +68,7 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
     """
     try:
         current_directory = os.getcwd()
-        documents = load_documents_from_folder(folder_path=current_directory)
+        documents = load_documents_from_folder(folder_path=current_directory, include_extensions=['.py', '.md', '.yaml', '.toml', '.json'])
         print(f"Loaded {len(documents)} documents.")
         
         # Step 3: Initialize the TFIDF Vector Store and add documents
@@ -134,6 +134,7 @@ This issue is auto-labeled for the `{package}` package.
 
 def add_comment_to_issue(issue_number, test, package):
     """Add a comment to an existing GitHub issue."""
+    groq_suggestion = ask_groq_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
     data = {"body": f"""
 New failure detected:
@@ -141,8 +142,13 @@ New failure detected:
 ### Test Case:
 {test['path']}
 
-### Details:
+### Failure Details:
 {test['message']}
+
+---
+
+### Suggested Fix (via Groq):
+{groq_suggestion}
 
 ---
 
