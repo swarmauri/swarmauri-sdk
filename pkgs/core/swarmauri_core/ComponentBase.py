@@ -57,6 +57,7 @@ class ResourceTypes(Enum):
     VECTOR = "Vector"
     VCM = "VCM"
     DATA_CONNECTOR = "DataConnector"
+    TRANSPORT = "Transport"
     FACTORY = "Factory"
 
 
