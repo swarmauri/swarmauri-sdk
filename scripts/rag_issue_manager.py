@@ -68,7 +68,8 @@ def ask_groq_for_fix(test_name, failure_message, stack_trace):
     """
     try:
         current_directory = os.getcwd()
-        documents = load_documents_from_folder(folder_path=current_directory, include_extensions=['.py', '.md', '.yaml', '.toml', '.json'])
+        documents = load_documents_from_folder(folder_path=current_directory, 
+                                               include_extensions=['py', 'md', 'yaml', 'toml', 'json'])
         print(f"Loaded {len(documents)} documents.")
         
         # Step 3: Initialize the TFIDF Vector Store and add documents
