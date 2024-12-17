@@ -102,6 +102,7 @@ def create_issue(test, package):
 ### Context:
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
+- **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
 - **Matrix Package**: `{package}`
 
@@ -113,6 +114,31 @@ This issue is auto-labeled for the `{package}` package.
     response = requests.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
     print(f"Issue created for {test['name']} with Groq suggestion in package '{package}'.")
+
+def add_comment_to_issue(issue_number, test, package):
+    """Add a comment to an existing GitHub issue."""
+    url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
+    data = {"body": f"""
+New failure detected:
+
+### Test Case:
+{test['path']}
+
+### Details:
+{test['message']}
+
+---
+
+### Context:
+- **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
+- **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
+- **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
+- **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
+- **Matrix Package**: `{package}`
+"""}
+    response = requests.post(url, headers=HEADERS, json=data)
+    response.raise_for_status()
+    print(f"Comment added to issue {issue_number} for {test['name']}.")
 
 def process_failures(report_file, package):
     """Process pytest failures and manage GitHub issues."""
@@ -127,7 +153,7 @@ def process_failures(report_file, package):
         issue_exists = False
         for issue in existing_issues:
             if test["name"] in issue["title"]:
-                print(f"Issue already exists for {test['name']}. Skipping...")
+                add_comment_to_issue(issue["number"], test, package)
                 issue_exists = True
                 break
 
