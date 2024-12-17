@@ -147,5 +147,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          python ../.github/scripts/manage_issues.py
+          python scripts/manage_issues.py
 
