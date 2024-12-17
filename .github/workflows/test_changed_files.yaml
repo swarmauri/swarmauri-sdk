@@ -123,7 +123,13 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
+      - name: Install swarmauri_core package dependency
+        run: |
+          cd pkgs/core
+          poetry install --no-cache --all-extras -vv
+
       - name: Install package dependencies
+        if: matrix.package_tests.package != 'core'
         run: |
           cd pkgs/${{ matrix.package_tests.package }}
           poetry install --no-cache --all-extras -vv
