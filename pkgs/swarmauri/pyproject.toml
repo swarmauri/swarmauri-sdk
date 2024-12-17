@@ -95,9 +95,11 @@ pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-timeout = "^2.3.1"
 pytest-xdist = "^3.6.1"
+pytest-json-report = "^1.5.0"
 python-dotenv = "^1.0.0"
 jsonschema = "^4.18.5"
 ipython = "8.28.0"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
