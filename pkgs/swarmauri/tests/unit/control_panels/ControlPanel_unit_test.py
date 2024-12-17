@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from swarmauri.control_panels.base.ControlPanelBase import ControlPanelBase
+from swarmauri.control_panels.concrete.ControlPanel import ControlPanel
 from swarmauri.factories.base.FactoryBase import FactoryBase
 from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
@@ -9,13 +9,13 @@ from swarmauri.transports.base.TransportBase import TransportBase
 
 @pytest.fixture
 def control_panel():
-    """Fixture to create a ControlPanelBase instance with mocked dependencies."""
+    """Fixture to create a ControlPanel instance with mocked dependencies."""
     agent_factory = MagicMock(spec=FactoryBase)
     service_registry = MagicMock(spec=ServiceRegistryBase)
     task_mgt_strategy = MagicMock(spec=TaskMgtStrategyBase)
     transport = MagicMock(spec=TransportBase)
 
-    return ControlPanelBase(
+    return ControlPanel(
         agent_factory=agent_factory,
         service_registry=service_registry,
         task_mgt_strategy=task_mgt_strategy,
