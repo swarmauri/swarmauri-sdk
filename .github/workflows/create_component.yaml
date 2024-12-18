@@ -41,7 +41,7 @@ jobs:
         run: |
           python scripts/create_component.py \
             --template .config/component_generator/templates/component \
-            --output components/${{ env.CLEANED_TITLE }} \
+            --output pkgs/${{ env.CLEANED_TITLE }} \
             --placeholders package_name=${{ env.CLEANED_TITLE }} author_name=${{ env.AUTHOR_NAME }} author_email=${{ env.AUTHOR_EMAIL }} year=$(date +%Y)
 
       - name: Create New Git Branch
