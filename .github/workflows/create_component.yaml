@@ -50,6 +50,11 @@ jobs:
           git checkout -b feature/${CLEANED_TITLE}
           echo "Created and switched to branch feature/${CLEANED_TITLE}"
 
+      - name: Configure Git User
+        run: |
+          git config user.name "Create Component Bot"
+          git config user.email "actions@github.com"
+      
       - name: Commit Changes
         env:
           CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
