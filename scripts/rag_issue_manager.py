@@ -100,7 +100,7 @@ def create_issue(test, package):
     """Create a new GitHub issue for the test failure."""
     suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues"
-    if package == 'core' or 'community' or 'experimental':
+    if package in {'core', 'community', 'experimental'}:
         package_name = f"swarmauri_{package}"
     else:
         package_name = "swarmauri"
@@ -147,7 +147,7 @@ def add_comment_to_issue(issue_number, test, package):
     """Add a comment to an existing GitHub issue."""
     suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
-    if package == 'core' or 'community' or 'experimental':
+    if package in {'core', 'community', 'experimental'}:
         package_name = f"swarmauri_{package}"
     else:
         package_name = "swarmauri"
