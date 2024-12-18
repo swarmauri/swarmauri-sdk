@@ -1,0 +1,126 @@
+name: Create New Component from Feature Request
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  create-component:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Parse Issue Body
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # Parse the issue body using awk for each field
+          project_root=$(echo "$ISSUE_BODY" | awk '/^### Project Root$/ {getline; getline; print $0}' | xargs)
+          package_name=$(echo "$ISSUE_BODY" | awk '/^### Package Name$/ {getline; getline; print $0}' | xargs)
+          resource_kind=$(echo "$ISSUE_BODY" | awk '/^### Resource Kind$/ {getline; getline; print $0}' | xargs)
+          component_name=$(echo "$ISSUE_BODY" | awk '/^### Component Name$/ {getline; getline; print $0}' | xargs)
+          generate_content=$(echo "$ISSUE_BODY" | awk '/^### Generate Content$/ {getline; getline; print $0}' | xargs)
+          feature_description=$(echo "$ISSUE_BODY" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
+          motivation=$(echo "$ISSUE_BODY" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
+          potential_solution=$(echo "$ISSUE_BODY" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
+          
+          # Clean the package_name and convert to concatenated PascalCase          
+          component_name=$(echo "$component_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) substr($i,2)} END {print ""}')
+
+          
+          # Export parsed values as environment variables
+          echo "PROJECT_ROOT=$project_root" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
+          echo "RESOURCE_KIND=$resource_kind" >> $GITHUB_ENV
+          echo "COMPONENT_NAME=$component_name" >> $GITHUB_ENV
+          echo "GENERATE_CONTENT=$generate_content" >> $GITHUB_ENV
+          echo "FEATURE_DESCRIPTION=$feature_description" >> $GITHUB_ENV
+          echo "MOTIVATION=$motivation" >> $GITHUB_ENV
+          echo "POTENTIAL_SOLUTION=$potential_solution" >> $GITHUB_ENV
+
+      - name: Create Component Folder
+        env:
+          AUTHOR_NAME: ${{ github.event.issue.user.login }}
+          AUTHOR_EMAIL: ${{ github.event.issue.user.login }}@example.com
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
+          RESOURCE_KIND: ${{ env.RESOURCE_KIND }}
+          COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
+          GENERATE_CONTENT: ${{ env.GENERATE_CONTENT }}
+          FEATURE_DESCRIPTION: ${{ env.FEATURE_DESCRIPTION }}
+          MOTIVATION: ${{ env.MOTIVATION }}
+          POTENTIAL_SOLUTION: ${{ env.POTENTIAL_SOLUTION }}
+        run: |
+          python scripts/create_component.py \
+            --templates_dir .config/component_generator/templates \
+            --output pkgs \
+            --placeholders \
+              project_root="${{ env.PROJECT_ROOT }}" \
+              package_name="${{ env.PACKAGE_NAME }}" \
+              resource_kind="${{ env.RESOURCE_KIND }}" \
+              component_name="${{ env.COMPONENT_NAME }}" \
+              generate_content="${{ env.GENERATE_CONTENT }}" \
+              feature_description="${{ env.FEATURE_DESCRIPTION }}" \
+              motivation="${{ env.MOTIVATION }}" \
+              potential_solution="${{ env.POTENTIAL_SOLUTION }}" \
+              author_name="${{ env.AUTHOR_NAME }}" \
+              author_email="${{ env.AUTHOR_EMAIL }}" \
+              year=$(date +%Y)
+
+      - name: Create New Git Branch
+        env:
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
+          COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
+        run: |
+          # Create and switch to the new branch
+          git checkout -b ${PROJECT_ROOT}/${COMPONENT_NAME}
+          echo "Created and switched to branch ${PROJECT_ROOT}/${COMPONENT_NAME}"
+
+      - name: Configure Git User
+        run: |
+          git config user.name "Create Component Bot"
+          git config user.email "actions@github.com"
+      
+      - name: Commit Changes
+        env:
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
+          COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
+        run: |
+          # Stage all changes and commit
+          git add .
+          git commit -m "feat: add new component - ${COMPONENT_NAME}"
+          echo "Committed changes to branch ${PROJECT_ROOT}/${COMPONENT_NAME}"
+
+      - name: Push Branch to GitHub
+        env:
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
+          COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
+        run: |
+          # Push the new branch to GitHub
+          git push origin ${PROJECT_ROOT}/${COMPONENT_NAME}
+          echo "Pushed branch ${PROJECT_ROOT}/${COMPONENT_NAME} to GitHub"
+
+      - name: Create Pull Request
+        env:
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
+          COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Create a pull request from the new branch to the master branch
+          PR_TITLE="feat: add new component - ${COMPONENT_NAME}"
+          PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}\n\nCloses #${ISSUE_NUMBER}"
+          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "'"${PROJECT_ROOT}"/"${COMPONENT_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            https://api.github.com/repos/${{ github.repository }}/pulls

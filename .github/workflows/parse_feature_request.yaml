@@ -1,0 +1,57 @@
+name: Parse Feature Request
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  parse-feature-request:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log Issue Body
+        run: |
+          echo "Issue Body:"
+          echo "${{ github.event.issue.body }}"
+
+      - name: Parse Feature Request Details
+        id: parse-details
+        run: |
+          issue_body="${{ github.event.issue.body }}"
+
+          # Parse fields from the issue body
+          package_name=$(echo "$issue_body" | awk '/^### Package Name$/ {getline; getline; print $0}' | xargs)
+          resource_kind=$(echo "$issue_body" | awk '/^### Resource Kind$/ {getline; getline; print $0}' | xargs)
+          package_scope=$(echo "$issue_body" | awk '/^### Package Scope$/ {getline; getline; print $0}' | xargs)
+          generate_content=$(echo "$issue_body" | awk '/^### Generate Content$/ {getline; getline; print $0}' | xargs)
+          feature_description=$(echo "$issue_body" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
+          motivation=$(echo "$issue_body" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
+          potential_solution=$(echo "$issue_body" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
+
+          echo "Package Name: $package_name"
+          echo "Resource Kind: $resource_kind"
+          echo "Package Scope: $package_scope"
+          echo "Generate Content: $generate_content"
+          echo "Feature Description: $feature_description"
+          echo "Motivation: $motivation"
+          echo "Potential Solution: $potential_solution"
+
+          # Write outputs to GITHUB_OUTPUT
+          echo "package_name=$package_name" >> $GITHUB_OUTPUT
+          echo "resource_kind=$resource_kind" >> $GITHUB_OUTPUT
+          echo "package_scope=$package_scope" >> $GITHUB_OUTPUT
+          echo "generate_content=$generate_content" >> $GITHUB_OUTPUT
+          echo "feature_description=$feature_description" >> $GITHUB_OUTPUT
+          echo "motivation=$motivation" >> $GITHUB_OUTPUT
+          echo "potential_solution=$potential_solution" >> $GITHUB_OUTPUT
+
+      - name: Display Parsed Values
+        run: |
+          echo "Package Name: ${{ steps.parse-details.outputs.package_name }}"
+          echo "Resource Kind: ${{ steps.parse-details.outputs.resource_kind }}"
+          echo "Package Scope: ${{ steps.parse-details.outputs.package_scope }}"
+          echo "Generate Content: ${{ steps.parse-details.outputs.generate_content }}"
+          echo "Feature Description: ${{ steps.parse-details.outputs.feature_description }}"
+          echo "Motivation: ${{ steps.parse-details.outputs.motivation }}"
+          echo "Potential Solution: ${{ steps.parse-details.outputs.potential_solution }}"
