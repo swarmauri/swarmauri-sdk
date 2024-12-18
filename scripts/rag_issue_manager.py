@@ -116,7 +116,9 @@ def create_issue(test, package):
 `{test['path']}`
 
 ### Failure Details:
+```python
 {test['message']}
+```
 
 ---
 
@@ -161,7 +163,9 @@ New failure detected:
 `{test['path']}`
 
 ### Failure Details:
+```python
 {test['message']}
+```
 
 ---
 
