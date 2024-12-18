@@ -1,0 +1,5 @@
+README.md
+pyproject.toml
+LICENSE
+{{ package_name }}/__init__.py
+tests/test_{{ package_name }}_unit_test.py
