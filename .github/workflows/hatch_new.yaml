@@ -19,9 +19,6 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Install Hatch
-        run: pip install hatch
-
       - name: Clean Issue Title and Convert to PascalCase
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
