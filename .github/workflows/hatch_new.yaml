@@ -46,13 +46,17 @@ jobs:
       #       --author-email "${AUTHOR_NAME}@example.com" \
       #       --year "$(date +%Y)"
 
-      - name: Parse Issue and Create Component
+      - name: Create Component Folder
         env:
           CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
           AUTHOR_NAME: ${{ github.event.issue.user.login }}
+          AUTHOR_EMAIL: ${{ github.event.issue.user.login }}@example.com
         run: |
-          hatch new component ${{ env.CLEANED_TITLE }}
-
+          # Run the custom script to generate the component
+          python scripts/create_component.py \
+            --template .config/component_generator/templates/component \
+            --output components/${{ env.CLEANED_TITLE }} \
+            --placeholders package_name=${{ env.CLEANED_TITLE }} author_name=${{ env.AUTHOR_NAME }} author_email=${{ env.AUTHOR_EMAIL }} year=$(date +%Y)
 
       - name: List Directory Contents
         run: |
