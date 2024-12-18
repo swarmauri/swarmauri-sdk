@@ -11,6 +11,7 @@ body:
       options:
         - "core"
         - "base"
+        - "mixins"
         - "swarmauri"
         - "community"
         - "experimental"
