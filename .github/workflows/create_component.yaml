@@ -33,8 +33,9 @@ jobs:
           motivation=$(echo "$ISSUE_BODY" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
           potential_solution=$(echo "$ISSUE_BODY" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
 
-          # Clean the package_name and convert to PascalCase
-          package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1' OFS="")
+          # Clean the package_name and convert to concatenated PascalCase
+          package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) tolower(substr($i,2))} END {print ""}')
+
           
           # Export parsed values as environment variables
           echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
