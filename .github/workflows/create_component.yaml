@@ -62,7 +62,7 @@ jobs:
           POTENTIAL_SOLUTION: ${{ env.POTENTIAL_SOLUTION }}
         run: |
           python scripts/create_component.py \
-            --template_dir .config/component_generator/templates \
+            --templates_dir .config/component_generator/templates \
             --output pkgs \
             --placeholders \
               project_root="${{ env.PROJECT_ROOT }}" \
