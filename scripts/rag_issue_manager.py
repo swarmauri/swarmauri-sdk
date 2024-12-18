@@ -100,6 +100,11 @@ def create_issue(test, package):
     """Create a new GitHub issue for the test failure."""
     suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues"
+    if package == 'core' or 'community' or 'experimental':
+        package_name = f"swarmauri_{package}"
+    resource_kind, type_kind = test['name'].split('/')[2:4]
+    comp_file_url = f"pkgs/{package}/{package_name}/{resource_kind}/concrete/{type_kind}.py"
+    test_file_url = f"pkgs/{package}/{test['name']}"
 
     # Construct the issue body
     data = {
@@ -119,6 +124,8 @@ def create_issue(test, package):
 ---
 
 ### Context:
+- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url)
+- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url)
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
@@ -138,6 +145,11 @@ def add_comment_to_issue(issue_number, test, package):
     """Add a comment to an existing GitHub issue."""
     suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
+    if package == 'core' or 'community' or 'experimental':
+            package_name = f"swarmauri_{package}"
+    resource_kind, type_kind = test['name'].split('/')[2:4]
+    comp_file_url = f"pkgs/{package}/{package_name}/{resource_kind}/concrete/{type_kind}.py"
+    test_file_url = f"pkgs/{package}/{test['name']}"
     data = {"body": f"""
 New failure detected:
 
@@ -155,6 +167,8 @@ New failure detected:
 ---
 
 ### Context:
+- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url)
+- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url)                                                                            
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
