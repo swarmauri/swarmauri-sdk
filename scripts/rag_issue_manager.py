@@ -102,6 +102,8 @@ def create_issue(test, package):
     url = f"https://api.github.com/repos/{REPO}/issues"
     if package == 'core' or 'community' or 'experimental':
         package_name = f"swarmauri_{package}"
+    else:
+        package_name = "swarmauri"
     resource_kind, type_kind = test['name'].split('/')[2:4]
     comp_file_url = f"pkgs/{package}/{package_name}/{resource_kind}/concrete/{type_kind.split('_')[0]}.py"
     test_file_url = f"pkgs/{package}/{test['name'].split('::')[0]}"
@@ -146,7 +148,9 @@ def add_comment_to_issue(issue_number, test, package):
     suggestion = ask_agent_for_fix(test["name"], test["message"], test["message"])
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
     if package == 'core' or 'community' or 'experimental':
-            package_name = f"swarmauri_{package}"
+        package_name = f"swarmauri_{package}"
+    else:
+        package_name = "swarmauri"
     resource_kind, type_kind = test['name'].split('/')[2:4]
     comp_file_url = f"pkgs/{package}/{package_name}/{resource_kind}/concrete/{type_kind.split('_')[0]}.py"
     test_file_url = f"pkgs/{package}/{test['name'].split('::')[0]}"
