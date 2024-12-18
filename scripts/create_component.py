@@ -70,7 +70,7 @@ def main():
         placeholders[key] = value
     
     # Generate the project
-    create_structure(args.template, args.output, placeholders)
+    create_component(args.template, args.output, placeholders)
 
 if __name__ == "__main__":
     main()
