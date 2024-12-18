@@ -7,7 +7,7 @@ on:
 
 jobs:
   create-component:
-    if: contains(github.event.issue.title, '[Feature Request]:')
+    if: github.event.issue.title && contains(toJSON(github.event.issue.title), '[Feature Request]')
     runs-on: ubuntu-latest
 
     steps:
