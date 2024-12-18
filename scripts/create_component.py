@@ -53,14 +53,13 @@ def replace_placeholders(text, placeholders):
     :return: Text with placeholders replaced.
     """
     for key, value in placeholders.items():
-        print(key,value)
         text = text.replace("{{ "+key+" }}", value)
     return text
 
 def main():
     parser = argparse.ArgumentParser(description="Custom Project Generator")
     parser.add_argument("--template", required=True, help="Path to the template structure folder")
-    parser.add_argument("--output", required=True, help="Directory where the project will be created")
+    parser.add_argument("--output", required=True, help="Base directory where the project will be created")
     parser.add_argument("--placeholders", nargs="+", help="Placeholder values in key=value format", required=True)
     args = parser.parse_args()
 
@@ -69,9 +68,15 @@ def main():
     for placeholder in args.placeholders:
         key, value = placeholder.split("=", 1)
         placeholders[key] = value
-    
+
+    # Construct output path dynamically using placeholders
+    if not all(key in placeholders for key in ["package_scope", "resource_kind", "package_name"]):
+        raise ValueError("Missing required placeholders: package_scope, resource_kind, package_name")
+
+    dynamic_output_path = Path(args.output) / placeholders["package_scope"] / placeholders["resource_kind"] / placeholders["package_name"]
+
     # Generate the project
-    create_component(args.template, args.output, placeholders)
+    create_component(args.template, dynamic_output_path, placeholders)
 
 if __name__ == "__main__":
     main()
