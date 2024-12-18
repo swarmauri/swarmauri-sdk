@@ -30,7 +30,7 @@ def create_component(template_path, output_path, placeholders):
         target_root = Path(replace_placeholders(str(target_root), placeholders))
         target_root.mkdir(parents=True, exist_ok=True)
 
-        for file in files:e
+        for file in files:
             template_file = Path(root) / file
             target_file = target_root / replace_placeholders(file, placeholders)
 
