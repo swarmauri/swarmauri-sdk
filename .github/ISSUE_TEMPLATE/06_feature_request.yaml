@@ -3,6 +3,20 @@ description: "Submit a feature request to enhance the Swarmauri SDK."
 title: "[Feature Request]: "
 labels: ["feature request"]
 body:
+  - type: dropdown
+    id: project_root
+    attributes:
+      label: "Project Root"
+      description: "Select the scope of the package."
+      options:
+        - "core"
+        - "base"
+        - "swarmauri"
+        - "community"
+        - "experimental"
+    validations:
+      required: true
+      
   - type: input
     id: package_name
     attributes:
@@ -20,18 +34,13 @@ body:
       placeholder: "e.g., component"
     validations:
       required: true
-
-  - type: dropdown
-    id: package_scope
+      
+  - type: input
+    id: component_name
     attributes:
-      label: "Package Scope"
-      description: "Select the scope of the package."
-      options:
-        - "core"
-        - "base"
-        - "swarmauri"
-        - "community"
-        - "experimental"
+      label: "component_name"
+      description: "Provide the name of the package this feature request applies to."
+      placeholder: "e.g., AgentBase"
     validations:
       required: true
 
