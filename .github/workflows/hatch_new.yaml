@@ -1,0 +1,51 @@
+name: Create New Component from Feature Request
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  create-component:
+    if: contains(github.event.issue.title, '[Feature Request]:')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install Hatch
+        run: pip install hatch
+
+      - name: Clean Issue Title and Convert to PascalCase
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          # Remove "[Feature Request]:", trim spaces, and convert to PascalCase
+          CLEANED_TITLE=$(echo "${ISSUE_TITLE}" | sed 's/\[Feature Request\]://g' | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1' OFS='')
+
+          # Print the cleaned title
+          echo "Cleaned Title (PascalCase): $CLEANED_TITLE"
+
+          # Set the cleaned title as an environment variable for later steps
+          echo "CLEANED_TITLE=$CLEANED_TITLE" >> $GITHUB_ENV
+
+      - name: Parse Issue and Create Component
+        env:
+          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          AUTHOR_NAME: ${{ github.event.issue.user.login }}
+        run: |
+          python scripts/create_component.py \
+            --package-name "$CLEANED_TITLE" \
+            --author-name "$AUTHOR_NAME" \
+            --author-email "${AUTHOR_NAME}@example.com" \
+            --year "$(date +%Y)"
+      - name: List Directory Contents
+        run: |
+          echo "Directory contents after creating the package:"
+          ls -R
