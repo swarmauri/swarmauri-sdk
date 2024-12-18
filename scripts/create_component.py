@@ -75,8 +75,10 @@ def main():
 
     if not placeholders["resource_kind"].endswith("s"):
         placeholders["resource_kind"] = placeholders["resource_kind"]+'s'
-    dynamic_output_path = Path(args.output) / placeholders["package_scope"].lower() / placeholders["resource_kind"].lower() / placeholders["package_name"]
-
+        
+    placeholders["package_scope"] = placeholders["package_scope"].lower()
+    placeholders["resource_kind"] = placeholders["resource_kind"].lower()
+    dynamic_output_path = Path(args.output)
     # Generate the project
     create_component(args.template, dynamic_output_path, placeholders)
 
