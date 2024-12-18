@@ -2,14 +2,26 @@ import os
 import argparse
 from pathlib import Path
 
-def create_component(template_path, output_path, placeholders):
+def create_component(templates_dir_path, output_path, placeholders):
     """
     Create files and directories based on a template, replacing placeholders.
     :param template_path: Path to the template structure directory.
     :param output_path: Directory where the new project will be created.
     :param placeholders: Dictionary of placeholders to replace in filenames and file content.
     """
-    template_path = Path(template_path)
+    if placeholders['project_root'] == 'core':
+        template_path = Path(templates_dir_path) / Path('core')
+    if placeholders['project_root'] == 'base':
+        template_path = Path(templates_dir_path) / Path('base')
+    if placeholders['project_root'] == 'mixins':
+        template_path = Path(templates_dir_path) / Path('mixins')
+    if placeholders['project_root'] == 'swarmauri':
+        template_path = Path(templates_dir_path) / Path('component')
+    if placeholders['project_root'] == 'community':
+        template_path = Path(templates_dir_path) / Path('component')
+    if placeholders['project_root'] == 'experimental':
+        template_path = Path(templates_dir_path) / Path('component')
+    
     output_path = Path(output_path)
 
     if not template_path.exists():
@@ -58,7 +70,7 @@ def replace_placeholders(text, placeholders):
 
 def main():
     parser = argparse.ArgumentParser(description="Custom Project Generator")
-    parser.add_argument("--template", required=True, help="Path to the template structure folder")
+    parser.add_argument("--templates_dir", required=True, help="Path to the templates directory folder")
     parser.add_argument("--output", required=True, help="Base directory where the project will be created")
     parser.add_argument("--placeholders", nargs="+", help="Placeholder values in key=value format", required=True)
     args = parser.parse_args()
@@ -81,7 +93,7 @@ def main():
     placeholders["resource_kind"] = placeholders["resource_kind"].lower()
     dynamic_output_path = Path(args.output)
     # Generate the project
-    create_component(args.template, dynamic_output_path, placeholders)
+    create_component(args.templates_dir, dynamic_output_path, placeholders)
 
 if __name__ == "__main__":
     main()
