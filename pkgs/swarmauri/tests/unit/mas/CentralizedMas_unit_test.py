@@ -5,27 +5,6 @@ from swarmauri.transports.concrete.PubSubTransport import PubSubTransport
 from swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy import RoundRobinStrategy
 from swarmauri.factories.concrete.AgentFactory import AgentFactory
 
-
-@pytest.fixture
-def mock_transport():
-    return Mock()
-
-
-@pytest.fixture
-def mock_agent_factory():
-    return Mock()
-
-
-@pytest.fixture
-def mock_service_registry():
-    return Mock()
-
-
-@pytest.fixture
-def mock_task_strategy():
-    return Mock()
-
-
 @pytest.fixture
 def centralized_mas():
     mas = CentralizedMas(PubSubTransport, AgentFactory, RoundRobinStrategy)

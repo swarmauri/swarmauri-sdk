@@ -1,7 +1,4 @@
-import logging
-from math import e
 import pytest
-from unittest.mock import MagicMock
 from swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy import RoundRobinStrategy
 from swarmauri.transports.concrete.PubSubTransport import PubSubTransport
 
@@ -128,22 +125,13 @@ def test_process_tasks(round_robin_strategy):
         round_robin_strategy.add_task(task)
 
     # Execute
-    with pytest.raises(NotImplementedError) as exc_info:
-        round_robin_strategy.process_tasks(services, transport)
+    round_robin_strategy.process_tasks(services, transport)
 
-    assert "Direct send not supported in Pub/Sub model." in str(exc_info.value)
-
-    # # Verify assignments
-    # assert round_robin_strategy.task_assignments["task1"] == "service1"
-    # assert round_robin_strategy.task_assignments["task2"] == "service2"
-    # assert round_robin_strategy.task_assignments["task3"] == "service1"
-    # assert round_robin_strategy.current_index == 3
-
-    # # Verify that transport.send was called correctly
-    # transport.send.assert_any_call(tasks[0], "service1")
-    # transport.send.assert_any_call(tasks[1], "service2")
-    # transport.send.assert_any_call(tasks[2], "service1")
-    # assert transport.send.call_count == 3
+    # Verify assignments
+    assert round_robin_strategy.task_assignments["task1"] == "service1"
+    assert round_robin_strategy.task_assignments["task2"] == "service2"
+    assert round_robin_strategy.task_assignments["task3"] == "service1"
+    assert round_robin_strategy.current_index == 3
 
 
 def test_process_tasks_no_services(round_robin_strategy):

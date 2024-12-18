@@ -75,9 +75,7 @@ class ControlPanelBase(IControlPlane, ComponentBase):
             services = self.service_registry.get_services()
 
             self.task_mgt_strategy.process_tasks(services, self.transport)
-            logging.info("Tasks processed and transported successfully.")
         except Exception as e:
-            logging.error(f"Error while processing tasks: {e}")
             raise ValueError(f"Error processing tasks: {e}")
 
     def distribute_tasks(self, task: Any) -> None:
@@ -99,4 +97,3 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         """
         self.submit_tasks(tasks)  # Add task to the strategy
         self.process_tasks()  # Process and transport the task
-        logging.info("Agents orchestrated successfully.")

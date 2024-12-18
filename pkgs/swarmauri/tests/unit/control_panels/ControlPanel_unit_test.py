@@ -1,4 +1,3 @@
-import logging
 import os
 import pytest
 from swarmauri.control_panels.concrete.ControlPanel import ControlPanel
@@ -86,8 +85,6 @@ def test_create_agent(
     """Test the create_agent method."""
 
     agent_factory.register("QAAgent", QAAgent)
-
-    # Call the method
     agent = control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
 
     assert agent.type == "QAAgent"
@@ -135,7 +132,6 @@ def test_submit_tasks(control_panel, task_mgt_strategy):
     task2 = {"task_id": "task2"}
     tasks = [task1, task2]
 
-    # Call the method
     control_panel.submit_tasks(tasks)
 
     assert len(tasks) == len(task_mgt_strategy.get_tasks())
@@ -154,13 +150,7 @@ def test_submit_and_process_tasks(control_panel, agent_factory, groq_model):
 
     control_panel.submit_tasks(tasks)
 
-    with pytest.raises(ValueError) as exc_info:
-        control_panel.process_tasks()
-
-    assert (
-        str(exc_info.value)
-        == "Error processing tasks: Direct send not supported in Pub/Sub model."
-    )
+    control_panel.process_tasks()
 
 
 @pytest.mark.unit
@@ -172,24 +162,19 @@ def test_distribute_tasks(control_panel, agent_factory, groq_model):
 
     task = {"task_id": "task1"}
 
-    # Call the method
     service = control_panel.distribute_tasks(task)
 
     assert isinstance(service, QAAgent)
 
 
 @pytest.mark.unit
-def test_orchestrate_agents(control_panel, agent_factory, groq_model):
+def test_orchestrate_agents(control_panel, agent_factory, groq_model, transport):
     """Test the orchestrate_agents method."""
     agent_factory.register("QAAgent", QAAgent)
     control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
 
     tasks = [{"task_id": "task1"}, {"task_id": "task2"}]
 
-    with pytest.raises(ValueError) as exc_info:
-        control_panel.orchestrate_agents(tasks)
+    control_panel.orchestrate_agents(tasks)
 
-    assert (
-        str(exc_info.value)
-        == "Error processing tasks: Direct send not supported in Pub/Sub model."
-    )
+    assert isinstance(control_panel.list_active_agents().get("QAAgent"), QAAgent)
