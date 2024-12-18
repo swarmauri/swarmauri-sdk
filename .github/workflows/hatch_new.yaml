@@ -51,7 +51,7 @@ jobs:
           CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
           AUTHOR_NAME: ${{ github.event.issue.user.login }}
         run: |
-          hatch new --verbose --template .config/hatch/templates/component -- MyPackage --author-name="Test Author" --author-email="test@example.com" --year=2024
+          hatch new --template .config/hatch/templates/component -- MyPackage --author-name="Test Author" --author-email="test@example.com" --year=2024
 
 
       - name: List Directory Contents
