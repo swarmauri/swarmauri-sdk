@@ -15,10 +15,13 @@ def create_component(template_path, output_path, placeholders):
     if not template_path.exists():
         raise FileNotFoundError(f"Template path '{template_path}' does not exist.")
     
+    # Ensure the output path exists
+    output_path.mkdir(parents=True, exist_ok=True)
+
     print(f"Creating project at: {output_path}")
     print(f"Using template from: {template_path}")
     
-    # Iterate over all files in the template
+    # Iterate over all files and directories in the template
     for root, dirs, files in os.walk(template_path):
         relative_root = Path(root).relative_to(template_path)
         target_root = output_path / relative_root
@@ -36,6 +39,7 @@ def create_component(template_path, output_path, placeholders):
                 content = f.read()
                 replaced_content = replace_placeholders(content, placeholders)
             
+            # Write the replaced content to the new file
             with open(target_file, "w", encoding="utf-8") as f:
                 f.write(replaced_content)
             
