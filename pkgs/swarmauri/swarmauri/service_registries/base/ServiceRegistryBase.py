@@ -1,4 +1,5 @@
-from typing import Dict, Any, List, Literal, Optional
+import logging
+from typing import Callable, Dict, Any, Literal, Optional
 
 from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
@@ -17,11 +18,12 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-    def register_service(self, name: str, details: Dict[str, Any]) -> None:
+    def register_service(self, service: Callable, name: str) -> None:
         """
         Register a new service with the given name and details.
         """
-        self.services[name] = details
+        logging.info(f"Registering service {type(service)}.")
+        self.services[name] = service
 
     def get_service(self, name: str) -> Optional[Dict[str, Any]]:
         """
@@ -29,15 +31,9 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
         """
         return self.services.get(name)
 
-    def get_services_by_roles(self, roles: List[str]) -> List[str]:
-        """
-        Get services filtered by their roles.
-        """
-        return [
-            name
-            for name, details in self.services.items()
-            if details.get("role") in roles
-        ]
+    def get_services(self) -> Dict[str, Any]:
+        """Retrieve all service"""
+        return list(self.services.values())
 
     def unregister_service(self, name: str) -> None:
         """
@@ -49,12 +45,14 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
         else:
             raise ValueError(f"Service {name} not found.")
 
-    def update_service(self, name: str, details: Dict[str, Any]) -> None:
+    def update_service(self, name: str, **kwargs) -> None:
         """
         Update the details of the service with the given name.
         """
         if name in self.services:
-            self.services[name].update(details)
-            print(f"Service {name} updated with new details: {details}")
+            for key, value in kwargs.items():
+                if hasattr(self.services[name], key):
+                    self.services[name].__setattr__(key, value)
+            print(f"Service {name} updated with new details: {self.services[name]}")
         else:
             raise ValueError(f"Service {name} not found.")

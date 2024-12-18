@@ -1,7 +1,7 @@
 from typing import List, Any, Dict
 from swarmauri.factories.base.FactoryBase import FactoryBase
 from swarmauri.mas.base.MasBase import MasBase
-from swarmauri.transport.base.TransportBase import TransportBase
+from swarmauri.transports.base.TransportBase import TransportBase
 from swarmauri.service_registries.concrete import ServiceRegistry
 from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
 from swarmauri.control_panels.concrete.ControlPanel import ControlPanel
@@ -18,12 +18,14 @@ class CentralizedMas(MasBase):
     task_strategy: SubclassUnion[TaskMgtStrategyBase]
     control_panel: ControlPanel
 
-    def __init__(self, transport: SubclassUnion[TransportBase], factory: SubclassUnion[FactoryBase], task_strategy: SubclassUnion[TaskMgtStrategyBase]):
-        super().__init__()
-        self._agents: Dict[str, Any] = {}
+    def __init__(
+        self,
+        transport: SubclassUnion[TransportBase],
+        factory: SubclassUnion[FactoryBase],
+        task_strategy: SubclassUnion[TaskMgtStrategyBase],
+    ):
         self.transport = transport
         self.agent_factory = factory
-        self.service_registry = ServiceRegistry()
         self.task_strategy = task_strategy
         self.control_plane = ControlPanel(
             self.agent_factory,

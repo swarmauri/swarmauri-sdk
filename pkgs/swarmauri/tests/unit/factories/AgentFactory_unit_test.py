@@ -2,7 +2,7 @@ import pytest
 from swarmauri.factories.concrete.AgentFactory import AgentFactory
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.agents.concrete import QAAgent
+from swarmauri.agents.concrete.QAAgent import QAAgent
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -62,5 +62,5 @@ def test_agent_factory_create_unregistered_type(agent_factory):
 @pytest.mark.unit
 def test_agent_factory_get_agents(agent_factory):
 
-    assert agent_factory.get_agents() == ["QAAgent"]
-    assert len(agent_factory.get_agents()) == 1
+    assert agent_factory.get() == ["QAAgent"]
+    assert len(agent_factory.get()) == 1

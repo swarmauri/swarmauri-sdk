@@ -75,7 +75,7 @@ class PubSubTransport(TransportBase):
         """
         return await self._subscribers[self.id].get()
 
-    def send(self, sender: str, recipient: str, message: Any) -> None:
+    def send(self, recipient: str, message: Any, sender: str = None) -> None:
         """
         Simulate sending a direct message (not applicable in Pub/Sub context).
 

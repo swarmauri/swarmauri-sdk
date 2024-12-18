@@ -1,47 +1,54 @@
+import logging
+import os
 import pytest
-from unittest.mock import MagicMock
 from swarmauri.control_panels.concrete.ControlPanel import ControlPanel
-from swarmauri.factories.base.FactoryBase import FactoryBase
-from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
-from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
-from swarmauri.transports.base.TransportBase import TransportBase
+from swarmauri.factories.concrete.AgentFactory import AgentFactory
+from swarmauri.service_registries.concrete.ServiceRegistry import ServiceRegistry
+from swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy import RoundRobinStrategy
+from swarmauri.transports.concrete.PubSubTransport import PubSubTransport
+from swarmauri.agents.concrete.QAAgent import QAAgent
+from swarmauri.llms.concrete.GroqModel import GroqModel
+from dotenv import load_dotenv
 
-from unittest.mock import MagicMock
-from pydantic import BaseModel
+load_dotenv()
 
-class SerializableMagicMock(MagicMock, BaseModel):
-    """A MagicMock class that can be serialized using Pydantic."""
-    
-    def dict(self, *args, **kwargs):
-        """Serialize the mock object to a dictionary."""
-        return {"mock_name": self._mock_name, "calls": self.mock_calls}
-    
-    def json(self, *args, **kwargs):
-        """Serialize the mock object to a JSON string."""
-        return super().json(*args, **kwargs)
+
+@pytest.fixture(scope="module")
+def groq_model():
+    API_KEY = os.getenv("GROQ_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = GroqModel(api_key=API_KEY)
+    return llm
+
 
 @pytest.fixture
-def control_panel():
+def agent_factory():
+    """Fixture to create a fully mocked AgentFactory instance with serializable mocks."""
+    return AgentFactory()
+
+
+@pytest.fixture
+def service_registry():
+    """Fixture to create a fully mocked ServiceRegistry instance with serializable mocks."""
+    return ServiceRegistry()
+
+
+@pytest.fixture
+def task_mgt_strategy():
+    """Fixture to create a fully mocked TaskMgtStrategy instance with serializable mocks."""
+    return RoundRobinStrategy()
+
+
+@pytest.fixture
+def transport():
+    """Fixture to create a fully mocked Transport instance with serializable mocks."""
+    return PubSubTransport()
+
+
+@pytest.fixture
+def control_panel(agent_factory, service_registry, task_mgt_strategy, transport):
     """Fixture to create a fully mocked ControlPanel instance with serializable mocks."""
-
-    # Create serializable mocks for all dependencies
-    agent_factory = SerializableMagicMock(spec=FactoryBase)
-    agent_factory.create_agent = SerializableMagicMock(return_value="MockAgent")
-    agent_factory.get_agent_by_name = SerializableMagicMock(return_value="MockAgent")
-    agent_factory.delete_agent = SerializableMagicMock()
-    agent_factory.get_agents = SerializableMagicMock(return_value=["MockAgent1", "MockAgent2"])
-
-    service_registry = SerializableMagicMock(spec=ServiceRegistryBase)
-    service_registry.register_service = SerializableMagicMock()
-    service_registry.unregister_service = SerializableMagicMock()
-    service_registry.get_services = SerializableMagicMock(return_value=["service1", "service2"])
-
-    task_mgt_strategy = SerializableMagicMock(spec=TaskMgtStrategyBase)
-    task_mgt_strategy.add_task = SerializableMagicMock()
-    task_mgt_strategy.process_tasks = SerializableMagicMock()
-    task_mgt_strategy.assign_task = SerializableMagicMock()
-
-    transport = SerializableMagicMock(spec=TransportBase)
 
     # Return the ControlPanel instance with mocked dependencies
     return ControlPanel(
@@ -51,80 +58,78 @@ def control_panel():
         transport=transport,
     )
 
-def test_create_agent(control_panel):
+
+@pytest.mark.unit
+def test_ubc_resource(control_panel):
+    assert control_panel.resource == "ControlPanel"
+
+
+@pytest.mark.unit
+def test_ubc_type(control_panel):
+    assert control_panel.type == "ControlPanel"
+
+
+@pytest.mark.unit
+def test_serialization(control_panel):
+    assert (
+        control_panel.id
+        == ControlPanel.model_validate_json(control_panel.model_dump_json()).id
+    )
+
+
+@pytest.mark.unit
+def test_create_agent(
+    control_panel,
+    agent_factory,
+    groq_model,
+):
     """Test the create_agent method."""
-    agent_name = "agent1"
-    agent_role = "worker"
-    agent = MagicMock()
 
-    # Configure mocks
-    control_panel.agent_factory.create_agent.return_value = agent
+    agent_factory.register("QAAgent", QAAgent)
 
     # Call the method
-    result = control_panel.create_agent(agent_name, agent_role)
+    agent = control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
 
-    # Assertions
-    control_panel.agent_factory.create_agent.assert_called_once_with(
-        agent_name, agent_role
-    )
-    control_panel.service_registry.register_service.assert_called_once_with(
-        agent_name, {"role": agent_role, "status": "active"}
-    )
-    assert result == "MockAgent"
+    assert agent.type == "QAAgent"
+    assert agent.type in agent_factory.get()
 
 
-def test_remove_agent(control_panel):
+@pytest.mark.unit
+def test_remove_agent(control_panel, agent_factory, groq_model):
     """Test the remove_agent method."""
-    agent_name = "agent1"
-    agent = MagicMock()
 
-    # Configure mocks
-    control_panel.agent_factory.get_agent_by_name.return_value = agent
+    agent_factory.register("QAAgent", QAAgent)
+    control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
 
-    # Call the method
-    control_panel.remove_agent(agent_name)
-
-    # Assertions
-    control_panel.agent_factory.get_agent_by_name.assert_called_once_with(agent_name)
-    control_panel.service_registry.unregister_service.assert_called_once_with(
-        agent_name
-    )
-    control_panel.agent_factory.delete_agent.assert_called_once_with(agent_name)
+    control_panel.remove_agent("QAAgent")
+    assert "QAAgent" not in control_panel.agent_factory.get()
 
 
+@pytest.mark.unit
 def test_remove_agent_not_found(control_panel):
     """Test remove_agent when the agent is not found."""
-    agent_name = "agent1"
-
-    # Configure mocks
-    control_panel.agent_factory.get_agent_by_name.return_value = None
 
     # Call the method and expect a ValueError
     with pytest.raises(ValueError) as exc_info:
-        control_panel.remove_agent(agent_name)
-    assert str(exc_info.value) == f"Agent '{agent_name}' not found."
+        control_panel.remove_agent("QAAgent")
+    assert str(exc_info.value) == "Type 'QAAgent' is not registered."
 
 
-def test_list_active_agents(control_panel):
+@pytest.mark.unit
+def test_list_active_agents(control_panel, agent_factory, groq_model):
     """Test the list_active_agents method."""
-    agent1 = MagicMock()
-    agent1.name = "agent1"
-    agent2 = MagicMock()
-    agent2.name = "agent2"
-    agents = [agent1, agent2]
 
-    # Configure mocks
-    control_panel.agent_factory.get_agents.return_value = agents
+    agent_factory.register("QAAgent", QAAgent)
+    control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
 
     # Call the method
     result = control_panel.list_active_agents()
 
-    # Assertions
-    control_panel.agent_factory.get_agents.assert_called_once()
-    assert result == ["agent1", "agent2"]
+    assert isinstance(result.get("QAAgent"), QAAgent)
 
 
-def test_submit_tasks(control_panel):
+@pytest.mark.unit
+def test_submit_tasks(control_panel, task_mgt_strategy):
     """Test the submit_tasks method."""
     task1 = {"task_id": "task1"}
     task2 = {"task_id": "task2"}
@@ -133,62 +138,58 @@ def test_submit_tasks(control_panel):
     # Call the method
     control_panel.submit_tasks(tasks)
 
-    # Assertions
-    calls = [((task1,),), ((task2,),)]
-    control_panel.task_mgt_strategy.add_task.assert_has_calls(calls)
-    assert control_panel.task_mgt_strategy.add_task.call_count == 2
+    assert len(tasks) == len(task_mgt_strategy.get_tasks())
 
 
-def test_process_tasks(control_panel):
+@pytest.mark.unit
+def test_submit_and_process_tasks(control_panel, agent_factory, groq_model):
     """Test the process_tasks method."""
-    # Call the method
-    control_panel.process_tasks()
 
-    # Assertions
-    control_panel.task_mgt_strategy.process_tasks.assert_called_once_with(
-        control_panel.service_registry.get_services, control_panel.transport
+    agent_factory.register("QAAgent", QAAgent)
+    control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
+
+    task1 = {"task_id": "task1"}
+    task2 = {"task_id": "task2"}
+    tasks = [task1, task2]
+
+    control_panel.submit_tasks(tasks)
+
+    with pytest.raises(ValueError) as exc_info:
+        control_panel.process_tasks()
+
+    assert (
+        str(exc_info.value)
+        == "Error processing tasks: Direct send not supported in Pub/Sub model."
     )
 
 
-def test_process_tasks_exception(control_panel, caplog):
-    """Test process_tasks when an exception occurs."""
-    # Configure mocks
-    control_panel.task_mgt_strategy.process_tasks.side_effect = Exception("Test error")
-
-    # Call the method
-    control_panel.process_tasks()
-
-    # Assertions
-    control_panel.task_mgt_strategy.process_tasks.assert_called_once_with(
-        control_panel.service_registry.get_services, control_panel.transport
-    )
-    assert "Error while processing tasks: Test error" in caplog.text
-
-
-def test_distribute_tasks(control_panel):
+@pytest.mark.unit
+def test_distribute_tasks(control_panel, agent_factory, groq_model):
     """Test the distribute_tasks method."""
+
+    agent_factory.register("QAAgent", QAAgent)
+    control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
+
     task = {"task_id": "task1"}
 
     # Call the method
-    control_panel.distribute_tasks(task)
+    service = control_panel.distribute_tasks(task)
 
-    # Assertions
-    control_panel.task_mgt_strategy.assign_task.assert_called_once_with(
-        task, control_panel.service_registry.get_services
-    )
+    assert isinstance(service, QAAgent)
 
 
-def test_orchestrate_agents(control_panel):
+@pytest.mark.unit
+def test_orchestrate_agents(control_panel, agent_factory, groq_model):
     """Test the orchestrate_agents method."""
+    agent_factory.register("QAAgent", QAAgent)
+    control_panel.create_agent(name="QAAgent", llm=groq_model, role="Agent1")
+
     tasks = [{"task_id": "task1"}, {"task_id": "task2"}]
 
-    # Configure mocks
-    control_panel.submit_tasks = MagicMock()
-    control_panel.process_tasks = MagicMock()
+    with pytest.raises(ValueError) as exc_info:
+        control_panel.orchestrate_agents(tasks)
 
-    # Call the method
-    control_panel.orchestrate_agents(tasks)
-
-    # Assertions
-    control_panel.submit_tasks.assert_called_once_with(tasks)
-    control_panel.process_tasks.assert_called_once()
+    assert (
+        str(exc_info.value)
+        == "Error processing tasks: Direct send not supported in Pub/Sub model."
+    )
