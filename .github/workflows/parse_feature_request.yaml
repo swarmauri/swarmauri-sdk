@@ -21,14 +21,15 @@ jobs:
           issue_body="${{ github.event.issue.body }}"
 
           # Parse fields from the issue body
-          feature_name=$(echo "$issue_body" | awk '/### Feature Name/{getline; print $0}' | xargs)
-          feature_description=$(echo "$issue_body" | awk '/### Feature Description/{getline; print $0}' | xargs)
-          motivation=$(echo "$issue_body" | awk '/### Motivation/{getline; print $0}' | xargs)
-          potential_solutions=$(echo "$issue_body" | awk '/### Potential Solutions/{getline; print $0}' | xargs)
-          impact_area=$(echo "$issue_body" | awk '/### Affected Areas/{getline; print $0}' | xargs)
-          priority=$(echo "$issue_body" | awk '/### Priority/{getline; print $0}' | xargs)
-          required_files=$(echo "$issue_body" | awk '/### Required Files/{getline; while($0 ~ /- \[ \]/) { print; getline }}' | xargs)
+          feature_name=$(echo "$issue_body" | awk '/^### Feature Name$/ {getline; getline; print $0}' | xargs)
+          feature_description=$(echo "$issue_body" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
+          motivation=$(echo "$issue_body" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
+          potential_solutions=$(echo "$issue_body" | awk '/^### Potential Solutions$/ {getline; getline; print $0}' | xargs)
+          impact_area=$(echo "$issue_body" | awk '/^### Affected Areas$/ {getline; getline; print $0}' | xargs)
+          priority=$(echo "$issue_body" | awk '/^### Priority$/ {getline; getline; print $0}' | xargs)
+          required_files=$(echo "$issue_body" | awk '/^### Required Files$/ {getline; while ($0 ~ /- \[ \]/) {print; getline}}' | xargs)
 
+          echo "Feature Name: $feature_name"
 
           echo "Feature Name: $feature_name"
           echo "Feature Description: $feature_description"
