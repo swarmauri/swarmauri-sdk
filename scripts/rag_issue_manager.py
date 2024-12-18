@@ -17,7 +17,8 @@ HEADERS = {
 }
 
 # GitHub Metadata
-BASE_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
+BASE_BRANCH = os.getenv("GITHUB_BASE_REF", "unknown")
+HEAD_BRANCH = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF", "unknown").split("/")[-1]
 COMMIT_SHA = os.getenv("GITHUB_SHA", "unknown")
 WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{REPO}/actions/runs/{os.getenv('GITHUB_RUN_ID', 'unknown')}"
 
@@ -128,12 +129,13 @@ def create_issue(test, package):
 ---
 
 ### Context:
-- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{BASE_BRANCH}/pkgs/{package})
-- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
-- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
-- **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
-- **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
-- **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
+- **Commit**: `{COMMIT_SHA}`
+- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/pkgs/{package})
+- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/{comp_file_url})
+- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/{test_file_url})                                                                            
+- **Branch**: [{HEAD_BRANCH}](https://github.com/{REPO}/tree/{HEAD_BRANCH}) => [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
+- **Changes**: [View Changes](https://github.com/{REPO}/commit/{COMMIT_SHA})
+- **Files**: [View Files](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
 
 ### Labels:
@@ -175,12 +177,13 @@ New failure detected:
 ---
 
 ### Context:
-- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{BASE_BRANCH}/pkgs/{package})
-- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
-- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
-- **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
-- **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
-- **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
+- **Commit**: `{COMMIT_SHA}`
+- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/pkgs/{package})
+- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/{comp_file_url})
+- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{HEAD_BRANCH}/{test_file_url})                                                                            
+- **Branch**: [{HEAD_BRANCH}](https://github.com/{REPO}/tree/{HEAD_BRANCH}) => [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
+- **Changes**: [View Changes](https://github.com/{REPO}/commit/{COMMIT_SHA})
+- **Files**: [View Files](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
 
 """}
