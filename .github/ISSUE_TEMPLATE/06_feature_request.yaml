@@ -1,17 +1,51 @@
-name: "Feature Request "
+name: "Feature Request"
 description: "Submit a feature request to enhance the Swarmauri SDK."
 title: "[Feature Request]: "
 labels: ["feature request"]
 body:
   - type: input
-    id: feature_name
+    id: package_name
     attributes:
-      label: "Feature Name"
-      description: "Provide a short name for the feature"
-      placeholder: "e.g., Add new feature"
+      label: "Package Name"
+      description: "Provide the name of the package this feature request applies to."
+      placeholder: "e.g., swarmauri-sdk-core"
     validations:
       required: true
-      
+
+  - type: input
+    id: resource_kind
+    attributes:
+      label: "Resource Kind"
+      description: "Specify the type of resource this feature applies to (e.g., component, utility, etc.)."
+      placeholder: "e.g., component"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package_scope
+    attributes:
+      label: "Package Scope"
+      description: "Select the scope of the package."
+      options:
+        - "core"
+        - "base"
+        - "swarmauri"
+        - "community"
+        - "experimental"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: generate_content
+    attributes:
+      label: "Generate Content?"
+      description: "Would you like to generate additional content with this feature?"
+      options:
+        - "yes"
+        - "no"
+    validations:
+      required: true
+
   - type: textarea
     id: feature_description
     attributes:
@@ -20,7 +54,7 @@ body:
       placeholder: "Describe the feature in detail."
     validations:
       required: true
-      
+
   - type: textarea
     id: motivation
     attributes:
@@ -29,54 +63,12 @@ body:
       placeholder: "Why do you need this feature?"
     validations:
       required: true
-      
+
   - type: textarea
-    id: potential_solutions
+    id: potential_solution
     attributes:
-      label: "Potential Solutions"
+      label: "Potential Solution"
       description: "Provide any suggestions for how the feature could be implemented, if applicable."
       placeholder: "Possible implementation or approach."
     validations:
       required: false
-
-  - type: textarea
-    id: additional_context
-    attributes:
-      label: "Additional Context (optional)"
-      description: "Include any other context, screenshots, or relevant information about the feature."
-      placeholder: "Any additional information."
-    validations:
-      required: false
-
-  - type: dropdown
-    id: impact_area
-    attributes:
-      label: "Affected Areas"
-      description: "Select the area of the SDK that may be impacted by this feature."
-      options:
-        - "Standard/Concrete"
-        - "Community"
-        - "Experimental"
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: "Priority"
-      description: "What is the priority level of this feature?"
-      options:
-        - "Low"
-        - "Medium"
-        - "High"
-        - "Critical"
-    validations:
-      required: true
-      
-  - type: checkboxes
-    id: required_files
-    attributes:
-      label: Required Files
-      description: Both of these files are required to successfully submit a PR.
-      options:
-        - label: Test File
-        - label: Component File
-        
