@@ -124,8 +124,8 @@ def create_issue(test, package):
 ---
 
 ### Context:
-- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url)
-- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url)
+- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
+- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
@@ -167,8 +167,8 @@ New failure detected:
 ---
 
 ### Context:
-- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url)
-- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url)                                                                            
+- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
+- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
