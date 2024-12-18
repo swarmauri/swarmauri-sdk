@@ -74,7 +74,7 @@ def main():
         raise ValueError("Missing required placeholders: package_scope, resource_kind, package_name")
 
     if not placeholders["resource_kind"].endswith("s"):
-        placeholders["resource_kind"] = placeholders["resource_kind"]+s
+        placeholders["resource_kind"] = placeholders["resource_kind"]+'s'
     dynamic_output_path = Path(args.output) / placeholders["package_scope"].lower() / placeholders["resource_kind"].lower() / placeholders["package_name"]
 
     # Generate the project
