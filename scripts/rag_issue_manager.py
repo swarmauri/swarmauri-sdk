@@ -126,13 +126,13 @@ def create_issue(test, package):
 ---
 
 ### Context:
-- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
-- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})
+- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{BASE_BRANCH}/pkgs/{package})
+- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
+- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
-- **Matrix Package**: `{package}`
 
 ### Labels:
 This issue is auto-labeled for the `{package}` package.
@@ -171,13 +171,14 @@ New failure detected:
 ---
 
 ### Context:
-- **Component**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
-- **Test File**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
+- **Matrix Package**: [{package}](https://github.com/{REPO}/tree/{BASE_BRANCH}/pkgs/{package})
+- **Component**: [{comp_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{comp_file_url})
+- **Test File**: [{test_file_url}](https://github.com/{REPO}/tree/{BASE_BRANCH}/{test_file_url})                                                                            
 - **Branch**: [{BASE_BRANCH}](https://github.com/{REPO}/tree/{BASE_BRANCH})
 - **Commit**: [{COMMIT_SHA}](https://github.com/{REPO}/commit/{COMMIT_SHA})
 - **Commit Tree**: [{COMMIT_SHA}](https://github.com/{REPO}/tree/{COMMIT_SHA})
 - **Workflow Run**: [View Run]({WORKFLOW_RUN_URL})
-- **Matrix Package**: `{package}`
+
 """}
     response = requests.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
