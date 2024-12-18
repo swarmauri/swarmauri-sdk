@@ -59,4 +59,4 @@ jobs:
         run: |
           echo "Directory contents after creating the package:"
           ls -R
-          cat components/${{ env.CLEANED_TITLE }/pyproject.toml
+          cat components/${{ env.CLEANED_TITLE }}/pyproject.toml
