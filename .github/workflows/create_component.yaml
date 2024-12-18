@@ -129,5 +129,5 @@ jobs:
           PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}\n\nCloses #${ISSUE_NUMBER}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "${BRANCH_NAME}/'"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "'"${BRANCH_NAME}"/"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
