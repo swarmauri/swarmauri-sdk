@@ -1,0 +1,9 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ComponentAD"
+version = "0.0.1"
+description = "A Python package for ComponentAD"
+dependencies = []
