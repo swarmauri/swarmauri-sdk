@@ -21,39 +21,37 @@ jobs:
           issue_body="${{ github.event.issue.body }}"
 
           # Parse fields from the issue body
-          feature_name=$(echo "$issue_body" | awk '/^### Feature Name$/ {getline; getline; print $0}' | xargs)
-          feature_description=$(echo "$issue_body" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
-          motivation=$(echo "$issue_body" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
-          potential_solutions=$(echo "$issue_body" | awk '/^### Potential Solutions$/ {getline; getline; print $0}' | xargs)
-          impact_area=$(echo "$issue_body" | awk '/^### Affected Areas$/ {getline; getline; print $0}' | xargs)
-          priority=$(echo "$issue_body" | awk '/^### Priority$/ {getline; getline; print $0}' | xargs)
-          required_files=$(echo "$issue_body" | awk '/^### Required Files$/ {getline; while ($0 ~ /- \[ \]/) {print; getline}}' | xargs)
+          package_name=$(echo "$issue_body" | grep -oP '(?<=package_name: ).*')
+          resource_kind=$(echo "$issue_body" | grep -oP '(?<=resource_kind: ).*')
+          package_scope=$(echo "$issue_body" | grep -oP '(?<=package_scope: ).*')
+          generate_content=$(echo "$issue_body" | grep -oP '(?<=generate_content: ).*')
+          feature_description=$(echo "$issue_body" | grep -oP '(?<=feature_description: ).*')
+          motivation=$(echo "$issue_body" | grep -oP '(?<=motivation: ).*')
+          potential_solution=$(echo "$issue_body" | grep -oP '(?<=potential_solution: ).*')
 
-          echo "Feature Name: $feature_name"
-
-          echo "Feature Name: $feature_name"
+          echo "Package Name: $package_name"
+          echo "Resource Kind: $resource_kind"
+          echo "Package Scope: $package_scope"
+          echo "Generate Content: $generate_content"
           echo "Feature Description: $feature_description"
           echo "Motivation: $motivation"
-          echo "Potential Solutions: $potential_solutions"
-          echo "Impact Area: $impact_area"
-          echo "Priority: $priority"
-          echo "Required Files: $required_files"
+          echo "Potential Solution: $potential_solution"
 
           # Write outputs to GITHUB_OUTPUT
-          echo "feature_name=$feature_name" >> $GITHUB_OUTPUT
+          echo "package_name=$package_name" >> $GITHUB_OUTPUT
+          echo "resource_kind=$resource_kind" >> $GITHUB_OUTPUT
+          echo "package_scope=$package_scope" >> $GITHUB_OUTPUT
+          echo "generate_content=$generate_content" >> $GITHUB_OUTPUT
           echo "feature_description=$feature_description" >> $GITHUB_OUTPUT
           echo "motivation=$motivation" >> $GITHUB_OUTPUT
-          echo "potential_solutions=$potential_solutions" >> $GITHUB_OUTPUT
-          echo "impact_area=$impact_area" >> $GITHUB_OUTPUT
-          echo "priority=$priority" >> $GITHUB_OUTPUT
-          echo "required_files=$required_files" >> $GITHUB_OUTPUT
+          echo "potential_solution=$potential_solution" >> $GITHUB_OUTPUT
 
       - name: Display Parsed Values
         run: |
-          echo "Feature Name: ${{ steps.parse-details.outputs.feature_name }}"
+          echo "Package Name: ${{ steps.parse-details.outputs.package_name }}"
+          echo "Resource Kind: ${{ steps.parse-details.outputs.resource_kind }}"
+          echo "Package Scope: ${{ steps.parse-details.outputs.package_scope }}"
+          echo "Generate Content: ${{ steps.parse-details.outputs.generate_content }}"
           echo "Feature Description: ${{ steps.parse-details.outputs.feature_description }}"
           echo "Motivation: ${{ steps.parse-details.outputs.motivation }}"
-          echo "Potential Solutions: ${{ steps.parse-details.outputs.potential_solutions }}"
-          echo "Impact Area: ${{ steps.parse-details.outputs.impact_area }}"
-          echo "Priority: ${{ steps.parse-details.outputs.priority }}"
-          echo "Required Files: ${{ steps.parse-details.outputs.required_files }}"
+          echo "Potential Solution: ${{ steps.parse-details.outputs.potential_solution }}"
