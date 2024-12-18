@@ -32,9 +32,6 @@ jobs:
           feature_description=$(echo "$ISSUE_BODY" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
           motivation=$(echo "$ISSUE_BODY" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
           potential_solution=$(echo "$ISSUE_BODY" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
-
-          # Parse the package_scope from the issue body
-          package_scope=$(echo "$ISSUE_BODY" | awk '/^### Package Scope$/ {getline; getline; print $0}' | xargs)
           
           # Update the package_scope based on its value
           if [[ "$package_scope" == "core" || "$package_scope" == "experimental" || "$package_scope" == "community" ]]; then
@@ -42,6 +39,9 @@ jobs:
           else
               package_scope="${package_scope}/${package_scope}"
           fi
+
+          # New Branch Name
+          branch_name="$package_scope"
           
           # Clean the package_name and convert to concatenated PascalCase
           package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) substr($i,2)} END {print ""}')
@@ -51,6 +51,7 @@ jobs:
           echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
           echo "RESOURCE_KIND=$resource_kind" >> $GITHUB_ENV
           echo "PACKAGE_SCOPE=$package_scope" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$branch_name" >> $GITHUB_ENV
           echo "GENERATE_CONTENT=$generate_content" >> $GITHUB_ENV
           echo "FEATURE_DESCRIPTION=$feature_description" >> $GITHUB_ENV
           echo "MOTIVATION=$motivation" >> $GITHUB_ENV
@@ -123,5 +124,5 @@ jobs:
           PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "feature/'"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "${BRANCH_NAME}/'"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
