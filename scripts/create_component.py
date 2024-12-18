@@ -73,7 +73,7 @@ def main():
     if not all(key in placeholders for key in ["package_scope", "resource_kind", "package_name"]):
         raise ValueError("Missing required placeholders: package_scope, resource_kind, package_name")
 
-    if placeholders["resource_kind"].endswith("s"):
+    if not placeholders["resource_kind"].endswith("s"):
         placeholders["resource_kind"] = placeholders["resource_kind"]+s
     dynamic_output_path = Path(args.output) / placeholders["package_scope"].lower() / placeholders["resource_kind"].lower() / placeholders["package_name"]
 
