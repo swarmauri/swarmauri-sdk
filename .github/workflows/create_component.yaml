@@ -44,7 +44,7 @@ jobs:
           fi
           
           # Clean the package_name and convert to concatenated PascalCase
-          package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) tolower(substr($i,2))} END {print ""}')
+          package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) substr($i,2)} END {print ""}')
 
           
           # Export parsed values as environment variables
