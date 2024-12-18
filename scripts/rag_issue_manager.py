@@ -113,7 +113,7 @@ def create_issue(test, package):
         "title": f"[Test Case Failure]: {test['name']}",
         "body": f"""
 ### Test Case:
-{test['path']}
+`{test['path']}`
 
 ### Failure Details:
 {test['message']}
@@ -158,7 +158,7 @@ def add_comment_to_issue(issue_number, test, package):
 New failure detected:
 
 ### Test Case:
-{test['path']}
+`{test['path']}`
 
 ### Failure Details:
 {test['message']}
