@@ -21,13 +21,13 @@ jobs:
           issue_body="${{ github.event.issue.body }}"
 
           # Parse fields from the issue body
-          feature_name=$(echo "$issue_body" | grep -oP '(?<=feature_name: ).*')
-          feature_description=$(echo "$issue_body" | grep -oP '(?<=feature_description: ).*')
-          motivation=$(echo "$issue_body" | grep -oP '(?<=motivation: ).*')
-          potential_solutions=$(echo "$issue_body" | grep -oP '(?<=potential_solutions: ).*')
-          impact_area=$(echo "$issue_body" | grep -oP '(?<=impact_area: ).*')
-          priority=$(echo "$issue_body" | grep -oP '(?<=priority: ).*')
-          required_files=$(echo "$issue_body" | grep -oP '(?<=required_files: ).*')
+          feature_name=$(echo "$issue_body" | sed -n '/### Feature Name/{n;p}' | xargs)
+          feature_description=$(echo "$issue_body" | sed -n '/### Feature Description/{n;p}' | xargs)
+          motivation=$(echo "$issue_body" | sed -n '/### Motivation/{n;p}' | xargs)
+          potential_solutions=$(echo "$issue_body" | sed -n '/### Potential Solutions/{n;p}' | xargs)
+          impact_area=$(echo "$issue_body" | sed -n '/### Affected Areas/{n;p}' | xargs)
+          priority=$(echo "$issue_body" | sed -n '/### Priority/{n;p}' | xargs)
+          required_files=$(echo "$issue_body" | sed -n '/### Required Files/{n;p;n;p}' | xargs)
 
           echo "Feature Name: $feature_name"
           echo "Feature Description: $feature_description"
