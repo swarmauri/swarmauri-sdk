@@ -20,37 +20,62 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Clean Issue Title and Convert to PascalCase
+      - name: Parse Issue Body
         env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          # Remove "[Feature Request]:", trim spaces, and convert to PascalCase
-          CLEANED_TITLE=$(echo "${ISSUE_TITLE}" | sed 's/\[Feature Request\]://g' | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1' OFS='')
+          # Parse the issue body using awk for each field
+          package_name=$(echo "$ISSUE_BODY" | awk '/^### Package Name$/ {getline; getline; print $0}' | xargs)
+          resource_kind=$(echo "$ISSUE_BODY" | awk '/^### Resource Kind$/ {getline; getline; print $0}' | xargs)
+          package_scope=$(echo "$ISSUE_BODY" | awk '/^### Package Scope$/ {getline; getline; print $0}' | xargs)
+          generate_content=$(echo "$ISSUE_BODY" | awk '/^### Generate Content$/ {getline; getline; print $0}' | xargs)
+          feature_description=$(echo "$ISSUE_BODY" | awk '/^### Feature Description$/ {getline; getline; print $0}' | xargs)
+          motivation=$(echo "$ISSUE_BODY" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
+          potential_solution=$(echo "$ISSUE_BODY" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
 
-          # Print the cleaned title
-          echo "Cleaned Title (PascalCase): $CLEANED_TITLE"
-
-          # Set the cleaned title as an environment variable for later steps
-          echo "CLEANED_TITLE=$CLEANED_TITLE" >> $GITHUB_ENV
+          # Export parsed values as environment variables
+          echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
+          echo "RESOURCE_KIND=$resource_kind" >> $GITHUB_ENV
+          echo "PACKAGE_SCOPE=$package_scope" >> $GITHUB_ENV
+          echo "GENERATE_CONTENT=$generate_content" >> $GITHUB_ENV
+          echo "FEATURE_DESCRIPTION=$feature_description" >> $GITHUB_ENV
+          echo "MOTIVATION=$motivation" >> $GITHUB_ENV
+          echo "POTENTIAL_SOLUTION=$potential_solution" >> $GITHUB_ENV
 
       - name: Create Component Folder
         env:
-          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
           AUTHOR_NAME: ${{ github.event.issue.user.login }}
           AUTHOR_EMAIL: ${{ github.event.issue.user.login }}@example.com
+          RESOURCE_KIND: ${{ env.RESOURCE_KIND }}
+          PACKAGE_SCOPE: ${{ env.PACKAGE_SCOPE }}
+          GENERATE_CONTENT: ${{ env.GENERATE_CONTENT }}
+          FEATURE_DESCRIPTION: ${{ env.FEATURE_DESCRIPTION }}
+          MOTIVATION: ${{ env.MOTIVATION }}
+          POTENTIAL_SOLUTION: ${{ env.POTENTIAL_SOLUTION }}
         run: |
           python scripts/create_component.py \
             --template .config/component_generator/templates/component \
-            --output pkgs/${{ env.CLEANED_TITLE }} \
-            --placeholders package_name=${{ env.CLEANED_TITLE }} author_name=${{ env.AUTHOR_NAME }} author_email=${{ env.AUTHOR_EMAIL }} year=$(date +%Y)
+            --output pkgs \
+            --placeholders \
+              package_name="${{ env.PACKAGE_NAME }}" \
+              resource_kind="${{ env.RESOURCE_KIND }}" \
+              package_scope="${{ env.PACKAGE_SCOPE }}" \
+              generate_content="${{ env.GENERATE_CONTENT }}" \
+              feature_description="${{ env.FEATURE_DESCRIPTION }}" \
+              motivation="${{ env.MOTIVATION }}" \
+              potential_solution="${{ env.POTENTIAL_SOLUTION }}" \
+              author_name="${{ env.AUTHOR_NAME }}" \
+              author_email="${{ env.AUTHOR_EMAIL }}" \
+              year=$(date +%Y)
 
       - name: Create New Git Branch
         env:
-          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Create and switch to the new branch
-          git checkout -b feature/${CLEANED_TITLE}
-          echo "Created and switched to branch feature/${CLEANED_TITLE}"
+          git checkout -b feature/${PACKAGE_NAME}
+          echo "Created and switched to branch feature/${PACKAGE_NAME}"
 
       - name: Configure Git User
         run: |
@@ -59,30 +84,30 @@ jobs:
       
       - name: Commit Changes
         env:
-          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Stage all changes and commit
           git add .
-          git commit -m "feat: add new component - ${CLEANED_TITLE}"
-          echo "Committed changes to branch feature/${CLEANED_TITLE}"
+          git commit -m "feat: add new component - ${PACKAGE_NAME}"
+          echo "Committed changes to branch feature/${PACKAGE_NAME}"
 
       - name: Push Branch to GitHub
         env:
-          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Push the new branch to GitHub
-          git push origin feature/${CLEANED_TITLE}
-          echo "Pushed branch feature/${CLEANED_TITLE} to GitHub"
+          git push origin feature/${PACKAGE_NAME}
+          echo "Pushed branch feature/${PACKAGE_NAME} to GitHub"
 
       - name: Create Pull Request
         env:
-          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Create a pull request from the new branch to the master branch
-          PR_TITLE="feat: add new component - ${CLEANED_TITLE}"
-          PR_BODY="This pull request introduces a new component created from the feature request."
+          PR_TITLE="feat: add new component - ${PACKAGE_NAME}"
+          PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "feature/'"${CLEANED_TITLE}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "feature/'"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
