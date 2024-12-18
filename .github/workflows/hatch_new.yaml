@@ -40,7 +40,7 @@ jobs:
           CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
           AUTHOR_NAME: ${{ github.event.issue.user.login }}
         run: |
-          python ../scripts/create_component.py \
+          python scripts/create_component.py \
             --package-name "$CLEANED_TITLE" \
             --author-name "$AUTHOR_NAME" \
             --author-email "${AUTHOR_NAME}@example.com" \
