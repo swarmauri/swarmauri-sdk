@@ -6,8 +6,4 @@ build-backend = "hatchling.build"
 name = "{{ package_name }}"
 version = "0.0.1"
 description = "A Python package for {{ package_name }}"
-authors = ["{{ author_name }} {author_email}"]
 dependencies = []
-
-[tool.hatch.template]
-fields = { "author_name" = "Default Value" }
