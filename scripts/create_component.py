@@ -76,7 +76,8 @@ def main():
     if not placeholders["resource_kind"].endswith("s"):
         placeholders["resource_kind"] = placeholders["resource_kind"]+'s'
         
-    placeholders["package_scope"] = placeholders["package_scope"].lower()
+    placeholders["package_scope"] = placeholders["project_tree"].lower()
+    placeholders["package_name"] = placeholders["package_name"].lower()
     placeholders["resource_kind"] = placeholders["resource_kind"].lower()
     dynamic_output_path = Path(args.output)
     # Generate the project
