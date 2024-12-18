@@ -71,7 +71,7 @@ def main():
 
     # Construct output path dynamically using placeholders
     if not all(key in placeholders for key in ["project_tree", "package_name", "resource_kind", "component_name"]):
-        raise ValueError("Missing required placeholders: package_scope, resource_kind, package_name")
+        raise ValueError("Missing required placeholders: project_tree, package_name, resource_kind, component_name")
 
     if not placeholders["resource_kind"].endswith("s"):
         placeholders["resource_kind"] = placeholders["resource_kind"]+'s'
