@@ -76,6 +76,7 @@ flake8 = "^7.0"
 pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-xdist = "^3.6.1"
+pytest-json-report = "^1.5.0"
 python-dotenv = "*"
 
 [build-system]

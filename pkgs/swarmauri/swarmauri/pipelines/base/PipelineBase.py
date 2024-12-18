@@ -5,7 +5,7 @@ from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
 import uuid
 
 
-class PipelineBase(ComponentBase, IPipeline):
+class PipelineBase(IPipeline, ComponentBase):
     """
     Base class providing default behavior for task orchestration,
     error handling, and result aggregation.

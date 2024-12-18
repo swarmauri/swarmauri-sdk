@@ -2,7 +2,7 @@ import pytest
 import asyncio
 from uuid import UUID
 from typing import Any
-from swarmauri.transport.concrete.PubSubTransport import (
+from swarmauri.transports.concrete.PubSubTransport import (
     PubSubTransport,
 )
 from swarmauri.utils.timeout_wrapper import timeout

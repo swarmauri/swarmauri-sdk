@@ -30,7 +30,7 @@ pydantic = "^2.9.2"
 typing_extensions = "*"
 
 # We should remove and only rely on httpx
-requests = "*"
+requests = "^2.32.3"
 
 # This should be set to optional also
 Pillow = ">=8.0,<11.0"
@@ -49,7 +49,7 @@ yake = { version = "==0.4.8", optional = true }
 beautifulsoup4 = { version = "04.12.3", optional = true }
 #gensim = { version = "==4.3.3", optional = true }
 scipy = { version = ">=1.7.0,<1.14.0", optional = true }
-#scikit-learn = { version = "^1.4.2", optional = true }
+scikit-learn = { version = "^1.4.2", optional = true }
 #spacy = { version = ">=3.0.0,<=3.8.2", optional = true }
 #transformers = { version = "^4.45.0", optional = true }
 #torch = { version = "^2.5.0", optional = true }
@@ -68,6 +68,7 @@ nlp = [
 ]
 nlp_tools = ["beautifulsoup4"]
 #ml_toolkits = ["gensim", "scipy", "scikit-learn"]
+ml_toolkits = ["scikit-learn"]
 #spacy = ["spacy"]
 #transformers = ["transformers"]
 #torch = ["torch"]
@@ -81,6 +82,7 @@ full = [
     #"nltk", "textblob", 
     "yake",
     "beautifulsoup4",
+    "scikit-learn",
     #"gensim", "scipy", "scikit-learn",
     #"spacy",
     #"transformers",
@@ -95,9 +97,11 @@ pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-timeout = "^2.3.1"
 pytest-xdist = "^3.6.1"
+pytest-json-report = "^1.5.0"
 python-dotenv = "^1.0.0"
 jsonschema = "^4.18.5"
-ipython = "8.28.0"
+ipython = "^8.28.0"
+requests = "^2.32.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

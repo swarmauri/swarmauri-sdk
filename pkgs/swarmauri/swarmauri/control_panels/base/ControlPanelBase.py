@@ -1,8 +1,7 @@
-from swarmauri_core import ComponentBase
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.control_panels.IControlPanel import IControlPlane
 from typing import Any, List, Literal
 from pydantic import Field, ConfigDict
-from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri.factories.base.FactoryBase import FactoryBase
 from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase

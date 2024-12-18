@@ -1,11 +1,11 @@
 from typing import Dict, Any, List, Optional, Set, Literal
 from uuid import uuid4
 import asyncio
-from swarmauri.transport.base.TransportBase import TransportBase, TransportationProtocol
+from swarmauri.transports.base.TransportBase import TransportBase, TransportProtocol
 
 
 class PubSubTransport(TransportBase):
-    allowed_protocols: List[TransportationProtocol] = [TransportationProtocol.PUBSUB]
+    allowed_protocols: List[TransportProtocol] = [TransportProtocol.PUBSUB]
     _topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
     _subscribers: Dict[str, asyncio.Queue] = {}
     type: Literal["PubSubTransport"] = "PubSubTransport"
