@@ -37,14 +37,14 @@ jobs:
           echo "Priority: $priority"
           echo "Required Files: $required_files"
 
-          # Export parsed values as outputs
-          echo "::set-output name=feature_name::$feature_name"
-          echo "::set-output name=feature_description::$feature_description"
-          echo "::set-output name=motivation::$motivation"
-          echo "::set-output name=potential_solutions::$potential_solutions"
-          echo "::set-output name=impact_area::$impact_area"
-          echo "::set-output name=priority::$priority"
-          echo "::set-output name=required_files::$required_files"
+          # Write outputs to GITHUB_OUTPUT
+          echo "feature_name=$feature_name" >> $GITHUB_OUTPUT
+          echo "feature_description=$feature_description" >> $GITHUB_OUTPUT
+          echo "motivation=$motivation" >> $GITHUB_OUTPUT
+          echo "potential_solutions=$potential_solutions" >> $GITHUB_OUTPUT
+          echo "impact_area=$impact_area" >> $GITHUB_OUTPUT
+          echo "priority=$priority" >> $GITHUB_OUTPUT
+          echo "required_files=$required_files" >> $GITHUB_OUTPUT
 
       - name: Display Parsed Values
         run: |
