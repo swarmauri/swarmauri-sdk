@@ -147,7 +147,7 @@ def add_comment_to_issue(issue_number, test, package):
     url = f"https://api.github.com/repos/{REPO}/issues/{issue_number}/comments"
     if package == 'core' or 'community' or 'experimental':
             package_name = f"swarmauri_{package}"
-    resource_kind, type_kinds = test['name'].split('/')[2:4]
+    resource_kind, type_kind = test['name'].split('/')[2:4]
     comp_file_url = f"pkgs/{package}/{package_name}/{resource_kind}/concrete/{type_kind.split('_')[0]}.py"
     test_file_url = f"pkgs/{package}/{test['name'].split('::')[0]}"
     data = {"body": f"""
