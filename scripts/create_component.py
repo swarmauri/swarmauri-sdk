@@ -73,7 +73,9 @@ def main():
     if not all(key in placeholders for key in ["package_scope", "resource_kind", "package_name"]):
         raise ValueError("Missing required placeholders: package_scope, resource_kind, package_name")
 
-    dynamic_output_path = Path(args.output) / placeholders["package_scope"] / placeholders["resource_kind"] / placeholders["package_name"]
+    if placeholders["resource_kind"].endswith("s") != 's':
+        placeholders["resource_kind"] = f"{placeholders["resource_kind"]}s"
+    dynamic_output_path = Path(args.output) / placeholders["package_scope"].lower() / placeholders["resource_kind"].lower() / placeholders["package_name"]
 
     # Generate the project
     create_component(args.template, dynamic_output_path, placeholders)
