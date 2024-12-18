@@ -53,6 +53,7 @@ def replace_placeholders(text, placeholders):
     :return: Text with placeholders replaced.
     """
     for key, value in placeholders.items():
+        print(key,value)
         text = text.replace("{{ "+key+" }}", value)
     return text
 
