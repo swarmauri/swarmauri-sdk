@@ -39,7 +39,7 @@ jobs:
 
           
           # Export parsed values as environment variables
-          echo "PROJECT_TREE=$project_tree" >> $GITHUB_ENV
+          echo "PROJECT_ROOT=$project_root" >> $GITHUB_ENV
           echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
           echo "RESOURCE_KIND=$resource_kind" >> $GITHUB_ENV
           echo "COMPONENT_NAME=$component_name" >> $GITHUB_ENV
@@ -52,7 +52,7 @@ jobs:
         env:
           AUTHOR_NAME: ${{ github.event.issue.user.login }}
           AUTHOR_EMAIL: ${{ github.event.issue.user.login }}@example.com
-          PROJECT_TREE: ${{ env.PROJECT_TREE }}
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
           RESOURCE_KIND: ${{ env.RESOURCE_KIND }}
           COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
@@ -65,7 +65,7 @@ jobs:
             --template .config/component_generator/templates/component \
             --output pkgs \
             --placeholders \
-              project_tree="${{ env.PROJECT_TREE }}" \
+              project_root="${{ env.PROJECT_ROOT }}" \
               package_name="${{ env.PACKAGE_NAME }}" \
               resource_kind="${{ env.RESOURCE_KIND }}" \
               component_name="${{ env.COMPONENT_NAME }}" \
@@ -79,12 +79,12 @@ jobs:
 
       - name: Create New Git Branch
         env:
-          PROJECT_TREE: ${{ env.PROJECT_TREE }}
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
         run: |
           # Create and switch to the new branch
-          git checkout -b ${PROJECT_TREE}/${COMPONENT_NAME}
-          echo "Created and switched to branch ${PROJECT_TREE}/${COMPONENT_NAME}"
+          git checkout -b ${PROJECT_ROOT}/${COMPONENT_NAME}
+          echo "Created and switched to branch ${PROJECT_ROOT}/${COMPONENT_NAME}"
 
       - name: Configure Git User
         run: |
@@ -93,26 +93,26 @@ jobs:
       
       - name: Commit Changes
         env:
-          PROJECT_TREE: ${{ env.PROJECT_TREE }}
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
         run: |
           # Stage all changes and commit
           git add .
           git commit -m "feat: add new component - ${COMPONENT_NAME}"
-          echo "Committed changes to branch ${PROJECT_TREE}/${COMPONENT_NAME}"
+          echo "Committed changes to branch ${PROJECT_ROOT}/${COMPONENT_NAME}"
 
       - name: Push Branch to GitHub
         env:
-          PROJECT_TREE: ${{ env.PROJECT_TREE }}
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
         run: |
           # Push the new branch to GitHub
-          git push origin ${PROJECT_TREE}/${COMPONENT_NAME}
-          echo "Pushed branch ${PROJECT_TREE}/${COMPONENT_NAME} to GitHub"
+          git push origin ${PROJECT_ROOT}/${COMPONENT_NAME}
+          echo "Pushed branch ${PROJECT_ROOT}/${COMPONENT_NAME} to GitHub"
 
       - name: Create Pull Request
         env:
-          PROJECT_TREE: ${{ env.PROJECT_TREE }}
+          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           COMPONENT_NAME: ${{ env.COMPONENT_NAME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -122,5 +122,5 @@ jobs:
           PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}\n\nCloses #${ISSUE_NUMBER}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "'"${PROJECT_TREE}"/"${COMPONENT_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "'"${PROJECT_ROOT}"/"${COMPONENT_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
