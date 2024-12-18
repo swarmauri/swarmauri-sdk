@@ -60,11 +60,11 @@ def ask_agent_for_fix(test_name, failure_message, stack_trace):
     prompt = f"""
     \n\nUser Problem:
     I have a failing pytest test case named '{test_name}' in a Python project. The error message is:
-    {failure_message}
-
+    `{failure_message}`
+    \n\n
     The stack trace is:
-    {stack_trace}
-
+    `{stack_trace}`
+    \n\n
     Can you help me identify the cause of this failure and suggest a fix?
     """
     try:
