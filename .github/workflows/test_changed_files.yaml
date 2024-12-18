@@ -99,6 +99,9 @@ jobs:
   run-tests:
     needs: detect-changed-files
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
@@ -134,9 +137,21 @@ jobs:
           cd pkgs/${{ matrix.package_tests.package }}
           poetry install --no-cache --all-extras -vv
 
-      - name: Run all tests for the package
+      - name: Run tests and save results
         run: |
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
-          poetry run pytest ${{ matrix.package_tests.tests }}
+          poetry run pytest ${{ matrix.package_tests.tests }} --tb=short --json-report --json-report-file=pytest_results.json || true
+
+      - name: Process test results and manage issues
+        if: always()
+        env:
+          DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
+          poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
+
+
