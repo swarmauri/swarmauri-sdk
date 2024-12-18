@@ -86,11 +86,12 @@ jobs:
 
       - name: Create New Git Branch
         env:
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Create and switch to the new branch
-          git checkout -b feature/${PACKAGE_NAME}
-          echo "Created and switched to branch feature/${PACKAGE_NAME}"
+          git checkout -b ${BRANCH_NAME}/${PACKAGE_NAME}
+          echo "Created and switched to branch ${BRANCH_NAME}/${PACKAGE_NAME}"
 
       - name: Configure Git User
         run: |
@@ -99,29 +100,33 @@ jobs:
       
       - name: Commit Changes
         env:
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Stage all changes and commit
           git add .
           git commit -m "feat: add new component - ${PACKAGE_NAME}"
-          echo "Committed changes to branch feature/${PACKAGE_NAME}"
+          echo "Committed changes to branch ${BRANCH_NAME}/${PACKAGE_NAME}"
 
       - name: Push Branch to GitHub
         env:
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           # Push the new branch to GitHub
-          git push origin feature/${PACKAGE_NAME}
-          echo "Pushed branch feature/${PACKAGE_NAME} to GitHub"
+          git push origin ${BRANCH_NAME}/${PACKAGE_NAME}
+          echo "Pushed branch ${BRANCH_NAME}/${PACKAGE_NAME} to GitHub"
 
       - name: Create Pull Request
         env:
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN  }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           # Create a pull request from the new branch to the master branch
           PR_TITLE="feat: add new component - ${PACKAGE_NAME}"
-          PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}"
+          PR_BODY="This pull request introduces a new component created from the feature request.\n\n### Feature Description\n${{ env.FEATURE_DESCRIPTION }}\n\n### Motivation\n${{ env.MOTIVATION }}\n\n### Potential Solution\n${{ env.POTENTIAL_SOLUTION }}\n\nCloses #${ISSUE_NUMBER}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -d '{"title": "'"${PR_TITLE}"'", "head": "${BRANCH_NAME}/'"${PACKAGE_NAME}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
