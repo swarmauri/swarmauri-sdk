@@ -33,6 +33,16 @@ jobs:
           motivation=$(echo "$ISSUE_BODY" | awk '/^### Motivation$/ {getline; getline; print $0}' | xargs)
           potential_solution=$(echo "$ISSUE_BODY" | awk '/^### Potential Solution$/ {getline; getline; print $0}' | xargs)
 
+          # Parse the package_scope from the issue body
+          package_scope=$(echo "$ISSUE_BODY" | awk '/^### Package Scope$/ {getline; getline; print $0}' | xargs)
+          
+          # Update the package_scope based on its value
+          if [[ "$package_scope" == "core" || "$package_scope" == "experimental" || "$package_scope" == "community" ]]; then
+              package_scope="${package_scope}/swarmauri_${package_scope}"
+          else
+              package_scope="${package_scope}/${package_scope}"
+          fi
+          
           # Clean the package_name and convert to concatenated PascalCase
           package_name=$(echo "$package_name" | sed 's/^ *//;s/ *$//' | awk '{for (i=1; i<=NF; i++) printf toupper(substr($i,1,1)) tolower(substr($i,2))} END {print ""}')
 
