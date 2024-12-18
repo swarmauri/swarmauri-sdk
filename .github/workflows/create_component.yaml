@@ -42,8 +42,40 @@ jobs:
             --output components/${{ env.CLEANED_TITLE }} \
             --placeholders package_name=${{ env.CLEANED_TITLE }} author_name=${{ env.AUTHOR_NAME }} author_email=${{ env.AUTHOR_EMAIL }} year=$(date +%Y)
 
-      - name: List Directory Contents
+      - name: Create New Git Branch
+        env:
+          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
         run: |
-          echo "Directory contents after creating the package:"
-          ls -R
-          cat components/${{ env.CLEANED_TITLE }}/pyproject.toml
+          # Create and switch to the new branch
+          git checkout -b feature/${CLEANED_TITLE}
+          echo "Created and switched to branch feature/${CLEANED_TITLE}"
+
+      - name: Commit Changes
+        env:
+          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+        run: |
+          # Stage all changes and commit
+          git add .
+          git commit -m "feat: add new component - ${CLEANED_TITLE}"
+          echo "Committed changes to branch feature/${CLEANED_TITLE}"
+
+      - name: Push Branch to GitHub
+        env:
+          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+        run: |
+          # Push the new branch to GitHub
+          git push origin feature/${CLEANED_TITLE}
+          echo "Pushed branch feature/${CLEANED_TITLE} to GitHub"
+
+      - name: Create Pull Request
+        env:
+          CLEANED_TITLE: ${{ env.CLEANED_TITLE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create a pull request from the new branch to the master branch
+          PR_TITLE="feat: add new component - ${CLEANED_TITLE}"
+          PR_BODY="This pull request introduces a new component created from the feature request."
+          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "feature/'"${CLEANED_TITLE}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            https://api.github.com/repos/${{ github.repository }}/pulls
