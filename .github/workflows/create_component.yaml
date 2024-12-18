@@ -8,7 +8,9 @@ on:
 jobs:
   create-component:
     runs-on: ubuntu-latest
-
+    permissions:
+      pull-requests: write
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
