@@ -145,7 +145,8 @@ jobs:
           poetry run pytest ${{ matrix.package_tests.tests }} --tb=short --json-report --json-report-file=pytest_results.json || true
 
       - name: Process test results and manage issues
-        if: always()
+        if: |
+          github.event.pull_request.head.repo.full_name == github.repository && always()
         env:
           DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
