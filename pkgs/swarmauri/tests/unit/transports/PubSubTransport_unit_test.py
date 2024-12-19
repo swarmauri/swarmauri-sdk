@@ -8,6 +8,24 @@ def transport():
     return PubSubTransport()
 
 
+@pytest.mark.unit
+def test_ubc_resource(transport):
+    assert transport.resource == "Transport"
+
+
+@pytest.mark.unit
+def test_ubc_type(transport):
+    assert transport.type == "PubSubTransport"
+
+
+@pytest.mark.unit
+def test_serialization(transport):
+    assert (
+        transport.id
+        == PubSubTransport.model_validate_json(transport.model_dump_json()).id
+    )
+
+
 @pytest.mark.asyncio
 async def test_send(transport):
     # Setup
