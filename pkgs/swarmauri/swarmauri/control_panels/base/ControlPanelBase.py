@@ -1,6 +1,6 @@
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.control_panels.IControlPanel import IControlPlane
-from typing import Any, List, Literal
+from typing import Any, Callable, Dict, List, Literal
 from pydantic import Field, ConfigDict
 from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri.factories.base.FactoryBase import FactoryBase
@@ -27,12 +27,12 @@ class ControlPanelBase(IControlPlane, ComponentBase):
     transport: SubclassUnion[TransportBase]
 
     # Agent management methods
-    def create_agent(self, name: str, role: str) -> Any:
+    def create_agent(self, name: str, role: str, **kwargs) -> Any:
         """
         Create an agent with the given name and role, and register it in the service registry.
         """
-        agent = self.agent_factory.create_agent(name, role)
-        self.service_registry.register_service(name, {"role": role, "status": "active"})
+        agent = self.agent_factory.create(name, **kwargs)
+        self.service_registry.register_service(agent, name)
         logging.info(f"Agent '{name}' with role '{role}' created and registered.")
         return agent
 
@@ -40,20 +40,20 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         """
         Remove the agent with the specified name and unregister it from the service registry.
         """
-        agent = self.agent_factory.get_agent_by_name(name)
-        if not agent:
-            raise ValueError(f"Agent '{name}' not found.")
+        self.agent_factory.unregister(name)
         self.service_registry.unregister_service(name)
-        self.agent_factory.delete_agent(name)
         logging.info(f"Agent '{name}' removed and unregistered.")
 
-    def list_active_agents(self) -> List[str]:
+    def list_active_agents(self) -> Dict[str, Callable]:
         """
         List all active agent names.
         """
-        agents = self.agent_factory.get_agents()
-        active_agents = [agent.name for agent in agents if agent]
-        logging.info(f"Active agents listed: {active_agents}")
+        agents = self.agent_factory.get()
+        active_agents = {
+            agent: self.service_registry.get_service(agent)
+            for agent in agents
+            if agent and self.service_registry.get_service(agent)
+        }
         return active_agents
 
     # Task management methods
@@ -72,22 +72,23 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         Process and assign tasks from the queue, then transport them to their assigned services.
         """
         try:
-            self.task_mgt_strategy.process_tasks(
-                self.service_registry.get_services, self.transport
-            )
-            logging.info("Tasks processed and transported successfully.")
+            services = self.service_registry.get_services()
+
+            self.task_mgt_strategy.process_tasks(services, self.transport)
         except Exception as e:
-            logging.error(f"Error while processing tasks: {e}")
             raise ValueError(f"Error processing tasks: {e}")
 
     def distribute_tasks(self, task: Any) -> None:
         """
         Distribute tasks using the task strategy (manual or on-demand assignment).
         """
-        self.task_mgt_strategy.assign_task(task, self.service_registry.get_services)
-        logging.info(
-            f"Task '{task.get('task_id', 'unknown')}' distributed to a service."
+        service = self.task_mgt_strategy.assign_task(
+            task, self.service_registry.get_services()
         )
+        logging.info(
+            f"Task '{task.get('task_id', 'unknown')}' distributed to a {service}."
+        )
+        return service
 
     # Orchestration method
     def orchestrate_agents(self, tasks: List[Any]) -> None:
@@ -96,4 +97,3 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         """
         self.submit_tasks(tasks)  # Add task to the strategy
         self.process_tasks()  # Process and transport the task
-        logging.info("Agents orchestrated successfully.")

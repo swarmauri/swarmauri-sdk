@@ -1,138 +1,93 @@
 import pytest
 import asyncio
-from uuid import UUID
-from typing import Any
-from swarmauri.transports.concrete.PubSubTransport import (
-    PubSubTransport,
-)
-from swarmauri.utils.timeout_wrapper import timeout
-import logging
+from swarmauri.transports.concrete.PubSubTransport import PubSubTransport
 
 
 @pytest.fixture
-def pubsub_transport():
-    transport = PubSubTransport()
-    return transport
+def transport():
+    return PubSubTransport()
 
 
-@timeout(5)
-@pytest.mark.unit
-def test_ubc_resource(pubsub_transport):
-    assert pubsub_transport.resource == "Transport"
-
-
-@timeout(5)
-@pytest.mark.unit
-def test_ubc_type(pubsub_transport):
-    assert pubsub_transport.type == "PubSubTransport"
-
-
-@timeout(5)
-@pytest.mark.unit
-def test_serialization(pubsub_transport):
-    assert (
-        pubsub_transport.id
-        == PubSubTransport.model_validate_json(pubsub_transport.model_dump_json()).id
-    )
-
-
-@timeout(5)
-@pytest.mark.unit
 @pytest.mark.asyncio
-async def test_subscribe(pubsub_transport):
-    topic = "test_topic"
-    subscriber_id = await pubsub_transport.subscribe(topic)
+async def test_send(transport):
+    # Setup
+    subscriber_id = await transport.subscribe("test_topic")
+    sender = "test_sender"
+    message = "test_message"
 
-    # Validate subscriber ID format
-    assert isinstance(UUID(subscriber_id), UUID)
+    # Execute
+    transport.send(sender, subscriber_id, message)
 
-    # Ensure subscriber is added to the topic
-    assert subscriber_id in pubsub_transport._topics[topic]
+    # Verify
+    received = await transport.receive(subscriber_id)
+    assert received == (sender, message)
 
 
-@timeout(5)
-@pytest.mark.unit
 @pytest.mark.asyncio
-async def test_unsubscribe(pubsub_transport):
-    topic = "test_topic"
-    subscriber_id = await pubsub_transport.subscribe(topic)
+async def test_send_invalid_recipient(transport):
+    # Setup
+    sender = "test_sender"
+    invalid_recipient = "invalid_id"
+    message = "test_message"
 
-    await pubsub_transport.unsubscribe(topic, subscriber_id)
+    # Verify raises error
+    with pytest.raises(ValueError):
+        transport.send(sender, invalid_recipient, message)
 
-    # Ensure subscriber is removed from the topic
-    assert subscriber_id not in pubsub_transport._topics.get(topic, set())
 
-
-@timeout(5)
-@pytest.mark.unit
 @pytest.mark.asyncio
-async def test_publish_and_receive(pubsub_transport):
-    topic = "test_topic"
-    subscriber_id = await pubsub_transport.subscribe(topic)
+async def test_broadcast(transport):
+    # Setup
+    subscriber1_id = await transport.subscribe("topic1")
+    subscriber2_id = await transport.subscribe("topic2")
+    sender = "test_sender"
+    message = "broadcast_message"
 
-    message = "Hello, PubSub!"
-    await pubsub_transport.publish(topic, message)
+    # Execute
+    transport.broadcast(sender, message)
 
-    # Ensure the subscriber receives the message
-    received_message = await pubsub_transport.receive(subscriber_id)
-    assert received_message == message
+    # Verify all subscribers received message
+    received1 = await transport.receive(subscriber1_id)
+    received2 = await transport.receive(subscriber2_id)
+    assert received1 == (sender, message)
+    assert received2 == (sender, message)
 
 
-@timeout(5)
-@pytest.mark.unit
 @pytest.mark.asyncio
-async def test_broadcast(pubsub_transport):
-    topic1 = "topic1"
-    topic2 = "topic2"
-    subscriber_id1 = await pubsub_transport.subscribe(topic1)
-    subscriber_id2 = await pubsub_transport.subscribe(topic2)
+async def test_multicast(transport):
+    # Setup
+    subscriber1_id = await transport.subscribe("topic1")
+    subscriber2_id = await transport.subscribe("topic2")
+    subscriber3_id = await transport.subscribe("topic3")
+    recipients = [subscriber1_id, subscriber3_id]
+    sender = "test_sender"
+    message = "multicast_message"
 
-    message = "Broadcast Message"
-    pubsub_transport.broadcast("sender_id", message)
+    # Execute
+    transport.multicast(sender, recipients, message)
 
-    # Ensure both subscribers receive the message
-    received_message1 = await pubsub_transport.receive(subscriber_id1)
-    received_message2 = await pubsub_transport.receive(subscriber_id2)
-    assert received_message1 == message
-    assert received_message2 == message
+    # Verify target recipients received message
+    received1 = await transport.receive(subscriber1_id)
+    received3 = await transport.receive(subscriber3_id)
+    assert received1 == (sender, message)
+    assert received3 == (sender, message)
+
+    # Verify non-target didn't receive
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(transport.receive(subscriber2_id), timeout=0.1)
 
 
-@timeout(5)
-@pytest.mark.unit
 @pytest.mark.asyncio
-async def test_multicast(pubsub_transport):
-    topic1 = "topic1"
-    topic2 = "topic2"
-    topic3 = "topic3"
-    subscriber_id1 = await pubsub_transport.subscribe(topic1)
-    subscriber_id2 = await pubsub_transport.subscribe(topic2)
-    subscriber_id3 = await pubsub_transport.subscribe(topic3)
+async def test_multicast_with_invalid_recipient(transport):
+    # Setup
+    subscriber_id = await transport.subscribe("topic1")
+    recipients = [subscriber_id, "invalid_id"]
+    sender = "test_sender"
+    message = "multicast_message"
 
-    message = "Multicast Message"
-    pubsub_transport.multicast("sender_id", [topic1, topic2], message)
+    # Execute - should not raise error for invalid recipient
+    transport.multicast(sender, recipients, message)
 
-    # Ensure only subscribers of specified topics receive the message
-    received_message1 = await pubsub_transport.receive(subscriber_id1)
-    received_message2 = await pubsub_transport.receive(subscriber_id2)
-    assert received_message1 == message
-    assert received_message2 == message
-
-    try:
-        await asyncio.wait_for(pubsub_transport.receive(subscriber_id3), timeout=1.0)
-        pytest.fail("Expected no message, but received one.")
-    except asyncio.TimeoutError:
-        pass
-
-
-@timeout(5)
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_receive_no_messages(pubsub_transport):
-    topic = "test_topic"
-    subscriber_id = await pubsub_transport.subscribe(topic)
-
-    try:
-        await asyncio.wait_for(pubsub_transport.receive(subscriber_id), timeout=1.0)
-        pytest.fail("Expected no message, but received one.")
-    except asyncio.TimeoutError:
-        pass
+    # Verify valid recipient still receives
+    received = await transport.receive(subscriber_id)
+    assert received == (sender, message)

@@ -29,3 +29,19 @@ class FactoryBase(IFactory, ComponentBase):
         raise NotImplementedError(
             "create method must be implemented in derived classes."
         )
+
+    def get(self):
+        """
+        Return a list of registered agent types.
+        """
+        raise NotImplementedError(
+            "get_agents method must be implemented in derived classes."
+        )
+    
+    def unregister(self, type: str) -> None:
+        """
+        Unregister a resource class with a specific type.
+        """
+        raise NotImplementedError(
+            "unregister method must be implemented in derived classes."
+        )

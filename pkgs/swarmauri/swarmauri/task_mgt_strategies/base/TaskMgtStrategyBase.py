@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.task_mgt_strategies.ITaskMgtStrategy import ITaskMgtStrategy
@@ -15,7 +13,6 @@ class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-    @abstractmethod
     def assign_task(
         self, task: Dict[str, Any], agent_factory: Callable, service_registry: Callable
     ) -> str:
@@ -26,7 +23,6 @@ class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
             "assign_task method must be implemented in derived classes."
         )
 
-    @abstractmethod
     def add_task(self, task: Dict[str, Any]) -> None:
         """
         Abstract method to add a task to the task queue.
@@ -35,7 +31,6 @@ class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
             "add_task method must be implemented in derived classes."
         )
 
-    @abstractmethod
     def remove_task(self, task_id: str) -> None:
         """
         Abstract method to remove a task from the task queue.
@@ -44,7 +39,6 @@ class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
             "remove_task method must be implemented in derived classes."
         )
 
-    @abstractmethod
     def get_task(self, task_id: str) -> Dict[str, Any]:
         """
         Abstract method to get a task from the task queue.
@@ -53,11 +47,18 @@ class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
             "get_task method must be implemented in derived classes."
         )
 
-    @abstractmethod
     def process_tasks(self, task: Dict[str, Any]) -> None:
         """
         Abstract method to process tasks.
         """
         raise NotImplementedError(
             "process_task method must be implemented in derived classes."
+        )
+
+    def get_tasks(self) -> Dict[str, Any]:
+        """
+        Abstract method to get tasks.
+        """
+        raise NotImplementedError(
+            "get_tasks method must be implemented in derived classes."
         )
