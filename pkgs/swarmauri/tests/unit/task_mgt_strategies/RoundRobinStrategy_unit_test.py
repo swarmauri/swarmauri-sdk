@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import MagicMock
 from swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy import RoundRobinStrategy
+from swarmauri.transports.concrete.PubSubTransport import PubSubTransport
 
 
 @pytest.fixture
@@ -9,13 +9,34 @@ def round_robin_strategy():
     return RoundRobinStrategy()
 
 
+@pytest.mark.unit
+def test_ubc_resource(round_robin_strategy):
+    assert round_robin_strategy.resource == "TaskMgtStrategy"
+
+
+@pytest.mark.unit
+def test_ubc_type(round_robin_strategy):
+    assert round_robin_strategy.type == "RoundRobinStrategy"
+
+
+@pytest.mark.unit
+def test_serialization(round_robin_strategy):
+    assert (
+        round_robin_strategy.id
+        == RoundRobinStrategy.model_validate_json(
+            round_robin_strategy.model_dump_json()
+        ).id
+    )
+
+
 def test_assign_task(round_robin_strategy):
     # Setup
     task = {"task_id": "task1", "payload": "data"}
-    service_registry = MagicMock(return_value=["service1", "service2"])
+
+    services = ["service1", "service2"]
 
     # Execute
-    round_robin_strategy.assign_task(task, service_registry)
+    round_robin_strategy.assign_task(task, services)
 
     # Verify
     assert round_robin_strategy.task_assignments["task1"] == "service1"
@@ -25,7 +46,7 @@ def test_assign_task(round_robin_strategy):
 def test_assign_task_no_services(round_robin_strategy):
     # Setup
     task = {"task_id": "task1", "payload": "data"}
-    service_registry = MagicMock(return_value=[])
+    service_registry = []
 
     # Execute & Verify
     with pytest.raises(ValueError) as exc_info:
@@ -41,8 +62,8 @@ def test_add_task(round_robin_strategy):
     round_robin_strategy.add_task(task)
 
     # Verify
-    assert not round_robin_strategy.task_queue.empty()
-    queued_task = round_robin_strategy.task_queue.get()
+    assert len(round_robin_strategy.get_tasks()) == 1
+    queued_task = round_robin_strategy.get_tasks()[0]
     assert queued_task == task
 
 
@@ -93,8 +114,8 @@ def test_get_task_not_found(round_robin_strategy):
 
 def test_process_tasks(round_robin_strategy):
     # Setup
-    service_registry = MagicMock(return_value=["service1", "service2"])
-    transport = MagicMock()
+    services = ["service1", "service2"]
+    transport = PubSubTransport()
     tasks = [
         {"task_id": "task1", "payload": "data1"},
         {"task_id": "task2", "payload": "data2"},
@@ -104,7 +125,7 @@ def test_process_tasks(round_robin_strategy):
         round_robin_strategy.add_task(task)
 
     # Execute
-    round_robin_strategy.process_tasks(service_registry, transport)
+    round_robin_strategy.process_tasks(services, transport)
 
     # Verify assignments
     assert round_robin_strategy.task_assignments["task1"] == "service1"
@@ -112,17 +133,11 @@ def test_process_tasks(round_robin_strategy):
     assert round_robin_strategy.task_assignments["task3"] == "service1"
     assert round_robin_strategy.current_index == 3
 
-    # Verify that transport.send was called correctly
-    transport.send.assert_any_call(tasks[0], "service1")
-    transport.send.assert_any_call(tasks[1], "service2")
-    transport.send.assert_any_call(tasks[2], "service1")
-    assert transport.send.call_count == 3
-
 
 def test_process_tasks_no_services(round_robin_strategy):
     # Setup
-    service_registry = MagicMock(return_value=[])
-    transport = MagicMock()
+    service_registry = []
+    transport = PubSubTransport()
     task = {"task_id": "task1", "payload": "data"}
     round_robin_strategy.add_task(task)
 

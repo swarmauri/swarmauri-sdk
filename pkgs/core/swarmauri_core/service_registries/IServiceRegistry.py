@@ -22,13 +22,6 @@ class IServiceRegistry(ABC):
         pass
 
     @abstractmethod
-    def get_services_by_roles(self, roles: List[str]) -> List[str]:
-        """
-        Get services filtered by their roles.
-        """
-        pass
-
-    @abstractmethod
     def unregister_service(self, name: str) -> None:
         """
         unregister the service with the given name.

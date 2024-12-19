@@ -1,4 +1,4 @@
-from swarmauri.utils._lazy_import import _lazy_import
+from swarmauri.utils.LazyLoader import LazyLoader
 
 # List of tool names (file names without the ".py" extension) and corresponding class names
 tool_files = [
@@ -27,9 +27,9 @@ tool_files = [
     ("swarmauri.tools.concrete.WeatherTool", "WeatherTool"),
 ]
 
-# Lazy loading of tools, storing them in variables
+# Lazy loading of tools using LazyLoader
 for module_name, class_name in tool_files:
-    globals()[class_name] = _lazy_import(module_name, class_name)
+    globals()[class_name] = LazyLoader(module_name, class_name)
 
-# Adding the lazy-loaded tools to __all__
+# Adding tools to __all__ (still safe because LazyLoader doesn't raise errors until accessed)
 __all__ = [class_name for _, class_name in tool_files]

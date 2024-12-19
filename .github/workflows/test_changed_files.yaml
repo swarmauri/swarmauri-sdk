@@ -147,10 +147,11 @@ jobs:
       - name: Process test results and manage issues
         if: always()
         env:
+          DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
-          poetry run python ../../scripts/manage_issues.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
+          poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
 
 

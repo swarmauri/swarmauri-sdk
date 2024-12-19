@@ -63,6 +63,7 @@ class ResourceTypes(Enum):
     SERVICE_REGISTRY = "ServiceRegistry"
     CONTROL_PANEL = "ControlPanel"
     TASK_MGT_STRATEGY = "TaskMgtStrategy"
+    MAS = "Mas"
 
 def generate_id() -> str:
     return str(uuid4())
