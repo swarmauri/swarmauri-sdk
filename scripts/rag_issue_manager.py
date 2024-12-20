@@ -24,7 +24,7 @@ WORKFLOW_RUN_URL = os.getenv("GITHUB_SERVER_URL", "https://github.com") + f"/{RE
 
 # DeepInfraModel Initialization
 DEEPINFRA_API_KEY = os.getenv("DEEPINFRA_API_KEY")
-llm = DeepInfraModel(api_key=DEEPINFRA_API_KEY, name="meta-llama/Meta-Llama-3.1-405B-Instruct")
+llm = DeepInfraModel(api_key=DEEPINFRA_API_KEY, name="meta-llama/Meta-Llama-3.1-8B-Instruct")
 
 def parse_arguments():
     """Parse command-line arguments."""

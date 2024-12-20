@@ -142,16 +142,11 @@ jobs:
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
-          poetry run pytest -v ${{ matrix.package_tests.tests }} --junitxml=results.xml -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
-
-      - name: Output test results for debugging
-        run: |
-          ls -R
-          cat pkgs/${{ matrix.package_tests.package }}/results.xml
+          poetry run pytest -v ${{ matrix.package_tests.tests }} -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
 
       - name: Classify test results
         run: |
-          python scripts/classify_results.py pkgs/${{ matrix.package_tests.package }}/results.xml
+          python scripts/classify_json_results.py pkgs/${{ matrix.package_tests.package }}/pytest_results.json --required-passed ge:50 --required-skipped lt:30
         continue-on-error: false
 
       - name: Process test results and manage issues
