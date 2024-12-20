@@ -28,8 +28,16 @@ class AgentFactory(FactoryBase):
         cls = self._registry[type]
         return cls(*args, **kwargs)
 
-    def get_agents(self):
+    def get(self):
         """
         Return a list of registered agent types.
         """
         return list(self._registry.keys())
+
+    def unregister(self, type: str) -> None:
+        """
+        Unregister a resource class with a specific type.
+        """
+        if type not in self._registry:
+            raise ValueError(f"Type '{type}' is not registered.")
+        del self._registry[type]

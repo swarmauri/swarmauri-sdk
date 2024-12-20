@@ -40,3 +40,9 @@ class Factory(FactoryBase):
 
         cls = self._resource_registry[resource][type]
         return cls(*args, **kwargs)
+
+    def get_agents(self):
+        """
+        Return a list of registered agent types.
+        """
+        return list(self._resource_registry.keys())
