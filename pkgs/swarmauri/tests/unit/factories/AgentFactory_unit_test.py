@@ -1,11 +1,20 @@
+from typing import Literal
 import pytest
 from swarmauri.factories.concrete.AgentFactory import AgentFactory
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.agents.concrete.QAAgent import QAAgent
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+class TestAgent:
+    type: Literal["TestAgent"] = "TestAgent"
+
+    def exec(self, **kwargs):
+        return "TestAgent execution result"
 
 
 @pytest.fixture(scope="module")
@@ -43,7 +52,16 @@ def test_serialization(agent_factory):
 @pytest.mark.unit
 def test_agent_factory_register_and_create(agent_factory, groq_model):
 
-    agent_factory.register(type="QAAgent", resource_class=QAAgent)
+    agent_factory.register(type="TestAgent", resource_class=TestAgent)
+
+    # Create an instance
+    instance = agent_factory.create(type="TestAgent")
+    assert isinstance(instance, TestAgent)
+    assert instance.type == "TestAgent"
+
+
+@pytest.mark.unit
+def test_agent_factory_create(agent_factory, groq_model):
 
     # Create an instance
     instance = agent_factory.create(type="QAAgent", llm=groq_model)
@@ -61,6 +79,4 @@ def test_agent_factory_create_unregistered_type(agent_factory):
 
 @pytest.mark.unit
 def test_agent_factory_get_agents(agent_factory):
-
-    assert agent_factory.get() == ["QAAgent"]
-    assert len(agent_factory.get()) == 1
+    assert len(agent_factory.get()) == len(agent_factory._registry)

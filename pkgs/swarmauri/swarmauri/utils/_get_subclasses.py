@@ -1,72 +1,41 @@
 import importlib
-import re
+import inspect
+import logging
+
+from swarmauri.utils.LazyLoader import LazyLoader
 
 
-def get_classes_from_module(module_name: str):
+def get_classes_from_module(resource_name: str):
     """
-    Dynamically imports a module and retrieves a dictionary of class names and their corresponding class objects.
-
-    :param module_name: The name of the module (e.g., "parsers", "agent").
-    :return: A dictionary with class names as keys and class objects as values.
+    Pass something like 'llms' to import 'swarmauri.llms.concrete'
+    and retrieve all loaded classes.
     """
-    # Convert module name to lowercase to ensure consistency
-    module_name_lower = module_name.lower()
+    resource_name = resource_name.lower()
 
-    # Construct the full module path dynamically
-    full_module_path = f"swarmauri.{module_name_lower}s.concrete"
+    full_module = f"swarmauri.{resource_name}s.concrete"
+    module = importlib.import_module(full_module)
 
-    try:
-        # Import the module dynamically
-        module = importlib.import_module(full_module_path)
+    classes = {}
+    for name, obj in inspect.getmembers(module):
+        if isinstance(obj, LazyLoader):
+            obj = obj._load_class()
+        if inspect.isclass(obj):
+            classes[name] = obj
 
-        # Get the list of class names from __all__
-        class_names = getattr(module, "__all__", [])
-
-        # Create a dictionary with class names and their corresponding class objects
-        classes_dict = {
-            class_name: getattr(module, class_name) for class_name in class_names
-        }
-
-        return classes_dict
-    except ImportError as e:
-        print(f"Error importing module {full_module_path}: {e}")
-        raise ModuleNotFoundError(f"Resource '{module_name}' is not registered.")
-    except AttributeError as e:
-        print(f"Error accessing class in {full_module_path}: {e}")
-        raise e
+    logging.info(f"Classes found in module {module}: {classes}")
+    return classes
 
 
-def get_class_from_module(module_name: str, class_name: str):
-    """
-    Dynamically imports a module and retrieves the class name of the module.
+def get_class_from_module(resource_name, class_name):
+    resource_name = resource_name.lower()
 
-    :param module_name: The name of the module (e.g., "parsers", "agent").
-    :return: The class name of the module.
-    """
-    # Convert module name to lowercase to ensure consistency
-    module_name_lower = module_name.lower()
+    full_module = f"swarmauri.{resource_name}s.concrete"
+    module = importlib.import_module(full_module)
 
-    # Construct the full module path dynamically
-    full_module_path = f"swarmauri.{module_name_lower}s.concrete"
-
-    try:
-        # Import the module dynamically
-        module = importlib.import_module(full_module_path)
-
-        # Get the list of class names from __all__
-        class_names = getattr(module, "__all__", [])
-
-        if not class_names:
-            raise AttributeError(f"No classes found in module {full_module_path}")
-
-        for cls_name in class_names:
-            if cls_name == class_name:
-                return getattr(module, class_name)
-        return None
-
-    except ImportError as e:
-        print(f"Error importing module {full_module_path}: {e}")
-        raise ModuleNotFoundError(f"Resource '{module_name}' is not found.")
-    except AttributeError as e:
-        print(f"Error accessing class in {full_module_path}: {e}")
-        raise e
+    if hasattr(module, class_name):
+        obj = getattr(module, class_name)
+        if isinstance(obj, LazyLoader):
+            obj = obj._load_class()
+        if inspect.isclass(obj):
+            return obj
+    return None
