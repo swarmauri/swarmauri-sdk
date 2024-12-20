@@ -102,7 +102,17 @@ def analyze_tags_from_file(file_path, required_passed=None, required_skipped=Non
         print("Tag-Based Results:")
         print(f"{'Tag':<30} {'Passed':<10} {'Skipped':<10} {'Failed':<10} {'Total':<10} {'% Passed':<10} {'% Skipped':<10} {'% Failed':<10}")
         print("-" * 110)
-        for tag, outcomes in tag_outcomes.items():
+        
+        # Sort tags by % Passed (descending) and then alphabetically by tag
+        sorted_tags = sorted(
+            tag_outcomes.items(),
+            key=lambda item: (
+                -(item[1]["passed"] / item[1]["total"] * 100 if item[1]["total"] > 0 else 0),  # Sort by % Passed (descending)
+                item[0]  # Then by tag (alphabetically)
+            )
+        )
+        
+        for tag, outcomes in sorted_tags:
             passed = outcomes["passed"]
             skipped = outcomes["skipped"]
             failed = outcomes["failed"]
