@@ -3,22 +3,29 @@ from pydantic import Field, ConfigDict, field_validator
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri.conversations.base.ConversationBase import ConversationBase
-from swarmauri.conversations.base.ConversationSystemContextMixin import ConversationSystemContextMixin
-from swarmauri.messages.concrete import SystemMessage, AgentMessage, HumanMessage
+from swarmauri.conversations.base.ConversationSystemContextMixin import (
+    ConversationSystemContextMixin,
+)
+from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.exceptions.concrete import IndexErrorWithContext
 
-class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):
+
+class MaxSystemContextConversation(
+    IMaxSize, ConversationSystemContextMixin, ConversationBase
+):
     system_context: Optional[SystemMessage] = SystemMessage(content="")
     max_size: int = Field(default=2, gt=1)
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['MaxSystemContextConversation'] = 'MaxSystemContextConversation'
-    
-    @field_validator('system_context', mode='before')
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    type: Literal["MaxSystemContextConversation"] = "MaxSystemContextConversation"
+
+    @field_validator("system_context", mode="before")
     def set_system_context(cls, value: Union[str, SystemMessage]) -> SystemMessage:
         if isinstance(value, str):
             return SystemMessage(content=value)
         return value
-    
+
     @property
     def history(self) -> List[IMessage]:
         """
@@ -41,11 +48,16 @@ class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, Con
         # Build history from the first 'user' message ensuring alternating roles.
         res.append(self.system_context)
         alternating = True
-        count = 0 
+        count = 0
         for message in self._history[user_start_index:]:
-            if count >= self.max_size: # max size
+            if count >= self.max_size:  # max size
                 break
-            if alternating and isinstance(message, HumanMessage) or not alternating and isinstance(message, AgentMessage):
+            if (
+                alternating
+                and isinstance(message, HumanMessage)
+                or not alternating
+                and isinstance(message, AgentMessage)
+            ):
                 res.append(message)
                 alternating = not alternating
                 count += 1
@@ -63,13 +75,15 @@ class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, Con
         Adds a message to the conversation history and ensures history does not exceed the max size.
         """
         if isinstance(message, SystemMessage):
-            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+            raise ValueError(
+                f"System context cannot be set through this method on {self.__class_name__}."
+            )
         elif isinstance(message, IMessage):
             self._history.append(message)
         else:
             raise ValueError(f"Must use a subclass of IMessage")
         self._enforce_max_size_limit()
-        
+
     def _enforce_max_size_limit(self):
         """
         Remove messages from the beginning of the conversation history if the limit is exceeded.

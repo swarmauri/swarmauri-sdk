@@ -1,9 +1,8 @@
 import pytest
 from swarmauri.factories.concrete.Factory import Factory
 from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
-    BeautifulSoupElementParser,
+    BeautifulSoupElementParser
 )
-
 
 @pytest.fixture(scope="module")
 def factory():
@@ -46,7 +45,7 @@ def test_factory_create_unregistered_resource(factory):
 
     # Attempt to create an instance of an unregistered resource
     with pytest.raises(
-        ModuleNotFoundError, match="Resource 'UnknownResource' is not registered."
+        ValueError, match="Type 'BeautifulSoupElementParser' is not registered under resource 'UnknownResource'."
     ):
         factory.create("UnknownResource", "BeautifulSoupElementParser")
 
