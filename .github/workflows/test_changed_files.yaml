@@ -146,8 +146,8 @@ jobs:
 
       - name: Output test results for debugging
         run: |
-          ls
-          cat pkgs/${{ matrix.package }}/results.xml
+          ls -R
+          cat pkgs/${{ matrix.package_tests.package }}/results.xml
 
       - name: Classify test results
         run: |
@@ -164,5 +164,4 @@ jobs:
         run: |
           cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
           poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
-
-
+          
