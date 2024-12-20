@@ -78,10 +78,15 @@ def analyze_tags_from_file(file_path, required_passed=None, required_skipped=Non
 
         # Group tests by tags
         tag_outcomes = defaultdict(lambda: {"passed": 0, "total": 0})
-
+        
+        excluded_prefixes = ("tests", "test_", "_test.py", "")  # Define excluded prefixes or patterns
+        
         for test in tests:
             outcome = test["outcome"]
             for tag in test["keywords"]:
+                # Skip tags that start with excluded prefixes or match excluded patterns
+                if tag.startswith(excluded_prefixes):
+                    continue
                 tag_outcomes[tag]["total"] += 1
                 if outcome == "passed":
                     tag_outcomes[tag]["passed"] += 1
