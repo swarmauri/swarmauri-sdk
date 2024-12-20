@@ -77,7 +77,7 @@ def analyze_tags_from_file(file_path, required_passed=None, required_skipped=Non
         print("\n")
 
         # Group tests by tags
-        tag_outcomes = defaultdict(lambda: {"passed": 0, "total": 0})
+        tag_outcomes = defaultdict(lambda: {"passed": 0, "skipped": 0, "failed": 0, "total": 0})
         
         for test in tests:
             outcome = test["outcome"]
@@ -93,16 +93,25 @@ def analyze_tags_from_file(file_path, required_passed=None, required_skipped=Non
                 tag_outcomes[tag]["total"] += 1
                 if outcome == "passed":
                     tag_outcomes[tag]["passed"] += 1
+                elif outcome == "skipped":
+                    tag_outcomes[tag]["skipped"] += 1
+                elif outcome == "failed":
+                    tag_outcomes[tag]["failed"] += 1
         
         # Print detailed results by tags
         print("Tag-Based Results:")
-        print(f"{'Tag':<30} {'Passed':<10} {'Total':<10} {'% Passed':<10}")
-        print("-" * 70)
+        print(f"{'Tag':<30} {'Passed':<10} {'Skipped':<10} {'Failed':<10} {'Total':<10} {'% Passed':<10} {'% Skipped':<10} {'% Failed':<10}")
+        print("-" * 110)
         for tag, outcomes in tag_outcomes.items():
             passed = outcomes["passed"]
+            skipped = outcomes["skipped"]
+            failed = outcomes["failed"]
             total = outcomes["total"]
-            percentage = (passed / total) * 100 if total > 0 else 0
-            print(f"{tag:<30} {passed:<10} {total:<10} {percentage:<10.2f}")
+            passed_percentage = (passed / total) * 100 if total > 0 else 0
+            skipped_percentage = (skipped / total) * 100 if total > 0 else 0
+            failed_percentage = (failed / total) * 100 if total > 0 else 0
+            print(f"{tag:<30} {passed:<10} {skipped:<10} {failed:<10} {total:<10} {passed_percentage:<10.2f} {skipped_percentage:<10.2f} {failed_percentage:<10.2f}")
+
 
         # Exit with error code if thresholds are not met
         if threshold_error:
