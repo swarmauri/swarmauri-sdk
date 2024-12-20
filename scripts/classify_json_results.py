@@ -2,7 +2,40 @@ import json
 import sys
 from collections import defaultdict
 
-def analyze_tags_from_file(file_path):
+def parse_arguments(args):
+    """Parse command-line arguments."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Analyze test results from a JSON file.")
+    parser.add_argument("file", help="Path to the JSON file containing test results")
+    parser.add_argument("--required-passed", type=str, help="Required passed percentage (e.g., 'gt:50', 'lt:30', 'eq:50', 'ge:50', 'le:50')")
+    parser.add_argument("--required-skipped", type=str, help="Required skipped percentage (e.g., 'gt:20', 'lt:50', 'eq:50', 'ge:50', 'le:50')")
+
+    return parser.parse_args(args)
+
+
+def evaluate_threshold(value, threshold):
+    """Evaluate if the value meets the threshold condition."""
+    try:
+        op, limit = threshold.split(":")
+        limit = float(limit)
+        if op == "gt":
+            return value > limit
+        elif op == "lt":
+            return value < limit
+        elif op == "eq":
+            return value == limit
+        elif op == "ge":
+            return value >= limit
+        elif op == "le":
+            return value <= limit
+        else:
+            raise ValueError(f"Invalid operator '{op}'. Use 'gt', 'lt', 'eq', 'ge', or 'le'.")
+    except ValueError as e:
+        raise ValueError(f"Invalid threshold format '{threshold}'. Expected format: 'gt:<number>', 'lt:<number>', 'eq:<number>', 'ge:<number>', or 'le:<number>'") from e
+
+
+def analyze_tags_from_file(file_path, required_passed=None, required_skipped=None):
     try:
         # Load JSON data from the file
         with open(file_path, 'r') as f:
@@ -28,6 +61,19 @@ def analyze_tags_from_file(file_path):
             count = summary.get(category, 0)
             percentage = (count / total_tests) * 100 if total_tests > 0 else 0
             print(f"{category.capitalize():<15} {count:<10} {total_tests:<10} {percentage:<10.2f}")
+
+        # Check thresholds
+        passed_percentage = (summary.get("passed", 0) / total_tests) * 100 if total_tests > 0 else 0
+        skipped_percentage = (summary.get("skipped", 0) / total_tests) * 100 if total_tests > 0 else 0
+
+        threshold_error = False
+        if required_passed and not evaluate_threshold(passed_percentage, required_passed):
+            print(f"\nWARNING: Passed percentage ({passed_percentage:.2f}%) does not meet the condition '{required_passed}'!")
+            threshold_error = True
+        if required_skipped and not evaluate_threshold(skipped_percentage, required_skipped):
+            print(f"WARNING: Skipped percentage ({skipped_percentage:.2f}%) does not meet the condition '{required_skipped}'!")
+            threshold_error = True
+        
         print("\n")
 
         # Group tests by tags
@@ -49,21 +95,29 @@ def analyze_tags_from_file(file_path):
             total = outcomes["total"]
             percentage = (passed / total) * 100 if total > 0 else 0
             print(f"{tag:<30} {passed:<10} {total:<10} {percentage:<10.2f}")
+
+        # Exit with error code if thresholds are not met
+        if threshold_error:
+            sys.exit(1)
+
     except FileNotFoundError:
         print(f"Error: File not found: {file_path}")
+        sys.exit(1)
     except json.JSONDecodeError:
         print(f"Error: Failed to decode JSON from file: {file_path}")
+        sys.exit(1)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-
-if __name__ == "__main__":
-    # Check if the file path is provided
-    if len(sys.argv) != 2:
-        print("Usage: python tag_analysis.py <path_to_json_file>")
         sys.exit(1)
 
-    # Get the file path from command-line arguments
-    json_file_path = sys.argv[1]
+
+if __name__ == "__main__":
+    # Parse arguments
+    args = parse_arguments(sys.argv[1:])
 
     # Run the analysis
-    analyze_tags_from_file(json_file_path)
+    analyze_tags_from_file(
+        file_path=args.file,
+        required_passed=args.required_passed,
+        required_skipped=args.required_skipped
+    )
