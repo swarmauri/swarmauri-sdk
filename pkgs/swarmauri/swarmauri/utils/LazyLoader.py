@@ -29,3 +29,9 @@ class LazyLoader:
         if loaded_class is None:
             raise ImportError(f"Unable to load class {self.class_name} from {self.module_name}")
         return getattr(loaded_class, item)
+
+    def __call__(self, *args, **kwargs):
+        loaded_class = self._load_class()
+        if loaded_class is None:
+            raise ImportError(f"Unable to load class {self.class_name} from {self.module_name}")
+        return loaded_class(*args, **kwargs)
