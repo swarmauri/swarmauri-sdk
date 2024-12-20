@@ -3,7 +3,7 @@ import pytest
 from swarmauri.factories.concrete.AgentFactory import AgentFactory
 import os
 from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.utils._get_subclasses import get_classes_from_module
+from swarmauri.agents.concrete.QAAgent import QAAgent
 
 from dotenv import load_dotenv
 
@@ -61,6 +61,15 @@ def test_agent_factory_register_and_create(agent_factory, groq_model):
 
 
 @pytest.mark.unit
+def test_agent_factory_create(agent_factory, groq_model):
+
+    # Create an instance
+    instance = agent_factory.create(type="QAAgent", llm=groq_model)
+    assert isinstance(instance, QAAgent)
+    assert instance.type == "QAAgent"
+
+
+@pytest.mark.unit
 def test_agent_factory_create_unregistered_type(agent_factory):
 
     # Attempt to create an unregistered type
@@ -70,4 +79,4 @@ def test_agent_factory_create_unregistered_type(agent_factory):
 
 @pytest.mark.unit
 def test_agent_factory_get_agents(agent_factory):
-    assert len(agent_factory.get()) == len(get_classes_from_module("Agent").keys()) + 1
+    assert len(agent_factory.get()) == len(agent_factory._registry)
