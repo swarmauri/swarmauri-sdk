@@ -146,7 +146,7 @@ jobs:
 
       - name: Classify test results
         run: |
-          python scripts/classify__json_results.py pkgs/${{ matrix.package_tests.package }}/pytest_results.json --required-passed ge:50 --required-skipped lt:30
+          python scripts/classify_json_results.py pkgs/${{ matrix.package_tests.package }}/pytest_results.json --required-passed ge:50 --required-skipped lt:30
         continue-on-error: false
 
       - name: Process test results and manage issues
