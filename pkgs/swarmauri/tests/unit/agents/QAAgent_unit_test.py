@@ -16,26 +16,34 @@ def groq_model():
     return llm
 
 
-@pytest.mark.unit
-def test_ubc_resource(groq_model):
-    agent = QAAgent(llm=groq_model)
-    assert agent.resource == "Agent"
+@pytest.fixture(scope="module")
+def qa_agent(groq_model):
+    return QAAgent(llm=groq_model)
 
 
 @pytest.mark.unit
-def test_ubc_type(groq_model):
-    agent = QAAgent(llm=groq_model)
-    assert agent.type == "QAAgent"
+def test_ubc_resource(qa_agent):
+    assert qa_agent.resource == "Agent"
 
 
 @pytest.mark.unit
-def test_agent_exec(groq_model):
-    agent = QAAgent(llm=groq_model)
-    result = agent.exec("hello")
-    assert type(result) == str
+def test_ubc_type(qa_agent):
+    assert qa_agent.type == "QAAgent"
 
 
 @pytest.mark.unit
-def test_serialization(groq_model):
-    agent = QAAgent(llm=groq_model)
-    assert agent.id == QAAgent.model_validate_json(agent.model_dump_json()).id
+def test_agent_exec(qa_agent):
+    result = qa_agent.exec("hello")
+    assert type(result) is str
+
+
+@pytest.mark.unit
+def test_serialization(qa_agent):
+    assert qa_agent.id == QAAgent.model_validate_json(qa_agent.model_dump_json()).id
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(qa_agent):
+    result = await qa_agent.aexec("hello")
+    assert isinstance(result, str)

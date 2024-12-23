@@ -1,7 +1,6 @@
+import logging
 from typing import Any, Callable, Dict, Literal
 from swarmauri.factories.base.FactoryBase import FactoryBase
-from swarmauri.utils._get_subclasses import get_classes_from_module
-
 
 class Factory(FactoryBase):
     """
@@ -15,6 +14,7 @@ class Factory(FactoryBase):
         """
         Register a resource class under a specific resource.
         """
+        from swarmauri.utils._get_subclasses import get_classes_from_module
         if type in self._resource_registry.get(resource, {}):
             raise ValueError(
                 f"Type '{type}' is already registered under resource '{resource}'."
@@ -30,10 +30,13 @@ class Factory(FactoryBase):
         """
         Create an instance of the class associated with the given resource and type.
         """
+        from swarmauri.utils._get_subclasses import get_classes_from_module
+
         if resource not in self._resource_registry:
             self._resource_registry[resource] = get_classes_from_module(resource)
+            logging.info(self._resource_registry)
 
-        if type not in self._resource_registry[resource]:
+        if type not in self._resource_registry[resource].keys():
             raise ValueError(
                 f"Type '{type}' is not registered under resource '{resource}'."
             )

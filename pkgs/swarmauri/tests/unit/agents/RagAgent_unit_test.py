@@ -56,3 +56,16 @@ def test_ubc_type(rag_agent):
 @pytest.mark.unit
 def test_serialization(rag_agent):
     assert rag_agent.id == RagAgent.model_validate_json(rag_agent.model_dump_json()).id
+
+
+@pytest.mark.unit
+def test_agent_exec(rag_agent):
+    result = rag_agent.exec("Hello")
+    assert isinstance(result, str)
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(rag_agent):
+    result = await rag_agent.aexec("Hello")
+    assert isinstance(result, str)
