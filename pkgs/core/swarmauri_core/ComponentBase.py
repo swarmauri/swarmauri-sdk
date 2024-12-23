@@ -65,6 +65,7 @@ class ResourceTypes(Enum):
     TASK_MGT_STRATEGY = "TaskMgtStrategy"
     MAS = "Mas"
     AGENT_API = "AgentAPI"
+    MAS_AGENT_API = "MasAgentAPI"
 
 
 def generate_id() -> str:
