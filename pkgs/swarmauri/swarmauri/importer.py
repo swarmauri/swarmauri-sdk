@@ -24,6 +24,11 @@ class SwarmauriImporter:
             if parent and parent not in sys.modules:
                 print(f"Parent module '{parent}' not found. Cannot create namespace module: {fullname}")
                 return None
+            
+            # Check if the module is an expected namespace component
+            if fullname not in REGISTRY and fullname.count(".") > 1:
+                print(f"Invalid namespace module: {fullname}")
+                return None
 
             print(f"Creating placeholder for namespace module: {fullname}")
             spec = ModuleSpec(fullname, self)
