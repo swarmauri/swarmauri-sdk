@@ -28,6 +28,18 @@ jobs:
         cd pkgs/
         poetry install --no-cache -vv 
 
+    - name: Install and Build All Sub-Packages
+      run: |
+        source $UNIQUE_VENV_PATH/bin/activate
+        for package in pkgs/*; do
+          if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
+            echo "Processing $package"
+            cd "$package"
+            poetry build
+            cd -
+          fi
+        done
+
     - name: Clean up virtual environment
       if: always()
       run: |
