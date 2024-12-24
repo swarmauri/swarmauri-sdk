@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "The base tag for the release (e.g., 0.6.0)"
+        description: "The base tag for the release (e.g., v0.6.0)"
         required: true
       pre_release:
         description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)"
@@ -24,6 +24,16 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+
+    - name: Cache Poetry Dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pypoetry
+          ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
 
     - name: Install Poetry
       run: |
