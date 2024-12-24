@@ -25,6 +25,14 @@ jobs:
       with:
         python-version: "3.12"
 
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Install Poetry-Dynamic-Versioning Plugin
+      run: poetry self add poetry-dynamic-versioning
+
     - name: Cache Poetry Dependencies
       uses: actions/cache@v3
       with:
@@ -34,14 +42,6 @@ jobs:
         key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
           ${{ runner.os }}-poetry-
-
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-
-    - name: Install Poetry-Dynamic-Versioning Plugin
-      run: poetry self add poetry-dynamic-versioning
 
     - name: Create and Push Tag
       id: handle-tag
