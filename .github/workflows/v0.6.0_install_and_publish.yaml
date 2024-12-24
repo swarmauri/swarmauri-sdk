@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "The base tag for the release (e.g., 0.6.0)"
+        description: "The base tag for the release (e.g., v0.6.0)"
         required: true
       pre_release:
         description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)"
