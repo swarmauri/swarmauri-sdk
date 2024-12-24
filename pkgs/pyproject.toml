@@ -19,12 +19,9 @@ black = "^22.3.0"
 swarmauri_core = { path = "./core" }
 swarmauri_base = { path = "./base" }
 swarmauri = { path = "./swarmauri" }
-swarmauri_standard = { path = "./standard" }
+swarmauri_standard = { path = "./standard", extras=["full"] }
 
 [tool.poetry.extras]
-full = [
-    "swarmauri-standard[full]"
-]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
