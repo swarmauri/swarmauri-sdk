@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Optional, List, Literal
 from pydantic import Field, ConfigDict
 from swarmauri_core.typing import SubclassUnion
-from swarmauri.tools.base.ToolBase import ToolBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.toolkits.IToolkit import IToolkit
 

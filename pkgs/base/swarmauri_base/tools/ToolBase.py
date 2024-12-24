@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Any, Literal
 from pydantic import Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri.tools.base.ParameterBase import ParameterBase as Parameter
+from swarmauri_base.tools.ParameterBase import ParameterBase
 from swarmauri_core.tools.ITool import ITool
 
 

@@ -4,7 +4,7 @@ from swarmauri_core.typing import SubclassUnion
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 class AgentBase(IAgent, ComponentBase):
     llm: SubclassUnion[LLMBase]

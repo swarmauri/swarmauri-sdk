@@ -8,10 +8,10 @@ import numpy as np
 
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri.chains.concrete.ChainStep import ChainStep
-from swarmauri.chains.base.ChainContextBase import ChainContextBase
+from swarmauri_base.chains.ChainContextBase import ChainContextBase
 from swarmauri.prompts.concrete.PromptMatrix import PromptMatrix
 from swarmauri_core.typing import SubclassUnion
-from swarmauri.agents.base.AgentBase import AgentBase
+from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
 
