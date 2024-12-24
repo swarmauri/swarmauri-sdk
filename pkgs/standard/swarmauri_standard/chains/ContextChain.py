@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Callable, Optional, Tuple, Union, Literal
 from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri.chains.concrete.ChainStep import ChainStep
+from swarmauri_standard.chains.ChainStep import ChainStep
 from swarmauri_base.chains.ChainContextBase import ChainContextBase
 from swarmauri_core.chains.IChain import IChain
 

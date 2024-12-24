@@ -1,7 +1,7 @@
 from typing import Any, Optional, Dict, Literal
 from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri.conversations.concrete.MaxSystemContextConversation import MaxSystemContextConversation
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
+from swarmauri_standard.conversations.MaxSystemContextConversation import MaxSystemContextConversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 
 class QAAgent(AgentBase):

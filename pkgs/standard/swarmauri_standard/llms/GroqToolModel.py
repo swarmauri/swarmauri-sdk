@@ -7,11 +7,11 @@ import httpx
 from pydantic import PrivateAttr
 
 from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.conversations.concrete import Conversation
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri.schema_converters.concrete.GroqSchemaConverter import (
     GroqSchemaConverter,

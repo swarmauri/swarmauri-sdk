@@ -3,7 +3,7 @@ import uuid
 from typing import Dict, Any, Optional
 
 from swarmauri_core.tracing.ITracer import ITracer
-from swarmauri.tracing.concrete.SimpleTraceContext import SimpleTraceContext
+from swarmauri_standard.tracing.SimpleTraceContext import SimpleTraceContext
 
 class SimpleTracer(ITracer):
     _instance = None  # Singleton instance placeholder

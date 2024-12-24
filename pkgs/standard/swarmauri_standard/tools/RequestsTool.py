@@ -7,7 +7,7 @@ from pydantic import Field
 from swarmauri.tools.base.ToolBase import (
     ToolBase,
 )  # Assuming the location of ToolBase import
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 class JSONRequestsTool(ToolBase):

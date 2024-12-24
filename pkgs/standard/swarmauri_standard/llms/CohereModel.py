@@ -6,9 +6,9 @@ import httpx
 
 from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri_standard.messages.AgentMessage import UsageData
 from swarmauri.utils.duration_manager import DurationManager
 
 

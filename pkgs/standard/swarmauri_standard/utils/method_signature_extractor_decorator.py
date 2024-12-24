@@ -11,7 +11,7 @@ from typing import (
 import inspect
 from functools import wraps
 from pydantic import BaseModel
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 class MethodSignatureExtractor(BaseModel):

@@ -5,7 +5,7 @@ import importlib
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 class ImportMemoryModuleTool(ToolBase):

@@ -4,9 +4,9 @@ import sqlite3
 import tempfile
 from typing import List, Optional, Literal, Dict
 import numpy as np
-from swarmauri.vectors.concrete.Vector import Vector
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,

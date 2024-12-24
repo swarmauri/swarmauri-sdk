@@ -2,7 +2,7 @@ from typing import Optional, Any, Literal, Union, List
 from pydantic import Field, BaseModel, ConfigDict
 from swarmauri_base.messages.MessageBase import MessageBase
 
-from swarmauri.messages.concrete.HumanMessage import contentItem
+from swarmauri_standard.messages.HumanMessage import contentItem
 
 
 class UsageData(BaseModel):

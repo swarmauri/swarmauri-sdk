@@ -5,8 +5,8 @@ from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.conversations.ConversationSystemContextMixin import ConversationSystemContextMixin
-from swarmauri.messages.concrete import SystemMessage, AgentMessage, HumanMessage, FunctionMessage
-from swarmauri.exceptions.concrete import IndexErrorWithContext
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.exceptions.IndexErrorWithContext import IndexErrorWithContext
 
 
 class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):

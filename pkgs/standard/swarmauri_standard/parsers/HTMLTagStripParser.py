@@ -1,7 +1,7 @@
 import html
 import re
 from typing import Literal
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 
 class HTMLTagStripParser(ParserBase):

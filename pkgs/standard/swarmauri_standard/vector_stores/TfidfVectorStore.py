@@ -1,7 +1,7 @@
 from typing import List, Union, Literal
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.embeddings.concrete.TfidfEmbedding import TfidfEmbedding
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
+from swarmauri_standard.distances.CosineDistance import CosineDistance
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (

@@ -1,5 +1,5 @@
 from typing import Any
-from swarmauri.tracing.concrete.SimpleTracer import SimpleTracer  # Assuming this is the path to the tracer
+from swarmauri_standard.tracing.SimpleTracer import SimpleTracer
 
 class TracedVariable:
     """

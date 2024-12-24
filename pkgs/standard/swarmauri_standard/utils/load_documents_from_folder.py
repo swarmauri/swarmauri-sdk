@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_standard.documents.Document import Document
 
 
 def load_documents_from_folder(folder_path: str, include_extensions=None, exclude_extensions=None,

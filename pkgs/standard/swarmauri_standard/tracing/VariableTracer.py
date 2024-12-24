@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
-from swarmauri.tracing.concrete.TracedVariable import TracedVariable
-from swarmauri.tracing.concrete.SimpleTracer import SimpleTracer
+from swarmauri_standard.tracing.TracedVariable import TracedVariable
+from swarmauri_standard.tracing.SimpleTracer import SimpleTracer
 
 # Initialize a global instance of SimpleTracer for use across the application
 global_tracer = SimpleTracer()
