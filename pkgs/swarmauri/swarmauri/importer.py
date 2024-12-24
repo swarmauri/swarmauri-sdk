@@ -20,7 +20,9 @@ class SwarmauriImporter:
         # Handle namespace modules
         if fullname.startswith("swarmauri"):
             print(f"Creating placeholder for namespace module: {fullname}")
-            return ModuleSpec(fullname, self, is_namespace=True)
+            spec = ModuleSpec(fullname, self)
+            spec.submodule_search_locations = []  # Mark as a namespace
+            return spec
         
         return None
 
@@ -32,10 +34,10 @@ class SwarmauriImporter:
             return sys.modules[spec.name]
 
         # Handle namespace components
-        if spec.is_namespace:
+        if spec.submodule_search_locations is not None:
             print(f"Creating namespace module for: {spec.name}")
             module = ModuleType(spec.name)
-            module.__path__ = []  # Required for namespace packages
+            module.__path__ = spec.submodule_search_locations
             sys.modules[spec.name] = module
             return module
 
