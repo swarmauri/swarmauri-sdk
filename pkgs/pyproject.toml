@@ -2,7 +2,7 @@
 name = "swarmauri-monorepo"
 version = "0.6.0.dev1"
 description = "Monorepo for multiple interdependent Python packages"
-authors = ["Your Name <email@example.com>"]
+authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
 package-mode = false
 
