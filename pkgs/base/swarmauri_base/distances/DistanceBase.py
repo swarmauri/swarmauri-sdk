@@ -3,8 +3,8 @@ from numpy.linalg import norm
 from typing import List, Optional, Literal
 from pydantic import Field
 from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri.vectors.concrete.Vector import Vector
-from swarmauri.vectors.concrete.VectorProductMixin import VectorProductMixin
+from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_standard.vectors.VectorProductMixin import VectorProductMixin
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class DistanceBase(IDistanceSimilarity, VectorProductMixin, ComponentBase):

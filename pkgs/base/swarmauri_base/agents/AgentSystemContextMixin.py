@@ -1,7 +1,7 @@
 from typing import Union
 from pydantic import BaseModel, field_validator
 
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_core.agents.IAgentSystemContext import IAgentSystemContext
 
 
