@@ -12,19 +12,19 @@ logger = logging.getLogger(__name__)
 class SwarmauriImporter:
     def find_spec(self, fullname, path, target=None):
         """
-        Intercept import attempts under the 'swarmauri' namespace.
+        Intercept import attempts under the 'swarmauri.' namespace.
         """
         logger.debug(f"find_spec called for: {fullname}")
         
-        # Check if the module exists in the registry
-        external_module_path = get_external_module_path(fullname)
-        if external_module_path:
-            logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
-            return ModuleSpec(fullname, self)
-        
-        # Handle namespace modules
-        if fullname.startswith("swarmauri"):
-            # Ensure parent module is valid (e.g., "swarmauri.llms" exists)
+        # Check if the module belongs to the 'swarmauri.' namespace
+        if fullname == "swarmauri" or fullname.startswith("swarmauri."):
+            # Check if the module exists in the registry
+            external_module_path = get_external_module_path(fullname)
+            if external_module_path:
+                logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
+                return ModuleSpec(fullname, self)
+            
+            # Handle namespace modules
             parent, _, _ = fullname.rpartition(".")
             if parent and parent not in sys.modules:
                 logger.debug(f"Parent module '{parent}' not found. Cannot create namespace module: {fullname}")
@@ -39,10 +39,11 @@ class SwarmauriImporter:
             spec = ModuleSpec(fullname, self)
             spec.submodule_search_locations = []  # Mark as a namespace
             return spec
-        
-        # If not a valid namespace or in the registry, return None
-        logger.debug(f"Module '{fullname}' not found in registry or as a namespace module.")
+
+        # If not in the 'swarmauri.' namespace, skip this importer
+        logger.debug(f"Module '{fullname}' is not in the 'swarmauri.' namespace.")
         return None
+
 
     def create_module(self, spec):
         """
