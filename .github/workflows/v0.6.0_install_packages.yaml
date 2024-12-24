@@ -7,7 +7,7 @@ jobs:
   test:
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
 
@@ -35,6 +35,7 @@ jobs:
           if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
             echo "Processing $package"
             cd "$package"
+            poetry install --no-cache -vv --all-extras
             poetry build
             cd -
           fi
