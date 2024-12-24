@@ -16,7 +16,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 
-swarmauri_core = { path = "../core" }  # Local path dependency
+swarmauri_core = { path = "../core" }
 pydantic = "^2.0"
 
 #numpy = "==1.26.4"
@@ -24,8 +24,8 @@ pydantic = "^2.0"
 #pandas = ">2.2"
 
 [tool.poetry.dev-dependencies]
-flake8 = "^7.0"  # Add flake8 as a development dependency
-pytest = "^8.0"  # Ensure pytest is also added if you run tests
+flake8 = "^7.0"
+pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
 pytest-xdist = "^3.6.1"
 pytest-json-report = "^1.5.0"
