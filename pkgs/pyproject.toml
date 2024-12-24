@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "swarmauri-monorepo"
+version = "0.6.0.dev1"
+description = "Monorepo for multiple interdependent Python packages"
+authors = ["Your Name <email@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+pydantic = "^2.0"
+
+# Shared dependencies
+pytest = "^7.0"
+black = "^22.3.0"
+
+# Path dependencies (editable installs by default)
+core = { path = "./core" }
+base = { path = "./base" }
+index = { path = "./swarmauri" }
+standard = { path = "./standard" }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

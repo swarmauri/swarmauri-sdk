@@ -15,9 +15,10 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
+pydantic = "^2.0"
+
 #numpy = "==1.26.4"
 #requests = "^2.0"
-pydantic = "^2.0"
 #pandas = ">2.2"
 
 [tool.poetry.dev-dependencies]
