@@ -29,7 +29,7 @@ chromadb = { version = "^0.5.17", optional = true }
 duckdb = { version = "^1.1.1", optional = true }
 folium = { version = "^0.18.0", optional = true }
 gensim = { version = "^4.3.3", optional = true }
-gradio = { version = "^5.4.0", optional = true }
+#gradio = { version = "^5.4.0", optional = true }
 leptonai = { version = "^0.22.0", optional = true }
 neo4j = { version = "^5.25.0", optional = true }
 nltk = { version = "^3.9.1", optional = true }
@@ -62,7 +62,7 @@ visualization = ["folium"]
 storage = ["redis", "duckdb", "neo4j", "chromadb", "qdrant-client", "weaviate-client", "pinecone-client"]
 document_processing = ["pypdf", "PyMuPDF", "pypdftk"]
 cloud_integration = ["psutil", "qrcode", "pygithub"]
-gradio = ["gradio"]
+#gradio = ["gradio"]
 model_clients = ["leptonai"]
 tiktoken = ["tiktoken"]
 
@@ -74,7 +74,7 @@ full = [
     "redis", "duckdb", "neo4j", "chromadb", "qdrant-client", "weaviate-client", "pinecone-client",
     "pypdf", "PyMuPDF", "pypdftk",
     "psutil", "qrcode", "pygithub",
-    "gradio",
+    #"gradio",
     "leptonai",
     "tiktoken"
 ]
