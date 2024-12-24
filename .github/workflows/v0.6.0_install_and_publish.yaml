@@ -69,6 +69,7 @@ jobs:
       run: |
         if [ ! -f "poetry.lock" ]; then
           echo "poetry.lock not found. Generating it..."
+          cd pkgs
           poetry lock
         else
           echo "poetry.lock exists."
