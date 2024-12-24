@@ -92,6 +92,9 @@ full = [
     "matplotlib"
 ]
 
+[tool.setuptools]
+namespace_packages = ["swarmauri"]
+
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
