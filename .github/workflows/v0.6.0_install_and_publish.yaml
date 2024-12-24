@@ -56,6 +56,7 @@ jobs:
             sed -i "s/{ path = \"..\/core\" }/^${{ env.version }}/" pyproject.toml
             sed -i "s/{ path = \"..\/base\" }/^${{ env.version }}/" pyproject.toml
             
+            cat pyproject.toml
             cd -
           fi
         done
