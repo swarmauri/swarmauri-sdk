@@ -23,12 +23,11 @@ jobs:
 
     - name: Install All Packages
       run: |
-        poetry install --no-cache --vv
         python -m venv $UNIQUE_VENV_PATH
         source $UNIQUE_VENV_PATH/bin/activate
         ls -R
         cd pkgs/
-        poetry install --no-cache -vv --all-extras
+        poetry install --no-cache -vv 
         poetry build
 
     - name: Clean up virtual environment
