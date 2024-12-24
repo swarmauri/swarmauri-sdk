@@ -75,16 +75,6 @@ jobs:
           echo "poetry.lock exists."
         fi
 
-    - name: Cache Poetry Dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/pypoetry
-          ~/.local/share/virtualenvs
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-
-
     - name: Install All Packages
       run: |
         python -m venv $UNIQUE_VENV_PATH
