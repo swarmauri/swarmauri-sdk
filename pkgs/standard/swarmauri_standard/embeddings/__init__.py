@@ -2,13 +2,13 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of embeddings names (file names without the ".py" extension) and corresponding class names
 embeddings_files = [
-    ("swarmauri.embeddings.concrete.CohereEmbedding", "CohereEmbedding"),
-    ("swarmauri.embeddings.concrete.GeminiEmbedding", "GeminiEmbedding"),
-    ("swarmauri.embeddings.concrete.MistralEmbedding", "MistralEmbedding"),
-    ("swarmauri.embeddings.concrete.NmfEmbedding", "NmfEmbedding"),
-    ("swarmauri.embeddings.concrete.OpenAIEmbedding", "OpenAIEmbedding"),
-    ("swarmauri.embeddings.concrete.TfidfEmbedding", "TfidfEmbedding"),
-    ("swarmauri.embeddings.concrete.VoyageEmbedding", "VoyageEmbedding"),
+    ("swarmauri_standard.embeddings.CohereEmbedding", "CohereEmbedding"),
+    ("swarmauri_standard.embeddings.GeminiEmbedding", "GeminiEmbedding"),
+    ("swarmauri_standard.embeddings.MistralEmbedding", "MistralEmbedding"),
+    ("swarmauri_standard.embeddings.NmfEmbedding", "NmfEmbedding"),
+    ("swarmauri_standard.embeddings.OpenAIEmbedding", "OpenAIEmbedding"),
+    ("swarmauri_standard.embeddings.TfidfEmbedding", "TfidfEmbedding"),
+    ("swarmauri_standard.embeddings.VoyageEmbedding", "VoyageEmbedding"),
 ]
 
 # Lazy loading of embeddings classes, storing them in variables

@@ -2,8 +2,8 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of toolkit names (file names without the ".py" extension) and corresponding class names
 toolkit_files = [
-    ("swarmauri.toolkits.concrete.AccessibilityToolkit", "AccessibilityToolkit"),
-    ("swarmauri.toolkits.concrete.Toolkit", "Toolkit"),
+    ("swarmauri_standard.toolkits.AccessibilityToolkit", "AccessibilityToolkit"),
+    ("swarmauri_standard.toolkits.Toolkit", "Toolkit"),
 ]
 
 # Lazy loading of toolkit modules, storing them in variables

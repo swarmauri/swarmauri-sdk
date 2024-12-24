@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of pipeline names (file names without the ".py" extension) and corresponding class names
 pipeline_files = [
-    ("swarmauri.pipelines.concrete.Pipeline", "Pipeline"),
+    ("swarmauri_standard.pipelines.Pipeline", "Pipeline"),
 ]
 
 # Lazy loading of pipeline classes, storing them in variables

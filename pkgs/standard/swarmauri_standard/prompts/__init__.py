@@ -2,10 +2,10 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of prompts names (file names without the ".py" extension) and corresponding class names
 prompts_files = [
-    ("swarmauri.prompts.concrete.Prompt", "Prompt"),
-    ("swarmauri.prompts.concrete.PromptGenerator", "PromptGenerator"),
-    ("swarmauri.prompts.concrete.PromptMatrix", "PromptMatrix"),
-    ("from swarmauri.prompts.concrete.PromptTemplate", "PromptTemplate"),
+    ("swarmauri_standard.prompts.Prompt", "Prompt"),
+    ("swarmauri_standard.prompts.PromptGenerator", "PromptGenerator"),
+    ("swarmauri_standard.prompts.PromptMatrix", "PromptMatrix"),
+    ("swarmauri_standard.prompts.PromptTemplate", "PromptTemplate"),
 ]
 
 # Lazy loading of prompts classes, storing them in variables

@@ -2,8 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of vectors names (file names without the ".py" extension) and corresponding class names
 vectors_files = [
-    ("swarmauri.vectors.concrete.Vector", "Vector"),
-    ("swarmauri.vectors.concrete.VectorProductMixin", "VectorProductMixin"),
+    ("swarmauri_standard.vectors.Vector", "Vector"),
 ]
 
 # Lazy loading of vectorss, storing them in variables

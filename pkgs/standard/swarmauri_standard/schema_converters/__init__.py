@@ -3,28 +3,28 @@ from swarmauri.utils._lazy_import import _lazy_import
 # List of schema_converters names (file names without the ".py" extension) and corresponding class names
 schema_converters_files = [
     (
-        "swarmauri.schema_converters.concrete.AnthropicSchemaConverter",
+        "swarmauri_standard.schema_converters.AnthropicSchemaConverter",
         "AnthropicSchemaConverter",
     ),
     (
-        "swarmauri.schema_converters.concrete.CohereSchemaConverter",
+        "swarmauri_standard.schema_converters.CohereSchemaConverter",
         "CohereSchemaConverter",
     ),
     (
-        "swarmauri.schema_converters.concrete.GeminiSchemaConverter",
+        "swarmauri_standard.schema_converters.GeminiSchemaConverter",
         "GeminiSchemaConverter",
     ),
-    ("swarmauri.schema_converters.concrete.GroqSchemaConverter", "GroqSchemaConverter"),
+    ("swarmauri_standard.schema_converters.GroqSchemaConverter", "GroqSchemaConverter"),
     (
-        "swarmauri.schema_converters.concrete.MistralSchemaConverter",
+        "swarmauri_standard.schema_converters.MistralSchemaConverter",
         "MistralSchemaConverter",
     ),
     (
-        "swarmauri.schema_converters.concrete.OpenAISchemaConverter",
+        "swarmauri_standard.schema_converters.OpenAISchemaConverter",
         "OpenAISchemaConverter",
     ),
     (
-        "swarmauri.schema_converters.concrete.ShuttleAISchemaConverter",
+        "swarmauri_standard.schema_converters.ShuttleAISchemaConverter",
         "ShuttleAISchemaConverter",
     ),
 ]

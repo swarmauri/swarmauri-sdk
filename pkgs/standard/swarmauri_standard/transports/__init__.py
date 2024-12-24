@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of transport names (file names without the ".py" extension) and corresponding class names
 transport_files = [
-    ("swarmauri.transports.concrete.PubSubTransport", "PubSubTransport"),
+    ("swarmauri_standard.transports.PubSubTransport", "PubSubTransport"),
 ]
 
 # Lazy loading of transport classes, storing them in variables

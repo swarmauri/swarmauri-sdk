@@ -2,8 +2,8 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of vectore_stores names (file names without the ".py" extension) and corresponding class names
 vectore_stores_files = [
-    ("swarmauri.vector_stores.concrete.SqliteVectorStore", "SqliteVectorStore"),
-    ("swarmauri.vector_stores.concrete.TfidfVectorStore", "TfidfVectorStore"),
+    ("swarmauri_standard.vector_stores.SqliteVectorStore", "SqliteVectorStore"),
+    ("swarmauri_standard.vector_stores.TfidfVectorStore", "TfidfVectorStore"),
 ]
 
 # Lazy loading of vectore_storess, storing them in variables

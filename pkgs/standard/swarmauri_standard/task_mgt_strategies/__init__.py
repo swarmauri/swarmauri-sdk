@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of task_mgt_strategies names (file names without the ".py" extension) and corresponding class names
 task_mgt_strategies_files = [
-    ("swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy", "RoundRobinStrategy"),
+    ("swarmauri_standard.task_mgt_strategies.RoundRobinStrategy", "RoundRobinStrategy"),
 ]
 
 # Lazy loading of task_mgt_strategies classes, storing them in variables

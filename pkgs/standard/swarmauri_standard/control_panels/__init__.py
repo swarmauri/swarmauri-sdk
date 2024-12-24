@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of control_panels names (file names without the ".py" extension) and corresponding class names
 control_panels_files = [
-    ("swarmauri.control_panels.concrete.ControlPanel", "ControlPanel"),
+    ("swarmauri_standard.control_panels.ControlPanel", "ControlPanel"),
 ]
 
 # Lazy loading of task_mgt_strategies classes, storing them in variables

@@ -2,19 +2,19 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of distances names (file names without the ".py" extension) and corresponding class names
 distances_files = [
-    ("swarmauri.distances.concrete.CanberraDistance", "CanberraDistance"),
-    ("swarmauri.distances.concrete.ChebyshevDistance", "ChebyshevDistance"),
-    ("swarmauri.distances.concrete.ChiSquaredDistance", "ChiSquaredDistance"),
-    ("swarmauri.distances.concrete.CosineDistance", "CosineDistance"),
-    ("swarmauri.distances.concrete.EuclideanDistance", "EuclideanDistance"),
-    ("swarmauri.distances.concrete.HaversineDistance", "HaversineDistance"),
-    ("swarmauri.distances.concrete.JaccardIndexDistance", "JaccardIndexDistance"),
-    ("swarmauri.distances.concrete.LevenshteinDistance", "LevenshteinDistance"),
-    ("swarmauri.distances.concrete.ManhattanDistance", "ManhattanDistance"),
-    ("swarmauri.distances.concrete.MinkowskiDistance", "MinkowskiDistance"),
-    ("swarmauri.distances.concrete.SorensenDiceDistance", "SorensenDiceDistance"),
+    ("swarmauri_standard.distances.CanberraDistance", "CanberraDistance"),
+    ("swarmauri_standard.distances.ChebyshevDistance", "ChebyshevDistance"),
+    ("swarmauri_standard.distances.ChiSquaredDistance", "ChiSquaredDistance"),
+    ("swarmauri_standard.distances.CosineDistance", "CosineDistance"),
+    ("swarmauri_standard.distances.EuclideanDistance", "EuclideanDistance"),
+    ("swarmauri_standard.distances.HaversineDistance", "HaversineDistance"),
+    ("swarmauri_standard.distances.JaccardIndexDistance", "JaccardIndexDistance"),
+    ("swarmauri_standard.distances.LevenshteinDistance", "LevenshteinDistance"),
+    ("swarmauri_standard.distances.ManhattanDistance", "ManhattanDistance"),
+    ("swarmauri_standard.distances.MinkowskiDistance", "MinkowskiDistance"),
+    ("swarmauri_standard.distances.SorensenDiceDistance", "SorensenDiceDistance"),
     (
-        "swarmauri.distances.concrete.SquaredEuclideanDistance",
+        "swarmauri_standard.distances.SquaredEuclideanDistance",
         "SquaredEuclideanDistance",
     ),
 ]

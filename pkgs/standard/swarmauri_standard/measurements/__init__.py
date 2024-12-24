@@ -3,34 +3,34 @@ from swarmauri.utils._lazy_import import _lazy_import
 # List of measurements names (file names without the ".py" extension) and corresponding class names
 measurements_files = [
     (
-        "swarmauri.measurements.concrete.CompletenessMeasurement",
+        "swarmauri_standard.measurements.CompletenessMeasurement",
         "CompletenessMeasurement",
     ),
     (
-        "swarmauri.measurements.concrete.DistinctivenessMeasurement",
+        "swarmauri_standard.measurements.DistinctivenessMeasurement",
         "DistinctivenessMeasurement",
     ),
     (
-        "swarmauri.measurements.concrete.FirstImpressionMeasurement",
+        "swarmauri_standard.measurements.FirstImpressionMeasurement",
         "FirstImpressionMeasurement",
     ),
-    ("swarmauri.measurements.concrete.MeanMeasurement", "MeanMeasurement"),
-    ("swarmauri.measurements.concrete.MiscMeasurement", "MiscMeasurement"),
+    ("swarmauri_standard.measurements.MeanMeasurement", "MeanMeasurement"),
+    ("swarmauri_standard.measurements.MiscMeasurement", "MiscMeasurement"),
     (
-        "swarmauri.measurements.concrete.MissingnessMeasurement",
+        "swarmauri_standard.measurements.MissingnessMeasurement",
         "MissingnessMeasurement",
     ),
     (
-        "swarmauri.measurements.concrete.PatternMatchingMeasurement",
+        "swarmauri_standard.measurements.PatternMatchingMeasurement",
         "PatternMatchingMeasurement",
     ),
     (
-        "swarmauri.measurements.concrete.RatioOfSumsMeasurement",
+        "swarmauri_standard.measurements.RatioOfSumsMeasurement",
         "RatioOfSumsMeasurement",
     ),
-    ("swarmauri.measurements.concrete.StaticMeasurement", "StaticMeasurement"),
-    ("swarmauri.measurements.concrete.UniquenessMeasurement", "UniquenessMeasurement"),
-    ("swarmauri.measurements.concrete.ZeroMeasurement", "ZeroMeasurement"),
+    ("swarmauri_standard.measurements.StaticMeasurement", "StaticMeasurement"),
+    ("swarmauri_standard.measurements.UniquenessMeasurement", "UniquenessMeasurement"),
+    ("swarmauri_standard.measurements.ZeroMeasurement", "ZeroMeasurement"),
 ]
 
 # Lazy loading of measurements classes, storing them in variables

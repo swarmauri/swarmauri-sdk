@@ -3,22 +3,22 @@ from swarmauri.utils._lazy_import import _lazy_import
 # List of parsers names (file names without the ".py" extension) and corresponding class names
 parsers_files = [
     (
-        "swarmauri.parsers.concrete.BeautifulSoupElementParser",
+        "swarmauri_standard.parsers.BeautifulSoupElementParser",
         "BeautifulSoupElementParser",
     ),
-    ("swarmauri.parsers.concrete.CSVParser", "CSVParser"),
-    ("swarmauri.parsers.concrete.HTMLTagStripParser", "HTMLTagStripParser"),
-    ("swarmauri.parsers.concrete.KeywordExtractorParser", "KeywordExtractorParser"),
-    ("swarmauri.parsers.concrete.Md2HtmlParser", "Md2HtmlParser"),
-    ("swarmauri.parsers.concrete.OpenAPISpecParser", "OpenAPISpecParser"),
+    ("swarmauri_standard.parsers.CSVParser", "CSVParser"),
+    ("swarmauri_standard.parsers.HTMLTagStripParser", "HTMLTagStripParser"),
+    ("swarmauri_standard.parsers.KeywordExtractorParser", "KeywordExtractorParser"),
+    ("swarmauri_standard.parsers.Md2HtmlParser", "Md2HtmlParser"),
+    ("swarmauri_standard.parsers.OpenAPISpecParser", "OpenAPISpecParser"),
     (
-        "swarmauri.parsers.concrete.PhoneNumberExtractorParser",
+        "swarmauri_standard.parsers.PhoneNumberExtractorParser",
         "PhoneNumberExtractorParser",
     ),
-    ("swarmauri.parsers.concrete.PythonParser", "PythonParser"),
-    ("swarmauri.parsers.concrete.RegExParser", "RegExParser"),
-    ("swarmauri.parsers.concrete.URLExtractorParser", "URLExtractorParser"),
-    ("swarmauri.parsers.concrete.XMLParser", "XMLParser"),
+    ("swarmauri_standard.parsers.PythonParser", "PythonParser"),
+    ("swarmauri_standard.parsers.RegExParser", "RegExParser"),
+    ("swarmauri_standard.parsers.URLExtractorParser", "URLExtractorParser"),
+    ("swarmauri_standard.parsers.XMLParser", "XMLParser"),
 ]
 
 # Lazy loading of parsers classes, storing them in variables

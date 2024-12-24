@@ -1,10 +1,10 @@
 from swarmauri.utils._lazy_import import _lazy_import
 
 chains_files = [
-    ("swarmauri.chains.concrete.CallableChain import", "CallableChain"),
-    ("swarmauri.chains.concrete.ChainStep", "ChainStep"),
-    ("swarmauri.chains.concrete.PromptContextChain", "PromptContextChain"),
-    ("swarmauri.chains.concrete.ContextChain", "ContextChain"),
+    ("swarmauri_standard.chains.CallableChain", "CallableChain"),
+    ("swarmauri_standard.chains.ChainStep", "ChainStep"),
+    ("swarmauri_standard.chains.PromptContextChain", "PromptContextChain"),
+    ("swarmauri_standard.chains.ContextChain", "ContextChain"),
 ]
 
 # Lazy loading of chain classes, storing them in variables

@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of state names (file names without the ".py" extension) and corresponding class names
 state_files = [
-    ("swarmauri.state.concrete.DictState", "DictState"),
+    ("swarmauri_standard.state.DictState", "DictState"),
 ]
 
 # Lazy loading of state classes, storing them in variables

@@ -2,8 +2,8 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of swarms names (file names without the ".py" extension) and corresponding class names
 factories_files = [
-    ("swarmauri.factories.concrete.Factory", "Factory"),
-    ("swarmauri.factories.concrete.AgentFactory", "AgentFactory"),
+    ("swarmauri_standard.factories.Factory", "Factory"),
+    ("swarmauri_standard.factories.AgentFactory", "AgentFactory"),
 ]
 
 # Lazy loading of swarms classes, storing them in variables

@@ -2,7 +2,7 @@ from swarmauri.utils._lazy_import import _lazy_import
 
 # List of swarms names (file names without the ".py" extension) and corresponding class names
 swarms_files = [
-    ("swarmauri.swarms.concrete.Swarm", "Swarm")
+    ("swarmauri_standard.swarms.Swarm", "Swarm")
 ]
 
 # Lazy loading of swarms classes, storing them in variables
