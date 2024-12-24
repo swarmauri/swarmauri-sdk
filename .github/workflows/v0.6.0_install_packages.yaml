@@ -36,7 +36,6 @@ jobs:
             echo "Processing $package"
             cd "$package"
             poetry build
-            poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
             cd -
           fi
         done
