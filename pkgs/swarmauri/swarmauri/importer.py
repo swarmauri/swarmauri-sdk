@@ -19,11 +19,19 @@ class SwarmauriImporter:
         
         # Handle namespace modules
         if fullname.startswith("swarmauri"):
+            # Ensure parent module is valid (e.g., "swarmauri.llms" exists)
+            parent, _, _ = fullname.rpartition(".")
+            if parent and parent not in sys.modules:
+                print(f"Parent module '{parent}' not found. Cannot create namespace module: {fullname}")
+                return None
+
             print(f"Creating placeholder for namespace module: {fullname}")
             spec = ModuleSpec(fullname, self)
             spec.submodule_search_locations = []  # Mark as a namespace
             return spec
         
+        # If not a valid namespace or in the registry, return None
+        print(f"Module '{fullname}' not found in registry or as a namespace module.")
         return None
 
     def create_module(self, spec):
