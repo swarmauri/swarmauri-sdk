@@ -27,7 +27,6 @@ jobs:
         source $UNIQUE_VENV_PATH/bin/activate
         cd pkgs/
         poetry install --no-cache -vv 
-        poetry build
 
     - name: Clean up virtual environment
       if: always()
