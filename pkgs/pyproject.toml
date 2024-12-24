@@ -3,6 +3,9 @@ name = "swarmauri-monorepo"
 version = "0.6.0.dev1"
 description = "Monorepo for multiple interdependent Python packages"
 authors = ["Your Name <email@example.com>"]
+# Disables packaging mode
+package-mode = false
+
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -21,3 +24,4 @@ swarmauri_standard = { path = "./standard" }
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
