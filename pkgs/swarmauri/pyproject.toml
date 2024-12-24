@@ -20,6 +20,7 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../core" }
 swarmauri_base = { path = "../base" }
+swarmauri_standard = { path = "../standard" }
 
 # Dependencies
 toml = "^0.10.2"
