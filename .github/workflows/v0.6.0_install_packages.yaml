@@ -26,7 +26,7 @@ jobs:
         python -m venv $UNIQUE_VENV_PATH
         source $UNIQUE_VENV_PATH/bin/activate
         cd pkgs/
-        poetry install --no-cache -vv 
+        poetry install --no-cache -vv --all-extras
 
     - name: Install and Build All Sub-Packages
       run: |
