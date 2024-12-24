@@ -2,7 +2,7 @@ import sys
 import importlib
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from .registry import get_external_module_path
+from .registry import get_external_module_path, REGISTRY
 
 class SwarmauriImporter:
     def find_spec(self, fullname, path, target=None):
