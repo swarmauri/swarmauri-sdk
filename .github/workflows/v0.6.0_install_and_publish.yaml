@@ -1,4 +1,4 @@
-name: Install/Publish/PEP440 - v0.6.0.dev1
+name: Install and Publish Packages with Dynamic Versioning (PEP 440)
 
 on:
   workflow_dispatch:
@@ -33,6 +33,33 @@ jobs:
     - name: Install Poetry-Dynamic-Versioning Plugin
       run: poetry self add poetry-dynamic-versioning
 
+    - name: Extract Version from Tag
+      id: extract-version
+      run: |
+        FULL_TAG="${{ inputs.tag_name }}${{ inputs.pre_release }}"
+        echo "Full tag: $FULL_TAG"
+        
+        # Remove the 'v' prefix if present and extract the version
+        VERSION=${FULL_TAG#v}
+        echo "Extracted version: $VERSION"
+        
+        echo "version=$VERSION" >> $GITHUB_ENV
+
+    - name: Replace Path Dependencies with Version
+      run: |
+        for package in pkgs/*; do
+          if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
+            echo "Processing $package"
+            cd "$package"
+            
+            # Replace path dependencies with the extracted version
+            sed -i "s/{ path = \"..\/core\" }/^${{ env.version }}/" pyproject.toml
+            sed -i "s/{ path = \"..\/base\" }/^${{ env.version }}/" pyproject.toml
+            
+            cd -
+          fi
+        done
+
     - name: Cache Poetry Dependencies
       uses: actions/cache@v3
       with:
@@ -42,27 +69,6 @@ jobs:
         key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
           ${{ runner.os }}-poetry-
-
-    - name: Create and Push Tag
-      id: handle-tag
-      run: |
-        # Combine base tag and pre-release identifier
-        FULL_TAG="${{ inputs.tag_name }}${{ inputs.pre_release }}"
-        echo "Generated full tag: $FULL_TAG"
-        
-        # Check if tag already exists
-        git fetch --tags
-        if git rev-parse "$FULL_TAG" >/dev/null 2>&1; then
-          echo "The tag $FULL_TAG already exists."
-          exit 1
-        fi
-
-        # Create and push the tag
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git tag $FULL_TAG
-        git push origin $FULL_TAG
-        echo "tag_name=$FULL_TAG" >> $GITHUB_ENV
 
     - name: Install All Packages
       run: |
