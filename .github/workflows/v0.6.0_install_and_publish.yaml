@@ -1,0 +1,89 @@
+name: Install and Publish Packages with Dynamic Versioning (PEP 440)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "The base tag for the release (e.g., 0.6.0)"
+        required: true
+      pre_release:
+        description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)"
+        required: false
+        default: ""
+
+jobs:
+  test-and-publish:
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+    runs-on: self-hosted
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Install Poetry-Dynamic-Versioning Plugin
+      run: poetry self add poetry-dynamic-versioning
+
+    - name: Create and Push Tag
+      id: handle-tag
+      run: |
+        # Combine base tag and pre-release identifier
+        FULL_TAG="${{ inputs.tag_name }}${{ inputs.pre_release }}"
+        echo "Generated full tag: $FULL_TAG"
+        
+        # Check if tag already exists
+        git fetch --tags
+        if git rev-parse "$FULL_TAG" >/dev/null 2>&1; then
+          echo "The tag $FULL_TAG already exists."
+          exit 1
+        fi
+
+        # Create and push the tag
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag $FULL_TAG
+        git push origin $FULL_TAG
+        echo "tag_name=$FULL_TAG" >> $GITHUB_ENV
+
+    - name: Install All Packages
+      run: |
+        python -m venv $UNIQUE_VENV_PATH
+        source $UNIQUE_VENV_PATH/bin/activate
+        cd pkgs/
+        poetry install --no-cache -vv --all-extras
+
+    - name: Install, Build, and Publish All Sub-Packages
+      run: |
+        source $UNIQUE_VENV_PATH/bin/activate
+        for package in pkgs/*; do
+          if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
+            echo "Processing $package"
+            cd "$package"
+            
+            # Build the package with the dynamically generated version
+            poetry build
+            
+            # Publish the package to PyPI
+            poetry publish --username __token__ --password "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+            cd -
+          fi
+        done
+
+    - name: Show Pip Freeze
+      run: |
+        source $UNIQUE_VENV_PATH/bin/activate
+        pip freeze
+
+    - name: Clean up Virtual Environment
+      if: always()
+      run: |
+        rm -rf ${{ env.UNIQUE_VENV_PATH }}
