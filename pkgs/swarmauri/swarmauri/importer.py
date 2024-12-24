@@ -5,8 +5,6 @@ from importlib.machinery import ModuleSpec
 from types import ModuleType
 from .registry import get_external_module_path, REGISTRY
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class SwarmauriImporter:
