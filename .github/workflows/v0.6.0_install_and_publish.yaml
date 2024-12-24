@@ -1,4 +1,4 @@
-name: Install and Publish Packages with Dynamic Versioning (PEP 440)
+name: Install/Publish/PEP440 - v0.6.0.dev1
 
 on:
   workflow_dispatch:
