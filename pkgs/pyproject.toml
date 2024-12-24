@@ -5,7 +5,7 @@ description = "Monorepo for multiple interdependent Python packages"
 authors = ["Your Name <email@example.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.10,<3.13"
 pydantic = "^2.0"
 
 # Shared dependencies
