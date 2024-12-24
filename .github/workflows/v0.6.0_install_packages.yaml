@@ -35,11 +35,15 @@ jobs:
           if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
             echo "Processing $package"
             cd "$package"
-            poetry install --no-cache -vv --all-extras
             poetry build
             cd -
           fi
         done
+
+    - name: Show Pip Freeze
+      run: |
+        source $UNIQUE_VENV_PATH/bin/activate
+        pip freeze
 
     - name: Clean up virtual environment
       if: always()
