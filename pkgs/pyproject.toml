@@ -20,6 +20,8 @@ swarmauri_core = { path = "./core" }
 swarmauri_base = { path = "./base" }
 swarmauri = { path = "./swarmauri" }
 swarmauri_standard = { path = "./standard", extras=["full"] }
+swarmauri_community = { path = "./community", extras=["full"] }
+
 
 [tool.poetry.extras]
 
