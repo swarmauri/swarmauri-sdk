@@ -1,6 +1,6 @@
 REGISTRY = {
     # Mapping for swarmauri.llms.OpenAIModel
-    "swarmauri.llms.OpenAIModel.OpenAiModel": "httpx"
+    "swarmauri.llms.OpenAIModel": "httpx"
 }
 
 def get_external_module_path(resource_path):
