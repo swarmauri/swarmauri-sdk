@@ -7,9 +7,9 @@ from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
 from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
 
-from swarmauri.messages.concrete import (HumanMessage, 
-                                                  SystemMessage,
-                                                  AgentMessage)
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
 
 from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
