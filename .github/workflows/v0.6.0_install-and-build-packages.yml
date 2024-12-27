@@ -35,12 +35,12 @@ jobs:
       - name: Generate poetry.lock
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          python scripts/manage_packages.py poetry-lock --directory pkgs --extras full --with-dev
+          python scripts/manage_packages.py poetry-lock --directory pkgs --extras full --dev
 
       - name: Install Dependencies
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          python scripts/manage_packages.py poetry-install --directory pkgs --extras full --with-dev
+          python scripts/manage_packages.py poetry-install --directory pkgs --extras full --dev
 
       - name: Extract Path Dependencies
         id: extract-paths

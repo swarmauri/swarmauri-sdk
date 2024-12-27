@@ -97,12 +97,12 @@ def main():
     # Poetry lock
     lock_parser = subparsers.add_parser("poetry-lock", parents=[location_parser], help="Run `poetry lock`.")
     lock_parser.add_argument("--extras", type=str, help="Extras to include (e.g., full, dev).")
-    lock_parser.add_argument("--with-dev", action="store_true", help="Include dev dependencies.")
+    lock_parser.add_argument("--dev", action="store_true", help="Include dev dependencies.")
 
     # Poetry install
     install_parser = subparsers.add_parser("poetry-install", parents=[location_parser], help="Run `poetry install`.")
     install_parser.add_argument("--extras", type=str, help="Extras to include (e.g., full, dev).")
-    install_parser.add_argument("--with-dev", action="store_true", help="Include dev dependencies.")
+    install_parser.add_argument("--dev", action="store_true", help="Include dev dependencies.")
 
     # Extract path dependencies
     subparsers.add_parser(
@@ -121,10 +121,10 @@ def main():
 
     # Action dispatch
     if args.action == "poetry-lock":
-        poetry_lock(directory=args.directory, file=args.file, extras=args.extras, with_dev=args.with_dev)
+        poetry_lock(directory=args.directory, file=args.file, extras=args.extras, with_dev=args.dev)
 
     elif args.action == "poetry-install":
-        poetry_install(directory=args.directory, file=args.file, extras=args.extras, with_dev=args.with_dev)
+        poetry_install(directory=args.directory, file=args.file, extras=args.extras, with_dev=args.dev)
 
     elif args.action == "extract-path-dependencies":
         pyproject_path = args.file if args.file else os.path.join(args.directory, "pyproject.toml")
