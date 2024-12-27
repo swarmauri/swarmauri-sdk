@@ -7,6 +7,7 @@ from types import ModuleType
 from .plugin_manager import get_entry_points, process_plugin
 from .registry import get_external_module_path
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
