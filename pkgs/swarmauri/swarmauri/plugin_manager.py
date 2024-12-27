@@ -100,12 +100,12 @@ class FirstClassPluginManager(PluginManagerBase):
                 "First-class plugins must be explicitly pre-registered in the registry."
             )
 
-    def register(self, name, plugin_class, resource_kind):
+    def register(self, entry_point):
         """
         Pass-through method for first-class plugins, as they are pre-registered.
         """
         logger.debug(
-            f"Plugin '{name}' is already pre-registered as a first-class plugin. "
+            f"Plugin '{entry_point.name}' is already pre-registered as a first-class plugin. "
             "No additional registration is required."
         )
 
@@ -145,7 +145,7 @@ class SecondClassPluginManager(PluginManagerBase):
 
         :param entry_points: List of entry points associated with a namespace.
         """
-        logger.debug(f"Attempting second class registration of entry points: '{entry_points}'")
+        logger.debug(f"Attempting second class registration of entry point: '{entry_point}'")
         
         name = entry_point.name
         namespace = entry_point.group
