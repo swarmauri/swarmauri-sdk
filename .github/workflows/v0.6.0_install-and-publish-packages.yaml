@@ -7,7 +7,7 @@ on:
         description: "The base tag for the release (e.g., v0.6.0)"
         required: true
       pre_release:
-        description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)"
+        description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)" 
         required: false
         default: ""
 
@@ -61,6 +61,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py set-dependency-versions --directory pkgs --version ${{ env.version }}
+          cat pkgs/pyproject.toml
 
       - name: Generate poetry.lock
         run: |
