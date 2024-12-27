@@ -28,7 +28,7 @@ class SwarmauriImporter:
         """
         logger.debug(f"find_spec called for: {fullname}")
 
-        if fullname.startswith("swarmauri"):
+        if fullname == "swarmauri" or fullname.startswith("swarmauri."):
             # Check if the module has an external mapping
             external_module_path = get_external_module_path(fullname)
             if external_module_path:
@@ -87,42 +87,6 @@ class SwarmauriImporter:
             return False
 
     def create_module(self, spec):
-        """
-        Create a module based on the provided specification.
-
-        This method is responsible for dynamically creating a module or retrieving 
-        it if it has already been imported. It supports three main cases:
-        1. The module is already in `sys.modules`.
-        2. The module maps to an external path (defined in the registry).
-        3. The module is a namespace module.
-
-        If the module cannot be resolved through these methods, it raises an `ImportError`.
-
-        Args:
-            spec (importlib.machinery.ModuleSpec): The module specification containing 
-                metadata about the module to create.
-
-        Returns:
-            ModuleType: The created or imported module.
-
-        Raises:
-            ImportError: If the module cannot be created or resolved.
-
-        Workflow:
-            1. Check if the module already exists in `sys.modules` and return it if found.
-            2. Resolve the module path using `get_external_module_path` and dynamically 
-               import the module if an external path is found.
-            3. If the module is a namespace module (e.g., part of a package), create it 
-               as a placeholder and set its `__path__` attribute.
-            4. Raise an `ImportError` if none of the above methods successfully resolve 
-               the module.
-
-        Example:
-            >>> spec = ModuleSpec(name="swarmauri.chunkers.SentenceChunker", loader=None)
-            >>> module = create_module(spec)
-            >>> print(module.__name__)
-            swarmauri.chunkers.SentenceChunker
-        """
         if spec.name in sys.modules:
             return sys.modules[spec.name]
 
@@ -139,7 +103,6 @@ class SwarmauriImporter:
             return module
 
         raise ImportError(f"Cannot create module {spec.name}")
-
 
 
     def exec_module(self, module):
