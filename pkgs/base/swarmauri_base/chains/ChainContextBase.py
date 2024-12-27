@@ -1,12 +1,12 @@
 from typing import Any, Callable, Dict, List, Optional, Literal
 from pydantic import Field, ConfigDict
 import re
-from swarmauri_standard.chains.ChainStep import ChainStep
+from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.chains.IChainContext import IChainContext
 
 class ChainContextBase(IChainContext, ComponentBase):
-    steps: List[ChainStep] = []
+    steps: List[ChainStepBase] = []
     context: Dict = {}
     resource: Optional[str] =  Field(default=ResourceTypes.CHAIN.value)
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
