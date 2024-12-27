@@ -89,25 +89,54 @@ class SecondClassPluginManager(PluginManagerBase):
     """
     Manager for second-class plugins.
     """
+
     def validate(self, name, plugin_class, resource_kind, resource_interface):
         """
-        Validate that the plugin implements the required interface.
+        Validate that the plugin implements the required interface and does not conflict with first-class citizens.
         """
         if not issubclass(plugin_class, resource_interface):
             raise TypeError(
                 f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
             )
 
-    def register(self, name, plugin_class, resource_kind):
-        """
-        Register the plugin as a second-class citizen.
-        """
+        # Check for conflicts with first-class citizens
         resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
-        if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
-            raise ValueError(f"Plugin '{name}' is already registered as a second-class citizen.")
+        first_class_entry = FIRST_CLASS_REGISTRY.get(resource_path)
+        if first_class_entry:
+            registered_module_path = first_class_entry["module_path"]
+            incoming_module_path = plugin_class.__module__
 
-        create_entry("second", resource_path, plugin_class.__module__)
-        logger.info(f"Registered second-class citizen: {resource_path}")
+            if registered_module_path != incoming_module_path:
+                raise ValueError(
+                    f"Conflict detected: Second-class plugin '{name}' (module: {incoming_module_path}) "
+                    f"attempts to override first-class citizen (module: {registered_module_path})."
+                )
+
+    def register(self, entry_points):
+        """
+        Register second-class plugins, iterating over multiple entry points.
+
+        :param entry_points: List of entry points associated with a namespace.
+        """
+        for entry_point in entry_points:
+            name = entry_point.name
+            namespace = entry_point.group
+            resource_path = f"{namespace}.{name}"
+
+            if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
+                raise ValueError(f"Plugin '{name}' is already registered under '{resource_path}'.")
+
+            # Dynamically load the plugin class
+            plugin_class = entry_point.load()
+
+            # Validate against first-class citizens
+            resource_kind = namespace[len("swarmauri."):] if namespace.startswith("swarmauri.") else None
+            resource_interface = get_interface_for_resource(resource_kind)
+            self.validate(name, plugin_class, resource_kind, resource_interface)
+
+            create_entry("second", resource_path, plugin_class.__module__)
+            logger.info(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
+
 
 
 class ThirdClassPluginManager(PluginManagerBase):
