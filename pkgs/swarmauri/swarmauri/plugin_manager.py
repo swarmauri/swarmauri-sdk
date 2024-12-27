@@ -26,20 +26,6 @@ def get_entry_points(group_prefix="swarmauri."):
     entry points are then grouped by their namespace (i.e., the part of the group name
     following the `group_prefix`).
 
-    Example:
-        Given the following entry points in `pyproject.toml`:
-        [tool.poetry.plugins."swarmauri.chunkers"]
-        "SentenceChunker" = "swarmauri.chunkers.sentence_chunker:SentenceChunker"
-        "OtherChunker" = "swarmauri.chunkers.other_chunker:OtherChunker"
-
-        Calling `get_entry_points(group_prefix="swarmauri.")` will return:
-        {
-            "chunkers": [
-                <EntryPoint name='SentenceChunker' group='swarmauri.chunkers' value='swarmauri.chunkers.sentence_chunker:SentenceChunker'>,
-                <EntryPoint name='OtherChunker' group='swarmauri.chunkers' value='swarmauri.chunkers.other_chunker:OtherChunker'>
-            ]
-        }
-
     Args:
         group_prefix (str): The prefix used to filter entry points by group names.
                            Default is 'swarmauri.'.
@@ -47,29 +33,31 @@ def get_entry_points(group_prefix="swarmauri."):
     Returns:
         dict: A dictionary mapping namespaces (str) to lists of entry points (EntryPoint).
               If no matching entry points are found or an error occurs, an empty dictionary is returned.
-
-    Logs:
-        - Logs errors or exceptions encountered during entry point retrieval.
-        - Logs raw entry points and processing details for debugging purposes.
     """
     try:
-        # Fetch all entry points as a list
+        # Fetch all entry points grouped by their group names
         all_entry_points = importlib.metadata.entry_points()
         logger.debug(f"Raw entry points: {all_entry_points}")
 
-        # Group entry points by their group name
+        # Group entry points by namespace
         grouped_entry_points = {}
-        for ep in all_entry_points:
-            logger.debug(f"Processing entry point: {ep}")
-            
-            # Ensure the group attribute exists and matches the prefix
-            if hasattr(ep, "group") and ep.group.startswith(group_prefix):
-                logger.debug(f"Match found: {ep}")
-                namespace = ep.group[len(group_prefix):]
-                logger.debug(f"Grouped Namespace: {namespace}")
-                grouped_entry_points.setdefault(namespace, []).append(ep)
 
-        logger.debug(f"Returning the following grouped_entry_points: {grouped_entry_points}")
+        # Iterate over the groups
+        for group_name, entry_points in all_entry_points.items():
+            logger.debug(f"Processing group: {group_name}")
+            
+            # Skip groups that do not match the prefix
+            if not group_name.startswith(group_prefix):
+                continue
+
+            # Extract the namespace (e.g., 'chunkers' from 'swarmauri.chunkers')
+            namespace = group_name[len(group_prefix):]
+            logger.debug(f"Identified namespace: {namespace}")
+
+            # Add entry points to the grouped dictionary
+            grouped_entry_points[namespace] = list(entry_points)
+
+        logger.debug(f"Grouped entry points: {grouped_entry_points}")
         return grouped_entry_points
 
     except Exception as e:
