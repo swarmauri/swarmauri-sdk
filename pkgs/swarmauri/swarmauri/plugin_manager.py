@@ -55,10 +55,13 @@ def get_entry_points(group_prefix="swarmauri."):
     try:
         # Fetch all entry points as a list
         all_entry_points = importlib.metadata.entry_points()
+        logger.debug(f"Raw entry points: {all_entry_points}")
 
         # Group entry points by their group name
         grouped_entry_points = {}
         for ep in all_entry_points:
+            logger.debug(f"Processing entry point: {ep}")
+            
             # Ensure the group attribute exists and matches the prefix
             if hasattr(ep, "group") and ep.group.startswith(group_prefix):
                 namespace = ep.group[len(group_prefix):]
@@ -69,8 +72,6 @@ def get_entry_points(group_prefix="swarmauri."):
     except Exception as e:
         logger.error(f"Failed to retrieve entry points: {e}")
         return {}
-
-
 
 class PluginManagerBase:
     """
