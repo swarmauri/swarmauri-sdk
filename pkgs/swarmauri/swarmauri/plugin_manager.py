@@ -10,10 +10,6 @@ from .registry import (
 )
 from .interface_registry import get_interface_for_resource
 
-logger = logging.getLogger(__name__)
-
-import importlib.metadata
-import logging
 
 logger = logging.getLogger(__name__)
 
