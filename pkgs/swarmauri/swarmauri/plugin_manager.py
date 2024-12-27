@@ -1,7 +1,5 @@
 # plugin_manager.py
-import sys
 import importlib.metadata
-from types import ModuleType
 import logging
 from .registry import (
     create_entry,
@@ -198,17 +196,6 @@ def process_plugin(entry_point):
         logger.debug(f"Processing plugin by entry_point: {entry_point}")
         plugin_class = entry_point.load()
         logger.debug(f"Plugin class detected: {plugin_class}")
-        
-        # Create a dynamic module for the entry point
-        module_name = f"{entry_point.group}.{entry_point.name}"
-        module = ModuleType(module_name)
-        setattr(module, entry_point.name, plugin_class)
-
-        # Register the module in sys.modules
-        sys.modules[module_name] = module
-        logger.debug(f"Dynamic module created and registered: {module_name}")
-        
-        # Validate and register the plugin
         validate_and_register_plugin(entry_point, plugin_class, None)
         return True
     except Exception as e:

@@ -1,6 +1,4 @@
 # swm_example_community_package/__init__.py
-from .ExampleCommunityAgent import ExampleCommunityAgent
-
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
