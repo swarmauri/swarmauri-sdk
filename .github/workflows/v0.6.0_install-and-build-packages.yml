@@ -28,8 +28,8 @@ jobs:
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
       - name: Install toml
-          run: |
-            pip install toml
+        run: |
+          pip install toml
 
       - name: Generate poetry.lock
         run: |
