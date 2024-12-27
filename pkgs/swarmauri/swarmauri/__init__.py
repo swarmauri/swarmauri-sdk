@@ -1,5 +1,6 @@
 # Namespace package setup
 import sys
+import os
 import logging
 from .importer import SwarmauriImporter
 from .plugin_manager import discover_and_register_plugins
