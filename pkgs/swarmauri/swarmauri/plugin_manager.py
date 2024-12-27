@@ -67,6 +67,7 @@ def get_entry_points(group_prefix="swarmauri."):
                 namespace = ep.group[len(group_prefix):]
                 grouped_entry_points.setdefault(namespace, []).append(ep)
 
+        logger.debug(f"Returning the following grouped_entry_points: {grouped_entry_points}")
         return grouped_entry_points
 
     except Exception as e:
@@ -100,6 +101,7 @@ class FirstClassPluginManager(PluginManagerBase):
         1. A subclass of the required resource interface.
         2. Already pre-registered as a first-class plugin.
         """
+        logging.debug(F"Running First Class Validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}")
         if not issubclass(plugin_class, resource_interface):
             raise TypeError(
                 f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
@@ -116,7 +118,7 @@ class FirstClassPluginManager(PluginManagerBase):
         """
         Pass-through method for first-class plugins, as they are pre-registered.
         """
-        logger.info(
+        logger.debug(
             f"Plugin '{name}' is already pre-registered as a first-class plugin. "
             "No additional registration is required."
         )
@@ -131,7 +133,7 @@ class SecondClassPluginManager(PluginManagerBase):
         """
         Validate that the plugin implements the required interface and does not conflict with first-class citizens.
         """
-
+        logging.debug(F"Running Second Class Validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}")
         if not resource_kind == 'utils':
             if not issubclass(plugin_class, resource_interface):
                 raise TypeError(
@@ -174,7 +176,7 @@ class SecondClassPluginManager(PluginManagerBase):
             self.validate(name, plugin_class, resource_kind, resource_interface)
 
             create_entry("second", resource_path, plugin_class.__module__)
-            logger.info(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
+            logger.debug(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
 
 
 
@@ -186,7 +188,7 @@ class ThirdClassPluginManager(PluginManagerBase):
         """
         No validation required for third-class plugins.
         """
-        pass
+        logging.debug(F"Passing through Third Class validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}")
 
     def register(self, name, plugin_class, resource_kind):
         """
@@ -197,7 +199,7 @@ class ThirdClassPluginManager(PluginManagerBase):
             raise ValueError(f"Plugin '{name}' is already registered as a third-class citizen.")
 
         create_entry("third", resource_path, plugin_class.__module__)
-        logger.info(f"Registered third-class citizen: {resource_path}")
+        logger.debug(f"Registered third-class citizen: {resource_path}")
 
 
 def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
@@ -257,7 +259,7 @@ def determine_plugin_manager(entry_point):
     try:
         # Third-Class Plugins: Group is exactly "swarmauri.plugins"
         if entry_point.group == "swarmauri.plugins":
-            logger.info(f"Plugin '{entry_point.name}' recognized as a third-class plugin.")
+            logger.debug(f"Plugin '{entry_point.name}' recognized as a third-class plugin.")
             return ThirdClassPluginManager()
 
         # First-Class and Second-Class Plugins: Group starts with "swarmauri."
@@ -270,7 +272,7 @@ def determine_plugin_manager(entry_point):
                 manager = FirstClassPluginManager()
                 plugin_class = entry_point.load()
                 manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
-                logger.info(f"Plugin '{entry_point.name}' recognized as a first-class plugin.")
+                logger.debug(f"Plugin '{entry_point.name}' recognized as a first-class plugin.")
                 return manager
             except (TypeError, ValueError):
                 logger.debug(f"Plugin '{entry_point.name}' is not a first-class plugin. Trying second-class.")
@@ -280,7 +282,7 @@ def determine_plugin_manager(entry_point):
                 manager = SecondClassPluginManager()
                 plugin_class = entry_point.load()
                 manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
-                logger.info(f"Plugin '{entry_point.name}' recognized as a second-class plugin.")
+                logger.debug(f"Plugin '{entry_point.name}' recognized as a second-class plugin.")
                 return manager
             except (TypeError, ValueError):
                 logger.debug(f"Plugin '{entry_point.name}' is not a second-class plugin.")
