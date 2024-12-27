@@ -4,7 +4,7 @@ Centralized registry for mapping resource kinds to their validation interfaces.
 """
 
 # Example imports for interface definitions
-#from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.agents.AgentBase import AgentBase
 #from swarmauri_base.chains.ChainBase import ChainBase
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 #from swarmauri_base.conversations.ConversationBase import ConversationBase
@@ -12,7 +12,7 @@ from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 
 # Define the mapping
 INTERFACE_REGISTRY = {
-    #"swarmauri.agents": AgentBase,
+    "swarmauri.agents": AgentBase,
     #"swarmauri.chains": ChainBase,
     "swarmauri.chunkers": ChunkerBase,
     #"swarmauri.conversations": ConversationBase,
