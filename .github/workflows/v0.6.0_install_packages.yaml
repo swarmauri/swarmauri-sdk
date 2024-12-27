@@ -41,8 +41,9 @@ jobs:
       - name: Extract Path Dependencies
         id: extract-paths
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/
-          python scripts/extract_path_dependencies.py --pyproject pyproject.toml
+          poetry run python scripts/extract_path_dependencies.py --pyproject pyproject.toml
 
       - name: Build Specified Packages
         run: |
