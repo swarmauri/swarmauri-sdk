@@ -36,8 +36,8 @@ class SwarmauriImporter:
             namespace_parts = fullname.split(".")
 
             # Ensure parent namespace exists
-            parent = '.'.join(namespace_parts[:-1])  # Parent namespace (e.g., 'swarmauri.chunkers')
-            if parent and parent not in sys.modules and '.'.join(namespace_parts[:2]) in self.VALID_NAMESPACES:
+            parent = '.'.join(namespace_parts[:2])  # Parent namespace (e.g., 'swarmauri.chunkers')
+            if parent and parent not in sys.modules and parent in self.VALID_NAMESPACES:
                 logger.debug(f"Creating placeholder for parent namespace: {parent}")
                 spec = ModuleSpec(parent, self)
                 spec.submodule_search_locations = []
