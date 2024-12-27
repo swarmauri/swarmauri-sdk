@@ -62,6 +62,7 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py set-dependency-versions --directory pkgs --version ${{ env.version }}
           cat pkgs/pyproject.toml
+          cat pkgs/community/swarmauri_community/pyproject.toml
 
       - name: Generate poetry.lock
         run: |
