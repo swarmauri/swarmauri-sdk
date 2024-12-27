@@ -108,46 +108,42 @@ def set_version(version, directory=None, file=None):
     print(f"Version set to {version} in {pyproject_path}.")
 
 
-
-
-
-def set_dependency_versions(version, directory=None, file=None):
+def set_dependency_versions(directory=None, file=None, version=""):
     """
-    Set version of dependencies in a pyproject.toml file and replace path-based dependencies.
-
-    :param version: New version to set for all dependencies.
-    :param directory: Directory containing pyproject.toml.
-    :param file: Specific pyproject.toml file path.
+    Updates the version of dependencies in the pyproject.toml file.
+    Converts path dependencies to versioned dependencies.
     """
     pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
     if not os.path.isfile(pyproject_path):
         print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Setting dependency versions to {version} in {pyproject_path}...")
+    print(f"Updating dependencies to version {version} in {pyproject_path}...")
 
-    # Read and parse the TOML file
     with open(pyproject_path, "r") as f:
-        toml_data = parse(f.read())
+        content = f.read()
 
-    # Access dependencies
+    # Use tomlkit to parse the TOML file
+    toml_data = tomlkit.parse(content)
+
+    # Get the dependencies section
     dependencies = toml_data["tool"]["poetry"]["dependencies"]
 
-    # Iterate over dependencies and update paths to versions
+    # Update path dependencies with the specified version
     for dep_name, dep_value in list(dependencies.items()):
         if isinstance(dep_value, dict) and "path" in dep_value:
-            # Convert to an inline table
-            new_dep = inline_table()
-            new_dep["version"] = f"^{version}"
-            if "extras" in dep_value:
-                new_dep["extras"] = dep_value["extras"]
-            dependencies[dep_name] = new_dep
+            print(f"Updating dependency '{dep_name}'...")
+            dep_value.pop("path", None)
+            dep_value["version"] = f"^{version}"
+        elif isinstance(dep_value, tomlkit.items.Table) and "path" in dep_value:
+            dep_value.pop("path", None)
+            dep_value["version"] = f"^{version}"
 
-    # Write the updated TOML data back to the file
+    # Write the updated TOML content back to the file
     with open(pyproject_path, "w") as f:
-        f.write(dumps(toml_data))
+        f.write(tomlkit.dumps(toml_data))
 
-    print(f"Dependencies updated with version {version} in {pyproject_path}.")
+    print(f"Dependencies updated successfully in {pyproject_path}.")
 
 
 
