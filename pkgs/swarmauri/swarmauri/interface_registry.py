@@ -6,7 +6,7 @@ Centralized registry for mapping resource kinds to their validation interfaces.
 # Example imports for interface definitions
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_core.llms.LLMBase import LLMBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 # Define the mapping
 INTERFACE_REGISTRY = {
