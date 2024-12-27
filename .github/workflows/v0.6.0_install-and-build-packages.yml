@@ -29,7 +29,8 @@ jobs:
 
       - name: Install toml
         run: |
-          pip install toml
+            source $UNIQUE_VENV_PATH/bin/activate   
+            pip install toml
 
       - name: Generate poetry.lock
         run: |
