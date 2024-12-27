@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Literal
 from pydantic import Field, ConfigDict
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.chains.IChain import IChain
-from swarmauri.stanard.chains.concrete.ChainStep import ChainStep
+from swarmauri_standard.chains.concrete.ChainStep import ChainStep
 from swarmauri_core.typing import SubclassUnion
 
 
