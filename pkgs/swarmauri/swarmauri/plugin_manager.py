@@ -1,4 +1,5 @@
 # plugin_manager.py
+import sys
 import importlib.metadata
 from types import ModuleType
 import logging
