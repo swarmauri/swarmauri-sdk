@@ -52,17 +52,20 @@ jobs:
 
       - name: Build Specified Packages
         run: |
+          cd pkgs
           source $UNIQUE_VENV_PATH/bin/activate
           for package_path in $(echo ${{ env.path_dependencies }} | tr ',' ' '); do
-            if [ -d "$package_path" ] && [ -f "$package_path/pyproject.toml" ]; then
-              echo "Building $package_path"
-              cd "$package_path"
+            full_path="./$package_path"
+            if [ -d "$full_path" ] && [ -f "$full_path/pyproject.toml" ]; then
+              echo "Building $full_path"
+              cd "$full_path"
               poetry build
               cd - >/dev/null
             else
-              echo "Skipping $package_path: not a valid package directory"
+              echo "Skipping $full_path: not a valid package directory"
             fi
           done
+
 
       - name: Show Pip Freeze
         run: |
