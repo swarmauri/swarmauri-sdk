@@ -1,4 +1,4 @@
-name: Install and Build Specified Packages - v0.6.0.dev1
+name: v0.6.0.dev1 - Install and Build Specified Packages
 
 on:
   push:
