@@ -50,7 +50,7 @@ jobs:
       - name: Install toml
         run: |
           source $UNIQUE_VENV_PATH/bin/activate   
-          pip install toml tomlkit -y
+          pip install toml tomlkit
 
       - name: Set Version in pyproject.toml
         run: |
