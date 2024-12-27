@@ -16,7 +16,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 
-
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
@@ -45,3 +44,6 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.poetry.plugins."swarmauri.plugins"]
+example_agent = "swm_example_plugin.agents:ExampleAgent"
