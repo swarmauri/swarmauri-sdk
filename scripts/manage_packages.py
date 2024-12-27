@@ -109,32 +109,37 @@ def set_version(version, directory=None, file=None):
 
 
 def set_dependency_versions(version, directory=None, file=None):
-    """Set the version in the pyproject.toml file and update path dependencies."""
+    """Update path dependencies in the pyproject.toml file with the given version."""
     pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
     if not os.path.isfile(pyproject_path):
         print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Setting version to {version} in {pyproject_path}...")
+    print(f"Setting dependency versions to {version} in {pyproject_path}...")
     with open(pyproject_path, "r") as f:
         data = toml.load(f)
 
-    # Update the version field
-    data["tool"]["poetry"]["version"] = version
-
-    # Update path dependencies
     dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+    updated_dependencies = {}
+
     for dep_name, dep_value in dependencies.items():
         if isinstance(dep_value, dict) and "path" in dep_value:
-            # Remove the `path` key and add a `version` key
+            # Preserve other keys (like `extras`) while updating `version`
             dep_value.pop("path", None)
             dep_value["version"] = f"^{version}"
+            updated_dependencies[dep_name] = dep_value
+        else:
+            # Leave other dependencies unchanged
+            updated_dependencies[dep_name] = dep_value
 
-    # Write the updated content back to the file
+    # Update the dependencies with the reconstructed structure
+    data["tool"]["poetry"]["dependencies"] = updated_dependencies
+
     with open(pyproject_path, "w") as f:
         toml.dump(data, f)
 
-    print(f"Version set to {version} and path dependencies converted to version dependencies in {pyproject_path}.")
+    print(f"Dependency versions set to {version} in {pyproject_path}.")
+
 
 
 def publish_package(directory=None, file=None, username=None, password=None):
