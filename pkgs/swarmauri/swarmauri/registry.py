@@ -1,4 +1,9 @@
-REGISTRY = {
+import logging
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+FIRST_CLASS_REGISTRY = {
  'swarmauri.agents.QAAgent': 'swarmauri_standard.agents.QAAgent',
  'swarmauri.agents.RagAgent': 'swarmauri_standard.agents.RagAgent',
  'swarmauri.agents.SimpleConversationAgent': 'swarmauri_standard.agents.SimpleConversationAgent',
@@ -176,11 +181,172 @@ REGISTRY = {
  'swarmauri.vectors.Vector': 'swarmauri_standard.vectors.Vector'
  }
 
+SECOND_CLASS_REGISTRY = {}
+THIRD_CLASS_REGISTRY = {}
+
+# Total registry aggregates all plugin classes (initialized with first-class registrants)
+TOTAL_REGISTRY = {**FIRST_CLASS_REGISTRY}
+
+
+def add_to_registry(class_type, resource_path, module_path):
+    """
+    Add an entry to the appropriate registry and update the total registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third').
+    :param resource_path: The resource path (e.g., 'swarmauri.llms.OpenAIModel').
+    :param module_path: The module path it maps to (e.g., 'external_repo.OpenAIModel').
+    """
+    registry_map = {
+        'first': FIRST_CLASS_REGISTRY,
+        'second': SECOND_CLASS_REGISTRY,
+        'third': THIRD_CLASS_REGISTRY,
+    }
+
+    if class_type not in registry_map:
+        raise ValueError(f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'.")
+
+    registry = registry_map[class_type]
+
+    if resource_path in registry:
+        raise ValueError(f"Resource path '{resource_path}' already exists in the {class_type}-class registry.")
+
+    # Add to the specific registry
+    registry[resource_path] = module_path
+    logger.info(f"Added to {class_type}-class registry: {resource_path} -> {module_path}")
+
+    # Update the total registry
+    TOTAL_REGISTRY[resource_path] = module_path
+    logger.info(f"Added to TOTAL registry: {resource_path} -> {module_path}")
+
+
+def remove_from_registry(class_type, resource_path):
+    """
+    Remove an entry from the appropriate registry and update the total registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third').
+    :param resource_path: The resource path to remove.
+    """
+    registry_map = {
+        'first': FIRST_CLASS_REGISTRY,
+        'second': SECOND_CLASS_REGISTRY,
+        'third': THIRD_CLASS_REGISTRY,
+    }
+
+    if class_type not in registry_map:
+        raise ValueError(f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'.")
+
+    registry = registry_map[class_type]
+
+    if resource_path not in registry:
+        raise KeyError(f"Resource path '{resource_path}' does not exist in the {class_type}-class registry.")
+
+    # Remove from the specific registry
+    del registry[resource_path]
+    logger.info(f"Removed from {class_type}-class registry: {resource_path}")
+
+    # Remove from the total registry
+    TOTAL_REGISTRY.pop(resource_path, None)
+    logger.info(f"Removed from TOTAL registry: {resource_path}")
+
+
+def list_registry(class_type=None):
+    """
+    List entries in the specified registry or the total registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third') or None for total registry.
+    :return: A dictionary of registry entries.
+    """
+    if class_type is None:
+        return dict(TOTAL_REGISTRY)
+
+    registry_map = {
+        'first': FIRST_CLASS_REGISTRY,
+        'second': SECOND_CLASS_REGISTRY,
+        'third': THIRD_CLASS_REGISTRY,
+    }
+
+    if class_type not in registry_map:
+        raise ValueError(f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'.")
+
+    return dict(registry_map[class_type])
+
+
 def get_external_module_path(resource_path):
     """
     Get the external module path for a given resource path.
-    
-    :param resource_path: Full resource path (e.g., "swarmauri.llms.OpenAIModel.OpenAiModel").
-    :return: External module path (e.g., "external_repo.OpenAiModel") or None if not found.
+
+    :param resource_path: Full resource path (e.g., 'swarmauri.llms.OpenAIModel').
+    :return: External module path or None if not found.
     """
-    return REGISTRY.get(resource_path)
+    return TOTAL_REGISTRY.get(resource_path)
+
+
+def create_entry(class_type, resource_path, module_path):
+    """
+    Create a new entry in the appropriate registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third').
+    :param resource_path: The resource path to add (e.g., 'swarmauri.llms.OpenAIModel').
+    :param module_path: The module path it maps to (e.g., 'external_repo.OpenAIModel').
+    """
+    add_to_registry(class_type, resource_path, module_path)
+
+
+def read_entry(resource_path):
+    """
+    Read an entry from the total registry.
+
+    :param resource_path: The resource path to read.
+    :return: The module path it maps to, or None if not found.
+    """
+    return TOTAL_REGISTRY.get(resource_path)
+
+
+def update_entry(class_type, resource_path, new_module_path):
+    """
+    Update an existing entry in the appropriate registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third').
+    :param resource_path: The resource path to update.
+    :param new_module_path: The new module path to associate with the resource path.
+    """
+    registry_map = {
+        'first': FIRST_CLASS_REGISTRY,
+        'second': SECOND_CLASS_REGISTRY,
+        'third': THIRD_CLASS_REGISTRY,
+    }
+
+    if class_type not in registry_map:
+        raise ValueError(f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'.")
+
+    registry = registry_map[class_type]
+
+    if resource_path not in registry:
+        raise KeyError(f"Resource path '{resource_path}' does not exist in the {class_type}-class registry.")
+
+    old_module_path = registry[resource_path]
+    registry[resource_path] = new_module_path
+    TOTAL_REGISTRY[resource_path] = new_module_path
+    logger.info(f"Updated {class_type}-class registry entry: {resource_path} -> {new_module_path} (was: {old_module_path})")
+
+
+def delete_entry(class_type, resource_path):
+    """
+    Delete an entry from the appropriate registry.
+
+    :param class_type: Type of the plugin ('first', 'second', 'third').
+    :param resource_path: The resource path to delete.
+    """
+    remove_from_registry(class_type, resource_path)
+
+
+def list_all_registries():
+    """
+    List all entries across first-class, second-class, third-class, and total registries.
+    """
+    return {
+        "first": list_registry('first'),
+        "second": list_registry('second'),
+        "third": list_registry('third'),
+        "total": list_registry()
+    }

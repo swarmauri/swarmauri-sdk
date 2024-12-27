@@ -1,112 +1,163 @@
 import importlib.metadata
 import logging
-from .registry import REGISTRY
+from .registry import (
+    create_entry,
+    read_entry,
+    FIRST_CLASS_REGISTRY,
+    SECOND_CLASS_REGISTRY,
+    THIRD_CLASS_REGISTRY,
+)
+from .interface_registry import get_interface_for_resource
 
 logger = logging.getLogger(__name__)
 
 
-def validate_and_register_first_class(name, plugin_class, resource_kind, resource_interface):
+def get_entry_points(group_prefix="swarmauri."):
     """
-    Validates and registers a plugin as a first-class citizen.
+    Fetch and filter entry points based on a group prefix.
 
-    :param name: The name of the plugin (e.g., "example_plugin").
-    :param plugin_class: The class implementing the plugin.
-    :param resource_kind: The resource namespace (e.g., "conversations").
-    :param resource_interface: The abstract base class/interface for validation.
-    :raises TypeError: If the plugin does not conform to the required interface.
-    :raises ValueError: If the plugin is already registered.
+    :param group_prefix: Prefix to filter entry points (default: 'swarmauri.').
+    :return: A list of matching entry points.
     """
-    # Validate the plugin
-    if not issubclass(plugin_class, resource_interface):
-        raise TypeError(f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface.")
-
-    # Construct the resource path
-    resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
-
-    # Ensure it's not already registered
-    if resource_path in REGISTRY:
-        raise ValueError(f"Plugin '{name}' is already registered as a first-class citizen.")
-
-    # Register in the REGISTRY
-    REGISTRY[resource_path] = plugin_class
-    logger.info(f"Registered first-class citizen: {resource_path}")
+    try:
+        all_entry_points = importlib.metadata.entry_points()
+        return [
+            ep for ep in all_entry_points
+            if ep.group.startswith(group_prefix)
+        ]
+    except Exception as e:
+        logger.error(f"Failed to retrieve entry points: {e}")
+        return []
 
 
-def register_second_class(name, plugin_class):
+class PluginManagerBase:
     """
-    Register a plugin as a second-class citizen in the swarmauri.plugins namespace.
-
-    :param name: The name of the plugin (e.g., "example_plugin").
-    :param plugin_class: The class implementing the plugin.
-    :raises ValueError: If a module with the same name already exists.
+    Base class for all plugin types.
     """
-    import sys
-    from types import ModuleType
+    def validate(self, name, plugin_class, resource_kind, resource_interface):
+        """
+        Validate the plugin. Must be implemented by subclasses.
+        """
+        raise NotImplementedError("Validation logic must be implemented in subclass.")
 
-    # Construct the namespace path
-    namespace_path = f"swarmauri.plugins.{name}"
-
-    # Check if the module is already registered
-    if namespace_path in sys.modules:
-        raise ValueError(
-            f"A module with the name '{namespace_path}' already exists. "
-            "Overwriting is not allowed."
-        )
-
-    # Dynamically create a module for the plugin
-    module = ModuleType(namespace_path)
-    setattr(module, name, plugin_class)
-    sys.modules[namespace_path] = module
-
-    logger.info(f"Registered second-class citizen: {namespace_path}")
+    def register(self, name, plugin_class, resource_kind):
+        """
+        Register the plugin. Must be implemented by subclasses.
+        """
+        raise NotImplementedError("Registration logic must be implemented in subclass.")
 
 
-
-def determine_plugin_type(entry_point):
+class FirstClassPluginManager(PluginManagerBase):
     """
-    Determines whether a plugin is a first-class or second-class citizen based on its entry point path.
+    Manager for first-class plugins.
+    """
+    def validate(self, name, plugin_class, resource_kind, resource_interface):
+        """
+        Validate that the plugin implements the required interface.
+        """
+        if not issubclass(plugin_class, resource_interface):
+            raise TypeError(f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface.")
+
+    def register(self, name, plugin_class, resource_kind):
+        """
+        Register the plugin as a first-class citizen.
+        """
+        resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
+        if read_entry(resource_path) or resource_path in FIRST_CLASS_REGISTRY:
+            raise ValueError(f"Plugin '{name}' is already registered as a first-class citizen.")
+        create_entry('first', resource_path, plugin_class.__module__)
+        logger.info(f"Registered first-class citizen: {resource_path}")
+
+
+class SecondClassPluginManager(PluginManagerBase):
+    """
+    Manager for second-class plugins.
+    """
+    def validate(self, name, plugin_class, resource_kind, resource_interface):
+        """
+        Validate that the plugin implements the required interface.
+        """
+        if not issubclass(plugin_class, resource_interface):
+            raise TypeError(f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface.")
+
+    def register(self, name, plugin_class, resource_kind):
+        """
+        Register the plugin as a second-class citizen.
+        """
+        resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
+        if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
+            raise ValueError(f"Plugin '{name}' is already registered as a second-class citizen.")
+        create_entry('second', resource_path, plugin_class.__module__)
+        logger.info(f"Registered second-class citizen: {resource_path}")
+
+
+class ThirdClassPluginManager(PluginManagerBase):
+    """
+    Manager for third-class plugins.
+    """
+    def validate(self, name, plugin_class, resource_kind, resource_interface):
+        """
+        No validation required for third-class plugins.
+        """
+        pass
+
+    def register(self, name, plugin_class, resource_kind):
+        """
+        Register the plugin as a third-class citizen.
+        """
+        resource_path = f"swarmauri.plugins.{name}"
+        if read_entry(resource_path) or resource_path in THIRD_CLASS_REGISTRY:
+            raise ValueError(f"Plugin '{name}' is already registered as a third-class citizen.")
+        create_entry('third', resource_path, plugin_class.__module__)
+        logger.info(f"Registered third-class citizen: {resource_path}")
+
+
+def determine_plugin_manager(entry_point):
+    """
+    Determines the plugin manager class based on entry point group.
 
     :param entry_point: The entry point object.
-    :return: "first-class" or "second-class" based on the entry point path.
+    :return: Instance of the appropriate PluginManagerBase subclass.
     """
     if entry_point.group.startswith("swarmauri."):
         if entry_point.group == "swarmauri.plugins":
-            return "second-class"
+            return ThirdClassPluginManager()
+        elif entry_point.group.count(".") == 1:
+            return FirstClassPluginManager()
         else:
-            return "first-class"
+            return SecondClassPluginManager()
     return None
 
 
 def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
     """
-    Validates and registers a plugin based on its entry point path.
+    Validates and registers a plugin using the appropriate manager.
 
     :param entry_point: The entry point object.
     :param plugin_class: The class implementing the plugin.
     :param resource_interface: The abstract base class/interface for validation.
     """
-    plugin_type = determine_plugin_type(entry_point)
-
-    if plugin_type == "first-class":
-        resource_kind = entry_point.group[len("swarmauri.") :]
-        validate_and_register_first_class(entry_point.name, plugin_class, resource_kind, resource_interface)
-    elif plugin_type == "second-class":
-        register_second_class(entry_point.name, plugin_class)
-    else:
+    plugin_manager = determine_plugin_manager(entry_point)
+    if not plugin_manager:
         logger.warning(f"Unrecognized entry point group: {entry_point.group}")
+        return
+
+    resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
+    plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
+    plugin_manager.register(entry_point.name, plugin_class, resource_kind)
 
 
-def discover_and_register_plugins(resource_interface):
+def discover_and_register_plugins():
     """
-    Discover plugins via entry points, validate them, and register them as first or second-class citizens.
-
-    :param resource_interface: The abstract base class/interface for validation.
+    Discover plugins via entry points, validate them, and register them using the appropriate manager.
     """
-    entry_points = importlib.metadata.entry_points()
+    entry_points = get_entry_points()
 
     for entry_point in entry_points:
         try:
             plugin_class = entry_point.load()
+            resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
+            resource_interface = get_interface_for_resource(resource_kind)
             validate_and_register_plugin(entry_point, plugin_class, resource_interface)
             logger.info(f"Successfully processed plugin: {entry_point.name}")
         except Exception as e:
