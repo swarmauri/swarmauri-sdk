@@ -39,7 +39,7 @@ def main():
     path_dependencies = extract_path_dependencies(args.pyproject)
 
     # Output the dependencies in a format GitHub Actions can use
-    print(f"::set-output name=path_dependencies::{','.join(path_dependencies)}")
+    print(f"{','.join(path_dependencies)}")
 
 
 if __name__ == "__main__":
