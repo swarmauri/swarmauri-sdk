@@ -79,6 +79,8 @@ jobs:
               # Replace path dependencies with the extracted version
               sed -i "s/{ path = \"..\/core\" }/\"^${{ env.version }}\"/" pyproject.toml
               sed -i "s/{ path = \"..\/base\" }/\"^${{ env.version }}\"/" pyproject.toml
+              sed -i "s/{ path = \"..\/..\/core\" }/\"^${{ env.version }}\"/" pyproject.toml
+              sed -i "s/{ path = \"..\/..\/base\" }/\"^${{ env.version }}\"/" pyproject.toml
               sed -i "s/{ path = \"..\/standards\/swarmauri_standard\" }/\"^${{ env.version }}\"/" pyproject.toml
               sed -i "s/{ path = \"..\/community\/swarmauri_community\" }/\"^${{ env.version }}\"/" pyproject.toml
               
