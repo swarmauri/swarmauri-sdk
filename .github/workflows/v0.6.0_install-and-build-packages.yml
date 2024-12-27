@@ -1,4 +1,4 @@
-name: Install and Build Specified Packages - v0.6.0.dev1
+name: Install and Build Specified Packages (Package Manager)
 
 on:
   push:
@@ -21,6 +21,7 @@ jobs:
         run: |
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
+          pip install toml
 
       - name: Install Poetry
         run: |
