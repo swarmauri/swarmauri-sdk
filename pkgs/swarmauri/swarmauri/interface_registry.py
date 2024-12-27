@@ -4,13 +4,15 @@ Centralized registry for mapping resource kinds to their validation interfaces.
 """
 
 # Example imports for interface definitions
-from swarmauri_core.interfaces import IConversation, ILLM  # Update paths as per actual project structure
+from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.conversations.ConversationBase import ConversationBase
+from swarmauri_core.llms.LLMBase import LLMBase
 
 # Define the mapping
 INTERFACE_REGISTRY = {
-    "swarmauri.conversations": IConversation,
-    "swarmauri.llms": ILLM,
-    # Add additional mappings as needed
+    "swarmauri.agents": AgentBase,
+    "swarmauri.conversations": ConversationBase,
+    "swarmauri.llms": LLMBase,
 }
 
 def get_interface_for_resource(resource_kind):
