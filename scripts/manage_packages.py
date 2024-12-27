@@ -132,7 +132,6 @@ def set_version(version, directory=None, file=None):
 def set_dependency_versions(version, directory=None, file=None):
     """
     Update path dependencies in all pyproject.toml files within a directory or a specific file.
-    This will preserve the 'path' fields while updating only the version.
     """
     if directory:
         for root, _, files in os.walk(directory):
@@ -148,10 +147,12 @@ def set_dependency_versions(version, directory=None, file=None):
 
                 for dep_name, dep_value in dependencies.items():
                     if isinstance(dep_value, dict) and "path" in dep_value:
-                        # Preserve the 'path' field and update the 'version' field only
-                        updated_dep = dep_value.copy()  # Make a copy to preserve original structure
-                        updated_dep["version"] = f"^{version}"  # Update the version
-                        updated_dependencies[dep_name] = updated_dep  # Assign the updated dependency
+                        # Maintain the `path` and only update the `version` key
+                        updated_dep = {"version": f"^{version}"}
+                        for key in dep_value:
+                            if key != "path":  # Preserve the `path` key
+                                updated_dep[key] = dep_value[key]
+                        updated_dependencies[dep_name] = updated_dep
 
                         # Update the version in the dependency's pyproject.toml
                         dependency_path = os.path.join(root, dep_value["path"])
@@ -163,13 +164,13 @@ def set_dependency_versions(version, directory=None, file=None):
                             print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
 
                     else:
-                        # If no 'path' field, leave the dependency unchanged
+                        # Leave other dependencies unchanged
                         updated_dependencies[dep_name] = dep_value
 
-                # Write the updated dependencies back to the pyproject.toml
+                # Write back to the `dependencies` section
                 data["tool"]["poetry"]["dependencies"] = updated_dependencies
 
-                # Serialize and write the updated TOML back to the file
+                # Serialize and write the updated toml back to the file
                 with open(pyproject_path, "w") as f:
                     toml.dump(data, f)
 
@@ -186,10 +187,12 @@ def set_dependency_versions(version, directory=None, file=None):
 
         for dep_name, dep_value in dependencies.items():
             if isinstance(dep_value, dict) and "path" in dep_value:
-                # Preserve the 'path' field and update the 'version' field only
-                updated_dep = dep_value.copy()  # Make a copy to preserve the original structure
-                updated_dep["version"] = f"^{version}"  # Update the version
-                updated_dependencies[dep_name] = updated_dep  # Assign the updated dependency
+                # Maintain the `path` and only update the `version` key
+                updated_dep = {"version": f"^{version}"}
+                for key in dep_value:
+                    if key != "path":  # Preserve the `path` key
+                        updated_dep[key] = dep_value[key]
+                updated_dependencies[dep_name] = updated_dep
 
                 # Update the version in the dependency's pyproject.toml
                 dependency_path = os.path.join(os.path.dirname(pyproject_path), dep_value["path"])
@@ -201,18 +204,17 @@ def set_dependency_versions(version, directory=None, file=None):
                     print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
 
             else:
-                # If no 'path' field, leave the dependency unchanged
+                # Leave other dependencies unchanged
                 updated_dependencies[dep_name] = dep_value
 
-        # Write the updated dependencies back to the pyproject.toml
+        # Write back to the `dependencies` section
         data["tool"]["poetry"]["dependencies"] = updated_dependencies
 
-        # Serialize and write the updated TOML back to the file
+        # Serialize and write the updated toml back to the file
         with open(pyproject_path, "w") as f:
             toml.dump(data, f)
 
         print(f"Dependency versions set to {version} in {pyproject_path}.")
-
 
 
 
