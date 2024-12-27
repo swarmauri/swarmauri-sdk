@@ -44,9 +44,9 @@ def poetry_install(directory=None, file=None, extras=None, with_dev=False):
     print(f"Installing dependencies in {location}...")
     command = ["poetry", "install", "--no-cache", "-vv"]
     if extras:
-        command += [f"--with {extras}"]
+        command += [f"--extras {extras}"]
     if with_dev:
-        command.append("--with dev")
+        command.append("--with-dev")
     run_command(" ".join(command), cwd=location)
 
 
