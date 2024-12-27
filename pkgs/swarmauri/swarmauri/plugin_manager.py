@@ -198,7 +198,7 @@ def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
     :param plugin_class: The class implementing the plugin.
     :param resource_interface: The abstract base class/interface for validation.
     """
-    logger.debug(f"Starting validation and registration attempt for: '{entry_points}' '{plugin_class}' '{resource_interface}'")
+    logger.debug(f"Starting validation and registration attempt for: '{entry_point}' '{plugin_class}' '{resource_interface}'")
     resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
 
     plugin_manager = determine_plugin_manager(entry_point)
