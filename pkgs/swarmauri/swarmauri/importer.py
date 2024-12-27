@@ -6,6 +6,7 @@ from importlib.machinery import ModuleSpec
 from types import ModuleType
 from .plugin_manager import get_entry_points, process_plugin
 from .registry import get_external_module_path
+from .interface_registry import INTERFACE_REGISTRY
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,6 +17,9 @@ class SwarmauriImporter:
     """
     Responsible for dynamically importing plugins and managing the swarmauri namespace.
     """
+    def __init__(self):
+        # Use INTERFACE_REGISTRY keys directly to define valid namespaces
+        self.VALID_NAMESPACES = set(INTERFACE_REGISTRY.keys())
 
     def find_spec(self, fullname, path=None, target=None):
         """
@@ -29,6 +33,7 @@ class SwarmauriImporter:
         logger.debug(f"find_spec called for: {fullname}")
 
         if fullname == "swarmauri" or fullname.startswith("swarmauri."):
+            namespace_parts = fullname.split(".")
             # Check if the module has an external mapping
             external_module_path = get_external_module_path(fullname)
             if external_module_path:
@@ -48,10 +53,12 @@ class SwarmauriImporter:
                 return None
 
             # Create a placeholder for namespace module
-            logger.debug(f"Creating placeholder for namespace module: {fullname}")
-            spec = ModuleSpec(fullname, self)
-            spec.submodule_search_locations = []
-            return spec
+            part = '.'.join(namespace_parts[:2])
+            if part in self.VALID_NAMESPACES:
+                logger.debug(f"Creating placeholder for namespace module: {part}")
+                spec = ModuleSpec(part, self)
+                spec.submodule_search_locations = []
+                return spec
 
         logger.debug(f"Module '{fullname}' is not in the 'swarmauri.' namespace.")
         return None
