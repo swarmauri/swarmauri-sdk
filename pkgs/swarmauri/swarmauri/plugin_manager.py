@@ -94,10 +94,12 @@ class SecondClassPluginManager(PluginManagerBase):
         """
         Validate that the plugin implements the required interface and does not conflict with first-class citizens.
         """
-        if not issubclass(plugin_class, resource_interface):
-            raise TypeError(
-                f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
-            )
+
+        if not resource_kind == 'utils':
+            if not issubclass(plugin_class, resource_interface):
+                raise TypeError(
+                    f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
+                )
 
         # Check for conflicts with first-class citizens
         resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
