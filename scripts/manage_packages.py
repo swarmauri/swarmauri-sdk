@@ -84,34 +84,57 @@ def show_pip_freeze():
 
 
 def increment_version(version, directory=None, file=None):
-    """Increment the version in the pyproject.toml file."""
-    location = os.path.join(directory, "pyproject.toml") if directory else file
-    if not os.path.isfile(location):
-        print(f"pyproject.toml not found at {location}", file=sys.stderr)
+    """Increment the version in the pyproject.toml file and update path dependencies."""
+    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
+    if not os.path.isfile(pyproject_path):
+        print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Incrementing version to {version} in {location}...")
-    with open(location, "r") as f:
-        content = f.read()
+    print(f"Incrementing version to {version} in {pyproject_path}...")
+    with open(pyproject_path, "r") as f:
+        data = toml.load(f)
 
-    content = content.replace('version = ".*"', f'version = "{version}"')
-    content = content.replace('{ path = "../core" }', f'"^{version}"')
-    content = content.replace('{ path = "../base" }', f'"^{version}"')
-    content = content.replace('{ path = "../standard" }', f'"^{version}"')
+    # Update the version field
+    data["tool"]["poetry"]["version"] = version
 
-    with open(location, "w") as f:
-        f.write(content)
+    # Update path dependencies
+    dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+    for dep_name, dep_value in dependencies.items():
+        if isinstance(dep_value, dict) and "path" in dep_value:
+            # Remove the `path` key and add a `version` key
+            dep_value.pop("path", None)
+            dep_value["version"] = f"^{version}"
+
+    # Write the updated content back to the file
+    with open(pyproject_path, "w") as f:
+        toml.dump(data, f)
+
+    print(f"Version updated to {version} and path dependencies converted to version dependencies in {pyproject_path}.")
 
 
 def publish_package(directory=None, file=None, username=None, password=None):
-    """Build and publish the package to PyPI."""
-    location = directory if directory else os.path.dirname(file)
-    print(f"Publishing package from {location}...")
-    run_command("poetry build", cwd=location)
-    run_command(
-        f"poetry publish --username {username} --password {password}", cwd=location
-    )
+    """Build and publish the package to PyPI recursively."""
+    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
+    if not os.path.isfile(pyproject_path):
+        print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
+        sys.exit(1)
 
+    base_dir = os.path.dirname(pyproject_path)
+    dependencies = extract_path_dependencies(pyproject_path)
+
+    # First, publish all dependencies recursively
+    for package_path in dependencies:
+        full_path = os.path.join(base_dir, package_path)
+        if os.path.isdir(full_path) and os.path.isfile(os.path.join(full_path, "pyproject.toml")):
+            print(f"Recursively publishing package from {full_path}...")
+            publish_package(directory=full_path, username=username, password=password)
+        else:
+            print(f"Skipping {full_path}: not a valid package directory")
+
+    # Finally, publish the current package
+    print(f"Publishing package from {base_dir}...")
+    run_command("poetry build", cwd=base_dir)
+    run_command(f"poetry publish --username {username} --password {password}", cwd=base_dir)
 
 def main():
     parser = argparse.ArgumentParser(description="Manage Python packages in a monorepo.")
