@@ -84,78 +84,136 @@ def show_pip_freeze():
 
 
 def set_version(version, directory=None, file=None):
-    """Set the version in the pyproject.toml file."""
-    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
-    if not os.path.isfile(pyproject_path):
-        print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
-        sys.exit(1)
+    """
+    Set the version in the pyproject.toml file or all files within a directory.
+    """
+    if directory:
+        for root, _, files in os.walk(directory):
+            if "pyproject.toml" in files:
+                pyproject_path = os.path.join(root, "pyproject.toml")
+                print(f"Setting version to {version} in {pyproject_path}...")
+                with open(pyproject_path, "r") as f:
+                    data = toml.load(f)
 
-    print(f"Setting version to {version} in {pyproject_path}...")
-    with open(pyproject_path, "r") as f:
-        data = toml.load(f)
+                # Update the version field
+                if "tool" in data and "poetry" in data["tool"]:
+                    data["tool"]["poetry"]["version"] = version
+                else:
+                    print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
+                    continue
 
-    # Update the version field
-    if "tool" in data and "poetry" in data["tool"]:
-        data["tool"]["poetry"]["version"] = version
-    else:
-        print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
-        sys.exit(1)
+                # Write the updated content back to the file
+                with open(pyproject_path, "w") as f:
+                    toml.dump(data, f)
 
-    # Write the updated content back to the file
-    with open(pyproject_path, "w") as f:
-        toml.dump(data, f)
+                print(f"Version set to {version} in {pyproject_path}.")
+    elif file:
+        pyproject_path = file
+        print(f"Setting version to {version} in {pyproject_path}...")
+        with open(pyproject_path, "r") as f:
+            data = toml.load(f)
 
-    print(f"Version set to {version} in {pyproject_path}.")
+        # Update the version field
+        if "tool" in data and "poetry" in data["tool"]:
+            data["tool"]["poetry"]["version"] = version
+        else:
+            print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
+            sys.exit(1)
+
+        # Write the updated content back to the file
+        with open(pyproject_path, "w") as f:
+            toml.dump(data, f)
+
+        print(f"Version set to {version} in {pyproject_path}.")
 
 
 def set_dependency_versions(version, directory=None, file=None):
     """
-    Update path dependencies in the pyproject.toml file with the given version.
-    Also set the version in the dependency's pyproject.toml files.
+    Update path dependencies in all pyproject.toml files within a directory or a specific file.
     """
-    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
-    if not os.path.isfile(pyproject_path):
-        print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
-        sys.exit(1)
+    if directory:
+        for root, _, files in os.walk(directory):
+            if "pyproject.toml" in files:
+                pyproject_path = os.path.join(root, "pyproject.toml")
+                print(f"Setting dependency versions to {version} in {pyproject_path}...")
 
-    print(f"Setting dependency versions to {version} in {pyproject_path}...")
+                with open(pyproject_path, "r") as f:
+                    data = toml.load(f)
 
-    with open(pyproject_path, "r") as f:
-        data = toml.load(f)
+                dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+                updated_dependencies = {}
 
-    dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-    updated_dependencies = {}
+                for dep_name, dep_value in dependencies.items():
+                    if isinstance(dep_value, dict) and "path" in dep_value:
+                        # Remove the `path` key and set the `version` key while preserving other keys
+                        updated_dep = {"version": f"^{version}"}
+                        for key in dep_value:
+                            if key != "path":
+                                updated_dep[key] = dep_value[key]
+                        updated_dependencies[dep_name] = updated_dep
 
-    for dep_name, dep_value in dependencies.items():
-        if isinstance(dep_value, dict) and "path" in dep_value:
-            # Remove the `path` key and set the `version` key while preserving other keys
-            updated_dep = {"version": f"^{version}"}
-            for key in dep_value:
-                if key != "path":
-                    updated_dep[key] = dep_value[key]
-            updated_dependencies[dep_name] = updated_dep
+                        # Update the version in the dependency's pyproject.toml
+                        dependency_path = os.path.join(root, dep_value["path"])
+                        dependency_pyproject = os.path.join(dependency_path, "pyproject.toml")
+                        if os.path.isfile(dependency_pyproject):
+                            print(f"Updating version in {dependency_pyproject} to {version}...")
+                            set_version(version=version, file=dependency_pyproject)
+                        else:
+                            print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
 
-            # Update the version in the dependency's pyproject.toml
-            dependency_path = dep_value["path"]
-            dependency_pyproject = os.path.join(directory, dependency_path, "pyproject.toml")
-            if os.path.isfile(dependency_pyproject):
-                print(f"Updating version in {dependency_pyproject} to {version}...")
-                set_version(version=version, file=dependency_pyproject)
+                    else:
+                        # Leave other dependencies unchanged
+                        updated_dependencies[dep_name] = dep_value
+
+                # Write back to the `dependencies` section
+                data["tool"]["poetry"]["dependencies"] = updated_dependencies
+
+                # Serialize and write the updated toml back to the file
+                with open(pyproject_path, "w") as f:
+                    toml.dump(data, f)
+
+                print(f"Dependency versions set to {version} in {pyproject_path}.")
+    elif file:
+        pyproject_path = file
+        print(f"Setting dependency versions to {version} in {pyproject_path}...")
+
+        with open(pyproject_path, "r") as f:
+            data = toml.load(f)
+
+        dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+        updated_dependencies = {}
+
+        for dep_name, dep_value in dependencies.items():
+            if isinstance(dep_value, dict) and "path" in dep_value:
+                # Remove the `path` key and set the `version` key while preserving other keys
+                updated_dep = {"version": f"^{version}"}
+                for key in dep_value:
+                    if key != "path":
+                        updated_dep[key] = dep_value[key]
+                updated_dependencies[dep_name] = updated_dep
+
+                # Update the version in the dependency's pyproject.toml
+                dependency_path = os.path.join(os.path.dirname(pyproject_path), dep_value["path"])
+                dependency_pyproject = os.path.join(dependency_path, "pyproject.toml")
+                if os.path.isfile(dependency_pyproject):
+                    print(f"Updating version in {dependency_pyproject} to {version}...")
+                    set_version(version=version, file=dependency_pyproject)
+                else:
+                    print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
+
             else:
-                print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
+                # Leave other dependencies unchanged
+                updated_dependencies[dep_name] = dep_value
 
-        else:
-            # Leave other dependencies unchanged
-            updated_dependencies[dep_name] = dep_value
+        # Write back to the `dependencies` section
+        data["tool"]["poetry"]["dependencies"] = updated_dependencies
 
-    # Write back to the `dependencies` section
-    data["tool"]["poetry"]["dependencies"] = updated_dependencies
+        # Serialize and write the updated toml back to the file
+        with open(pyproject_path, "w") as f:
+            toml.dump(data, f)
 
-    # Serialize and write the updated toml back to the file
-    with open(pyproject_path, "w") as f:
-        toml.dump(data, f)
+        print(f"Dependency versions set to {version} in {pyproject_path}.")
 
-    print(f"Dependency versions set to {version} in {pyproject_path}.")
 
 
 
