@@ -83,6 +83,36 @@ def show_pip_freeze():
     run_command("pip freeze")
 
 
+def increment_version(version, directory=None, file=None):
+    """Increment the version in the pyproject.toml file."""
+    location = os.path.join(directory, "pyproject.toml") if directory else file
+    if not os.path.isfile(location):
+        print(f"pyproject.toml not found at {location}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Incrementing version to {version} in {location}...")
+    with open(location, "r") as f:
+        content = f.read()
+
+    content = content.replace('version = ".*"', f'version = "{version}"')
+    content = content.replace('{ path = "../core" }', f'"^{version}"')
+    content = content.replace('{ path = "../base" }', f'"^{version}"')
+    content = content.replace('{ path = "../standard" }', f'"^{version}"')
+
+    with open(location, "w") as f:
+        f.write(content)
+
+
+def publish_package(directory=None, file=None, username=None, password=None):
+    """Build and publish the package to PyPI."""
+    location = directory if directory else os.path.dirname(file)
+    print(f"Publishing package from {location}...")
+    run_command("poetry build", cwd=location)
+    run_command(
+        f"poetry publish --username {username} --password {password}", cwd=location
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Manage Python packages in a monorepo.")
     subparsers = parser.add_subparsers(dest="action", required=True, help="Action to perform.")
@@ -114,6 +144,15 @@ def main():
     # Show pip freeze
     subparsers.add_parser("show-pip-freeze", help="Show installed packages using pip freeze.")
 
+    # Increment version
+    version_parser = subparsers.add_parser("increment-version", parents=[location_parser], help="Increment version.")
+    version_parser.add_argument("--version", type=str, required=True, help="The new version.")
+
+    # Publish
+    publish_parser = subparsers.add_parser("publish", parents=[location_parser], help="Publish package to PyPI.")
+    publish_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
+    publish_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
+
     args = parser.parse_args()
 
     # Action dispatch
@@ -133,6 +172,12 @@ def main():
 
     elif args.action == "show-pip-freeze":
         show_pip_freeze()
+
+    elif args.action == "increment-version":
+        increment_version(version=args.version, directory=args.directory, file=args.file)
+
+    elif args.action == "publish":
+        publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
 
 
 if __name__ == "__main__":
