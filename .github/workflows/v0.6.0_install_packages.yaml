@@ -21,6 +21,17 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
         echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
+
+    - name: Generate poetry.lock (if missing)
+      run: |
+        if [ ! -f "poetry.lock" ]; then
+          echo "poetry.lock not found. Generating it..."
+          cd pkgs
+          poetry lock
+        else
+          echo "poetry.lock exists."
+        fi
+
     - name: Install All Packages
       run: |
         python -m venv $UNIQUE_VENV_PATH
