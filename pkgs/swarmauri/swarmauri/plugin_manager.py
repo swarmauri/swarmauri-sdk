@@ -12,22 +12,56 @@ from .interface_registry import get_interface_for_resource
 
 logger = logging.getLogger(__name__)
 
+import importlib.metadata
+import logging
+
+logger = logging.getLogger(__name__)
+
 def get_entry_points(group_prefix="swarmauri."):
     """
-    Fetch and group entry points based on their namespaces from pyproject.toml.
+    Fetch and group entry points based on their namespaces.
 
-    :param group_prefix: Prefix to filter entry points (default: 'swarmauri.').
-    :return: A dictionary mapping namespaces to lists of entry points.
+    This function retrieves all entry points declared in the environment and filters
+    them by their group names, matching the specified `group_prefix`. The filtered
+    entry points are then grouped by their namespace (i.e., the part of the group name
+    following the `group_prefix`).
+
+    Example:
+        Given the following entry points in `pyproject.toml`:
+        [tool.poetry.plugins."swarmauri.chunkers"]
+        "SentenceChunker" = "swarmauri.chunkers.sentence_chunker:SentenceChunker"
+        "OtherChunker" = "swarmauri.chunkers.other_chunker:OtherChunker"
+
+        Calling `get_entry_points(group_prefix="swarmauri.")` will return:
+        {
+            "chunkers": [
+                <EntryPoint name='SentenceChunker' group='swarmauri.chunkers' value='swarmauri.chunkers.sentence_chunker:SentenceChunker'>,
+                <EntryPoint name='OtherChunker' group='swarmauri.chunkers' value='swarmauri.chunkers.other_chunker:OtherChunker'>
+            ]
+        }
+
+    Args:
+        group_prefix (str): The prefix used to filter entry points by group names.
+                           Default is 'swarmauri.'.
+
+    Returns:
+        dict: A dictionary mapping namespaces (str) to lists of entry points (EntryPoint).
+              If no matching entry points are found or an error occurs, an empty dictionary is returned.
+
+    Logs:
+        - Logs errors or exceptions encountered during entry point retrieval.
+        - Logs raw entry points and processing details for debugging purposes.
     """
     try:
-        # Fetch all entry points
+        # Fetch all entry points as a list
         all_entry_points = importlib.metadata.entry_points()
 
-        # Filter entry points by group prefix
+        # Group entry points by their group name
         grouped_entry_points = {}
         for ep in all_entry_points:
-            if ep.group.startswith(group_prefix):
-                namespace = ep.group[len(group_prefix):]  # Extract namespace
+            # Ensure the group attribute exists and matches the prefix
+            if hasattr(ep, "group") and ep.group.startswith(group_prefix):
+                namespace = ep.group[len(group_prefix):]
                 grouped_entry_points.setdefault(namespace, []).append(ep)
 
         return grouped_entry_points
@@ -35,6 +69,8 @@ def get_entry_points(group_prefix="swarmauri."):
     except Exception as e:
         logger.error(f"Failed to retrieve entry points: {e}")
         return {}
+
+
 
 class PluginManagerBase:
     """
