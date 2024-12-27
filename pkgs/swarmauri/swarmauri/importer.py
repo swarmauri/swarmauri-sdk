@@ -1,11 +1,10 @@
 # importer.py
-
 import sys
 import importlib
 import logging
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from .plugin_manager import get_entry_points, validate_and_register_plugin
+from .plugin_manager import get_entry_points, process_plugin
 from .registry import get_external_module_path
 
 logger = logging.getLogger(__name__)
@@ -16,17 +15,19 @@ class SwarmauriImporter:
     Responsible for dynamically importing plugins and managing the swarmauri namespace.
     """
 
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, path=None, target=None):
         """
         Locate the module spec for the requested fullname.
 
         :param fullname: Full module name to locate (e.g., 'swarmauri.toolkits.MyPlugin').
+        :param path: Optional path for finding the module.
+        :param target: Target module (unused).
         :return: ModuleSpec or None if not found.
         """
         logger.debug(f"find_spec called for: {fullname}")
 
-        # Check if the fullname is part of the swarmauri namespace
         if fullname.startswith("swarmauri"):
+            # Check if the module has an external mapping
             external_module_path = get_external_module_path(fullname)
             if external_module_path:
                 logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
@@ -38,12 +39,13 @@ class SwarmauriImporter:
                 if external_module_path:
                     return ModuleSpec(fullname, self)
 
-            # Handle namespace modules
+            # Handle namespace modules (e.g., "swarmauri.toolkits")
             parent, _, _ = fullname.rpartition(".")
             if parent and parent not in sys.modules:
                 logger.debug(f"Parent module '{parent}' not found. Cannot create namespace module: {fullname}")
                 return None
 
+            # Create a placeholder for namespace module
             logger.debug(f"Creating placeholder for namespace module: {fullname}")
             spec = ModuleSpec(fullname, self)
             spec.submodule_search_locations = []
@@ -72,10 +74,9 @@ class SwarmauriImporter:
             entry_points = grouped_entry_points.get(local_namespace, [])
             for entry_point in entry_points:
                 if entry_point.name == plugin_name:
-                    # Validate and register the plugin
-                    plugin_class = entry_point.load()
-                    validate_and_register_plugin(entry_point, plugin_class, None)
-                    sys.modules[fullname] = plugin_class
+                    # Process the plugin via plugin manager
+                    process_plugin(entry_point)
+                    sys.modules[fullname] = entry_point.load()
                     logger.info(f"Successfully registered and loaded plugin '{fullname}'")
                     return True
 
