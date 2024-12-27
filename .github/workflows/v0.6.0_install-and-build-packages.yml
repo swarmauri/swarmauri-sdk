@@ -20,13 +20,16 @@ jobs:
       - name: Create and Activate Virtual Environment
         run: |
           python -m venv $UNIQUE_VENV_PATH
-          source $UNIQUE_VENV_PATH/bin/activate
-          pip install toml
+          source $UNIQUE_VENV_PATH/bin/activate          
 
       - name: Install Poetry
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
-          python scripts/manage_packages.py install-poetry
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Install toml
+          run: |
+            pip install toml
 
       - name: Generate poetry.lock
         run: |
