@@ -53,7 +53,7 @@ jobs:
       - name: Build Specified Packages
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          for package_path in ${{ env.path_dependencies }}; do
+          for package_path in $(echo ${{ env.path_dependencies }} | tr ',' ' '); do
             if [ -d "$package_path" ] && [ -f "$package_path/pyproject.toml" ]; then
               echo "Building $package_path"
               cd "$package_path"
