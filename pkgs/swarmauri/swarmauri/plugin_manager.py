@@ -190,26 +190,6 @@ class ThirdClassPluginManager(PluginManagerBase):
         logger.debug(f"Registered third-class citizen: {resource_path}")
 
 
-def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
-    """
-    Validates and registers a plugin using the appropriate manager.
-
-    :param entry_point: The entry point object.
-    :param plugin_class: The class implementing the plugin.
-    :param resource_interface: The abstract base class/interface for validation.
-    """
-    logger.debug(f"Starting validation and registration attempt for: '{entry_point}' '{plugin_class}' '{resource_interface}'")
-    resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
-
-    plugin_manager = determine_plugin_manager(entry_point)
-    if not plugin_manager:
-        logger.warning(f"Unrecognized entry point group: {entry_point.group}")
-        return
- 
-    plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
-    plugin_manager.register(entry_point.name, plugin_class, resource_kind)
-
-
 def process_plugin(entry_point):
     """
     Validates and registers a single plugin entry point.
@@ -225,6 +205,27 @@ def process_plugin(entry_point):
     except Exception as e:
         logger.error(f"Failed to process plugin '{entry_point.name}': {e}")
         return False
+
+def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
+    """
+    Validates and registers a plugin using the appropriate manager.
+
+    :param entry_point: The entry point object.
+    :param plugin_class: The class implementing the plugin.
+    :param resource_interface: The abstract base class/interface for validation.
+    """
+    logger.debug(f"Starting validation and registration attempt for: '{entry_point}' '{plugin_class}' '{resource_interface}'")
+    resource_kind = entry_point.group if "." in entry_point.group else None
+    resource_interface = get_interface_for_resource(resource_kind)
+
+    plugin_manager = determine_plugin_manager(entry_point)
+    if not plugin_manager:
+        logger.warning(f"Unrecognized entry point group: {entry_point.group}")
+        return
+ 
+    plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
+    plugin_manager.register(entry_point.name, plugin_class, resource_kind)
+
 
 
 def discover_and_register_plugins(group_prefix="swarmauri."):
