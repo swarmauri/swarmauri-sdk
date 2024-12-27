@@ -85,7 +85,8 @@ class SwarmauriImporter:
             logger.debug(f"Grouped entry points: '{grouped_entry_points}'")
             entry_points = grouped_entry_points.get(local_namespace, [])
             logger.debug(f"Entry points: '{entry_points}'")
-
+            logger.debug(f"Plugin_name: '{plugin_name}'")
+            
             for entry_point in entry_points:
                 if entry_point.name == plugin_name:
                     # Process the plugin via plugin manager
