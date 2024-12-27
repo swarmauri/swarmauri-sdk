@@ -42,8 +42,10 @@ class SwarmauriImporter:
 
             # Attempt to discover and register the plugin dynamically
             if self._try_register_plugin(fullname):
+                logger.debug(f"Attempting to discover module: {fullname}")
                 external_module_path = get_external_module_path(fullname)
                 if external_module_path:
+                    logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
                     return ModuleSpec(fullname, self)
 
             # Handle namespace modules (e.g., "swarmauri.toolkits")
@@ -53,12 +55,12 @@ class SwarmauriImporter:
                 return None
 
             # Create a placeholder for namespace module
-            part = '.'.join(namespace_parts[:2])
-            if part in self.VALID_NAMESPACES:
-                logger.debug(f"Creating placeholder for namespace module: {part}")
-                spec = ModuleSpec(part, self)
-                spec.submodule_search_locations = []
-                return spec
+            # part = '.'.join(namespace_parts[:2])
+            # if part in self.VALID_NAMESPACES:
+            #     logger.debug(f"Creating placeholder for namespace module: {part}")
+            #     spec = ModuleSpec(part, self)
+            #     spec.submodule_search_locations = []
+            #     return spec
 
         logger.debug(f"Module '{fullname}' is not in the 'swarmauri.' namespace.")
         return None
