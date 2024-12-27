@@ -51,4 +51,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.agents"]
-example_agent = "swm-example-community-package.agents:ExampleCommunityAgent"
+example_agent = "swm-example-community-package:ExampleCommunityAgent"

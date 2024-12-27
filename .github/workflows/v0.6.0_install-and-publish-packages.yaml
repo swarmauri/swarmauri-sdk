@@ -86,6 +86,7 @@ jobs:
                   sed -i "s|\(path = \"\..*/standards/swarmauri_standard\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
                   sed -i "s|\(path = \"\..*/standards/swm_example_plugin\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
                   sed -i "s|\(path = \"\..*/community/swarmauri_community\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..*/community/swm_example_package\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
 
                   # Show updated pyproject.toml content
                   cat "$package/pyproject.toml"
