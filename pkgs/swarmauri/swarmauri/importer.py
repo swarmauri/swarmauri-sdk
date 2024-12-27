@@ -86,14 +86,14 @@ class SwarmauriImporter:
             entry_points = grouped_entry_points.get(local_namespace, [])
             logger.debug(f"Entry points: '{entry_points}'")
             logger.debug(f"Plugin_name: '{plugin_name}'")
-            
+
             for entry_point in entry_points:
                 if entry_point.name == plugin_name:
                     # Process the plugin via plugin manager
-                    process_plugin(entry_point)
-                    sys.modules[fullname] = entry_point.load()
-                    logger.debug(f"Successfully registered and loaded plugin '{fullname}'")
-                    return True
+                    if process_plugin(entry_point):
+                        sys.modules[fullname] = entry_point.load()
+                        logger.debug(f"Successfully registered and loaded plugin '{fullname}'")
+                        return True
 
         except Exception as e:
             logger.error(f"Failed to register plugin '{fullname}': {e}")
