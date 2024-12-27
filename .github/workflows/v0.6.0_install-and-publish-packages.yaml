@@ -1,7 +1,15 @@
 name: Install and Publish Specified Packages (Package Manager)
 
 on:
-  push:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "The base tag for the release (e.g., v0.6.0)"
+        required: true
+      pre_release:
+        description: "The pre-release identifier (e.g., .dev1, .rc1, .alpha1)"
+        required: false
+        default: ""
 
 jobs:
   test:
@@ -17,6 +25,18 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Extract Version from Tag
+        id: extract-version
+        run: |
+          FULL_TAG="${{ inputs.tag_name }}${{ inputs.pre_release }}"
+          echo "Full tag: $FULL_TAG"
+          
+          # Remove the 'v' prefix if present and extract the version
+          VERSION=${FULL_TAG#v}
+          echo "Extracted version: $VERSION"
+          
+          echo "version=$VERSION" >> $GITHUB_ENV
+
       - name: Create and Activate Virtual Environment
         run: |
           python -m venv $UNIQUE_VENV_PATH
@@ -29,8 +49,18 @@ jobs:
 
       - name: Install toml
         run: |
-            source $UNIQUE_VENV_PATH/bin/activate   
-            pip install toml
+          source $UNIQUE_VENV_PATH/bin/activate   
+          pip install toml
+
+      - name: Set Version in pyproject.toml
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py set-version --directory pkgs --version ${{ env.version }}
+
+      - name: Set Dependency Versions in pyproject.toml
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py set-dependency-versions --directory pkgs --version ${{ env.version }}
 
       - name: Generate poetry.lock
         run: |
@@ -42,16 +72,10 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py poetry-install --directory pkgs --all-extras --dev
 
-      - name: Extract Path Dependencies
-        id: extract-paths
-        run: |
-          source $UNIQUE_VENV_PATH/bin/activate
-          python scripts/manage_packages.py extract-path-dependencies --directory pkgs
-
       - name: Publish from Dependencies
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          python scripts/manage_packages.py publish-from-dependencies --directory pkgs
+          python scripts/manage_packages.py publish-from-dependencies --directory pkgs --username __token__ --password secret_password
 
       - name: Show Installed Packages
         run: |

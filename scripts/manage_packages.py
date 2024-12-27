@@ -83,33 +83,29 @@ def show_pip_freeze():
     run_command("pip freeze")
 
 
-def increment_version(version, directory=None, file=None):
-    """Increment the version in the pyproject.toml file and update path dependencies."""
+def set_version(version, directory=None, file=None):
+    """Set the version in the pyproject.toml file."""
     pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
     if not os.path.isfile(pyproject_path):
         print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Incrementing version to {version} in {pyproject_path}...")
+    print(f"Setting version to {version} in {pyproject_path}...")
     with open(pyproject_path, "r") as f:
         data = toml.load(f)
 
     # Update the version field
-    data["tool"]["poetry"]["version"] = version
-
-    # Update path dependencies
-    dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-    for dep_name, dep_value in dependencies.items():
-        if isinstance(dep_value, dict) and "path" in dep_value:
-            # Remove the `path` key and add a `version` key
-            dep_value.pop("path", None)
-            dep_value["version"] = f"^{version}"
+    if "tool" in data and "poetry" in data["tool"]:
+        data["tool"]["poetry"]["version"] = version
+    else:
+        print(f"Error: Invalid pyproject.toml structure in {pyproject_path}.", file=sys.stderr)
+        sys.exit(1)
 
     # Write the updated content back to the file
     with open(pyproject_path, "w") as f:
         toml.dump(data, f)
 
-    print(f"Version updated to {version} and path dependencies converted to version dependencies in {pyproject_path}.")
+    print(f"Version set to {version} in {pyproject_path}.")
 
 
 def publish_package(directory=None, file=None, username=None, password=None):
@@ -192,9 +188,17 @@ def main():
     # Show pip freeze
     subparsers.add_parser("show-pip-freeze", help="Show installed packages using pip freeze.")
 
-    # Increment version
-    version_parser = subparsers.add_parser("increment-version", parents=[location_parser], help="Increment version.")
+    # Set dependency versions
+    version_parser = subparsers.add_parser(
+        "set-dependency-versions", parents=[location_parser], help="Set dependency versions and update paths."
+    )
     version_parser.add_argument("--version", type=str, required=True, help="The new version.")
+
+    # Set version
+    set_version_parser = subparsers.add_parser(
+        "set-version", parents=[location_parser], help="Set the version in pyproject.toml."
+    )
+    set_version_parser.add_argument("--version", type=str, required=True, help="The new version.")
 
     # Publish
     publish_parser = subparsers.add_parser("publish", parents=[location_parser], help="Publish package to PyPI.")
@@ -209,7 +213,6 @@ def main():
     )
     publish_deps_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
     publish_deps_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
-
 
     args = parser.parse_args()
 
@@ -231,14 +234,17 @@ def main():
     elif args.action == "show-pip-freeze":
         show_pip_freeze()
 
-    elif args.action == "increment-version":
-        increment_version(version=args.version, directory=args.directory, file=args.file)
+    elif args.action == "set-dependency-versions":
+        set_dependency_versions(version=args.version, directory=args.directory, file=args.file)
+
+    elif args.action == "set-version":
+        set_version(version=args.version, directory=args.directory, file=args.file)
 
     elif args.action == "publish":
         publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
 
     elif args.action == "publish-from-dependencies":
-        publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
+        publish_from_dependencies(directory=args.directory, file=args.file, username=args.username, password=args.password)
 
 
 if __name__ == "__main__":
