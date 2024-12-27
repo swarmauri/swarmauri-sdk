@@ -25,7 +25,7 @@ class SwarmauriImporter:
         """
         Locate the module spec for the requested fullname.
 
-        :param fullname: Full module name to locate (e.g., 'swarmauri.toolkits.MyPlugin').
+        :param fullname: Full module name to locate (e.g., 'swarmauri.chunkers.NotRealChunker').
         :param path: Optional path for finding the module.
         :param target: Target module (unused).
         :return: ModuleSpec or None if not found.
@@ -34,7 +34,16 @@ class SwarmauriImporter:
 
         if fullname == "swarmauri" or fullname.startswith("swarmauri."):
             namespace_parts = fullname.split(".")
-            # Check if the module has an external mapping
+
+            # Ensure parent namespace exists
+            parent = '.'.join(namespace_parts[:-1])  # Parent namespace (e.g., 'swarmauri.chunkers')
+            if parent and parent not in sys.modules and '.'.join(namespace_parts[:2]) in self.VALID_NAMESPACES:
+                logger.debug(f"Creating placeholder for parent namespace: {parent}")
+                spec = ModuleSpec(parent, self)
+                spec.submodule_search_locations = []
+                return spec
+
+            # Check for external module mapping
             external_module_path = get_external_module_path(fullname)
             if external_module_path:
                 logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
@@ -48,22 +57,13 @@ class SwarmauriImporter:
                     logger.debug(f"Mapping found: {fullname} -> {external_module_path}")
                     return ModuleSpec(fullname, self)
 
-            # Handle namespace modules (e.g., "swarmauri.toolkits")
-            parent, _, _ = fullname.rpartition(".")
-            if parent and parent not in sys.modules:
-                logger.debug(f"Parent module '{parent}' not found. Cannot create namespace module: {fullname}")
-                return None
-
-            # Create a placeholder for namespace module
-            part = '.'.join(namespace_parts[:2])
-            if part in self.VALID_NAMESPACES:
-                logger.debug(f"Creating placeholder for namespace module: {part}")
-                spec = ModuleSpec(part, self)
-                spec.submodule_search_locations = []
-                return spec
+            # If no mapping or valid plugin, ensure we do not create invalid placeholders
+            logger.debug(f"Module '{fullname}' not found. Returning None.")
+            return None
 
         logger.debug(f"Module '{fullname}' is not in the 'swarmauri.' namespace.")
         return None
+
 
     def _try_register_plugin(self, fullname):
         """
