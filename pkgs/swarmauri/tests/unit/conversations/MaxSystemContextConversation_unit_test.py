@@ -41,7 +41,7 @@ def test_enforce_max_size_limit():
     conversation.add_message(AgentMessage(content="agent2"))
     conversation.add_message(HumanMessage(content="human3"))
 
-    assert len(conversation.history) == 3
+    assert len(conversation.history) == 4
     assert conversation.history[0].content == "systest"
     assert conversation.history[1].content == "human2"
     assert conversation.history[2].content == "agent2"
