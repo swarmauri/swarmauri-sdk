@@ -113,8 +113,33 @@ def increment_version(version, directory=None, file=None):
 
 
 def publish_package(directory=None, file=None, username=None, password=None):
-    """Build and publish the package to PyPI recursively."""
-    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
+    """Build and publish packages to PyPI from a directory or specific file."""
+    if directory:
+        print(f"Publishing all packages in {directory} and its subdirectories...")
+        for root, dirs, files in os.walk(directory):
+            if "pyproject.toml" in files:
+                print(f"Publishing package from {root}...")
+                run_command("poetry build", cwd=root)
+                run_command(
+                    f"poetry publish --username {username} --password {password}",
+                    cwd=root,
+                )
+    elif file:
+        location = os.path.dirname(file)
+        print(f"Publishing package from {location}...")
+        run_command("poetry build", cwd=location)
+        run_command(
+            f"poetry publish --username {username} --password {password}",
+            cwd=location,
+        )
+    else:
+        print("Error: Either a directory or a file must be specified.", file=sys.stderr)
+        sys.exit(1)
+
+
+def publish_from_dependencies(directory=None, file=None, username=None, password=None):
+    """Build and publish packages based on path dependencies from a pyproject.toml file."""
+    pyproject_path = file if file else os.path.join(directory, "pyproject.toml")
     if not os.path.isfile(pyproject_path):
         print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
@@ -122,19 +147,19 @@ def publish_package(directory=None, file=None, username=None, password=None):
     base_dir = os.path.dirname(pyproject_path)
     dependencies = extract_path_dependencies(pyproject_path)
 
-    # First, publish all dependencies recursively
+    print("Building and publishing packages based on path dependencies...")
     for package_path in dependencies:
         full_path = os.path.join(base_dir, package_path)
         if os.path.isdir(full_path) and os.path.isfile(os.path.join(full_path, "pyproject.toml")):
-            print(f"Recursively publishing package from {full_path}...")
-            publish_package(directory=full_path, username=username, password=password)
+            print(f"Building and publishing package: {full_path}")
+            run_command("poetry build", cwd=full_path)
+            run_command(
+                f"poetry publish --username {username} --password {password}",
+                cwd=full_path,
+            )
         else:
             print(f"Skipping {full_path}: not a valid package directory")
 
-    # Finally, publish the current package
-    print(f"Publishing package from {base_dir}...")
-    run_command("poetry build", cwd=base_dir)
-    run_command(f"poetry publish --username {username} --password {password}", cwd=base_dir)
 
 def main():
     parser = argparse.ArgumentParser(description="Manage Python packages in a monorepo.")
@@ -176,6 +201,16 @@ def main():
     publish_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
     publish_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
 
+    # Publish from dependencies
+    publish_deps_parser = subparsers.add_parser(
+        "publish-from-dependencies",
+        parents=[location_parser],
+        help="Build and publish packages based on path dependencies from pyproject.toml."
+    )
+    publish_deps_parser.add_argument("--username", type=str, required=True, help="PyPI username.")
+    publish_deps_parser.add_argument("--password", type=str, required=True, help="PyPI password.")
+
+
     args = parser.parse_args()
 
     # Action dispatch
@@ -200,6 +235,9 @@ def main():
         increment_version(version=args.version, directory=args.directory, file=args.file)
 
     elif args.action == "publish":
+        publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
+
+    elif args.action == "publish-from-dependencies":
         publish_package(directory=args.directory, file=args.file, username=args.username, password=args.password)
 
 

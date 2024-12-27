@@ -1,0 +1,64 @@
+name: Install and Publish Specified Packages (Package Manager)
+
+on:
+  push:
+
+jobs:
+  test:
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+    runs-on: self-hosted
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create and Activate Virtual Environment
+        run: |
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate          
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Install toml
+        run: |
+            source $UNIQUE_VENV_PATH/bin/activate   
+            pip install toml
+
+      - name: Generate poetry.lock
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py poetry-lock --directory pkgs
+
+      - name: Install Dependencies
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py poetry-install --directory pkgs --all-extras --dev
+
+      - name: Extract Path Dependencies
+        id: extract-paths
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py extract-path-dependencies --directory pkgs
+
+      - name: Publish from Dependencies
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py publish-from-dependencies --directory pkgs
+
+      - name: Show Installed Packages
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python scripts/manage_packages.py show-pip-freeze
+
+      - name: Clean Up Virtual Environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}
