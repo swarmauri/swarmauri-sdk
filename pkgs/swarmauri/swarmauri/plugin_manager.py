@@ -253,7 +253,7 @@ def determine_plugin_manager(entry_point):
 
         # First-Class and Second-Class Plugins: Group starts with "swarmauri."
         elif entry_point.group.startswith("swarmauri."):
-            resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
+            resource_kind = entry_point.group if "." in entry_point.group else None
             resource_interface = get_interface_for_resource(resource_kind)
 
             # Attempt First-Class validation
