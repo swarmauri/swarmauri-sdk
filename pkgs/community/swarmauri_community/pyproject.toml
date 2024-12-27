@@ -17,8 +17,8 @@ classifiers = [
 python = ">=3.10,<3.13"
 
 # Swarmauri
-swarmauri_core = { path = "../core" }
-swarmauri_base = { path = "../base" }
+swarmauri_core = { path = "../../core" }
+swarmauri_base = { path = "../../base" }
 
 # We should remove and only rely on httpx
 requests = "^2.32.3"

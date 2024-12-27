@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri"
 version = "0.6.0.dev1"
-description = "This repository indexes components within the Swarmauri framework."
+description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -17,7 +17,8 @@ classifiers = [
 python = ">=3.10,<3.13"
 swarmauri_core = { path = "../core" }
 swarmauri_base = { path = "../base" }
-swarmauri_standard = { path = "../standard" }
+swarmauri_standard = { path = "../standards/swarmauri_standard" }
+
 toml = "^0.10.2"
 httpx = "^0.27.0"
 joblib = "^1.4.0"

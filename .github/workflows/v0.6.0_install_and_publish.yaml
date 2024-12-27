@@ -30,7 +30,6 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
         echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
-
     - name: Install Poetry-Dynamic-Versioning Plugin
       run: poetry self add poetry-dynamic-versioning
 

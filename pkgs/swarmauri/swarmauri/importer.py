@@ -45,30 +45,25 @@ class SwarmauriImporter:
 
     def _try_discover_plugin(self, fullname):
         """
-        Discover and register a plugin dynamically.
+        Attempt to discover and register a plugin dynamically.
 
-        :param fullname: Full namespace path of the plugin (e.g., 'swarmauri.agents.MyPlugin').
+        :param fullname: Full namespace path of the plugin (e.g., 'swarmauri.toolkits.MyPlugin').
         :return: True if the plugin was successfully discovered and registered, False otherwise.
         """
         try:
-            # Extract plugin name and resource kind
-            resource_kind, _, plugin_name = fullname.rpartition(".")
+            grouped_entry_points = get_entry_points()
 
-            # Fetch all available entry points
-            entry_points = get_entry_points()
-            entry_point = next((ep for ep in entry_points if ep.name == plugin_name), None)
-            if not entry_point:
-                logger.error(f"No entry point found for plugin '{plugin_name}'.")
-                return False
-
-            # Delegate validation and registration to plugin_manager
-            plugin_class = entry_point.load()
-            validate_and_register_plugin(entry_point, plugin_class, None)
-            return True
+            for namespace, entry_points in grouped_entry_points.items():
+                for entry_point in entry_points:
+                    if fullname == f"swarmauri.{namespace}.{entry_point.name}":
+                        plugin_class = entry_point.load()
+                        sys.modules[fullname] = plugin_class
+                        return True
 
         except Exception as e:
-            logger.error(f"Error during plugin discovery for '{fullname}': {e}")
+            logger.error(f"Error discovering plugin '{fullname}': {e}")
             return False
+
 
     def create_module(self, spec):
         """
