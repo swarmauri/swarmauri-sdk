@@ -17,24 +17,24 @@ def get_entry_points(group_prefix="swarmauri."):
     Fetch and group entry points based on their namespaces from pyproject.toml.
 
     :param group_prefix: Prefix to filter entry points (default: 'swarmauri.').
-    :return: A dictionary mapping namespaces to entry points.
+    :return: A dictionary mapping namespaces to lists of entry points.
     """
     try:
+        # Fetch all entry points
         all_entry_points = importlib.metadata.entry_points()
-        grouped_entry_points = {}
 
+        # Filter entry points by group prefix
+        grouped_entry_points = {}
         for ep in all_entry_points:
             if ep.group.startswith(group_prefix):
-                namespace = ep.group[len(group_prefix):]  # Extract namespace (e.g., 'toolkits' or 'tools')
-                if namespace not in grouped_entry_points:
-                    grouped_entry_points[namespace] = []
-                grouped_entry_points[namespace].append(ep)
+                namespace = ep.group[len(group_prefix):]  # Extract namespace
+                grouped_entry_points.setdefault(namespace, []).append(ep)
 
         return grouped_entry_points
+
     except Exception as e:
         logger.error(f"Failed to retrieve entry points: {e}")
         return {}
-
 
 class PluginManagerBase:
     """
