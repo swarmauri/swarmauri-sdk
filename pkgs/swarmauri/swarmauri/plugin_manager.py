@@ -218,7 +218,7 @@ def process_plugin(entry_point):
     :param entry_point: The entry point object.
     """
     try:
-        logger.debug(f"Processing plugin by entry_point: {ep}")
+        logger.debug(f"Processing plugin by entry_point: {entry_point}")
         plugin_class = entry_point.load()
         logger.debug(f"Plugin class detected: {plugin_class}")
         validate_and_register_plugin(entry_point, plugin_class, None)
