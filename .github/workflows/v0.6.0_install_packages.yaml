@@ -21,11 +21,6 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Extract Path Dependencies
-        id: extract-paths
-        run: |
-          python scripts/extract_path_dependencies.py --pyproject pyproject.toml
-
       - name: Generate poetry.lock (if missing)
         run: |
           if [ ! -f "poetry.lock" ]; then
@@ -42,6 +37,12 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs/
           poetry install --no-cache -vv --all-extras --with dev
+
+      - name: Extract Path Dependencies
+        id: extract-paths
+        run: |
+          cd pkgs/
+          python scripts/extract_path_dependencies.py --pyproject pyproject.toml
 
       - name: Build Specified Packages
         run: |
