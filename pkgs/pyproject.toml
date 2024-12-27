@@ -18,7 +18,7 @@ swarmauri = { path = "./swarmauri" }
 swarmauri_standard = { path = "./standards/swarmauri_standard", extras=["full"] }
 swm_example_package = { path = "./standards/swm_example_package" }
 swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
-swm_example_community_package = { path = "./community/swm_example_package" }
+swm_example_community_package = { path = "./community/swm_example_community_package" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0"
