@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 FIRST_CLASS_REGISTRY = {
- 'swarmauri.agents.ExampleAgent': 'swm_example_plugin.ExampleAgent',
+ 'swarmauri.agents.ExampleAgent': 'swm_example_package.ExampleAgent',
  'swarmauri.agents.QAAgent': 'swarmauri_standard.agents.QAAgent',
  'swarmauri.agents.RagAgent': 'swarmauri_standard.agents.RagAgent',
  'swarmauri.agents.SimpleConversationAgent': 'swarmauri_standard.agents.SimpleConversationAgent',
