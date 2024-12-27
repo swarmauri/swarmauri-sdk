@@ -20,19 +20,19 @@ except Exception as e:
     raise
 
 # Optionally discover and register plugins on initialization
-try:
-    discovery_flag = os.getenv("ENABLE_PLUGIN_DISCOVERY", "true").lower()
-    if discovery_flag not in {"true", "false"}:
-        logger.warning(f"Unexpected value for ENABLE_PLUGIN_DISCOVERY: {discovery_flag}. Defaulting to 'true'.")
-        discovery_flag = "true"
+# try:
+#     discovery_flag = os.getenv("ENABLE_PLUGIN_DISCOVERY", "true").lower()
+#     if discovery_flag not in {"true", "false"}:
+#         logger.warning(f"Unexpected value for ENABLE_PLUGIN_DISCOVERY: {discovery_flag}. Defaulting to 'true'.")
+#         discovery_flag = "true"
 
-    if discovery_flag == "true":
-        logger.info("Discovering and registering plugins...")
-        discover_and_register_plugins()
-        logger.info("Plugin discovery and registration completed.")
-    else:
-        logger.info("Plugin discovery is disabled by ENABLE_PLUGIN_DISCOVERY flag.")
+#     if discovery_flag == "true":
+#         logger.info("Discovering and registering plugins...")
+#         discover_and_register_plugins()
+#         logger.info("Plugin discovery and registration completed.")
+#     else:
+#         logger.info("Plugin discovery is disabled by ENABLE_PLUGIN_DISCOVERY flag.")
 
-except Exception as e:
-    logger.error(f"Failed to discover and register plugins: {e}")
-    raise
+# except Exception as e:
+#     logger.error(f"Failed to discover and register plugins: {e}")
+#     raise
