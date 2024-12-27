@@ -221,8 +221,10 @@ def process_plugin(entry_point):
         plugin_class = entry_point.load()
         logger.debug(f"Plugin class detected: {plugin_class}")
         validate_and_register_plugin(entry_point, plugin_class, None)
+        return True
     except Exception as e:
         logger.error(f"Failed to process plugin '{entry_point.name}': {e}")
+        return False
 
 
 def discover_and_register_plugins(group_prefix="swarmauri."):
@@ -255,6 +257,8 @@ def determine_plugin_manager(entry_point):
         elif entry_point.group.startswith("swarmauri."):
             resource_kind = entry_point.group if "." in entry_point.group else None
             resource_interface = get_interface_for_resource(resource_kind)
+            logger.debug(f"Resource kind: '{resource_kind}'")
+            logger.debug(f"Resource interface: '{resource_interface}'")
 
             # Attempt First-Class validation
             try:
