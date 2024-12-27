@@ -108,6 +108,35 @@ def set_version(version, directory=None, file=None):
     print(f"Version set to {version} in {pyproject_path}.")
 
 
+def set_dependency_versions(version, directory=None, file=None):
+    """Set the version in the pyproject.toml file and update path dependencies."""
+    pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
+    if not os.path.isfile(pyproject_path):
+        print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Setting version to {version} in {pyproject_path}...")
+    with open(pyproject_path, "r") as f:
+        data = toml.load(f)
+
+    # Update the version field
+    data["tool"]["poetry"]["version"] = version
+
+    # Update path dependencies
+    dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+    for dep_name, dep_value in dependencies.items():
+        if isinstance(dep_value, dict) and "path" in dep_value:
+            # Remove the `path` key and add a `version` key
+            dep_value.pop("path", None)
+            dep_value["version"] = f"^{version}"
+
+    # Write the updated content back to the file
+    with open(pyproject_path, "w") as f:
+        toml.dump(data, f)
+
+    print(f"Version set to {version} and path dependencies converted to version dependencies in {pyproject_path}.")
+
+
 def publish_package(directory=None, file=None, username=None, password=None):
     """Build and publish packages to PyPI from a directory or specific file."""
     if directory:
