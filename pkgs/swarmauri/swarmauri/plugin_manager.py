@@ -64,7 +64,9 @@ def get_entry_points(group_prefix="swarmauri."):
             
             # Ensure the group attribute exists and matches the prefix
             if hasattr(ep, "group") and ep.group.startswith(group_prefix):
+                logger.debug(f"Match found: {ep}")
                 namespace = ep.group[len(group_prefix):]
+                logger.debug(f"Grouped Namespace: {namespace}")
                 grouped_entry_points.setdefault(namespace, []).append(ep)
 
         logger.debug(f"Returning the following grouped_entry_points: {grouped_entry_points}")
