@@ -42,7 +42,7 @@ jobs:
         id: extract-paths
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          poetry run python scripts/extract_path_dependencies.py --pyproject pkgs/pyproject.toml
+          poetry run python ../scripts/extract_path_dependencies.py --pyproject pkgs/pyproject.toml
 
       - name: Build Specified Packages
         run: |
