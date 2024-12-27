@@ -32,9 +32,9 @@ def poetry_lock(directory=None, file=None, extras=None, with_dev=False):
     print(f"Generating poetry.lock in {location}...")
     command = ["poetry", "lock"]
     if extras:
-        command += [f"--with {extras}"]
+        command += [f"--extras {extras}"]
     if with_dev:
-        command.append("--with dev")
+        command.append("--with-dev")
     run_command(" ".join(command), cwd=location)
 
 
