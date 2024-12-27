@@ -15,7 +15,7 @@ pydantic = "^2.0"
 swarmauri_core = { path = "./core" }
 swarmauri_base = { path = "./base" }
 swarmauri = { path = "./swarmauri" }
-swarmauri_standard = { path = "./standards/swarmauri_standard", extras=["full"] }
+#swarmauri_standard = { path = "./standards/swarmauri_standard", extras=["full"] }
 #swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
 
 [tool.poetry.dev-dependencies]

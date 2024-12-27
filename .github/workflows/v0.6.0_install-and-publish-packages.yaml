@@ -37,6 +37,10 @@ jobs:
           
           echo "version=$VERSION" >> $GITHUB_ENV
 
+      - name: Create and Activate Virtual Environment
+        run: |
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate          
 
       - name: Install Poetry
         run: |
@@ -48,26 +52,25 @@ jobs:
 
       - name: Install toml
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate   
           pip install toml 
 
       - name: Set Version in pyproject.toml
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py set-version --directory pkgs --version ${{ env.version }}
 
       - name: Set Dependency Versions in pyproject.toml
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py set-dependency-versions --directory pkgs --version ${{ env.version }}
           cat pkgs/pyproject.toml
           cat pkgs/standards/swarmauri_standard/pyproject.toml
 
       - name: Generate poetry.lock
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           python scripts/manage_packages.py poetry-lock --directory pkgs
-
-      - name: Create and Activate Virtual Environment
-        run: |
-          python -m venv $UNIQUE_VENV_PATH
-          source $UNIQUE_VENV_PATH/bin/activate          
 
       - name: Install Dependencies
         run: |
