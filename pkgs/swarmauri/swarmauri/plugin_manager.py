@@ -70,7 +70,7 @@ class PluginManagerBase:
         """
         raise NotImplementedError("Validation logic must be implemented in subclass.")
 
-    def register(self, name, plugin_class, resource_kind):
+    def register(self, entry_point):
         """
         Register the plugin. Must be implemented by subclasses.
         """
@@ -139,31 +139,26 @@ class SecondClassPluginManager(PluginManagerBase):
                     f"attempts to override first-class citizen (module: {registered_module_path})."
                 )
 
-    def register(self, entry_points):
+    def register(self, entry_point):
         """
         Register second-class plugins, iterating over multiple entry points.
 
         :param entry_points: List of entry points associated with a namespace.
         """
         logger.debug(f"Attempting second class registration of entry points: '{entry_points}'")
-        for entry_point in entry_points:
-            name = entry_point.name
-            namespace = entry_point.group
-            resource_path = f"{namespace}.{name}"
+        
+        name = entry_point.name
+        namespace = entry_point.group
+        resource_path = f"{namespace}.{name}"
 
-            if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
-                raise ValueError(f"Plugin '{name}' is already registered under '{resource_path}'.")
+        if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
+            raise ValueError(f"Plugin '{name}' is already registered under '{resource_path}'.")
 
-            # Dynamically load the plugin class
-            plugin_class = entry_point.load()
+        # Dynamically load the plugin class
+        plugin_class = entry_point.load()
 
-            # Validate against first-class citizens
-            resource_kind = namespace[len("swarmauri."):] if namespace.startswith("swarmauri.") else None
-            resource_interface = get_interface_for_resource(resource_kind)
-            self.validate(name, plugin_class, resource_kind, resource_interface)
-
-            create_entry("second", resource_path, plugin_class.__module__)
-            logger.debug(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
+        create_entry("second", resource_path, plugin_class.__module__)
+        logger.debug(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
 
 
 
@@ -177,12 +172,13 @@ class ThirdClassPluginManager(PluginManagerBase):
         """
         logging.debug(F"Passing through Third Class validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}")
 
-    def register(self, name, plugin_class, resource_kind):
+    def register(self, entry_point):
         """
         Register the plugin as a third-class citizen.
         """
-        logger.debug(f"Attempting third class registration of entry points: '{entry_points}'")
+        logger.debug(f"Attempting third class registration of entry points: '{entry_point}'")
         resource_path = f"swarmauri.plugins.{name}"
+        plugin_class = entry_point.load()
         if read_entry(resource_path) or resource_path in THIRD_CLASS_REGISTRY:
             raise ValueError(f"Plugin '{name}' is already registered as a third-class citizen.")
 
@@ -217,6 +213,8 @@ def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
     logger.debug(f"Starting validation and registration attempt for: '{entry_point}' '{plugin_class}' '{resource_interface}'")
     resource_kind = entry_point.group if "." in entry_point.group else None
     resource_interface = get_interface_for_resource(resource_kind)
+    logger.debug(f"validate_and_register_plugin:: Resource kind: '{resource_kind}'")
+    logger.debug(f"validate_and_register_plugin:: Resource interface: '{resource_interface}'")
 
     plugin_manager = determine_plugin_manager(entry_point)
     if not plugin_manager:
@@ -224,7 +222,7 @@ def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
         return
  
     plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
-    plugin_manager.register(entry_point.name, plugin_class, resource_kind)
+    plugin_manager.register(entry_point)
 
 
 
