@@ -55,12 +55,12 @@ class SwarmauriImporter:
                 return None
 
             # Create a placeholder for namespace module
-            # part = '.'.join(namespace_parts[:2])
-            # if part in self.VALID_NAMESPACES:
-            #     logger.debug(f"Creating placeholder for namespace module: {part}")
-            #     spec = ModuleSpec(part, self)
-            #     spec.submodule_search_locations = []
-            #     return spec
+            part = '.'.join(namespace_parts[:2])
+            if part in self.VALID_NAMESPACES:
+                logger.debug(f"Creating placeholder for namespace module: {part}")
+                spec = ModuleSpec(part, self)
+                spec.submodule_search_locations = []
+                return spec
 
         logger.debug(f"Module '{fullname}' is not in the 'swarmauri.' namespace.")
         return None
@@ -96,21 +96,39 @@ class SwarmauriImporter:
             return False
 
     def create_module(self, spec):
+        """
+        Create a module instance. For namespace modules, create a new ModuleType.
+
+        :param spec: ModuleSpec object containing metadata for the module.
+        :return: The created or imported module.
+        """
+        logger.debug(f"create_module called for: {spec.name}")
+
+        # Check if the module already exists in sys.modules
         if spec.name in sys.modules:
+            logger.debug(f"Module '{spec.name}' already exists in sys.modules. Returning cached module.")
             return sys.modules[spec.name]
 
+        # Handle modules mapped to an external path
         external_module_path = get_external_module_path(spec.name)
         if external_module_path:
+            logger.debug(f"External module path found for '{spec.name}': {external_module_path}")
             module = importlib.import_module(external_module_path)
             sys.modules[spec.name] = module
+            logger.debug(f"Successfully imported external module '{spec.name}' from '{external_module_path}'.")
             return module
 
+        # Handle namespace modules
         if spec.submodule_search_locations is not None:
+            logger.debug(f"Creating namespace module for '{spec.name}'.")
             module = ModuleType(spec.name)
             module.__path__ = spec.submodule_search_locations
             sys.modules[spec.name] = module
+            logger.debug(f"Namespace module '{spec.name}' created with path: {spec.submodule_search_locations}.")
             return module
 
+        # If no conditions match, raise an ImportError
+        logger.error(f"Cannot create module '{spec.name}'. Raising ImportError.")
         raise ImportError(f"Cannot create module {spec.name}")
 
 
