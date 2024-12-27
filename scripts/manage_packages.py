@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 import toml
-
+from tomlkit import parse, table, inline_table, dumps
 
 def run_command(command, cwd=None):
     """Run a shell command and handle errors."""
@@ -108,40 +108,47 @@ def set_version(version, directory=None, file=None):
     print(f"Version set to {version} in {pyproject_path}.")
 
 
+
+
+
 def set_dependency_versions(version, directory=None, file=None):
-    """Update path dependencies in the pyproject.toml file with the given version."""
+    """
+    Set version of dependencies in a pyproject.toml file and replace path-based dependencies.
+
+    :param version: New version to set for all dependencies.
+    :param directory: Directory containing pyproject.toml.
+    :param file: Specific pyproject.toml file path.
+    """
     pyproject_path = os.path.join(directory, "pyproject.toml") if directory else file
     if not os.path.isfile(pyproject_path):
         print(f"pyproject.toml not found at {pyproject_path}", file=sys.stderr)
         sys.exit(1)
 
     print(f"Setting dependency versions to {version} in {pyproject_path}...")
+
+    # Read and parse the TOML file
     with open(pyproject_path, "r") as f:
-        data = toml.load(f)
+        toml_data = parse(f.read())
 
-    dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-    updated_dependencies = {}
+    # Access dependencies
+    dependencies = toml_data["tool"]["poetry"]["dependencies"]
 
-    for dep_name, dep_value in dependencies.items():
+    # Iterate over dependencies and update paths to versions
+    for dep_name, dep_value in list(dependencies.items()):
         if isinstance(dep_value, dict) and "path" in dep_value:
-            # Remove the `path` key and set the `version` key while preserving other keys
-            updated_dep = {"version": f"^{version}"}
-            for key in dep_value:
-                if key != "path":
-                    updated_dep[key] = dep_value[key]
-            updated_dependencies[dep_name] = updated_dep
-        else:
-            # Leave other dependencies unchanged
-            updated_dependencies[dep_name] = dep_value
+            # Convert to an inline table
+            new_dep = inline_table()
+            new_dep["version"] = f"^{version}"
+            if "extras" in dep_value:
+                new_dep["extras"] = dep_value["extras"]
+            dependencies[dep_name] = new_dep
 
-    # Write back to the `dependencies` section
-    data["tool"]["poetry"]["dependencies"] = updated_dependencies
-
-    # Serialize and write the updated toml back to the file
+    # Write the updated TOML data back to the file
     with open(pyproject_path, "w") as f:
-        toml.dump(data, f)
+        f.write(dumps(toml_data))
 
-    print(f"Dependency versions set to {version} in {pyproject_path}.")
+    print(f"Dependencies updated with version {version} in {pyproject_path}.")
+
 
 
 
