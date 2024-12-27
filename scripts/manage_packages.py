@@ -92,10 +92,11 @@ def set_version(version, directory=None, file=None):
             if "pyproject.toml" in files:
                 pyproject_path = os.path.join(root, "pyproject.toml")
                 print(f"Setting version to {version} in {pyproject_path}...")
+
                 with open(pyproject_path, "r") as f:
                     data = toml.load(f)
 
-                # Update the version field
+                # Update the version field if it's a valid structure
                 if "tool" in data and "poetry" in data["tool"]:
                     data["tool"]["poetry"]["version"] = version
                 else:
@@ -110,10 +111,11 @@ def set_version(version, directory=None, file=None):
     elif file:
         pyproject_path = file
         print(f"Setting version to {version} in {pyproject_path}...")
+
         with open(pyproject_path, "r") as f:
             data = toml.load(f)
 
-        # Update the version field
+        # Update the version field if it's a valid structure
         if "tool" in data and "poetry" in data["tool"]:
             data["tool"]["poetry"]["version"] = version
         else:
@@ -145,10 +147,10 @@ def set_dependency_versions(version, directory=None, file=None):
 
                 for dep_name, dep_value in dependencies.items():
                     if isinstance(dep_value, dict) and "path" in dep_value:
-                        # Remove the `path` key and set the `version` key while preserving other keys
+                        # Maintain the `path` and only update the `version` key
                         updated_dep = {"version": f"^{version}"}
                         for key in dep_value:
-                            if key != "path":
+                            if key != "path":  # Preserve the `path` key
                                 updated_dep[key] = dep_value[key]
                         updated_dependencies[dep_name] = updated_dep
 
@@ -185,10 +187,10 @@ def set_dependency_versions(version, directory=None, file=None):
 
         for dep_name, dep_value in dependencies.items():
             if isinstance(dep_value, dict) and "path" in dep_value:
-                # Remove the `path` key and set the `version` key while preserving other keys
+                # Maintain the `path` and only update the `version` key
                 updated_dep = {"version": f"^{version}"}
                 for key in dep_value:
-                    if key != "path":
+                    if key != "path":  # Preserve the `path` key
                         updated_dep[key] = dep_value[key]
                 updated_dependencies[dep_name] = updated_dep
 
@@ -213,6 +215,7 @@ def set_dependency_versions(version, directory=None, file=None):
             toml.dump(data, f)
 
         print(f"Dependency versions set to {version} in {pyproject_path}.")
+
 
 
 
