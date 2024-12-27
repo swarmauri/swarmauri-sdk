@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 import toml
-from tomlkit import parse, table, inline_table, dumps
+import tomlkit
 
 def run_command(command, cwd=None):
     """Run a shell command and handle errors."""
