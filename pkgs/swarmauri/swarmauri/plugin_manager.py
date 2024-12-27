@@ -149,6 +149,7 @@ class SecondClassPluginManager(PluginManagerBase):
 
         :param entry_points: List of entry points associated with a namespace.
         """
+        logger.debug(f"Attempting second class registration of entry points: '{entry_points}'")
         for entry_point in entry_points:
             name = entry_point.name
             namespace = entry_point.group
@@ -184,6 +185,7 @@ class ThirdClassPluginManager(PluginManagerBase):
         """
         Register the plugin as a third-class citizen.
         """
+        logger.debug(f"Attempting third class registration of entry points: '{entry_points}'")
         resource_path = f"swarmauri.plugins.{name}"
         if read_entry(resource_path) or resource_path in THIRD_CLASS_REGISTRY:
             raise ValueError(f"Plugin '{name}' is already registered as a third-class citizen.")
@@ -200,13 +202,14 @@ def validate_and_register_plugin(entry_point, plugin_class, resource_interface):
     :param plugin_class: The class implementing the plugin.
     :param resource_interface: The abstract base class/interface for validation.
     """
+    logger.debug(f"Starting validation and registration attempt for: '{entry_points}' '{plugin_class}' '{resource_interface}'")
     resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
 
     plugin_manager = determine_plugin_manager(entry_point)
     if not plugin_manager:
         logger.warning(f"Unrecognized entry point group: {entry_point.group}")
         return
-
+ 
     plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
     plugin_manager.register(entry_point.name, plugin_class, resource_kind)
 
