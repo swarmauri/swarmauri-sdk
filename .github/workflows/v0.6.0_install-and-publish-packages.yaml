@@ -68,27 +68,36 @@ jobs:
 
       - name: Update pyproject.toml Files
         run: |
-          for package in pkgs/*; do
-            if [ -d "$package" ] && [ -f "$package/pyproject.toml" ]; then
-              echo "Processing $package"
-              cd "$package"
-              
-              # Update version field in pyproject.toml
-              sed -i "s/^version = \".*\"/version = \"${{ env.version }}\"/" pyproject.toml
+          # Function to process each directory
+          process_directory() {
+            for package in "$1"/*; do
+              if [ -d "$package" ]; then
+                if [ -f "$package/pyproject.toml" ]; then
+                  echo "Processing $package"
 
-              # Replace path dependencies with the extracted version
-              sed -i "s/{ path = \"..\/core\" }/\"^${{ env.version }}\"/" pyproject.toml
-              sed -i "s/{ path = \"..\/base\" }/\"^${{ env.version }}\"/" pyproject.toml
-              sed -i "s/{ path = \"..\/..\/core\" }/\"^${{ env.version }}\"/" pyproject.toml
-              sed -i "s/{ path = \"..\/..\/base\" }/\"^${{ env.version }}\"/" pyproject.toml
-              sed -i "s/{ path = \"..\/standards\/swarmauri_standard\" }/\"^${{ env.version }}\"/" pyproject.toml
-              sed -i "s/{ path = \"..\/community\/swarmauri_community\" }/\"^${{ env.version }}\"/" pyproject.toml
-              
-              cat pyproject.toml
-              cd -
-            fi
-          done
+                  # Update version field in pyproject.toml
+                  sed -i "s/^version = \".*\"/version = \"${{ env.version }}\"/" "$package/pyproject.toml"
 
+                  # Replace path dependencies with the extracted version
+                  sed -i "s|\(path = \"\..*/core\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..*/base\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..\../core\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..\../base\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..*/standards/swarmauri_standard\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+                  sed -i "s|\(path = \"\..*/community/swarmauri_community\"\)|version = \"^${{ env.version }}\"|" "$package/pyproject.toml"
+
+                  # Show updated pyproject.toml content
+                  cat "$package/pyproject.toml"
+                fi
+
+                # Recurse into subdirectories
+                process_directory "$package"
+              fi
+            done
+          }
+
+          # Start processing from pkgs directory
+          process_directory "pkgs"
       - name: Publish from Dependencies
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
