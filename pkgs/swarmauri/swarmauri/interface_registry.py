@@ -17,6 +17,7 @@ INTERFACE_REGISTRY = {
     "swarmauri.chunkers": ChunkerBase,
     #"swarmauri.conversations": ConversationBase,
     #"swarmauri.llms": LLMBase,
+    "swarmauri.utils": None
 }
 
 def get_interface_for_resource(resource_kind):
