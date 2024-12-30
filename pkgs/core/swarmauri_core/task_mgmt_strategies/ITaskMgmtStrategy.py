@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict
 
 
-class ITaskMgtStrategy(ABC):
+class ITaskMgmtStrategy(ABC):
     """Abstract base class for TaskStrategy."""
 
     @abstractmethod

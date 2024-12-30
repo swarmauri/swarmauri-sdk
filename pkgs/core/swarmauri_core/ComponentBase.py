@@ -62,7 +62,7 @@ class ResourceTypes(Enum):
     PIPELINE = "Pipeline"
     SERVICE_REGISTRY = "ServiceRegistry"
     CONTROL_PANEL = "ControlPanel"
-    TASK_MGT_STRATEGY = "TaskMgtStrategy"
+    TASK_MGMT_STRATEGY = "TaskMgmtStrategy"
 
 def generate_id() -> str:
     return str(uuid4())

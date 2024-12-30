@@ -26,7 +26,7 @@ from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverter
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_base.swarms.SwarmBase import SwarmBase
-from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
@@ -57,7 +57,7 @@ INTERFACE_REGISTRY = {
     "swarmauri.service_registries": ServiceRegistryBase,
     "swarmauri.state": StateBase,
     "swarmauri.swarms": SwarmBase,
-    "swarmauri.task_mgt_strategies": TaskMgtStrategyBase,
+    "swarmauri.task_mgmt_strategies": TaskMgmtStrategyBase,
     "swarmauri.toolkits": ToolkitBase,
     "swarmauri.tools": ToolBase,
     "swarmauri.tracing": None,

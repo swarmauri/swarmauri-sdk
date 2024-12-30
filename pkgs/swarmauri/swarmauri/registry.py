@@ -119,7 +119,7 @@ FIRST_CLASS_REGISTRY = {
  'swarmauri.service_registries.ServiceRegistry': 'swarmauri_standard.service_registries.ServiceRegistry',
  'swarmauri.state.DictState': 'swarmauri_standard.state.DictState',
  'swarmauri.swarms.Swarm': 'swarmauri_standard.swarms.Swarm',
- 'swarmauri.task_mgt_strategies.RoundRobinStrategy': 'swarmauri_standard.task_mgt_strategies.RoundRobinStrategy',
+ 'swarmauri.task_mgmt_strategies.RoundRobinStrategy': 'swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy',
  'swarmauri.toolkits.AccessibilityToolkit': 'swarmauri_standard.toolkits.AccessibilityToolkit',
  'swarmauri.toolkits.Toolkit': 'swarmauri_standard.toolkits.Toolkit',
  'swarmauri.tools.AdditionTool': 'swarmauri_standard.tools.AdditionTool',

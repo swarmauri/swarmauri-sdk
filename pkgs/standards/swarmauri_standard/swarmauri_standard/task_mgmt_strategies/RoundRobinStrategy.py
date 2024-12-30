@@ -1,10 +1,10 @@
 from typing import Callable, Dict, Any, List
-from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from queue import Queue
 import logging
 
 
-class RoundRobinStrategy(TaskMgtStrategyBase):
+class RoundRobinStrategy(TaskMgmtStrategyBase):
     """Round-robin task assignment strategy."""
 
     task_queue: Queue = Queue()  # Synchronous task queue for incoming tasks

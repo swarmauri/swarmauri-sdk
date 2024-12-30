@@ -2,16 +2,16 @@ from abc import abstractmethod
 
 from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.task_mgt_strategies.ITaskMgtStrategy import ITaskMgtStrategy
+from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import ITaskMgmtStrategy
 from typing import Any, Callable, Dict, Literal, Optional
 
 
-class TaskMgtStrategyBase(ITaskMgtStrategy, ComponentBase):
+class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
     """Base class for TaskStrategy."""
 
-    type: Literal["TaskMgtStrategyBase"] = "TaskMgtStrategyBase"
+    type: Literal["TaskMgmtStrategyBase"] = "TaskMgmtStrategyBase"
     resource: Optional[str] = Field(
-        default=ResourceTypes.TASK_MGT_STRATEGY.value, frozen=True
+        default=ResourceTypes.TASK_MGMT_STRATEGY.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
