@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from swarmauri_standard.utils.lazy_loader import LazyLoader  # Ensure correct import path
+from swarmauri_standard.utils.LazyLoader import LazyLoader  # Ensure correct import path
 
 # List of LLMs (Large Language Models) names (module paths) and corresponding class names
 llms_files = [

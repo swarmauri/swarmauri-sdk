@@ -8,10 +8,10 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 

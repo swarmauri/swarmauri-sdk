@@ -4,10 +4,10 @@ from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 
