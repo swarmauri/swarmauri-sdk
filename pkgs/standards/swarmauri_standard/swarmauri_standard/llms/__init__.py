@@ -1,6 +1,10 @@
-from swarmauri_standard.utils._lazy_import import _lazy_import
+# swarmauri_standard/llms/__init__.py
 
-# List of llms names (file names without the ".py" extension) and corresponding class names
+from typing import TYPE_CHECKING
+
+from swarmauri_standard.utils.lazy_loader import LazyLoader  # Ensure correct import path
+
+# List of LLMs (Large Language Models) names (module paths) and corresponding class names
 llms_files = [
     ("swarmauri_standard.llms.AI21StudioModel", "AI21StudioModel"),
     ("swarmauri_standard.llms.AnthropicModel", "AnthropicModel"),
@@ -35,9 +39,43 @@ llms_files = [
     ("swarmauri_standard.llms.WhisperLargeModel", "WhisperLargeModel"),
 ]
 
-# Lazy loading of llms classes, storing them in variables
-for module_name, class_name in llms_files:
-    globals()[class_name] = _lazy_import(module_name, class_name)
+# Initialize LazyLoader instances for each LLM class
+for module_path, class_name in llms_files:
+    globals()[class_name] = LazyLoader(module_path, class_name)
 
-# Adding the lazy-loaded llms classes to __all__
+# Define __all__ to include all lazy-loaded classes
 __all__ = [class_name for _, class_name in llms_files]
+
+# Type hinting for static analysis and IDE support
+if TYPE_CHECKING:
+    from swarmauri_standard.llms.AI21StudioModel import AI21StudioModel
+    from swarmauri_standard.llms.AnthropicModel import AnthropicModel
+    from swarmauri_standard.llms.AnthropicToolModel import AnthropicToolModel
+    from swarmauri_standard.llms.BlackForestImgGenModel import BlackForestImgGenModel
+    from swarmauri_standard.llms.CohereModel import CohereModel
+    from swarmauri_standard.llms.CohereToolModel import CohereToolModel
+    from swarmauri_standard.llms.DeepInfraImgGenModel import DeepInfraImgGenModel
+    from swarmauri_standard.llms.DeepInfraModel import DeepInfraModel
+    from swarmauri_standard.llms.DeepSeekModel import DeepSeekModel
+    from swarmauri_standard.llms.FalAIImgGenModel import FalaiImgGenModel
+    from swarmauri_standard.llms.FalAIVisionModel import FalAIVisionModel
+    from swarmauri_standard.llms.GeminiProModel import GeminiProModel
+    from swarmauri_standard.llms.GeminiToolModel import GeminiToolModel
+    from swarmauri_standard.llms.GroqAIAudio import GroqAIAudio
+    from swarmauri_standard.llms.GroqModel import GroqModel
+    from swarmauri_standard.llms.GroqToolModel import GroqToolModel
+    from swarmauri_standard.llms.GroqVisionModel import GroqVisionModel
+    from swarmauri_standard.llms.HyperbolicAudioTTS import HyperbolicAudioTTS
+    from swarmauri_standard.llms.HyperbolicImgGenModel import HyperbolicImgGenModel
+    from swarmauri_standard.llms.HyperbolicModel import HyperbolicModel
+    from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
+    from swarmauri_standard.llms.MistralModel import MistralModel
+    from swarmauri_standard.llms.MistralToolModel import MistralToolModel
+    from swarmauri_standard.llms.OpenAIAudio import OpenAIAudio
+    from swarmauri_standard.llms.OpenAIAudioTTS import OpenAIAudioTTS
+    from swarmauri_standard.llms.OpenAIImgGenModel import OpenAIImgGenModel
+    from swarmauri_standard.llms.OpenAIModel import OpenAIModel
+    from swarmauri_standard.llms.OpenAIToolModel import OpenAIToolModel
+    from swarmauri_standard.llms.PerplexityModel import PerplexityModel
+    from swarmauri_standard.llms.PlayHTModel import PlayHTModel
+    from swarmauri_standard.llms.WhisperLargeModel import WhisperLargeModel
