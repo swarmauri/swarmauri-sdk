@@ -13,7 +13,6 @@ from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
-from swarmauri_base.exceptions.ExceptionBase import ExceptionBase
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_base.llms.LLMBase import LLMBase
