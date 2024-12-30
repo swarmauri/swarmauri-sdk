@@ -43,7 +43,7 @@ INTERFACE_REGISTRY = {
     "swarmauri.distances": DistanceBase,
     "swarmauri.documents": DocumentBase,
     "swarmauri.embeddings": EmbeddingBase,
-    "swarmauri.exceptions": ExceptionBase,
+    "swarmauri.exceptions": None,
     "swarmauri.factories": FactoryBase,
     "swarmauri.image_gens": ImageGenBase,
     "swarmauri.llms": LLMBase,
