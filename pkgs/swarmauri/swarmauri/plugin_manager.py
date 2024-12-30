@@ -1,5 +1,6 @@
 # plugin_manager.py
-
+from typing import Any, Optional, Type
+from importlib.metadata import EntryPoint
 import importlib.metadata
 import inspect
 import logging
@@ -81,35 +82,59 @@ class PluginManagerBase:
     """
     Base class for all plugin types.
     """
-    def validate(self, name, plugin_object, resource_kind, resource_interface):
-        """Validate the plugin. Must be implemented by subclasses."""
+
+    def validate(
+        self, 
+        name: str, 
+        plugin_object: Any, 
+        resource_kind: str, 
+        resource_interface: Optional[Type[Any]]
+    ) -> bool:
+        """
+        Validate the plugin. Must be implemented by subclasses.
+
+        :param name: Entry point name (e.g. "my_plugin")
+        :param plugin_object: The loaded plugin (could be a class, module, or something else)
+        :param resource_kind: The extracted sub-namespace (e.g. "utils", "agents", etc.)
+        :param resource_interface: The interface class or None if not required
+        :return: True if validation succeeds; otherwise raise an exception
+        """
         raise NotImplementedError("Validation logic must be implemented in subclass.")
 
-    def register(self, entry_point):
-        """Register the plugin. Must be implemented by subclasses."""
+    def register(self, entry_point: EntryPoint) -> None:
+        """
+        Register the plugin. Must be implemented by subclasses.
+
+        :param entry_point: The discovered entry point
+        :return: None
+        """
         raise NotImplementedError("Registration logic must be implemented in subclass.")
+
 
 
 class FirstClassPluginManager(PluginManagerBase):
     """
     Manager for first-class plugins.
-    - Must be pre-registered in FIRST_CLASS_REGISTRY.
-    - Must implement the interface if resource_kind != 'utils'.
     """
 
-    def validate(self, name, plugin_class, resource_kind, resource_interface):
+    def validate(
+        self,
+        name: str,
+        plugin_class: Type[Any],
+        resource_kind: str,
+        resource_interface: Optional[Type[Any]]
+    ) -> bool:
         logger.debug(
-            f"Running First-Class validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}"
+            f"Running First-Class validation on: {name}, {plugin_class}, "
+            f"{resource_kind}, {resource_interface}"
         )
 
-        # 1) For 'utils', skip base-class validation:
-        if resource_kind != "utils":
+        if resource_interface is not None:
             if not issubclass(plugin_class, resource_interface):
                 raise TypeError(
                     f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
                 )
 
-        # 2) Must be pre-registered in FIRST_CLASS_REGISTRY
         resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
         if resource_path not in FIRST_CLASS_REGISTRY:
             raise ValueError(
@@ -117,31 +142,39 @@ class FirstClassPluginManager(PluginManagerBase):
                 "First-class plugins must be explicitly pre-registered in the registry."
             )
 
-    def register(self, entry_point):
+        return True  # Validation succeeded
+
+    def register(self, entry_point: EntryPoint) -> None:
         logger.debug(
             f"Plugin '{entry_point.name}' is already pre-registered as a first-class plugin. "
             "No additional registration is required."
         )
 
 
+
 class SecondClassPluginManager(PluginManagerBase):
     """
     Manager for second-class plugins.
-    - If resource_kind != 'utils', must implement the interface.
-    - Checks for conflicts with first-class citizens.
     """
 
-    def validate(self, name, plugin_class, resource_kind, resource_interface):
-        logger.debug(f"Running Second-Class validation on: {name}, {plugin_class}, {resource_kind}, {resource_interface}")
+    def validate(
+        self,
+        name: str,
+        plugin_class: Type[Any],
+        resource_kind: str,
+        resource_interface: Optional[Type[Any]]
+    ) -> bool:
+        logger.debug(
+            f"Running Second-Class validation on: {name}, {plugin_class}, "
+            f"{resource_kind}, {resource_interface}"
+        )
 
-        # 1) For 'utils', skip base-class validation:
-        if resource_kind != "utils":
+        if resource_interface is not None:
             if not issubclass(plugin_class, resource_interface):
                 raise TypeError(
                     f"Plugin '{name}' must implement the '{resource_interface.__name__}' interface."
                 )
 
-        # 2) Check conflicts with first-class citizens
         resource_path = f"swarmauri.{resource_kind}.{plugin_class.__name__}"
         first_class_entry = FIRST_CLASS_REGISTRY.get(resource_path)
         if first_class_entry:
@@ -153,13 +186,12 @@ class SecondClassPluginManager(PluginManagerBase):
                     f"attempts to override first-class citizen (module: {registered_module_path})."
                 )
 
-    def register(self, entry_point):
-        """
-        Register second-class plugins under the specified resource_path.
-        """
+        return True
+
+    def register(self, entry_point: EntryPoint) -> None:
         logger.debug(f"Attempting second-class registration of entry point: '{entry_point}'")
         name = entry_point.name
-        namespace = entry_point.group  # e.g. 'swarmauri.utils'
+        namespace = entry_point.group
         resource_path = f"{namespace}.{name}"
 
         if read_entry(resource_path) or resource_path in SECOND_CLASS_REGISTRY:
@@ -173,14 +205,23 @@ class SecondClassPluginManager(PluginManagerBase):
 class ThirdClassPluginManager(PluginManagerBase):
     """
     Manager for third-class plugins.
-    - Minimal validation, typically no interface requirement.
     """
 
-    def validate(self, name, plugin_object, resource_kind, resource_interface):
-        logger.debug(f"Passing through Third-Class validation on: {name}, {plugin_object}, {resource_kind}, {resource_interface}")
+    def validate(
+        self,
+        name: str,
+        plugin_object: Any,
+        resource_kind: str,
+        resource_interface: Optional[Type[Any]]
+    ) -> bool:
+        logger.debug(
+            f"Passing through Third-Class validation on: {name}, {plugin_object}, "
+            f"{resource_kind}, {resource_interface}"
+        )
         # Minimal or no checks
+        return True
 
-    def register(self, entry_point):
+    def register(self, entry_point: EntryPoint) -> None:
         logger.debug(f"Attempting third-class registration of entry point: '{entry_point}'")
 
         name = entry_point.name
@@ -192,6 +233,7 @@ class ThirdClassPluginManager(PluginManagerBase):
 
         create_entry("third", resource_path, plugin_object.__module__)
         logger.debug(f"Registered third-class citizen: {resource_path}")
+
 
 # --------------------------------------------------------------------------------------
 # 4. ENTRY POINT PROCESSING (Classes, Modules, Generic Objects)
@@ -234,20 +276,23 @@ def process_plugin(entry_point):
         return False
 
 
-def _process_class_plugin(entry_point, plugin_class):
-    """
-    Validate & register a plugin loaded as a class.
-    """
-    resource_kind = _extract_resource_kind_from_group(entry_point.group)
-    resource_interface = _safe_get_interface_for_resource(resource_kind)
+def _process_class_plugin(entry_point: EntryPoint, plugin_class: Type[Any]) -> bool:
+    resource_kind: Optional[str] = _extract_resource_kind_from_group(entry_point.group)
+    resource_interface: Optional[Type[Any]] = _safe_get_interface_for_resource(resource_kind)
 
-    plugin_manager = determine_plugin_manager_for_class(entry_point, plugin_class, resource_kind, resource_interface)
+    plugin_manager: Optional[PluginManagerBase] = determine_plugin_manager_for_class(
+        entry_point, plugin_class, resource_kind, resource_interface
+    )
     if not plugin_manager:
         msg = f"Unrecognized plugin manager for class-based plugin '{entry_point.name}'."
         raise PluginValidationError(msg)
 
-    # Validate & register
-    plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
+    is_valid: bool = plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
+    if not is_valid:
+        # Possibly handle a scenario where validate returns False but no exception is raised
+        msg  = f"Validation returned False for plugin 'entry_point.name'."
+        raise PluginValidationError(msg)
+
     plugin_manager.register(entry_point)
     logger.info(f"Class-based plugin '{entry_point.name}' registered successfully.")
     return True
@@ -341,15 +386,16 @@ def _extract_resource_kind_from_group(group):
 
 def _safe_get_interface_for_resource(resource_kind):
     """
-    Safely retrieve the interface for a resource kind, or return None if resource_kind is 'utils'
-    or doesn't exist in interface_registry.
+    Safely retrieve the interface for a resource kind, or return None if
+    the interface registry mapping is None or if resource_kind is None.
     """
-    if resource_kind is None or resource_kind == "utils":
-        # Skip interface requirement for utils
+    if resource_kind is None:
         return None
 
     try:
-        return get_interface_for_resource(f"swarmauri.{resource_kind}")
+        interface = get_interface_for_resource(f"swarmauri.{resource_kind}")
+        # If interface is None in the registry, that means "no validation needed."
+        return interface
     except KeyError as ke:
         msg = f"No interface found for resource kind '{resource_kind}'."
         raise PluginValidationError(msg) from ke
