@@ -4,7 +4,7 @@ from typing import Any, List, Literal
 from pydantic import Field, ConfigDict
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.factories.FactoryBase import FactoryBase
-from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.typing import SubclassUnion
 import logging
@@ -23,7 +23,7 @@ class ControlPanelBase(IControlPlane, ComponentBase):
 
     agent_factory: SubclassUnion[FactoryBase]
     service_registry: SubclassUnion[ServiceRegistryBase]
-    task_mgt_strategy: SubclassUnion[TaskMgtStrategyBase]
+    task_mgmt_strategy: SubclassUnion[TaskMgmtStrategyBase]
     transport: SubclassUnion[TransportBase]
 
     # Agent management methods
@@ -62,7 +62,7 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         Submit one or more tasks to the task management strategy for processing.
         """
         for task in tasks:
-            self.task_mgt_strategy.add_task(task)
+            self.task_mgmt_strategy.add_task(task)
             logging.info(
                 f"Task '{task.get('task_id', 'unknown')}' submitted to the strategy."
             )
@@ -72,7 +72,7 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         Process and assign tasks from the queue, then transport them to their assigned services.
         """
         try:
-            self.task_mgt_strategy.process_tasks(
+            self.task_mgmt_strategy.process_tasks(
                 self.service_registry.get_services, self.transport
             )
             logging.info("Tasks processed and transported successfully.")
@@ -84,7 +84,7 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         """
         Distribute tasks using the task strategy (manual or on-demand assignment).
         """
-        self.task_mgt_strategy.assign_task(task, self.service_registry.get_services)
+        self.task_mgmt_strategy.assign_task(task, self.service_registry.get_services)
         logging.info(
             f"Task '{task.get('task_id', 'unknown')}' distributed to a service."
         )
