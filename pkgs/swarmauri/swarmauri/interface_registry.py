@@ -5,10 +5,32 @@ Centralized registry for mapping resource kinds to their validation interfaces.
 
 # Example imports for interface definitions
 from swarmauri_base.agents.AgentBase import AgentBase
-#from swarmauri_base.chains.ChainBase import ChainBase
+from swarmauri_base.chains.ChainBase import ChainBase
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
-#from swarmauri_base.conversations.ConversationBase import ConversationBase
-#from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
+from swarmauri_base.conversations.ConversationBase import ConversationBase
+from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
+from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_base.documents.DocumentBase import DocumentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
+from swarmauri_base.exceptions.ExceptionBase import ExceptionBase
+from swarmauri_base.factories.FactoryBase import FactoryBase
+from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.measurements.MeasurementBase import MeasurementBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_base.pipelines.PipelineBase import PipelineBase
+from swarmauri_base.prompts.PromptBase import PromptBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
+from swarmauri_base.state.StateBase import StateBase
+from swarmauri_base.swarms.SwarmBase import SwarmBase
+from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_base.vectors.VectorBase import VectorBase
 
 # Define the mapping
 INTERFACE_REGISTRY = {
