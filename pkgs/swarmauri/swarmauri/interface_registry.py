@@ -28,6 +28,7 @@ from swarmauri_base.swarms.SwarmBase import SwarmBase
 from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vectors.VectorBase import VectorBase
 
