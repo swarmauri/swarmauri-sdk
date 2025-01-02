@@ -6,6 +6,7 @@ from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent
 from swarmauri_base.llms.LLMBase import LLMBase
 
+@ComponentBase.register_model(resource_type=ResourceTypes.AGENT.value)
 class AgentBase(IAgent, ComponentBase):
     llm: SubclassUnion[LLMBase]
     resource: ResourceTypes =  Field(default=ResourceTypes.AGENT.value)

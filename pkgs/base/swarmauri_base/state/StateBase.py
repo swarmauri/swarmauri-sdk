@@ -3,7 +3,7 @@ from pydantic import Field, ConfigDict
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.state.IState import IState
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.STATE.value)
 class StateBase(IState, ComponentBase):
     """
     Abstract base class for state management, extending IState and ComponentBase.

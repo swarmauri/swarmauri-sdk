@@ -6,7 +6,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_standard.documents.Document import Document
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.VECTOR_STORE.value)
 class VectorStoreBase(IVectorStore, ComponentBase):
     """
     Abstract base class for document stores, implementing the IVectorStore interface.

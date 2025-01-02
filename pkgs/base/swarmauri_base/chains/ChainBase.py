@@ -5,7 +5,7 @@ from swarmauri_core.chains.IChain import IChain
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.typing import SubclassUnion
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.CHAIN.value)
 class ChainBase(IChain, ComponentBase):
     """
     A base implementation of the IChain interface.

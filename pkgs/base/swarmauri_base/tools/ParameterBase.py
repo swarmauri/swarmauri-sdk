@@ -3,7 +3,7 @@ from pydantic import Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.tools.IParameter import IParameter
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.PARAMETER.value)
 class ParameterBase(IParameter, ComponentBase):
     name: str
     description: str

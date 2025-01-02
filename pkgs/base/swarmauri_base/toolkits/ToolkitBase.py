@@ -7,7 +7,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.toolkits.IToolkit import IToolkit
 
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.TOOLKIT.value)
 class ToolkitBase(IToolkit, ComponentBase):
     """
     A class representing a toolkit used by Swarm Agents.

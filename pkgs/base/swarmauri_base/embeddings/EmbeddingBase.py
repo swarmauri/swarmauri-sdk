@@ -5,6 +5,7 @@ from swarmauri_core.embeddings.IVectorize import IVectorize
 from swarmauri_core.embeddings.IFeature import IFeature
 from swarmauri_core.embeddings.ISaveModel import ISaveModel
 
+@ComponentBase.register_model(resource_type=ResourceTypes.EMBEDDING.value)
 class EmbeddingBase(IVectorize, IFeature, ISaveModel, ComponentBase):
     resource: Optional[str] =  Field(default=ResourceTypes.EMBEDDING.value, frozen=True)
     type: Literal['EmbeddingBase'] = 'EmbeddingBase'

@@ -6,6 +6,7 @@ from pydantic import Field
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
+@ComponentBase.register_model(resource_type=ResourceTypes.VECTOR.value)
 class VectorBase(IVector, ComponentBase):
     value: List[float]
     resource: Optional[str] =  Field(default=ResourceTypes.VECTOR.value, frozen=True)

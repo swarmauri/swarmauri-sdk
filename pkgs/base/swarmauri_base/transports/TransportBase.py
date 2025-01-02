@@ -16,6 +16,7 @@ class TransportProtocol(Enum):
     PUBSUB = auto()
 
 
+@ComponentBase.register_model(resource_type=ResourceTypes.TRANSPORT.value)
 class TransportBase(ITransport, ComponentBase):
     allowed_protocols: List[TransportProtocol] = []
     resource: Optional[str] = Field(default=ResourceTypes.TRANSPORT.value, frozen=True)

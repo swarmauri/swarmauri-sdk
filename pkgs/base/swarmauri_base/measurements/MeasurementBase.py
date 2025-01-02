@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.measurements.IMeasurement import IMeasurement
 
+@ComponentBase.register_model(resource_type=ResourceTypes.MEASUREMENT.value)
 class MeasurementBase(IMeasurement, ComponentBase):
     """
     A base implementation of the IMeasurement interface that provides the foundation

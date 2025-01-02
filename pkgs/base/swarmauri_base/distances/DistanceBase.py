@@ -6,6 +6,7 @@ from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
+@ComponentBase.register_model(resource_type=ResourceTypes.DISTANCE.value)
 class DistanceBase(IDistanceSimilarity, ComponentBase):
     """
     Implements cosine distance calculation as an IDistanceSimiliarity interface.

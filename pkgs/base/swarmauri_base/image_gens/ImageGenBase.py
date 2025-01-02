@@ -4,7 +4,7 @@ from pydantic import ConfigDict, model_validator, Field
 from swarmauri_core.image_gens.IGenImage import IGenImage
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.IMAGE_GEN.value)
 class ImageGenBase(IGenImage, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.IMAGE_GEN.value, frozen=True)

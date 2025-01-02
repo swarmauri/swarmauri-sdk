@@ -4,7 +4,7 @@ from swarmauri_core.ComponentBase import ResourceTypes
 from swarmauri_core.factories.IFactory import IFactory
 from pydantic import ConfigDict, Field
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.FACTORY.value)
 class FactoryBase(IFactory, ComponentBase):
     """
     Base factory class for registering and creating instances.

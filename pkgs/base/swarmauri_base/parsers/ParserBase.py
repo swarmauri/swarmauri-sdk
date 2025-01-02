@@ -5,7 +5,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.parsers.IParser import IParser
 
-
+@ComponentBase.register_model(resource_type=ResourceTypes.PARSER.value)
 class ParserBase(IParser, ComponentBase):
     """
     Interface for chunking text into smaller pieces.

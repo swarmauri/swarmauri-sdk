@@ -3,6 +3,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.prompts.IPrompt import IPrompt
 
+@ComponentBase.register_model(resource_type=ResourceTypes.PROMPT.value)
 class PromptBase(IPrompt, ComponentBase):
     """
     The ChatPrompt class represents a simple, chat-like prompt system where a 
