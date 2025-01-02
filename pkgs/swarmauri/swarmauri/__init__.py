@@ -1,10 +1,3 @@
-# swarmauri/__init__.py
-# pkg_resources-style namespace
-try:
-    __import__('pkg_resources').declare_namespace(__name__)
-except ImportError:
-    pass
-
 import sys
 import logging
 from .importer import SwarmauriImporter
