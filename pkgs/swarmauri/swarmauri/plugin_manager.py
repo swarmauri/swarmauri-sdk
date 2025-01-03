@@ -1,5 +1,6 @@
 # plugin_manager.py
 from typing import Any, Optional, Type, Dict
+import importlib.util
 from importlib.metadata import EntryPoint, entry_points
 import importlib.metadata
 import inspect
@@ -10,6 +11,7 @@ from importlib.resources import read_binary
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
 from swarmauri_base.ComponentBase import ComponentBase
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +103,7 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
         if loading_strategy == "lazy":
             # Register plugin based on classification (first, second)
-            _register_plugin_from_metadata(entry_point, metadata)
+            _register_lazy_plugin_from_metadata(entry_point, metadata)
             logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
             return True
         else:
@@ -187,57 +189,74 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
         logger.exception(f"Error loading metadata.json for plugin '{entry_point.name}': {e}")
     return None
 
-def _register_plugin_from_metadata(entry_point: EntryPoint, metadata: Dict[str, Any]) -> None:
+def _register_lazy_plugin_from_metadata(entry_point: EntryPoint, metadata: Dict[str, Any]) -> None:
     """
-    Registers the plugin's type and module in the registries based on metadata.
+    Registers a lazy-loaded plugin's type and module in the registries based on metadata.
+    Utilizes importlib.util.LazyLoader to defer module loading until accessed.
 
     :param entry_point: The entry point of the plugin.
     :param metadata: The metadata dictionary containing plugin details.
     """
     try:
-        loading_strategy = metadata.get("loading_strategy", "eager").lower()
+        # Extract necessary fields from metadata
         type_name = metadata["type_name"]
         resource_kind = metadata["resource_kind"]
-        interface_name = metadata.get("interface")
-        object_ref = entry_point.value  # e.g., 'swm_example_package:ExampleAgent'
-        module_path, _, attr_path = object_ref.partition(':')
-        
+        interface_name = metadata.get("interface")  # Optional field
+
+        # Extract module_path and attribute_path from entry_point.value
+        # Assumes 'module_path:attribute_path' format
+        module_path, _, attr_path = entry_point.value.partition(':')
+        if not module_path or not attr_path:
+            msg = (f"Invalid entry point value '{entry_point.value}' for plugin '{entry_point.name}'. "
+                   f"Expected format 'module_path:attribute_path'.")
+            logger.error(msg)
+            raise PluginValidationError(msg)
+
         # Construct the resource path
         resource_path = f"swarmauri.{resource_kind}.{type_name}"
-        
-        # Retrieve interface using InterfaceRegistry.get_interface_for_resource
+
+        # Retrieve the required interface class, if applicable
         interface_class = InterfaceRegistry.get_interface_for_resource(f"swarmauri.{resource_kind}")
-        
+
         # Determine classification: first or second class
-        if resource_path in PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY:
-            # First-class plugin
+        if PluginCitizenshipRegistry.is_first_class(entry_point):
             registry_type = "first"
             logger.debug(f"Plugin '{resource_path}' identified as first-class.")
         else:
-            # Second-class plugin
             registry_type = "second"
             logger.debug(f"Plugin '{resource_path}' identified as second-class.")
-        
-        # Register in appropriate registry
+
+        # Register in PluginCitizenshipRegistry with 'lazy' loading strategy
         PluginCitizenshipRegistry.add_to_registry(registry_type, resource_path, module_path)
-        logger.info(f"Registered {registry_type}-class plugin '{type_name}' at '{resource_path}'")
-        
-        # Register type placeholder in TYPE_REGISTRY
-        ComponentBase.register_type_placeholder(
-            resource_type=resource_kind,
-            type_name=type_name,
-            module_path=module_path,
-            interface=interface_class
-        )
-        
-        logger.debug(f"Added '{resource_path}' -> '{module_path}' to PluginCitizenshipRegistry.")
-        
+        logger.info(f"Registered {registry_type}-class plugin '{type_name}' at '{resource_path}' [lazy]")
+
+        # Register the placeholder in ComponentBase.TYPE_REGISTRY
+        ComponentBase.register_type_placeholder(resource_kind, type_name, module_path, interface_class)
+        logger.info(f"Registered placeholder for type '{type_name}' under resource '{resource_kind}' with module '{module_path}' and interface '{interface_class.__name__ if interface_class else 'None'}'")
+
+        # Configure LazyLoader for the plugin's module
+        spec = importlib.util.find_spec(module_path)
+        if spec is None:
+            msg = f"Cannot find module specification for '{module_path}' for plugin '{type_name}'."
+            logger.error(msg)
+            raise PluginValidationError(msg)
+
+        # Wrap the existing loader with LazyLoader
+        spec.loader = importlib.util.LazyLoader(spec.loader)
+        logger.debug(f"Configured LazyLoader for module '{module_path}'.")
+
+        # Update the module spec in sys.modules with the modified spec
+        # This ensures that when the module is imported, it uses the LazyLoader
+        sys.modules[module_path] = importlib.util.module_from_spec(spec)
+        logger.info(f"Configured module '{module_path}' for lazy loading.")
+
     except KeyError as e:
         logger.error(f"Missing required metadata field: {e} in plugin '{entry_point.name}'")
         raise PluginValidationError(f"Missing required metadata field: {e}") from e
     except Exception as e:
-        logger.exception(f"Failed to register plugin '{entry_point.name}' from metadata: {e}")
-        raise PluginValidationError(f"Failed to register plugin '{entry_point.name}' from metadata: {e}") from e
+        logger.exception(f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}")
+        raise PluginValidationError(f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}") from e
+
 
 
 def is_plugin_class(entry_point: EntryPoint) -> bool:
