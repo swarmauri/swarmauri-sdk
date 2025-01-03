@@ -246,28 +246,30 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         loading_strategy = metadata.get("loading_strategy", "eager") if metadata else "eager"
         logger.debug(f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}")
 
-        # Decide loading strategy
         if loading_strategy == "lazy":
-            logger.debug(f"Applying lazy loading for plugin '{entry_point.name}'")
-            plugin_object = _lazy_load_plugin(entry_point)
+            # Register the plugin's type and module without loading the module
+            _register_plugin_from_metadata(entry_point, metadata)
+            logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
+            return True
         else:
-            logger.debug(f"Applying eager loading for plugin '{entry_point.name}'")
+            # Eager loading: load the plugin module
             plugin_object = entry_point.load()
-
-        # Proceed with processing based on plugin type
-        if inspect.isclass(plugin_object):
-            logger.debug(f"'{entry_point.name}' loaded as a class: {plugin_object}")
-            return _process_class_plugin(entry_point, plugin_object)
-        elif inspect.ismodule(plugin_object):
-            logger.debug(f"'{entry_point.name}' loaded as a module: {plugin_object}")
-            return _process_module_plugin(entry_point, plugin_object)
-        else:
-            logger.debug(
-                f"'{entry_point.name}' loaded as an object of type {type(plugin_object)}. "
-                "Handling with generic plugin logic..."
-            )
-            return _process_generic_plugin(entry_point, plugin_object)
-
+            logger.debug(f"Eagerly loaded plugin '{entry_point.name}' as {type(plugin_object)}")
+            
+            # Proceed with processing based on plugin type
+            if inspect.isclass(plugin_object):
+                logger.debug(f"'{entry_point.name}' loaded as a class: {plugin_object}")
+                return _process_class_plugin(entry_point, plugin_object)
+            elif inspect.ismodule(plugin_object):
+                logger.debug(f"'{entry_point.name}' loaded as a module: {plugin_object}")
+                return _process_module_plugin(entry_point, plugin_object)
+            else:
+                logger.debug(
+                    f"'{entry_point.name}' loaded as an object of type {type(plugin_object)}. "
+                    "Handling with generic plugin logic..."
+                )
+                return _process_generic_plugin(entry_point, plugin_object)
+    
     except (ImportError, ModuleNotFoundError) as e:
         msg = (
             f"Failed to import plugin '{entry_point.name}' from '{entry_point.value}'. "
@@ -281,6 +283,7 @@ def process_plugin(entry_point: EntryPoint) -> bool:
     except Exception as e:
         logger.exception(f"Unexpected error processing plugin '{entry_point.name}': {e}")
         return False
+
 
 def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
     """
@@ -335,24 +338,9 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
     except Exception as e:
         logger.exception(f"Error loading metadata.json for plugin '{entry_point.name}': {e}")
     return None
-    
-def _lazy_load_plugin(entry_point: EntryPoint) -> Any:
-    """
-    Lazily loads the plugin using importlib's LazyLoader.
-    """
-    try:
-        spec = importlib.util.find_spec(entry_point.value)
-        if spec is None:
-            raise ImportError(f"Cannot find spec for '{entry_point.value}'")
-        loader = LazyLoader(spec.loader, module_name=spec.name)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        sys.modules[spec.name] = module
-        logger.debug(f"Lazily loaded plugin module '{spec.name}'")
-        return getattr(module, entry_point.name, module)
-    except Exception as e:
-        logger.error(f"Failed to lazily load plugin '{entry_point.name}': {e}")
-        raise PluginLoadError(f"Failed to lazily load plugin '{entry_point.name}': {e}") from e
+
+
+
 
 def _process_class_plugin(entry_point: EntryPoint, plugin_class: Type[Any]) -> bool:
     """
