@@ -168,10 +168,6 @@ class ComponentBase(BaseModel):
     def register_type(cls, resource_type: Type[T], type_name: str):
         """
         Decorator to register a component class with a specific type name under a resource type.
-
-        Parameters:
-        - resource_type: The base class of the resource (e.g., Shape, Kind).
-        - type_name: The string identifier for the component type.
         """
         def decorator(subclass: Type['ComponentBase']):
             if not issubclass(subclass, resource_type):
@@ -184,6 +180,29 @@ class ComponentBase(BaseModel):
             logger.info(f"Registered type '{type_name}' for resource '{resource_type.__name__}' with subclass '{subclass.__name__}'")
             return subclass
         return decorator
+
+    @classmethod
+    def register_type_placeholder(cls, resource_type: str, type_name: str, module_path: str, interface: Optional[Type[Any]] = None):
+        """
+        Registers a placeholder for a component class with a specific type name under a resource type.
+        Used for lazy-loaded plugins to register type information without loading the module.
+
+        Parameters:
+        - resource_type: The category of the resource (e.g., 'agents', 'chains').
+        - type_name: The string identifier for the component type.
+        - module_path: The module path where the class will be loaded from.
+        - interface: The interface class that the component implements.
+        """
+        if resource_type not in cls.TYPE_REGISTRY:
+            cls.TYPE_REGISTRY[resource_type] = {}
+        cls.TYPE_REGISTRY[resource_type][type_name] = {
+            "module_path": module_path,
+            "class_name": type_name,
+            "interface": interface
+        }
+        # No need to recreate models as no actual class is loaded
+        logger.info(f"Registered placeholder for type '{type_name}' under resource '{resource_type}' with module '{module_path}' and interface '{interface.__name__ if interface else 'None'}'")
+
 
     @classmethod
     def register_model(cls):
