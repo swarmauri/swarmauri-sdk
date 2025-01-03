@@ -1,3 +1,5 @@
+# swarmauri_core/ComponentBase.py
+
 import json
 from typing import (
     Any,
@@ -177,20 +179,42 @@ class ComponentBase(BaseModel):
             if resource_type not in cls.TYPE_REGISTRY:
                 cls.TYPE_REGISTRY[resource_type] = {}
             cls.TYPE_REGISTRY[resource_type][type_name] = subclass
-            cls.recreate_models()
+            # Automatically recreate models after registering a new type
+            cls.recreate_models_for_resource(resource_type)
+            logger.info(f"Registered type '{type_name}' for resource '{resource_type.__name__}' with subclass '{subclass.__name__}'")
             return subclass
         return decorator
 
     @classmethod
-    def register_model(cls, resource_type: Type[T]):
+    def register_model(cls):
         """
-        Decorator to register a Pydantic model with a resource type.
-
-        Parameters:
-        - resource_type: The base class of the resource (e.g., Shape, Kind).
+        Decorator to register a Pydantic model by automatically detecting resource types
+        from fields that use SubclassUnion.
         """
         def decorator(model_cls: Type[BaseModel]):
-            cls.MODEL_REGISTRY[model_cls] = resource_type
+            # Initialize list if not present
+            if model_cls not in cls.MODEL_REGISTRY:
+                cls.MODEL_REGISTRY[model_cls] = []
+
+            # Inspect all fields to find SubclassUnion annotations
+            for field_name, field in model_cls.__fields__.items():
+                field_annotation = model_cls.__annotations__.get(field_name)
+                if not field_annotation:
+                    continue
+
+                # Check if field uses SubclassUnion
+                if cls.field_contains_subclass_union(field_annotation):
+                    # Extract resource types from SubclassUnion
+                    resource_types = cls.extract_resource_types_from_field(field_annotation)
+                    for resource_type in resource_types:
+                        if resource_type not in cls.MODEL_REGISTRY[model_cls]:
+                            cls.MODEL_REGISTRY[model_cls].append(resource_type)
+                            logger.info(f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'")
+
+            # Recreate models for all associated resource types
+            for resource_type in cls.MODEL_REGISTRY[model_cls]:
+                cls.recreate_models_for_resource(resource_type)
+
             return model_cls
         return decorator
 
@@ -209,6 +233,137 @@ class ComponentBase(BaseModel):
         return cls.TYPE_REGISTRY.get(resource_type, {}).get(type_name)
 
     @classmethod
+    def field_contains_subclass_union(cls, field_annotation) -> bool:
+        """
+        Check if the field annotation contains a SubclassUnion.
+
+        Parameters:
+        - field_annotation: The type annotation of the field.
+
+        Returns:
+        - True if SubclassUnion is present, False otherwise.
+        """
+        if isinstance(field_annotation, type(SubclassUnion)):
+            return True
+        origin = get_origin(field_annotation)
+        if origin is Annotated:
+            args = get_args(field_annotation)
+            return cls.field_contains_subclass_union(args[0])
+        elif origin in {list, List, dict, Dict, Union}:
+            args = get_args(field_annotation)
+            return any(cls.field_contains_subclass_union(arg) for arg in args)
+        return False
+
+    @classmethod
+    def extract_resource_types_from_field(cls, field_annotation) -> List[Type['BaseResource']]:
+        """
+        Extracts all resource types from a field annotation that uses SubclassUnion.
+
+        Parameters:
+        - field_annotation: The type annotation of the field.
+
+        Returns:
+        - A list of resource type classes.
+        """
+        resource_types = []
+
+        origin = get_origin(field_annotation)
+        args = get_args(field_annotation)
+
+        if origin is Annotated:
+            # Extract the actual type from Annotated
+            field_annotation = args[0]
+            origin = get_origin(field_annotation)
+            args = get_args(field_annotation)
+
+        if origin is Union:
+            for arg in args:
+                if cls.field_contains_subclass_union(arg):
+                    resource_types.extend(cls.extract_resource_types_from_field(arg))
+        elif isinstance(field_annotation, type) and issubclass(field_annotation, SubclassUnion):
+            # Assuming SubclassUnion is generic and parameterized
+            subclass_args = get_args(field_annotation)
+            if subclass_args:
+                resource_type = subclass_args[0]
+                resource_types.append(resource_type)
+        elif origin is list or origin is List:
+            # Handle List[SubclassUnion[ResourceType]]
+            item_type = args[0]
+            resource_types.extend(cls.extract_resource_types_from_field(item_type))
+        elif origin is dict or origin is Dict:
+            # Handle Dict[key_type, SubclassUnion[ResourceType]]
+            value_type = args[1]
+            resource_types.extend(cls.extract_resource_types_from_field(value_type))
+        
+        return resource_types
+
+    @classmethod
+    def determine_new_type(cls, field_annotation, resource_type):
+        """
+        Determine the new type for a field based on its annotation and resource type.
+
+        Parameters:
+        - field_annotation: The original type annotation.
+        - resource_type: The resource type associated with the field.
+
+        Returns:
+        - The updated type annotation incorporating SubclassUnion.
+        """
+        origin = get_origin(field_annotation)
+        args = get_args(field_annotation)
+
+        is_optional = False
+
+        if origin is Union and type(None) in args:
+            # Handle Optional and Union types
+            non_none_args = [arg for arg in args if arg is not type(None)]
+            if len(non_none_args) == 1:
+                field_annotation = non_none_args[0]
+                origin = get_origin(field_annotation)
+                args = get_args(field_annotation)
+                is_optional = True
+            else:
+                field_annotation = Union[tuple(non_none_args)]
+                origin = get_origin(field_annotation)
+                args = get_args(field_annotation)
+                is_optional = True
+
+        # Handle Annotated types by extracting the underlying type
+        if origin is Annotated:
+            # Extract the actual type from Annotated
+            field_annotation = args[0]
+            origin = get_origin(field_annotation)
+            args = get_args(field_annotation)
+
+        if origin in {list, List}:
+            # Handle List[SubclassUnion[ResourceType]]
+            new_type = List[SubclassUnion[resource_type]]
+        elif origin in {dict, Dict}:
+            # Handle Dict[key_type, SubclassUnion[ResourceType]]
+            key_type, value_type = args
+            new_type = Dict[key_type, SubclassUnion[resource_type]]
+        elif origin is Union:
+            # Handle Union types
+            union_types = []
+            for arg in args:
+                if cls.field_contains_subclass_union(arg):
+                    union_types.append(SubclassUnion[resource_type])
+                else:
+                    union_types.append(arg)
+            new_type = Union[tuple(union_types)]
+        else:
+            # Handle non-generic types
+            new_type = SubclassUnion[resource_type]
+
+        if is_optional:
+            # Include None in the Union and maintain the discriminator
+            registered_classes = list(cls.TYPE_REGISTRY.get(resource_type, {}).values())
+            union_with_none = Union[tuple(registered_classes + [type(None)])]
+            new_type = Annotated[union_with_none, Field(discriminator="type")]
+
+        return new_type
+        
+    @classmethod
     def generate_models_with_fields(cls) -> Dict[Type[BaseModel], Dict[str, Any]]:
         """
         Automatically generate the models_with_fields dictionary based on registered models.
@@ -217,7 +372,7 @@ class ComponentBase(BaseModel):
         - A dictionary mapping model classes to their fields and corresponding resource types.
         """
         models_with_fields = {}
-        for model_cls, resource_type in cls.MODEL_REGISTRY.items():
+        for model_cls, resource_types in cls.MODEL_REGISTRY.items():
             models_with_fields[model_cls] = {}
             for field_name, field in model_cls.__fields__.items():
                 field_annotation = model_cls.__annotations__.get(field_name)
@@ -225,84 +380,21 @@ class ComponentBase(BaseModel):
                     continue
 
                 # Check if SubclassUnion is used in the field type
-                origin = get_origin(field_annotation)
-                args = get_args(field_annotation)
-
-                def contains_subclass_union(tp):
-                    if isinstance(tp, type(SubclassUnion)):
-                        return True
-                    origin_tp = get_origin(tp)
-                    if origin_tp is Annotated:
-                        args_tp = get_args(tp)
-                        return contains_subclass_union(args_tp[0])
-                    elif origin_tp in {list, List, dict, Dict, Union}:
-                        return any(contains_subclass_union(arg) for arg in get_args(tp))
-                    return False
-
-                if not contains_subclass_union(field_annotation):
+                if not cls.field_contains_subclass_union(field_annotation):
                     continue  # Only process fields that use SubclassUnion
 
-                original_type = field_annotation
-                origin = get_origin(original_type)
-                args = get_args(original_type)
-
-                is_optional = False
-
-                if origin is Union and type(None) in args:
-                    # Handle Optional and Union types
-                    non_none_args = [arg for arg in args if arg is not type(None)]
-                    if len(non_none_args) == 1:
-                        original_type = non_none_args[0]
-                        origin = get_origin(original_type)
-                        args = get_args(original_type)
-                        is_optional = True
-                    else:
-                        original_type = Union[tuple(non_none_args)]
-                        origin = get_origin(original_type)
-                        args = get_args(original_type)
-                        is_optional = True
-
-                # Handle Annotated types by extracting the underlying type
-                if origin is Annotated:
-                    # Extract the actual type from Annotated
-                    original_type = args[0]
-                    origin = get_origin(original_type)
-                    args = get_args(original_type)
-
-                if origin in {list, List}:
-                    # Handle List[SubclassUnion[ResourceType]]
-                    new_type = List[SubclassUnion[resource_type]]
-                elif origin in {dict, Dict}:
-                    # Handle Dict[key_type, SubclassUnion[ResourceType]]
-                    key_type, value_type = args
-                    new_type = Dict[key_type, SubclassUnion[resource_type]]
-                elif origin is Union:
-                    # Handle Union types
-                    union_types = []
-                    for arg in args:
-                        if isinstance(arg, type(SubclassUnion)) and issubclass(arg, SubclassUnion):
-                            union_types.append(SubclassUnion[resource_type])
-                        else:
-                            union_types.append(arg)
-                    new_type = Union[tuple(union_types)]
-                else:
-                    # Handle non-generic types
-                    new_type = SubclassUnion[resource_type]
-
-                if is_optional:
-                    # Include None in the Union and maintain the discriminator
-                    registered_classes = list(cls.TYPE_REGISTRY.get(resource_type, {}).values())
-                    union_with_none = Union[tuple(registered_classes + [type(None)])]
-                    new_type = Annotated[union_with_none, Field(discriminator="type")]
-
-                models_with_fields[model_cls][field_name] = new_type
+                # Extract all resource types from the field
+                field_resource_types = cls.extract_resource_types_from_field(field_annotation)
+                for resource_type in field_resource_types:
+                    new_type = cls.determine_new_type(field_annotation, resource_type)
+                    models_with_fields[model_cls][field_name] = new_type
 
         return models_with_fields
 
     @classmethod
     def recreate_models(cls):
         """
-        Recreate models based on the dynamically generated models_with_fields.
+        Recreate all models based on the dynamically generated models_with_fields.
         """
         with cls._lock:
             models_with_fields = cls.generate_models_with_fields()
@@ -313,3 +405,37 @@ class ComponentBase(BaseModel):
                     else:
                         raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
                 model_class.model_rebuild(force=True)
+            logger.info("All models have been successfully recreated.")
+
+    @classmethod
+    def recreate_models_for_resource(cls, resource_type: Type[T]):
+        """
+        Recreate only the models associated with the given resource type.
+        """
+        with cls._lock:
+            models_with_fields = {}
+            for model_cls, res_types in cls.MODEL_REGISTRY.items():
+                if resource_type in res_types:
+                    models_with_fields[model_cls] = {}
+                    for field_name, field in model_cls.__fields__.items():
+                        field_annotation = model_cls.__annotations__.get(field_name)
+                        if not field_annotation:
+                            continue
+
+                        # Check if SubclassUnion is used in the field type
+                        if not cls.field_contains_subclass_union(field_annotation):
+                            continue  # Only process fields that use SubclassUnion
+
+                        # Determine the new type based on the annotation and resource_type
+                        new_type = cls.determine_new_type(field_annotation, resource_type)
+
+                        models_with_fields[model_cls][field_name] = new_type
+
+            for model_class, fields in models_with_fields.items():
+                for field_name, new_type in fields.items():
+                    if field_name in model_class.model_fields:
+                        model_class.model_fields[field_name].annotation = new_type
+                    else:
+                        raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
+                model_class.model_rebuild(force=True)
+            logger.info(f"Models associated with resource '{resource_type.__name__}' have been successfully recreated.")
