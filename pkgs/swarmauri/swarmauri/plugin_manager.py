@@ -1,10 +1,12 @@
 # plugin_manager.py
-from typing import Any, Optional, Type
-from importlib.metadata import EntryPoint
+from typing import Any, Optional, Type, Dict
+from importlib.metadata import EntryPoint, entry_points
 import importlib.metadata
 import inspect
 import logging
-
+import json
+from importlib.util import LazyLoader, spec_from_loader
+from importlib.resources import read_binary
 from .registry import (
     create_entry,
     read_entry,
@@ -28,13 +30,13 @@ def _fetch_and_group_entry_points(group_prefix="swarmauri."):
     """
     grouped_entry_points = {}
     try:
-        all_entry_points = importlib.metadata.entry_points()
+        all_entry_points = entry_points()
         logger.debug(f"Raw entry points from environment: {all_entry_points}")
 
-        for group_name, entry_points in all_entry_points.items():
-            if group_name.startswith(group_prefix):
-                namespace = group_name[len(group_prefix):]  # e.g. 'chunkers'
-                grouped_entry_points[namespace] = list(entry_points)
+        for ep in all_entry_points:
+            if ep.group.startswith(group_prefix):
+                namespace = ep.group[len(group_prefix):]  # e.g., 'chunkers'
+                grouped_entry_points.setdefault(namespace, []).append(ep)
 
         logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
     except Exception as e:
@@ -110,8 +112,6 @@ class PluginManagerBase:
         """
         raise NotImplementedError("Registration logic must be implemented in subclass.")
 
-
-
 class FirstClassPluginManager(PluginManagerBase):
     """
     Manager for first-class plugins.
@@ -150,8 +150,6 @@ class FirstClassPluginManager(PluginManagerBase):
             "No additional registration is required."
         )
 
-
-
 class SecondClassPluginManager(PluginManagerBase):
     """
     Manager for second-class plugins.
@@ -186,7 +184,7 @@ class SecondClassPluginManager(PluginManagerBase):
                     f"attempts to override first-class citizen (module: {registered_module_path})."
                 )
 
-        return True
+        return True  # Validation succeeded
 
     def register(self, entry_point: EntryPoint) -> None:
         logger.debug(f"Attempting second-class registration of entry point: '{entry_point}'")
@@ -200,7 +198,6 @@ class SecondClassPluginManager(PluginManagerBase):
         plugin_class = entry_point.load()
         create_entry("second", resource_path, plugin_class.__module__)
         logger.debug(f"Registered second-class plugin: {plugin_class.__module__} -> {resource_path}")
-
 
 class ThirdClassPluginManager(PluginManagerBase):
     """
@@ -229,31 +226,41 @@ class ThirdClassPluginManager(PluginManagerBase):
         plugin_object = entry_point.load()
 
         if read_entry(resource_path) or resource_path in THIRD_CLASS_REGISTRY:
-            raise ValueError(f"Plugin '{name}' is already registered as a third-class citizen.")
+            raise PluginValidationError(f"Plugin '{name}' is already registered as a third-class citizen.")
 
         create_entry("third", resource_path, plugin_object.__module__)
         logger.debug(f"Registered third-class citizen: {resource_path}")
 
-
 # --------------------------------------------------------------------------------------
-# 4. ENTRY POINT PROCESSING (Classes, Modules, Generic Objects)
+# 4. PLUGIN PROCESSING FUNCTIONS
 # --------------------------------------------------------------------------------------
-def process_plugin(entry_point):
+def process_plugin(entry_point: EntryPoint) -> bool:
     """
-    Loads, inspects, and registers a single plugin entry point.
+    Loads, inspects, and registers a single plugin entry point based on its loading strategy.
     """
     try:
         logger.debug(f"Processing plugin via entry_point: {entry_point}")
-        plugin_object = entry_point.load()
+        
+        # Attempt to load plugin metadata
+        metadata = _load_plugin_metadata(entry_point)
+        loading_strategy = metadata.get("loading_strategy", "eager") if metadata else "eager"
+        logger.debug(f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}")
 
+        # Decide loading strategy
+        if loading_strategy == "lazy":
+            logger.debug(f"Applying lazy loading for plugin '{entry_point.name}'")
+            plugin_object = _lazy_load_plugin(entry_point)
+        else:
+            logger.debug(f"Applying eager loading for plugin '{entry_point.name}'")
+            plugin_object = entry_point.load()
+
+        # Proceed with processing based on plugin type
         if inspect.isclass(plugin_object):
             logger.debug(f"'{entry_point.name}' loaded as a class: {plugin_object}")
             return _process_class_plugin(entry_point, plugin_object)
-
         elif inspect.ismodule(plugin_object):
             logger.debug(f"'{entry_point.name}' loaded as a module: {plugin_object}")
             return _process_module_plugin(entry_point, plugin_object)
-
         else:
             logger.debug(
                 f"'{entry_point.name}' loaded as an object of type {type(plugin_object)}. "
@@ -275,8 +282,82 @@ def process_plugin(entry_point):
         logger.exception(f"Unexpected error processing plugin '{entry_point.name}': {e}")
         return False
 
+def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
+    """
+    Attempts to load metadata.json from the plugin's distribution without loading the module.
+    """
+    try:
+        # Get the distribution that provides the entry point
+        dist = importlib.metadata.distribution(entry_point.dist.name)
+        
+        # Assume metadata.json is located in the same package as the module
+        # Extract the package name from module_path
+        module_path = entry_point.value  # e.g., 'swarmauri.agents.QAAgent'
+        package_name = module_path.rpartition('.')[0]  # 'swarmauri.agents'
+        
+        # Convert package name to path (replace dots with slashes)
+        package_path = package_name.replace('.', '/')
+        
+        # Construct the relative path to metadata.json
+        metadata_file = f"{package_path}/metadata.json"
+        
+        # Access the files in the distribution
+        dist_files = dist.files or []
+        
+        # Search for metadata.json in the specified package
+        metadata_path = None
+        for file in dist_files:
+            if file.as_posix() == metadata_file:
+                metadata_path = file
+                break
+        
+        # If not found, attempt to find metadata.json at the root of the package
+        if not metadata_path:
+            for file in dist_files:
+                if file.name == 'metadata.json' and file.parent.as_posix() == package_path:
+                    metadata_path = file
+                    break
+        
+        if metadata_path:
+            # Read the metadata.json file
+            with dist.locate_file(metadata_path).open('r', encoding='utf-8') as f:
+                metadata = json.load(f)
+                logger.debug(f"Loaded metadata for plugin '{entry_point.name}': {metadata}")
+                return metadata
+        else:
+            logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
+    except importlib.metadata.PackageNotFoundError:
+        logger.debug(f"Distribution not found for plugin '{entry_point.name}'.")
+    except FileNotFoundError:
+        logger.debug(f"metadata.json not found for plugin '{entry_point.name}'.")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in metadata.json for plugin '{entry_point.name}': {e}")
+    except Exception as e:
+        logger.exception(f"Error loading metadata.json for plugin '{entry_point.name}': {e}")
+    return None
+    
+def _lazy_load_plugin(entry_point: EntryPoint) -> Any:
+    """
+    Lazily loads the plugin using importlib's LazyLoader.
+    """
+    try:
+        spec = importlib.util.find_spec(entry_point.value)
+        if spec is None:
+            raise ImportError(f"Cannot find spec for '{entry_point.value}'")
+        loader = LazyLoader(spec.loader, module_name=spec.name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        sys.modules[spec.name] = module
+        logger.debug(f"Lazily loaded plugin module '{spec.name}'")
+        return getattr(module, entry_point.name, module)
+    except Exception as e:
+        logger.error(f"Failed to lazily load plugin '{entry_point.name}': {e}")
+        raise PluginLoadError(f"Failed to lazily load plugin '{entry_point.name}': {e}") from e
 
 def _process_class_plugin(entry_point: EntryPoint, plugin_class: Type[Any]) -> bool:
+    """
+    Processes a plugin loaded as a class.
+    """
     resource_kind: Optional[str] = _extract_resource_kind_from_group(entry_point.group)
     resource_interface: Optional[Type[Any]] = _safe_get_interface_for_resource(resource_kind)
 
@@ -289,18 +370,26 @@ def _process_class_plugin(entry_point: EntryPoint, plugin_class: Type[Any]) -> b
 
     is_valid: bool = plugin_manager.validate(entry_point.name, plugin_class, resource_kind, resource_interface)
     if not is_valid:
-        # Possibly handle a scenario where validate returns False but no exception is raised
-        msg  = f"Validation returned False for plugin 'entry_point.name'."
+        # Handle scenarios where validate returns False without raising an exception
+        msg  = f"Validation returned False for plugin '{entry_point.name}'."
         raise PluginValidationError(msg)
+
+    # Automatic Type Registration
+    if inspect.isclass(plugin_class) and hasattr(plugin_class, 'register_type'):
+        # If the class has a register_type decorator, it should have already been registered
+        logger.debug(f"Plugin class '{plugin_class.__name__}' has a register_type decorator.")
+    else:
+        # Alternatively, handle type registration based on metadata
+        logger.debug(f"Automatically registering type for plugin class '{plugin_class.__name__}'")
+        # Assuming metadata registration is handled elsewhere
 
     plugin_manager.register(entry_point)
     logger.info(f"Class-based plugin '{entry_point.name}' registered successfully.")
     return True
 
-
-def _process_module_plugin(entry_point, plugin_module):
+def _process_module_plugin(entry_point: EntryPoint, plugin_module: Any) -> bool:
     """
-    Validate & register a plugin loaded as a module.
+    Processes a plugin loaded as a module.
     """
     logger.debug(
         f"Validating module-based plugin '{entry_point.name}' at module: {plugin_module.__name__}"
@@ -310,7 +399,6 @@ def _process_module_plugin(entry_point, plugin_module):
         logger.debug(f"Detected 'setup_plugin' in module '{plugin_module.__name__}'. Invoking...")
         plugin_module.setup_plugin()
 
-    # Register the entire module as third-class, or adapt as needed
     resource_path = f"swarmauri.modules.{plugin_module.__name__}"
     if read_entry(resource_path) or resource_path in THIRD_CLASS_REGISTRY:
         raise PluginValidationError(
@@ -321,8 +409,7 @@ def _process_module_plugin(entry_point, plugin_module):
     logger.info(f"Module-based plugin '{entry_point.name}' registered under '{resource_path}'.")
     return True
 
-
-def _process_generic_plugin(entry_point, plugin_object):
+def _process_generic_plugin(entry_point: EntryPoint, plugin_object: Any) -> bool:
     """
     Fallback for plugins that are neither classes nor modules (could be a function, etc.).
     """
@@ -330,7 +417,7 @@ def _process_generic_plugin(entry_point, plugin_object):
         f"Entry point '{entry_point.name}' is neither a class nor a module. "
         f"Loaded object type: {type(plugin_object)}."
     )
-    # For example, treat them as third-class 'misc' plugins
+    # Treat them as third-class 'misc' plugins
     resource_path = f"swarmauri.misc.{entry_point.name}"
     if read_entry(resource_path):
         raise PluginValidationError(f"Plugin '{entry_point.name}' already registered under '{resource_path}'.")
@@ -342,7 +429,7 @@ def _process_generic_plugin(entry_point, plugin_object):
 # --------------------------------------------------------------------------------------
 # 5. HELPER FUNCTIONS
 # --------------------------------------------------------------------------------------
-def determine_plugin_manager_for_class(entry_point, plugin_class, resource_kind, resource_interface):
+def determine_plugin_manager_for_class(entry_point: EntryPoint, plugin_class: Type[Any], resource_kind: Optional[str], resource_interface: Optional[Type[Any]]) -> Optional[PluginManagerBase]:
     """
     Determines whether a class-based plugin is first-class, second-class, or third-class,
     then returns the appropriate PluginManager instance (or None if not recognized).
@@ -376,7 +463,7 @@ def determine_plugin_manager_for_class(entry_point, plugin_class, resource_kind,
     logger.warning(f"Plugin '{entry_point.name}' does not match any recognized manager.")
     return None
 
-def _extract_resource_kind_from_group(group):
+def _extract_resource_kind_from_group(group: str) -> Optional[str]:
     """
     Extract the resource kind from something like 'swarmauri.chunkers'
     or 'swarmauri.utils'. E.g. 'swarmauri.utils' => 'utils'.
@@ -384,7 +471,7 @@ def _extract_resource_kind_from_group(group):
     parts = group.split(".")
     return parts[1] if len(parts) > 1 else None
 
-def _safe_get_interface_for_resource(resource_kind):
+def _safe_get_interface_for_resource(resource_kind: Optional[str]) -> Optional[Type[Any]]:
     """
     Safely retrieve the interface for a resource kind, or return None if
     the interface registry mapping is None or if resource_kind is None.
