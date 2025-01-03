@@ -3,7 +3,7 @@ from typing import Optional, Union, List, Any, Literal
 from pydantic import Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
-@ComponentBase.register_model(resource_type=ResourceTypes.CHUNKER.value)
+@ComponentBase.register_model()
 class ChunkerBase(ComponentBase, ABC):
     """
     Interface for chunking text into smaller pieces.

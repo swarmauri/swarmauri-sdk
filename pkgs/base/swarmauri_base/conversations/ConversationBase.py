@@ -5,7 +5,7 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.conversations.IConversation import IConversation
 
-@ComponentBase.register_model(resource_type=ResourceTypes.CONVERSATION.value)
+@ComponentBase.register_model()
 class ConversationBase(IConversation, ComponentBase):
     """
     Concrete implementation of IConversation, managing conversation history and operations.

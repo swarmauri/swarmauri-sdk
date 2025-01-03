@@ -9,7 +9,7 @@ from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.typing import SubclassUnion
 import logging
 
-@ComponentBase.register_model(resource_type=ResourceTypes.CONTROL_PANEL.value)
+@ComponentBase.register_model()
 class ControlPanelBase(IControlPlane, ComponentBase):
     """
     Implementation of the ControlPlane abstract class.

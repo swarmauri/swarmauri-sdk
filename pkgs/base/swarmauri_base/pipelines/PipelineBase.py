@@ -4,7 +4,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
 import uuid
 
-@ComponentBase.register_model(resource_type=ResourceTypes.PIPELINE.value)
+@ComponentBase.register_model()
 class PipelineBase(IPipeline, ComponentBase):
     """
     Base class providing default behavior for task orchestration,

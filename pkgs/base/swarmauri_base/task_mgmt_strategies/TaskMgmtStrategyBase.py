@@ -6,7 +6,7 @@ from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import ITaskMgmtStrat
 from typing import Any, Callable, Dict, Literal, Optional
 
 
-@ComponentBase.register_model(resource_type=ResourceTypes.TASK_MGMT_STRATEGY.value)
+@ComponentBase.register_model()
 class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
     """Base class for TaskStrategy."""
 

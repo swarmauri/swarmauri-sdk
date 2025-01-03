@@ -5,7 +5,7 @@ from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.tools.ParameterBase import ParameterBase
 from swarmauri_core.tools.ITool import ITool
 
-@ComponentBase.register_model(resource_type=ResourceTypes.TOOL.value)
+@ComponentBase.register_model()
 class ToolBase(ITool, ComponentBase, ABC):
     name: str
     description: Optional[str] = None

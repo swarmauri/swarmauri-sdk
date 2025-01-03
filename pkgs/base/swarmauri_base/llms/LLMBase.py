@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError, model_validator, Fi
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.llms.IPredict import IPredict
 
-@ComponentBase.register_model(resource_type=ResourceTypes.LLM.value)
+@ComponentBase.register_model()
 class LLMBase(IPredict, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.LLM.value, frozen=True)
