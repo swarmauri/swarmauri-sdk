@@ -104,11 +104,6 @@ class ComponentBase(BaseModel):
     version: str = "0.1.0"
     type: Literal["ComponentBase"] = "ComponentBase"
 
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        ComponentBase.__swm_register_subclass__(cls)
-
     @field_validator("type")
     def set_type(cls, v, values):
         if v == "ComponentBase" and cls.__name__ != "ComponentBase":
