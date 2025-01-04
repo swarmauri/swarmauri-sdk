@@ -412,7 +412,7 @@ class ComponentBase(BaseModel):
                     else:
                         raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
                 if model_class.model_rebuild(force=True):
-                    logger.debg(f"'{model_class}' has been successfully recreated.")
+                    logger.debug(f"'{model_class}' has been successfully recreated.")
                 else:
-                    logger.debg(f"'{model_class}' recreation has failed.")
+                    logger.debug(f"'{model_class}' recreation has failed.")
             logger.info("All models have been successfully recreated.")
