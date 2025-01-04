@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Dict, Any, List, Optional, Literal
 from enum import Enum, auto
 from pydantic import ConfigDict, Field
@@ -24,6 +25,7 @@ class TransportBase(ITransport, ComponentBase):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TransportBase"] = "TransportBase"
 
+    @abstractmethod
     def send(self, sender: str, recipient: str, message: Any) -> None:
         """
         Send a message to a specific recipient.
@@ -33,6 +35,7 @@ class TransportBase(ITransport, ComponentBase):
         """
         raise NotImplementedError("send() not implemented in subclass yet.")
 
+    @abstractmethod
     def broadcast(self, sender: str, message: Any) -> None:
         """
         Broadcast a message to all potential recipients.
@@ -42,6 +45,7 @@ class TransportBase(ITransport, ComponentBase):
         """
         raise NotImplementedError("broadcast() not implemented in subclass yet.")
 
+    @abstractmethod
     def multicast(self, sender: str, recipients: List[str], message: Any) -> None:
         """
         Send a message to multiple specific recipients.
