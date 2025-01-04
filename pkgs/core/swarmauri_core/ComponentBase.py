@@ -250,11 +250,6 @@ class ComponentBase(BaseModel):
         origin = get_origin(field_annotation)
         args = get_args(field_annotation)
 
-        # Check for direct SubclassUnion match
-        if inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
-            logger.debug(f"Field annotation '{field_annotation}' is directly a SubclassUnion")
-            return True
-
         # Check for Annotated fields
         if origin is Annotated:
             for arg in args:
@@ -266,7 +261,7 @@ class ComponentBase(BaseModel):
                     return True
 
         # Check for container types (List, Union, Dict)
-        if origin in {Union, List, Dict}:
+        if origin in {Union, List, Dict, Set, Tuple, Optional}:
             for arg in args:
                 if cls.field_contains_subclass_union(arg):
                     logger.debug(f"Container field '{field_annotation}' contains SubclassUnion in its arguments")
@@ -301,14 +296,6 @@ class ComponentBase(BaseModel):
                     else:
                         resource_types.extend(cls.extract_resource_types_from_field(arg))
 
-            elif inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
-                subclass_args = get_args(field_annotation)
-                if subclass_args:
-                    # Assuming the first argument is the resource type
-                    resource_types.append(subclass_args[0])
-                    logger.debug(f"Extracted resource type '{subclass_args[0].__name__}' from SubclassUnion")
-                else:
-                    logger.warning(f"SubclassUnion '{field_annotation}' has no type arguments")
             elif origin in {Union, List, Dict, Set, Tuple, Optional}:
                 for arg in args:
                     resource_types.extend(cls.extract_resource_types_from_field(arg))
@@ -361,13 +348,12 @@ class ComponentBase(BaseModel):
 
             # Construct the new type with SubclassUnion and discriminated Union
             subclass_union = SubclassUnion[resource_type]
-            annotated_union = Annotated[Union[tuple(ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values())], Field(discriminator='type'), ResourceType(resource_type)]
 
             # Preserve Optionality if necessary
             if is_optional:
-                new_type = Union[annotated_union, type(None)]
+                new_type = Union[subclass_union, type(None)]
             else:
-                new_type = annotated_union
+                new_type = subclass_union
 
             logger.debug(f"New type for field: {new_type}")
             return new_type
