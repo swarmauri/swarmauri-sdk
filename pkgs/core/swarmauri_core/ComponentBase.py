@@ -237,15 +237,22 @@ class ComponentBase(BaseModel):
         Returns:
         - True if SubclassUnion is present, False otherwise.
         """
+        logger.debug(f"Checking if field annotation '{field_annotation}' contains a SubclassUnion")
         if isinstance(field_annotation, type(SubclassUnion)):
+            logger.debug(f"Field annotation '{field_annotation}' is directly a SubclassUnion")
             return True
         origin = get_origin(field_annotation)
         if origin is Annotated:
             args = get_args(field_annotation)
+            logger.debug(f"Field annotation '{field_annotation}' is Annotated with args {args}")
             return cls.field_contains_subclass_union(args[0])
         elif origin in {list, List, dict, Dict, Union}:
             args = get_args(field_annotation)
-            return any(cls.field_contains_subclass_union(arg) for arg in args)
+            logger.debug(f"Field annotation '{field_annotation}' has origin '{origin.__name__}' with args {args}")
+            result = any(cls.field_contains_subclass_union(arg) for arg in args)
+            logger.debug(f"Field annotation '{field_annotation}' contains SubclassUnion: {result}")
+            return result
+        logger.debug(f"Field annotation '{field_annotation}' does not contain a SubclassUnion")
         return False
 
 
@@ -260,6 +267,7 @@ class ComponentBase(BaseModel):
         Returns:
         - A list of resource type classes.
         """
+        logger.debug(f"Extracting resource types from field annotation '{field_annotation}'")
         resource_types = []
 
         origin = get_origin(field_annotation)
@@ -267,31 +275,40 @@ class ComponentBase(BaseModel):
 
         if origin is Annotated:
             # Extract the actual type from Annotated
+            logger.debug(f"Field annotation '{field_annotation}' is Annotated")
             field_annotation = args[0]
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
 
         if origin is Union:
+            logger.debug(f"Field annotation '{field_annotation}' is a Union")
             for arg in args:
                 if cls.field_contains_subclass_union(arg):
+                    logger.debug(f"Union member '{arg}' contains a SubclassUnion")
                     resource_types.extend(cls.extract_resource_types_from_field(arg))
         elif inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
             # Assuming SubclassUnion is generic and parameterized
+            logger.debug(f"Field annotation '{field_annotation}' is a subclass of SubclassUnion")
             subclass_args = get_args(field_annotation)
             if subclass_args:
                 resource_type = subclass_args[0]
+                logger.debug(f"Extracted resource type '{resource_type.__name__}' from SubclassUnion")
                 resource_types.append(resource_type)
         elif origin in {list, List}:
             # Handle List[SubclassUnion[ResourceType]]
             item_type = args[0]
+            logger.debug(f"Field annotation '{field_annotation}' is a List with item type '{item_type}'")
             resource_types.extend(cls.extract_resource_types_from_field(item_type))
         elif origin in {dict, Dict}:
             # Handle Dict[key_type, SubclassUnion[ResourceType]]
             value_type = args[1]
+            logger.debug(f"Field annotation '{field_annotation}' is a Dict with value type '{value_type}'")
             resource_types.extend(cls.extract_resource_types_from_field(value_type))
+        else:
+            logger.debug(f"Field annotation '{field_annotation}' does not match any known patterns for SubclassUnion")
         
+        logger.debug(f"Extracted resource types: {[rt.__name__ for rt in resource_types]}")
         return resource_types
-
 
     @classmethod
     def determine_new_type(cls, field_annotation, resource_type):
@@ -305,6 +322,7 @@ class ComponentBase(BaseModel):
         Returns:
         - The updated type annotation incorporating SubclassUnion.
         """
+        logger.debug(f"Determining new type for field annotation '{field_annotation}' with resource type '{resource_type.__name__}'")
         origin = get_origin(field_annotation)
         args = get_args(field_annotation)
 
@@ -313,20 +331,24 @@ class ComponentBase(BaseModel):
         if origin is Union and type(None) in args:
             # Handle Optional and Union types
             non_none_args = [arg for arg in args if arg is not type(None)]
+            logger.debug(f"Field annotation '{field_annotation}' is Optional/Union with non-None args {non_none_args}")
             if len(non_none_args) == 1:
                 field_annotation = non_none_args[0]
                 origin = get_origin(field_annotation)
                 args = get_args(field_annotation)
                 is_optional = True
+                logger.debug(f"Field is Optional with single non-None type '{field_annotation}'")
             else:
                 field_annotation = Union[tuple(non_none_args)]
                 origin = get_origin(field_annotation)
                 args = get_args(field_annotation)
                 is_optional = True
+                logger.debug(f"Field is Optional with multiple non-None types '{field_annotation}'")
 
         # Handle Annotated types by extracting the underlying type
         if origin is Annotated:
             # Extract the actual type from Annotated
+            logger.debug(f"Field annotation '{field_annotation}' is Annotated")
             field_annotation = args[0]
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
@@ -334,22 +356,28 @@ class ComponentBase(BaseModel):
         if origin in {list, List}:
             # Handle List[SubclassUnion[ResourceType]]
             new_type = List[SubclassUnion[resource_type]]
+            logger.debug(f"New type for List field: '{new_type}'")
         elif origin in {dict, Dict}:
             # Handle Dict[key_type, SubclassUnion[ResourceType]]
             key_type, value_type = args
             new_type = Dict[key_type, SubclassUnion[resource_type]]
+            logger.debug(f"New type for Dict field: '{new_type}'")
         elif origin is Union:
             # Handle Union types
             union_types = []
             for arg in args:
                 if cls.field_contains_subclass_union(arg):
                     union_types.append(SubclassUnion[resource_type])
+                    logger.debug(f"Added SubclassUnion[{resource_type.__name__}] to Union types")
                 else:
                     union_types.append(arg)
+                    logger.debug(f"Added type '{arg}' to Union types")
             new_type = Union[tuple(union_types)]
+            logger.debug(f"New Union type: '{new_type}'")
         else:
             # Handle non-generic types
             new_type = SubclassUnion[resource_type]
+            logger.debug(f"New non-generic SubclassUnion type: '{new_type}'")
 
         if is_optional:
             # Include None in the Union and maintain the discriminator
@@ -357,14 +385,18 @@ class ComponentBase(BaseModel):
             if not registered_classes:
                 # Use Any as a placeholder if no subclasses are registered
                 union_type = Any
+                logger.debug(f"No registered subclasses for resource type '{resource_type.__name__}'. Using 'Any' in Optional type.")
             else:
                 union_type = Union[tuple(registered_classes)]
+                logger.debug(f"Registered subclasses for resource type '{resource_type.__name__}': {[cls.__name__ for cls in registered_classes]}")
             union_with_none = Union[tuple([union_type, type(None)])]
             new_type = Annotated[
                 union_with_none,
                 Field(discriminator="type")
             ]
+            logger.debug(f"Final new type with Optional: '{new_type}'")
 
+        logger.debug(f"Determined new type for field: '{new_type}'")
         return new_type
 
         
