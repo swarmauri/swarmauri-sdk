@@ -9,7 +9,8 @@ from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, 'SimpleConversationAgent')
 class SimpleConversationAgent(AgentConversationMixin, AgentBase):
-    conversation: SubclassUnion[ConversationBase]  #
+    llm: SubclassUnion[LLMBase]
+    conversation: SubclassUnion[ConversationBase]
     type: Literal["SimpleConversationAgent"] = "SimpleConversationAgent"
 
     def exec(
