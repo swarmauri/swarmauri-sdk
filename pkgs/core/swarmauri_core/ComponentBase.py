@@ -275,7 +275,7 @@ class ComponentBase(BaseModel):
         return False
 
 
-   @classmethod
+    @classmethod
     def extract_resource_types_from_field(cls, field_annotation) -> List[Type['ComponentBase']]:
         """
         Extracts all resource types from a field annotation using SubclassUnion.
@@ -288,27 +288,34 @@ class ComponentBase(BaseModel):
         """
         logger.debug(f"Extracting resource types from field annotation '{field_annotation}'")
         resource_types = []
-        origin = get_origin(field_annotation)
-        args = get_args(field_annotation)
+        try:
+            origin = get_origin(field_annotation)
+            args = get_args(field_annotation)
 
-        if origin is Annotated:
-            for arg in args:
-                if isinstance(arg, ResourceType):
-                    resource_types.append(arg.resource_type)
-                    logger.debug(f"Found ResourceType metadata with resource type '{arg.resource_type.__name__}'")
+            if origin is Annotated:
+                for arg in args[1:]:  # Skip the first argument which is the main type
+                    if isinstance(arg, ResourceType):
+                        resource_types.append(arg.resource_type)
+                        logger.debug(f"Found ResourceType metadata with resource type '{arg.resource_type.__name__}'")
+                    else:
+                        resource_types.extend(cls.extract_resource_types_from_field(arg))
+
+            elif inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
+                subclass_args = get_args(field_annotation)
+                if subclass_args:
+                    # Assuming the first argument is the resource type
+                    resource_types.append(subclass_args[0])
+                    logger.debug(f"Extracted resource type '{subclass_args[0].__name__}' from SubclassUnion")
                 else:
+                    logger.warning(f"SubclassUnion '{field_annotation}' has no type arguments")
+            elif origin in {Union, List, Dict, Set, Tuple, Optional}:
+                for arg in args:
                     resource_types.extend(cls.extract_resource_types_from_field(arg))
 
-        elif inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
-            subclass_args = get_args(field_annotation)
-            if subclass_args:
-                resource_types.append(subclass_args[0])
-                logger.debug(f"Extracted resource type '{subclass_args[0].__name__}' from SubclassUnion")
-        elif origin in {Union, List, Dict}:
-            for arg in args:
-                resource_types.extend(cls.extract_resource_types_from_field(arg))
-
-        return resource_types
+            return resource_types
+        except TypeError as e:
+            logger.error(f"TypeError while extracting resource types from field annotation '{field_annotation}': {e}")
+            return resource_types
 
 
     @classmethod
