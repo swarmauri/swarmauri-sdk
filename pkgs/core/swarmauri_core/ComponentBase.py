@@ -44,7 +44,9 @@ class SubclassUnion(Generic[T], type):
         """
         registered_classes = list(ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values())
         if not registered_classes:
-            raise ValueError(f"No subclasses registered for resource type '{resource_type.__name__}'")
+            logger.warning(f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'PlaceholderPlugin' as a placeholder.")
+            registered_classes = [PlaceholderPlugin]
+        
         union_type = Union[tuple(registered_classes)]
         return Annotated[union_type, Field(serialization_alias=f"SubclassUnion[{resource_type.__name__}]", discriminator='type')]
 
@@ -234,13 +236,13 @@ class ComponentBase(BaseModel):
     @classmethod
     def field_contains_subclass_union(cls, field_annotation) -> bool:
         """
-        Check if the field annotation contains a SubclassUnion.
+        Check if the field annotation contains a SubclassUnion or the placeholder PlaceholderPlugin.
 
         Parameters:
         - field_annotation: The type annotation of the field.
 
         Returns:
-        - True if SubclassUnion is present, False otherwise.
+        - True if SubclassUnion or PlaceholderPlugin is present, False otherwise.
         """
         if isinstance(field_annotation, type(SubclassUnion)):
             return True
@@ -251,12 +253,15 @@ class ComponentBase(BaseModel):
         elif origin in {list, List, dict, Dict, Union}:
             args = get_args(field_annotation)
             return any(cls.field_contains_subclass_union(arg) for arg in args)
+        elif inspect.isclass(field_annotation) and issubclass(field_annotation, PlaceholderPlugin):
+            return True
         return False
 
+
     @classmethod
-    def extract_resource_types_from_field(cls, field_annotation) -> List[Type['BaseResource']]:
+    def extract_resource_types_from_field(cls, field_annotation) -> List[Type['ComponentBase']]:
         """
-        Extracts all resource types from a field annotation that uses SubclassUnion.
+        Extracts all resource types from a field annotation that uses SubclassUnion or PlaceholderPlugin.
 
         Parameters:
         - field_annotation: The type annotation of the field.
@@ -279,22 +284,26 @@ class ComponentBase(BaseModel):
             for arg in args:
                 if cls.field_contains_subclass_union(arg):
                     resource_types.extend(cls.extract_resource_types_from_field(arg))
-        elif isinstance(field_annotation, type) and issubclass(field_annotation, SubclassUnion):
+        elif inspect.isclass(field_annotation) and issubclass(field_annotation, SubclassUnion):
             # Assuming SubclassUnion is generic and parameterized
             subclass_args = get_args(field_annotation)
             if subclass_args:
                 resource_type = subclass_args[0]
                 resource_types.append(resource_type)
-        elif origin is list or origin is List:
+        elif origin in {list, List}:
             # Handle List[SubclassUnion[ResourceType]]
             item_type = args[0]
             resource_types.extend(cls.extract_resource_types_from_field(item_type))
-        elif origin is dict or origin is Dict:
+        elif origin in {dict, Dict}:
             # Handle Dict[key_type, SubclassUnion[ResourceType]]
             value_type = args[1]
             resource_types.extend(cls.extract_resource_types_from_field(value_type))
+        elif inspect.isclass(field_annotation) and issubclass(field_annotation, PlaceholderPlugin):
+            # Placeholder resource type
+            resource_types.append(field_annotation)
         
         return resource_types
+
 
     @classmethod
     def determine_new_type(cls, field_annotation, resource_type):
@@ -357,10 +366,14 @@ class ComponentBase(BaseModel):
         if is_optional:
             # Include None in the Union and maintain the discriminator
             registered_classes = list(cls.TYPE_REGISTRY.get(resource_type, {}).values())
+            if not registered_classes:
+                # Use PlaceholderPlugin as a placeholder if no subclasses are registered
+                registered_classes = [PlaceholderPlugin]
             union_with_none = Union[tuple(registered_classes + [type(None)])]
             new_type = Annotated[union_with_none, Field(discriminator="type")]
 
         return new_type
+
         
     @classmethod
     def generate_models_with_fields(cls) -> Dict[Type[BaseModel], Dict[str, Any]]:
@@ -438,3 +451,10 @@ class ComponentBase(BaseModel):
                         raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
                 model_class.model_rebuild(force=True)
             logger.info(f"Models associated with resource '{resource_type.__name__}' have been successfully recreated.")
+
+
+class PlaceholderPlugin(ComponentBase):
+    """
+    Placeholder base class for plugins when no subclasses are registered.
+    """
+    pass
