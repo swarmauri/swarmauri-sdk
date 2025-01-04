@@ -15,6 +15,7 @@ from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResol
 from swarmauri_core.prompts.IPromptMatrixBase import IPromptMatrixBase
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
 
+@ComponentBase.register_model()
 class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
     prompt_matrix: PromptMatrixBase
     agents: List[SubclassUnion[AgentBase]] = Field(default_factory=list)

@@ -5,6 +5,7 @@ from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.chains.IChainContext import IChainContext
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
+@ComponentBase.register_model()
 class ChainContextBase(IChainContext, ComponentBase):
     steps: List[ChainStepBase] = []
     context: Dict = {}

@@ -5,6 +5,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.chains.IChainStep import IChainStep
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
 
+@ComponentBase.register_model()
 class ChainStepBase(IChainStep, ComponentBase):
     """
     Represents a single step within an execution chain.
