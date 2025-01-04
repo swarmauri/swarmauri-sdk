@@ -25,7 +25,7 @@ from typing import (
     get_origin,
 )
 
-
+logger = logging.getLogger(__name__)
 T = TypeVar("T", bound="ComponentBase")
 
 class SubclassUnion(Generic[T], type):
