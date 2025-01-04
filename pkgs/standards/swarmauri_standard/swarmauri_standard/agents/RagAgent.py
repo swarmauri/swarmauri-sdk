@@ -1,19 +1,18 @@
 from typing import Any, Optional, Union, Dict, Literal
-from swarmauri_core.messages import IMessage
+
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
 
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
 from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
-
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.SystemMessage import SystemMessage
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_core.messages import IMessage
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, 'RagAgent')
