@@ -4,7 +4,9 @@ from typing import List, Union, Any, Literal
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ParserBase, 'CSVParser')
 class CSVParser(ParserBase):
     """
     Concrete implementation of IParser for parsing CSV formatted text into Document instances.

@@ -1,15 +1,12 @@
-from swarmauri_core.typing import SubclassUnion
-
 # Import necessary modules
 import requests
 from typing import Optional, Dict, Any, Literal, List
 from pydantic import Field
-from swarmauri.tools.base.ToolBase import (
-    ToolBase,
-)  # Assuming the location of ToolBase import
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'JSONRequestsTool')
 class JSONRequestsTool(ToolBase):
     """
     A tool that leverages the `requests` library to perform HTTP operations.
@@ -176,7 +173,3 @@ class JSONRequestsTool(ToolBase):
 
         return response.json()
 
-
-SubclassUnion.update(
-    baseclass=ToolBase, type_name="JSONRequestsTool", obj=JSONRequestsTool
-)

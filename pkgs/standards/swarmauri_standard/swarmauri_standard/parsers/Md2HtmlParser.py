@@ -2,8 +2,9 @@ import re
 from typing import List, Tuple, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ParserBase, 'Md2HtmlParser')
 class Md2HtmlParser(ParserBase):
     """
     A concrete implementation of the IParser interface that parses Markdown text.

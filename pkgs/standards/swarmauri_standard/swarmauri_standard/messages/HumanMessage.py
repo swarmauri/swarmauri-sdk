@@ -1,11 +1,10 @@
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Union, Dict
 from pydantic import Field, field_validator
-from swarmauri_base.messages.MessageBase import MessageBase
-from typing import Union, Dict
 from typing_extensions import TypedDict
 
-from swarmauri.utils.base64_encoder import is_url, encode_file
-
+from swarmauri_standard.utils.base64_encoder import is_url, encode_file
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 # Define specific content types
 class TextContent(TypedDict):
@@ -17,10 +16,9 @@ class ImageUrlContent(TypedDict):
     type: str
     image_url: Union[str, Dict]
 
-
 contentItem = Union[TextContent, ImageUrlContent]
 
-
+@ComponentBase.register_type(MessageBase, 'HumanMessage')
 class HumanMessage(MessageBase):
     content: Optional[Union[str, List[contentItem]]]
     role: str = Field(default="user")

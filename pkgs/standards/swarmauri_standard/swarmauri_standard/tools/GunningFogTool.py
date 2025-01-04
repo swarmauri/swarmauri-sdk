@@ -1,10 +1,10 @@
-from swarmauri_core.typing import SubclassUnion
 import re
 from typing import Any, Dict, List, Literal
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'GunningFogTool')
 class GunningFogTool(ToolBase):
     """
     A tool for calculating the Gunning-Fog readability score.
@@ -148,5 +148,3 @@ class GunningFogTool(ToolBase):
             and isinstance(data["input_text"], str)
         )
 
-
-SubclassUnion.update(baseclass=ToolBase, type_name="GunningFogTool", obj=GunningFogTool)

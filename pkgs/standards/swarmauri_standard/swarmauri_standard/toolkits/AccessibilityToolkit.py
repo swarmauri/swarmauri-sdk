@@ -3,7 +3,7 @@ from pydantic import Field
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 
-from swarmauri.tools.concrete import (
+from swarmauri_standard.tools.concrete import (
     AutomatedReadabilityIndexTool,
     ColemanLiauIndexTool,
     FleschKincaidTool,
@@ -11,7 +11,9 @@ from swarmauri.tools.concrete import (
     GunningFogTool,
 )
 
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ToolkitBase, 'AccessibilityToolkit')
 class AccessibilityToolkit(ToolkitBase):
     type: Literal["AccessibilityToolkit"] = "AccessibilityToolkit"
 

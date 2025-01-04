@@ -1,8 +1,9 @@
 from typing import Literal, Optional, Any
 from pydantic import Field
 from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(MessageBase, 'ZeroMeasurement')
 class FunctionMessage(MessageBase):
     content: str
     role: str = Field(default="tool")

@@ -2,8 +2,9 @@ from typing import Any, Dict, List, Literal, Optional, Type, Union
 from pydantic import Field
 
 from swarmauri_base.swarms.SwarmBase import SwarmBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(SwarmBase, 'Swarm')
 class Swarm(SwarmBase):
     """Concrete implementation of SwarmBase for task processing"""
 

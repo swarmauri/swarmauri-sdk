@@ -1,11 +1,14 @@
-from swarmauri_core.typing import SubclassUnion
+
+import base64
 import matplotlib.pyplot as plt
 from typing import List, Literal
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
-import base64
+from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'MatplotlibTool')
 class MatplotlibTool(ToolBase):
     version: str = "1.0.0"
     name: str = "MatplotlibTool"
@@ -117,5 +120,3 @@ class MatplotlibTool(ToolBase):
 
         return {"img_path": save_path, "img_base64": encoded_image, "data": []}
 
-
-SubclassUnion.update(baseclass=ToolBase, type_name="MatplotlibTool", obj=MatplotlibTool)

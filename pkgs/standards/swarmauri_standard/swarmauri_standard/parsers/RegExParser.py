@@ -2,7 +2,9 @@ import re
 from typing import List, Union, Any, Literal, Pattern
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ParserBase, 'RegExParser')
 class RegExParser(ParserBase):
     """
     A parser that uses a regular expression to extract information from text.

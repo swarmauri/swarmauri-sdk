@@ -1,8 +1,9 @@
 from typing import  Dict, Any, Literal
-from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
+@ComponentBase.register_type(SchemaConverterBase, 'OpenAISchemaConverter')
 class OpenAISchemaConverter(SchemaConverterBase):
     type: Literal['OpenAISchemaConverter'] = 'OpenAISchemaConverter'
 

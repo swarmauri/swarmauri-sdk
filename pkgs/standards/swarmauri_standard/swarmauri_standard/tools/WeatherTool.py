@@ -1,10 +1,10 @@
-from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'WeatherTool')
 class WeatherTool(ToolBase):
     version: str = "0.1.dev1"
     parameters: List[Parameter] = Field(
@@ -34,5 +34,3 @@ class WeatherTool(ToolBase):
         # For demonstration, let's just return the parameters as a string.
         return {"weather_info": str(weather_info)}
 
-
-SubclassUnion.update(baseclass=ToolBase, type_name="WeatherTool", obj=WeatherTool)

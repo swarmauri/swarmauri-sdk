@@ -1,15 +1,16 @@
-from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 # Download required NLTK data once during module load
 nltk.download("punkt", quiet=True)
 
 
+@ComponentBase.register_type(ToolBase, 'SentenceComplexityTool')
 class SentenceComplexityTool(ToolBase):
     version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(
@@ -78,7 +79,3 @@ class SentenceComplexityTool(ToolBase):
             "average_clauses_per_sentence": avg_clauses_per_sentence,
         }
 
-
-SubclassUnion.update(
-    baseclass=ToolBase, type_name="SentenceComplexityTool", obj=SentenceComplexityTool
-)

@@ -2,7 +2,9 @@ import re
 from typing import List, Union, Any, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ParserBase, 'PhoneNumberExtractorParser')
 class PhoneNumberExtractorParser(ParserBase):
     """
     A parser that extracts phone numbers from the input text.

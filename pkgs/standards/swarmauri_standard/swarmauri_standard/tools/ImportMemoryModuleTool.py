@@ -1,13 +1,13 @@
-from swarmauri_core.typing import SubclassUnion
 import sys
 import types
 import importlib
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'ImportMemoryModuleTool')
 class ImportMemoryModuleTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
@@ -89,8 +89,3 @@ class ImportMemoryModuleTool(ToolBase):
             current_module = sys.modules[module_path]
 
         return current_module
-
-
-SubclassUnion.update(
-    baseclass=ToolBase, type_name="ImportMemoryModuleTool", obj=ImportMemoryModuleTool
-)

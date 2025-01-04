@@ -3,7 +3,9 @@ import re
 from typing import Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ParserBase, 'HTMLTagStripParser')
 class HTMLTagStripParser(ParserBase):
     """
     A concrete parser that removes HTML tags and unescapes HTML content,

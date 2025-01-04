@@ -1,15 +1,13 @@
-from swarmauri_core.typing import SubclassUnion
-
-# standard/tools/concrete/MatplotlibCsvTool.py
 import pandas as pd
 import matplotlib.pyplot as plt
+import base64
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-import base64
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'MatplotlibCsvTool')
 class MatplotlibCsvTool(ToolBase):
     type: Literal["MatplotlibCsvTool"] = "MatplotlibCsvTool"
     name: str = Field(
@@ -79,6 +77,3 @@ class MatplotlibCsvTool(ToolBase):
         return {"img_path": output_file, "img_base64": encoded_image, "data": []}
 
 
-SubclassUnion.update(
-    baseclass=ToolBase, type_name="MatplotlibCsvTool", obj=MatplotlibCsvTool
-)

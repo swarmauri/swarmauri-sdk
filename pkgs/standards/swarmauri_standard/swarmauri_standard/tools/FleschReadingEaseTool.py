@@ -1,11 +1,11 @@
-from swarmauri_core.typing import SubclassUnion
 import re
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'FleschReadingEaseTool')
 class FleschReadingEaseTool(ToolBase):
     version: str = "0.1.0.dev11"
     parameters: List[Parameter] = Field(
@@ -96,8 +96,3 @@ class FleschReadingEaseTool(ToolBase):
 
         # Ensure at least one syllable per word
         return max(num_syllables, 1)
-
-
-SubclassUnion.update(
-    baseclass=ToolBase, type_name="FleschReadingEaseTool", obj=FleschReadingEaseTool
-)

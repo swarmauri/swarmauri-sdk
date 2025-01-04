@@ -1,9 +1,11 @@
-from typing import Callable, Dict, Any, List
-from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from queue import Queue
+from typing import Callable, Dict, Any, List
 import logging
 
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(TaskMgmtStrategyBase, 'RoundRobinStrategy')
 class RoundRobinStrategy(TaskMgmtStrategyBase):
     """Round-robin task assignment strategy."""
 

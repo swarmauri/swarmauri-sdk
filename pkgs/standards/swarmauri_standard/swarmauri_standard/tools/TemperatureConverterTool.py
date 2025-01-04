@@ -1,10 +1,10 @@
-from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ToolBase, 'TemperatureConverterTool')
 class TemperatureConverterTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
