@@ -117,7 +117,6 @@ class ComponentBase(BaseModel):
             return cls.__name__
         return v
 
-
     # Normative Class Methods
     def __swm_class_hash__(self):
         sig_hash = hashlib.sha256()
@@ -153,7 +152,7 @@ class ComponentBase(BaseModel):
                     return True
         return False
 
-    # Experimental properties in support of 
+    # Experimental properties in support of Remote Execution
 
     @property
     def swm_path(self):
@@ -228,7 +227,7 @@ class ComponentBase(BaseModel):
         """
         return cls.TYPE_REGISTRY.get(resource_type, {}).get(type_name)
 
-   @classmethod
+    @classmethod
     def field_contains_subclass_union(cls, field_annotation) -> bool:
         """
         Check if the field annotation contains a SubclassUnion.
