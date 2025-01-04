@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Any, Literal
 from pydantic import Field
+
+from swarmauri_core.chunkers.IChunker import IChunker
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
-class ChunkerBase(ComponentBase, ABC):
+class ChunkerBase(IChunker, ComponentBase):
     """
     Interface for chunking text into smaller pieces.
 
