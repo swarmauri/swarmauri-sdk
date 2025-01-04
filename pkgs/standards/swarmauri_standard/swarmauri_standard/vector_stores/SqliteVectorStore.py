@@ -15,7 +15,8 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 
-
+from swarmauri_core.ComponentBase import ComponentBase
+@ComponentBase.register_type(VectorStoreBase, 'SqliteVectorStore')
 class SqliteVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):

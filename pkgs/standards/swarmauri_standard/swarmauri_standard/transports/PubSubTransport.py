@@ -1,9 +1,10 @@
 from typing import Dict, Any, List, Optional, Set, Literal
 from uuid import uuid4
 import asyncio
-from swarmauri_base.transports.TransportBase import TransportBase
+from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(TransportBase, 'PubSubTransport')
 class PubSubTransport(TransportBase):
     allowed_protocols: List[TransportProtocol] = [TransportProtocol.PUBSUB]
     _topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
