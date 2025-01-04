@@ -18,7 +18,7 @@ To start developing with the Core Library, include it as a module in your Python
 
 ```python
 # Example of using an abstract model interface from the Core Library
-from swarmauri.core.models.IModel import IModel
+from swarmauri_core.models.IModel import IModel
 
 class MyModel(IModel):
     # Implement the abstract methods here
