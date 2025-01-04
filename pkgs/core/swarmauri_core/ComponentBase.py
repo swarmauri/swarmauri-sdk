@@ -203,7 +203,6 @@ class ComponentBase(BaseModel):
         # No need to recreate models as no actual class is loaded
         logger.info(f"Registered placeholder for type '{type_name}' under resource '{resource_type}' with module '{module_path}' and interface '{interface.__name__ if interface else 'None'}'")
 
-
     @classmethod
     def register_model(cls):
         """
