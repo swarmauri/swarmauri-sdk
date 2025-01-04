@@ -44,7 +44,7 @@ class SubclassUnion(type):
         """
         registered_classes = list(ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values())
         if not registered_classes:
-            logger.warning(f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder.")
+            logger.debug(f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder.")
             return Annotated[Any, Field(...)]
         else:
             union_type = Union[tuple(registered_classes)]
