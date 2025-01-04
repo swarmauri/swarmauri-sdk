@@ -9,7 +9,7 @@ from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, 'QAAgent')
 class QAAgent(AgentBase):
-    llm: SubclassUnion[LLMBase]
+    #llm: SubclassUnion[LLMBase]
     conversation: MaxSystemContextConversation = MaxSystemContextConversation(max_size=2)
     type: Literal['QAAgent'] = 'QAAgent'
 
