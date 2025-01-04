@@ -140,19 +140,17 @@ class ComponentBase(BaseModel):
 
     @classmethod
     def swm_ismethod_registered(cls, method_name: str):
-        return method_name in cls.public_interfaces()
+        return method_name in cls.swm_public_interfaces()
 
     @classmethod
     def swm_method_signature(cls, input_signature):
-        for method_name in cls.public_interfaces():
+        for method_name in cls.swm_public_interfaces():
             method = getattr(cls, method_name)
             if callable(method):
                 sig = str(inspect.signature(method))
                 if sig == input_signature:
                     return True
         return False
-
-    # Experimental properties in support of Remote Execution
 
     @property
     def swm_path(self):
