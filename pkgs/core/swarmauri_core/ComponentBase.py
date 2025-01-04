@@ -1,27 +1,30 @@
 # swarmauri_core/ComponentBase.py
 
+import hashlib
+import inspect
 import json
+import logging
+from enum import Enum
+from threading import Lock
+from uuid import uuid4
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from typing import (
+    Annotated,
     Any,
+    ClassVar,
     Dict,
-    Optional,
+    Generic,
     List,
     Literal,
-    TypeVar,
-    Type,
-    Union,
-    ClassVar,
+    Optional,
     Set,
+    Type,
+    TypeVar,
+    Union,
     get_args,
+    get_origin,
 )
 
-from uuid import uuid4
-from enum import Enum
-import inspect
-import hashlib
-from pydantic import BaseModel, Field, ValidationError, field_validator
-import logging
-from typing import Type, Dict, Any, ClassVar, List, Optional, Union, get_origin, get_args, Literal, TypeVar, Generic, Annotated
 
 T = TypeVar("T", bound="ComponentBase")
 
