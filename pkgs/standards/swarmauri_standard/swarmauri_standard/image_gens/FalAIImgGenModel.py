@@ -1,10 +1,10 @@
 import httpx
 import asyncio
+import time
 from typing import List, Literal, Optional, Dict
 from pydantic import Field, PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-import time
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ImageGenBase, 'FalAIImgGenModel')

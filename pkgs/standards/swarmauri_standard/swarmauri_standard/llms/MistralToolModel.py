@@ -1,19 +1,17 @@
 import asyncio
 import json
 import logging
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any
 import httpx
+from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
 from pydantic import PrivateAttr
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_core.typing import SubclassUnion
-
-from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.schema_converters.concrete.MistralSchemaConverter import (
     MistralSchemaConverter,
 )
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'MistralToolModel')
@@ -78,13 +76,13 @@ class MistralToolModel(LLMBase):
         return [MistralSchemaConverter().convert(tools[tool]) for tool in tools]
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Format conversation history messages for the Mistral API.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of message objects from the conversation history.
+            messages (List[Type[MessageBase]]): List of message objects from the conversation history.
 
         Returns:
             List[Dict[str, str]]: A list of formatted message dictionaries.

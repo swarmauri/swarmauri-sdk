@@ -1,10 +1,10 @@
 import httpx
-from typing import List, Literal
-from pydantic import PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 import asyncio
 import contextlib
+from typing import List, Literal
+from pydantic import PrivateAttr
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ImageGenBase, 'HyperbolicImgGenModel')

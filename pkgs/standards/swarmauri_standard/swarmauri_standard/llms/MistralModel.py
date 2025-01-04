@@ -1,20 +1,14 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Literal, Dict
+from typing import AsyncIterator, Iterator, List, Literal, Dict, Type
 import httpx
 from pydantic import PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_core.typing import SubclassUnion
-
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.llms.LLMBase import LLMBase
-
-from swarmauri_standard.messages.AgentMessage import UsageData
-
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
-
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'MistralModel')
@@ -72,13 +66,13 @@ class MistralModel(LLMBase):
         )
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Format a list of message objects into dictionaries for the Mistral API.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of messages to format.
+            messages (List[Type[MessageBase]]): List of messages to format.
 
         Returns:
             List[Dict[str, str]]: Formatted list of message dictionaries.

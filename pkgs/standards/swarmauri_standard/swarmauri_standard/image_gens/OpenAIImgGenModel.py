@@ -3,7 +3,7 @@ import asyncio
 import httpx
 from typing import Dict, List, Literal, Optional
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ImageGenBase, 'OpenAIImgGenModel')

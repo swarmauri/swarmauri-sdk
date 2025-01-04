@@ -2,18 +2,13 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
+from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.conversations.Conversation import Conversation
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
-
-from swarmauri_core.typing import SubclassUnion
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_base.llms.LLMBase import LLMBase
-
-from swarmauri_standard.messages.AgentMessage import UsageData
-
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'HyperbolicModel')
@@ -65,7 +60,7 @@ class HyperbolicModel(LLMBase):
 
     def _format_messages(
         self,
-        messages: List[SubclassUnion[MessageBase]],
+        messages: List[Type[MessageBase]],
     ) -> List[Dict[str, Any]]:
         """
         Formats conversation messages into the structure expected by the API.

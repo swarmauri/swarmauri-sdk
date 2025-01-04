@@ -1,14 +1,13 @@
 import json
-from typing import List, Dict, Literal, AsyncIterator, Iterator
 import asyncio
 import httpx
+from typing import List, Dict, Literal, AsyncIterator, Iterator, Type
 from pydantic import PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_core.typing import SubclassUnion
-from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
@@ -58,13 +57,13 @@ class AnthropicModel(LLMBase):
         )
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Formats a list of message objects into a format suitable for the Anthropic API.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): A list of message objects from a conversation.
+            messages (List[Type[MessageBase]]): A list of message objects from a conversation.
 
         Returns:
             List[Dict[str, str]]: A list of dictionaries containing the 'content' and 'role' of each message,
@@ -78,12 +77,12 @@ class AnthropicModel(LLMBase):
         ]
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+    def _get_system_context(self, messages: List[Type[MessageBase]]) -> str:
         """
         Extracts the most recent system context from a list of messages.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): A list of message objects from a conversation.
+            messages (List[Type[MessageBase]]): A list of message objects from a conversation.
 
         Returns:
             str: The content of the most recent system context if present, otherwise None.

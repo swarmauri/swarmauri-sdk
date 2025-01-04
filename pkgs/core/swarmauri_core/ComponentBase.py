@@ -48,7 +48,7 @@ class SubclassUnion(Generic[T], type):
             registered_classes = [PlaceholderPlugin]
         
         union_type = Union[tuple(registered_classes)]
-        return Annotated[union_type, Field(serialization_alias=f"SubclassUnion[{resource_type.__name__}]", discriminator='type')]
+        return Annotated[union_type, Field(discriminator='type')]
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = "ComponentBase"

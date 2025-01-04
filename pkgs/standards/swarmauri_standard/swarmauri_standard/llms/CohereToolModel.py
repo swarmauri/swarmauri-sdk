@@ -1,19 +1,17 @@
 import json
 import asyncio
-from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union
-from pydantic import PrivateAttr
 import httpx
+from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union, Type
+from pydantic import PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_core.typing import SubclassUnion
-
-from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.schema_converters.concrete.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
 from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'CohereToolModel')
@@ -108,13 +106,13 @@ class CohereToolModel(LLMBase):
         return ""
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Format messages into Cohere's expected chat format.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of messages to format
+            messages (List[Type[MessageBase]]): List of messages to format
 
         Returns:
             List[Dict[str, str]]: Formatted messages for Cohere's API

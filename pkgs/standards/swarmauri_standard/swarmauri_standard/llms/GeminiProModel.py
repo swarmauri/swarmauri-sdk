@@ -1,17 +1,15 @@
 import json
-from typing import AsyncIterator, Iterator, List, Dict, Literal
 import httpx
-from pydantic import PrivateAttr
 import asyncio
+from typing import AsyncIterator, Iterator, List, Dict, Literal, Type
+from pydantic import PrivateAttr
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.AgentMessage import UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.typing import SubclassUnion
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'GeminiProModel')
@@ -69,13 +67,13 @@ class GeminiProModel(LLMBase):
     )
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Formats messages for API payload compatibility.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of message objects.
+            messages (List[Type[MessageBase]]): List of message objects.
 
         Returns:
             List[Dict[str, str]]: List of formatted message dictionaries.
@@ -97,12 +95,12 @@ class GeminiProModel(LLMBase):
             {"parts": [{"text": message["parts"]}]} for message in sanitized_messages
         ]
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+    def _get_system_context(self, messages: List[Type[MessageBase]]) -> str:
         """
         Retrieves the system message content from a conversation.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of message objects with message history.
+            messages (List[Type[MessageBase]]): List of message objects with message history.
 
         Returns:
             str: Content of the system message, if present; otherwise, None.

@@ -1,17 +1,16 @@
 import json
 import httpx
-from pydantic import PrivateAttr
 import asyncio
-from typing import List, Literal, AsyncIterator, Iterator
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_core.typing import SubclassUnion
 
+from typing import List, Literal, AsyncIterator, Iterator, Type
+from pydantic import PrivateAttr
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_standard.messages.AgentMessage import UsageData
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'AI21StudioModel')
@@ -65,13 +64,13 @@ class AI21StudioModel(LLMBase):
         )
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type['MessageBase']]
     ) -> List[dict]:
         """
         Formats messages for API request payload.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of messages in the conversation.
+            messages (List[Type[MessageBase]]): List of messages in the conversation.
 
         Returns:
             List[dict]: Formatted list of message dictionaries.

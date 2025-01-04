@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, Literal
+from swarmauri_standard.utils._get_subclasses import get_classes_from_module
 from swarmauri_base.factories.FactoryBase import FactoryBase
-from swarmauri.utils._get_subclasses import get_classes_from_module
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(FactoryBase, 'Factory')

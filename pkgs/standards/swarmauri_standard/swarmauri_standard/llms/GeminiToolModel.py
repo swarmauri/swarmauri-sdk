@@ -1,20 +1,18 @@
 import asyncio
 import json
 import logging
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any
+from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
 import httpx
 from pydantic import PrivateAttr
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_core.typing import SubclassUnion
-
-from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.schema_converters.concrete.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
 from swarmauri_standard.toolkits.Toolkit import Toolkit
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(LLMBase, 'GeminiToolModel')
@@ -81,13 +79,13 @@ class GeminiToolModel(LLMBase):
         return {"function_declarations": response}
 
     def _format_messages(
-        self, messages: List[SubclassUnion[MessageBase]]
+        self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
         Formats message history for compatibility with Gemini API, sanitizing content and updating roles.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): A list of message objects.
+            messages (List[Type[MessageBase]]): A list of message objects.
 
         Returns:
             List[Dict[str, str]]: List of formatted message dictionaries.
@@ -158,12 +156,12 @@ class GeminiToolModel(LLMBase):
         )
         return messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+    def _get_system_context(self, messages: List[Type[MessageBase]]) -> str:
         """
         Extracts system context message from message history.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): List of message objects.
+            messages (List[Type[MessageBase]]): List of message objects.
 
         Returns:
             str: Content of the system context message.
