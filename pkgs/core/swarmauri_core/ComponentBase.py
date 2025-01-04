@@ -21,6 +21,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    Tuple,
     get_args,
     get_origin,
 )
