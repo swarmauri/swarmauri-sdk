@@ -1,10 +1,10 @@
 from typing import Optional
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from swarmauri_core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
 
 
-class VectorStorePersistentMixin(IPersistentVectorStore):
+class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
     """
     Mixin class for persistent-based vector stores.
     """

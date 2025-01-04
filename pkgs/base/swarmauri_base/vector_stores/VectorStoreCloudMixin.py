@@ -1,10 +1,10 @@
 from typing import Optional
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from swarmauri_core.vector_stores.ICloudVectorStore import ICloudVectorStore
 
 
-class VectorStoreCloudMixin(ICloudVectorStore):
+class VectorStoreCloudMixin(ICloudVectorStore, BaseModel):
     """
     Mixin class for cloud-based vector stores.
     """
