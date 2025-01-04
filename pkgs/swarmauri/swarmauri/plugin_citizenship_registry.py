@@ -342,7 +342,7 @@ class PluginCitizenshipRegistry:
         if module_path:
             logger.debug(f"Retrieved module path '{module_path}' for resource path '{resource_path}'.")
         else:
-            logger.warning(f"Resource path '{resource_path}' not found in TOTAL registry.")
+            logger.debug(f"Resource path '{resource_path}' not found in TOTAL registry.")
         return module_path
 
     @classmethod
