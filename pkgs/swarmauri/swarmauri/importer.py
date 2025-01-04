@@ -41,14 +41,12 @@ class SwarmauriImporter:
                 logger.debug(f"Found external module mapping: {fullname} -> {external_module_path}")
                 return ModuleSpec(fullname, self)
 
-            # Attempt to register the plugin without loading
-            if fullname in PluginCitizenshipRegistry.total_registry():
-                resource_path = fullname
-                type_info = get_plugin_type_info(resource_path)
-                if type_info:
-                    # Do not load the module yet; registration already handled
-                    logger.debug(f"Plugin '{fullname}' is registered for lazy loading.")
-                    return ModuleSpec(fullname, self)
+            # If lazy, then we need to add LazyLoader
+            external_module_path = PluginCitizenshipRegistry.get_external_module_path(fullname)
+            if external_module_path:
+                # If we detect lazy strategy, then we utilize LazyLoader
+                logger.debug(f"Found external module mapping: {fullname} -> {external_module_path}")
+                return ModuleSpec(fullname, importlib.util.LazyLoader(self))
 
             logger.debug(f"Module '{fullname}' not found. Returning None.")
             return None
@@ -74,14 +72,6 @@ class SwarmauriImporter:
             logger.debug(f"Creating namespace module '{spec.name}'.")
             module = ModuleType(spec.name)
             module.__path__ = spec.submodule_search_locations
-            sys.modules[spec.name] = module
-            return module
-
-        # Handle lazy-loaded plugins
-        if spec.name in PluginCitizenshipRegistry.total_registry():
-            module_path = PluginCitizenshipRegistry.total_registry()[spec.name]
-            logger.debug(f"Lazy loading module '{spec.name}' from '{module_path}'")
-            module = importlib.import_module(module_path)
             sys.modules[spec.name] = module
             return module
 
