@@ -408,24 +408,37 @@ class ComponentBase(BaseModel):
         Returns:
         - A dictionary mapping model classes to their fields and corresponding resource types.
         """
+        logging.info("Starting generation of models_with_fields")
+
         models_with_fields = {}
         for model_cls, resource_types in cls.MODEL_REGISTRY.items():
+            logging.debug(f"Processing model: {model_cls.__name__}")
             models_with_fields[model_cls] = {}
+
             for field_name, field in model_cls.__fields__.items():
+                logging.debug(f"Processing field: {field_name}")
+
                 field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
+                    logging.debug(f"Field {field_name} in model {model_cls.__name__} has no annotation, skipping.")
                     continue
 
                 # Check if SubclassUnion is used in the field type
                 if not cls.field_contains_subclass_union(field_annotation):
+                    logging.debug(f"Field {field_name} does not contain SubclassUnion, skipping.")
                     continue  # Only process fields that use SubclassUnion
 
                 # Extract all resource types from the field
                 field_resource_types = cls.extract_resource_types_from_field(field_annotation)
+                logging.debug(f"Extracted resource types for field {field_name}: {field_resource_types}")
+
                 for resource_type in field_resource_types:
                     new_type = cls.determine_new_type(field_annotation, resource_type)
+                    logging.debug(f"Determined new type for resource {resource_type}: {new_type}")
+
                     models_with_fields[model_cls][field_name] = new_type
 
+        logging.info("Completed generation of models_with_fields")
         return models_with_fields
 
     @classmethod
