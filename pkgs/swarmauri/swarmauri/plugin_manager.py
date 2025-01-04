@@ -6,6 +6,7 @@ import importlib.metadata
 import inspect
 import logging
 import json
+import importlib
 from importlib.util import LazyLoader, spec_from_loader
 from importlib.resources import read_binary
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
@@ -220,35 +221,31 @@ def _register_lazy_plugin_from_metadata(entry_point: EntryPoint, metadata: Dict[
 
         # Determine classification: first or second class
         if PluginCitizenshipRegistry.is_first_class(entry_point):
-            registry_type = "first"
+            citizenship = "first"
             logger.debug(f"Plugin '{resource_path}' identified as first-class.")
         else:
-            registry_type = "second"
+            citizenship = "second"
             logger.debug(f"Plugin '{resource_path}' identified as second-class.")
 
         # Register in PluginCitizenshipRegistry with 'lazy' loading strategy
-        PluginCitizenshipRegistry.add_to_registry(registry_type, resource_path, module_path)
-        logger.info(f"Registered {registry_type}-class plugin '{type_name}' at '{resource_path}' [lazy]")
+        module_path = entry_point.value.split(':')[0] if ':' in entry_point.value else entry_point.value
+        PluginCitizenshipRegistry.add_to_registry(citizenship, resource_path, module_path)
+        logger.info(f"Registered {citizenship}-class plugin '{type_name}' at '{resource_path}' [lazy]")
 
-        # Register the placeholder in ComponentBase.TYPE_REGISTRY
-        ComponentBase.register_type_placeholder(resource_kind, type_name, module_path, interface_class)
-        logger.info(f"Registered placeholder for type '{type_name}' under resource '{resource_kind}' with module '{module_path}' and interface '{interface_class.__name__ if interface_class else 'None'}'")
-
-        # Configure LazyLoader for the plugin's module
+        # Import Spec
         spec = importlib.util.find_spec(module_path)
-        if spec is None:
-            msg = f"Cannot find module specification for '{module_path}' for plugin '{type_name}'."
-            logger.error(msg)
-            raise PluginValidationError(msg)
-
-        # Wrap the existing loader with LazyLoader
         spec.loader = importlib.util.LazyLoader(spec.loader)
-        logger.debug(f"Configured LazyLoader for module '{module_path}'.")
+        if spec is None:
+            raise ImportError(f"Cannot find module '{module_path}'")
+        plugin_class = importlib.util.module_from_spec(spec)
 
-        # Update the module spec in sys.modules with the modified spec
-        # This ensures that when the module is imported, it uses the LazyLoader
-        sys.modules[module_path] = importlib.util.module_from_spec(spec)
-        logger.info(f"Configured module '{module_path}' for lazy loading.")
+        # Add LazyLoaded plugin
+        sys.modules[spec.name] = plugin_class
+
+        type_name = resource_path.split('.')[-1]
+        ComponentBase.TYPE_REGISTRY.setdefault(resource_kind, {})[type_name] = plugin_class
+        logger.info(f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{resource_kind}'")
+
 
     except KeyError as e:
         logger.error(f"Missing required metadata field: {e} in plugin '{entry_point.name}'")
