@@ -7,7 +7,6 @@ from swarmauri_base.document_stores.DocumentStoreBase import DocumentStoreBase
 
 class DocumentStoreRetrieveBase(DocumentStoreBase, IDocumentRetrieve):
 
-        
     @abstractmethod
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         """
