@@ -1,6 +1,8 @@
 from typing import Literal
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(MeasurementBase, 'ZeroMeasurement')
 class ZeroMeasurement(MeasurementBase):
     """
     A concrete implementation of MeasurementBase that statically represents the value 0.

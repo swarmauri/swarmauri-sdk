@@ -5,8 +5,9 @@ from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri.measurements.base.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(MeasurementBase, 'MissingnessMeasurement')
 class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
     """
     A metric that evaluates the percentage of missing values in a dataset.

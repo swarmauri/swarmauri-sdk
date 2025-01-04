@@ -2,8 +2,9 @@ from typing import Any, Dict, List, Literal, Union
 import pandas as pd
 import numpy as np
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(MeasurementBase, 'DistinctivenessMeasurement')
 class DistinctivenessMeasurement(MeasurementBase):
     """
     Measurement for evaluating the distinctiveness of a dataset or collection of values.

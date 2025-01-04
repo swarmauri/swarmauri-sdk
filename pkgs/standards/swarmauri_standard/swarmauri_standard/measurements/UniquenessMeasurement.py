@@ -1,8 +1,9 @@
 from typing import Any, Dict, List, Literal, Union
 import pandas as pd
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(MeasurementBase, 'UniquenessMeasurement')
 class UniquenessMeasurement(MeasurementBase):
     """
     Measurement for evaluating the uniqueness of values in a dataset.
