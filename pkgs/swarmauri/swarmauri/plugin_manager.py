@@ -11,7 +11,7 @@ from importlib.util import LazyLoader, spec_from_loader
 from importlib.resources import read_binary
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.ComponentBase import ComponentBase
 import sys
 
 logger = logging.getLogger(__name__)
@@ -74,8 +74,6 @@ class PluginLoadError(Exception):
 
 class PluginValidationError(Exception):
     """Raised when a plugin fails validation against an interface or registry."""
-
-
 
 # --------------------------------------------------------------------------------------
 # 3. PLUGIN PROCESSING FUNCTIONS
