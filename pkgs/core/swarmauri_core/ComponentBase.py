@@ -194,9 +194,9 @@ class ComponentBase(BaseModel):
             if model_cls not in cls.MODEL_REGISTRY:
                 cls.MODEL_REGISTRY[model_cls] = []
 
-            # Inspect all fields to find SubclassUnion annotations, including inherited fields
+            # Inspect all fields to find SubclassUnion annotations
             for field_name, field in model_cls.__fields__.items():
-                field_annotation = cls.get_field_annotation(model_cls, field_name)
+                field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
                     continue
 
@@ -208,28 +208,9 @@ class ComponentBase(BaseModel):
                         if resource_type not in cls.MODEL_REGISTRY[model_cls]:
                             cls.MODEL_REGISTRY[model_cls].append(resource_type)
                             logger.info(f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'")
+            cls.recreate_models()
             return model_cls
         return decorator
-
-    @classmethod
-    def get_field_annotation(cls, model_cls: Type[BaseModel], field_name: str):
-        """
-        Retrieve the field annotation for a given field, including inherited fields.
-
-        Parameters:
-        - model_cls: The Pydantic model class.
-        - field_name: The name of the field.
-
-        Returns:
-        - The type annotation of the field, or None if not found.
-        """
-        for base in inspect.getmro(model_cls):
-            if base == object:
-                continue
-            annotations = getattr(base, '__annotations__', {})
-            if field_name in annotations:
-                return annotations[field_name]
-        return None
 
     @classmethod
     def get_class_by_type(cls, resource_type: Type[T], type_name: str) -> Type['ComponentBase']:
@@ -266,6 +247,7 @@ class ComponentBase(BaseModel):
             args = get_args(field_annotation)
             return any(cls.field_contains_subclass_union(arg) for arg in args)
         return False
+
 
     @classmethod
     def extract_resource_types_from_field(cls, field_annotation) -> List[Type['ComponentBase']]:
@@ -309,6 +291,7 @@ class ComponentBase(BaseModel):
             resource_types.extend(cls.extract_resource_types_from_field(value_type))
         
         return resource_types
+
 
     @classmethod
     def determine_new_type(cls, field_annotation, resource_type):
@@ -384,28 +367,20 @@ class ComponentBase(BaseModel):
 
         return new_type
 
+        
     @classmethod
     def generate_models_with_fields(cls) -> Dict[Type[BaseModel], Dict[str, Any]]:
         """
-        Automatically generate the models_with_fields dictionary based on registered models,
-        including subclasses that inherit fields using SubclassUnion.
-        
+        Automatically generate the models_with_fields dictionary based on registered models.
+
         Returns:
         - A dictionary mapping model classes to their fields and corresponding resource types.
         """
         models_with_fields = {}
-        
-        # Collect all models, including subclasses of registered models
-        all_models = set(cls.MODEL_REGISTRY.keys())
-        for model_cls in list(all_models):
-            for subclass in model_cls.__subclasses__():
-                if issubclass(subclass, BaseModel):
-                    all_models.add(subclass)
-        
-        for model_cls in all_models:
+        for model_cls, resource_types in cls.MODEL_REGISTRY.items():
             models_with_fields[model_cls] = {}
-            for field_name in model_cls.__fields__:
-                field_annotation = cls.get_field_annotation(model_cls, field_name)
+            for field_name, field in model_cls.__fields__.items():
+                field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
                     continue
 
@@ -420,7 +395,6 @@ class ComponentBase(BaseModel):
                     models_with_fields[model_cls][field_name] = new_type
 
         return models_with_fields
-
 
     @classmethod
     def recreate_models(cls):
