@@ -1,9 +1,10 @@
 from typing import Optional, Literal
 from pydantic import Field
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+
 from swarmauri_core.embeddings.IVectorize import IVectorize
 from swarmauri_core.embeddings.IFeature import IFeature
 from swarmauri_core.embeddings.ISaveModel import ISaveModel
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class EmbeddingBase(IVectorize, IFeature, ISaveModel, ComponentBase):

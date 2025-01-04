@@ -1,6 +1,6 @@
+import uuid
 from typing import Any, Callable, List, Optional, Dict
 from pydantic import BaseModel, ConfigDict, Field
-import uuid
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
 

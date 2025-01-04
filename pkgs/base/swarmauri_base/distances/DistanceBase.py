@@ -1,7 +1,8 @@
-from abc import abstractmethod
 from numpy.linalg import norm
+
 from typing import List, Optional, Literal
 from pydantic import Field
+
 from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes

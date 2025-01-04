@@ -1,7 +1,8 @@
 from typing import List, Tuple, Optional, Any, Literal
 from pydantic import Field, ConfigDict
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+
 from swarmauri_core.prompts.IPromptMatrix import IPromptMatrix
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 class PromptMatrixBase(IPromptMatrix, ComponentBase):
     matrix: List[List[str]] = []

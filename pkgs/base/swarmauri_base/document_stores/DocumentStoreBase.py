@@ -1,6 +1,6 @@
-import json
-from abc import ABC, abstractmethod
 from typing import List, Optional
+import json
+
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 

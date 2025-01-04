@@ -1,7 +1,8 @@
 from typing import Dict, Optional, Literal
 from pydantic import Field, ConfigDict
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+
 from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_standard.vectors.Vector import Vector
 
 @ComponentBase.register_model()

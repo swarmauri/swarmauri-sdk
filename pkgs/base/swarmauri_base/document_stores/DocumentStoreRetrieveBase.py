@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 from typing import List
+
 from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_base.document_stores.DocumentStoreBase import DocumentStoreBase
