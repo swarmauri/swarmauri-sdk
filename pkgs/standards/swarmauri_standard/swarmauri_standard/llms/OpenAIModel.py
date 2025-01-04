@@ -2,8 +2,8 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
-from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.conversations.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
 
@@ -12,8 +12,9 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.messages.AgentMessage import UsageData
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, 'OpenAIModel')
 class OpenAIModel(LLMBase):
     """
     OpenAIModel class for interacting with the Groq language models API. This class

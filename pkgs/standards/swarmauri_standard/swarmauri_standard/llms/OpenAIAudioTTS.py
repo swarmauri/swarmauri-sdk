@@ -4,10 +4,12 @@ import os
 from typing import AsyncIterator, Iterator, List, Literal, Dict
 import httpx
 from pydantic import PrivateAttr, model_validator
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(LLMBase, 'OpenAIAudioTTS')
 class OpenAIAudioTTS(LLMBase):
     """
     A class to interact with OpenAI's Text-to-Speech API, allowing for synchronous

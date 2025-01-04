@@ -2,8 +2,8 @@ import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
-from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.conversations.Conversation import Conversation
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator
 
@@ -14,7 +14,9 @@ from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.messages.AgentMessage import UsageData
 
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(LLMBase, 'HyperbolicModel')
 class HyperbolicModel(LLMBase):
     """
     HyperbolicModel class for interacting with the Hyperbolic AI language models API.

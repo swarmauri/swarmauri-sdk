@@ -6,18 +6,20 @@ from typing import AsyncIterator, Iterator, List, Literal, Dict, Any
 import httpx
 from pydantic import PrivateAttr
 
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri.schema_converters.concrete.GroqSchemaConverter import (
+from swarmauri_standard.schema_converters.concrete.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
 
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(LLMBase, 'GroqToolModel')
 class GroqToolModel(LLMBase):
     """
     GroqToolModel provides an interface to interact with Groq's large language models for tool usage.

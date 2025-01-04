@@ -3,11 +3,13 @@ import httpx
 import asyncio
 from typing import List, Literal, Dict
 from pydantic import Field, PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.llms.LLMBase import LLMBase
 import time
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(LLMBase, 'FalAIVisionModel')
 class FalAIVisionModel(LLMBase):
     """
     A model for processing images and answering questions using FalAI's vision models.

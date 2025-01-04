@@ -3,19 +3,20 @@ import asyncio
 from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union
 from pydantic import PrivateAttr
 import httpx
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri.schema_converters.concrete.CohereSchemaConverter import (
+from swarmauri_standard.schema_converters.concrete.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
-from swarmauri.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, 'CohereToolModel')
 class CohereToolModel(LLMBase):
     """
     A language model implementation for interacting with Cohere's API, specifically designed for tool-augmented conversations.

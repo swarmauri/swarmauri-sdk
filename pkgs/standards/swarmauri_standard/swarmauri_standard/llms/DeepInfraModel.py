@@ -3,14 +3,15 @@ from typing import List, Dict, Literal, AsyncIterator, Iterator
 import httpx
 import asyncio
 from pydantic import PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, 'DeepInfraModel')
 class DeepInfraModel(LLMBase):
     """
     A class for interacting with DeepInfra's model API for text generation.

@@ -1,12 +1,14 @@
 import asyncio
 from typing import Dict, List, Literal
 from pydantic import PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.llms.LLMBase import LLMBase
 import httpx
 import aiofiles
 
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(LLMBase, 'GroqAIAudio')
 class GroqAIAudio(LLMBase):
     """
     GroqAIAudio is a class that provides transcription and translation capabilities

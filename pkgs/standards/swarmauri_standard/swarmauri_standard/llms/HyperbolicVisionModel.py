@@ -12,8 +12,9 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.messages.AgentMessage import UsageData
 from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri.utils.file_path_to_base64 import file_path_to_base64
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, 'HyperbolicVisionModel')
 class HyperbolicVisionModel(LLMBase):
     """
     HyperbolicVisionModel class for interacting with the Hyperbolic vision language models API. This class

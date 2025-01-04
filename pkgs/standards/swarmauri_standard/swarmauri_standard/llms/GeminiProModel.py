@@ -2,19 +2,19 @@ import json
 from typing import AsyncIterator, Iterator, List, Dict, Literal
 import httpx
 from pydantic import PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_core.typing import SubclassUnion
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.llms.LLMBase import LLMBase
 import asyncio
 
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_core.typing import SubclassUnion
+from swarmauri_core.ComponentBase import ComponentBase
 
-from swarmauri.utils.duration_manager import DurationManager
-
-
+@ComponentBase.register_type(LLMBase, 'GeminiProModel')
 class GeminiProModel(LLMBase):
     """
     GeminiProModel is a class interface for interacting with the Gemini language model API.

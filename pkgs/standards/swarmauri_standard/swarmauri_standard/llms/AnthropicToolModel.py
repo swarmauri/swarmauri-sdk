@@ -4,17 +4,18 @@ from typing import List, Dict, Literal, Any, AsyncIterator, Iterator
 import logging
 import httpx
 from pydantic import PrivateAttr
-from swarmauri.utils.retry_decorator import retry_on_status_codes
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri.schema_converters.concrete.AnthropicSchemaConverter import (
+from swarmauri_standard.schema_converters.concrete.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, 'AnthropicToolModel')
 class AnthropicToolModel(LLMBase):
     """
     A model class for integrating with the Anthropic API to enable tool-assisted AI interactions.
