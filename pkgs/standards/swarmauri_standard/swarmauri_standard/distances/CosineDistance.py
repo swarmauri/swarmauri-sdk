@@ -2,7 +2,9 @@ from numpy.linalg import norm
 from typing import List, Literal
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(DistanceBase, 'CosineDistance')
 class CosineDistance(DistanceBase):
     """
     Implements cosine distance calculation as an IDistanceSimiliarity interface.

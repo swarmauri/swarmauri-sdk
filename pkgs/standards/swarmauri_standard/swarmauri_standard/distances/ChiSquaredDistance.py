@@ -2,7 +2,9 @@ from typing import List, Literal
 
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(DistanceBase, 'ChiSquaredDistance')
 class ChiSquaredDistance(DistanceBase):
     """
     Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.

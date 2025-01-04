@@ -1,7 +1,9 @@
 from typing import List, Union, Any, Optional, Literal
 import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ChunkerBase, 'MdSnippetChunker')
 class MdSnippetChunker(ChunkerBase):
     version: str = "0.1.0.dev1"
     language: Optional[str] = None

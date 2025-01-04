@@ -5,8 +5,9 @@ from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 import asyncio
 import contextlib
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ImageGenBase, 'DeepInfraImgGenModel')
 class DeepInfraImgGenModel(ImageGenBase):
     """
     A model class for generating images from text prompts using DeepInfra's image generation API.

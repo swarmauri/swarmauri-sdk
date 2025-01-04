@@ -1,7 +1,9 @@
 from typing import List, Literal
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(DistanceBase, 'ManhattanDistance')
 class ManhattanDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Manhattan distance.

@@ -1,6 +1,8 @@
 from typing import List, Union, Any, Literal
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ChunkerBase, 'FixedLengthChunker')
 class FixedLengthChunker(ChunkerBase):
     """
     Concrete implementation of ChunkerBase that divides text into fixed-length chunks.

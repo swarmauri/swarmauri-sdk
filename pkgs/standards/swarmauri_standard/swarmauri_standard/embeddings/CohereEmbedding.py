@@ -3,8 +3,9 @@ from typing import List, Literal, Any, Optional, Union
 from pydantic import PrivateAttr
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(EmbeddingBase, 'CohereEmbedding')
 class CohereEmbedding(EmbeddingBase):
     """
     A class for generating embeddings using the Cohere REST API.

@@ -3,8 +3,9 @@ from typing import List, Literal, Any, Optional
 from pydantic import PrivateAttr, Field
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(EmbeddingBase, 'GeminiEmbedding')
 class GeminiEmbedding(EmbeddingBase):
     """
     A class for generating embeddings using the Google Gemini API via REST endpoints.

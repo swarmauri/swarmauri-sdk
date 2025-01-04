@@ -4,7 +4,9 @@ from collections import Counter
 
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(DistanceBase, 'SorensenDiceDistance')
 class SorensenDiceDistance(DistanceBase):
     """
     Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.

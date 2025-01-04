@@ -3,7 +3,9 @@ from pydantic import Field
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ConversationBase, 'MaxSizeConversation')
 class MaxSizeConversation(IMaxSize, ConversationBase):
     max_size: int = Field(default=2, gt=1)
     type: Literal['MaxSizeConversation'] = 'MaxSizeConversation'

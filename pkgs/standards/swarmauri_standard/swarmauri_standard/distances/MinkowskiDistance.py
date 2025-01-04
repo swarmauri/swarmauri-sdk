@@ -2,7 +2,9 @@ from typing import List, Literal
 from scipy.spatial.distance import minkowski
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(DistanceBase, 'MinkowskiDistance')
 class MinkowskiDistance(DistanceBase):
     """
     Implementation of the IDistanceSimiliarity interface using the Minkowski distance metric.

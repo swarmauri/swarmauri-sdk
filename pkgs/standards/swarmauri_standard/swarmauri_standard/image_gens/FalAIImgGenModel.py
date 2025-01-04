@@ -5,8 +5,9 @@ from pydantic import Field, PrivateAttr
 from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 import time
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ImageGenBase, 'FalAIImgGenModel')
 class FalAIImgGenModel(ImageGenBase):
     """
     A model class for generating images from text using FluxPro's image generation model,

@@ -6,8 +6,9 @@ from swarmauri.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 import asyncio
 import contextlib
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(ImageGenBase, 'BlackForestImgGenModel')
 class BlackForestImgGenModel(ImageGenBase):
     """
     A model for generating images using FluxPro's image generation models through the Black Forest API.

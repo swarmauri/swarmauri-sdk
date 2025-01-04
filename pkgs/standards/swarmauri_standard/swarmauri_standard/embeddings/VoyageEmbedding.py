@@ -3,8 +3,9 @@ from typing import List, Literal, Any, Optional
 from pydantic import PrivateAttr
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(EmbeddingBase, 'VoyageEmbedding')
 class VoyageEmbedding(EmbeddingBase):
     """
     Class for embedding using VogageEmbedding

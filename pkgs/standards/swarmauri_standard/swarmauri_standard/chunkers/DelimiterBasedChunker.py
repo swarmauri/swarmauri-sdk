@@ -1,7 +1,9 @@
 from typing import List, Union, Any, Literal
 import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+@ComponentBase.register_type(ChunkerBase, 'DelimiterBasedChunker')
 class DelimiterBasedChunker(ChunkerBase):
     """
     A concrete implementation of IChunker that splits text into chunks based on specified delimiters.
