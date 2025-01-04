@@ -7,7 +7,7 @@ Centralized registry for mapping resource kinds to their validation interfaces.
 Provides mechanisms to retrieve and manage interface classes based on resource namespaces.
 """
 
-from typing import Optional, Type, Dict, Any
+from typing import Optional, Type, Dict, Any, List
 import logging
 
 # Example imports for interface definitions
