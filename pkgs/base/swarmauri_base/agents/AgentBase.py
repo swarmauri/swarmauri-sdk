@@ -1,7 +1,6 @@
 from typing import Any, Optional, Dict, Union, Literal
 from pydantic import ConfigDict, Field, field_validator
-from swarmauri_core.typing import SubclassUnion
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent
 from swarmauri_base.llms.LLMBase import LLMBase

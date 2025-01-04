@@ -1,13 +1,12 @@
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.control_panels.IControlPanel import IControlPlane
+import logging
 from typing import Any, List, Literal
 from pydantic import Field, ConfigDict
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_core.control_panels.IControlPanel import IControlPlane
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from swarmauri_base.transports.TransportBase import TransportBase
-from swarmauri_core.typing import SubclassUnion
-import logging
 
 @ComponentBase.register_model()
 class ControlPanelBase(IControlPlane, ComponentBase):

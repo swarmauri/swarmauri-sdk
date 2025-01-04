@@ -1,8 +1,8 @@
 from typing import Any, Callable, List, Optional, Dict
 from pydantic import BaseModel, ConfigDict, Field
+import uuid
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
-import uuid
 
 @ComponentBase.register_model()
 class PipelineBase(IPipeline, ComponentBase):

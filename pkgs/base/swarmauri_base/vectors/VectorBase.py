@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
 from typing import List, Optional, Literal
 import json
 import numpy as np
 from pydantic import Field
+
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 

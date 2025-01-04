@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional, Literal
-from pydantic import ConfigDict, Field
 from enum import Enum, auto
+from pydantic import ConfigDict, Field
+
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.transports.ITransport import ITransport
 

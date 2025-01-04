@@ -1,7 +1,7 @@
 from swarmauri_core.dataconnectors.IDataConnector import IDataConnector
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
-
-class DataConnectorBase(IDataConnector):
+class DataConnectorBase(IDataConnector, ComponentBase):
     """
     Base implementation of IDataConnector that raises NotImplementedError
     for all abstract methods, ensuring explicit implementation in child classes.

@@ -1,9 +1,9 @@
 from typing import List, Dict, Any, Optional, Literal
 from pydantic import Field, ConfigDict
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.chains.IChain import IChain
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
-from swarmauri_core.typing import SubclassUnion
+
 
 @ComponentBase.register_model()
 class ChainBase(IChain, ComponentBase):

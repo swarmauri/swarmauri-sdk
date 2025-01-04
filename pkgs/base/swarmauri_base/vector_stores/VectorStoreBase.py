@@ -1,10 +1,10 @@
-import json
-from abc import ABC, abstractmethod
 from typing import List, Optional, Literal
+import json
 from pydantic import Field, PrivateAttr
+
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_standard.documents.Document import Document
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
+from swarmauri_standard.documents.Document import Document
 
 @ComponentBase.register_model()
 class VectorStoreBase(IVectorStore, ComponentBase):

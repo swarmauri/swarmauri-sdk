@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
 from typing import Optional, List, Any, Literal
 from pydantic import Field
+
+from swarmauri_core.tools.ITool import ITool
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.tools.ParameterBase import ParameterBase
-from swarmauri_core.tools.ITool import ITool
 
 @ComponentBase.register_model()
-class ToolBase(ITool, ComponentBase, ABC):
+class ToolBase(ITool, ComponentBase):
     name: str
     description: Optional[str] = None
     parameters: List[ParameterBase] = Field(default_factory=list)
