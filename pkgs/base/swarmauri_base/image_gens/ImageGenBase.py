@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Optional, List, Literal
 from pydantic import ConfigDict, model_validator, Field
 

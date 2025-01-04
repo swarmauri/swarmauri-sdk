@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Optional, Literal
 import json
 from pydantic import Field, PrivateAttr

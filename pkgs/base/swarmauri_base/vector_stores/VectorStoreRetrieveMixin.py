@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import List
 from pydantic import BaseModel
 from swarmauri_standard.documents.Document import Document
@@ -6,6 +6,7 @@ from swarmauri_core.vector_stores.IVectorStoreRetrieve import IVectorStoreRetrie
 
 
 class VectorStoreRetrieveMixin(IVectorStoreRetrieve, BaseModel):
+    
     @abstractmethod
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """

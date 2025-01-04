@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Any, Union, Optional, List, Literal
 from pydantic import BaseModel, ConfigDict, ValidationError, model_validator, Field
 
@@ -22,20 +23,26 @@ class LLMBase(IPredict, ComponentBase):
             )
         return values
 
+    @abstractmethod
     def predict(self, *args, **kwargs):
         raise NotImplementedError("predict() not implemented in subclass yet.")
 
+    @abstractmethod
     async def apredict(self, *args, **kwargs):
         raise NotImplementedError("apredict() not implemented in subclass yet.")
 
+    @abstractmethod
     def stream(self, *args, **kwargs):
         raise NotImplementedError("stream() not implemented in subclass yet.")
 
+    @abstractmethod
     async def astream(self, *args, **kwargs):
         raise NotImplementedError("astream() not implemented in subclass yet.")
 
+    @abstractmethod
     def batch(self, *args, **kwargs):
         raise NotImplementedError("batch() not implemented in subclass yet.")
 
+    @abstractmethod
     async def abatch(self, *args, **kwargs):
         raise NotImplementedError("abatch() not implemented in subclass yet.")

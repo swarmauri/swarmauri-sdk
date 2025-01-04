@@ -1,10 +1,11 @@
+from abc import abstractmethod
 from typing import List, Optional
 import json
 
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 
-class DocumentStoreBase(IDocumentStore, ABC):
+class DocumentStoreBase(IDocumentStore):
     """
     Abstract base class for document stores, implementing the IDocumentStore interface.
 
