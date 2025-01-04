@@ -2,7 +2,7 @@ from typing import Any, Optional, Dict, Literal
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_standard.conversations.MaxSystemContextConversation import MaxSystemContextConversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, 'QAAgent')
 class QAAgent(AgentBase):
