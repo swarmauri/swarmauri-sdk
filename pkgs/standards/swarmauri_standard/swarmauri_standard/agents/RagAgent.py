@@ -11,11 +11,12 @@ from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 
-from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
+@ComponentBase.register_type(AgentBase, 'RagAgent')
 class RagAgent(AgentRetrieveMixin, 
                AgentVectorStoreMixin, 
                AgentSystemContextMixin, 
