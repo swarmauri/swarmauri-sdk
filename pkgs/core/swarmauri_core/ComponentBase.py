@@ -45,7 +45,7 @@ class SubclassUnion(Generic[T], type):
         registered_classes = list(ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values())
         if not registered_classes:
             logger.warning(f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder.")
-            return Any
+            return Annotated[Any]
         else:
             union_type = Union[tuple(registered_classes)]
         return Annotated[union_type, Field(discriminator='type')]
@@ -210,6 +210,7 @@ class ComponentBase(BaseModel):
                         if resource_type not in cls.MODEL_REGISTRY[model_cls]:
                             cls.MODEL_REGISTRY[model_cls].append(resource_type)
                             logger.info(f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'")
+            cls.recreate_models()
             return model_cls
         return decorator
 
@@ -410,5 +411,8 @@ class ComponentBase(BaseModel):
                         model_class.model_fields[field_name].annotation = new_type
                     else:
                         raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
-                model_class.model_rebuild(force=True)
+                if model_class.model_rebuild(force=True):
+                    logger.debg(f"'{model_class}' has been successfully recreated.")
+                else:
+                    logger.debg(f"'{model_class}' recreation has failed.")
             logger.info("All models have been successfully recreated.")
