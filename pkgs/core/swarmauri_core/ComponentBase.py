@@ -344,7 +344,7 @@ class ComponentBase(BaseModel):
                 # Append the new ResourceType
                 metadata.append(ResourceType(resource_type))
                 logger.debug(f"Preserving existing metadata and adding ResourceType for resource '{resource_type.__name__}'")
-                field_annotation = Annotated[base_type, *metadata]
+                field_annotation = Annotated[tuple([base_type, *metadata])]
 
             # Construct the new type with SubclassUnion and discriminated Union
             subclass_union = SubclassUnion[resource_type]
