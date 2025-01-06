@@ -407,19 +407,33 @@ class ComponentBase(BaseModel):
     @classmethod
     def recreate_models(cls):
         """
-        Recreate all models based on the dynamically generated models_with_fields.
+        Recreate all models based on the dynamically generated models_with_fields and type_models_with_fields.
         """
         with cls._lock:
+            # Generate field mappings for MODEL_REGISTRY
             models_with_fields = cls.generate_models_with_fields()
-            for model_class, fields in models_with_fields.items():
+            # Generate field mappings for TYPE_REGISTRY
+            type_models_with_fields = cls.recreate_type_models()
+
+            # Combine both dictionaries
+            combined_models_with_fields = {**models_with_fields, **type_models_with_fields}
+
+            for model_class, fields in combined_models_with_fields.items():
                 for field_name, new_type in fields.items():
                     if field_name in model_class.model_fields:
-                        model_class.model_fields[field_name].annotation = new_type
+                        original_type = model_class.model_fields[field_name].annotation
+                        if original_type != new_type:
+                            model_class.model_fields[field_name].annotation = new_type
+                            logger.debug(f"Updated field '{field_name}' in model '{model_class.__name__}' from '{original_type}' to '{new_type}'")
+                        else:
+                            logger.debug(f"No change for field '{field_name}' in model '{model_class.__name__}'")
                     else:
-                        raise ValueError(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
+                        logger.error(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
+                        continue  # Skip to next field
+
                 try:
                     model_class.model_rebuild(force=True)
-                    logger.debug(f"'{model_class}' has been successfully recreated.")
+                    logger.debug(f"'{model_class.__name__}' has been successfully recreated.")
                 except ValidationError as ve:
                     logger.error(f"Validation error while rebuilding model '{model_class.__name__}': {ve}")
                 except Exception as e:
