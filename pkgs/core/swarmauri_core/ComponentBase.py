@@ -404,6 +404,57 @@ class ComponentBase(BaseModel):
         logging.info("Completed generation of models_with_fields")
         return models_with_fields
 
+
+    @classmethod
+    def recreate_type_models(cls) -> Dict[Type['ComponentBase'], Dict[str, Any]]:
+        """
+        Generate a mapping of component types to their fields and updated type annotations.
+
+        Returns:
+        - A dictionary mapping component classes to their fields and corresponding new type annotations.
+        """
+        logging.info("Starting generation of type models for TYPE_REGISTRY")
+
+        type_models_with_fields = {}
+        for resource_type, type_dict in cls.TYPE_REGISTRY.items():
+            logging.debug(f"Processing resource type: {resource_type.__name__}")
+            for type_name, component_cls in type_dict.items():
+                logging.debug(f"Processing component class: {component_cls.__name__}")
+                type_models_with_fields[component_cls] = {}
+
+                for field_name, field in component_cls.__fields__.items():
+                    logging.debug(f"Processing field: {field_name}")
+
+                    field_annotation = component_cls.__annotations__.get(field_name)
+                    if not field_annotation:
+                        logging.debug(f"Field '{field_name}' in component '{component_cls.__name__}' has no annotation, skipping.")
+                        continue
+
+                    # Check if SubclassUnion is used in the field type
+                    if not cls.field_contains_subclass_union(field_annotation):
+                        logging.debug(f"Field '{field_name}' does not contain SubclassUnion, skipping.")
+                        continue  # Only process fields that use SubclassUnion
+
+                    # Extract all resource types from the field
+                    field_resource_types = cls.extract_resource_types_from_field(field_annotation)
+                    if not field_resource_types:
+                        logging.warning(f"No resource types extracted for field '{field_name}' in component '{component_cls.__name__}'")
+                        continue
+                    logging.debug(f"Extracted resource types for field '{field_name}': {[rt.__name__ for rt in field_resource_types]}")
+
+                    for resource_type_in_field in field_resource_types:
+                        try:
+                            new_type = cls.determine_new_type(field_annotation, resource_type_in_field)
+                            logging.debug(f"Determined new type for resource '{resource_type_in_field.__name__}': {new_type}")
+                            type_models_with_fields[component_cls][field_name] = new_type
+                        except Exception as e:
+                            logging.error(f"Error determining new type for field '{field_name}' in component '{component_cls.__name__}': {e}")
+                            continue  # Proceed with other resource types and fields
+
+        logging.info("Completed generation of type models for TYPE_REGISTRY")
+        return type_models_with_fields
+        
+
     @classmethod
     def recreate_models(cls):
         """
