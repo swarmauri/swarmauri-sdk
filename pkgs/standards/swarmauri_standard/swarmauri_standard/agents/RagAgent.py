@@ -3,6 +3,7 @@ from typing import Any, Optional, Union, Dict, Literal
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.conversations.MaxSystemContextConversation import MaxSystemContextConversation
 
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.agents.AgentBase import AgentBase
@@ -26,7 +27,7 @@ class RagAgent(AgentRetrieveMixin,
     specialized in retrieving documents based on input queries and generating responses.
     """
     llm: SubclassUnion[LLMBase]
-    conversation: SubclassUnion[ConversationBase]
+    conversation: MaxSystemContextConversation = MaxSystemContextConversation(system_context="")
     vector_store: SubclassUnion[VectorStoreBase]
     system_context:  Union[SystemMessage, str]
     type: Literal['RagAgent'] = 'RagAgent'
