@@ -241,8 +241,8 @@ def _register_lazy_plugin_from_metadata(entry_point: EntryPoint, metadata: Dict[
         sys.modules[spec.name] = plugin_class
 
         type_name = resource_path.split('.')[-1]
-        ComponentBase.TYPE_REGISTRY.setdefault(resource_kind, {})[type_name] = plugin_class
-        logger.info(f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{resource_kind}'")
+        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = plugin_class
+        logger.info(f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'")
 
 
     except KeyError as e:
@@ -338,8 +338,8 @@ def _process_class_plugin(entry_point: EntryPoint, resource_path: str, metadata:
         # Step 5: Register the plugin class in ComponentBase.TYPE_REGISTRY
         # Extract type_name from resource_path (e.g., 'ExampleAgent' from 'swarmauri.agents.ExampleAgent')
         type_name = resource_path.split('.')[-1]
-        ComponentBase.TYPE_REGISTRY.setdefault(resource_kind, {})[type_name] = plugin_class
-        logger.info(f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{resource_kind}'")
+        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = plugin_class
+        logger.info(f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'")
 
         return True
 
@@ -396,8 +396,8 @@ def _process_module_plugin(entry_point: EntryPoint, resource_path: str, metadata
                         logger.info(f"Registered {citizenship}-class plugin '{attr_name}' at '{class_resource_path}'")
                         
                         # Register in TYPE_REGISTRY
-                        ComponentBase.TYPE_REGISTRY.setdefault(resource_kind, {})[attr_name] = attr
-                        logger.info(f"Registered class-based plugin '{attr_name}' in TYPE_REGISTRY")
+                        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[attr_name] = attr
+                        logger.info(f"Registered class-based plugin '{attr_name}' in TYPE_REGISTRY under '{interface_class}'")
                     
                     elif citizenship is None:
                         logger.warning(f"Plugin class '{attr_name}' has unrecognized citizenship and will not be registered.")
@@ -465,8 +465,8 @@ def _process_generic_plugin(entry_point: EntryPoint, resource_path: str, metadat
         logger.info(f"Registered generic plugin '{entry_point.name}' under '{resource_path}' for lazy loading.")
 
         # Register in TYPE_REGISTRY
-        ComponentBase.TYPE_REGISTRY.setdefault("plugins", {})[entry_point.name] = entry_point.load()
-        logger.info(f"Registered generic plugin '{entry_point.name}' in TYPE_REGISTRY under 'plugins'")
+        #🚧ComponentBase.TYPE_REGISTRY.setdefault("plugins", {})[entry_point.name] = entry_point.load()
+        #🚧logger.info(f"Registered generic plugin '{entry_point.name}' in TYPE_REGISTRY under 'plugins'")
         
         return True
 
