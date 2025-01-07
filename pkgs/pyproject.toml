@@ -16,7 +16,14 @@ swarmauri_core = { path = "./core" }
 swarmauri_base = { path = "./base" }
 swarmauri = { path = "./swarmauri" }
 swarmauri_standard = { path = "./standards/swarmauri_standard", extras=["full"] }
+
+# Extra First Class Citizens
+swarmauri_doc2vec_vectorstore = { path = "./standards/swarmauri_doc2vec_vectorstore", optional = true }
+
+# Standard Plugin Example
 swm_example_package = { path = "./standards/swm_example_package" }
+
+# Community Packages (will push out later)
 swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
 swm_example_community_package = { path = "./community/swm_example_community_package" }
 
