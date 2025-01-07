@@ -20,6 +20,8 @@ python = ">=3.10,<3.13"
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
 
+gensim = { version = "^4.3.3"}
+
 [tool.poetry.dev-dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
