@@ -49,6 +49,7 @@ full = [
     "scikit-learn",
     "matplotlib"
 ]
+doc2vecvectorstore = ["swarmauri_doc2vec_vectorstore"]
 
 [tool.setuptools]
 namespace_packages = ["swarmauri"]
