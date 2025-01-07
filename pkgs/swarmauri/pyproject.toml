@@ -53,7 +53,7 @@ full = [
 [tool.setuptools]
 namespace_packages = ["swarmauri"]
 
-[poetry.group.dev.dependencies]
+[tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"

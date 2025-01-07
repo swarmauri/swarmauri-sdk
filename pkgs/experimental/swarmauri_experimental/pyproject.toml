@@ -27,7 +27,7 @@ torch = "*"
 transformers = ">=4.45.0"
 typing_extensions = "*"
 
-[poetry.group.dev.dependencies]
+[tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"  # Add flake8 as a development dependency
 pytest = "^8.0"  # Ensure pytest is also added if you run tests
 pytest-asyncio = ">=0.24.0"
