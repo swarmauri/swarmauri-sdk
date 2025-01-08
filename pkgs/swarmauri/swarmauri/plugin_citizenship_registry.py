@@ -223,8 +223,8 @@ class PluginCitizenshipRegistry:
         'swarmauri.vectors.Vector': 'swarmauri_standard.vectors.Vector',
 
         # extra
-        'swarmauri.tools.MatplotlibCsvTool': 'swarmauri_matplotlib_tool.MatplotlibCsvTool',
-        'swarmauri.tools.MatplotlibTool': 'swarmauri_matplotlib_tool.MatplotlibTool',
+        'swarmauri.tools.MatplotlibCsvTool': 'swarmauri_tool_matplotlib.MatplotlibCsvTool',
+        'swarmauri.tools.MatplotlibTool': 'swarmauri_tool_matplotlib.MatplotlibTool',
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}

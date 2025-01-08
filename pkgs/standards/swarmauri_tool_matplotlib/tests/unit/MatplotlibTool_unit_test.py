@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri_matplotlib_tool.MatplotlibTool import MatplotlibTool as Tool
+from swarmauri_tool_matplotlib.MatplotlibTool import MatplotlibTool as Tool
 
 
 @pytest.mark.unit
