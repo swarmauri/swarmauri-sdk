@@ -1,10 +1,11 @@
-from typing import List, Any, Optional, Literal
+from typing import List, Any, Literal
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(EmbeddingBase, 'Doc2VecEmbedding')
+
+@ComponentBase.register_type(EmbeddingBase, "Doc2VecEmbedding")
 class Doc2VecEmbedding(EmbeddingBase):
     _model: Doc2Vec
     type: Literal["Doc2VecEmbedding"] = "Doc2VecEmbedding"
