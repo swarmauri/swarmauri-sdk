@@ -137,7 +137,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_standard.parsers.BeautifulSoupElementParser",
         "swarmauri.parsers.CSVParser": "swarmauri_standard.parsers.CSVParser",
         "swarmauri.parsers.HTMLTagStripParser": "swarmauri_standard.parsers.HTMLTagStripParser",
-        "swarmauri.parsers.KeywordExtractorParser": "swarmauri_standard.parsers.KeywordExtractorParser",
+        # "swarmauri.parsers.KeywordExtractorParser": "swarmauri_standard.parsers.KeywordExtractorParser",
         "swarmauri.parsers.Md2HtmlParser": "swarmauri_standard.parsers.Md2HtmlParser",
         "swarmauri.parsers.OpenAPISpecParser": "swarmauri_standard.parsers.OpenAPISpecParser",
         "swarmauri.parsers.PhoneNumberExtractorParser": "swarmauri_standard.parsers.PhoneNumberExtractorParser",
@@ -226,6 +226,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.vector_stores.Doc2VecEmbedding": "swarmauri_vectorstore_doc2vec.Doc2VecEmbedding",
         "swarmauri.tools.MatplotlibCsvTool": "swarmauri_tool_matplotlib.MatplotlibCsvTool",
         "swarmauri.tools.MatplotlibTool": "swarmauri_tool_matplotlib.MatplotlibTool",
+        "swarmauri.parsers.KeywordExtractorParser": "swarmauri_parser_keywordextractor.KeywordExtractorParser",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}

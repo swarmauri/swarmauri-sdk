@@ -80,7 +80,7 @@ full = [
     "aiofiles", "aiohttp",
     #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
     #"nltk", "textblob", 
-    "yake",
+    #"yake",
     "beautifulsoup4",
     "scikit-learn",
     #"gensim", "scipy", "scikit-learn",
