@@ -59,14 +59,17 @@ scipy = { version = ">=1.7.0,<1.14.0", optional = true }
 
 [tool.poetry.extras]
 # Extras without versioning, grouped for specific use cases
-io = ["aiofiles", "aiohttp"]
+io = [
+    "aiofiles",
+    #"aiohttp"
+]
 #llms = ["cohere", "mistralai", "fal-client", "google-generativeai", "openai"]
 nlp = [
     #"nltk", 
     #"textblob", 
     #"yake"
 ]
-nlp_tools = ["beautifulsoup4"]
+#nlp_tools = ["beautifulsoup4"]
 #ml_toolkits = ["gensim", "scipy", "scikit-learn"]
 #ml_toolkits = ["scikit-learn"]
 #spacy = ["spacy"]
@@ -77,11 +80,12 @@ nlp_tools = ["beautifulsoup4"]
 
 # Full option to install all extras
 full = [
-    "aiofiles", "aiohttp",
+    "aiofiles", 
+    #"aiohttp",
     #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
     #"nltk", "textblob", 
     #"yake",
-    "beautifulsoup4",
+    #"beautifulsoup4",
     ##"scikit-learn",
     #"gensim", "scipy", "scikit-learn",
     #"spacy",

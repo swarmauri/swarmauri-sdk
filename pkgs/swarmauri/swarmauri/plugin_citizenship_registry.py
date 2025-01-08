@@ -74,7 +74,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.distances.JaccardIndexDistance": "swarmauri_standard.distances.JaccardIndexDistance",
         "swarmauri.distances.LevenshteinDistance": "swarmauri_standard.distances.LevenshteinDistance",
         "swarmauri.distances.ManhattanDistance": "swarmauri_standard.distances.ManhattanDistance",
-        "swarmauri.distances.MinkowskiDistance": "swarmauri_standard.distances.MinkowskiDistance",
+        # "swarmauri.distances.MinkowskiDistance": "swarmauri_standard.distances.MinkowskiDistance",
         "swarmauri.distances.SorensenDiceDistance": "swarmauri_standard.distances.SorensenDiceDistance",
         "swarmauri.distances.SquaredEuclideanDistance": "swarmauri_standard.distances.SquaredEuclideanDistance",
         "swarmauri.documents.Document": "swarmauri_standard.documents.Document",
@@ -231,6 +231,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.embeddings.TfidfEmbedding": "swarmauri_vectorstore_tfidf.TfidfEmbedding",
         "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
         "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",
+        "swarmauri.distances.MinkowskiDistance": "swarmauri_distance_minkowski.MinkowskiDistance",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}

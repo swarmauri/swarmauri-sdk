@@ -4,7 +4,7 @@ __long_desc__ = """
 
 # Swarmauri BeautifulSoupElement Plugin
 
-This repository includes an BeautifulSoupElement of a Swarmauri Plugin.
+This repository includes a BeautifulSoupElement of a Swarmauri Plugin.
 
 Visit us at: https://swarmauri.com
 Follow us at: https://github.com/swarmauri

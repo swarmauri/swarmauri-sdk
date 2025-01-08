@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_vectorstore_tfidf"
+name = "swarmauri_distance_minkowski"
 version = "0.6.0.dev1"
-description = "A Tfidf based Vector Store and Tfidf Based Embedding Model."
+description = "Minkowski Distance for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -49,9 +49,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.vector_stores"]
-TfidfVectorStore = "swarmauri_vectorstore_tfidf:TfidfVectorStore"
-
-[tool.poetry.plugins."swarmauri.embeddings"]
-TfidfEmbedding = "swarmauri_vectorstore_tfidf:TfidfEmbedding"
-
+[tool.poetry.plugins."swarmauri.agents"]
+example_agent = "swm_example_package:ExampleAgent"
