@@ -505,24 +505,27 @@ class ComponentBase(BaseModel):
         except ValidationError as e:
             raise ValueError(f"Validation failed: {e}")
 
-    def model_dump_yaml(self, fields_to_exclude=None):
+    def model_dump_yaml(self, fields_to_exclude=None, api_key_placeholder=None):
         if fields_to_exclude is None:
             fields_to_exclude = []
 
         # Load the JSON string into a Python dictionary
-        json_data = json.loads(self.model_dump_json())
+        json_data = json.loads(self.json())
 
-        # Function to recursively remove specific keys
-        def remove_fields(data, fields_to_exclude):
+        # Function to recursively remove specific keys and handle api_key placeholders
+        def process_fields(data, fields_to_exclude):
             if isinstance(data, dict):
-                return {key: remove_fields(value, fields_to_exclude) for key, value in data.items() if key not in fields_to_exclude}
+                return {
+                    key: (api_key_placeholder if key == "api_key" and api_key_placeholder is not None else process_fields(value, fields_to_exclude))
+                    for key, value in data.items() if key not in fields_to_exclude
+                }
             elif isinstance(data, list):
-                return [remove_fields(item, fields_to_exclude) for item in data]
+                return [process_fields(item, fields_to_exclude) for item in data]
             else:
                 return data
 
         # Filter the JSON data
-        filtered_data = remove_fields(json_data, fields_to_exclude)
+        filtered_data = process_fields(json_data, fields_to_exclude)
 
         # Convert the filtered data into YAML
         return yaml.dump(filtered_data, default_flow_style=False)
