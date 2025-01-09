@@ -174,8 +174,8 @@ class PluginCitizenshipRegistry:
         "swarmauri.tools.GunningFogTool": "swarmauri_standard.tools.GunningFogTool",
         "swarmauri.tools.ImportMemoryModuleTool": "swarmauri_standard.tools.ImportMemoryModuleTool",
         "swarmauri.tools.JSONRequestsTool": "swarmauri_standard.tools.JSONRequestsTool",
-        "swarmauri.tools.MatplotlibCsvTool": "swarmauri_standard.tools.MatplotlibCsvTool",
-        "swarmauri.tools.MatplotlibTool": "swarmauri_standard.tools.MatplotlibTool",
+        # "swarmauri.tools.MatplotlibCsvTool": "swarmauri_standard.tools.MatplotlibCsvTool",
+        # "swarmauri.tools.MatplotlibTool": "swarmauri_standard.tools.MatplotlibTool",
         "swarmauri.tools.Parameter": "swarmauri_standard.tools.Parameter",
         "swarmauri.tools.RequestsTool": "swarmauri_standard.tools.RequestsTool",
         "swarmauri.tools.SentenceComplexityTool": "swarmauri_standard.tools.SentenceComplexityTool",
@@ -222,7 +222,10 @@ class PluginCitizenshipRegistry:
         "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
         "swarmauri.vectors.Vector": "swarmauri_standard.vectors.Vector",
         # extra
-        "swarmauri.vector_stores.Doc2vecVectorStore": "swarmauri_doc2vec_vectorstore.vector_stores.Doc2vecVectorStore",
+        "swarmauri.vector_stores.Doc2vecVectorStore": "swarmauri_vectorstore_doc2vec.Doc2vecVectorStore",
+        "swarmauri.vector_stores.Doc2VecEmbedding": "swarmauri_vectorstore_doc2vec.Doc2VecEmbedding",
+        "swarmauri.tools.MatplotlibCsvTool": "swarmauri_tool_matplotlib.MatplotlibCsvTool",
+        "swarmauri.tools.MatplotlibTool": "swarmauri_tool_matplotlib.MatplotlibTool",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}

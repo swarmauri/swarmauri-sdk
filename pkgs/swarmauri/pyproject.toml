@@ -50,6 +50,7 @@ full = [
     "matplotlib"
 ]
 doc2vecvectorstore = ["swarmauri_doc2vec_vectorstore"]
+matplotlib_tool = ["swarmauri_tool_matplotlib"]
 
 [tool.setuptools]
 namespace_packages = ["swarmauri"]
