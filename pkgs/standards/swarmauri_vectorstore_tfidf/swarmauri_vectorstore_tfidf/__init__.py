@@ -4,9 +4,11 @@ from .TfidfVectorStore import TfidfVectorStore
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
-# Swarmauri Tfidf Plugin
+# Swarmauri Tfidf Based Components
 
-This repository includes an Tfidf of a Swarmauri Plugin.
+Components Included:
+- TfidfEmbedding
+- TfidfVectorStore
 
 Visit us at: https://swarmauri.com
 Follow us at: https://github.com/swarmauri

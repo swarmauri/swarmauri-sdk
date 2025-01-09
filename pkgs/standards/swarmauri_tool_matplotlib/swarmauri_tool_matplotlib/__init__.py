@@ -1,5 +1,6 @@
 from .MatplotlibCsvTool import MatplotlibCsvTool
 from .MatplotlibTool import MatplotlibTool
+
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
@@ -14,4 +15,3 @@ Follow us at: https://github.com/swarmauri
 Star us at: https://github.com/swarmauri/swarmauri-sdk
 
 """
- 

@@ -1,11 +1,10 @@
-from .KeywordExtractorParser import KeywordExtractorParser
-
+from .MinkowskiDistance import MinkowskiDistance
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
-# Swarmauri Keyword Extractor Plugin
+# Swarmauri Minkowski Plugin
 
-This repository includes a Keyword Extractor of a Swarmauri Plugin.
+This repository includes an Minkowski of a Swarmauri Plugin.
 
 Visit us at: https://swarmauri.com
 Follow us at: https://github.com/swarmauri
