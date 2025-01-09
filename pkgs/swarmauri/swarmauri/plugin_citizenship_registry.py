@@ -81,7 +81,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.embeddings.CohereEmbedding": "swarmauri_standard.embeddings.CohereEmbedding",
         "swarmauri.embeddings.GeminiEmbedding": "swarmauri_standard.embeddings.GeminiEmbedding",
         "swarmauri.embeddings.MistralEmbedding": "swarmauri_standard.embeddings.MistralEmbedding",
-        "swarmauri.embeddings.NmfEmbedding": "swarmauri_standard.embeddings.NmfEmbedding",
+        # "swarmauri.embeddings.NmfEmbedding": "swarmauri_standard.embeddings.NmfEmbedding",
         "swarmauri.embeddings.OpenAIEmbedding": "swarmauri_standard.embeddings.OpenAIEmbedding",
         # "swarmauri.embeddings.TfidfEmbedding": "swarmauri_standard.embeddings.TfidfEmbedding",
         "swarmauri.embeddings.VoyageEmbedding": "swarmauri_standard.embeddings.VoyageEmbedding",
@@ -229,7 +229,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.parsers.KeywordExtractorParser": "swarmauri_parser_keywordextractor.KeywordExtractorParser",
         "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_vectorstore_tfidf.TfidfVectorStore",
         "swarmauri.embeddings.TfidfEmbedding": "swarmauri_vectorstore_tfidf.TfidfEmbedding",
-
+        "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
