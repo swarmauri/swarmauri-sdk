@@ -3,6 +3,7 @@
 import hashlib
 import inspect
 import json
+import yaml
 import logging
 from enum import Enum
 from threading import Lock
@@ -490,3 +491,16 @@ class ComponentBase(BaseModel):
                 except Exception as e:
                     logger.error(f"Error while rebuilding model '{model_class.__name__}': {e}")
             logger.info("All models have been successfully recreated.")
+
+    @classmethod
+    def model_validate_yaml(cls, yaml_data: str):
+        try:
+            # Parse YAML into a Python dictionary
+            yaml_content = yaml.safe_load(yaml_data)
+            
+            # Convert the dictionary to JSON and validate using Pydantic
+            return cls.model_validate_json(json.dumps(yaml_content))
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML data: {e}")
+        except ValidationError as e:
+            raise ValueError(f"Validation failed: {e}")
