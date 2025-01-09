@@ -19,6 +19,8 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
+swarmauri_vectorstore_doc2vec = { path = "../../standards/swarmauri_vectorstore_doc2vec" }
+
 
 # Dependencies
 chromadb = "^0.5.17"

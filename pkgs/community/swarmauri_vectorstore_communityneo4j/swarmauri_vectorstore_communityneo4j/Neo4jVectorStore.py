@@ -3,19 +3,20 @@ from pydantic import BaseModel, PrivateAttr
 from neo4j import GraphDatabase
 import json
 
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_standard.documents.Document import Document
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 
 
-
-class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel):
-    type: Literal['Neo4jVectorStore'] = 'Neo4jVectorStore'
+class Neo4jVectorStore(
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel
+):
+    type: Literal["Neo4jVectorStore"] = "Neo4jVectorStore"
     uri: str
     user: str
     password: str
@@ -34,7 +35,7 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
         Initialize the Neo4j schema, creating necessary indexes and constraints.
         """
-        
+
         with self._driver.session() as session:
             # Create a unique constraint on Document ID with a specific constraint name
 
@@ -46,14 +47,13 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         """
             )
 
-
     def add_document(self, document: Document) -> None:
         """
         Add a single document to the Neo4j store.
 
         :param document: Document to add
         """
-       
+
         with self._driver.session() as session:
             session.run(
                 """
@@ -66,7 +66,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                 content=document.content,
                 metadata=json.dumps(document.metadata),
             )
-
 
     def add_documents(self, documents: List[Document]) -> None:
         """
@@ -89,7 +88,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                     metadata=json.dumps(document.metadata),
                 )
 
-
     def get_document(self, id: str) -> Union[Document, None]:
         """
         Retrieve a document by its ID.
@@ -97,7 +95,7 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         :param id: Document ID
         :return: Document object or None if not found
         """
-        
+
         with self._driver.session() as session:
             result = session.run(
                 """
@@ -113,7 +111,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                     metadata=json.loads(result["metadata"]),
                 )
             return None
-
 
     def get_all_documents(self) -> List[Document]:
         """
@@ -139,7 +136,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
                 )
             return documents
 
-
     def delete_document(self, id: str) -> None:
         """
         Delete a document by its ID.
@@ -155,7 +151,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
             """,
                 id=id,
             )
-
 
     def update_document(self, id: str, updated_document: Document) -> None:
         """
@@ -181,7 +176,6 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
     def retrieve(
         self, query: str, top_k: int = 5, string_field: str = "content"
     ) -> List[Document]:
-
         """
         Retrieve the top_k most similar documents to the query based on Levenshtein distance using APOC's apoc.text.distance.
 
@@ -222,8 +216,5 @@ class Neo4jVectorStore(VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, Vecto
         if self._driver:
             self._driver.close()
 
-
     def __del__(self):
         self.close()
-
-
