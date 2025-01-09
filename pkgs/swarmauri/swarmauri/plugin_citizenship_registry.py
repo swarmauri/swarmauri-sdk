@@ -134,7 +134,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.messages.FunctionMessage": "swarmauri_standard.messages.FunctionMessage",
         "swarmauri.messages.HumanMessage": "swarmauri_standard.messages.HumanMessage",
         "swarmauri.messages.SystemMessage": "swarmauri_standard.messages.SystemMessage",
-        "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_standard.parsers.BeautifulSoupElementParser",
+        # "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_standard.parsers.BeautifulSoupElementParser",
         "swarmauri.parsers.CSVParser": "swarmauri_standard.parsers.CSVParser",
         "swarmauri.parsers.HTMLTagStripParser": "swarmauri_standard.parsers.HTMLTagStripParser",
         # "swarmauri.parsers.KeywordExtractorParser": "swarmauri_standard.parsers.KeywordExtractorParser",
@@ -230,6 +230,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_vectorstore_tfidf.TfidfVectorStore",
         "swarmauri.embeddings.TfidfEmbedding": "swarmauri_vectorstore_tfidf.TfidfEmbedding",
         "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
+        "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
