@@ -510,7 +510,7 @@ class ComponentBase(BaseModel):
             fields_to_exclude = []
 
         # Load the JSON string into a Python dictionary
-        json_data = json.loads(self.json())
+        json_data = json.loads(self.model_dump_json())
 
         # Function to recursively remove specific keys
         def remove_fields(data, fields_to_exclude):
