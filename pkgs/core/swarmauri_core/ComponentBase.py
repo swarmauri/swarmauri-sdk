@@ -504,3 +504,25 @@ class ComponentBase(BaseModel):
             raise ValueError(f"Invalid YAML data: {e}")
         except ValidationError as e:
             raise ValueError(f"Validation failed: {e}")
+
+    def model_dump_yaml(self, fields_to_exclude=None):
+        if fields_to_exclude is None:
+            fields_to_exclude = []
+
+        # Load the JSON string into a Python dictionary
+        json_data = json.loads(self.json())
+
+        # Function to recursively remove specific keys
+        def remove_fields(data, fields_to_exclude):
+            if isinstance(data, dict):
+                return {key: remove_fields(value, fields_to_exclude) for key, value in data.items() if key not in fields_to_exclude}
+            elif isinstance(data, list):
+                return [remove_fields(item, fields_to_exclude) for item in data]
+            else:
+                return data
+
+        # Filter the JSON data
+        filtered_data = remove_fields(json_data, fields_to_exclude)
+
+        # Convert the filtered data into YAML
+        return yaml.dump(filtered_data, default_flow_style=False)
