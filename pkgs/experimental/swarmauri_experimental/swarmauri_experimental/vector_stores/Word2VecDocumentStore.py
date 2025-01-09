@@ -6,7 +6,6 @@ from swarmauri_core.retrievers.IRetriever import IRetriever
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
 from swarmauri.vectors.concrete.SimpleVector import SimpleVector
-import gensim.downloader as api
 
 class Word2VecDocumentStore(IDocumentStore, IRetriever):
     def __init__(self):
