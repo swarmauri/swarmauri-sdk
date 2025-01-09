@@ -49,7 +49,13 @@ full = [
     "scikit-learn",
     "matplotlib"
 ]
-doc2vecvectorstore = ["swarmauri_doc2vec_vectorstore"]
+doc2vecvectorstore = ["swarmauri_vectorstore_doc2vec"]
+matplotlib_tool = ["swarmauri_tool_matplotlib"]
+keywordextractor_parser = ["swarmauri_parser_keywordextractor"]
+tfidf_vectorstore = ["swarmauri_vectorstore_tfidf"]
+nmf_embedding = ["swarmauri_embedding_nmf"]
+beautifulsoupelement_parser = ["swarmauri_parser_beautifulsoupelement"]
+minkowski_distance = ["swarmauri_distance_minkowski"]
 
 [tool.setuptools]
 namespace_packages = ["swarmauri"]

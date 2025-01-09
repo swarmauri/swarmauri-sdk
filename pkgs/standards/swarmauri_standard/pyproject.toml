@@ -37,7 +37,7 @@ Pillow = ">=8.0,<11.0"
 
 # Optional dependencies with versions specified
 aiofiles = { version = "24.1.0", optional = true }
-aiohttp = { version = "^3.10.10", optional = true }
+#aiohttp = { version = "^3.10.10", optional = true }
 #cohere = { version = "^5.11.0", optional = true }
 #mistralai = { version = "^1.2.1", optional = true }
 #fal-client = { version = ">=0.5.0", optional = true }
@@ -45,50 +45,54 @@ aiohttp = { version = "^3.10.10", optional = true }
 #openai = { version = "^1.52.0", optional = true }
 #nltk = { version = "^3.9.1", optional = true }
 #textblob = { version = "^0.18.0", optional = true }
-yake = { version = "==0.4.8", optional = true }
+#yake = { version = "==0.4.8", optional = true }
 beautifulsoup4 = { version = "04.12.3", optional = true }
 #gensim = { version = "==4.3.3", optional = true }
-scipy = { version = ">=1.7.0,<1.14.0", optional = true }
-scikit-learn = { version = "^1.4.2", optional = true }
+#scipy = { version = ">=1.7.0,<1.14.0", optional = true }
+#scikit-learn = { version = "^1.4.2", optional = true }
 #spacy = { version = ">=3.0.0,<=3.8.2", optional = true }
 #transformers = { version = "^4.45.0", optional = true }
 #torch = { version = "^2.5.0", optional = true }
 #keras = { version = ">=3.2.0", optional = true }
 #tf-keras = { version = ">=2.16.0", optional = true }
-matplotlib = { version = ">=3.9.2", optional = true }
+#matplotlib = { version = ">=3.9.2", optional = true }
 
 [tool.poetry.extras]
 # Extras without versioning, grouped for specific use cases
-io = ["aiofiles", "aiohttp"]
+io = [
+    "aiofiles",
+    #"aiohttp"
+]
 #llms = ["cohere", "mistralai", "fal-client", "google-generativeai", "openai"]
 nlp = [
     #"nltk", 
     #"textblob", 
-    "yake"
+    #"yake"
 ]
-nlp_tools = ["beautifulsoup4"]
+#nlp_tools = ["beautifulsoup4"]
 #ml_toolkits = ["gensim", "scipy", "scikit-learn"]
-ml_toolkits = ["scikit-learn"]
+#ml_toolkits = ["scikit-learn"]
 #spacy = ["spacy"]
 #transformers = ["transformers"]
 #torch = ["torch"]
 #tensorflow = ["keras", "tf-keras"]
-visualization = ["matplotlib"]
+#visualization = ["matplotlib"]
 
 # Full option to install all extras
 full = [
-    "aiofiles", "aiohttp",
+    "aiofiles", 
+    #"aiohttp",
     #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
     #"nltk", "textblob", 
-    "yake",
-    "beautifulsoup4",
-    "scikit-learn",
+    #"yake",
+    #"beautifulsoup4",
+    ##"scikit-learn",
     #"gensim", "scipy", "scikit-learn",
     #"spacy",
     #"transformers",
     #"torch",
     #"keras", "tf-keras",
-    "matplotlib"
+    #"matplotlib"
 ]
 
 [tool.poetry.group.dev.dependencies]

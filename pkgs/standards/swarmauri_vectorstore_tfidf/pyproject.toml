@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_doc2vec_vectorstore"
+name = "swarmauri_vectorstore_tfidf"
 version = "0.6.0.dev1"
-description = "A Doc2Vec based Vector Store and Doc2Vec Based Embedding Model."
+description = "A Tfidf based Vector Store and Tfidf Based Embedding Model."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,8 +19,6 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
-
-gensim = { version = "^4.3.3"}
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -52,7 +50,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
-Doc2VecVectorStore = "swarmauri_doc2vec_vectorstore:Doc2VecVectorStore"
+TfidfVectorStore = "swarmauri_vectorstore_tfidf:TfidfVectorStore"
 
 [tool.poetry.plugins."swarmauri.embeddings"]
-Doc2VecEmbedding = "swarmauri_doc2vec_vectorstore:Doc2VecEmbedding"
+TfidfEmbedding = "swarmauri_vectorstore_tfidf:TfidfEmbedding"
+
