@@ -23,6 +23,7 @@ class TextBlobNounParser(ParserBase):
             nltk.download("averaged_perceptron_tagger")
             nltk.download("brown")
             nltk.download("wordnet")
+            nltk.download('punkt_tab')
             super().__init__(**kwargs)
         except Exception as e:
             raise RuntimeError(f"Failed to initialize NLTK resources: {str(e)}")
