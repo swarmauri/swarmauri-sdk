@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.measurements.concrete.TokenCountEstimatorMeasurement import (
+from swarmauri_measurement_communitytokencountestimator.TokenCountEstimatorMeasurement import (
     TokenCountEstimatorMeasurement as Measurement,
 )
 
