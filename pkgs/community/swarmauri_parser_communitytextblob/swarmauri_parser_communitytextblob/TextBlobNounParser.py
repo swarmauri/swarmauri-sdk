@@ -1,7 +1,7 @@
 from textblob import TextBlob
 from typing import List, Union, Any, Literal
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.parsers.base.ParserBase import ParserBase
+from swarmauri_standard.documents.Document import Document
+from swarmauri_base.parsers.ParserBase import ParserBase
 
 
 class TextBlobNounParser(ParserBase):
@@ -23,7 +23,7 @@ class TextBlobNounParser(ParserBase):
             nltk.download("averaged_perceptron_tagger")
             nltk.download("brown")
             nltk.download("wordnet")
-            nltk.download('punkt_tab')
+            nltk.download("punkt_tab")
             super().__init__(**kwargs)
         except Exception as e:
             raise RuntimeError(f"Failed to initialize NLTK resources: {str(e)}")
