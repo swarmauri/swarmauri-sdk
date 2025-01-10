@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swm_example_community_package"
+name = "swm-example-community-package"
 version = "0.6.0.dev1"
-description = "Swarmauri Psutil Tool"
+description = "This repository includes an example of a First Class Swarmauri Example."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,9 +19,6 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
-
-# Dependencies
-psutil = "^6.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
