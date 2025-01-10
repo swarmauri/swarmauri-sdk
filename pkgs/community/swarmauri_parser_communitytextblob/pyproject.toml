@@ -22,6 +22,7 @@ swarmauri_base = { path = "../../base" }
 
 # Dependencies
 textblob = "^0.18.0"
+nltk = "^3.9.1"
 
 
 [tool.poetry.group.dev.dependencies]
