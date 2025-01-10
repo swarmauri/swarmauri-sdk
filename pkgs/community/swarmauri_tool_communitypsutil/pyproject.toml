@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swm_example_community_package"
+name = "swarmauri_tool_communitypsutil"
 version = "0.6.0.dev1"
-description = "Swarmauri Psutil Tool"
+description = "Swarmauri PSUtil Tool."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -22,7 +22,6 @@ swarmauri_base = { path = "../../base" }
 
 # Dependencies
 psutil = "^6.1.0"
-
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -53,5 +52,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.agents"]
-ExampleCommunityAgent = "swm_example_community_package.ExampleCommunityAgent:ExampleCommunityAgent"
+[tool.poetry.plugins."swarmauri.tools"]
+PsutilTool = "swarmauri_tool_communitypsutil.PsutilTool:PsutilTool"
