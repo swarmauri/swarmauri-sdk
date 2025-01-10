@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.parsers.concrete.TextBlobNounParser import TextBlobNounParser as Parser
+from swarmauri_parser_communitytextblob.TextBlobSentenceParser import TextBlobNounParser as Parser
 
 
 def setup_module(module):

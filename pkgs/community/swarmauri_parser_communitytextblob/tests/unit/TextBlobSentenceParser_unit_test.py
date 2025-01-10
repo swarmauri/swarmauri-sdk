@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_community.parsers.concrete.TextBlobSentenceParser import TextBlobSentenceParser as Parser
+from swarmauri_parser_communitytextblob.TextBlobSentenceParser import TextBlobSentenceParser as Parser
 
 @pytest.mark.unit
 def test_ubc_resource():
