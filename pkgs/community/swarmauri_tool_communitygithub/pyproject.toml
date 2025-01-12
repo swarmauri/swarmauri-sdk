@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_tool_matplotlib"
+name = "swarmauri_tool_communitygithub"
 version = "0.6.0.dev1"
-description = "Matplotlib tool for Swarmauri."
+description = "Github Tool"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,7 +21,9 @@ swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
 
 # Dependencies
-matplotlib = ">=3.9.2"
+pygithub = "^2.4.0"
+
+
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -53,6 +55,9 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
-MatplotlibTool = "swarmauri_tool_matplotlib:MatplotlibTool"
-MatplotlibCsvTool = "swarmauri_tool_matplotlib:MatplotlibCsvTool"
-
+GithubBranchTool = "swarmauri_tool_communitygithub.GithubBranchTool"
+GithubCommitTool = "swarmauri_tool_communitygithub.GithubCommitTool"
+GithubIssueTool = "swarmauri_tool_communitygithub.GithubIssueTool"
+GithubPRTool = "swarmauri_tool_communitygithub.GithubPRTool"
+GithubTool = "swarmauri_tool_communitygithub.GithubTool"
+GithubRepoTool = "swarmauri_tool_communitygithub.GithubRepoTool"

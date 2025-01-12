@@ -1,3 +1,4 @@
+import numpy as np
 from numpy.linalg import norm
 from typing import List, Literal
 from swarmauri_standard.vectors.Vector import Vector
@@ -13,7 +14,11 @@ class CosineDistance(DistanceBase):
     of these vectors.
     """
     type: Literal['CosineDistance'] = 'CosineDistance'   
-       
+
+    def dot_product(self, vector_a: Vector, vector_b: Vector) -> float:
+        """Compute the dot product of two vectors using their underlying values."""
+        return np.dot(vector_a.value, vector_b.value)
+
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """ 
         Computes the cosine distance between two vectors: 1 - cosine similarity.
