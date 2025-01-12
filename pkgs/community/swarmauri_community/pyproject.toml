@@ -38,7 +38,7 @@ neo4j = { version = "^5.25.0", optional = true }
 #neo4j = { version = "^5.25.0", optional = true }
 
 pandas = "^2.2.3"
-psutil = { version = "^6.1.0", optional = true }
+#psutil = { version = "^6.1.0", optional = true }
 #pygithub = { version = "^2.4.0", optional = true }
 qrcode = { version = "^8.0", optional = true }
 redis = { version = "^4.0", optional = true }
