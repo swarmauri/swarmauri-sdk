@@ -13,4 +13,4 @@ class AgentBase(IAgent, ComponentBase):
     type: Literal['AgentBase'] = 'AgentBase'
 
     def exec(self, input_str: Optional[Union[str, IMessage]] = "", llm_kwargs: Optional[Dict] = {}) -> Any:
-        raise NotImplementedError('The `exec` function has not been implemeneted on this class.')
+        raise NotImplementedError('The `exec` function has not been implemented on this class.')
