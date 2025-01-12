@@ -5,11 +5,12 @@ from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, 'QAAgent')
 class QAAgent(AgentBase):
-    conversation: MaxSystemContextConversation = MaxSystemContextConversation(max_size=2)
+    conversation: SubclassUnion[ConversationBase] = MaxSystemContextConversation(max_size=2)
     type: Literal['QAAgent'] = 'QAAgent'
 
     def exec(self, 
