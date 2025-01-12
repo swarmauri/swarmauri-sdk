@@ -3,8 +3,8 @@ import chromadb
 
 from typing import List, Union, Literal
 
-from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_standard.documents.concrete.Document import Document
+from swarmauri_vectorstore_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri.distances.concrete.CosineDistance import CosineDistance
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase

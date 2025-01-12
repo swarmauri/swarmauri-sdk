@@ -5,16 +5,16 @@ import duckdb
 from pydantic import Field, PrivateAttr
 import numpy as np
 
-from swarmauri.vectors.concrete.Vector import Vector
-from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.embeddings.concrete.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_standard.documents.Document import Document
+from swarmauri_vectorstore_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_standard.distances.CosineDistance import CosineDistance
 
-from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 
