@@ -142,10 +142,16 @@ jobs:
           echo "Running tests for package: ${{ matrix.package_tests.package }}"
           echo "Test files: ${{ matrix.package_tests.tests }}"
           cd pkgs/${{ matrix.package_tests.package }}
-          poetry run pytest ${{ matrix.package_tests.tests }} --tb=short --json-report --json-report-file=pytest_results.json || true
+          poetry run pytest -v ${{ matrix.package_tests.tests }} -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
+
+      - name: Classify test results
+        run: |
+          python scripts/classify_json_results.py pkgs/${{ matrix.package_tests.package }}/pytest_results.json --required-passed ge:50 --required-skipped lt:30
+        continue-on-error: false
 
       - name: Process test results and manage issues
-        if: always()
+        if: |
+          github.event.pull_request.head.repo.full_name == github.repository && always()
         env:
           DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,5 +159,4 @@ jobs:
         run: |
           cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
           poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
-
-
+          
