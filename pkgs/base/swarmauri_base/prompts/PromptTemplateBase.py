@@ -1,6 +1,9 @@
 from typing import Dict, List, Union, Optional, Literal
 from pydantic import Field
 
+import warnings
+
+
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
@@ -29,8 +32,13 @@ class PromptTemplateBase(IPrompt, ITemplate, ComponentBase):
         self.variables = variables
 
     def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+        warnings.warn("Deprecating 'generate_prompt()', use `fill()`.")
+        return self.fill(variables)
+
+    def fill(self, variables: Dict[str, str] = None) -> str:
         variables = variables or self.variables
         return self.template.format(**variables)
+
 
     def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
         """
