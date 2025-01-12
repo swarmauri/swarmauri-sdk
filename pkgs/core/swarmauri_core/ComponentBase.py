@@ -64,6 +64,7 @@ class ResourceTypes(Enum):
     CONTROL_PANEL = "ControlPanel"
     TASK_MGT_STRATEGY = "TaskMgtStrategy"
     MAS = "Mas"
+    SENSOR = "Sensor"
 
 def generate_id() -> str:
     return str(uuid4())
