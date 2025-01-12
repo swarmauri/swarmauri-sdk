@@ -30,7 +30,7 @@ class RagAgent(AgentRetrieveMixin,
     llm: SubclassUnion[LLMBase]
     conversation: Union[MaxSystemContextConversation, SessionCacheConversation] = MaxSystemContextConversation(system_context="")
     vector_store: SubclassUnion[VectorStoreBase]
-    system_context:  Union[SystemMessage, str]
+    system_context:  Union[SystemMessage, str] = SystemMessage(content="")
     type: Literal['RagAgent'] = 'RagAgent'
     
     def _create_preamble_context(self):
