@@ -8,7 +8,7 @@ class IControlPlane(ABC):
     """
 
     @abstractmethod
-    def create_agent(self, name: str, role: str) -> Any:
+    def create_agent(self, name: str, role: str, **kwarg: Any) -> Any:
         """
         Create an agent with the given name and role.
         """

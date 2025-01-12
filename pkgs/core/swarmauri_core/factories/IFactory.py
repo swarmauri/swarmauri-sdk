@@ -16,3 +16,13 @@ class IFactory(ABC):
     def register(self, type: str, resource_class: Callable) -> None:
         """Register a class with the factory."""
         pass
+
+    @abstractmethod
+    def get(self):
+        """Return a list of registered agent types."""
+        pass
+
+    @abstractmethod
+    def unregister(self, type: str) -> None:
+        """Unregister a class from the factory."""
+        pass

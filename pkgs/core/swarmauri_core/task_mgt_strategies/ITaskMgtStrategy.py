@@ -41,3 +41,10 @@ class ITaskMgtStrategy(ABC):
         Abstract method to process a task.
         """
         pass
+
+    @abstractmethod
+    def get_tasks(self) -> Dict[str, Any]:
+        """
+        Abstract method to get tasks.
+        """
+        pass

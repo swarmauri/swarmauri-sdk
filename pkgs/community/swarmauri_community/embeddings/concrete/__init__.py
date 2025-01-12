@@ -1,4 +1,4 @@
-from swarmauri.utils._lazy_import import _lazy_import
+from swarmauri.utils.LazyLoader import LazyLoader
 
 
 embeddings_files = [
@@ -7,6 +7,6 @@ embeddings_files = [
 ]
 
 for module_name, class_name in embeddings_files:
-    globals()[class_name] = _lazy_import(module_name, class_name)
+    globals()[class_name] = LazyLoader(module_name, class_name)
 
 __all__ = [class_name for _, class_name in embeddings_files]
