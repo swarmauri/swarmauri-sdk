@@ -30,7 +30,7 @@ captcha = "^0.6.0"
 #folium = { version = "^0.18.0", optional = true }
 #gensim = { version = "^4.3.3", optional = true }
 #gradio = { version = "^5.4.0", optional = true }
-leptonai = { version = "^0.22.0", optional = true }
+#leptonai = { version = "^0.22.0", optional = true }
 
 neo4j = { version = "^5.25.0", optional = true }
 #nltk = { version = "^3.9.1", optional = true }
@@ -48,7 +48,7 @@ typing_extensions = "^4.12.2"
 #tiktoken = { version = "^0.8.0", optional = true }
 PyMuPDF = { version = "^1.24.12", optional = true }
 #qdrant-client = { version = "^1.12.0", optional = true }
-pinecone-client = { version = "^5.0.1", optional = true, extras = ["grpc"] }
+#pinecone-client = { version = "^5.0.1", optional = true, extras = ["grpc"] }
 pypdf = { version = "^5.0.1", optional = true }
 pypdftk = { version = "^0.5", optional = true }
 weaviate-client = { version = "^4.9.2", optional = true }
