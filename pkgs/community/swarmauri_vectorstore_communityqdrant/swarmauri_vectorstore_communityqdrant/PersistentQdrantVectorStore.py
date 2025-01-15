@@ -22,8 +22,10 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 from swarmauri_base.vector_stores.VectorStorePersistentMixin import (
     VectorStorePersistentMixin,
 )
+from swarmauri_core.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(VectorStoreBase, "PersistentQdrantVectorStore")
 class PersistentQdrantVectorStore(
     VectorStoreSaveLoadMixin,
     VectorStoreRetrieveMixin,

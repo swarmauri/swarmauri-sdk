@@ -3,11 +3,12 @@ from transformers import logging as hf_logging
 from typing import List, Literal, Dict
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
 
 hf_logging.set_verbosity_error()
 
-
+@ComponentBase.register_type(ToolBase, "SentimentAnalysisTool")
 class SentimentAnalysisTool(ToolBase):
     """
     A tool for analyzing the sentiment of the given text using Hugging Face's transformers.

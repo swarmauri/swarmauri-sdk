@@ -1,3 +1,4 @@
+from swarmauri_core.ComponentBase import ComponentBase
 import spacy
 from typing import List, Union, Any, Literal
 from pydantic import PrivateAttr
@@ -6,6 +7,7 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 
 
+@ComponentBase.register_type(ParserBase, "EntityRecognitionParser")
 class EntityRecognitionParser(ParserBase):
     """
     EntityRecognitionParser leverages NER capabilities to parse text and

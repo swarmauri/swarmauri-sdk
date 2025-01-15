@@ -1,3 +1,4 @@
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
@@ -9,7 +10,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # Download required NLTK data once during module load
 nltk.download("punkt", quiet=True)
 
-
+@ComponentBase.register_type(ToolBase, "TextLengthTool")
 class TextLengthTool(ToolBase):
     version: str = "0.1.dev1"
     parameters: List[Parameter] = Field(

@@ -5,8 +5,9 @@ from swarmauri_standard.document_stores.ConcreteDocument import (
     ConcreteDocument,
 )
 from swarmauri_base.retrievers.DocumentRetrieverBase import DocumentRetrieverBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(DocumentRetrieverBase, "RedisDocumentRetriever")
 class RedisDocumentRetriever(DocumentRetrieverBase):
     """
     A document retriever that fetches documents from a Redis store.

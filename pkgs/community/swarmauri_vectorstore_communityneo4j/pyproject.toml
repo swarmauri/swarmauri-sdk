@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_communityneo4j"
 version = "0.6.0.dev1"
-description = "Word2Vec Document Store for Swarmauri."
+description = "Swarmauri Neo4j Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -53,4 +53,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
-Neo4jVectorStore = "swarmauri_vectorstore_communityneo4j:Neo4jVectorStore"
+Neo4jVectorStore = "swarmauri_vectorstore_communityneo4j.Neo4jVectorStore:Neo4jVectorStore"

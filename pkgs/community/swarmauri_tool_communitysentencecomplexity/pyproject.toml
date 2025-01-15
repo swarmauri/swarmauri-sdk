@@ -54,4 +54,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
-SentenceComplexityTool = "swarmauri_tool_communitysentencecomplexity.SentenceComplexityTool"
+SentenceComplexityTool = "swarmauri_tool_communitysentencecomplexity.SentenceComplexityTool:SentenceComplexityTool"

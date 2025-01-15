@@ -1,8 +1,10 @@
+from swarmauri_core.ComponentBase import ComponentBase
 import pyperclip
 from typing import Dict, Any
 from swarmauri_base.state.StateBase import StateBase
 
 
+@ComponentBase.register_type(StateBase, "ClipboardState")
 class ClipboardState(StateBase):
     """
     A concrete implementation of StateBase that uses the system clipboard to store and retrieve state data.
@@ -56,7 +58,8 @@ class ClipboardState(StateBase):
 
     def deep_copy(self) -> "ClipboardState":
         """
-        Creates a deep copy of the current state. In this context, simply returns a new ClipboardState with the same clipboard data.
+        Creates a deep copy of the current state. In this context, simply returns a new 
+        ClipboardState with the same clipboard data.
         """
         try:
             current_state = self.read()

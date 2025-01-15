@@ -1,6 +1,7 @@
 from typing import List, Literal, Dict
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
-from swarmauri_base.tools.base.ToolBase import ToolBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 import re
 import math
@@ -13,6 +14,7 @@ from nltk.tokenize import sent_tokenize
 nltk.download("punkt_tab", quiet=True)
 
 
+@ComponentBase.register_type(ToolBase, "SMOGIndexTool")
 class SMOGIndexTool(ToolBase):
     version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(

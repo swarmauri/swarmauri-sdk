@@ -1,12 +1,11 @@
-# swarmauri/standard/tools/concrete/GithubTool.py
-
 from github import Github, GithubException
 from typing import List, Dict, Literal, Any
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_standard.tool.Parameter import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
 
-
+@ComponentBase.register_type(ToolBase, "GithubCommitTool")
 class GithubCommitTool(ToolBase):
     version: str = "1.1.0"
     parameters: List[Parameter] = Field(

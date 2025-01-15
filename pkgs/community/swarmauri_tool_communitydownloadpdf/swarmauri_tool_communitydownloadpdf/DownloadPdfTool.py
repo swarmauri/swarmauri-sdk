@@ -2,10 +2,12 @@ import base64
 from io import BytesIO
 import requests
 from typing import Dict, Literal, List
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+@ComponentBase.register_type(ToolBase, "DownloadPDFTool")
 class DownloadPDFTool(ToolBase):
     """
     A tool to download a PDF from a specified URL and save it to a specified path.

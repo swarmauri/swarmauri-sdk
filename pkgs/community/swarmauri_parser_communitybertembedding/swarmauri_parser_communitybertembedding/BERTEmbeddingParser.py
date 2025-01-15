@@ -1,4 +1,5 @@
 from typing import List, Union, Any, Literal
+from swarmauri_core.ComponentBase import ComponentBase
 from transformers import BertTokenizer, BertModel
 import torch
 from pydantic import PrivateAttr
@@ -6,7 +7,7 @@ from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 
-
+@ComponentBase.register_type(ParserBase, "BERTEmbeddingParser")
 class BERTEmbeddingParser(ParserBase):
     """
     A parser that transforms input text into document embeddings using BERT.

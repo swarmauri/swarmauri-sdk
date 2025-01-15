@@ -18,8 +18,10 @@ from swarmauri.vector_stores.base.VectorStoreCloudMixin import (
 from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
+from swarmauri_core.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(VectorStoreBase, "PineconeVectorStore")
 class PineconeVectorStore(
     VectorStoreRetrieveMixin,
     VectorStoreCloudMixin,

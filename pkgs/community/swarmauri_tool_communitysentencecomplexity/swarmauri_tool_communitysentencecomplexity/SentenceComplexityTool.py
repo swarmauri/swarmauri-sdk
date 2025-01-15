@@ -1,6 +1,7 @@
 from typing import List, Literal, Dict
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
+from pkgs.core.swarmauri_core import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -10,6 +11,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 nltk.download("punkt_tab", quiet=True)
 
 
+@ComponentBase.register_type(ToolBase, "SentenceComplexityTool")
 class SentenceComplexityTool(ToolBase):
     version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(
@@ -24,7 +26,9 @@ class SentenceComplexityTool(ToolBase):
     )
 
     name: str = "SentenceComplexityTool"
-    description: str = "Evaluates sentence complexity based on average sentence length and the number of clauses."
+    description: str = (
+        "Evaluates sentence complexity based on average sentence length and the number of clauses."
+    )
     type: Literal["SentenceComplexityTool"] = "SentenceComplexityTool"
 
     def __call__(self, text: str) -> Dict[str, float]:

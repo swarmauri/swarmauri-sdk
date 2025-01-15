@@ -4,11 +4,13 @@ import requests
 from io import BytesIO
 from PIL import Image
 from typing import List, Literal
+from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from pydantic import Field, ConfigDict
-from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 
-class LeptonAIImgGenModel(LLMBase):
+@ComponentBase.register_type(ImageGenBase, "LeptonAIImgGenModel")
+class LeptonAIImgGenModel(ImageGenBase):
     """
     A model for generating images from text using Lepton AI's SDXL image generation model.
     It returns the image as bytes.

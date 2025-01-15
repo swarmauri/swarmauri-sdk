@@ -2,11 +2,13 @@
 import base64
 from typing import List, Literal, Dict
 from captcha.image import ImageCaptcha
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+@ComponentBase.register_type(ToolBase, "CaptchaGeneratorTool")
 class CaptchaGeneratorTool(ToolBase):
     type: Literal["CaptchaGeneratorTool"] = "CaptchaGeneratorTool"
     name: str = Field(

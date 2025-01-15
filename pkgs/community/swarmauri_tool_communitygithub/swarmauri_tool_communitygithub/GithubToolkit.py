@@ -1,7 +1,7 @@
 # File: swarmauri/standard/toolkits/concrete/GithubToolkit.py
 from typing import Literal, Optional
 
-from pydantic import BaseModel
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_tool_communitygithub.GithubRepoTool import GithubRepoTool
@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+@ComponentBase.register_type(ToolkitBase, "GithubToolkit")
 class GithubToolkit(ToolkitBase):
     type: Literal["GithubToolkit"] = "GithubToolkit"
     resource: str = "GithubToolkit"

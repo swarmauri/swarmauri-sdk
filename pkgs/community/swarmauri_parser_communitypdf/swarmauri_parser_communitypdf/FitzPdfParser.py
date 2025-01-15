@@ -1,3 +1,4 @@
+from swarmauri_core.ComponentBase import ComponentBase
 import pymupdf  # PyMuPDF
 from typing import List, Union, Any, Literal
 from swarmauri.parsers.base.ParserBase import ParserBase
@@ -5,6 +6,7 @@ from swarmauri_core.documents.IDocument import IDocument
 from swarmauri.documents.concrete.Document import Document
 
 
+@ComponentBase.register_type(ParserBase, "FitzPdfParser")
 class PDFtoTextParser(ParserBase):
     """
     A parser to extract text from PDF files.
