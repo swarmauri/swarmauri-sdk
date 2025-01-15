@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_vectorstore_communitymlm"
+name = "swarmauri_documentstore_communityredis"
 version = "0.6.0.dev1"
-description = "Swarmauri MLM Vector Store"
+description = "Swarmauri Psutil Tool"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,8 +21,7 @@ swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
 
 # Dependencies
-transformers = ">=4.45.0"
-torch = "^2.4.1"
+redis = "^4.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -54,9 +53,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.vector_stores"]
-MlmVectorStore = "swarmauri_vectorstore_communitymlm.MlmVectorStore:MlmVectorStore"
-
-[tool.poetry.plugins."swarmauri.embeddings"]
-MlmEmbedding = "swarmauri_vectorstore_communitymlm.MlmEmbedding:MlmEmbedding"
-
+[tool.poetry.plugins."swarmauri.documentstores"]
+RedisDocumentStore = "swarmauri_documentstore_communityredis.RedisDocumentStore:RedisDocumentStore"
