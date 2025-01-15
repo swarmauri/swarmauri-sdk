@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_communitymlm"
 version = "0.6.0.dev1"
-description = "Swarmauri Psutil Tool"
+description = "Swarmauri MLM Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
