@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_vectorstore_communitycloudqdrant"
+name = "swarmauri_vectorstore_communitycloudweaviate"
 version = "0.6.0.dev1"
-description = "example community package"
+description = "Swarmauri Weaviate Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -22,7 +22,7 @@ swarmauri_base = { path = "../../base" }
 swarmauri_vectorstore_doc2vec = { path = "../../standards" }
 
 # Dependencies
-cloudqdrant = "^1.12.0"
+weaviate-client = "^4.9.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -55,4 +55,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
-CloudQdrantVectorStore = "swarmauri_vectorstore_communitycloudqdrant.CloudQdrantVectorStore:CloudQdrantVectorStore"
+CloudWeaviateVectorStore = "swarmauri_vectorstore_communitycloudweaviate.CloudWeaviateVectorStore:CloudWeaviateVectorStore"
