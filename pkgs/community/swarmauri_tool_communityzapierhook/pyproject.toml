@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_tool_communitygithub"
+name = "swarmauri_tool_communityzapierhook"
 version = "0.6.0.dev1"
-description = "Github Tool"
+description = "Zapier Hook Tool"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,11 +19,6 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
-
-# Dependencies
-pygithub = "^2.4.0"
-
-
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -55,13 +50,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
-GithubBranchTool = "swarmauri_tool_communitygithub.GithubBranchTool"
-GithubCommitTool = "swarmauri_tool_communitygithub.GithubCommitTool"
-GithubIssueTool = "swarmauri_tool_communitygithub.GithubIssueTool"
-GithubPRTool = "swarmauri_tool_communitygithub.GithubPRTool"
-GithubTool = "swarmauri_tool_communitygithub.GithubTool"
-GithubRepoTool = "swarmauri_tool_communitygithub.GithubRepoTool"
-
-[tool.poetry.plugins."swarmauri.toolkits"]
-GithubToolkit = "swarmauri_tool_communitygithub.GithubToolkit"
-
+ZapierHookTool = "swarmauri_tool_communityzapierhook.ZapierHookTool:ZapierHookTool"
