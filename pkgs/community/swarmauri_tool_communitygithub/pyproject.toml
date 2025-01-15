@@ -61,3 +61,7 @@ GithubIssueTool = "swarmauri_tool_communitygithub.GithubIssueTool"
 GithubPRTool = "swarmauri_tool_communitygithub.GithubPRTool"
 GithubTool = "swarmauri_tool_communitygithub.GithubTool"
 GithubRepoTool = "swarmauri_tool_communitygithub.GithubRepoTool"
+
+[tool.poetry.plugins."swarmauri.toolkits"]
+GithubToolkit = "swarmauri_tool_communitygithub.GithubToolkit"
+

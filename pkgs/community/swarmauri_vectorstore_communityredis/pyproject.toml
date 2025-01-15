@@ -55,3 +55,8 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
 RedisVectorStore = "swarmauri_vectorstore_communityredis.RedisVectorStore:RedisVectorStore"
+
+[tool.poetry.plugins."swarmauri.retrievers"]
+RedisDocumentRetriever = "swarmauri_vectorstore_communityredis.RedisDocumentRetriever:RedisDocumentRetriever"
+
+
