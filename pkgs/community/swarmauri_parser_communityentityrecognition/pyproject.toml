@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_llm_communitypytesseractImg2text"
+name = "swarmauri_parser_communityentityrecognition"
 version = "0.6.0.dev1"
-description = "Swarmauri Tesseract Image to Text Model"
+description = "Entity Recognition Parser for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,7 +21,7 @@ swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
 
 # Dependencies
-pytesseract = "^0.3.13"
+spacy = ">=3.0.0,<=3.8.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -53,5 +53,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.llms"]
-PytesseractImg2TextModel = "swarmauri_llm_communitypytesseractImg2text.PytesseractImg2TextModel:PytesseractImg2TextModel"
+[tool.poetry.plugins."swarmauri.parsers"]
+EntityRecognitionParser = "swarmauri_parser_communityentityrecognition.EntityRecognitionParser:EntityRecognitionParser"
