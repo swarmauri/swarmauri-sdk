@@ -1,12 +1,12 @@
-# swarmauri/standard/tools/concrete/GithubTool.py
-
 from github import Github, GithubException
 from typing import List, Dict, Literal, Any
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+@ComponentBase.register_type(ToolBase, "GithubCommitTool")
 class GithubRepoTool(ToolBase):
     version: str = "1.1.0"
     parameters: List[Parameter] = Field(
@@ -66,7 +66,7 @@ class GithubRepoTool(ToolBase):
     def create_repo(self, repo_name: str, private: bool = False) -> str:
         try:
             user = self._github.get_user()
-            repo = user.create_repo(repo_name, private=private)
+            user.create_repo(repo_name, private=private)
             return f"Repository '{repo_name}' created successfully."
         except GithubException as e:
             return f"Error creating repository: {e}"

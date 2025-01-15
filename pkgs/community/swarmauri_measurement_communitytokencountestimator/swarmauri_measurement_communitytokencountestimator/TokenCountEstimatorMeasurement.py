@@ -1,4 +1,5 @@
 from typing import Literal
+from swarmauri_core.ComponentBase import ComponentBase
 import tiktoken
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
@@ -6,6 +7,7 @@ from swarmauri_base.measurements.MeasurementCalculateMixin import (
 )
 
 
+@ComponentBase.register_type(MeasurementBase, "TokenCountEstimatorMeasurement")
 class TokenCountEstimatorMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """
     A measurement class to estimate the number of tokens in a given text.

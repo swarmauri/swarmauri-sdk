@@ -1,6 +1,7 @@
 # standard/tools/concrete/FoliumTool.py
 import folium
 from typing import List, Tuple, Literal, Dict
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -8,6 +9,7 @@ import base64
 import io
 
 
+@ComponentBase.register_type(ToolBase, "FoliumTool")
 class FoliumTool(ToolBase):
     type: Literal["FoliumTool"] = "FoliumTool"
     name: str = Field("FoliumTool", description="Tool to generate maps using Folium.")

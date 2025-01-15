@@ -1,12 +1,14 @@
 # standard/tools/concrete/QrCodeGeneratorTool.py
 import qrcode
 from typing import List, Literal
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 import base64
 
 
+@ComponentBase.register_type(ToolBase, "QrCodeGeneratorTool")
 class QrCodeGeneratorTool(ToolBase):
     type: Literal["QrCodeGeneratorTool"] = "QrCodeGeneratorTool"
     name: str = Field("QrCodeGeneratorTool", description="Tool to generate QR codes.")

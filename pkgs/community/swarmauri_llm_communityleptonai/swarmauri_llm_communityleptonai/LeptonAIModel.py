@@ -9,8 +9,9 @@ from swarmauri_base.llms.base.LLMBase import LLMBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri.utils.duration_manager import DurationManager
+from swarmauri_core.ComponentBase import ComponentBase
 
-
+@ComponentBase.register_type(LLMBase, "LeptonAIModel")
 class LeptonAIModel(LLMBase):
     """
     Provider resources: https://www.lepton.ai/playground

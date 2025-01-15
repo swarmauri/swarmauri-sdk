@@ -53,4 +53,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
-SMOGIndexTool = "swarmauri_tool_communitysmogindex.SMOGIndexTool"
+SMOGIndexTool = "swarmauri_tool_communitysmogindex.SMOGIndexTool:SMOGIndexTool"

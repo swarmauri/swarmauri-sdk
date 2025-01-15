@@ -55,4 +55,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
-PersistentChromaDBVectorStore = "swarmauri_vectorstore_communitypersistentchromaDB.PersistentChromaDBVectorStore"
+PersistentChromaDBVectorStore = "swarmauri_vectorstore_communitypersistentchromaDB.PersistentChromaDBVectorStore:PersistentChromaDBVectorStore"

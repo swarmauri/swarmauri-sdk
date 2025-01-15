@@ -1,6 +1,7 @@
 import os
 import asyncio
 from typing import List, Literal, Union
+from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from PIL import Image
 import pytesseract
@@ -8,6 +9,7 @@ from io import BytesIO
 from swarmauri_base.llms.LLMBase import LLMBase
 
 
+@ComponentBase.register_type(LLMBase, "PytesseractImg2TextModel")
 class PytesseractImg2TextModel(LLMBase):
     """
     A model for performing OCR (Optical Character Recognition) using Pytesseract.

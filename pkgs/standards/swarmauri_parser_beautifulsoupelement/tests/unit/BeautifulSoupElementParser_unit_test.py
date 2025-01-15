@@ -1,6 +1,6 @@
 import pytest
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
+from swarmauri_standard.documents.Document import Document
+from swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser import (
     BeautifulSoupElementParser as Parser,
 )
 

@@ -53,5 +53,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.llms"]
-LeptonAIImgGenModel = "swarmauri_llm_communityleptonai.LeptonAIImgGenModel:LeptonAIImgGenModel"
 LeptonAIModel = "swarmauri_llm_communityleptonai.LeptonAIImgGenModel:LeptonAIModel"
+
+[tool.poetry.plugins."swarmauri.image_gens"]
+LeptonAIImgGenModel = "swarmauri_llm_communityleptonai.LeptonAIImgGenModel:LeptonAIImgGenModel"

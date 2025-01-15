@@ -1,11 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict
 from pydantic import Field
 
 
+@ComponentBase.register_type(ToolBase, "WebScrapingTool")
 class WebScrapingTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(

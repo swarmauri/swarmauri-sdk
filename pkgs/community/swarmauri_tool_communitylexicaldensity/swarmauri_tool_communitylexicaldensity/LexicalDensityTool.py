@@ -1,4 +1,5 @@
 import nltk
+from swarmauri_core.ComponentBase import ComponentBase
 import textstat
 from typing import List, Literal, Dict
 from pydantic import Field
@@ -10,6 +11,7 @@ nltk.download("punkt_tab")
 nltk.download("averaged_perceptron_tagger_eng")
 
 
+@ComponentBase.register_type(ToolBase, "LexicalDensityTool")
 class LexicalDensityTool(ToolBase):
     version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(

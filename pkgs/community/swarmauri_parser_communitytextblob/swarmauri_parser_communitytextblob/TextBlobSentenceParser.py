@@ -1,9 +1,11 @@
+from swarmauri_core.ComponentBase import ComponentBase
 from textblob import TextBlob
 from typing import List, Union, Any, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 
 
+@ComponentBase.register_type(ParserBase, "TextBlobSentenceParser")
 class TextBlobSentenceParser(ParserBase):
     """
     A parser that leverages TextBlob to break text into sentences.

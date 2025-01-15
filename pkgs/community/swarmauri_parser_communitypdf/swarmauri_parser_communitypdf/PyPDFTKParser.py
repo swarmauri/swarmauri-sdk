@@ -1,11 +1,13 @@
 from typing import List, Literal
 
-import pypdftk  # PyPDFTK
+from swarmauri_core.ComponentBase import ComponentBase
+import pypdftk
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.documents.IDocument import IDocument
 
 
+@ComponentBase.register_type(ParserBase, "PyPDFTKParser")
 class PyPDFTKParser(ParserBase):
     """
     Parser for reading and extracting data fields from PDF files using PyPDFTK.

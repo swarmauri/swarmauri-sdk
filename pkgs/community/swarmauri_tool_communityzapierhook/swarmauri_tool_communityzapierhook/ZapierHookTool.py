@@ -1,6 +1,7 @@
 import json
 import requests
 from typing import Dict, List, Literal
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from pydantic import Field
@@ -21,7 +22,7 @@ Reference
 
 """
 
-
+@ComponentBase.register_type(ToolBase, "ZapierHookTool")
 class ZapierHookTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(

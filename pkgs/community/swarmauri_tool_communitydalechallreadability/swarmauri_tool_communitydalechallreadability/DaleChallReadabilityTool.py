@@ -1,9 +1,11 @@
+from swarmauri_core.ComponentBase import ComponentBase
 import textstat
 from typing import Any, Dict, List, Literal
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+@ComponentBase.register_type(ToolBase, "DaleChallReadabilityTool")
 class DaleChallReadabilityTool(ToolBase):
     """
     A tool for calculating the Dale-Chall Readability Score using the textstat library.
