@@ -1,6 +1,6 @@
 import pytest
 from swarmauri_standard.documents.Document import Document
-from swarmauri_community.vector_stores.concrete.AnnoyVectorStore import AnnoyVectorStore
+from swarmauri_vectorstore_communityannoy.AnnoyVectorStore import AnnoyVectorStore
 
 
 # Fixture for creating an AnnoyVectorStore instance
