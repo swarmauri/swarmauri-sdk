@@ -3,21 +3,21 @@ from pydantic import Field
 
 import warnings
 
-
-from swarmauri_core.prompts.IPrompt import IPrompt
-from swarmauri_core.prompts.ITemplate import ITemplate
+from swarmauri_core.prompt_templates.IPromptTemplate import IPromptTemplate
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
-class PromptTemplateBase(IPrompt, ITemplate, ComponentBase):
+
+@ComponentBase.register_model()
+class PromptTemplateBase(IPromptTemplate, ComponentBase):
     """
     A class for generating prompts based on a template and variables.
     Implements the IPrompt for generating prompts and ITemplate for template manipulation.
     """
 
     template: str = ""
-    variables: Union[List[Dict[str, str]], Dict[str,str]] = {}
-    resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value, frozen=True)
-    type: Literal['PromptTemplateBase'] = 'PromptTemplateBase'
+    variables: Union[List[Dict[str, str]], Dict[str, str]] = {}
+    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    type: Literal["PromptTemplateBase"] = "PromptTemplateBase"
 
     def set_template(self, template: str) -> None:
         """
@@ -38,7 +38,6 @@ class PromptTemplateBase(IPrompt, ITemplate, ComponentBase):
     def fill(self, variables: Dict[str, str] = None) -> str:
         variables = variables or self.variables
         return self.template.format(**variables)
-
 
     def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
         """

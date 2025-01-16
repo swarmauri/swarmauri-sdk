@@ -28,6 +28,7 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
 from swarmauri_base.prompts.PromptBase import PromptBase
+from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.state.StateBase import StateBase

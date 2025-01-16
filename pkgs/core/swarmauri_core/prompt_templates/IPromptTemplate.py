@@ -2,11 +2,19 @@ from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
 
 
-class ITemplate(ABC):
+class IPromptTemplate(ABC):
     """
     Interface for template-based prompt generation within the SwarmAURI framework.
     Defines standard operations and attributes for managing and utilizing templates.
     """
+
+    @abstractmethod
+    def __call__(self, **kwargs) -> str:
+        """
+        Abstract method that subclasses must implement to define the behavior of the prompt template when called.
+
+        """
+        pass
 
     @abstractmethod
     def set_template(self, template: str) -> None:
