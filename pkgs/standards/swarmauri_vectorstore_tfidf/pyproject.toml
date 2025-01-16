@@ -19,9 +19,7 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
-
-# Dependencies
-scikit-learn = "^1.4.2"
+swarmauri_embedding_tfidf = { path = "../../standard" }
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -54,7 +52,4 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
 TfidfVectorStore = "swarmauri_vectorstore_tfidf:TfidfVectorStore"
-
-[tool.poetry.plugins."swarmauri.embeddings"]
-TfidfEmbedding = "swarmauri_vectorstore_tfidf:TfidfEmbedding"
 

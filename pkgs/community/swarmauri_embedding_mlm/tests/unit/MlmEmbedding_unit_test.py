@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_vectorstore_mlm.MlmEmbedding import MlmEmbedding
+from swarmauri_embedding_mlm.MlmEmbedding import MlmEmbedding
 
 
 @pytest.mark.unit

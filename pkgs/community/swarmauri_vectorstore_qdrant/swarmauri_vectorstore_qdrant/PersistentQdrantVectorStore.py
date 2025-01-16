@@ -9,7 +9,7 @@ from qdrant_client.models import (
 )
 
 from swarmauri_standard.documents.Document import Document
-from swarmauri_vectorstore_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase

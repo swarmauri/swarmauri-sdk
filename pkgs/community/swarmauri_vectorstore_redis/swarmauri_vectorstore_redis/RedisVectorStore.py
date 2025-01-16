@@ -9,7 +9,7 @@ from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_standard.documents.concrete.Document import Document
-from swarmauri_vectorstore_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import VectorStoreRetrieveMixin
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import VectorStoreSaveLoadMixin

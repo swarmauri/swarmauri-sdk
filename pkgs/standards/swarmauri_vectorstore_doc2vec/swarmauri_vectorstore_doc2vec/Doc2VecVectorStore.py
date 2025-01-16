@@ -1,5 +1,3 @@
-from .Doc2VecEmbedding import Doc2VecEmbedding
-
 from typing import List, Union, Literal
 
 from swarmauri_standard.documents.Document import Document
@@ -11,9 +9,13 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
+from swarmauri_embedding_doc2vec.Doc2VecEmbedding import (
+    Doc2VecEmbedding,
+)
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(VectorStoreBase, 'Doc2VecVectorStore')
+
+@ComponentBase.register_type(VectorStoreBase, "Doc2VecVectorStore")
 class Doc2VecVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):

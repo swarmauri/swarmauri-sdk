@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_vectorstore_tfidf.TfidfEmbedding import TfidfEmbedding
+from swarmauri_embedding_tfidf.TfidfEmbedding import TfidfEmbedding
 
 
 @pytest.mark.unit

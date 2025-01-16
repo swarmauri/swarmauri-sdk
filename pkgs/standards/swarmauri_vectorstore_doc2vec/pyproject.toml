@@ -19,8 +19,7 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { path = "../../core" }
 swarmauri_base = { path = "../../base" }
-
-gensim = "^4.3.3"
+swarmauri_embedding_doc2vec = { path = "../../standard" }
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -53,6 +52,3 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.vector_stores"]
 Doc2VecVectorStore = "swarmauri_vectorstore_doc2vec:Doc2VecVectorStore"
-
-[tool.poetry.plugins."swarmauri.embeddings"]
-Doc2VecEmbedding = "swarmauri_vectorstore_doc2vec:Doc2VecEmbedding"
