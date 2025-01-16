@@ -51,6 +51,7 @@ class ResourceTypes(Enum):
     VECTOR_STORE = "VectorStore"
     VECTOR = "Vector"
     VCM = "VCM"
+    DEC_AGENT_API = "DecAgentAPI"
 
 
 def generate_id() -> str:
