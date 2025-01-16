@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "swarmauri_parser_communitytextblob"
+name = "swarmauri_parser_textblob"
 version = "0.6.0.dev1"
 description = "TextBlob Parser for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
@@ -55,5 +55,5 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.parsers"]
-TextBlobNounParser = "swarmauri_parser_communitytextblob.TextBlobNounParser:TextBlobNounParser"
-TextBlobSentenceParser = "swarmauri_parser_communitytextblob.TextBlobSentenceParser:TextBlobSentenceParser"
+TextBlobNounParser = "swarmauri_parser_textblob.TextBlobNounParser:TextBlobNounParser"
+TextBlobSentenceParser = "swarmauri_parser_textblob.TextBlobSentenceParser:TextBlobSentenceParser"
