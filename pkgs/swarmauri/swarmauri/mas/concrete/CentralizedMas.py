@@ -1,4 +1,6 @@
-from typing import List, Any, Dict
+import logging
+from typing import List, Any, Dict, Literal
+from swarmauri import task_mgt_strategies
 from swarmauri.factories.base.FactoryBase import FactoryBase
 from swarmauri.mas.base.MasBase import MasBase
 from swarmauri.transports.base.TransportBase import TransportBase
@@ -11,57 +13,43 @@ from swarmauri_core.typing import SubclassUnion
 class CentralizedMas(MasBase):
     """Concrete implementation of the MasBase class."""
 
-    _agents: Dict[str, Any] = {}
     transport: SubclassUnion[TransportBase]
-    factory: SubclassUnion[FactoryBase]
+    agent_factory: SubclassUnion[FactoryBase]
     service_registry: ServiceRegistry = ServiceRegistry()
-    task_strategy: SubclassUnion[TaskMgtStrategyBase]
+    task_mgt_strategy: SubclassUnion[TaskMgtStrategyBase]
     control_panel: ControlPanel
+    type: Literal["CentralizedMas"] = "CentralizedMas"
 
-    def __init__(
-        self,
-        transport: SubclassUnion[TransportBase],
-        factory: SubclassUnion[FactoryBase],
-        task_strategy: SubclassUnion[TaskMgtStrategyBase],
-    ):
-        self.transport = transport
-        self.agent_factory = factory
-        self.task_strategy = task_strategy
-        self.control_plane = ControlPanel(
-            self.agent_factory,
-            self.service_registry,
-            self.task_strategy,
-            self.transport,
-        )
+    def add_agent(self, name: str, role: Any, **kwarg: Any) -> None:
+        if name in self.agent_factory.get():
+            raise ValueError(f"Agent '{name}' already exists.")
 
-    def add_agent(self, name: str, role: Any) -> None:
-        agent = self.control_plane.create_agent(name, role)
-        self._agents[name] = agent
+        self.agent_factory.register(name, role)
+        self.control_panel.create_agent(name, role, **kwarg)
 
     def remove_agent(self, name: str) -> None:
-        if name in self._agents:
-            self.control_plane.remove_agent(name)
-            del self._agents[name]
+        if name in self.agent_factory.get():
+            self.control_panel.remove_agent(name)
 
     def broadcast(self, message: Any) -> None:
-        agents = list(self._agents.values())
+        agents = self.agent_factory.get()
         self.transport.broadcast(message, agents)
 
-    def multicast(self, message: Any, recipient_ids: List[str]) -> None:
+    def multicast(self, message: Any, recipient_names: List[str]) -> None:
         recipients = [
-            self._agents[agent_id]
-            for agent_id in recipient_ids
-            if agent_id in self._agents
+            name
+            for name in recipient_names
+            if name in self.control_panel.list_active_agents().keys()
         ]
-        self.transport.multicast(message, recipients)
+        self.transport.multicast(sender=self, message=message, recipients=recipients)
 
-    def unicast(self, message: Any, recipient_id: str) -> None:
-        if recipient_id in self._agents:
-            self.transport.send_message(message, self._agents[recipient_id])
+    def unicast(self, message: Any, recipient_name: str) -> None:
+        if recipient_name in self.control_panel.list_active_agents().keys():
+            self.transport.send(sender=self, message=message, recipient=recipient_name)
 
     def dispatch_task(self, task: Any, agent_id: str) -> None:
-        if agent_id in self._agents:
-            self._agents[agent_id].perform_task(task)
+        if agent_id in self.control_panel.list_active_agents().keys():
+            self.control_panel.distribute_tasks(task)
 
     def dispatch_tasks(self, tasks: List[Any], agent_ids: List[str]) -> None:
         for task, agent_id in zip(tasks, agent_ids):
