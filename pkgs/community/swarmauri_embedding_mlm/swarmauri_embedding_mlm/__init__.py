@@ -1,9 +1,9 @@
-from .MlmVectorStore import MlmVectorStore
+from .MlmEmbedding import MlmEmbedding
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
-# Swarmauri Mlm VectorStore Plugin
+# Swarmauri Mlm Embedding Plugin
 
 Visit us at: https://swarmauri.com
 Follow us at: https://github.com/swarmauri

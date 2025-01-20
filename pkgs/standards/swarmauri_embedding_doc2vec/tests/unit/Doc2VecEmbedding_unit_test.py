@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_vectorstore_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 
 
 @pytest.mark.unit
