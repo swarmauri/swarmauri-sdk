@@ -43,4 +43,11 @@ def test_serialization(simple_conversation_agent):
 @pytest.mark.unit
 def test_agent_exec(simple_conversation_agent):
     result = simple_conversation_agent.exec("hello")
-    assert type(result) == str
+    assert isinstance(result, str)
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(simple_conversation_agent):
+    result = await simple_conversation_agent.aexec("Hello")
+    assert isinstance(result, str)
