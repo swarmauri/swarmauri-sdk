@@ -72,6 +72,7 @@ class InterfaceRegistry:
         "swarmauri.parsers": ParserBase,
         "swarmauri.pipelines": PipelineBase,
         "swarmauri.prompts": PromptBase,
+        "swarmauri.prompt_templates": PromptTemplateBase,
         "swarmauri.plugins": None,
         "swarmauri.schema_converters": SchemaConverterBase,
         "swarmauri.service_registries": ServiceRegistryBase,
