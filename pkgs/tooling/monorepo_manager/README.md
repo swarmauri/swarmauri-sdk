@@ -1,7 +1,7 @@
 <p align="center">
     <a href="https://github.com/swarmauri/swarmauri-sdk/"><img src="https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png" alt="Swamauri Logo"/></a>
     <br />
-    <a href="https://hits.sh/github.com/swarmauri/monorepo_manager/"><img src="https://hits.sh/github.com/swarmauri/swarmakit.svg" alt="Hits"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/monorepo_manager/"><img src="https://hits.sh/github.com/swarmauri/monorepo_manager.svg" alt="Hits"/></a>
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"/></a>
     <a href="https://pypi.org/project/monorepo_manager/"><img src="https://img.shields.io/pypi/v/monorepo_manager?label=monorepo_manager" alt="PyPI - monorepo_manager Version"/></a>
     <a href="https://pypi.org/project/monorepo_manager/"><img src="https://img.shields.io/pypi/dm/monorepo_manager?label=monorepo_manager%20Downloads" alt="PyPI - monorepo_manager Downloads"/></a>
