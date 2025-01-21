@@ -17,8 +17,8 @@ classifiers = [
 python = ">=3.10,<3.13"
 
 # Swarmauri
-swarmauri_core = { path = "../../core" }
-swarmauri_base = { path = "../../base" }
+swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
+swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 
 # Dependencies
 textblob = "^0.18.0"
