@@ -47,3 +47,10 @@ def test_serialization(tool_agent):
 def test_agent_exec(tool_agent):
     result = tool_agent.exec("Add(512, 671)")
     assert type(result) is str
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(tool_agent):
+    result = await tool_agent.aexec("Hello")
+    assert isinstance(result, str)

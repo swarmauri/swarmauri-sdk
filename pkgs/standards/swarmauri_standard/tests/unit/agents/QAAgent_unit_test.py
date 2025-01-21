@@ -1,7 +1,7 @@
 import pytest
 import os
-from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.agents.concrete import QAAgent
+from swarmauri_standard.llms.GroqModel import GroqModel
+from swarmauri_standard.agents.QAAgent import QAAgent
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,10 +32,17 @@ def test_ubc_type(groq_model):
 def test_agent_exec(groq_model):
     agent = QAAgent(llm=groq_model)
     result = agent.exec("hello")
-    assert type(result) == str
+    assert isinstance(result, str)
 
 
 @pytest.mark.unit
 def test_serialization(groq_model):
     agent = QAAgent(llm=groq_model)
     assert agent.id == QAAgent.model_validate_json(agent.model_dump_json()).id
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(qa_agent):
+    result = await qa_agent.aexec("hello")
+    assert isinstance(result, str)
