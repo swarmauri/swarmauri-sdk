@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monorepo-manager"
+version = "0.1.0"
+description = "A CLI for managing a Python monorepo"
+authors = [
+  { name="Your Name", email="you@example.com" }
+]
+dependencies = [
+  "requests",
+  "tomlkit",
+  "toml",
+  "packaging",
+  # any other libraries you used
+]
+
+[project.scripts]
+monorepo-manager = "monorepo_manager.cli:main"
