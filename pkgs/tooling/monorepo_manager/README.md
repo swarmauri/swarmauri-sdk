@@ -1,8 +1,3 @@
-Below is an example of a comprehensive `README.md` for your unified monorepo management tool:
-
----
-
-```markdown
 # Monorepo Manager
 
 **Monorepo Manager** is a unified command-line tool for managing a Python monorepo that contains multiple standalone packages, each with its own `pyproject.toml`. It consolidates several common tasks—including dependency management, version bumping, remote dependency resolution, test analysis, and project configuration updates—into one robust CLI.
