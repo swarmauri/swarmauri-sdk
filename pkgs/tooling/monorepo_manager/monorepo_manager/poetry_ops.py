@@ -135,116 +135,6 @@ def show_pip_freeze():
     run_command("pip freeze")
 
 
-def set_version_in_pyproject(version, directory=None, file=None):
-    """
-    Set the version for the package in the pyproject.toml file(s).
-    
-    :param version: The new version string to set.
-    :param directory: If provided, recursively update all pyproject.toml files found in the directory.
-    :param file: If provided, update the specific pyproject.toml file.
-    """
-    def update_file(pyproject_file, version):
-        print(f"Setting version to {version} in {pyproject_file}...")
-        try:
-            with open(pyproject_file, "r") as f:
-                data = toml.load(f)
-        except Exception as e:
-            print(f"Error reading {pyproject_file}: {e}", file=sys.stderr)
-            return
-
-        if "tool" in data and "poetry" in data["tool"]:
-            data["tool"]["poetry"]["version"] = version
-        else:
-            print(f"Invalid pyproject.toml structure in {pyproject_file}.", file=sys.stderr)
-            return
-
-        try:
-            with open(pyproject_file, "w") as f:
-                toml.dump(data, f)
-            print(f"Version set to {version} in {pyproject_file}.")
-        except Exception as e:
-            print(f"Error writing {pyproject_file}: {e}", file=sys.stderr)
-
-    if directory:
-        for root, _, files in os.walk(directory):
-            if "pyproject.toml" in files:
-                pyproject_file = os.path.join(root, "pyproject.toml")
-                update_file(pyproject_file, version)
-    elif file:
-        update_file(file, version)
-    else:
-        print("Error: A directory or a file must be specified.", file=sys.stderr)
-        sys.exit(1)
-
-
-def set_dependency_versions(version, directory=None, file=None):
-    """
-    Update versions for path dependencies found in pyproject.toml files.
-    
-    For each dependency that is defined with a "path", update its version to '^<version>'.
-    Also attempts to update the dependency's own pyproject.toml.
-    
-    :param version: The new version string (without the caret).
-    :param directory: A directory to search for pyproject.toml files.
-    :param file: A specific pyproject.toml file to update.
-    """
-    def update_file(pyproject_file, version):
-        print(f"Setting dependency versions to {version} in {pyproject_file}...")
-        try:
-            with open(pyproject_file, "r") as f:
-                data = toml.load(f)
-        except Exception as e:
-            print(f"Error reading {pyproject_file}: {e}", file=sys.stderr)
-            return
-
-        dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-        updated_dependencies = {}
-
-        for dep_name, dep_value in dependencies.items():
-            if isinstance(dep_value, dict) and "path" in dep_value:
-                # Update the version entry while preserving other keys except 'path'
-                updated_dep = {"version": f"^{version}"}
-                for key, val in dep_value.items():
-                    if key != "path":
-                        updated_dep[key] = val
-                updated_dependencies[dep_name] = updated_dep
-
-                # Update the dependency's own pyproject.toml file if present.
-                dependency_path = os.path.join(os.path.dirname(pyproject_file), dep_value["path"])
-                dependency_pyproject = os.path.join(dependency_path, "pyproject.toml")
-                if os.path.isfile(dependency_pyproject):
-                    print(f"Updating version in dependency: {dependency_pyproject} to {version}")
-                    set_version_in_pyproject(version, file=dependency_pyproject)
-                else:
-                    print(f"Warning: pyproject.toml not found at {dependency_pyproject}")
-            else:
-                updated_dependencies[dep_name] = dep_value
-
-        # Write back the updated dependencies.
-        if "tool" in data and "poetry" in data["tool"]:
-            data["tool"]["poetry"]["dependencies"] = updated_dependencies
-        else:
-            print(f"Error: Invalid pyproject.toml structure in {pyproject_file}.", file=sys.stderr)
-            return
-
-        try:
-            with open(pyproject_file, "w") as f:
-                toml.dump(data, f)
-            print(f"Dependency versions set to {version} in {pyproject_file}.")
-        except Exception as e:
-            print(f"Error writing {pyproject_file}: {e}", file=sys.stderr)
-
-    if directory:
-        for root, _, files in os.walk(directory):
-            if "pyproject.toml" in files:
-                update_file(os.path.join(root, "pyproject.toml"), version)
-    elif file:
-        update_file(file, version)
-    else:
-        print("Error: A directory or a file must be specified.", file=sys.stderr)
-        sys.exit(1)
-
-
 def publish_package(directory=None, file=None, username=None, password=None):
     """
     Build and publish packages to PyPI.
@@ -306,3 +196,23 @@ def publish_from_dependencies(directory=None, file=None, username=None, password
             )
         else:
             print(f"Skipping {full_path}: not a valid package directory")
+
+def run_pytests(test_directory=".", num_workers=1):
+    """
+    Run pytest in the specified directory.
+    
+    If num_workers is greater than 1, uses pytest‑xdist to run tests in parallel.
+    
+    :param test_directory: Directory in which to run tests (default: current directory).
+    :param num_workers: Number of workers to use (default: 1). Requires pytest-xdist when > 1.
+    """
+    command = "pytest"
+    try:
+        workers = int(num_workers)
+    except ValueError:
+        print("Error: num_workers must be an integer", file=sys.stderr)
+        sys.exit(1)
+    if workers > 1:
+        command += f" -n {workers}"
+    print(f"Running tests in '{test_directory}' with command: {command}")
+    run_command(command, cwd=test_directory)

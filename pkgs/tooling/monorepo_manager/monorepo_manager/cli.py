@@ -7,11 +7,12 @@ It provides commands to:
   - Manage Poetry-based operations (lock, install, show pip-freeze, recursive build, publish)
   - Manage version operations (bump or set versions in pyproject.toml)
   - Manage remote operations (fetch/update Git dependency versions)
+  - Run tests using pytest (with optional parallelism)
   - Analyze test results from a JSON file
   - Operate on pyproject.toml files (extract and update dependency versions)
 
 The commands are intentionally named with simple terms (e.g. "lock" instead of "poetry lock",
-"install" instead of "poetry install", and "test" instead of "test-analyze").
+"install" instead of "poetry install").
 """
 
 import argparse
@@ -76,12 +77,19 @@ def main():
     update_parser.add_argument("--output", help="Optional output file path (defaults to overwriting the input)")
     
     # ------------------------------------------------
-    # Command: test
+    # Command: test (run pytest)
     # ------------------------------------------------
-    test_parser = subparsers.add_parser("test", help="Analyze test results from a JSON file")
-    test_parser.add_argument("file", help="Path to the JSON file with test results")
-    test_parser.add_argument("--required-passed", type=str, help="Threshold for passed tests (e.g. 'gt:75')")
-    test_parser.add_argument("--required-skipped", type=str, help="Threshold for skipped tests (e.g. 'lt:20')")
+    test_parser = subparsers.add_parser("test", help="Run tests using pytest")
+    test_parser.add_argument("--directory", type=str, default=".", help="Directory to run tests in (default: current directory)")
+    test_parser.add_argument("--num-workers", type=int, default=1, help="Number of workers to use for parallel testing (requires pytest-xdist)")
+    
+    # ------------------------------------------------
+    # Command: analyze (analyze test results from JSON)
+    # ------------------------------------------------
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze test results from a JSON file")
+    analyze_parser.add_argument("file", help="Path to the JSON file with test results")
+    analyze_parser.add_argument("--required-passed", type=str, help="Threshold for passed tests (e.g. 'gt:75')")
+    analyze_parser.add_argument("--required-skipped", type=str, help="Threshold for skipped tests (e.g. 'lt:20')")
     
     # ------------------------------------------------
     # Command: pyproject
@@ -127,6 +135,10 @@ def main():
                 sys.exit(1)
     
     elif args.command == "test":
+        # Run pytest (with optional parallelism if --num-workers > 1)
+        poetry_ops.run_pytests(test_directory=args.directory, num_workers=args.num_workers)
+    
+    elif args.command == "analyze":
         test_ops.analyze_test_file(
             file_path=args.file,
             required_passed=args.required_passed,
