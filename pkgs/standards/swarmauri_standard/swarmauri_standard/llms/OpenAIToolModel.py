@@ -6,8 +6,8 @@ from pydantic import PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.schema_converters.concrete.OpenAISchemaConverter import (
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
 from swarmauri_base.messages.MessageBase import MessageBase

@@ -13,7 +13,8 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'OpenAIModel')
+
+@ComponentBase.register_type(LLMBase, "OpenAIModel")
 class OpenAIModel(LLMBase):
     """
     OpenAIModel class for interacting with the Groq language models API. This class
@@ -92,6 +93,9 @@ class OpenAIModel(LLMBase):
             formatted_message = message.model_dump(
                 include=["content", "role", "name"], exclude_none=True
             )
+
+            if message.role == "system":
+                formatted_message["role"] = "developer"
 
             if isinstance(formatted_message["content"], list):
                 formatted_message["content"] = [

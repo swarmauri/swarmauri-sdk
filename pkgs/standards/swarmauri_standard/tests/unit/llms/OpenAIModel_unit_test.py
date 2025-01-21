@@ -2,15 +2,15 @@ import logging
 import pytest
 import os
 
-from swarmauri.llms.concrete.OpenAIModel import OpenAIModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri_standard.llms.OpenAIModel import OpenAIModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
-from swarmauri.messages.concrete.AgentMessage import UsageData
+from swarmauri_standard.messages.AgentMessage import UsageData
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 from dotenv import load_dotenv
 
