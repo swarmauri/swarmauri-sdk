@@ -183,7 +183,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install monorepo_manager Tools
-        run: pip install "monorepo_manager@git+https://github.com/YourOrg/monorepo_manager.git@main"
+        run: pip install "monorepo_manager@git+https://github.com/swarmauri/monorepo_manager.git@master"
 
       - name: Lock Dependencies
         run: monorepo-manager lock --directory .
@@ -222,14 +222,6 @@ monorepo_manager/
 └── pyproject_ops.py  # pyproject.toml dependency extraction and updates
 pyproject.toml        # Package configuration file containing metadata
 README.md             # This file
-```
-
-### Running Tests
-
-For development purposes, you can run your tests using your preferred test runner (e.g., `pytest`):
-
-```bash
-pytest
 ```
 
 ## Contributing
