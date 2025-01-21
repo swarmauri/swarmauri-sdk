@@ -1,13 +1,13 @@
 import pytest
 import os
-from swarmauri.llms.concrete.DeepInfraModel import DeepInfraModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri_standard.llms.DeepInfraModel import DeepInfraModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -104,7 +104,7 @@ def test_preamble_system_context(deepinfra_model, model_name):
 
     model.predict(conversation=conversation, **{"temperature": 0})
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert isinstance(prediction, str)
     assert "Jeff" in prediction
 
 

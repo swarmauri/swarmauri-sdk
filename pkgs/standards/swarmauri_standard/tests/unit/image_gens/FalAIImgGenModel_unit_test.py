@@ -1,8 +1,8 @@
 import pytest
 import os
-from swarmauri.image_gens.concrete.FalAIImgGenModel import FalAIImgGenModel
+from swarmauri_standard.image_gens.FalAIImgGenModel import FalAIImgGenModel
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

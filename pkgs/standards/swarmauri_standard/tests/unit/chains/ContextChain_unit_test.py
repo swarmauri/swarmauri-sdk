@@ -1,7 +1,6 @@
 import pytest
-from pydantic import BaseModel
-from swarmauri.chains.concrete.ContextChain import ContextChain
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
+from swarmauri_standard.chains.ContextChain import ContextChain
+from swarmauri_standard.tools.AdditionTool import AdditionTool
 
 
 @pytest.mark.unit

@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.embeddings.concrete.MistralEmbedding import MistralEmbedding
+from swarmauri_standard.embeddings.MistralEmbedding import MistralEmbedding
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,5 +38,5 @@ def test_infer(mistral_embedder):
     documents = ["test", "cat", "banana"]
     response = mistral_embedder.infer_vector(documents)
     assert 3 == len(response)
-    assert float == type(response[0].value[0])
+    assert float is type(response[0].value[0])
     assert 1024 == len(response[0].value)

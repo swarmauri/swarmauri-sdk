@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from swarmauri.measurements.concrete.UniquenessMeasurement import (
+from swarmauri_standard.measurements.UniquenessMeasurement import (
     UniquenessMeasurement as Measurement,
 )
 

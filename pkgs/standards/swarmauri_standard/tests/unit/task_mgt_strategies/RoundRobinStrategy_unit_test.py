@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from swarmauri.task_mgt_strategies.concrete.RoundRobinStrategy import RoundRobinStrategy
+from swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy import RoundRobinStrategy
 
 
 @pytest.fixture

@@ -2,8 +2,8 @@ from typing import Any
 from pydantic import BaseModel
 import pytest
 import asyncio
-from swarmauri.swarms.base.SwarmBase import SwarmStatus
-from swarmauri.swarms.concrete.Swarm import Swarm
+from swarmauri_base.swarms.SwarmBase import SwarmStatus
+from swarmauri_standard.swarms.Swarm import Swarm
 
 
 class MockAgent(BaseModel):
@@ -12,9 +12,11 @@ class MockAgent(BaseModel):
             raise Exception("Task failed")
         return f"Processed {task}"
 
+
 @pytest.fixture
 def swarm():
     return Swarm(agent_class=MockAgent, num_agents=3, agent_timeout=0.5, max_retries=2)
+
 
 @pytest.mark.unit
 def test_ubc_resource(swarm):

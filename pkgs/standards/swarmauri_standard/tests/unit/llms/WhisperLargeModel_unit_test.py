@@ -1,8 +1,8 @@
 import logging
 import pytest
 import os
-from swarmauri.llms.concrete.WhisperLargeModel import WhisperLargeModel as LLM
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.llms.WhisperLargeModel import WhisperLargeModel as LLM
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 from dotenv import load_dotenv
 

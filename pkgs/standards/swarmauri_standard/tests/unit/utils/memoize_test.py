@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.utils.memoize import memoize, MemoizingMeta
+from swarmauri_standard.utils.memoize import memoize, MemoizingMeta
 
 
 # Test class using MemoizingMeta

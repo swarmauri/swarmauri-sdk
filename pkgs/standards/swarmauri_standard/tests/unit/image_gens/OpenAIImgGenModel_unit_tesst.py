@@ -1,8 +1,8 @@
 import pytest
 import os
 from dotenv import load_dotenv
-from swarmauri.image_gens.concrete.OpenAIImgGenModel import OpenAIImgGenModel
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.image_gens.OpenAIImgGenModel import OpenAIImgGenModel
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

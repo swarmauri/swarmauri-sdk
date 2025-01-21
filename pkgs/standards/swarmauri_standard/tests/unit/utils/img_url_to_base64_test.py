@@ -1,10 +1,9 @@
-import pytest
 import base64
 import requests
 from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
-from swarmauri.utils.img_url_to_base64 import img_url_to_base64
+from swarmauri_standard.utils.img_url_to_base64 import img_url_to_base64
 
 
 def test_img_url_to_base64():
@@ -22,7 +21,7 @@ def test_img_url_to_base64():
     mock_response.status_code = 200
     mock_response._content = img_data
 
-    with patch("swarmauri.utils.img_url_to_base64.requests.get") as mock_get:
+    with patch("swarmauri_standard.utils.img_url_to_base64.requests.get") as mock_get:
         mock_get.return_value = mock_response
 
         # Call the function with a dummy URL

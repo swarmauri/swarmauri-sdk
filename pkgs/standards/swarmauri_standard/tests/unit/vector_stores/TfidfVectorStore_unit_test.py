@@ -1,6 +1,6 @@
 import pytest
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
 
 
 @pytest.mark.unit

@@ -1,10 +1,10 @@
 import pytest
 import os
-from swarmauri.llms.concrete.GroqToolModel import GroqToolModel
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete import ToolAgent
+from swarmauri_standard.llms.GroqToolModel import GroqToolModel
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.tools.AdditionTool import AdditionTool
+from swarmauri_standard.toolkits.Toolkit import Toolkit
+from swarmauri_standard.agents.ToolAgent import ToolAgent
 from dotenv import load_dotenv
 
 load_dotenv()

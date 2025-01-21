@@ -2,15 +2,15 @@ import logging
 
 import pytest
 import os
-from swarmauri.llms.concrete.PerplexityModel import PerplexityModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri_standard.llms.PerplexityModel import PerplexityModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
-from swarmauri.messages.concrete.AgentMessage import UsageData
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.messages.AgentMessage import UsageData
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -73,8 +73,7 @@ def test_no_system_context(perplexity_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    logging.info(prediction)
-    assert type(prediction) == str
+    assert type(prediction) is str
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
@@ -95,7 +94,7 @@ def test_preamble_system_context(perplexity_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert isinstance(prediction, str)
     assert "Jeff" in prediction
     assert isinstance(conversation.get_last().usage, UsageData)
 

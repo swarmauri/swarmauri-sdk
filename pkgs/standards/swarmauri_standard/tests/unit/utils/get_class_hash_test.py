@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.utils.get_class_hash import get_class_hash
+from swarmauri_standard.utils.get_class_hash import get_class_hash
 
 
 @pytest.mark.unit

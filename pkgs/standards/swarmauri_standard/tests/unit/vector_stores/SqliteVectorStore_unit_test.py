@@ -1,8 +1,8 @@
 import pytest
 import tempfile
 import os
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.vector_stores.concrete.SqliteVectorStore import (
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.vector_stores.SqliteVectorStore import (
     SqliteVectorStore,
 )
 

@@ -1,6 +1,7 @@
 import pytest
-from swarmauri.messages.concrete import HumanMessage, AgentMessage
-from swarmauri.conversations.concrete.MaxSizeConversation import (
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.conversations.MaxSizeConversation import (
     MaxSizeConversation,
 )
 

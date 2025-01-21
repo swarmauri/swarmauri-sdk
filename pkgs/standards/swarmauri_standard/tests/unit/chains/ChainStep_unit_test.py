@@ -1,6 +1,6 @@
 import pytest
-from swarmauri.chains.concrete.ChainStep import ChainStep
-from swarmauri.tools.concrete import AdditionTool
+from swarmauri_standard.chains.ChainStep import ChainStep
+from swarmauri_standard.tools.AdditionTool import AdditionTool
 
 
 @pytest.mark.unit

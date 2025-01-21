@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.utils.apply_metaclass import apply_metaclass_to_cls
+from swarmauri_standard.utils.apply_metaclass import apply_metaclass_to_cls
 
 
 @pytest.mark.unit

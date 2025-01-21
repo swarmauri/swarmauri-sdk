@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete import FleschReadingEaseTool as Tool
+from swarmauri_standard.tools.FleschReadingEaseTool import FleschReadingEaseTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -13,7 +13,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_initialization():
     tool = Tool()
-    assert type(tool.id) == str
+    assert type(tool.id) is str
 
 @pytest.mark.unit
 def test_serialization():

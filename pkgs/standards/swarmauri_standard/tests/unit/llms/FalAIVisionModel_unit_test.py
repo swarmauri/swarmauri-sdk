@@ -1,8 +1,8 @@
 import pytest
 import os
-from swarmauri.llms.concrete.FalAIVisionModel import FalAIVisionModel
+from swarmauri_standard.llms.FalAIVisionModel import FalAIVisionModel
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

@@ -2,10 +2,9 @@ import pytest
 import base64
 from PIL import Image
 from io import BytesIO
-import os
 
 # Import the function to be tested
-from swarmauri.utils.base64_to_file_path import base64_to_file_path
+from swarmauri_standard.utils.base64_to_file_path import base64_to_file_path
 
 
 @pytest.fixture

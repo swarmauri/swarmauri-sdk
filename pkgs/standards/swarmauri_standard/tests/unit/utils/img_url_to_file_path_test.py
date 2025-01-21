@@ -1,10 +1,9 @@
-import pytest
 import os
 import requests
 from PIL import Image
 from io import BytesIO
 from unittest.mock import patch
-from swarmauri.utils.img_url_to_file_path import img_url_to_file_path
+from swarmauri_standard.utils.img_url_to_file_path import img_url_to_file_path
 
 
 def test_img_url_to_file_path(tmp_path):
@@ -19,7 +18,7 @@ def test_img_url_to_file_path(tmp_path):
     mock_response.status_code = 200
     mock_response._content = img_data
 
-    with patch("swarmauri.utils.img_url_to_file_path.requests.get") as mock_get:
+    with patch("swarmauri_standard.utils.img_url_to_file_path.requests.get") as mock_get:
         mock_get.return_value = mock_response
 
         # Define the file path where the image will be saved

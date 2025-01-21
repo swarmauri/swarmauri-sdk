@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.measurements.concrete.MiscMeasurement import MiscMeasurement
+from swarmauri_standard.measurements.MiscMeasurement import MiscMeasurement
 
 
 @pytest.mark.unit

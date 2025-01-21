@@ -1,10 +1,9 @@
 import pytest
 import os
 import base64
-import requests
-from PIL import Image
+import httpx
 from dotenv import load_dotenv
-from swarmauri.utils.base64_to_img_url import base64_to_img_url
+from swarmauri_standard.utils.base64_to_img_url import base64_to_img_url
 
 # Load environment variables
 load_dotenv()
@@ -13,7 +12,7 @@ load_dotenv()
 API_KEY = os.getenv("IMGBB_API_KEY")
 
 # Path to the test image
-TEST_IMAGE_PATH = "pkgs/swarmauri/tests/static/cityscape.png"
+TEST_IMAGE_PATH = "pkgs/swarmauri_standard/tests/static/cityscape.png"
 
 
 @pytest.mark.skipif(
@@ -39,7 +38,8 @@ def test_base64_to_img_url():
     assert image_url.startswith("http"), "Expected URL to start with 'http'"
 
     # Optionally, check if the URL is accessible
-    response = requests.get(image_url)
+    with httpx.Client() as client:
+        response = client.get(image_url)
     assert (
         response.status_code == 200
     ), f"Failed to access the uploaded image at {image_url}"

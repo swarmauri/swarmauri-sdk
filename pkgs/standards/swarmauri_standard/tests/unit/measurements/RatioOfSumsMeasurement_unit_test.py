@@ -1,5 +1,7 @@
 import pytest
-from swarmauri.measurements.concrete.RatioOfSumsMeasurement import RatioOfSumsMeasurement as Measurement
+from swarmauri_standard.measurements.RatioOfSumsMeasurement import (
+    RatioOfSumsMeasurement as Measurement,
+)
 
 
 @pytest.mark.unit
@@ -12,10 +14,14 @@ def test_ubc_type():
     measurement = Measurement(value=10)
     assert measurement.type == "RatioOfSumsMeasurement"
 
+
 @pytest.mark.unit
 def test_serialization():
     measurement = Measurement(value=10)
-    assert measurement.id == Measurement.model_validate_json(measurement.model_dump_json()).id
+    assert (
+        measurement.id
+        == Measurement.model_validate_json(measurement.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

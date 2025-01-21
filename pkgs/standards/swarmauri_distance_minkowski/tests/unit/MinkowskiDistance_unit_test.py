@@ -1,6 +1,6 @@
 import pytest
 from swarmauri_distance_minkowski.MinkowskiDistance import MinkowskiDistance
-from swarmauri.vectors.Vector import Vector
+from swarmauri_standard.vectors.Vector import Vector
 
 
 @pytest.mark.unit

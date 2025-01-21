@@ -2,9 +2,9 @@ import logging
 import pytest
 import os
 
-from swarmauri.llms.concrete.HyperbolicAudioTTS import HyperbolicAudioTTS as LLM
+from swarmauri_standard.llms.HyperbolicAudioTTS import HyperbolicAudioTTS as LLM
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 
 load_dotenv()

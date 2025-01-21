@@ -1,24 +1,28 @@
 import pytest
-from swarmauri.tools.concrete import TemperatureConverterTool as Tool
+from swarmauri_standard.tools.TemperatureConverterTool import TemperatureConverterTool as Tool
+
 
 @pytest.mark.unit
 def test_initialization():
     tool = Tool()
-    assert type(tool.id) == str
+    assert type(tool.id) is str
+
 
 @pytest.mark.unit
 def test_serialization():
     tool = Tool()
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
+
 @pytest.mark.unit
 def test_ubc_resource():
     tool = Tool()
-    assert tool.resource == 'Tool'
+    assert tool.resource == "Tool"
+
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Tool().type == 'TemperatureConverterTool'
+    assert Tool().type == "TemperatureConverterTool"
 
 
 @pytest.mark.unit
@@ -31,7 +35,7 @@ def test_ubc_type():
         ("celsius", "celsius", 25, "25"),  # Same unit conversion
         ("invalid_unit", "fahrenheit", 25, "Error: Unknown temperature unit."),
         ("celsius", "invalid_unit", 25, "Error: Unknown temperature unit."),
-    ]
+    ],
 )
 def test_call(from_unit, to_unit, value, expected_result):
     tool = Tool()
@@ -42,8 +46,16 @@ def test_call(from_unit, to_unit, value, expected_result):
     if isinstance(result, str):
         assert result == expected_result
     else:
-        assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-        assert expected_keys.issubset(result.keys()), f"Expected keys {expected_keys} but got {result.keys()}"
-        assert isinstance(result.get(f"temperature_in_{to_unit}"), str), f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+        assert isinstance(
+            result, dict
+        ), f"Expected dict, but got {type(result).__name__}"
+        assert expected_keys.issubset(
+            result.keys()
+        ), f"Expected keys {expected_keys} but got {result.keys()}"
+        assert isinstance(
+            result.get(f"temperature_in_{to_unit}"), str
+        ), f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
 
-        assert result.get(f"temperature_in_{to_unit}") == expected_result, f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"
+        assert (
+            result.get(f"temperature_in_{to_unit}") == expected_result
+        ), f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"

@@ -2,9 +2,9 @@ import logging
 import pytest
 import os
 
-from swarmauri.llms.concrete.PlayHTModel import PlayHTModel as LLM
+from swarmauri_standard.llms.PlayHTModel import PlayHTModel as LLM
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 
 
@@ -67,7 +67,7 @@ def test_default_name(playht_model):
 def test_predict(playht_model, model_name):
     playht_model.name = model_name
 
-    text = "Hello, My name is Michael, Am a Swarmauri Engineer"
+    text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
     audio_path = playht_model.predict(text=text, audio_path=file_path)
 
@@ -84,7 +84,7 @@ def test_predict(playht_model, model_name):
 async def test_apredict(playht_model, model_name):
     playht_model.name = model_name
 
-    text = "Hello, My name is Michael, Am a Swarmauri Engineer"
+    text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
     audio_file_path = await playht_model.apredict(text=text, audio_path=file_path)
 

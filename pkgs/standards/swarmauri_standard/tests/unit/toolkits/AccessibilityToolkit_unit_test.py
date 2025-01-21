@@ -2,8 +2,8 @@ import logging
 import pytest
 import warnings
 
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete import (
+from swarmauri_standard.tools.AdditionTool import AdditionTool
+from swarmauri_standard.toolkits import (
     AccessibilityToolkit as Toolkit,
 )
 

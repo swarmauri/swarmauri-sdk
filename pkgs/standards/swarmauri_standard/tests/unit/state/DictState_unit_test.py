@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.state.concrete.DictState import DictState
+from swarmauri_standard.state.DictState import DictState
 
 
 @pytest.fixture

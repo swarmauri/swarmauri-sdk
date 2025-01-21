@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.pipelines.concrete.Pipeline import Pipeline
+from swarmauri_standard.pipelines.Pipeline import Pipeline
 from swarmauri_core.pipelines.IPipeline import PipelineStatus
 
 

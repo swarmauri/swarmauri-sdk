@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_standard.documents.Document import Document
 
 
 @pytest.mark.unit

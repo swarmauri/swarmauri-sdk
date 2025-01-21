@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_standard.embeddings.NmfEmbedding import NmfEmbedding
+from swarmauri_embedding_nmf.NmfEmbedding import NmfEmbedding
 
 
 @pytest.mark.unit
