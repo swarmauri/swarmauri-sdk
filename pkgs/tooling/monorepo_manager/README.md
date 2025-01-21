@@ -1,21 +1,13 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
-
-<div style="text-align: center;">
-
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri)
-![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false) 
-![GitHub repo size](https://img.shields.io/github/repo-size/swarmauri/swarmauri-sdk)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri) ![PyPI - License](https://img.shields.io/pypi/l/swarmauri)
-
-
-
-
-
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_core&color=green)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_community&color=yellow)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_experimental&color=yellow)
-
+<p align="center">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/"><img src="https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png" alt="Swamauri Logo"/></a>
+    <br />
+    <a href="https://hits.sh/github.com/swarmauri/monorepo_manager/"><img src="https://hits.sh/github.com/swarmauri/swarmakit.svg" alt="Hits"/></a>
+    <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"/></a>
+    <a href="https://pypi.org/project/monorepo_manager/"><img src="https://img.shields.io/pypi/v/monorepo_manager?label=monorepo_manager" alt="PyPI - monorepo_manager Version"/></a>
+    <a href="https://pypi.org/project/monorepo_manager/"><img src="https://img.shields.io/pypi/dm/monorepo_manager?label=monorepo_manager%20Downloads" alt="PyPI - monorepo_manager Downloads"/></a>
+    <br />
+    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&labelColor=black" alt="Python"/>
+</p>
 
 
 # Monorepo Manager
