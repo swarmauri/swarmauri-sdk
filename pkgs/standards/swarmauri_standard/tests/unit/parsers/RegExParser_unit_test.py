@@ -1,5 +1,6 @@
 import pytest
-from swarmauri.parsers.concrete.RegExParser import RegExParser as Parser
+from swarmauri_standard.parsers.RegExParser import RegExParser as Parser
+
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,7 +9,8 @@ def test_ubc_resource():
 
     # Create an instance of RegExParser with the email pattern
     parser = Parser(pattern=email_pattern)
-    assert parser.resource == 'Parser'
+    assert parser.resource == "Parser"
+
 
 @pytest.mark.unit
 def test_ubc_type():
@@ -16,7 +18,8 @@ def test_ubc_type():
 
     # Create an instance of RegExParser with the email pattern
     parser = Parser(pattern=email_pattern)
-    assert parser.type == 'RegExParser'
+    assert parser.type == "RegExParser"
+
 
 @pytest.mark.unit
 def test_serialization():
@@ -25,6 +28,7 @@ def test_serialization():
     # Create an instance of RegExParser with the email pattern
     parser = Parser(pattern=email_pattern)
     assert parser.id == Parser.model_validate_json(parser.model_dump_json()).id
+
 
 @pytest.mark.unit
 def test_parse():
@@ -44,7 +48,7 @@ def test_parse():
     # Parse the text
     documents = parser.parse(text)
 
-    assert documents[0].content == 'alice@example.com'
-    assert documents[1].content == 'bob.smith@work-email.org'
-    assert documents[2].content == 'contact@company.co.uk'
-    assert documents[0].resource == 'Document'
+    assert documents[0].content == "alice@example.com"
+    assert documents[1].content == "bob.smith@work-email.org"
+    assert documents[2].content == "contact@company.co.uk"
+    assert documents[0].resource == "Document"

@@ -86,7 +86,7 @@ def test_agent_exec(openai_tool_model, toolkit, conversation, model_name):
 
     agent = ToolAgent(llm=openai_tool_model, conversation=conversation, toolkit=toolkit)
     result = agent.exec("Add 512+671")
-    assert type(result) == str
+    assert isinstance(result, str)
 
 
 @timeout(5)

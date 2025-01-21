@@ -1,8 +1,8 @@
 import pytest
-from swarmauri.factories.concrete.AgentFactory import AgentFactory
+from swarmauri_standard.factories.AgentFactory import AgentFactory
 import os
-from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.agents.concrete import QAAgent
+from swarmauri_standard.llms.GroqModel import GroqModel
+from swarmauri_standard.agents.QAAgent import QAAgent
 from dotenv import load_dotenv
 
 load_dotenv()

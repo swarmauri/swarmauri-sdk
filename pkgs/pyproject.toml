@@ -18,7 +18,15 @@ swarmauri = { path = "./swarmauri" }
 swarmauri_standard = { path = "./standards/swarmauri_standard", extras=["full"] }
 
 # Extra First Class Citizens
-#swarmauri_vectorstore_doc2vec = { path = "./standards/swarmauri_doc2vec_vectorstore", optional = true }
+swarmauri_vectorstore_doc2vec = { path = "./standards/swarmauri_doc2vec_vectorstore", optional = true }
+swarmauri_embedding_doc2vec = { path = "./standards/swarmauri_doc2vec_embedding", optional = true }
+swarmauri_tool_matplotlib = { path = "./standards/swarmauri_matplotlib_tool", optional = true }
+swarmauri_parser_keywordextractor = { path = "./standards/swarmauri_keywordextractor_parser", optional = true }
+swarmauri_vectorstore_tfidf = { path = "./standards/swarmauri_tfidf_vectorstore", optional = true }
+swarmauri_embedding_tfidf = { path = "./standards/swarmauri_tfidf_embedding", optional = true }
+swarmauri_embedding_nmf = { path = "./standards/swarmauri_nmf_embedding", optional = true }
+swarmauri_parser_beautifulsoupelement = { path = "./standards/swarmauri_beautifulsoupelement_parser", optional = true }
+swarmauri_distance_minkowski = { path = "./standards/swarmauri_minkowski_distance", optional = true }
 
 # Standard Plugin Example
 swm_example_package = { path = "./standards/swm_example_package" }

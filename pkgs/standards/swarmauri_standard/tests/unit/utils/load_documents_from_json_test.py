@@ -2,10 +2,9 @@ import pytest
 import json
 import tempfile
 import os
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.utils.load_documents_from_json import (
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.utils.load_documents_from_json import (
     load_documents_from_json_file,
-    load_documents_from_json,
 )
 
 

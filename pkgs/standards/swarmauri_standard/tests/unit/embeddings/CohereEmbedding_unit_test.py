@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.embeddings.concrete.CohereEmbedding import CohereEmbedding
+from swarmauri_standard.embeddings.CohereEmbedding import CohereEmbedding
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,11 +26,14 @@ def test_serialization():
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(not os.getenv('COHERE_API_KEY'), reason="Skipping due to environment variable not set")
+@pytest.mark.skipif(
+    not os.getenv("COHERE_API_KEY"),
+    reason="Skipping due to environment variable not set",
+)
 def test_infer():
     embedder = CohereEmbedding(api_key=os.getenv("COHERE_API_KEY"))
     documents = ["test", "cat", "banana"]
     response = embedder.infer_vector(documents)
     assert 3 == len(response)
-    assert float == type(response[0].value[0])
+    assert float is type(response[0].value[0])
     assert 1024 == len(response[0].value)

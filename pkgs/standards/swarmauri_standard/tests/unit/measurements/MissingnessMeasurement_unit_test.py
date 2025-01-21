@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from swarmauri.measurements.concrete.MissingnessMeasurement import (
+from swarmauri_standard.measurements.MissingnessMeasurement import (
     MissingnessMeasurement as Measurement,
 )
 

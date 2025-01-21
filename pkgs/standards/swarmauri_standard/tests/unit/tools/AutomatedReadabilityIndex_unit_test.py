@@ -1,5 +1,7 @@
 import pytest
-from swarmauri.tools.concrete import AutomatedReadabilityIndexTool as Tool
+from swarmauri_standard.tools.AutomatedReadabilityIndexTool import (
+    AutomatedReadabilityIndexTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -16,7 +18,7 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_initialization():
     tool = Tool()
-    assert type(tool.id) == str
+    assert isinstance(tool.id, str)
 
 
 @pytest.mark.unit
@@ -63,6 +65,6 @@ def test_call(input_text, expected_score):
         result.get("ari_score"), float
     ), f"Expected float, but got {type(result.get('ari_score')).__name__}"
 
-    assert (
-        result.get("ari_score") == pytest.approx(expected_score, rel=1e-2)
+    assert result.get("ari_score") == pytest.approx(
+        expected_score, rel=1e-2
     ), f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"

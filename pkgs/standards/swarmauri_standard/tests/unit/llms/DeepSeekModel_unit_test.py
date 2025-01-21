@@ -1,13 +1,13 @@
 import pytest
 import os
-from swarmauri.llms.concrete.DeepSeekModel import DeepSeekModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri_standard.llms.DeepSeekModel import DeepSeekModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -68,7 +68,7 @@ def test_no_system_context(deepseek_model):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert isinstance(prediction, str)
 
 
 @timeout(5)
@@ -87,7 +87,7 @@ def test_preamble_system_context(deepseek_model):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert isinstance(prediction, str)
     assert "martin" in prediction.lower()
 
 

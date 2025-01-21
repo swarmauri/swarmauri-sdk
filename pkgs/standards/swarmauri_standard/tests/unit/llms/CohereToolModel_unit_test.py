@@ -2,15 +2,15 @@ import logging
 
 import pytest
 import os
-from swarmauri.llms.concrete.CohereToolModel import CohereToolModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete import HumanMessage
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri_standard.llms.CohereToolModel import CohereToolModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.tools.AdditionTool import AdditionTool
+from swarmauri_standard.toolkits.Toolkit import Toolkit
+from swarmauri_standard.agents.ToolAgent import ToolAgent
 from dotenv import load_dotenv
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -90,7 +90,7 @@ def test_agent_exec(cohere_tool_model, toolkit, conversation, model_name):
 
     agent = ToolAgent(llm=cohere_tool_model, conversation=conversation, toolkit=toolkit)
     result = agent.exec("Add 512+671")
-    assert type(result) == str
+    assert isinstance(result, str)
 
 
 @timeout(5)

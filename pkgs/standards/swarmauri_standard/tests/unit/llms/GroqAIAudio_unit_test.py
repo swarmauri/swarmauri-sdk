@@ -1,8 +1,8 @@
 import logging
 import pytest
 import os
-from swarmauri.llms.concrete.GroqAIAudio import GroqAIAudio as LLM
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.llms.GroqAIAudio import GroqAIAudio as LLM
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 
 # Retrieve API key from environment variable

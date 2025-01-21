@@ -1,5 +1,5 @@
 from typing import List, Optional, Union, Dict, Any
-from swarmauri.utils.method_signature_extractor_decorator import (
+from swarmauri_standard.utils.method_signature_extractor_decorator import (
     MethodSignatureExtractor,
     extract_method_signature,
 )

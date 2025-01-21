@@ -1,10 +1,10 @@
 import pytest
 import os
-from swarmauri.llms.concrete.HyperbolicVisionModel import HyperbolicVisionModel
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
+from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

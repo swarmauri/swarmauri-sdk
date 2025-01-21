@@ -1,9 +1,8 @@
-import pytest
-import requests
+import httpx
 from PIL import Image
 from io import BytesIO
 from unittest.mock import patch
-from swarmauri.utils.img_url_to_in_memory_img import img_url_to_in_memory_img
+from swarmauri_standard.utils.img_url_to_in_memory_img import img_url_to_in_memory_img
 
 
 def test_img_url_to_in_memory_img():
@@ -14,11 +13,13 @@ def test_img_url_to_in_memory_img():
     img_data = buffered.getvalue()
 
     # Mock the response from requests.get to return our image data
-    mock_response = requests.models.Response()
+    mock_response = httpx.Response()
     mock_response.status_code = 200
     mock_response._content = img_data
 
-    with patch("swarmauri.utils.img_url_to_in_memory_img.requests.get") as mock_get:
+    with patch(
+        "swarmauri_standard.utils.img_url_to_in_memory_img.requests.get"
+    ) as mock_get:
         mock_get.return_value = mock_response
 
         # Call the function with a dummy URL

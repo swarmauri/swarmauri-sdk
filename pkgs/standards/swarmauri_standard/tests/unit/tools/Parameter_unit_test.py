@@ -1,5 +1,6 @@
 import pytest
-from swarmauri.tools.concrete import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
+
 
 @pytest.mark.unit
 def test_ubc_resource():
@@ -8,6 +9,6 @@ def test_ubc_resource():
         type="string",
         description="The program that the user wants to open ('notepad' or 'calc' or 'mspaint')",
         required=True,
-        enum=["notepad", "calc", "mspaint"]
+        enum=["notepad", "calc", "mspaint"],
     )
-    assert parameter.resource == 'Parameter'
+    assert parameter.resource == "Parameter"

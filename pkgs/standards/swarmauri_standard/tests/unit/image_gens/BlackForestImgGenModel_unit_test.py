@@ -1,11 +1,11 @@
 import pytest
 import os
 from dotenv import load_dotenv
-from swarmauri.image_gens.concrete.BlackForestImgGenModel import (
+from swarmauri_standard.image_gens.BlackForestImgGenModel import (
     BlackForestImgGenModel,
 )
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

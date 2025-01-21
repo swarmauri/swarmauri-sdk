@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.service_registries.concrete.ServiceRegistry import ServiceRegistry
+from swarmauri_standard.service_registries.ServiceRegistry import ServiceRegistry
 
 
 @pytest.fixture

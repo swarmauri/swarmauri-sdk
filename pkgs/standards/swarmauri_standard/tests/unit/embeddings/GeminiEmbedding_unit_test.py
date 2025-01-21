@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.embeddings.concrete.GeminiEmbedding import GeminiEmbedding
+from swarmauri_standard.embeddings.GeminiEmbedding import GeminiEmbedding
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -35,5 +35,5 @@ def test_infer():
     documents = ["test", "cat", "banana"]
     response = embedder.infer_vector(documents)
     assert 3 == len(response)
-    assert float == type(response[0].value[0])
+    assert float is type(response[0].value[0])
     assert 768 == len(response[0].value)

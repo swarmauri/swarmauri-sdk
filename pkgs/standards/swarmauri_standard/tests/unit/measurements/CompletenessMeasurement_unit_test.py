@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from swarmauri.measurements.concrete.CompletenessMeasurement import (
+from swarmauri_standard.measurements.CompletenessMeasurement import (
     CompletenessMeasurement as Measurement,
 )
 

@@ -1,24 +1,26 @@
 import pytest
 from unittest.mock import MagicMock
-from swarmauri.control_panels.concrete.ControlPanel import ControlPanel
-from swarmauri.factories.base.FactoryBase import FactoryBase
-from swarmauri.service_registries.base.ServiceRegistryBase import ServiceRegistryBase
-from swarmauri.task_mgt_strategies.base.TaskMgtStrategyBase import TaskMgtStrategyBase
-from swarmauri.transports.base.TransportBase import TransportBase
+from swarmauri_standard.control_panels.ControlPanel import ControlPanel
+from swarmauri_base.factories.base.FactoryBase import FactoryBase
+from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
+from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.transports.TransportBase import TransportBase
 
 from unittest.mock import MagicMock
 from pydantic import BaseModel
 
+
 class SerializableMagicMock(MagicMock, BaseModel):
     """A MagicMock class that can be serialized using Pydantic."""
-    
+
     def dict(self, *args, **kwargs):
         """Serialize the mock object to a dictionary."""
         return {"mock_name": self._mock_name, "calls": self.mock_calls}
-    
+
     def json(self, *args, **kwargs):
         """Serialize the mock object to a JSON string."""
         return super().json(*args, **kwargs)
+
 
 @pytest.fixture
 def control_panel():
@@ -29,12 +31,16 @@ def control_panel():
     agent_factory.create_agent = SerializableMagicMock(return_value="MockAgent")
     agent_factory.get_agent_by_name = SerializableMagicMock(return_value="MockAgent")
     agent_factory.delete_agent = SerializableMagicMock()
-    agent_factory.get_agents = SerializableMagicMock(return_value=["MockAgent1", "MockAgent2"])
+    agent_factory.get_agents = SerializableMagicMock(
+        return_value=["MockAgent1", "MockAgent2"]
+    )
 
     service_registry = SerializableMagicMock(spec=ServiceRegistryBase)
     service_registry.register_service = SerializableMagicMock()
     service_registry.unregister_service = SerializableMagicMock()
-    service_registry.get_services = SerializableMagicMock(return_value=["service1", "service2"])
+    service_registry.get_services = SerializableMagicMock(
+        return_value=["service1", "service2"]
+    )
 
     task_mgt_strategy = SerializableMagicMock(spec=TaskMgtStrategyBase)
     task_mgt_strategy.add_task = SerializableMagicMock()
@@ -50,6 +56,7 @@ def control_panel():
         task_mgt_strategy=task_mgt_strategy,
         transport=transport,
     )
+
 
 def test_create_agent(control_panel):
     """Test the create_agent method."""

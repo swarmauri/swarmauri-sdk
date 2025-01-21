@@ -1,11 +1,10 @@
 import pytest
 import logging
 import json
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri_standard.tools.AdditionTool import AdditionTool
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 
-from swarmauri.schema_converters.concrete.OpenAISchemaConverter import (
+from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter as Schema,
 )
 

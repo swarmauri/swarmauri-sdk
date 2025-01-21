@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.prompts.concrete.PromptMatrix import PromptMatrix
+from swarmauri_standard.prompts.PromptMatrix import PromptMatrix
 
 
 @pytest.mark.unit

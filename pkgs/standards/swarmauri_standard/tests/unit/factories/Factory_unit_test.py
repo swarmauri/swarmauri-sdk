@@ -1,6 +1,6 @@
 import pytest
-from swarmauri.factories.concrete.Factory import Factory
-from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
+from swarmauri_standard.factories.Factory import Factory
+from swarmauri_standard.parsers.BeautifulSoupElementParser import (
     BeautifulSoupElementParser,
 )
 

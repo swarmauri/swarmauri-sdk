@@ -4,7 +4,7 @@ import os
 
 from swarmauri_standard.llms.OpenAIAudioTTS import OpenAIAudioTTS as LLM
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 
 load_dotenv()

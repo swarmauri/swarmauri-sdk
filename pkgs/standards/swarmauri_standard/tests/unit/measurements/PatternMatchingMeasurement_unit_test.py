@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.measurements.concrete.PatternMatchingMeasurement import (
+from swarmauri_standard.measurements.PatternMatchingMeasurement import (
     PatternMatchingMeasurement as Measurement,
 )
 

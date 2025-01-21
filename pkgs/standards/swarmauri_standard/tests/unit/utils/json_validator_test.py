@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.utils.json_validator import load_json_file, validate_json
+from swarmauri_standard.utils.json_validator import load_json_file, validate_json
 import json
 import tempfile
 import os
@@ -44,7 +44,7 @@ def test_validate_json_valid():
         schema_file_path = temp_file.name
 
     try:
-        assert validate_json(valid_data, schema_file_path) == True
+        assert validate_json(valid_data, schema_file_path) is True
     finally:
         os.unlink(schema_file_path)
 
@@ -67,7 +67,7 @@ def test_validate_json_invalid():
         schema_file_path = temp_file.name
 
     try:
-        assert validate_json(invalid_data, schema_file_path) == False
+        assert validate_json(invalid_data, schema_file_path) is False
     finally:
         os.unlink(schema_file_path)
 

@@ -1,10 +1,8 @@
 import pytest
-from swarmauri.messages.concrete import (
-    SystemMessage,
-    AgentMessage,
-    HumanMessage,
-)
-from swarmauri.conversations.concrete.MaxSystemContextConversation import (
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
 

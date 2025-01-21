@@ -1,9 +1,9 @@
 import logging
 import pytest
 import os
-from swarmauri.llms.concrete.OpenAIAudio import OpenAIAudio as LLM
+from swarmauri_standard.llms.OpenAIAudio import OpenAIAudio as LLM
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 
 # Load environment variables

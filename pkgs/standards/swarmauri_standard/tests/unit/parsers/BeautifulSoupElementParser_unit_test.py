@@ -1,6 +1,6 @@
 import pytest
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.parsers.concrete.BeautifulSoupElementParser import (
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.parsers.BeautifulSoupElementParser import (
     BeautifulSoupElementParser as Parser,
 )
 
@@ -22,7 +22,7 @@ def test_ubc_type():
 def test_initialization():
     html_content = "<div><p>Sample HTML content</p></div>"
     parser = Parser(element=html_content)
-    assert type(parser.id) == str
+    assert isinstance(parser.id, str)
 
 
 @pytest.mark.unit

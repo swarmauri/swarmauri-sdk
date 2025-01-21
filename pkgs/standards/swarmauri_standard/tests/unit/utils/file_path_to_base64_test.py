@@ -1,6 +1,5 @@
-import pytest
 import base64
-from swarmauri.utils.file_path_to_base64 import file_path_to_base64
+from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 import os
 from pathlib import Path
 

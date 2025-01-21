@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.embeddings.concrete.VoyageEmbedding import VoyageEmbedding
+from swarmauri_standard.embeddings.VoyageEmbedding import VoyageEmbedding
 from dotenv import load_dotenv
 import json
 

@@ -1,6 +1,6 @@
 import os
 import pytest
-from swarmauri.embeddings.concrete.OpenAIEmbedding import OpenAIEmbedding
+from swarmauri_standard.embeddings.OpenAIEmbedding import OpenAIEmbedding
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -41,7 +41,7 @@ def test_infer_vector(openai_embedder):
     documents = ["test", "cat", "banana"]
     response = openai_embedder.infer_vector(documents)
     assert 3 == len(response)
-    assert float == type(response[0].value[0])
+    assert float is type(response[0].value[0])
     assert 1536 == len(
         response[0].value
     )  # 1536 is the embedding size for text-embedding-3-small model

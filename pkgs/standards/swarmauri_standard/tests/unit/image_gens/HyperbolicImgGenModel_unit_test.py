@@ -1,9 +1,9 @@
 import pytest
 import os
-from swarmauri.image_gens.concrete.HyperbolicImgGenModel import HyperbolicImgGenModel
+from swarmauri_standard.image_gens.HyperbolicImgGenModel import HyperbolicImgGenModel
 from dotenv import load_dotenv
 
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 

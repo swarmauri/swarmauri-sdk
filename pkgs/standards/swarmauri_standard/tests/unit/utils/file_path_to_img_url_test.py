@@ -1,7 +1,7 @@
 import pytest
 import os
 import requests
-from swarmauri.utils.file_path_to_img_url import file_path_to_img_url
+from swarmauri_standard.utils.file_path_to_img_url import file_path_to_img_url
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -11,7 +11,7 @@ load_dotenv()
 API_KEY = os.getenv("IMGBB_API_KEY")
 
 # Path to the test image
-TEST_IMAGE_PATH = "pkgs/swarmauri/tests/static/cityscape.png"
+TEST_IMAGE_PATH = "pkgs/swarmauri_standard/tests/static/cityscape.png"
 
 
 @pytest.mark.skipif(

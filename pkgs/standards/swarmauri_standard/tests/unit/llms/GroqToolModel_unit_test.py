@@ -2,14 +2,14 @@ import logging
 
 import pytest
 import os
-from swarmauri.llms.concrete.GroqToolModel import GroqToolModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete import HumanMessage
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri_standard.llms.GroqToolModel import GroqToolModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.tools.AdditionTool import AdditionTool
+from swarmauri_standard.toolkits.Toolkit import Toolkit
+from swarmauri_standard.agents.ToolAgent import ToolAgent
 from dotenv import load_dotenv
-from swarmauri.utils.timeout_wrapper import timeout
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
 
@@ -153,6 +153,7 @@ async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     prediction = result.get_last().content
     assert isinstance(prediction, str)
 
+
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
@@ -170,6 +171,7 @@ async def test_astream(groq_tool_model, toolkit, conversation, model_name):
     full_response = "".join(collected_tokens)
     # assert len(full_response) > 0
     assert conversation.get_last().content == full_response
+
 
 @timeout(5)
 @pytest.mark.unit
