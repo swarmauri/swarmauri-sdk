@@ -1,13 +1,13 @@
 import pytest
 import os
-from swarmauri.llms.concrete.GroqModel import GroqModel
-from swarmauri.conversations.concrete.MaxSystemContextConversation import (
+from swarmauri_standard.llms.GroqModel import GroqModel
+from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.agents.concrete import RagAgent
+from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.agents.RagAgent import RagAgent
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -56,3 +56,16 @@ def test_ubc_type(rag_agent):
 @pytest.mark.unit
 def test_serialization(rag_agent):
     assert rag_agent.id == RagAgent.model_validate_json(rag_agent.model_dump_json()).id
+
+
+@pytest.mark.unit
+def test_agent_exec(rag_agent):
+    result = rag_agent.exec("Hello")
+    assert isinstance(result, str)
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+async def test_agent_aexec(rag_agent):
+    result = await rag_agent.aexec("Hello")
+    assert isinstance(result, str)
