@@ -7,25 +7,28 @@
 - **Dependency Management**  
   - **Lock:** Generate a `poetry.lock` file.
   - **Install:** Install dependencies with options for extras and development dependencies.
-  - **Show Freeze:** (Included via internal commands) Display installed packages using `pip freeze`.
+  - **Show Freeze:** (Available as an internal command) Display installed packages using `pip freeze`.
+
+- **Build Operations**  
+  - **Build:** Recursively build packages based on local (path) dependencies as specified in your `pyproject.toml` files.
 
 - **Version Management**  
   - **Version:** Bump (major, minor, patch, finalize) or explicitly set package versions in `pyproject.toml`.
 
 - **Remote Operations**  
   - **Remote Fetch:** Fetch the version from a remote GitHub repository’s `pyproject.toml`.
-  - **Remote Update:** Update a local `pyproject.toml` file with version information from remote Git dependencies.
+  - **Remote Update:** Update a local `pyproject.toml` file with version information fetched from remote Git dependencies.
 
 - **Testing and Analysis**  
   - **Test:** Run your tests using pytest. Optionally, run tests in parallel (supports [pytest‑xdist](https://pypi.org/project/pytest-xdist/)).
-  - **Analyze:** Analyze test results provided in a JSON file, display summary statistics, and evaluate threshold conditions for passed/skipped tests.
+  - **Analyze:** Analyze test results provided in a JSON file by displaying summary statistics and evaluating threshold conditions for passed/skipped tests.
 
 - **Pyproject Operations**  
-  - **Pyproject:** Extract local (path) and Git-based dependencies from a `pyproject.toml` file and optionally update dependency versions.
+  - **Pyproject:** Extract both local (path) and Git-based dependencies from a `pyproject.toml` file and, optionally, update dependency versions.
 
 ## Installation
 
-Install using pip:
+Install via pip:
 
 ```bash
 pip install monorepo-manager
@@ -35,7 +38,7 @@ _This command installs the `monorepo-manager` CLI, which is provided via the ent
 
 ## Usage
 
-After installation, run the following to see a list of available commands:
+After installation, run the following command to see a list of available commands:
 
 ```bash
 monorepo-manager --help
@@ -76,7 +79,19 @@ monorepo-manager install --directory ./packages/package2 --extras full
 monorepo-manager install --directory ./packages/package2 --all-extras
 ```
 
-#### 3. Version Management
+#### 3. Build Packages
+
+Recursively build packages based on their local dependency paths defined in their `pyproject.toml` files:
+
+```bash
+# Build packages using a directory containing a master pyproject.toml:
+monorepo-manager build --directory .
+
+# Build packages using an explicit pyproject.toml file:
+monorepo-manager build --file ./packages/package1/pyproject.toml
+```
+
+#### 4. Version Management
 
 Bump or explicitly set the version in a package's `pyproject.toml`:
 
@@ -84,14 +99,14 @@ Bump or explicitly set the version in a package's `pyproject.toml`:
 # Bump the patch version (e.g., from 1.2.3.dev1 to 1.2.3.dev2):
 monorepo-manager version ./packages/package1/pyproject.toml --bump patch
 
-# Finalize a dev version (remove the .dev suffix):
+# Finalize a development version (remove the .dev suffix):
 monorepo-manager version ./packages/package1/pyproject.toml --bump finalize
 
 # Set an explicit version:
 monorepo-manager version ./packages/package1/pyproject.toml --set 2.0.0.dev1
 ```
 
-#### 4. Remote Operations
+#### 5. Remote Operations
 
 Fetch remote version information and update your local dependency configuration:
 
@@ -104,12 +119,12 @@ monorepo-manager remote fetch --git-url https://github.com/YourOrg/YourRepo.git 
 monorepo-manager remote update --input ./packages/package1/pyproject.toml --output ./packages/package1/pyproject.updated.toml
 ```
 
-#### 5. Testing and Analysis
+#### 6. Testing and Analysis
 
 Run your tests using pytest and analyze test results from a JSON report:
 
 - **Run Tests:**  
-  Execute tests in a specified directory. Use the `--num-workers` flag to run tests in parallel (requires pytest‑xdist).
+  Execute tests within a specified directory. Use the `--num-workers` flag for parallel execution (requires pytest‑xdist):
 
   ```bash
   # Run tests sequentially:
@@ -120,7 +135,7 @@ Run your tests using pytest and analyze test results from a JSON report:
   ```
 
 - **Analyze Test Results:**  
-  Analyze a JSON test report and enforce thresholds for passed and skipped tests.
+  Analyze a JSON test report and enforce thresholds for passed and skipped tests:
 
   ```bash
   # Analyze test results without thresholds:
@@ -130,7 +145,7 @@ Run your tests using pytest and analyze test results from a JSON report:
   monorepo-manager analyze test-results.json --required-passed gt:75 --required-skipped lt:20
   ```
 
-#### 6. Pyproject Operations
+#### 7. Pyproject Operations
 
 Extract and update dependency information from a `pyproject.toml` file:
 
@@ -140,6 +155,56 @@ monorepo-manager pyproject --pyproject ./packages/package1/pyproject.toml
 
 # Update local dependency versions to 2.0.0 (updates the parent file and, if possible, each dependency's own pyproject.toml):
 monorepo-manager pyproject --pyproject ./packages/package1/pyproject.toml --update-version 2.0.0
+```
+
+## Workflow Example in GitHub Actions
+
+Here's an example GitHub Actions workflow that uses **monorepo_manager** to lock, build, install, test, bump the patch version, and publish:
+
+```yaml
+name: Release Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install monorepo_manager Tools
+        run: pip install "monorepo_manager@git+https://github.com/YourOrg/monorepo_manager.git@main"
+
+      - name: Lock Dependencies
+        run: monorepo-manager lock --directory .
+
+      - name: Build Packages
+        run: monorepo-manager build --directory .
+
+      - name: Install Dependencies
+        run: monorepo-manager install --directory .
+
+      - name: Run Tests
+        run: monorepo-manager test --directory ./tests --num-workers 4
+
+      - name: Bump Patch Version
+        run: monorepo-manager version ./packages/package1/pyproject.toml --bump patch
+
+      - name: Publish Packages
+        env:
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: monorepo-manager publish --directory . --username "$PYPI_USERNAME" --password "$PYPI_PASSWORD"
 ```
 
 ## Development
@@ -159,12 +224,18 @@ pyproject.toml        # Package configuration file containing metadata
 README.md             # This file
 ```
 
+### Running Tests
+
+For development purposes, you can run your tests using your preferred test runner (e.g., `pytest`):
+
+```bash
+pytest
+```
+
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or submit pull requests for improvements or bug fixes.
+Contributions are welcome! Please open issues or submit pull requests for improvements or bug fixes.
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-```
-

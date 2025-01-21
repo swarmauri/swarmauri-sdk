@@ -4,7 +4,7 @@ cli.py
 
 This is the main entry point for the monorepo management CLI.
 It provides commands to:
-  - Manage Poetry-based operations (lock, install, show pip-freeze, recursive build, publish)
+  - Manage Poetry-based operations (lock, install, build, show pip-freeze, publish)
   - Manage version operations (bump or set versions in pyproject.toml)
   - Manage remote operations (fetch/update Git dependency versions)
   - Run tests using pytest (with optional parallelism)
@@ -12,7 +12,7 @@ It provides commands to:
   - Operate on pyproject.toml files (extract and update dependency versions)
 
 The commands are intentionally named with simple terms (e.g. "lock" instead of "poetry lock",
-"install" instead of "poetry install").
+"install" instead of "poetry install", and "test" instead of "test-analyze").
 """
 
 import argparse
@@ -50,6 +50,13 @@ def main():
     install_parser.add_argument("--all-extras", action="store_true", help="Include all extras")
     
     # ------------------------------------------------
+    # Command: build
+    # ------------------------------------------------
+    build_parser = subparsers.add_parser("build", help="Build packages recursively based on path dependencies")
+    build_parser.add_argument("--directory", type=str, help="Directory containing pyproject.toml")
+    build_parser.add_argument("--file", type=str, help="Explicit path to a pyproject.toml file")
+    
+    # ------------------------------------------------
     # Command: version
     # ------------------------------------------------
     version_parser = subparsers.add_parser("version", help="Bump or set package version")
@@ -81,7 +88,7 @@ def main():
     # ------------------------------------------------
     test_parser = subparsers.add_parser("test", help="Run tests using pytest")
     test_parser.add_argument("--directory", type=str, default=".", help="Directory to run tests in (default: current directory)")
-    test_parser.add_argument("--num-workers", type=int, default=1, help="Number of workers to use for parallel testing (requires pytest-xdist)")
+    test_parser.add_argument("--num-workers", type=int, default=1, help="Number of workers for parallel testing (requires pytest-xdist)")
     
     # ------------------------------------------------
     # Command: analyze (analyze test results from JSON)
@@ -114,6 +121,9 @@ def main():
             with_dev=args.dev,
             all_extras=args.all_extras
         )
+    
+    elif args.command == "build":
+        poetry_ops.recursive_build(directory=args.directory, file=args.file)
     
     elif args.command == "version":
         version_ops.bump_or_set_version(args.pyproject_file, bump=args.bump, set_ver=args.set_ver)
