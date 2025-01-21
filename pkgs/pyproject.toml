@@ -32,7 +32,8 @@ swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-s
 swm_example_package = { path = "./standards/swm_example_package" }
 
 # Community Packages (will push out later)
-swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
+#swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
+
 swarmauri_vectorstore_redis = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_redis", optional = true }
 swarmauri_documentstore_redis = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_documentstore_redis", optional = true }
 swarmauri_vectorstore_qdrant = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_qdrant", optional = true }
@@ -70,3 +71,17 @@ swarmauri_tool_psutil = { git = "https://github.com/swarmauri/swarmauri-sdk.git"
 swarmauri_embedding_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_embedding_mlm", optional = true }
 swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_github", optional = true }
 swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
+
+swm_example_community_package = { path = "./community/swm_example_community_package" }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+black = "^22.3.0"
+toml = "^0.10.2"
+#monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="pkgs/tooling/monorepo_manager" }
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
