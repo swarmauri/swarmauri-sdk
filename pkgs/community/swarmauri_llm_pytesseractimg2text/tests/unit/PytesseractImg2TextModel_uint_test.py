@@ -2,7 +2,7 @@ import logging
 import pytest
 from PIL import Image
 import io
-from swarmauri_llm_pytesseractImg2text.PytesseractImg2TextModel import (
+from swarmauri_llm_pytesseractimg2text.PytesseractImg2TextModel import (
     PytesseractImg2TextModel,
 )
 from swarmauri_standard.utils.timeout_wrapper import timeout
