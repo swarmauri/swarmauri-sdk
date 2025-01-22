@@ -29,7 +29,7 @@ swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/sw
 swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
 
 # Standard Plugin Example
-swm_example_package = { path = "./standards/swm_example_package" }
+#swm_example_package = { path = "./standards/swm_example_package" }
 
 # Community Packages (will push out later)
 #swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
@@ -72,7 +72,7 @@ swarmauri_embedding_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.gi
 swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_github", optional = true }
 swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
 
-swm_example_community_package = { path = "./community/swm_example_community_package" }
+#swm_example_community_package = { path = "./community/swm_example_community_package" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
