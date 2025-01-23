@@ -30,17 +30,21 @@ from typing import (
 logger = logging.getLogger(__name__)
 T = TypeVar("T", bound="ComponentBase")
 
+
 class ResourceType:
     """
     Metadata class to hold resource type information for Annotated fields.
     """
-    def __init__(self, resource_type: Type['ComponentBase']):
+
+    def __init__(self, resource_type: Type["ComponentBase"]):
         self.resource_type = resource_type
+
 
 class SubclassUnion(type):
     """
     A generic class to create discriminated unions based on resource types.
     """
+
     def __class_getitem__(cls, resource_type: Type[T]) -> type:
         """
         Allows usage of SubclassUnion[ResourceType] to get the corresponding discriminated Union.
@@ -51,13 +55,20 @@ class SubclassUnion(type):
         Returns:
         - An Annotated Union of all subclasses registered under the resource_type, with 'type' as the discriminator.
         """
-        registered_classes = list(ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values())
+        registered_classes = list(
+            ComponentBase.TYPE_REGISTRY.get(resource_type, {}).values()
+        )
         if not registered_classes:
-            logger.debug(f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder.")
+            logger.debug(
+                f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder."
+            )
             return Annotated[Any, Field(...), ResourceType(resource_type)]
         else:
             union_type = Union[tuple(registered_classes)]
-        return Annotated[union_type, Field(discriminator='type'), ResourceType(resource_type)]
+        return Annotated[
+            union_type, Field(discriminator="type"), ResourceType(resource_type)
+        ]
+
 
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = "ComponentBase"
@@ -98,17 +109,22 @@ class ResourceTypes(Enum):
     CONTROL_PANEL = "ControlPanel"
     TASK_MGMT_STRATEGY = "TaskMgmtStrategy"
 
+
 def generate_id() -> str:
     return str(uuid4())
+
 
 class ComponentBase(BaseModel):
     """
     Base class for all components.
     """
+
     # Class-level registry mapping resource types to their type mappings
-    TYPE_REGISTRY: ClassVar[Dict[Type['ComponentBase'], Dict[str, Type['ComponentBase']]]] = {}
+    TYPE_REGISTRY: ClassVar[
+        Dict[Type["ComponentBase"], Dict[str, Type["ComponentBase"]]]
+    ] = {}
     # Model registry mapping models to their resource types
-    MODEL_REGISTRY: ClassVar[Dict[Type[BaseModel], List[Type['ComponentBase']]]] = {}
+    MODEL_REGISTRY: ClassVar[Dict[Type[BaseModel], List[Type["ComponentBase"]]]] = {}
     _lock: ClassVar[Lock] = Lock()
 
     name: Optional[str] = None
@@ -180,16 +196,22 @@ class ComponentBase(BaseModel):
         """
         Decorator to register a component class with a specific type name under a resource type.
         """
-        def decorator(subclass: Type['ComponentBase']):
+
+        def decorator(subclass: Type["ComponentBase"]):
             if not issubclass(subclass, resource_type):
-                raise TypeError(f"Registered class '{subclass.__name__}' must be a subclass of {resource_type.__name__}")
+                raise TypeError(
+                    f"Registered class '{subclass.__name__}' must be a subclass of {resource_type.__name__}"
+                )
             if resource_type not in cls.TYPE_REGISTRY:
                 cls.TYPE_REGISTRY[resource_type] = {}
             cls.TYPE_REGISTRY[resource_type][type_name] = subclass
             # Automatically recreate models after registering a new type
             cls.recreate_models()
-            logger.info(f"Registered type '{type_name}' for resource '{resource_type.__name__}' with subclass '{subclass.__name__}'")
+            logger.info(
+                f"Registered type '{type_name}' for resource '{resource_type.__name__}' with subclass '{subclass.__name__}'"
+            )
             return subclass
+
         return decorator
 
     @classmethod
@@ -198,13 +220,14 @@ class ComponentBase(BaseModel):
         Decorator to register a Pydantic model by automatically detecting resource types
         from fields that use SubclassUnion.
         """
+
         def decorator(model_cls: Type[BaseModel]):
             # Initialize list if not present
             if model_cls not in cls.MODEL_REGISTRY:
                 cls.MODEL_REGISTRY[model_cls] = []
 
             # Inspect all fields to find SubclassUnion annotations
-            for field_name, field in model_cls.__fields__.items():
+            for field_name, field in model_cls.model_fields.items():
                 field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
                     continue
@@ -212,17 +235,24 @@ class ComponentBase(BaseModel):
                 # Check if field uses SubclassUnion
                 if cls.field_contains_subclass_union(field_annotation):
                     # Extract resource types from SubclassUnion
-                    resource_types = cls.extract_resource_types_from_field(field_annotation)
+                    resource_types = cls.extract_resource_types_from_field(
+                        field_annotation
+                    )
                     for resource_type in resource_types:
                         if resource_type not in cls.MODEL_REGISTRY[model_cls]:
                             cls.MODEL_REGISTRY[model_cls].append(resource_type)
-                            logger.info(f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'")
+                            logger.info(
+                                f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'"
+                            )
             cls.recreate_models()
             return model_cls
+
         return decorator
 
     @classmethod
-    def get_class_by_type(cls, resource_type: Type[T], type_name: str) -> Type['ComponentBase']:
+    def get_class_by_type(
+        cls, resource_type: Type[T], type_name: str
+    ) -> Type["ComponentBase"]:
         """
         Retrieve a component class based on its resource type and type name.
 
@@ -246,7 +276,9 @@ class ComponentBase(BaseModel):
         Returns:
         - True if SubclassUnion or ResourceType is present, False otherwise.
         """
-        logger.debug(f"Checking if field annotation '{field_annotation}' contains a SubclassUnion or ResourceType")
+        logger.debug(
+            f"Checking if field annotation '{field_annotation}' contains a SubclassUnion or ResourceType"
+        )
 
         origin = get_origin(field_annotation)
         args = get_args(field_annotation)
@@ -255,7 +287,9 @@ class ComponentBase(BaseModel):
         if origin is Annotated:
             for arg in args:
                 if isinstance(arg, ResourceType):
-                    logger.debug(f"Annotated field contains ResourceType metadata for resource '{arg.resource_type.__name__}'")
+                    logger.debug(
+                        f"Annotated field contains ResourceType metadata for resource '{arg.resource_type.__name__}'"
+                    )
                     return True
                 if cls.field_contains_subclass_union(arg):
                     logger.debug(f"Annotated field contains SubclassUnion in '{arg}'")
@@ -265,15 +299,20 @@ class ComponentBase(BaseModel):
         if origin in {Union, List, Dict, Set, Tuple, Optional}:
             for arg in args:
                 if cls.field_contains_subclass_union(arg):
-                    logger.debug(f"Container field '{field_annotation}' contains SubclassUnion in its arguments")
+                    logger.debug(
+                        f"Container field '{field_annotation}' contains SubclassUnion in its arguments"
+                    )
                     return True
 
-        logger.debug(f"Field annotation '{field_annotation}' does not contain SubclassUnion or ResourceType")
+        logger.debug(
+            f"Field annotation '{field_annotation}' does not contain SubclassUnion or ResourceType"
+        )
         return False
 
-
     @classmethod
-    def extract_resource_types_from_field(cls, field_annotation) -> List[Type['ComponentBase']]:
+    def extract_resource_types_from_field(
+        cls, field_annotation
+    ) -> List[Type["ComponentBase"]]:
         """
         Extracts all resource types from a field annotation using SubclassUnion.
 
@@ -283,7 +322,9 @@ class ComponentBase(BaseModel):
         Returns:
         - A list of resource type classes.
         """
-        logger.debug(f"Extracting resource types from field annotation '{field_annotation}'")
+        logger.debug(
+            f"Extracting resource types from field annotation '{field_annotation}'"
+        )
         resource_types = []
         try:
             origin = get_origin(field_annotation)
@@ -293,9 +334,13 @@ class ComponentBase(BaseModel):
                 for arg in args[1:]:  # Skip the first argument which is the main type
                     if isinstance(arg, ResourceType):
                         resource_types.append(arg.resource_type)
-                        logger.debug(f"Found ResourceType metadata with resource type '{arg.resource_type.__name__}'")
+                        logger.debug(
+                            f"Found ResourceType metadata with resource type '{arg.resource_type.__name__}'"
+                        )
                     else:
-                        resource_types.extend(cls.extract_resource_types_from_field(arg))
+                        resource_types.extend(
+                            cls.extract_resource_types_from_field(arg)
+                        )
 
             elif origin in {Union, List, Dict, Set, Tuple, Optional}:
                 for arg in args:
@@ -303,9 +348,10 @@ class ComponentBase(BaseModel):
 
             return resource_types
         except TypeError as e:
-            logger.error(f"TypeError while extracting resource types from field annotation '{field_annotation}': {e}")
+            logger.error(
+                f"TypeError while extracting resource types from field annotation '{field_annotation}': {e}"
+            )
             return resource_types
-
 
     @classmethod
     def determine_new_type(cls, field_annotation, resource_type):
@@ -319,7 +365,9 @@ class ComponentBase(BaseModel):
         Returns:
         - The updated type annotation incorporating SubclassUnion.
         """
-        logger.debug(f"Determining new type for field annotation '{field_annotation}' with resource type '{resource_type.__name__}'")
+        logger.debug(
+            f"Determining new type for field annotation '{field_annotation}' with resource type '{resource_type.__name__}'"
+        )
         try:
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
@@ -336,15 +384,21 @@ class ComponentBase(BaseModel):
                     is_optional = True
                 else:
                     # Multiple non-None types, complex Union
-                    logger.warning(f"Field annotation '{field_annotation}' has multiple non-None Union types; optionality may not be preserved correctly.")
+                    logger.warning(
+                        f"Field annotation '{field_annotation}' has multiple non-None Union types; optionality may not be preserved correctly."
+                    )
 
             # Handle Annotated
             if origin is Annotated:
                 base_type = args[0]
-                metadata = [arg for arg in args[1:] if not isinstance(arg, ResourceType)]
+                metadata = [
+                    arg for arg in args[1:] if not isinstance(arg, ResourceType)
+                ]
                 # Append the new ResourceType
                 metadata.append(ResourceType(resource_type))
-                logger.debug(f"Preserving existing metadata and adding ResourceType for resource '{resource_type.__name__}'")
+                logger.debug(
+                    f"Preserving existing metadata and adding ResourceType for resource '{resource_type.__name__}'"
+                )
                 field_annotation = Annotated[tuple([base_type, *metadata])]
 
             # Construct the new type with SubclassUnion and discriminated Union
@@ -359,11 +413,11 @@ class ComponentBase(BaseModel):
             logger.debug(f"New type for field: {new_type}")
             return new_type
         except TypeError as e:
-            logger.error(f"TypeError while determining new type for field annotation '{field_annotation}': {e}")
+            logger.error(
+                f"TypeError while determining new type for field annotation '{field_annotation}': {e}"
+            )
             return field_annotation  # Fallback to original type if error occurs
 
-
-        
     @classmethod
     def generate_models_with_fields(cls) -> Dict[Type[BaseModel], Dict[str, Any]]:
         """
@@ -379,35 +433,44 @@ class ComponentBase(BaseModel):
             logging.debug(f"Processing model: {model_cls.__name__}")
             models_with_fields[model_cls] = {}
 
-            for field_name, field in model_cls.__fields__.items():
+            for field_name, field in model_cls.model_fields.items():
                 logging.debug(f"Processing field: {field_name}")
 
                 field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
-                    logging.debug(f"Field {field_name} in model {model_cls.__name__} has no annotation, skipping.")
+                    logging.debug(
+                        f"Field {field_name} in model {model_cls.__name__} has no annotation, skipping."
+                    )
                     continue
 
                 # Check if SubclassUnion is used in the field type
                 if not cls.field_contains_subclass_union(field_annotation):
-                    logging.debug(f"Field {field_name} does not contain SubclassUnion, skipping.")
+                    logging.debug(
+                        f"Field {field_name} does not contain SubclassUnion, skipping."
+                    )
                     continue  # Only process fields that use SubclassUnion
 
                 # Extract all resource types from the field
-                field_resource_types = cls.extract_resource_types_from_field(field_annotation)
-                logging.debug(f"Extracted resource types for field {field_name}: {field_resource_types}")
+                field_resource_types = cls.extract_resource_types_from_field(
+                    field_annotation
+                )
+                logging.debug(
+                    f"Extracted resource types for field {field_name}: {field_resource_types}"
+                )
 
                 for resource_type in field_resource_types:
                     new_type = cls.determine_new_type(field_annotation, resource_type)
-                    logging.debug(f"Determined new type for resource {resource_type}: {new_type}")
+                    logging.debug(
+                        f"Determined new type for resource {resource_type}: {new_type}"
+                    )
 
                     models_with_fields[model_cls][field_name] = new_type
 
         logging.info("Completed generation of models_with_fields")
         return models_with_fields
 
-
     @classmethod
-    def recreate_type_models(cls) -> Dict[Type['ComponentBase'], Dict[str, Any]]:
+    def recreate_type_models(cls) -> Dict[Type["ComponentBase"], Dict[str, Any]]:
         """
         Generate a mapping of component types to their fields and updated type annotations.
 
@@ -423,38 +486,55 @@ class ComponentBase(BaseModel):
                 logging.debug(f"Processing component class: {component_cls.__name__}")
                 type_models_with_fields[component_cls] = {}
 
-                for field_name, field in component_cls.__fields__.items():
+                for field_name, field in component_cls.model_fields.items():
                     logging.debug(f"Processing field: {field_name}")
 
                     field_annotation = component_cls.__annotations__.get(field_name)
                     if not field_annotation:
-                        logging.debug(f"Field '{field_name}' in component '{component_cls.__name__}' has no annotation, skipping.")
+                        logging.debug(
+                            f"Field '{field_name}' in component '{component_cls.__name__}' has no annotation, skipping."
+                        )
                         continue
 
                     # Check if SubclassUnion is used in the field type
                     if not cls.field_contains_subclass_union(field_annotation):
-                        logging.debug(f"Field '{field_name}' does not contain SubclassUnion, skipping.")
+                        logging.debug(
+                            f"Field '{field_name}' does not contain SubclassUnion, skipping."
+                        )
                         continue  # Only process fields that use SubclassUnion
 
                     # Extract all resource types from the field
-                    field_resource_types = cls.extract_resource_types_from_field(field_annotation)
+                    field_resource_types = cls.extract_resource_types_from_field(
+                        field_annotation
+                    )
                     if not field_resource_types:
-                        logging.warning(f"No resource types extracted for field '{field_name}' in component '{component_cls.__name__}'")
+                        logging.warning(
+                            f"No resource types extracted for field '{field_name}' in component '{component_cls.__name__}'"
+                        )
                         continue
-                    logging.debug(f"Extracted resource types for field '{field_name}': {[rt.__name__ for rt in field_resource_types]}")
+                    logging.debug(
+                        f"Extracted resource types for field '{field_name}': {[rt.__name__ for rt in field_resource_types]}"
+                    )
 
                     for resource_type_in_field in field_resource_types:
                         try:
-                            new_type = cls.determine_new_type(field_annotation, resource_type_in_field)
-                            logging.debug(f"Determined new type for resource '{resource_type_in_field.__name__}': {new_type}")
-                            type_models_with_fields[component_cls][field_name] = new_type
+                            new_type = cls.determine_new_type(
+                                field_annotation, resource_type_in_field
+                            )
+                            logging.debug(
+                                f"Determined new type for resource '{resource_type_in_field.__name__}': {new_type}"
+                            )
+                            type_models_with_fields[component_cls][
+                                field_name
+                            ] = new_type
                         except Exception as e:
-                            logging.error(f"Error determining new type for field '{field_name}' in component '{component_cls.__name__}': {e}")
+                            logging.error(
+                                f"Error determining new type for field '{field_name}' in component '{component_cls.__name__}': {e}"
+                            )
                             continue  # Proceed with other resource types and fields
 
         logging.info("Completed generation of type models for TYPE_REGISTRY")
         return type_models_with_fields
-        
 
     @classmethod
     def recreate_models(cls):
@@ -468,7 +548,10 @@ class ComponentBase(BaseModel):
             type_models_with_fields = cls.recreate_type_models()
 
             # Combine both dictionaries
-            combined_models_with_fields = {**models_with_fields, **type_models_with_fields}
+            combined_models_with_fields = {
+                **models_with_fields,
+                **type_models_with_fields,
+            }
 
             for model_class, fields in combined_models_with_fields.items():
                 for field_name, new_type in fields.items():
@@ -476,20 +559,32 @@ class ComponentBase(BaseModel):
                         original_type = model_class.model_fields[field_name].annotation
                         if original_type != new_type:
                             model_class.model_fields[field_name].annotation = new_type
-                            logger.debug(f"Updated field '{field_name}' in model '{model_class.__name__}' from '{original_type}' to '{new_type}'")
+                            logger.debug(
+                                f"Updated field '{field_name}' in model '{model_class.__name__}' from '{original_type}' to '{new_type}'"
+                            )
                         else:
-                            logger.debug(f"No change for field '{field_name}' in model '{model_class.__name__}'")
+                            logger.debug(
+                                f"No change for field '{field_name}' in model '{model_class.__name__}'"
+                            )
                     else:
-                        logger.error(f"Field '{field_name}' does not exist in model '{model_class.__name__}'")
+                        logger.error(
+                            f"Field '{field_name}' does not exist in model '{model_class.__name__}'"
+                        )
                         continue  # Skip to next field
 
                 try:
                     model_class.model_rebuild(force=True)
-                    logger.debug(f"'{model_class.__name__}' has been successfully recreated.")
+                    logger.debug(
+                        f"'{model_class.__name__}' has been successfully recreated."
+                    )
                 except ValidationError as ve:
-                    logger.error(f"Validation error while rebuilding model '{model_class.__name__}': {ve}")
+                    logger.error(
+                        f"Validation error while rebuilding model '{model_class.__name__}': {ve}"
+                    )
                 except Exception as e:
-                    logger.error(f"Error while rebuilding model '{model_class.__name__}': {e}")
+                    logger.error(
+                        f"Error while rebuilding model '{model_class.__name__}': {e}"
+                    )
             logger.info("All models have been successfully recreated.")
 
     @classmethod
@@ -497,7 +592,7 @@ class ComponentBase(BaseModel):
         try:
             # Parse YAML into a Python dictionary
             yaml_content = yaml.safe_load(yaml_data)
-            
+
             # Convert the dictionary to JSON and validate using Pydantic
             return cls.model_validate_json(json.dumps(yaml_content))
         except yaml.YAMLError as e:
@@ -516,8 +611,13 @@ class ComponentBase(BaseModel):
         def process_fields(data, fields_to_exclude):
             if isinstance(data, dict):
                 return {
-                    key: (api_key_placeholder if key == "api_key" and api_key_placeholder is not None else process_fields(value, fields_to_exclude))
-                    for key, value in data.items() if key not in fields_to_exclude
+                    key: (
+                        api_key_placeholder
+                        if key == "api_key" and api_key_placeholder is not None
+                        else process_fields(value, fields_to_exclude)
+                    )
+                    for key, value in data.items()
+                    if key not in fields_to_exclude
                 }
             elif isinstance(data, list):
                 return [process_fields(item, fields_to_exclude) for item in data]
