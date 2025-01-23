@@ -3,7 +3,7 @@ from typing import List, Literal, Optional
 from pydantic import PrivateAttr
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.document_stores.DocumentStoreBase import DocumentStoreBase
-from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_standard.documents.Document import Document
 import redis
 import json
 
@@ -40,26 +40,27 @@ class RedisDocumentStore(DocumentStoreBase):
             print("there")
         return self._redis_client
 
-    def add_document(self, document: IDocument) -> None:
+    def add_document(self, document: Document) -> None:
 
-        data = document.as_dict()
-        doc_id = data["id"]
-        del data["id"]
+        data = document.model_dump()
+        doc_id = data.pop("id")  # Remove and get id
         self.redis_client.json().set(doc_id, "$", json.dumps(data))
 
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         with self.redis_client.pipeline() as pipe:
             for document in documents:
-                pipe.set(document.doc_id, document)
+                data = document.model_dump()
+                doc_id = data.pop("id")
+                pipe.json().set(doc_id, "$", json.dumps(data))
             pipe.execute()
 
-    def get_document(self, doc_id: str) -> Optional[IDocument]:
+    def get_document(self, doc_id: str) -> Optional[Document]:
         result = self.redis_client.json().get(doc_id)
         if result:
             return json.loads(result)
         return None
 
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> List[Document]:
         keys = self.redis_client.keys("*")
         documents = []
         for key in keys:
@@ -68,8 +69,10 @@ class RedisDocumentStore(DocumentStoreBase):
                 documents.append(json.loads(document_data))
         return documents
 
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
-        self.add_document(updated_document)
+    def update_document(self, doc_id: str, document: Document) -> None:
+        data = document.model_dump()
+        data.pop("id")  # Remove id from data
+        self.redis_client.json().set(doc_id, "$", json.dumps(data))
 
     def delete_document(self, doc_id: str) -> None:
         self.redis_client.delete(doc_id)
