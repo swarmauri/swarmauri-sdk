@@ -74,11 +74,115 @@ swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sd
 
 #swm_example_community_package = { path = "./community/swm_example_community_package" }
 
+
+[tool.poetry.extras]
+# First Class Extras
+vectorstore_doc2vec = ["swarmauri_vectorstore_doc2vec"]
+embedding_doc2vec = ["swarmauri_embedding_doc2vec"]
+tool_matplotlib = ["swarmauri_tool_matplotlib"]
+parser_keywordextractor = ["swarmauri_parser_keywordextractor"]
+vectorstore_tfidf = ["swarmauri_vectorstore_tfidf"]
+embedding_tfidf = ["swarmauri_embedding_tfidf"]
+embedding_nmf = ["swarmauri_embedding_nmf"]
+parser_beautifulsoupelement = ["swarmauri_parser_beautifulsoupelement"]
+distance_minkowski = ["swarmauri_distance_minkowski"]
+
+# Second Class
+vectorstore_redis = ["swarmauri_vectorstore_redis"]
+documentstore_redis = ["swarmauri_documentstore_redis"]
+vectorstore_qdrant = ["swarmauri_vectorstore_qdrant"]
+vectorstore_pinecone = ["swarmauri_vectorstore_pinecone"]
+vectorstore_persistentchromadb = ["swarmauri_vectorstore_persistentchromadb"]
+vectorstore_neo4j = ["swarmauri_vectorstore_neo4j"]
+vectorstore_mlm = ["swarmauri_vectorstore_mlm"]
+vectorstore_duckdb = ["swarmauri_vectorstore_duckdb"]
+vectorstore_cloudweaviate = ["swarmauri_vectorstore_cloudweaviate"]
+tool_zapierhook = ["swarmauri_tool_zapierhook"]
+tool_webscraping = ["swarmauri_tool_webscraping"]
+tool_textlength = ["swarmauri_tool_textlength"]
+tool_smogindex = ["swarmauri_tool_smogindex"]
+tool_sentimentanalysis = ["swarmauri_tool_sentimentanalysis"]
+tool_sentencecomplexity = ["swarmauri_tool_sentencecomplexity"]
+tool_qrcodegenerator = ["swarmauri_tool_qrcodegenerator"]
+tool_lexicaldensity = ["swarmauri_tool_lexicaldensity"]
+parser_textblob = ["swarmauri_parser_textblob"]
+state_clipboard = ["swarmauri_state_clipboard"]
+parser_fitzpdf = ["swarmauri_parser_fitzpdf"]
+tool_captchagenerator = ["swarmauri_tool_captchagenerator"]
+parser_entityrecognition = ["swarmauri_parser_entityrecognition"]
+parser_bertembedding = ["swarmauri_parser_bertembedding"]
+parser_pypdf2 = ["swarmauri_parser_pypdf2"]
+measurement_mutualinformation = ["swarmauri_measurement_mutualinformation"]
+measurement_tokencountestimator = ["swarmauri_measurement_tokencountestimator"]
+tool_gmail = ["swarmauri_tool_gmail"]
+tool_downloadpdf = ["swarmauri_tool_downloadpdf"]
+tool_dalechallreadability = ["swarmauri_tool_dalechallreadability"]
+tool_github = ["swarmauri_tool_github"]
+tool_folium = ["swarmauri_tool_folium"]
+tool_psutil = ["swarmauri_tool_psutil"]
+llm_pytesseractimg2text = ["swarmauri_llm_pytesseractimg2text"]
+embedding_mlm = ["swarmauri_embedding_mlm"]
+
+# tool_entityrecognition = ["swarmauri_tool_entityrecognition"] # causes resolution lag
+# llm_leptonai = ["swarmauri_llm_leptonai"] # causes resolution lag
+# vectorstore_annoy = ["swarmauri_vectorstore_annoy"] # causes resolution lag
+
+# A single "full" extra that includes them all:
+full = [
+  "swarmauri_vectorstore_doc2vec",
+  "swarmauri_embedding_doc2vec",
+  "swarmauri_tool_matplotlib",
+  "swarmauri_parser_keywordextractor",
+  "swarmauri_vectorstore_tfidf",
+  "swarmauri_embedding_tfidf",
+  "swarmauri_embedding_nmf",
+  "swarmauri_parser_beautifulsoupelement",
+  "swarmauri_distance_minkowski",
+  "swarmauri_vectorstore_redis",
+  "swarmauri_documentstore_redis",
+  "swarmauri_vectorstore_qdrant",
+  "swarmauri_vectorstore_pinecone",
+  "swarmauri_vectorstore_persistentchromadb",
+  "swarmauri_vectorstore_neo4j",
+  "swarmauri_vectorstore_mlm",
+  "swarmauri_vectorstore_duckdb",
+  "swarmauri_vectorstore_cloudweaviate",
+  "swarmauri_tool_zapierhook",
+  "swarmauri_tool_webscraping",
+  "swarmauri_tool_textlength",
+  "swarmauri_tool_smogindex",
+  "swarmauri_tool_sentimentanalysis",
+  "swarmauri_tool_sentencecomplexity",
+  "swarmauri_tool_qrcodegenerator",
+  "swarmauri_tool_lexicaldensity",
+  "swarmauri_parser_textblob",
+  "swarmauri_state_clipboard",
+  "swarmauri_parser_fitzpdf",
+  "swarmauri_tool_captchagenerator",
+  "swarmauri_parser_bertembedding",
+  "swarmauri_measurement_mutualinformation",
+  "swarmauri_parser_pypdf2",
+  "swarmauri_measurement_tokencountestimator",
+  "swarmauri_llm_pytesseractimg2text",
+  "swarmauri_tool_downloadpdf",
+  "swarmauri_tool_dalechallreadability",
+  "swarmauri_tool_gmail",
+  "swarmauri_tool_folium",
+  "swarmauri_tool_psutil",
+  "swarmauri_tool_github",
+  "swarmauri_parser_entityrecognition",
+  "swarmauri_embedding_mlm",
+  #"swarmauri_tool_entityrecognition", # causes resolution lag
+  #"swarmauri_llm_leptonai", # causes resolution lag
+  #"swarmauri_vectorstore_annoy" # causes resolution lag
+]
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
 black = "^22.3.0"
 toml = "^0.10.2"
 #monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="pkgs/tooling/monorepo_manager" }
+
 
 
 [build-system]
