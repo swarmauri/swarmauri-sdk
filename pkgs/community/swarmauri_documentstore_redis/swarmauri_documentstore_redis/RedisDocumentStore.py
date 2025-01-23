@@ -1,18 +1,33 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
+
+from pydantic import PrivateAttr
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.document_stores.DocumentStoreBase import DocumentStoreBase
 from swarmauri_core.documents.IDocument import IDocument
 import redis
 import json
 
 
+@ComponentBase.register_type(DocumentStoreBase, "RedisDocumentStore")
 class RedisDocumentStore(DocumentStoreBase):
-    def __init__(self, host, password, port, db):
-        """Store connection details without initializing the Redis client."""
+    # Public fields
+    type: Literal["RedisDocumentStore"] = "RedisDocumentStore"
+
+    # Private attributes
+    _host: str = PrivateAttr()
+    _password: str = PrivateAttr()
+    _port: int = PrivateAttr()
+    _db: int = PrivateAttr()
+    _redis_client: Optional[redis.Redis] = PrivateAttr(default=None)
+
+    def __init__(
+        self, host: str, password: str = "", port: int = 6379, db: int = 0, **data
+    ):
+        super().__init__(**data)
         self._host = host
         self._password = password
         self._port = port
         self._db = db
-        self._redis_client = None  # Delayed initialization
 
     @property
     def redis_client(self):
