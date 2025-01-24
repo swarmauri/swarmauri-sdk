@@ -17,7 +17,7 @@ def test_ubc_resource(parser):
 
 @pytest.mark.unit
 def test_ubc_type(parser):
-    assert parser.type == "BERTEmbeddingParser"
+    assert parser.type == "EntityRecognitionParser"
 
 
 @pytest.mark.unit
@@ -27,10 +27,44 @@ def test_serialization(parser):
 
 @pytest.mark.unit
 def test_parse(parser):
-    try:
-        documents = parser.parse("One more large chapula please.")
-        assert documents[0].resource == "Document"
-        assert documents[0].content == "One more large chapula please."
-        assert documents[0].metadata["noun_phrases"] == ["large chapula"]
-    except Exception as e:
-        pytest.fail(f"Parser failed with error: {str(e)}")
+    # Test with text containing known entities
+    text = "John works at Apple in New York."
+    documents = parser.parse(text)
+
+    # Verify documents were created
+    assert len(documents) == 3
+
+    # Create entity map for easy testing
+    entity_map = {doc.content: doc.metadata["entity_type"] for doc in documents}
+
+    # Verify expected entities and their types
+    assert "John" in entity_map
+    assert entity_map["John"] == "PERSON"
+    assert "Apple" in entity_map
+    assert entity_map["Apple"] == "ORG"
+    assert "New York" in entity_map
+    assert entity_map["New York"] == "GPE"
+
+    # Verify document structure
+    for doc in documents:
+        assert doc.resource == "Document"
+        assert isinstance(doc.content, str)
+        assert "entity_type" in doc.metadata
+
+
+@pytest.mark.unit
+def test_parse_empty(parser):
+    documents = parser.parse("")
+    assert len(documents) == 0
+
+
+@pytest.mark.unit
+def test_parse_no_entities(parser):
+    documents = parser.parse("The quick brown fox.")
+    assert len(documents) == 0
+
+
+@pytest.mark.unit
+def test_parse_multiple_same_entity(parser):
+    documents = parser.parse("John met John in Paris.")
+    assert len(documents) == 3  # 2 PERSONs + 1 GPE
