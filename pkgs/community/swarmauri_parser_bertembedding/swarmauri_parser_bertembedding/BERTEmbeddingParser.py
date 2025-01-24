@@ -1,11 +1,12 @@
 from typing import List, Union, Any, Literal
+
 from swarmauri_core.ComponentBase import ComponentBase
 from transformers import BertTokenizer, BertModel
 import torch
-from pydantic import PrivateAttr
-from swarmauri_core.documents.IDocument import IDocument
+from pydantic import ConfigDict, PrivateAttr
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+
 
 @ComponentBase.register_type(ParserBase, "BERTEmbeddingParser")
 class BERTEmbeddingParser(ParserBase):
@@ -19,6 +20,8 @@ class BERTEmbeddingParser(ParserBase):
     parser_model_name: str = "bert-base-uncased"
     _model: Any = PrivateAttr()
     type: Literal["BERTEmbeddingParser"] = "BERTEmbeddingParser"
+    _tokenizer: Any = PrivateAttr()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, **kwargs):
         """
@@ -28,11 +31,11 @@ class BERTEmbeddingParser(ParserBase):
         - model_name (str): The name of the pre-trained BERT model to use.
         """
         super().__init__(**kwargs)
-        self.tokenizer = BertTokenizer.from_pretrained(self.parser_model_name)
+        self._tokenizer = BertTokenizer.from_pretrained(self.parser_model_name)
         self._model = BertModel.from_pretrained(self.parser_model_name)
         self._model.eval()  # Set model to evaluation mode
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Tokenizes input data and generates embeddings using a BERT model.
 
@@ -42,9 +45,11 @@ class BERTEmbeddingParser(ParserBase):
         Returns:
         - List[IDocument]: A list containing a single IDocument instance with BERT embeddings as content.
         """
+        if data is None or not data:
+            raise ValueError("Input data cannot be None.")
 
         # Tokenization
-        inputs = self.tokenizer(
+        inputs = self._tokenizer(
             data, return_tensors="pt", padding=True, truncation=True, max_length=512
         )
 
@@ -63,9 +68,7 @@ class BERTEmbeddingParser(ParserBase):
 
         # Creating document object(s)
         documents = [
-            Document(
-                doc_id=str(i), content=emb, metadata={"source": "BERTEmbeddingParser"}
-            )
+            Document(id=str(i), content=emb, metadata={"source": "BERTEmbeddingParser"})
             for i, emb in enumerate(doc_embeddings)
         ]
 
