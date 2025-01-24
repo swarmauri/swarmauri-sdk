@@ -41,10 +41,11 @@ class EntityRecognitionParser(ParserBase):
 
         # Compile identified entities into documents
         entities_docs = []
+
         for ent in doc.ents:
-            # Create a document for each entity with metadata carrying entity type
+
             entity_doc = Document(
-                doc_id=ent.text, content=ent.text, metadata={"entity_type": ent.label_}
+                id=ent.text, content=ent.text, metadata={"entity_type": ent.label_}
             )
             entities_docs.append(entity_doc)
 

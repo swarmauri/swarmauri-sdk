@@ -1,4 +1,5 @@
 from typing import Dict, Optional, Literal
+import numpy as np
 from pydantic import Field, ConfigDict
 
 from swarmauri_core.documents.IDocument import IDocument
@@ -7,7 +8,7 @@ from swarmauri_standard.vectors.Vector import Vector
 
 @ComponentBase.register_model()
 class DocumentBase(IDocument, ComponentBase):
-    content: str
+    content: str | np.ndarray
     metadata: Dict = {}
     embedding: Optional[Vector] = None
     model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
