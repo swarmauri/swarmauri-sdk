@@ -8,7 +8,7 @@ from pydantic import PrivateAttr
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.schema_converters.concrete.GroqSchemaConverter import (
+from swarmauri_standard.schema_converters.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -37,16 +37,18 @@ class GroqToolModel(LLMBase):
     allowed_models: List[str] = [
         "llama3-8b-8192",
         "llama3-70b-8192",
-        "llama3-groq-70b-8192-tool-use-preview",
-        "llama3-groq-8b-8192-tool-use-preview",
+        # "llama3-groq-70b-8192-tool-use-preview", # deprecated
+        # "llama3-groq-8b-8192-tool-use-preview", # deprecated
         "llama-3.1-70b-versatile",
         "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
+
         # parallel tool use not supported
         # "mixtral-8x7b-32768",
         # "gemma-7b-it",
         # "gemma2-9b-it",
     ]
-    name: str = "llama3-groq-70b-8192-tool-use-preview"
+    name: str = "llama-3.3-70b-versatile"
     type: Literal["GroqToolModel"] = "GroqToolModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)

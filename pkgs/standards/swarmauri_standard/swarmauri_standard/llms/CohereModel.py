@@ -1,7 +1,7 @@
 import json
 import asyncio
 import httpx
-from typing import List, Dict, Literal, AsyncIterator, Iterator, Type
+from typing import List, Dict, Literal, AsyncIterator, Iterator
 from pydantic import PrivateAttr
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
@@ -11,7 +11,8 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'CohereModel')
+
+@ComponentBase.register_type(LLMBase, "CohereModel")
 class CohereModel(LLMBase):
     """
     This class provides both synchronous and asynchronous methods for interacting with
@@ -33,11 +34,19 @@ class CohereModel(LLMBase):
     api_key: str
     allowed_models: List[str] = [
         "command",
-        "command-r-plus-08-2024",
-        "command-r-plus-04-2024",
-        "command-r-03-2024",
+        "command-r",
+        "command-r-plus",
         "command-r-08-2024",
+        "command-r-plus-08-2024",
+        "command-r7b-12-2024",
         "command-light",
+        "command-nightly",
+        "command-light-nightly",
+        "c4ai-aya-expanse-8b",
+        "c4ai-aya-expanse-32b",
+
+        # "command-r-plus-04-2024", # Deprecated
+        # "command-r-03-2024", # Deprecated
     ]
     name: str = "command"
     type: Literal["CohereModel"] = "CohereModel"
