@@ -1,6 +1,5 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
-version = "0.6.0.dev1"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
@@ -12,21 +11,21 @@ python = ">=3.10,<3.13"
 pydantic = "^2.0"
 
 # Path dependencies (editable installs by default)
-swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core" }
-swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base" }
-swarmauri = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/swarmauri" }
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard", extras = ["full"] }
+swarmauri_core = {path = "pkgs/core"}
+swarmauri_base = {path = "pkgs/base"}
+swarmauri = {path = "pkgs/swarmauri"}
+swarmauri_standard = {path = "pkgs/standards/swarmauri_standard", extras = ["full"]}
 
 # Extra First Class Citizens
-swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
-swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
-swarmauri_tool_matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
-swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
-swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
-swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
-swarmauri_embedding_nmf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_nmf", optional = true }
-swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true }
-swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
+swarmauri_vectorstore_doc2vec = {path = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true}
+swarmauri_embedding_doc2vec = {path = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true}
+swarmauri_tool_matplotlib = {path = "pkgs/standards/swarmauri_tool_matplotlib", optional = true}
+swarmauri_parser_keywordextractor = {path = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true}
+swarmauri_vectorstore_tfidf = {path = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true}
+swarmauri_embedding_tfidf = {path = "pkgs/standards/swarmauri_embedding_tfidf", optional = true}
+swarmauri_embedding_nmf = {path = "pkgs/standards/swarmauri_embedding_nmf", optional = true}
+swarmauri_parser_beautifulsoupelement = {path = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true}
+swarmauri_distance_minkowski = {path = "pkgs/standards/swarmauri_distance_minkowski", optional = true}
 
 # Standard Plugin Example
 #swm_example_package = { path = "./standards/swm_example_package" }
@@ -34,43 +33,43 @@ swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-s
 # Community Packages (will push out later)
 #swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
 
-swarmauri_vectorstore_redis = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_redis", optional = true }
-swarmauri_documentstore_redis = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_documentstore_redis", optional = true }
-swarmauri_vectorstore_qdrant = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_qdrant", optional = true }
-swarmauri_vectorstore_pinecone = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_pinecone", optional = true }
-swarmauri_vectorstore_persistentchromadb = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_persistentchromadb", optional = true }
-swarmauri_vectorstore_neo4j = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_neo4j", optional = true }
-swarmauri_vectorstore_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_mlm", optional = true }
-swarmauri_vectorstore_duckdb = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_duckdb", optional = true }
-swarmauri_vectorstore_cloudweaviate = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_cloudweaviate", optional = true }
-swarmauri_tool_zapierhook = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_zapierhook", optional = true }
-swarmauri_tool_webscraping = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_webscraping", optional = true }
-swarmauri_tool_textlength = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_textlength", optional = true }
-swarmauri_tool_smogindex = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_smogindex", optional = true }
-swarmauri_tool_sentimentanalysis = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_sentimentanalysis", optional = true }
-swarmauri_tool_sentencecomplexity = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_sentencecomplexity", optional = true }
-swarmauri_tool_qrcodegenerator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_qrcodegenerator", optional = true }
-swarmauri_tool_lexicaldensity = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_lexicaldensity", optional = true }
-swarmauri_parser_textblob = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_textblob", optional = true }
-swarmauri_state_clipboard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_state_clipboard", optional = true }
-swarmauri_parser_fitzpdf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_fitzpdf", optional = true }
-swarmauri_tool_captchagenerator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_captchagenerator", optional = true }
-swarmauri_parser_entityrecognition = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_entityrecognition", optional = true }
-swarmauri_parser_bertembedding = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_bertembedding", optional = true }
-swarmauri_measurement_mutualinformation = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_measurement_mutualinformation", optional = true }
-swarmauri_parser_pypdf2 = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_pypdf2", optional = true }
-swarmauri_measurement_tokencountestimator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator", optional = true }
-swarmauri_llm_pytesseractimg2text = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_llm_pytesseractimg2text", optional = true }
-swarmauri_tool_entityrecognition = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_entityrecognition", optional = true }
-swarmauri_tool_downloadpdf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_downloadpdf", optional = true }
-swarmauri_tool_dalechallreadability = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_dalechallreadability", optional = true }
-swarmauri_llm_leptonai = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_llm_leptonai", optional = true }
-swarmauri_tool_gmail = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_gmail", optional = true }
-swarmauri_tool_folium = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_folium", optional = true }
-swarmauri_tool_psutil = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_psutil", optional = true }
-swarmauri_embedding_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_embedding_mlm", optional = true }
-swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_github", optional = true }
-swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
+swarmauri_vectorstore_redis = {path = "pkgs/community/swarmauri_vectorstore_redis", optional = true}
+swarmauri_documentstore_redis = {path = "pkgs/community/swarmauri_documentstore_redis", optional = true}
+swarmauri_vectorstore_qdrant = {path = "pkgs/community/swarmauri_vectorstore_qdrant", optional = true}
+swarmauri_vectorstore_pinecone = {path = "pkgs/community/swarmauri_vectorstore_pinecone", optional = true}
+swarmauri_vectorstore_persistentchromadb = {path = "pkgs/community/swarmauri_vectorstore_persistentchromadb", optional = true}
+swarmauri_vectorstore_neo4j = {path = "pkgs/community/swarmauri_vectorstore_neo4j", optional = true}
+swarmauri_vectorstore_mlm = {path = "pkgs/community/swarmauri_vectorstore_mlm", optional = true}
+swarmauri_vectorstore_duckdb = {path = "pkgs/community/swarmauri_vectorstore_duckdb", optional = true}
+swarmauri_vectorstore_cloudweaviate = {path = "pkgs/community/swarmauri_vectorstore_cloudweaviate", optional = true}
+swarmauri_tool_zapierhook = {path = "pkgs/community/swarmauri_tool_zapierhook", optional = true}
+swarmauri_tool_webscraping = {path = "pkgs/community/swarmauri_tool_webscraping", optional = true}
+swarmauri_tool_textlength = {path = "pkgs/community/swarmauri_tool_textlength", optional = true}
+swarmauri_tool_smogindex = {path = "pkgs/community/swarmauri_tool_smogindex", optional = true}
+swarmauri_tool_sentimentanalysis = {path = "pkgs/community/swarmauri_tool_sentimentanalysis", optional = true}
+swarmauri_tool_sentencecomplexity = {path = "pkgs/community/swarmauri_tool_sentencecomplexity", optional = true}
+swarmauri_tool_qrcodegenerator = {path = "pkgs/community/swarmauri_tool_qrcodegenerator", optional = true}
+swarmauri_tool_lexicaldensity = {path = "pkgs/community/swarmauri_tool_lexicaldensity", optional = true}
+swarmauri_parser_textblob = {path = "pkgs/community/swarmauri_parser_textblob", optional = true}
+swarmauri_state_clipboard = {path = "pkgs/community/swarmauri_state_clipboard", optional = true}
+swarmauri_parser_fitzpdf = {path = "pkgs/community/swarmauri_parser_fitzpdf", optional = true}
+swarmauri_tool_captchagenerator = {path = "pkgs/community/swarmauri_tool_captchagenerator", optional = true}
+swarmauri_parser_entityrecognition = {path = "pkgs/community/swarmauri_parser_entityrecognition", optional = true}
+swarmauri_parser_bertembedding = {path = "pkgs/community/swarmauri_parser_bertembedding", optional = true}
+swarmauri_measurement_mutualinformation = {path = "pkgs/community/swarmauri_measurement_mutualinformation", optional = true}
+swarmauri_parser_pypdf2 = {path = "pkgs/community/swarmauri_parser_pypdf2", optional = true}
+swarmauri_measurement_tokencountestimator = {path = "pkgs/community/swarmauri_measurement_tokencountestimator", optional = true}
+swarmauri_llm_pytesseractimg2text = {path = "pkgs/community/swarmauri_llm_pytesseractimg2text", optional = true}
+swarmauri_tool_entityrecognition = {path = "pkgs/community/swarmauri_tool_entityrecognition", optional = true}
+swarmauri_tool_downloadpdf = {path = "pkgs/community/swarmauri_tool_downloadpdf", optional = true}
+swarmauri_tool_dalechallreadability = {path = "pkgs/community/swarmauri_tool_dalechallreadability", optional = true}
+swarmauri_llm_leptonai = {path = "pkgs/community/swarmauri_llm_leptonai", optional = true}
+swarmauri_tool_gmail = {path = "pkgs/community/swarmauri_tool_gmail", optional = true}
+swarmauri_tool_folium = {path = "pkgs/community/swarmauri_tool_folium", optional = true}
+swarmauri_tool_psutil = {path = "pkgs/community/swarmauri_tool_psutil", optional = true}
+swarmauri_embedding_mlm = {path = "pkgs/community/swarmauri_embedding_mlm", optional = true}
+swarmauri_tool_github = {path = "pkgs/community/swarmauri_tool_github", optional = true}
+swarmauri_vectorstore_annoy = {path = "pkgs/community/swarmauri_vectorstore_annoy", optional = true}
 
 #swm_example_community_package = { path = "./community/swm_example_community_package" }
 
