@@ -11,21 +11,21 @@ python = ">=3.10,<3.13"
 pydantic = "^2.0"
 
 # Path dependencies (editable installs by default)
-swarmauri_core = {path = "pkgs/core"}
-swarmauri_base = {path = "pkgs/base"}
-swarmauri = {path = "pkgs/swarmauri"}
-swarmauri_standard = {path = "pkgs/standards/swarmauri_standard", extras = ["full"]}
+swarmauri_core = {path = "../core"}
+swarmauri_base = {path = "../base"}
+swarmauri = {path = "../swarmauri"}
+swarmauri_standard = {path = "../standards/swarmauri_standard", extras = ["full"]}
 
 # Extra First Class Citizens
-swarmauri_vectorstore_doc2vec = {path = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true}
-swarmauri_embedding_doc2vec = {path = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true}
-swarmauri_tool_matplotlib = {path = "pkgs/standards/swarmauri_tool_matplotlib", optional = true}
-swarmauri_parser_keywordextractor = {path = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true}
-swarmauri_vectorstore_tfidf = {path = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true}
-swarmauri_embedding_tfidf = {path = "pkgs/standards/swarmauri_embedding_tfidf", optional = true}
-swarmauri_embedding_nmf = {path = "pkgs/standards/swarmauri_embedding_nmf", optional = true}
-swarmauri_parser_beautifulsoupelement = {path = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true}
-swarmauri_distance_minkowski = {path = "pkgs/standards/swarmauri_distance_minkowski", optional = true}
+swarmauri_vectorstore_doc2vec = {path = "../standards/swarmauri_vectorstore_doc2vec", optional = true}
+swarmauri_embedding_doc2vec = {path = "../standards/swarmauri_embedding_doc2vec", optional = true}
+swarmauri_tool_matplotlib = {path = "../standards/swarmauri_tool_matplotlib", optional = true}
+swarmauri_parser_keywordextractor = {path = "../standards/swarmauri_parser_keywordextractor", optional = true}
+swarmauri_vectorstore_tfidf = {path = "../standards/swarmauri_vectorstore_tfidf", optional = true}
+swarmauri_embedding_tfidf = {path = "../standards/swarmauri_embedding_tfidf", optional = true}
+swarmauri_embedding_nmf = {path = "../standards/swarmauri_embedding_nmf", optional = true}
+swarmauri_parser_beautifulsoupelement = {path = "../standards/swarmauri_parser_beautifulsoupelement", optional = true}
+swarmauri_distance_minkowski = {path = "../standards/swarmauri_distance_minkowski", optional = true}
 
 # Standard Plugin Example
 #swm_example_package = { path = "./standards/swm_example_package" }
@@ -33,43 +33,43 @@ swarmauri_distance_minkowski = {path = "pkgs/standards/swarmauri_distance_minkow
 # Community Packages (will push out later)
 #swarmauri_community = { path = "./community/swarmauri_community", extras=["full"] }
 
-swarmauri_vectorstore_redis = {path = "pkgs/community/swarmauri_vectorstore_redis", optional = true}
-swarmauri_documentstore_redis = {path = "pkgs/community/swarmauri_documentstore_redis", optional = true}
-swarmauri_vectorstore_qdrant = {path = "pkgs/community/swarmauri_vectorstore_qdrant", optional = true}
-swarmauri_vectorstore_pinecone = {path = "pkgs/community/swarmauri_vectorstore_pinecone", optional = true}
-swarmauri_vectorstore_persistentchromadb = {path = "pkgs/community/swarmauri_vectorstore_persistentchromadb", optional = true}
-swarmauri_vectorstore_neo4j = {path = "pkgs/community/swarmauri_vectorstore_neo4j", optional = true}
-swarmauri_vectorstore_mlm = {path = "pkgs/community/swarmauri_vectorstore_mlm", optional = true}
-swarmauri_vectorstore_duckdb = {path = "pkgs/community/swarmauri_vectorstore_duckdb", optional = true}
-swarmauri_vectorstore_cloudweaviate = {path = "pkgs/community/swarmauri_vectorstore_cloudweaviate", optional = true}
-swarmauri_tool_zapierhook = {path = "pkgs/community/swarmauri_tool_zapierhook", optional = true}
-swarmauri_tool_webscraping = {path = "pkgs/community/swarmauri_tool_webscraping", optional = true}
-swarmauri_tool_textlength = {path = "pkgs/community/swarmauri_tool_textlength", optional = true}
-swarmauri_tool_smogindex = {path = "pkgs/community/swarmauri_tool_smogindex", optional = true}
-swarmauri_tool_sentimentanalysis = {path = "pkgs/community/swarmauri_tool_sentimentanalysis", optional = true}
-swarmauri_tool_sentencecomplexity = {path = "pkgs/community/swarmauri_tool_sentencecomplexity", optional = true}
-swarmauri_tool_qrcodegenerator = {path = "pkgs/community/swarmauri_tool_qrcodegenerator", optional = true}
-swarmauri_tool_lexicaldensity = {path = "pkgs/community/swarmauri_tool_lexicaldensity", optional = true}
-swarmauri_parser_textblob = {path = "pkgs/community/swarmauri_parser_textblob", optional = true}
-swarmauri_state_clipboard = {path = "pkgs/community/swarmauri_state_clipboard", optional = true}
-swarmauri_parser_fitzpdf = {path = "pkgs/community/swarmauri_parser_fitzpdf", optional = true}
-swarmauri_tool_captchagenerator = {path = "pkgs/community/swarmauri_tool_captchagenerator", optional = true}
-swarmauri_parser_entityrecognition = {path = "pkgs/community/swarmauri_parser_entityrecognition", optional = true}
-swarmauri_parser_bertembedding = {path = "pkgs/community/swarmauri_parser_bertembedding", optional = true}
-swarmauri_measurement_mutualinformation = {path = "pkgs/community/swarmauri_measurement_mutualinformation", optional = true}
-swarmauri_parser_pypdf2 = {path = "pkgs/community/swarmauri_parser_pypdf2", optional = true}
-swarmauri_measurement_tokencountestimator = {path = "pkgs/community/swarmauri_measurement_tokencountestimator", optional = true}
-swarmauri_llm_pytesseractimg2text = {path = "pkgs/community/swarmauri_llm_pytesseractimg2text", optional = true}
-swarmauri_tool_entityrecognition = {path = "pkgs/community/swarmauri_tool_entityrecognition", optional = true}
-swarmauri_tool_downloadpdf = {path = "pkgs/community/swarmauri_tool_downloadpdf", optional = true}
-swarmauri_tool_dalechallreadability = {path = "pkgs/community/swarmauri_tool_dalechallreadability", optional = true}
-swarmauri_llm_leptonai = {path = "pkgs/community/swarmauri_llm_leptonai", optional = true}
-swarmauri_tool_gmail = {path = "pkgs/community/swarmauri_tool_gmail", optional = true}
-swarmauri_tool_folium = {path = "pkgs/community/swarmauri_tool_folium", optional = true}
-swarmauri_tool_psutil = {path = "pkgs/community/swarmauri_tool_psutil", optional = true}
-swarmauri_embedding_mlm = {path = "pkgs/community/swarmauri_embedding_mlm", optional = true}
-swarmauri_tool_github = {path = "pkgs/community/swarmauri_tool_github", optional = true}
-swarmauri_vectorstore_annoy = {path = "pkgs/community/swarmauri_vectorstore_annoy", optional = true}
+swarmauri_vectorstore_redis = {path = "../community/swarmauri_vectorstore_redis", optional = true}
+swarmauri_documentstore_redis = {path = "../community/swarmauri_documentstore_redis", optional = true}
+swarmauri_vectorstore_qdrant = {path = "../community/swarmauri_vectorstore_qdrant", optional = true}
+swarmauri_vectorstore_pinecone = {path = "../community/swarmauri_vectorstore_pinecone", optional = true}
+swarmauri_vectorstore_persistentchromadb = {path = "../community/swarmauri_vectorstore_persistentchromadb", optional = true}
+swarmauri_vectorstore_neo4j = {path = "../community/swarmauri_vectorstore_neo4j", optional = true}
+swarmauri_vectorstore_mlm = {path = "../community/swarmauri_vectorstore_mlm", optional = true}
+swarmauri_vectorstore_duckdb = {path = "../community/swarmauri_vectorstore_duckdb", optional = true}
+swarmauri_vectorstore_cloudweaviate = {path = "../community/swarmauri_vectorstore_cloudweaviate", optional = true}
+swarmauri_tool_zapierhook = {path = "../community/swarmauri_tool_zapierhook", optional = true}
+swarmauri_tool_webscraping = {path = "../community/swarmauri_tool_webscraping", optional = true}
+swarmauri_tool_textlength = {path = "../community/swarmauri_tool_textlength", optional = true}
+swarmauri_tool_smogindex = {path = "../community/swarmauri_tool_smogindex", optional = true}
+swarmauri_tool_sentimentanalysis = {path = "../community/swarmauri_tool_sentimentanalysis", optional = true}
+swarmauri_tool_sentencecomplexity = {path = "../community/swarmauri_tool_sentencecomplexity", optional = true}
+swarmauri_tool_qrcodegenerator = {path = "../community/swarmauri_tool_qrcodegenerator", optional = true}
+swarmauri_tool_lexicaldensity = {path = "../community/swarmauri_tool_lexicaldensity", optional = true}
+swarmauri_parser_textblob = {path = "../community/swarmauri_parser_textblob", optional = true}
+swarmauri_state_clipboard = {path = "../community/swarmauri_state_clipboard", optional = true}
+swarmauri_parser_fitzpdf = {path = "../community/swarmauri_parser_fitzpdf", optional = true}
+swarmauri_tool_captchagenerator = {path = "../community/swarmauri_tool_captchagenerator", optional = true}
+swarmauri_parser_entityrecognition = {path = "../community/swarmauri_parser_entityrecognition", optional = true}
+swarmauri_parser_bertembedding = {path = "../community/swarmauri_parser_bertembedding", optional = true}
+swarmauri_measurement_mutualinformation = {path = "../community/swarmauri_measurement_mutualinformation", optional = true}
+swarmauri_parser_pypdf2 = {path = "../community/swarmauri_parser_pypdf2", optional = true}
+swarmauri_measurement_tokencountestimator = {path = "../community/swarmauri_measurement_tokencountestimator", optional = true}
+swarmauri_llm_pytesseractimg2text = {path = "../community/swarmauri_llm_pytesseractimg2text", optional = true}
+swarmauri_tool_entityrecognition = {path = "../community/swarmauri_tool_entityrecognition", optional = true}
+swarmauri_tool_downloadpdf = {path = "../community/swarmauri_tool_downloadpdf", optional = true}
+swarmauri_tool_dalechallreadability = {path = "../community/swarmauri_tool_dalechallreadability", optional = true}
+swarmauri_llm_leptonai = {path = "../community/swarmauri_llm_leptonai", optional = true}
+swarmauri_tool_gmail = {path = "../community/swarmauri_tool_gmail", optional = true}
+swarmauri_tool_folium = {path = "../community/swarmauri_tool_folium", optional = true}
+swarmauri_tool_psutil = {path = "../community/swarmauri_tool_psutil", optional = true}
+swarmauri_embedding_mlm = {path = "../community/swarmauri_embedding_mlm", optional = true}
+swarmauri_tool_github = {path = "../community/swarmauri_tool_github", optional = true}
+swarmauri_vectorstore_annoy = {path = "../community/swarmauri_vectorstore_annoy", optional = true}
 
 #swm_example_community_package = { path = "./community/swm_example_community_package" }
 
@@ -180,7 +180,7 @@ full = [
 pytest = "^7.0"
 black = "^22.3.0"
 toml = "^0.10.2"
-#monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="pkgs/tooling/monorepo_manager" }
+#monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="../tooling/monorepo_manager" }
 
 
 
