@@ -82,7 +82,7 @@ def test_serialization(groq_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_tool_model):
-    assert groq_tool_model.name == "llama3-groq-70b-8192-tool-use-preview"
+    assert groq_tool_model.name == "llama-3.3-70b-versatile"
 
 
 @pytest.mark.unit

@@ -39,6 +39,37 @@ class MistralModel(LLMBase):
         "open-mistral-nemo",
         "codestral-latest",
         "open-codestral-mamba",
+
+        "ministral-3b-latest",
+        "ministral-8b-latest",
+        "ministral-8b-2410",
+        "mistral-tiny",
+        "mistral-tiny-2312",
+        "mistral-tiny-2407",
+        "mistral-tiny-latest",
+        "open-mistral-nemo-2407"
+        "mistral-small",
+        "mistral-small-2312",
+        "open-mixtral-8x22b-2404",
+        "mistral-small-2402",
+        "mistral-small-2409",
+        "mistral-medium-2312",
+        "mistral-medium",
+        "mistral-large-2402",
+        "pixtral-12b-latest",
+        "pixtral-12b-2409",
+        "pixtral-12b",
+        "codestral-mamba-latest",
+        "codestral-mamba-2407",
+        "open-codestral-mamba",
+        "codestral-2412",
+        "codestral-2501",
+        "codestral-2411-rc5",
+        "codestral-2405",
+        "pixtral-large-latest",
+        "pixtral-large-2411",
+        "mistral-large-2411",
+        "mistral-large-2407"
     ]
     name: str = "open-mixtral-8x7b"
     type: Literal["MistralModel"] = "MistralModel"

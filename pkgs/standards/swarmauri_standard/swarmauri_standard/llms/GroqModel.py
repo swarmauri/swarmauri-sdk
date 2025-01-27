@@ -29,23 +29,26 @@ class GroqModel(LLMBase):
 
     api_key: str
     allowed_models: List[str] = [
-        "gemma-7b-it",
+        # "gemma-7b-it", # deprecated
         "gemma2-9b-it",
         "llama-3.1-70b-versatile",
         "llama-3.1-8b-instant",
         "llama-3.2-11b-text-preview",
         "llama-3.2-1b-preview",
         "llama-3.2-3b-preview",
-        "llama-3.2-90b-text-preview",
+        # "llama-3.2-90b-text-preview", # deprecated
         "llama-guard-3-8b",
         "llama3-70b-8192",
         "llama3-8b-8192",
-        "llama3-groq-70b-8192-tool-use-preview",
-        "llama3-groq-8b-8192-tool-use-preview",
-        "llava-v1.5-7b-4096-preview",
+        # "llama3-groq-70b-8192-tool-use-preview", # deprecated
+        # "llama3-groq-8b-8192-tool-use-preview", # deprecated
+        # "llava-v1.5-7b-4096-preview", # deprecated
         "mixtral-8x7b-32768",
+        "llama-3.3-70b-versatile",
+        "llama-3.3-70b-specdec",
+        "llama-3.2-11b-vision-preview"
     ]
-    name: str = "gemma-7b-it"
+    name: str = "gemma2-9b-it"
     type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
