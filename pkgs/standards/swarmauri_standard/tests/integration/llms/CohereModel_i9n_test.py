@@ -1,11 +1,10 @@
 import pytest
 import os
-from swarmauri.llms.concrete.CohereModel import CohereModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri_standard.llms.CohereModel import CohereModel as LLM
+from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 
 @pytest.fixture(scope="module")
@@ -42,5 +41,5 @@ def test_multiple_system_contexts(cohere_model):
 
     model.predict(conversation=conversation, temperature=0)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Ben" in prediction
