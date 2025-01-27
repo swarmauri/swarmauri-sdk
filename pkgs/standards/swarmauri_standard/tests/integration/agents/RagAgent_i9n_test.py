@@ -1,14 +1,14 @@
 import os
 import pytest
 
-from swarmauri.llms.concrete.GroqModel import GroqModel as LLM
-from swarmauri.conversations.concrete.MaxSystemContextConversation import (
+from swarmauri_standard.llms.GroqModel import GroqModel as LLM
+from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri.vector_stores.concrete.TfidfVectorStore import TfidfVectorStore
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
-from swarmauri.documents.concrete.Document import Document
-from swarmauri.agents.concrete.RagAgent import RagAgent
+from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.agents.RagAgent import RagAgent
 
 
 @pytest.fixture(scope="module")
@@ -42,4 +42,4 @@ def test_agent_exec(groq_model):
         vector_store=vector_store,
     )
     result = agent.exec("What is the name of their grandfather?")
-    assert type(result) == str
+    assert type(result) is str
