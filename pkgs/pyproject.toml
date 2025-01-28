@@ -184,6 +184,23 @@ toml = "^0.10.2"
 #monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="./pkgs/tooling/monorepo_manager" }
 
 
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+asyncio_mode = "auto"
+
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "asyncio: asynscio test",
+    "integration: Integration tests",
+    "acceptance: Acceptance tests",
+    "experimental: Experimental tests"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
