@@ -204,7 +204,7 @@ class ComponentBase(BaseModel):
                 cls.MODEL_REGISTRY[model_cls] = []
 
             # Inspect all fields to find SubclassUnion annotations
-            for field_name, field in model_cls.__fields__.items():
+            for field_name, field in model_cls.model_fields.items():
                 field_annotation = model_cls.__annotations__.get(field_name)
                 if not field_annotation:
                     continue
@@ -379,7 +379,7 @@ class ComponentBase(BaseModel):
             logging.debug(f"Processing model: {model_cls.__name__}")
             models_with_fields[model_cls] = {}
 
-            for field_name, field in model_cls.__fields__.items():
+            for field_name, field in model_cls.model_fields.items():
                 logging.debug(f"Processing field: {field_name}")
 
                 field_annotation = model_cls.__annotations__.get(field_name)
@@ -423,7 +423,7 @@ class ComponentBase(BaseModel):
                 logging.debug(f"Processing component class: {component_cls.__name__}")
                 type_models_with_fields[component_cls] = {}
 
-                for field_name, field in component_cls.__fields__.items():
+                for field_name, field in component_cls.model_fields.items():
                     logging.debug(f"Processing field: {field_name}")
 
                     field_annotation = component_cls.__annotations__.get(field_name)
