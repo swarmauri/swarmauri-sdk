@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_qdrant"
-version = "0.6.0.dev153"
+version = "0.6.0.dev154"
 description = "Swarmauri Persistent Qdrant Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

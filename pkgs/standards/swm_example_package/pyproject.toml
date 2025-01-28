@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swm-example-package"
-version = "0.6.0.dev153"
+version = "0.6.0.dev154"
 description = "This repository includes an example of a First Class Swarmauri Example."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
