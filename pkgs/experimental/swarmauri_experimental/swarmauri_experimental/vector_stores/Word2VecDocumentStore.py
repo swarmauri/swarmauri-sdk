@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Union
 import numpy as np
 from gensim.models import Word2Vec
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore

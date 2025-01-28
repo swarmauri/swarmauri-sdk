@@ -1,4 +1,4 @@
-from typing import List, Dict, Set
+from typing import Dict, Set
 from swarmauri_core.vector_stores.ISimilarity import ISimilarity
 
 

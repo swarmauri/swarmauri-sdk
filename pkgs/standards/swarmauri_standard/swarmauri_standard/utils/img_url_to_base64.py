@@ -1,5 +1,4 @@
 import base64
-from typing import Union
 from io import BytesIO
 import requests
 from PIL import Image

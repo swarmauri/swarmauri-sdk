@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Union
+from typing import List, Literal, Union
 
 import PyPDF2 
 from swarmauri.documents.concrete.Document import Document

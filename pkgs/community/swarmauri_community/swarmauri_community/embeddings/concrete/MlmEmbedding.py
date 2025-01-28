@@ -1,13 +1,10 @@
 from typing import List, Union, Any, Literal
 import logging
 from pydantic import PrivateAttr
-import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import AdamW
 from transformers import AutoModelForMaskedLM, AutoTokenizer
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset
 
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.vectors.concrete.Vector import Vector

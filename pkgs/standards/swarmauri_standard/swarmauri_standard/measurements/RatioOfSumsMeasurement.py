@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Literal
 import pandas as pd
 
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase

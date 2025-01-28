@@ -1,7 +1,7 @@
 import argparse
 import logging
 import subprocess
-from swarmauri.registry import list_registry, create_entry, delete_entry, read_entry
+from swarmauri.registry import list_registry
 from swarmauri.plugin_manager import get_entry_points, determine_plugin_manager
 
 logging.basicConfig(level=logging.INFO)

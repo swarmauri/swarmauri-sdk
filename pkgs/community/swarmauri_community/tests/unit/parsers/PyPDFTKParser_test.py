@@ -3,7 +3,6 @@ from unittest import mock
 import pytest
 from swarmauri_community.parsers.concrete.PyPDFTKParser import PyPDFTKParser as Parser
 from swarmauri_core.documents.IDocument import IDocument
-from swarmauri.documents.concrete.Document import Document
 
 
 @pytest.mark.unit

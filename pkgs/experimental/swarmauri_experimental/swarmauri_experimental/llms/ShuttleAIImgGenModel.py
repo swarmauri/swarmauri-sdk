@@ -1,7 +1,7 @@
 import os
 import asyncio
 import requests
-from typing import List, Literal, Optional, Dict
+from typing import List, Literal, Dict
 from pydantic import Field, ConfigDict
 from swarmauri.llms.base.LLMBase import LLMBase
 

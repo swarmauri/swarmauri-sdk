@@ -1,10 +1,8 @@
 import json
-import logging
 import asyncio
 from typing import List, Literal, Dict, Any, Iterator, AsyncIterator
 from openai import OpenAI, AsyncOpenAI
 from proto import Message
-from pydantic import Field
 from swarmauri_core.typing import SubclassUnion
 
 from swarmauri.messages.base.MessageBase import MessageBase

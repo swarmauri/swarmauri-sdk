@@ -1,5 +1,5 @@
 from typing import List, Union, Literal, Optional
-from pydantic import BaseModel, PrivateAttr
+from pydantic import PrivateAttr
 import uuid as ud
 import weaviate
 from weaviate.classes.init import Auth

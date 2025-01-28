@@ -1,6 +1,5 @@
 import logging
 import chromadb
-from chromadb.config import Settings
 
 from typing import List, Union, Literal
 

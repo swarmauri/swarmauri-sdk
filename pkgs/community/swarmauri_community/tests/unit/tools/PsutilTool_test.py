@@ -1,5 +1,4 @@
 import pytest
-import psutil
 from swarmauri_community.tools.concrete.PsutilTool import PsutilTool as Tool
 
 

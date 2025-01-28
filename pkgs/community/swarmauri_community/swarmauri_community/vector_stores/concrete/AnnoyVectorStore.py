@@ -1,4 +1,4 @@
-from typing import List, Union, Literal, Dict, Any, Optional
+from typing import List, Union, Literal, Optional
 import numpy as np
 from annoy import AnnoyIndex
 import os

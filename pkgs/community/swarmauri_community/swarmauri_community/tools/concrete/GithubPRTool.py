@@ -1,7 +1,7 @@
 # swarmauri/community/tools/concrete/GithubPRTool.py
 
 from github import Github, GithubException
-from typing import List, Dict, Literal, Optional, Any
+from typing import List, Dict, Literal, Any
 from pydantic import Field, ConfigDict
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter

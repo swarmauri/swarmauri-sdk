@@ -1,5 +1,4 @@
 import re
-from urllib.parse import urlparse
 from typing import List, Union, Any, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase

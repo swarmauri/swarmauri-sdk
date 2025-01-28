@@ -1,10 +1,7 @@
 import os
 import fal_client
 import asyncio
-import requests
-from io import BytesIO
-from PIL import Image
-from typing import List, Literal, Optional, Union, Dict
+from typing import List, Literal, Dict
 from pydantic import Field, ConfigDict
 from swarmauri.llms.base.LLMBase import LLMBase
 

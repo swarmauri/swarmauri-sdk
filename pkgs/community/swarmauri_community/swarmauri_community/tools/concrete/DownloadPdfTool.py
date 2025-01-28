@@ -2,7 +2,6 @@ import base64
 from io import BytesIO
 import requests
 from typing import Dict, Literal, List
-from pathlib import Path
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
 

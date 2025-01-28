@@ -71,7 +71,7 @@ class MaxSystemContextConversation(IMaxSize, ConversationSystemContextMixin, Con
         elif isinstance(message, IMessage):
             self._history.append(message)
         else:
-            raise ValueError(f"Must use a subclass of IMessage")
+            raise ValueError("Must use a subclass of IMessage")
         self._enforce_max_size_limit()
         
     def _enforce_max_size_limit(self):

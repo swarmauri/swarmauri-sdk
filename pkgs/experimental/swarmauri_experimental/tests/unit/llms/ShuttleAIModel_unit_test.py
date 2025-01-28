@@ -1,11 +1,7 @@
 import pytest
 import os
-import asyncio
 from swarmauri_experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM
-from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
 from time import sleep
 from dotenv import load_dotenv
 

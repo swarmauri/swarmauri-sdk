@@ -1,4 +1,4 @@
-from typing import List, Any, Optional, Literal
+from typing import List, Any, Literal
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
 from swarmauri.vectors.concrete.Vector import Vector

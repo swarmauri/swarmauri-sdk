@@ -1,5 +1,5 @@
-from typing import Any, Tuple, Dict, Optional, Union, Literal
-from pydantic import Field, ConfigDict
+from typing import Any, Tuple, Dict, Optional, Literal
+from pydantic import Field
 
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.chains.IChainStep import IChainStep

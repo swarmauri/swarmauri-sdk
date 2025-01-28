@@ -6,7 +6,6 @@ from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistr
 from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
 from swarmauri_base.transports.TransportBase import TransportBase
 
-from unittest.mock import MagicMock
 from pydantic import BaseModel
 
 

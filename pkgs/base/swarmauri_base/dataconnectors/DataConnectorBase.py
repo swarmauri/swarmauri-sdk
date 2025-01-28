@@ -1,5 +1,5 @@
 from swarmauri_core.dataconnectors.IDataConnector import IDataConnector
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.ComponentBase import ComponentBase
 
 class DataConnectorBase(IDataConnector, ComponentBase):
     """

@@ -1,4 +1,3 @@
-from numpy.linalg import norm
 
 from abc import abstractmethod
 from typing import List, Optional, Literal

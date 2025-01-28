@@ -1,7 +1,6 @@
 from typing import Any, Optional, Dict, Union, Literal
 import json
 import os
-from pydantic import Field
 
 
 from swarmauri.vector_stores.Doc2VecVectorStore import Doc2VecVectorStore

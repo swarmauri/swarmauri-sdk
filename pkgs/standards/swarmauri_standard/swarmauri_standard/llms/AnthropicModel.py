@@ -241,7 +241,7 @@ class AnthropicModel(LLMBase):
                                         and "usage" in event["message"]
                                     ):
                                         usage_data = event["message"]["usage"]
-                            except (json.JSONDecodeError, KeyError) as e:
+                            except (json.JSONDecodeError, KeyError):
                                 continue
 
         usage = self._prepare_usage_data(
@@ -368,7 +368,7 @@ class AnthropicModel(LLMBase):
                                         and "usage" in event["message"]
                                     ):
                                         usage_data = event["message"]["usage"]
-                            except (json.JSONDecodeError, KeyError) as e:
+                            except (json.JSONDecodeError, KeyError):
                                 continue
 
         usage = self._prepare_usage_data(

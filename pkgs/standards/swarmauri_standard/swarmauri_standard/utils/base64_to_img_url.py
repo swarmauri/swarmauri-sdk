@@ -1,6 +1,4 @@
-import base64
 import requests
-from typing import Union
 
 
 def base64_to_img_url(base64_str: str, api_key: str) -> str:

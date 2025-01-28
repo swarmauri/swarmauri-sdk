@@ -4,7 +4,6 @@ from deepface import DeepFace
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
 from swarmauri.embeddings.base.VisionEmbeddingBase import VisionEmbeddingBase
 from pydantic import Field
-from swarmauri_core.ComponentBase import ResourceTypes
 
 class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
     type: Literal["DeepFaceEmbedder"] = "DeepFaceEmbedder"

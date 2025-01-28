@@ -1,11 +1,9 @@
-from typing import List
 import os
 from pydantic import BaseModel
 import json
 import glob
 import importlib 
 from swarmauri_core.vector_stores.IVectorStoreSaveLoad import IVectorStoreSaveLoad
-from swarmauri_standard.documents.Document import Document
 
 class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
     """

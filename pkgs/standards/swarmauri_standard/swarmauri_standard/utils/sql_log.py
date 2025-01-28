@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime
-import asyncio
 
 
 def sql_log(self, db_path: str, conversation_id, model_name, prompt, response, start_datetime, end_datetime):

@@ -1,5 +1,5 @@
 from typing import Any, Optional, Dict, Union, Literal
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent

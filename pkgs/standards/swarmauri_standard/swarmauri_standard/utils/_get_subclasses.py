@@ -1,5 +1,4 @@
 import importlib
-import re
 
 
 def get_classes_from_module(module_name: str):

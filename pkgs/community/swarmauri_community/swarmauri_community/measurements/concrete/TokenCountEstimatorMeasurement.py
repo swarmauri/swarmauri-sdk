@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Literal
 import tiktoken
 from swarmauri.measurements.base.MeasurementBase import MeasurementBase
 from swarmauri.measurements.base.MeasurementCalculateMixin import (

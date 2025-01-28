@@ -3,7 +3,6 @@ import pytest
 from swarmauri.llms.concrete.AI21StudioModel import AI21StudioModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 

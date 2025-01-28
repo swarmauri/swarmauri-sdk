@@ -13,7 +13,6 @@ Provides functions to:
 Intended for use in a unified monorepo management CLI.
 """
 
-import os
 from urllib.parse import urljoin
 
 import requests
