@@ -43,6 +43,7 @@ norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "asyncio: asynscio test",
     "integration: Integration tests",
     "acceptance: Acceptance tests",
     "experimental: Experimental tests"
