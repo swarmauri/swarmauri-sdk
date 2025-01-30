@@ -1,0 +1,9 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "swarmauri_standards"
+version = "0.0.1"
+description = "A Python package for swarmauri_standards"
+dependencies = []
