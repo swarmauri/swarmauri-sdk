@@ -1,0 +1,8 @@
+from swarmauri_core.Component import ComponentBase
+
+
+@ComponentBase.register_type({{BASE_CLASS}}, "{{MODULE_NAME}}")
+class {{ MODULE_NAME }}( {{ MIXINS }}, {{ BASE_CLASS }}, {{ ComponentBase }}):
+    type: Literal["{{ MODULE_NAME }}"] = "{{ MODULE_NAME }}"
+
+
