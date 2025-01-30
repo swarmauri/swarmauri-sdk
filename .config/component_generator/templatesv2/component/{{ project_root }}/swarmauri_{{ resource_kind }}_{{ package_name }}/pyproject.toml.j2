@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_distance_minkowski"
-version = "0.6.0.dev154"
-description = "Minkowski Distance for Swarmauri."
+name = "swarmauri_{{ resource__kind }}_{{ package_name }}"
+version = "0.1.0.dev1"
+description = "{{ package_description }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -10,7 +10,8 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13"
 ]
 
 [tool.poetry.dependencies]
@@ -21,7 +22,7 @@ swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 
 # Dependencies
-scipy = ">=1.7.0,<1.14.0"
+{{ EXTERNAL_DEPENDENCIES }}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -38,7 +39,6 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-norecursedirs = ["combined", "scripts"]
 
 markers = [
     "test: standard test",
@@ -53,5 +53,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.agents"]
-example_agent = "swm_example_package:ExampleAgent"
+[tool.poetry.plugins."swarmauri.{{resource_kind}}"]
+{{ MODULE_NAME|lower() }} = "{{swarmauri_{{ resource__kind }}_{{ package_name }}}}:{{ MODULE_NAME }}"
