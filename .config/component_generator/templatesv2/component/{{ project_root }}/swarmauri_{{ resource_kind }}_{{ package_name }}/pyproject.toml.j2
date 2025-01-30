@@ -54,4 +54,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.{{resource_kind}}"]
-{{ MODULE_NAME|lower() }} = "{{swarmauri_{{ resource__kind }}_{{ package_name }}}}:{{ MODULE_NAME }}"
+{% MODULE_NAME|lower() %} = "{{swarmauri_{{ resource__kind }}_{{ package_name }}}}:{{ MODULE_NAME }}"
