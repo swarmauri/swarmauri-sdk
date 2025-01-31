@@ -284,6 +284,8 @@ def chunk_content(full_content: str) -> str:
     from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
     chunker = MdSnippetChunker()
     split = chunker.chunk_text(full_content)
+    if len(split) > 1:
+        return full_content
     try:
         return split[0][2]
     except IndexError:
@@ -300,9 +302,15 @@ def call_external_agent(prompt, agent_env):
     #from swarmauri.llms.DeepInfraModel import DeepInfraModel
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
-    llm = DeepInfraModel(api_key="", name="meta-llama/Meta-Llama-3.1-405B-Instruct")
-    agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context="You are a python developer responsible for creating python packages.")
-    result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000})
+    #llm = DeepInfraModel(api_key="", name="meta-llama/Meta-Llama-3.1-405B-Instruct")
+    #llm.allowed_models.append('deepseek-ai/DeepSeek-R1')
+    #llm.name = 'deepseek-ai/DeepSeek-R1'
+    llm = O1Model(api_key="", name="o1")
+    #system_context= "You are a python developer. You responsibility for the development and documentation of python packages."
+    system_context = "You are a helpful assistant."
+    agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
+    #result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000})
+    result = agent.exec(prompt, top_k=0)
     chunk = chunk_content(result)
     del agent
     return chunk
