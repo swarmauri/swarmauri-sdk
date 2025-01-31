@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_{{ resource__kind }}_{{ package_name }}"
+name = "swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}"
 version = "0.1.0.dev1"
-description = "{{ package_description }}"
+description = "{{ PACKAGE_DESCRIPTION }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -22,6 +22,7 @@ swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 
 # Dependencies
+<!-- include additional dependencies here -->
 {{ EXTERNAL_DEPENDENCIES }}
 
 
@@ -53,5 +54,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.{{resource_kind}}"]
-{% MODULE_NAME|lower() %} = "{{swarmauri_{{ resource__kind }}_{{ package_name }}}}:{{ MODULE_NAME }}"
+[tool.poetry.plugins."swarmauri.{{RESOURCE_KIND}}"]
+{{ MODULE_NAME|lower }} = "swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}}}:{{ MODULE_NAME }}"

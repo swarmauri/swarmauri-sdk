@@ -1,7 +1,7 @@
-from .{{ MODULE_NAME }} import {{ MODULE_NAME }}
+from swarmauri_{{ RESOURCE_KIND }}_{{PACKAGE_NAME}}.{{ MODULE_NAME }} import {{ MODULE_NAME }}
 
 
-__all__ = [ {{ MODULE_NAME }} ]
+__all__ = [ "{{ MODULE_NAME }}" ]
 
 try:
     # For Python 3.8 and newer
