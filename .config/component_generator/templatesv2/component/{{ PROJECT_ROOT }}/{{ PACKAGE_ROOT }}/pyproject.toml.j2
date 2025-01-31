@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}"
+name = "{{ PACKAGE_ROOT }}"
 version = "0.1.0.dev1"
 description = "{{ PACKAGE_DESCRIPTION }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
@@ -23,7 +23,11 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 
 # Dependencies
 <!-- include additional dependencies here -->
-{{ EXTERNAL_DEPENDENCIES }}
+{% if THIRD_PARTY_DEPENDENCIES %}
+{% for dependency in THIRD_PARTY_DEPENDENCIES %}
+{{ dependency.name }} = "{{ dependency.version }}"
+{% endfor %}
+{% endif %}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -55,4 +59,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.{{RESOURCE_KIND}}"]
-{{ MODULE_NAME|lower }} = "swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}}}:{{ MODULE_NAME }}"
+{{ MODULE_NAME|lower }} = "{{ PROJECT_ROOT }}:{{ MODULE_NAME }}"

@@ -1,4 +1,4 @@
-from swarmauri_{{ RESOURCE_KIND }}_{{PACKAGE_NAME}}.{{ MODULE_NAME }} import {{ MODULE_NAME }}
+from {{ PACKAGE_ROOT }}.{{ MODULE_NAME }} import {{ MODULE_NAME }}
 
 
 __all__ = [ "{{ MODULE_NAME }}" ]
@@ -11,7 +11,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_{{ RESOURCE_KIND }}_{{PACKAGE_NAME}}")
+    __version__ = version("{{ PACKAGE_ROOT }}")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"
