@@ -53,7 +53,7 @@
     "PROCESS_TYPE": "GENERATE"
   },
   {
-    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}//{{ PACKAGE_ROOT }}/tests/unit/test_{{ MODULE_NAME }}.py{% endraw %}",
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/tests/unit/test_{{ MODULE_NAME }}.py{% endraw %}",
     "PURPOSE": "Contains pytest based test cases for the new component class.",
     "DESCRIPTION": "Verifies the functionality and correctness of the class in {{ MODULE_NAME }}.py.",
     "REQUIREMENTS": [
@@ -77,19 +77,24 @@
     "PROCESS_TYPE": "GENERATE"
   },
   {
-    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/README.rst{% endraw %}",
-    "PURPOSE": "Create a comprehensive and appealing documentation, detailing usage of the new component.",
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/README.md{% endraw %}",
+    "PURPOSE": "Create a comprehensive README.md, detailing usage of the new component.",
     "DESCRIPTION": "Includes branding header, installation and usage instructions, and examples for {{ MODULE_NAME }}.py",
     "REQUIREMENTS": [
       "Include all of the HTML header shown in the example output.",
-      "Should mention how to install and use the new component.",
-      "Provide an example of usage."
+      "Based on the dependencies, create comprehensive installation and usage documentation sections.",
+      "The installation and usage documentation sections should be significantly more complete than the example format provided.",
+      "Do not include details regarding cloning or forking the repository."
+    ],
+    "EXAMPLES": [
+      "GENERATIONS/swarmauri_tool_machinelearningtool/README.md"
     ],
     "DEPENDENCIES": [
       "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
-      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}"
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/pyproject.toml{% endraw %}"
     ],
-    "PROCESS_TYPE": "COPY"
+    "PROCESS_TYPE": "GENERATE"
   },
   {
     "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/LICENSE{% endraw %}",
@@ -98,7 +103,7 @@
     "PROCESS_TYPE": "COPY"
   },
   {
-    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}//{{ PACKAGE_ROOT }}/pyproject.toml{% endraw %}",
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/pyproject.toml{% endraw %}",
     "PURPOSE": "Specifies Python project metadata and dependencies.",
     "DESCRIPTION": "Indicates the project’s name, version, dependencies, and build system.",
     "REQUIREMENTS": [
@@ -107,7 +112,6 @@
     "DEPENDENCIES": [
       "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
       "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
-      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/README.rst{% endraw %}",
       "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/LICENSE{% endraw %}"
     ],
     "PROCESS_TYPE": "GENERATE"

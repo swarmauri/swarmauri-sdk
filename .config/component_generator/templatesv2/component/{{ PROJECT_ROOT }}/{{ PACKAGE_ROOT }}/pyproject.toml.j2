@@ -5,7 +5,7 @@ description = "{{ PACKAGE_DESCRIPTION }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT}}/"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
@@ -59,4 +59,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.{{RESOURCE_KIND}}"]
-{{ MODULE_NAME|lower }} = "{{ PROJECT_ROOT }}:{{ MODULE_NAME }}"
+{{ MODULE_NAME|lower }} = "{{ PACKAGE_ROOT }}:{{ MODULE_NAME }}"
