@@ -14,7 +14,7 @@ AGENT_PROMPT_TEMPLATE = os.path.join(BASE_DIR, "templatesv2", "component", "agen
 
 # Paths to your payload JSON files
 GLOBAL_PAYLOAD_PATH = os.path.join(BASE_DIR, "project_payload.json")
-FILES_PAYLOAD_PATH = os.path.join(BASE_DIR, "templatesv2", "component", "payload.json")
+FILES_PAYLOAD_PATH = os.path.join(BASE_DIR, "templatesv2", "component", "payload.json.j2")
 SWARMAURI_PACKAGE_PATH = os.path.join("E:\\swarmauri_github\\swarmauri-sdk\\pkgs")
     
 def main():
@@ -22,7 +22,7 @@ def main():
     global_attrs = load_global_payload(GLOBAL_PAYLOAD_PATH)
 
     # 2) Load the files payload (list of file records)
-    files_payload = load_files_payload(FILES_PAYLOAD_PATH)
+    files_payload = load_files_payload(FILES_PAYLOAD_PATH, global_attrs)
 
     # 3) Resolve placeholders:
     #    - FILE_NAME remains unrendered in 'FILE_NAME'
@@ -88,12 +88,23 @@ def load_global_payload(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def load_files_payload(path):
+def load_files_payload(path, global_attrs):
     """
-    List of file-definitions, each is a dict with FILE_NAME, DEPENDENCIES, etc.
+    Loads a Jinja2-based JSON template, renders it with `global_attrs`,
+    and then parses the result as JSON.
     """
+    # 1) Read the file as a string
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        template_str = f.read()
+
+    # 2) Render via Jinja2
+    env = Environment(autoescape=False)  # or set up as needed
+    template = env.from_string(template_str)
+    rendered_str = template.render(**global_attrs)
+
+    # 3) Parse the rendered string as JSON
+    return json.loads(rendered_str)
+
 
 # ------------------------------------------------------------------------------
 # 2. PLACEHOLDER RESOLUTION
@@ -147,6 +158,7 @@ def resolve_placeholders(files_payload, global_attrs):
                 for item in val:
                     if isinstance(item, str):
                         rendered_item = env.from_string(item).render(**context)
+                        
                         rendered_list.append(rendered_item)
                     else:
                         rendered_list.append(item)
@@ -237,25 +249,11 @@ def build_forward_graph(payload):
 # 4. PROCESSING (COPY / GENERATE)
 # ------------------------------------------------------------------------------
 def render_copy_template(entry, copy_env, global_attrs):
-    """
-    For 'COPY':
-      - The unrendered FILE_NAME's basename determines the Jinja2 template to load.
-      - We render that template using the entire entry + global_attrs as context.
-    """
-    unrendered_name = entry["FILE_NAME"]
-    filename_basename = os.path.basename(unrendered_name)
-    template_name = filename_basename + ".j2"
-
-    # Search for the template
-    template_rel_path = find_template(template_name, copy_env.loader.searchpath[0])
-    if not template_rel_path:
-        print(f"[ERROR] Template not found for: {template_name}")
-        return None
-
-    # Merge contexts: global + this entry
+    template_path = entry["FILE_NAME"]  # e.g. "subfolder/my_file.py.j2"
     context = {**global_attrs, **entry}
-    template = copy_env.get_template(template_rel_path)
+    template = copy_env.get_template(template_path)
     return template.render(**context)
+
 
 
 def render_generate_template(entry, agent_env, copy_env, global_attrs):
@@ -296,14 +294,14 @@ def call_external_agent(prompt, agent_env):
     Placeholder function to integrate with an LLM (e.g. OpenAI, Hugging Face).
     """
     print("[INFO] Prompt sent to agent (truncated):")
-    # print(prompt, '\n\n')  # Show complete prompt
-    print(prompt[:250], "...\n")  # Show partial prompt
+    print(prompt, '\n\n')  # Show partial prompt
+    # print(prompt[:250], "...\n")  # Show partial prompt
     # Return a dummy code snippet for demonstration
-    from swarmauri.llms.DeepInfraModel import DeepInfraModel
+    #from swarmauri.llms.DeepInfraModel import DeepInfraModel
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
-    llm = DeepInfraModel(api_key="***", name="meta-llama/Meta-Llama-3.1-405B-Instruct")
-    agent = RagAgent(llm=llm, vector_store=TfidfVectorStore())
+    llm = DeepInfraModel(api_key="", name="meta-llama/Meta-Llama-3.1-405B-Instruct")
+    agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context="You are a python developer responsible for creating python packages.")
     result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000})
     chunk = chunk_content(result)
     del agent
