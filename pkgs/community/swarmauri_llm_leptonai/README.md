@@ -26,7 +26,7 @@ Basic usage examples with code snippets
 
 #### Text Generation
 ```python
-from swarmauri.llm_leptonai.LeptonAIModel import LeptonAIModel
+from swarmauri.llms.LeptonAIModel import LeptonAIModel
 
 # Initialize the model
 model = LeptonAIModel(api_key="your_api_key")
@@ -41,7 +41,7 @@ print(response.get_last().content)
 
 #### Image Generation
 ```python
-from swarmauri.llm_leptonai.LeptonAIImgGenModel import LeptonAIImgGenModel
+from swarmauri.image_gens.LeptonAIImgGenModel import LeptonAIImgGenModel
 
 # Initialize the model
 img_model = LeptonAIImgGenModel(api_key="your_api_key")

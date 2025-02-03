@@ -24,7 +24,7 @@ pip install swarmauri_measurement_tokencountestimator
 ## Usage
 Basic usage examples with code snippets
 ```python
-from swarmauri_measurement_tokencountestimator.TokenCountEstimatorMeasurement import TokenCountEstimatorMeasurement
+from swarmauri.measurements.TokenCountEstimatorMeasurement import TokenCountEstimatorMeasurement
 
 measurement = TokenCountEstimatorMeasurement()
 text = "Lorem ipsum odor amet, consectetuer adipiscing elit."

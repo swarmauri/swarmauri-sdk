@@ -1,6 +1,6 @@
 import pytest
 import pyperclip
-from swarmauri_community.state.concrete.ClipboardState import ClipboardState
+from swarmauri_state_clipboard.ClipboardState import ClipboardState
 
 
 @pytest.fixture
