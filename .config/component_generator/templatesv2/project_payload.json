@@ -1,0 +1,24 @@
+{
+  "PROJECT_ROOT": "GENERATIONS",
+  "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from JSON (.json) files, facilitating data interchange and manipulation in structured formats.",
+  "PACKAGE_ROOT": "swarmauri_parser_json",
+  "RESOURCE_KIND": "parser",
+  "MODULE_NAME": "JSONParser",
+  "BASE_CLASS_NAME": "ParserBase",
+  "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+  "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+  "ADDITIONAL_REQUIREMENTS": [
+    "Parse JSON data and convert it into Python dictionaries and lists.",
+    "Handle complex nested JSON structures and data types.",
+    "Support JSON schema validation and error reporting.",
+    "Allow integration with data processing pipelines for tasks like data transformation and storage.",
+    "Provide a complete implementation of all internal parsing methods.",
+    "Ensure robust error handling and logging within the parser."
+  ],
+  "EXTERNAL_DOC_FILE": null,
+  "EXTERNAL_DOC_EXAMPLE_FILE": null,
+  "THIRD_PARTY_DEPENDENCIES": [
+    { "name": "json", "version": "*" },
+    { "name": "logging", "version": "*" }
+  ]
+}
