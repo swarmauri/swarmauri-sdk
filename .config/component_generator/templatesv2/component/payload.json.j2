@@ -2,10 +2,10 @@
   {
     "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
     "PURPOSE": "Implements the new component's main class.",
-    "DESCRIPTION": "This file defines the primary class, referencing a base class and mixin.",
+    "DESCRIPTION": "This file defines the concrete class implementation.",
     "REQUIREMENTS": [
-      "Ensure the base class and mixin logic is correctly integrated.",
-      "Ensure that all methods include complete, comprehensive, and full functional implementation logic."
+      "Provide implementation logic for inherited methods when applicable.",
+      "Ensure that all methods include complete, comprehensive, and fully functional implementation logic."
       {% if ADDITIONAL_REQUIREMENTS %}
         {% for requirement in ADDITIONAL_REQUIREMENTS %},
         "{{ requirement }}"
@@ -47,10 +47,8 @@
     "REQUIREMENTS": [
       "Should import the class defined in {{ MODULE_NAME }}.py."
     ],
-    "DEPENDENCIES": [
-      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}"
-    ],
-    "PROCESS_TYPE": "GENERATE"
+    "DEPENDENCIES": [],
+    "PROCESS_TYPE": "COPY"
   },
   {
     "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/tests/unit/test_{{ MODULE_NAME }}.py{% endraw %}",
