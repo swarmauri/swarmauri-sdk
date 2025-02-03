@@ -1,9 +1,8 @@
 # File: swarmauri/standard/toolkits/concrete/GithubToolkit.py
-from typing import Literal, Any, Optional
+from typing import Literal, Optional
 
-from pydantic import model_validator, BaseModel
+from pydantic import BaseModel
 
-from swarmauri_core.typing import SubclassUnion
 from swarmauri.toolkits.base.ToolkitBase import ToolkitBase
 from swarmauri_community.tools.concrete.GithubRepoTool import GithubRepoTool
 from swarmauri_community.tools.concrete.GithubIssueTool import GithubIssueTool
@@ -13,7 +12,6 @@ from swarmauri_community.tools.concrete.GithubCommitTool import GithubCommitTool
 
 from dotenv import load_dotenv
 
-from swarmauri.tools.base.ToolBase import ToolBase
 
 load_dotenv()
 

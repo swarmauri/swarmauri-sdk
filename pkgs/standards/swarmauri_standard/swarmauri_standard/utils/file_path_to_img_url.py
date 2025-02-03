@@ -1,7 +1,5 @@
 import requests
 import base64
-from typing import Union
-from PIL import Image
 
 
 def file_path_to_img_url(file_path: str, api_key: str) -> str:

@@ -1,12 +1,10 @@
 # pip install Jinja2
 
-from typing import Dict, List, Union, Optional, Literal
-from pydantic import Field, ConfigDict
+from typing import Dict, Optional, Literal
+from pydantic import ConfigDict
 from jinja2 import Template
 
-from swarmauri_core.prompts.IPrompt import IPrompt
-from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.prompts.PromptTemplateBase import PromptTemplateBase  # Assuming PromptTemplateBase is accessible
 
 @ComponentBase.register_type(PromptTemplateBase, 'Jinja2PromptTemplate')

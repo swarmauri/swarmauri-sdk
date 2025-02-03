@@ -3,8 +3,6 @@ from ....standard.document_stores.base.DocumentStoreBase import DocumentStoreBas
 from ....core.documents.IDocument import IDocument
 import redis
 import json
-from redis.commands.search.field import TextField, NumericField, TagField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
 
 class RedisDocumentStore(DocumentStoreBase):

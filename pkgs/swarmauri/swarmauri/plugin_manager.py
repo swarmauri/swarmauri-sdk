@@ -1,5 +1,5 @@
 # plugin_manager.py
-from typing import Any, Optional, Type, Dict
+from typing import Any, Optional, Dict
 import importlib.util
 from importlib.metadata import EntryPoint, entry_points
 import importlib.metadata
@@ -7,8 +7,6 @@ import inspect
 import logging
 import json
 import importlib
-from importlib.util import LazyLoader, spec_from_loader
-from importlib.resources import read_binary
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
 from swarmauri_core.ComponentBase import ComponentBase

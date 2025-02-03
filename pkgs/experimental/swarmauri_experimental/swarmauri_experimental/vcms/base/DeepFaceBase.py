@@ -1,8 +1,6 @@
-from typing import Union, Dict, Any, List, ClassVar, Literal
-import numpy as np
-from deepface import DeepFace
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from typing import List, ClassVar, Literal
+from pydantic import BaseModel, Field, model_validator
+from swarmauri_core.ComponentBase import ComponentBase
 
 class DeepFaceBase(ComponentBase, BaseModel):
 

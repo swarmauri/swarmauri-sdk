@@ -3,7 +3,7 @@ from pydantic import Field, ConfigDict
 
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.chains.IChain import IChain
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()

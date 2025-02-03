@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pytest
-from swarmauri.documents.concrete.Document import Document
 from swarmauri_community.parsers.concrete.PyPDF2Parser import \
     PyPDF2Parser as Parser
 from swarmauri_core.documents.IDocument import IDocument

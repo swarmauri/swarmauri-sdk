@@ -3,10 +3,6 @@ import os
 from swarmauri_experimental.llms.ShuttleAIToolModel import (
     ShuttleAIToolModel as LLM,
 )
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
 
 
 @pytest.fixture(scope="module")

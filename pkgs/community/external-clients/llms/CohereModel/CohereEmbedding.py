@@ -1,5 +1,5 @@
 import cohere
-from typing import List, Literal, Any, Optional
+from typing import List, Literal, Optional
 from pydantic import PrivateAttr
 from swarmauri.vectors.concrete.Vector import Vector
 from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase

@@ -1,4 +1,4 @@
-from typing import Optional, Any, Literal
+from typing import Literal
 from pydantic import Field
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase

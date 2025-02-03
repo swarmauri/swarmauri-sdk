@@ -2,7 +2,6 @@ import pytest
 import os
 from swarmauri.llms.concrete.OpenRouterModel import OpenRouterModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.messages.concrete.HumanMessage import HumanMessage
 from swarmauri.messages.concrete.SystemMessage import SystemMessage
 

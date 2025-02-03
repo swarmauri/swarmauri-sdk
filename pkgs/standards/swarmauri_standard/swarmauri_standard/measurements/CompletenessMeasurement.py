@@ -1,6 +1,5 @@
-from typing import Any, Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union
 import pandas as pd
-import numpy as np
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_core.ComponentBase import ComponentBase
 

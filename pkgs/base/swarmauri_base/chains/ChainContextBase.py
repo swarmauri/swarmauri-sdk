@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Literal
+from typing import Any, Dict, List, Optional, Literal
 from pydantic import Field, ConfigDict
 import re
 from swarmauri_base.chains.ChainStepBase import ChainStepBase

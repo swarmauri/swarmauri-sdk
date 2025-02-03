@@ -1,9 +1,8 @@
-from typing import List, Union, Optional
+from typing import List, Optional
 import numpy as np
-from rdflib import Graph, URIRef, Literal, BNode
+from rdflib import Graph, URIRef, Literal
 from ampligraph.latent_features import ComplEx
 from ampligraph.evaluation import train_test_split_no_unseen
-from ampligraph.latent_features import EmbeddingModel
 from ampligraph.utils import save_model, restore_model
 
 from swarmauri_core.documents.IDocument import IDocument

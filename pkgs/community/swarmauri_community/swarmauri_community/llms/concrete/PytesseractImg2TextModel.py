@@ -1,6 +1,5 @@
 import os
 import asyncio
-import logging
 from typing import List, Literal, Union
 from pydantic import Field, ConfigDict
 from PIL import Image

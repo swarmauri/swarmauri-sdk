@@ -2,7 +2,6 @@ import io
 import base64
 import requests
 from PIL import Image
-from typing import Union
 
 
 def in_memory_img_to_img_url(image: Image.Image, api_key: str) -> str:

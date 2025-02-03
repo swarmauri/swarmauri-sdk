@@ -1,7 +1,5 @@
 import torch
 from transformers import BertTokenizer, BertModel
-from torch import nn
-import numpy as np
 from typing import Literal
 from pydantic import PrivateAttr
 

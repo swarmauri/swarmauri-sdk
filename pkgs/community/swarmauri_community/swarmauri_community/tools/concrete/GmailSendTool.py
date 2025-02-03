@@ -1,5 +1,4 @@
 import base64
-import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google.oauth2 import service_account

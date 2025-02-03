@@ -6,9 +6,6 @@ import logging
 from importlib.machinery import ModuleSpec
 from types import ModuleType
 
-from .plugin_manager import (
-    get_plugin_type_info,
-)
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
 

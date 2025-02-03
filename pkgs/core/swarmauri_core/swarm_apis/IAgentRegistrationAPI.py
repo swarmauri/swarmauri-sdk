@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional
+from typing import List, Optional
 from swarmauri_core.agents.IAgent import IAgent
 
 class IAgentRegistrationAPI(ABC):

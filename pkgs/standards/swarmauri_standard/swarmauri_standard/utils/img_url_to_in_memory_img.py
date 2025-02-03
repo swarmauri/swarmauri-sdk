@@ -1,4 +1,3 @@
-from typing import Union
 from PIL import Image
 import requests
 from io import BytesIO

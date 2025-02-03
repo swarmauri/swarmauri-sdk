@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
 from swarmauri_core.vectors.IVector import IVector
 
 class ISimilarity(ABC):

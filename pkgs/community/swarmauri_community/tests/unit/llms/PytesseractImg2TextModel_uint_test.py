@@ -10,7 +10,7 @@ from swarmauri.utils.timeout_wrapper import timeout
 def create_test_image(
     text="Hello World", size=(200, 100), color="white", text_color="black"
 ):
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
     image = Image.new("RGB", size, color)
     draw = ImageDraw.Draw(image)

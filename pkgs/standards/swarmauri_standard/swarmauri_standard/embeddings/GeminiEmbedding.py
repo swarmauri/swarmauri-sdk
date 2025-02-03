@@ -1,5 +1,5 @@
 import httpx
-from typing import List, Literal, Any, Optional
+from typing import List, Literal, Optional
 from pydantic import PrivateAttr, Field
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase

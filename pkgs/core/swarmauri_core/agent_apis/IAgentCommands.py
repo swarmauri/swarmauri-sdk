@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Any, List
+from typing import Any, List
 
 class IAgentCommands(ABC):
     """

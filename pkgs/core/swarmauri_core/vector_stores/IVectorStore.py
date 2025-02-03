@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Union
-from swarmauri_core.vectors.IVector import IVector
+from typing import List, Union
 from swarmauri_core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):

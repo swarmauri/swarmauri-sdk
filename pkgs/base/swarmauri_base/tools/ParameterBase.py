@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 from pydantic import Field
 
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes

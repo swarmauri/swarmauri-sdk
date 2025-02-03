@@ -1,6 +1,5 @@
 import pytest
 import os
-import asyncio
 from swarmauri_experimental.llms.ShuttleAIModel import ShuttleAIModel as LLM
 from swarmauri.conversations.concrete.Conversation import Conversation
 

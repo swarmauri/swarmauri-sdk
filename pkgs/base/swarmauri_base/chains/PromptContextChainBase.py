@@ -1,7 +1,5 @@
-from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Literal
 from pydantic import Field
-from collections import defaultdict, deque
 import re
 import numpy as np
 
@@ -12,7 +10,6 @@ from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
 from swarmauri_base.agents.AgentBase import AgentBase
 
 from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
-from swarmauri_core.prompts.IPromptMatrixBase import IPromptMatrixBase
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()

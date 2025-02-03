@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_embedding_tfidf"
-version = "0.6.0.dev1"
+version = "0.6.0.dev154"
 description = "Tfidf Embedding for Swarmauri"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

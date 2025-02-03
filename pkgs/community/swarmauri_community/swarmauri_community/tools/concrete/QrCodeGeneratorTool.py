@@ -1,6 +1,6 @@
 # standard/tools/concrete/QrCodeGeneratorTool.py
 import qrcode
-from typing import List, Literal, Dict, Any
+from typing import List, Literal
 from pydantic import Field
 from swarmauri.tools.base.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
