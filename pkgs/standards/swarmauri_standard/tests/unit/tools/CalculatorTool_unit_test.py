@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.tools.concrete import CalculatorTool as Tool
+from swarmauri_standard.tools.CalculatorTool import CalculatorTool as Tool
 
 
 @pytest.mark.unit
