@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-standard"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "This repository includes standard components within the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -36,7 +36,7 @@ requests = "^2.32.3"
 Pillow = ">=8.0,<11.0"
 
 # Optional dependencies with versions specified
-aiofiles = { version = "24.1.0", optional = true }
+aiofiles = { version = "24.1.0"}
 #aiohttp = { version = "^3.10.10", optional = true }
 #cohere = { version = "^5.11.0", optional = true }
 #mistralai = { version = "^1.2.1", optional = true }
@@ -57,18 +57,18 @@ aiofiles = { version = "24.1.0", optional = true }
 #tf-keras = { version = ">=2.16.0", optional = true }
 #matplotlib = { version = ">=3.9.2", optional = true }
 
-[tool.poetry.extras]
+#[tool.poetry.extras]
 # Extras without versioning, grouped for specific use cases
-io = [
-    "aiofiles",
+#io = [
+    #"aiofiles",
     #"aiohttp"
-]
+#]
 #llms = ["cohere", "mistralai", "fal-client", "google-generativeai", "openai"]
-nlp = [
+#nlp = [
     #"nltk", 
     #"textblob", 
     #"yake"
-]
+#]
 #nlp_tools = ["beautifulsoup4"]
 #ml_toolkits = ["gensim", "scipy", "scikit-learn"]
 #ml_toolkits = ["scikit-learn"]
@@ -79,8 +79,8 @@ nlp = [
 #visualization = ["matplotlib"]
 
 # Full option to install all extras
-full = [
-    "aiofiles", 
+#full = [
+    #"aiofiles", 
     #"aiohttp",
     #"cohere", "mistralai", "fal-client", "google-generativeai", "openai",
     #"nltk", "textblob", 
@@ -93,7 +93,7 @@ full = [
     #"torch",
     #"keras", "tf-keras",
     #"matplotlib"
-]
+#]
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
