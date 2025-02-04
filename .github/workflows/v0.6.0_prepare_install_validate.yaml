@@ -43,6 +43,12 @@ jobs:
           cd pkgs
           soliloquy install --file pyproject.toml
 
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate   
+          pip freeze
+
+
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
