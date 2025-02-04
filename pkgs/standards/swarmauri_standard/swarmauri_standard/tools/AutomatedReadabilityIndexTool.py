@@ -114,10 +114,3 @@ class AutomatedReadabilityIndexTool(ToolBase):
         if isinstance(input_text, str):
             return True
         return False
-
-
-SubclassUnion.update(
-    baseclass=ToolBase,
-    type_name="AutomatedReadabilityIndexTool",
-    obj=AutomatedReadabilityIndexTool,
-)
