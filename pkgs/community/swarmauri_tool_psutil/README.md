@@ -11,7 +11,7 @@
 
 ---
 
-# Swarmauri PsUtil Tool
+# Swarmauri Psutil Tool
 
 A system monitoring tool that provides comprehensive system information using psutil library. This tool can gather information about CPU, memory, disk, network, and sensors.
 
