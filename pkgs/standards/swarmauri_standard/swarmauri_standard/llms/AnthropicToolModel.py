@@ -9,7 +9,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_standard.schema_converters.concrete.AnthropicSchemaConverter import (
+from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
 from swarmauri_core.ComponentBase import ComponentBase

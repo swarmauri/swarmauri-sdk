@@ -6,7 +6,7 @@ from pydantic import PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.schema_converters.concrete.CohereSchemaConverter import (
+from swarmauri_standard.schema_converters.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
 from swarmauri_standard.utils.duration_manager import DurationManager

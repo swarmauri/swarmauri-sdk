@@ -6,7 +6,7 @@ import httpx
 from pydantic import PrivateAttr
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_standard.schema_converters.concrete.GeminiSchemaConverter import (
+from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
 from swarmauri_standard.toolkits.Toolkit import Toolkit
