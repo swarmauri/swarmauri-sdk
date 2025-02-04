@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
+version = "0.6.0.dev165"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
 package-mode = false
-
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -14,12 +14,14 @@ pydantic = "^2.0"
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core" }
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base" }
 swarmauri = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/swarmauri" }
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard", extras = ["full"] }
+
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
+
 
 # Extra First Class Citizens
 swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
 swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
-swarmauri_tool_matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
+swarmauri-tool-matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
 swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
 swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
 swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
@@ -72,7 +74,6 @@ swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git"
 swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
 
 #swm_example_community_package = { path = "./community/swm_example_community_package" }
-
 
 [tool.poetry.extras]
 # First Class Extras
@@ -177,14 +178,36 @@ full = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-black = "^22.3.0"
 toml = "^0.10.2"
-#monorepo_manager = { git = "https://github.com/swarmauri/swarmauri-sdk", branch = "mono/0.6.0.dev1", subdirectory="pkgs/tooling/monorepo_manager" }
+pytest = "^8.0.0"
+pytest-xdist = "^3.6.1"
+pytest-asyncio = "0.23.8"
 
-
+pytest-timeout = "^2.3.1"
+pytest-json-report = "^1.5.0"
+python-dotenv = "^1.0.0"
+jsonschema = "^4.18.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.pytest.ini_options]
+norecursedirs = ["tooling"]
+asyncio_mode = "auto"
+
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "acceptance: Acceptance tests",
+    "experimental: Experimental tests",
+    "timeout: mark test to timeout after X seconds",
+]
+
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+asyncio_default_fixture_loop_scope = "function"

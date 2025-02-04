@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_standard.concrete.Prompt import Prompt
+from swarmauri_standard.prompts.Prompt import Prompt
 
 
 @pytest.mark.unit

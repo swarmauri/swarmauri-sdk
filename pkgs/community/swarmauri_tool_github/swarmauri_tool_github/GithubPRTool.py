@@ -1,7 +1,7 @@
 from github import Github, GithubException
 from typing import List, Dict, Literal, Any
 from pydantic import Field, ConfigDict
-from swarmauri_base.tools.base.ToolBase import ToolBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
