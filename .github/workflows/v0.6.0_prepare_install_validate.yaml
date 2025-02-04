@@ -24,7 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-          pip install soliloquy=="0.1.1.dev46"
+          pip install soliloquy=="0.1.1.dev47"
 
       # 4. Run the install phase
       ## This will create one lock file
@@ -38,7 +38,8 @@ jobs:
       - name: Run prepare phase
         run: |
           # This example bumps the patch version and uses a custom commit message.
-          poetry run soliloquy prepare --directory pkgs --recursive --bump patch --commit-msg "chore: auto prepare"
+          cd pkgs
+          poetry run soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare"
 
 
       # 6. Run the validate phase
