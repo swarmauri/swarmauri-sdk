@@ -32,6 +32,14 @@ jobs:
           cd pkgs
           poetry run soliloquy install --directory . --recursive
 
+
+      # 4. Run the install phase
+      - name: Run install phase
+        run: |
+          cd pkgs
+          ls
+    
+
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
