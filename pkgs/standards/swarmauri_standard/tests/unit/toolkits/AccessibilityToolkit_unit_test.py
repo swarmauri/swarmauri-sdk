@@ -3,7 +3,7 @@ import pytest
 import warnings
 
 from swarmauri_standard.tools.AdditionTool import AdditionTool
-from swarmauri_standard.toolkits import (
+from swarmauri_standard.toolkits.AccessibilityToolkit import (
     AccessibilityToolkit as Toolkit,
 )
 
