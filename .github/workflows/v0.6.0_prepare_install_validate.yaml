@@ -32,7 +32,7 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate   
           python -m pip install --upgrade pip
           pip install poetry
-          pip install soliloquy=="0.1.1"
+          pip install soliloquy=="0.1.3.dev1"
 
       # 4. Run the install phase
       ## This will create one lock file
@@ -57,7 +57,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
           soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --disable-lint
-
 
       # 6. Run the validate phase
       - name: Run validate phase
