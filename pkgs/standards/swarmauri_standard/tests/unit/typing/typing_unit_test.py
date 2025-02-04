@@ -1,6 +1,5 @@
 import pytest
-from swarmauri_core.typing import SubclassUnion
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
 
 @pytest.mark.unit
