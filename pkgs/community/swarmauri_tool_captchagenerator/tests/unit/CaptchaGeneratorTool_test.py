@@ -57,12 +57,12 @@ def test_call():
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
 
     # Check if the result contains the 'image_b64' key
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys}, but got {result.keys()}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys}, but got {result.keys()}"
+    )
 
     # Verify that the 'image_b64' field is a string (base64 encoded image)
     image_b64 = result.get("image_b64")
-    assert isinstance(
-        image_b64, str
-    ), f"Expected string for 'image_b64', but got {type(image_b64).__name__}"
+    assert isinstance(image_b64, str), (
+        f"Expected string for 'image_b64', but got {type(image_b64).__name__}"
+    )
