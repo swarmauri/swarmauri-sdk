@@ -27,19 +27,13 @@ jobs:
           pip install soliloquy=="0.1.1.dev46"
 
       # 4. Run the install phase
+      ## This will create one lock file
+      ## If we want to create a lock file per folder then we use "recursive"
       - name: Run install phase
         run: |
           cd pkgs
-          poetry run soliloquy install --directory . --recursive
-
-
-      # 4. Run the install phase
-      - name: Run install phase
-        run: |
-          cd pkgs
-          ls
-    
-
+          poetry run soliloquy install --directory pkgs
+          
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
