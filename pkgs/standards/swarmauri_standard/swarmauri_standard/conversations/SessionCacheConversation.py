@@ -5,6 +5,7 @@ from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.conversations.ConversationSystemContextMixin import ConversationSystemContextMixin
 from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ConversationBase, 'SessionCacheConversation')
