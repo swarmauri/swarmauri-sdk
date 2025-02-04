@@ -13,8 +13,9 @@ pydantic = "^2.0"
 # Path dependencies (editable installs by default)
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core" }
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base" }
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 swarmauri = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/swarmauri" }
+
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 
 
 # Extra First Class Citizens
