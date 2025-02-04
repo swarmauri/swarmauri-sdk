@@ -2,7 +2,7 @@ name: 0.6.0 - Prepare, Install, Validate
 
 on:
   push:
-    branches: ["mono/dev0.6.0.dev1"]
+    branches: [ "mono/0.6.0.dev1" ]
 
 jobs:
   install-prepare-validate:
