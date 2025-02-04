@@ -32,7 +32,7 @@ jobs:
       - name: Run install phase
         run: |
           cd pkgs
-          poetry run soliloquy install --directory .
+          soliloquy install --directory .
 
       # 5. Run the prepare phase
       - name: Run prepare phase
@@ -41,11 +41,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          poetry run soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --disable-lint
+          soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --disable-lint
 
 
       # 6. Run the validate phase
       - name: Run validate phase
         run: |
           cd pkgs
-          poetry run soliloquy validate --directory . --recursive --test-mode each --num-workers 4
+          soliloquy validate --directory . --recursive --test-mode each --num-workers 4
