@@ -24,7 +24,7 @@ pip install swarmauri_parser_pypdftk
 ## Usage
 Basic usage example with code snippet:
 ```python
-from swarmauri_parser_pdf.PyPDFTKParser import PyPDFTKParser
+from swarmauri.parsers.PyPDFTKParser import PyPDFTKParser
 
 parser = PyPDFTKParser()
 file_path = "path/to/your/pdf_file.pdf"

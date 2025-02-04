@@ -24,7 +24,7 @@ pip install swarmauri_parser_fitzpdf
 ## Usage
 Basic usage examples with code snippets
 ```python
-from swarmauri_parser_fitzpdf.FitzPdfParser import PDFtoTextParser
+from swarmauri.parsers.FitzPdfParser import PDFtoTextParser
 
 parser = PDFtoTextParser()
 file_path = "path/to/your/pdf/file.pdf"
