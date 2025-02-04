@@ -13,13 +13,14 @@ pydantic = "^2.0"
 # Path dependencies (editable installs by default)
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core" }
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base" }
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 swarmauri = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/swarmauri" }
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard", extras = ["full"] }
+
 
 # Extra First Class Citizens
 swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
 swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
-swarmauri_tool_matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
+swarmauri_tool_matplotli1b = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
 swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
 swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
 swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
