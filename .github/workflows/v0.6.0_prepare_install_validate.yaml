@@ -29,9 +29,8 @@ jobs:
       # 4. Run the install phase
       - name: Run install phase
         run: |
-          poetry run soliloquy install --directory pkgs --recursive
-          ls > log
-          cat log
+          cd pkgs
+          poetry run soliloquy install --directory . --recursive
 
       # 5. Run the prepare phase
       - name: Run prepare phase
