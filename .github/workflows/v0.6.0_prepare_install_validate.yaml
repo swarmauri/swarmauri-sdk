@@ -2,7 +2,8 @@ name: 0.6.0 - Prepare, Install, Validate
 
 on:
   workflow_dispatch:
-
+  push:
+    branches: ["mono/dev0.6.0.dev1"]
 jobs:
   install-prepare-validate:
     runs-on: ubuntu-latest
