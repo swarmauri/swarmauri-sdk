@@ -38,6 +38,8 @@ jobs:
       - name: Run prepare phase
         run: |
           # This example bumps the patch version and uses a custom commit message.
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
           poetry run soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --disable-lint
 
@@ -45,4 +47,5 @@ jobs:
       # 6. Run the validate phase
       - name: Run validate phase
         run: |
-          poetry run soliloquy validate --directory pkgs --recursive --test-mode each --num-workers 4
+          cd pkgs
+          poetry run soliloquy validate --directory . --recursive --test-mode each --num-workers 4
