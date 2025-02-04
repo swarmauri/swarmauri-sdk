@@ -64,4 +64,4 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate   
           cd pkgs
-          soliloquy validate --directory . --recursive --test-mode each --num-workers 4
+          soliloquy validate --directory . --recursive --test-mode single --num-workers 4
