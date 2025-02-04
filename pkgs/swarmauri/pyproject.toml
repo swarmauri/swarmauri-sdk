@@ -74,15 +74,15 @@ jsonschema = "^4.18.5"
 ipython = "^8.28.0"
 requests = "^2.32.3"
 
-[tool.poetry.scripts]
-swarmauri-cli = "swarmauri.cli:main"
+#[tool.poetry.scripts]
+#swarmauri-cli = "swarmauri.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-norecursedirs = ["combined", "scripts"]
+#norecursedirs = ["combined", "scripts"]
 asyncio_mode = "auto"
 
 markers = [
