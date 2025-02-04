@@ -24,7 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-          pip install soliloquy=="0.1.1.dev48"
+          pip install soliloquy=="0.1.1.dev49"
 
       # 4. Run the install phase
       ## This will create one lock file
