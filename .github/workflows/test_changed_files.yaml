@@ -135,6 +135,7 @@ jobs:
         if: matrix.package_tests.package != 'core'
         run: |
           cd pkgs/${{ matrix.package_tests.package }}
+          poetry lock
           poetry install --no-cache --all-extras -vv
 
       - name: Run tests and save results
