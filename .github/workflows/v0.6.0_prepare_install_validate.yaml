@@ -1,7 +1,8 @@
 name: 0.6.0 - Prepare, Install, Validate
 
 on:
-  workflow_dispatch:
+  push:
+    branches: ["mono/dev0.6.0.dev1"]
 
 jobs:
   install-prepare-validate:
@@ -28,15 +29,15 @@ jobs:
       # 4. Run the install phase
       - name: Run install phase
         run: |
-          poetry run soliloquy install --directory ./pkgs --recursive
+          poetry run soliloquy install --directory pkgs --recursive
 
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
           # This example bumps the patch version and uses a custom commit message.
-          poetry run soliloquy prepare --directory ./pkgs --recursive --bump patch --commit-msg "chore: auto prepare"
+          poetry run soliloquy prepare --directory pkgs --recursive --bump patch --commit-msg "chore: auto prepare"
 
       # 6. Run the validate phase
       - name: Run validate phase
         run: |
-          poetry run soliloquy validate --directory ./pkgs --recursive --test-mode each --num-workers 4
+          poetry run soliloquy validate --directory pkgs --recursive --test-mode each --num-workers 4
