@@ -3,8 +3,8 @@ import psutil
 from typing import Dict, Any, Literal, List, Callable
 from swarmauri_core.ComponentBase import ComponentBase
 from pydantic import Field
-from swarmauri.tools.base.ToolBase import ToolBase
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_base.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "PsutilTool")

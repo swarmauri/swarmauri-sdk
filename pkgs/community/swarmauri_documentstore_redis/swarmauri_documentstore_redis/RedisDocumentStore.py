@@ -1,6 +1,6 @@
 from typing import List, Optional
 from swarmauri_base.document_stores.DocumentStoreBase import DocumentStoreBase
-from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_standard.documents.Document import Document
 import redis
 import json
 
@@ -25,26 +25,26 @@ class RedisDocumentStore(DocumentStoreBase):
             print("there")
         return self._redis_client
 
-    def add_document(self, document: IDocument) -> None:
+    def add_document(self, document: Document) -> None:
 
         data = document.as_dict()
         doc_id = data["id"]
         del data["id"]
         self.redis_client.json().set(doc_id, "$", json.dumps(data))
 
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         with self.redis_client.pipeline() as pipe:
             for document in documents:
                 pipe.set(document.doc_id, document)
             pipe.execute()
 
-    def get_document(self, doc_id: str) -> Optional[IDocument]:
+    def get_document(self, doc_id: str) -> Optional[Document]:
         result = self.redis_client.json().get(doc_id)
         if result:
             return json.loads(result)
         return None
 
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> List[Document]:
         keys = self.redis_client.keys("*")
         documents = []
         for key in keys:

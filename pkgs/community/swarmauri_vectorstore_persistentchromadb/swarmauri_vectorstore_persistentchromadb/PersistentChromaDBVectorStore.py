@@ -5,16 +5,16 @@ from typing import List, Union, Literal
 
 from swarmauri_standard.documents.concrete.Document import Document
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.distances.CosineDistance import CosineDistance
 
-from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri.vector_stores.base.VectorStorePersistentMixin import (
+from swarmauri_base.vector_stores.VectorStorePersistentMixin import (
     VectorStorePersistentMixin,
 )
 from swarmauri_core.ComponentBase import ComponentBase

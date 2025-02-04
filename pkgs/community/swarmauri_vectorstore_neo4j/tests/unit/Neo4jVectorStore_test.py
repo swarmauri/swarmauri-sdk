@@ -1,8 +1,8 @@
 import os
 import pytest
 from dotenv import load_dotenv
-from swarmauri.documents.concrete.Document import Document
-from swarmauri_community.vector_stores.concrete.Neo4jVectorStore import Neo4jVectorStore
+from swarmauri_standard.documents.Document import Document
+from swarmauri_vectorstore_neo4j.Neo4jVectorStore import Neo4jVectorStore
 
 # Load environment variables
 load_dotenv()
