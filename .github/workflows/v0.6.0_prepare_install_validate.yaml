@@ -30,12 +30,15 @@ jobs:
       - name: Run install phase
         run: |
           poetry run soliloquy install --directory pkgs --recursive
+          ls > log
+          cat log
 
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
           # This example bumps the patch version and uses a custom commit message.
           poetry run soliloquy prepare --directory pkgs --recursive --bump patch --commit-msg "chore: auto prepare"
+
 
       # 6. Run the validate phase
       - name: Run validate phase
