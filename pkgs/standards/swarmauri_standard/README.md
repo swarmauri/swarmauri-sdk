@@ -1,3 +1,15 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div align="center">
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri?label=swarmauri_standard&color=green)
+
+</div>
+
+---
 # Swarmauri SDK
 
 The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework. 
