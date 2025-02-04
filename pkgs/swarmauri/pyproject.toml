@@ -19,13 +19,16 @@ swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 
-toml = "^0.10.2"
+toml = {version = "^0.10.2"}
 httpx = "^0.27.0"
+pydantic = "^2.9.2"
+typing_extensions = "*"
+
+
 # joblib = "^1.4.0"
 # numpy = "*"
 # pandas = "*"
-pydantic = "^2.9.2"
-typing_extensions = "*"
+
 
 # requests = "^2.32.3"
 
