@@ -1,10 +1,11 @@
 import json
+from pydantic import Field
 from typing import List, Literal, Dict, Optional, Callable
-from swarmauri_core.ComponentBase import ComponentBase
 from transformers import pipeline, logging as hf_logging
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from pydantic import Field
+from swarmauri_core.ComponentBase import ComponentBase
+
 
 hf_logging.set_verbosity_error()
 

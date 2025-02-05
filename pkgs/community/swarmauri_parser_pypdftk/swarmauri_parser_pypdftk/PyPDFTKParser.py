@@ -1,10 +1,9 @@
 from typing import List, Literal
 
-from swarmauri_core.ComponentBase import ComponentBase
 import pypdftk
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
-from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "PyPDFTKParser")
@@ -15,7 +14,7 @@ class PyPDFTKParser(ParserBase):
 
     type: Literal["PyPDFTKParser"] = "PyPDFTKParser"
 
-    def parse(self, source: str) -> List[IDocument]:
+    def parse(self, source: str) -> List[Document]:
         """
         Parses a PDF file and extracts its data fields as Document instances.
 
@@ -23,7 +22,7 @@ class PyPDFTKParser(ParserBase):
         - source (str): The path to the PDF file.
 
         Returns:
-        - List[IDocument]: A list containing a single IDocument instance with the extracted data fields.
+        - List[IDocument]: A list containing a single Document instance with the extracted data fields.
         """
         if not isinstance(source, str):
             raise ValueError("PyPDFTKParser expects a file path as a string.")
