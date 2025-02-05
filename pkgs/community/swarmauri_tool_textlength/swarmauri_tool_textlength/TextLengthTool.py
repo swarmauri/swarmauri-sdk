@@ -1,14 +1,14 @@
-from swarmauri_core.ComponentBase import ComponentBase
-from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
-from swarmauri._base.tools.ToolBase import ToolBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_core.ComponentBase import ComponentBase
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 # Download required NLTK data once during module load
-nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
+
 
 @ComponentBase.register_type(ToolBase, "TextLengthTool")
 class TextLengthTool(ToolBase):
@@ -24,7 +24,9 @@ class TextLengthTool(ToolBase):
         ]
     )
     name: str = "TextLengthTool"
-    description: str = "Calculates the length of the provided text in terms of characters, words, and sentences."
+    description: str = (
+        "Calculates the length of the provided text in terms of characters, words, and sentences."
+    )
     type: Literal["TextLengthTool"] = "TextLengthTool"
 
     def __call__(self, text: str) -> Dict[str, int]:
@@ -99,10 +101,3 @@ class TextLengthTool(ToolBase):
         """
         sentences = sent_tokenize(text)
         return len(sentences)
-
-
-SubclassUnion.update(
-    baseclass=ToolBase,
-    type_name="TextLengthTool",
-    obj=TextLengthTool,
-)

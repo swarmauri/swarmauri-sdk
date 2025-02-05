@@ -22,8 +22,7 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 
 # Dependencies
-pypdf = "^5.0.1"
-
+PyPDF2 = "^3.0.1"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
