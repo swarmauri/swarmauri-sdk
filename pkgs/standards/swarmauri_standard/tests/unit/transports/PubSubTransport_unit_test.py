@@ -86,9 +86,8 @@ async def test_broadcast(pubsub_transport):
     subscriber_id2 = await pubsub_transport.subscribe(topic2)
 
     message = "Broadcast Message"
-    pubsub_transport.broadcast("sender_id", message)
+    await pubsub_transport.broadcast("sender_id", message)
 
-    # Ensure both subscribers receive the message
     received_message1 = await pubsub_transport.receive(subscriber_id1)
     received_message2 = await pubsub_transport.receive(subscriber_id2)
     assert received_message1 == message
@@ -107,7 +106,7 @@ async def test_multicast(pubsub_transport):
     subscriber_id3 = await pubsub_transport.subscribe(topic3)
 
     message = "Multicast Message"
-    pubsub_transport.multicast("sender_id", [topic1, topic2], message)
+    await pubsub_transport.multicast("sender_id", [topic1, topic2], message)
 
     # Ensure only subscribers of specified topics receive the message
     received_message1 = await pubsub_transport.receive(subscriber_id1)

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from swarmauri_standard.control_panels.ControlPanel import ControlPanel
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
-from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
 from swarmauri_base.transports.TransportBase import TransportBase
 
 from pydantic import BaseModel

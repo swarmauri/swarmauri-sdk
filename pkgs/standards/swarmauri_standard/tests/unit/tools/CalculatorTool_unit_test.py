@@ -28,41 +28,27 @@ def test_serialization():
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "operation, num1, num2, expected_result",
+    "operation, num1, num2, expected_result, is_error",
     [
-        ("add", 2, 3, "5"),  # Addition
-        ("subtract", 5, 3, "2"),  # Subtraction
-        ("multiply", 2, 3, "6"),  # Multiplication
-        ("divide", 6, 3, "2.0"),  # Division
-        (
-            "divide",
-            5,
-            0,
-            "Error: Division by zero.",
-        ),  # Division by zero, adjust based on your expected behavior
-        ("unknown_ops", 5, 0, "Error: Unknown operation."),
+        ("add", 2, 3, "5", False),
+        ("subtract", 5, 3, "2", False),
+        ("multiply", 2, 3, "6", False),
+        ("divide", 6, 3, "2.0", False),
+        ("divide", 5, 0, "Error: Division by zero.", True),
+        ("unknown_ops", 5, 0, "Error: Unknown operation.", True),
     ],
 )
-def test_call(operation, num1, num2, expected_result):
+def test_call(operation, num1, num2, expected_result, is_error):
     tool = Tool()
-
-    expected_keys = {"operation", "calculated_result"}
     result = tool(operation, num1, num2)
 
-    if isinstance(result, str):
-        assert result == expected_result
+    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
 
+    if is_error:
+        assert "error" in result
+        assert result["error"] == expected_result
     else:
-        assert isinstance(
-            result, dict
-        ), f"Expected dict, but got {type(result).__name__}"
-        assert expected_keys.issubset(
-            result.keys()
-        ), f"Expected keys {expected_keys} but got {result.keys()}"
-        assert isinstance(
-            result.get("calculated_result"), str
-        ), f"Expected str, but got {type(result.get('calculated_result')).__name__}"
-
-        assert (
-            result.get("calculated_result") == expected_result
-        ), f"Expected Calculated result {expected_result}, but got {result.get('calculated_result')}"
+        assert "operation" in result
+        assert "calculated_result" in result
+        assert result["operation"] == operation
+        assert result["calculated_result"] == expected_result

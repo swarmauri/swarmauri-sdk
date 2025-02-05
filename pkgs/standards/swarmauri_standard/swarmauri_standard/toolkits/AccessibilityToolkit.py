@@ -3,17 +3,20 @@ from pydantic import Field
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 
-from swarmauri_standard.tools.concrete import (
+from swarmauri_standard.tools.AutomatedReadabilityIndexTool import (
     AutomatedReadabilityIndexTool,
-    ColemanLiauIndexTool,
-    FleschKincaidTool,
-    FleschReadingEaseTool,
-    GunningFogTool,
 )
+from swarmauri_standard.tools.ColemanLiauIndexTool import ColemanLiauIndexTool
+from swarmauri_standard.tools.FleschKincaidTool import FleschKincaidTool
+from swarmauri_standard.tools.FleschReadingEaseTool import (
+    FleschReadingEaseTool,
+)
+from swarmauri_standard.tools.GunningFogTool import GunningFogTool
 
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolkitBase, 'AccessibilityToolkit')
+
+@ComponentBase.register_type(ToolkitBase, "AccessibilityToolkit")
 class AccessibilityToolkit(ToolkitBase):
     type: Literal["AccessibilityToolkit"] = "AccessibilityToolkit"
 

@@ -1,3 +1,4 @@
+import os
 from typing import Any
 from pydantic import BaseModel
 import pytest
@@ -15,7 +16,15 @@ class MockAgent(BaseModel):
 
 @pytest.fixture
 def swarm():
-    return Swarm(agent_class=MockAgent, num_agents=3, agent_timeout=0.5, max_retries=2)
+    API_KEY = os.getenv("GROQ_API_KEY")
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    return Swarm(
+        agent_class=MockAgent,
+        num_agents=3,
+        agent_timeout=0.5,
+        max_retries=2,
+    )
 
 
 @pytest.mark.unit

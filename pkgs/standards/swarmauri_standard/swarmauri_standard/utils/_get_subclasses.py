@@ -12,7 +12,7 @@ def get_classes_from_module(module_name: str):
     module_name_lower = module_name.lower()
 
     # Construct the full module path dynamically
-    full_module_path = f"swarmauri.{module_name_lower}s.concrete"
+    full_module_path = f"swarmauri_standard.{module_name_lower}s"
 
     try:
         # Import the module dynamically
@@ -46,7 +46,7 @@ def get_class_from_module(module_name: str, class_name: str):
     module_name_lower = module_name.lower()
 
     # Construct the full module path dynamically
-    full_module_path = f"swarmauri.{module_name_lower}s.concrete"
+    full_module_path = f"swarmauri_standard.{module_name_lower}s"
 
     try:
         # Import the module dynamically
