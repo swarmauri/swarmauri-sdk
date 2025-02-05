@@ -1,11 +1,10 @@
-from swarmauri_core.ComponentBase import ComponentBase
-from swarmauri_core.typing import SubclassUnion
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri._base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
 # Download required NLTK data once during module load
 nltk.download("punkt", quiet=True)
