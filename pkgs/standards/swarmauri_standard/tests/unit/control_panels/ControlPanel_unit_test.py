@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from swarmauri_standard.control_panels.ControlPanel import ControlPanel
-from swarmauri_base.factories.base.FactoryBase import FactoryBase
+from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.task_mgt_strategies.TaskMgtStrategyBase import TaskMgtStrategyBase
 from swarmauri_base.transports.TransportBase import TransportBase
