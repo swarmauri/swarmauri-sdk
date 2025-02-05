@@ -1,10 +1,10 @@
 from typing import Any, Dict, Optional, Tuple, Literal
-from swarmauri_core.typing import SubclassUnion
+
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.chains.ChainStep import ChainStep
 from swarmauri_base.chains.ChainContextBase import ChainContextBase
 from swarmauri_core.chains.IChain import IChain
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
 @ComponentBase.register_type(ContextChainBase, 'ContextChain')
 class ContextChain(IChain, ChainContextBase):
