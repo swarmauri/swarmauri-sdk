@@ -57,13 +57,15 @@ def test_call(input_text, expected_smog_index):
     result = tool(input_text)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("smog_index"), float
-    ), f"Expected float, but got {type(result.get('smog_index')).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("smog_index"), float), (
+        f"Expected float, but got {type(result.get('smog_index')).__name__}"
+    )
 
     assert result.get("smog_index") == pytest.approx(
         expected_smog_index_calculated, rel=0.1
-    ), f"Expected SMOG Index {pytest.approx(expected_smog_index_calculated, rel=0.1)}, but got {result.get('smog_index')}"
+    ), (
+        f"Expected SMOG Index {pytest.approx(expected_smog_index_calculated, rel=0.1)}, but got {result.get('smog_index')}"
+    )
