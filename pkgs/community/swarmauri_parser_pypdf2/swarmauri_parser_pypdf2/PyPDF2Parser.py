@@ -4,7 +4,6 @@ import PyPDF2
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
-from swarmauri_core.documents.IDocument import IDocument
 
 
 @ComponentBase.register_type(ParserBase, "PyPDF2Parser")
@@ -15,7 +14,7 @@ class PyPDF2Parser(ParserBase):
 
     type: Literal["PyPDF2Parser"] = "PyPDF2Parser"
 
-    def parse(self, source: Union[str, bytes]) -> List[IDocument]:
+    def parse(self, source: Union[str, bytes]) -> List[Document]:
         """
         Parses a PDF file and extracts text from each page as Document instances.
 

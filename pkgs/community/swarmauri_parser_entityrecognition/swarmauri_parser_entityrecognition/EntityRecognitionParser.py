@@ -1,10 +1,9 @@
-from swarmauri_core.ComponentBase import ComponentBase
 import spacy
 from typing import List, Union, Any, Literal
 from pydantic import PrivateAttr
-from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "EntityRecognitionParser")
@@ -22,7 +21,7 @@ class EntityRecognitionParser(ParserBase):
         # Load a SpaCy model. The small model is used for demonstration; larger models provide improved accuracy.
         self._nlp = spacy.load("en_core_web_sm")
 
-    def parse(self, text: Union[str, Any]) -> List[IDocument]:
+    def parse(self, text: Union[str, Any]) -> List[Document]:
         """
         Parses the input text, identifies entities, and returns a list of documents with entities tagged.
 

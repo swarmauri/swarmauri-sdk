@@ -1,7 +1,7 @@
-from swarmauri_core.ComponentBase import ComponentBase
 import pyperclip
 from typing import Dict, Any
 from swarmauri_base.state.StateBase import StateBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(StateBase, "ClipboardState")

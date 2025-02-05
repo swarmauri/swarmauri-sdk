@@ -5,11 +5,12 @@ import asyncio
 from pydantic import Field
 from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.base.LLMBase import LLMBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_core.ComponentBase import ComponentBase
+
 
 @ComponentBase.register_type(LLMBase, "LeptonAIModel")
 class LeptonAIModel(LLMBase):

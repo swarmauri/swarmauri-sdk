@@ -1,11 +1,10 @@
 from typing import List
 from redisearch import Client, Query
-from swarmauri_core.documents.IDocument import IDocument
-from swarmauri_standard.document_stores.ConcreteDocument import (
-    ConcreteDocument,
-)
+from swarmauri_standard.documents.Document import Document
+
 from swarmauri_base.retrievers.DocumentRetrieverBase import DocumentRetrieverBase
 from swarmauri_core.ComponentBase import ComponentBase
+
 
 @ComponentBase.register_type(DocumentRetrieverBase, "RedisDocumentRetriever")
 class RedisDocumentRetriever(DocumentRetrieverBase):
@@ -34,7 +33,7 @@ class RedisDocumentRetriever(DocumentRetrieverBase):
             )
         return self._redis_client
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
         Retrieve the most relevant documents based on the given query.
 
@@ -43,12 +42,12 @@ class RedisDocumentRetriever(DocumentRetrieverBase):
             top_k (int, optional): The number of top relevant documents to retrieve. Defaults to 5.
 
         Returns:
-            List[IDocument]: A list of the top_k most relevant documents.
+            List[Document]: A list of the top_k most relevant documents.
         """
         query_result = self.redis_client.search(Query(query).paging(0, top_k))
 
         documents = [
-            ConcreteDocument(
+            Document(
                 doc_id=doc.id,
                 content=doc.text,  # Note: Adjust 'text' based on actual Redis document schema
                 metadata=doc.__dict__,  # Including full document fields and values in metadata

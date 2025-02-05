@@ -1,9 +1,8 @@
-from swarmauri_core.ComponentBase import ComponentBase
 import pymupdf  # PyMuPDF
 from typing import List, Union, Any, Literal
-from swarmauri.parsers.base.ParserBase import ParserBase
-from swarmauri_core.documents.IDocument import IDocument
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_standard.documents.Document import Document
+from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "FitzPdfParser")
@@ -14,7 +13,7 @@ class PDFtoTextParser(ParserBase):
 
     type: Literal["FitzPdfParser"] = "FitzPdfParser"
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses a PDF file and extracts its text content as Document instances.
 
