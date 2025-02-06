@@ -33,9 +33,3 @@
 
 # # Adding tools to __all__ (still safe because LazyLoader doesn't raise errors until accessed)
 # __all__ = [class_name for _, class_name in tool_files]
-
-# from .AutomatedReadabilityIndexTool import AutomatedReadabilityIndexTool
-# from .ColemanLiauIndexTool import ColemanLiauIndexTool
-# from .FleschKincaidTool import FleschKincaidTool
-# from .FleschReadingEaseTool import FleschReadingEaseTool
-# from .GunningFogTool import GunningFogTool
