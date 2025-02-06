@@ -1,7 +1,7 @@
 from typing import Dict, List, Literal, Union, Optional
 import pandas as pd
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
-from swarmauri.measurements.base.MeasurementCalculateMixin import (
+from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
 from swarmauri_core.ComponentBase import ComponentBase

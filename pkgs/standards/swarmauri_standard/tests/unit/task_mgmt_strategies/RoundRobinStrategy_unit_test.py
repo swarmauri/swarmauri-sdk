@@ -1,12 +1,35 @@
 import pytest
 from unittest.mock import MagicMock
-from swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy import RoundRobinStrategy
+from swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy import (
+    RoundRobinStrategy,
+)
 
 
 @pytest.fixture
 def round_robin_strategy():
     """Fixture to create a RoundRobinStrategy instance."""
     return RoundRobinStrategy()
+
+
+@pytest.mark.unit
+def test_ubc_resource(round_robin_strategy):
+    assert round_robin_strategy.resource == "TaskMgmtStrategy"
+
+
+@pytest.mark.unit
+def test_ubc_type(round_robin_strategy):
+    assert round_robin_strategy.type == "RoundRobinStrategy"
+
+
+@pytest.mark.unit
+def test_serialization(round_robin_strategy):
+    round_robin_strategy.model_dump_json()
+    assert (
+        round_robin_strategy.id
+        == RoundRobinStrategy.model_validate_json(
+            round_robin_strategy.model_dump_json()
+        ).id
+    )
 
 
 def test_assign_task(round_robin_strategy):
@@ -41,8 +64,8 @@ def test_add_task(round_robin_strategy):
     round_robin_strategy.add_task(task)
 
     # Verify
-    assert not round_robin_strategy.task_queue.empty()
-    queued_task = round_robin_strategy.task_queue.get()
+    assert not round_robin_strategy._task_queue.empty()
+    queued_task = round_robin_strategy._task_queue.get()
     assert queued_task == task
 
 

@@ -17,7 +17,6 @@ class PipelineBase(IPipeline, ComponentBase):
     type: str = "PipelineBase"
 
     # Pydantic model fields
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tasks: List[Dict[str, Any]] = Field(default_factory=list)
     parallel: bool = Field(default=False)
 

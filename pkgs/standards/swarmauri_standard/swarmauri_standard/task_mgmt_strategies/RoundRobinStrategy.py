@@ -1,19 +1,27 @@
 from queue import Queue
-from typing import Callable, Dict, Any, List
+from typing import Callable, Dict, Any, List, Literal
 import logging
 
-from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
+from pydantic import PrivateAttr
+
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
+    TaskMgmtStrategyBase,
+)
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(TaskMgmtStrategyBase, 'RoundRobinStrategy')
+
+@ComponentBase.register_type(TaskMgmtStrategyBase, "RoundRobinStrategy")
 class RoundRobinStrategy(TaskMgmtStrategyBase):
     """Round-robin task assignment strategy."""
 
-    task_queue: Queue = Queue()  # Synchronous task queue for incoming tasks
+    _task_queue: Queue = PrivateAttr(default_factory=Queue)
     task_assignments: Dict[str, str] = {}  # Tracks task assignments
     current_index: int = 0  # Tracks the next service to assign tasks to
+    type: Literal["RoundRobinStrategy"] = "RoundRobinStrategy"
 
-    def assign_task(self, task: Dict[str, Any], service_registry: Callable[[], List[str]]) -> None:
+    def assign_task(
+        self, task: Dict[str, Any], service_registry: Callable[[], List[str]]
+    ) -> None:
         """
         Assign a task to a service using the round-robin strategy.
         :param task: Task metadata and payload.
@@ -34,7 +42,7 @@ class RoundRobinStrategy(TaskMgmtStrategyBase):
         Add a task to the task queue.
         :param task: Task metadata and payload.
         """
-        self.task_queue.put(task)
+        self._task_queue.put(task)
 
     def remove_task(self, task_id: str) -> None:
         """
@@ -59,14 +67,16 @@ class RoundRobinStrategy(TaskMgmtStrategyBase):
         else:
             raise ValueError(f"Task '{task_id}' not found in assignments.")
 
-    def process_tasks(self, service_registry: Callable[[], List[str]], transport: Callable) -> None:
+    def process_tasks(
+        self, service_registry: Callable[[], List[str]], transport: Callable
+    ) -> None:
         """
         Process tasks from the task queue and assign them to services.
         :param service_registry: Callable that returns available services.
         :param transport: Callable used to send tasks to assigned services.
         """
-        while not self.task_queue.empty():
-            task = self.task_queue.get()
+        while not self._task_queue.empty():
+            task = self._task_queue.get()
             try:
                 self.assign_task(task, service_registry)
                 assigned_service = self.task_assignments[task["task_id"]]

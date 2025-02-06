@@ -1,13 +1,16 @@
 import logging
-from typing import Any, List, Literal
+from typing import Any, Callable, List, Literal
 from pydantic import Field, ConfigDict
 
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.control_panels.IControlPanel import IControlPlane
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.factories.FactoryBase import FactoryBase
-from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
+    TaskMgmtStrategyBase,
+)
 from swarmauri_base.transports.TransportBase import TransportBase
+
 
 @ComponentBase.register_model()
 class ControlPanelBase(IControlPlane, ComponentBase):
@@ -27,11 +30,16 @@ class ControlPanelBase(IControlPlane, ComponentBase):
     transport: SubclassUnion[TransportBase]
 
     # Agent management methods
-    def create_agent(self, name: str, role: str) -> Any:
+    def create_agent(
+        self, name: str, resource_class: Callable, role: str, **kwargs: Any
+    ) -> Any:
         """
         Create an agent with the given name and role, and register it in the service registry.
         """
-        agent = self.agent_factory.create_agent(name, role)
+        if name not in self.agent_factory.get_agents():
+            self.agent_factory.register(name, resource_class)
+
+        agent = self.agent_factory.create(name, **kwargs)
         self.service_registry.register_service(name, {"role": role, "status": "active"})
         logging.info(f"Agent '{name}' with role '{role}' created and registered.")
         return agent
@@ -40,19 +48,17 @@ class ControlPanelBase(IControlPlane, ComponentBase):
         """
         Remove the agent with the specified name and unregister it from the service registry.
         """
-        agent = self.agent_factory.get_agent_by_name(name)
-        if not agent:
+        if name not in self.agent_factory.get_agents():
             raise ValueError(f"Agent '{name}' not found.")
         self.service_registry.unregister_service(name)
-        self.agent_factory.delete_agent(name)
+        del self.agent_factory._registry[name]
         logging.info(f"Agent '{name}' removed and unregistered.")
 
     def list_active_agents(self) -> List[str]:
         """
         List all active agent names.
         """
-        agents = self.agent_factory.get_agents()
-        active_agents = [agent.name for agent in agents if agent]
+        active_agents = self.agent_factory.get_agents()
         logging.info(f"Active agents listed: {active_agents}")
         return active_agents
 

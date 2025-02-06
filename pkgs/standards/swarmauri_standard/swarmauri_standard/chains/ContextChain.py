@@ -6,7 +6,8 @@ from swarmauri_base.chains.ChainContextBase import ChainContextBase
 from swarmauri_core.chains.IChain import IChain
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(ContextChainBase, 'ContextChain')
+
+@ComponentBase.register_type(ChainContextBase, "ContextChain")
 class ContextChain(IChain, ChainContextBase):
     """
     Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.

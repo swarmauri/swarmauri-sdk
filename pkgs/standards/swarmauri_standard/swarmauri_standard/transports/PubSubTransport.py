@@ -1,118 +1,60 @@
 from typing import Dict, Any, List, Set, Literal
 import asyncio
+import uuid
+
+from pydantic import PrivateAttr
 from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(TransportBase, 'PubSubTransport')
+
+@ComponentBase.register_type(TransportBase, "PubSubTransport")
 class PubSubTransport(TransportBase):
-    allowed_protocols: List[TransportProtocol] = [TransportProtocol.PUBSUB]
-    _topics: Dict[str, Set[str]] = {}  # Topic to subscriber mappings
-    _subscribers: Dict[str, asyncio.Queue] = {}
+    _topics: Dict[str, Set[str]] = PrivateAttr(default_factory=dict)
+    _messages: Dict[str, asyncio.Queue] = PrivateAttr(default_factory=dict)
     type: Literal["PubSubTransport"] = "PubSubTransport"
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._topics = {}
+        self._messages = {}
+
     async def subscribe(self, topic: str) -> str:
-        """
-        Subscribe an agent to a specific topic.
-
-        Args:
-            topic (str): The topic to subscribe to
-
-        Returns:
-            str: Unique subscriber ID
-        """
-        subscriber_id = self.id
-
-        # Create message queue for this subscribere
-        self._subscribers[subscriber_id] = asyncio.Queue()
-
-        # Add subscriber to topic
+        """Subscribe to a topic and return subscriber ID."""
+        subscriber_id = str(uuid.uuid4())
         if topic not in self._topics:
             self._topics[topic] = set()
         self._topics[topic].add(subscriber_id)
-
+        self._messages[subscriber_id] = asyncio.Queue()
         return subscriber_id
 
-    async def unsubscribe(self, topic: str):
-        """
-        Unsubscribe an agent from a topic.
+    async def unsubscribe(self, topic: str, subscriber_id: str) -> None:
+        """Remove subscriber from topic."""
+        if topic in self._topics:
+            self._topics[topic].discard(subscriber_id)
+            if subscriber_id in self._messages:
+                del self._messages[subscriber_id]
 
-        Args:
-            topic (str): The topic to unsubscribe from
-            subscriber_id (str): Unique identifier of the subscriber
-        """
-        subscriber_id = self.id
-        if topic in self._topics and subscriber_id in self._topics[topic]:
-            self._topics[topic].remove(subscriber_id)
+    async def publish(self, topic: str, message: Any) -> None:
+        """Publish message to topic subscribers."""
+        if topic in self._topics:
+            for subscriber_id in self._topics[topic]:
+                await self._messages[subscriber_id].put(message)
 
-            # Optional: Clean up if no subscribers remain
-            if not self._topics[topic]:
-                del self._topics[topic]
+    async def receive(self, subscriber_id: str) -> Any:
+        """Receive message for subscriber."""
+        if subscriber_id in self._messages:
+            return await self._messages[subscriber_id].get()
+        raise ValueError(f"No queue for subscriber {subscriber_id}")
 
-    async def publish(self, topic: str, message: Any):
-        """
-        Publish a message to a specific topic.
-
-        Args:
-            topic (str): The topic to publish to
-            message (Any): The message to be published
-        """
-        if topic not in self._topics:
-            return
-
-        # Distribute message to all subscribers of this topic
-        for subscriber_id in self._topics[topic]:
-            await self._subscribers[subscriber_id].put(message)
-
-    async def receive(self) -> Any:
-        """
-        Receive messages for a specific subscriber.
-
-        Args:
-            subscriber_id (str): Unique identifier of the subscriber
-
-        Returns:
-            Any: Received message
-        """
-        return await self._subscribers[self.id].get()
-
-    def send(self, sender: str, recipient: str, message: Any) -> None:
-        """
-        Simulate sending a direct message (not applicable in Pub/Sub context).
-
-        Args:
-            sender (str): The sender ID
-            recipient (str): The recipient ID
-            message (Any): The message to send
-
-        Raises:
-            NotImplementedError: This method is not applicable for Pub/Sub.
-        """
-        raise NotImplementedError("Direct send not supported in Pub/Sub model.")
-
-    def broadcast(self, sender: str, message: Any) -> None:
-        """
-        Broadcast a message to all subscribers of all topics.
-
-        Args:
-            sender (str): The sender ID
-            message (Any): The message to broadcast
-        """
+    async def broadcast(self, sender_id: str, message: Any) -> None:
+        """Send message to all subscribers."""
         for topic in self._topics:
-            asyncio.create_task(self.publish(topic, message))
+            await self.publish(topic, message)
 
-    def multicast(self, sender: str, recipients: List[str], message: Any) -> None:
-        """
-        Send a message to specific topics (acting as recipients).
+    async def multicast(self, sender_id: str, topics: List[str], message: Any) -> None:
+        """Send message to specified topics."""
+        for topic in topics:
+            await self.publish(topic, message)
 
-        Args:
-            sender (str): The sender ID
-            recipients (List[str]): Topics to send the message to
-            message (Any): The message to send
-        """
-        for topic in recipients:
-            asyncio.create_task(self.publish(topic, message))
-
-
-check = PubSubTransport()
-print(check.type)
-print("I am okay")
+    def send(self, message: Any, protocol: TransportProtocol) -> None:
+        raise NotImplementedError("send method is not supported for PubSubTransport.")

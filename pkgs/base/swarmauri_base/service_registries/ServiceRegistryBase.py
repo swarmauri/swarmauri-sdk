@@ -1,8 +1,10 @@
+from collections.abc import Callable
 from typing import Dict, Any, List, Literal, Optional
 from pydantic import ConfigDict, Field
 
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.service_registries.IServiceRegistry import IServiceRegistry
+
 
 @ComponentBase.register_model()
 class ServiceRegistryBase(IServiceRegistry, ComponentBase):
@@ -58,3 +60,9 @@ class ServiceRegistryBase(IServiceRegistry, ComponentBase):
             print(f"Service {name} updated with new details: {details}")
         else:
             raise ValueError(f"Service {name} not found.")
+
+    def get_services(self) -> List[str]:
+        """
+        Get all services.
+        """
+        return list(self.services.keys())

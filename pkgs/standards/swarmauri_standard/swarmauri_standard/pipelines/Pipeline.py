@@ -2,7 +2,8 @@ from typing import Any, Callable, List, Optional, Dict
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(PipelineBase, 'Pipeline')
+
+@ComponentBase.register_type(PipelineBase, "Pipeline")
 class Pipeline(PipelineBase):
     """
     Concrete implementation of a pipeline with additional
