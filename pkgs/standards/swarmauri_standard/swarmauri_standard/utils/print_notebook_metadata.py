@@ -1,11 +1,40 @@
+import logging
 import os
 import platform
 import sys
 from datetime import datetime
-from importlib.metadata import version, PackageNotFoundError
-
 from IPython import get_ipython
 from urllib.parse import unquote
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
+
+_cached_version = None
+
+
+def get_version_from_pyproject():
+    global _cached_version
+    if _cached_version is not None:
+        return _cached_version
+
+    pyproject_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "..", "..", "swarmauri/pyproject.toml"
+    )
+    logging.info(f"Reading Swarmauri version from {pyproject_path}")
+    try:
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+        version = data.get("tool", {}).get("poetry", {}).get("version")
+        if version is None:
+            version = data.get("project", {}).get("version", "development")
+        _cached_version = version
+        return version
+    except Exception:
+        _cached_version = "Swarmauri version information is unavailable. Ensure it is installed properly."
+        return _cached_version
 
 
 def get_notebook_name():
@@ -75,8 +104,5 @@ def print_notebook_metadata(author_name, github_username):
     print(f"Platform: {platform.system()} {platform.release()}")
     print(f"Python Version: {sys.version}")
 
-    try:
-        swarmauri_version = version("swarmauri")
-        print(f"Swarmauri Version: {swarmauri_version}")
-    except PackageNotFoundError:
-        print("Swarmauri version information is unavailable. Ensure it is installed properly.")
+    swarmauri_version = get_version_from_pyproject()
+    print(f"Swarmauri Version: {swarmauri_version}")

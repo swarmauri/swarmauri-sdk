@@ -1,5 +1,7 @@
 import re
 from typing import Dict, List, Literal
+
+from pydantic import ConfigDict
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -31,6 +33,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
             required=True,
         )
     ]
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __call__(self, input_text: str) -> Dict[str, str]:
         """

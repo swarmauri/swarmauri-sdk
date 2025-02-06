@@ -1,3 +1,4 @@
+import logging
 import pytest
 from swarmauri_standard.pipelines.Pipeline import Pipeline
 from swarmauri_core.pipelines.IPipeline import PipelineStatus
@@ -38,6 +39,7 @@ def test_ubc_type(pipeline):
 
 @pytest.mark.unit
 def test_serialization(pipeline):
+    logging.info(pipeline)
     assert pipeline.id == Pipeline.model_validate_json(pipeline.model_dump_json()).id
 
 
