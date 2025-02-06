@@ -14,7 +14,7 @@ from swarmauri_standard.tools.FleschKincaidTool import (
     FleschKincaidTool
     )
 
-from swarmauri_standard.tools.FleschReadingEaseTool import (
+from swarmauri_standard.tools.GunningFogTool import (
     GunningFogTool
     )
 
