@@ -13,14 +13,14 @@ BASE_DIR = os.getcwd()  # Use current working directory
 PROJECTS_PAYLOAD_PATH = os.path.join(BASE_DIR, "projects_payloads.json")
 
 # Directories for templates
-COPY_TEMPLATES_DIR = os.path.join(BASE_DIR, "templatesv2", "component")
-AGENT_PROMPT_TEMPLATE = os.path.join(BASE_DIR, "templatesv2", "component", "agent.j2")
+COPY_TEMPLATES_DIR = os.path.join(BASE_DIR, "templatesv2")
+AGENT_PROMPT_TEMPLATE = os.path.join(BASE_DIR, "templatesv2", "agent.j2")
 
 # Path to your "files payload" template, which is a Jinja2 + JSON
 FILES_PAYLOAD_TEMPLATE_PATH = os.path.join(BASE_DIR, "templatesv2", "component", "payload.json.j2")
 
 # Path to swarmauri package (adjust if necessary)
-SWARMAURI_PACKAGE_PATH = os.path.join("E:\\swarmauri_github\\swarmauri-sdk\\pkgs")
+SWARMAURI_PACKAGE_PATH = os.path.join("pkgs")
 
 
 def main():
