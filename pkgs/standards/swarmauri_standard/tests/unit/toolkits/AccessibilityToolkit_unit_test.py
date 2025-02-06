@@ -13,7 +13,7 @@ def accessibility_toolkit():
 
 @pytest.mark.unit
 def test_ubc_resource(accessibility_toolkit):
-    assert accessibility_toolkit.resource == "AccessibilityToolkit"
+    assert accessibility_toolkit.resource == "Toolkit"
 
 
 @pytest.mark.unit
