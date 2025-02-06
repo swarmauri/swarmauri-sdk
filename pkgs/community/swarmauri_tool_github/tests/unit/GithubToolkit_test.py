@@ -36,7 +36,6 @@ def test_ubc_type(github_toolkit):
 @pytest.mark.unit
 def test_serialization(github_toolkit):
     serialized_data = github_toolkit.model_dump_json()
-    logging.info(serialized_data)
     deserialized_toolkit = Toolkit.model_validate_json(serialized_data)
     assert github_toolkit.id == deserialized_toolkit.id
 
@@ -65,7 +64,7 @@ def test_add_tool(github_toolkit):
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri_community.tools.concrete.GithubRepoTool.Github")
+@patch("swarmauri_tool_github.GithubRepoTool.Github")
 def test_call_github_repo_tool(
     mock_github, github_toolkit, action, kwargs, method_called
 ):

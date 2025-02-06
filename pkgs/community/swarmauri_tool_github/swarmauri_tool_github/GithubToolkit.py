@@ -1,4 +1,3 @@
-# File: swarmauri/standard/toolkits/concrete/GithubToolkit.py
 from typing import Literal, Optional
 
 from swarmauri_core.ComponentBase import ComponentBase

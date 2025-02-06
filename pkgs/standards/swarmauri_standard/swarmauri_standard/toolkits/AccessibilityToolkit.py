@@ -2,6 +2,7 @@ from typing import Literal
 from pydantic import Field
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.tools.AutomatedReadabilityIndexTool import (
     AutomatedReadabilityIndexTool,
@@ -12,8 +13,6 @@ from swarmauri_standard.tools.FleschReadingEaseTool import (
     FleschReadingEaseTool,
 )
 from swarmauri_standard.tools.GunningFogTool import GunningFogTool
-
-from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolkitBase, "AccessibilityToolkit")
