@@ -1,13 +1,16 @@
 [{
-  "PROJECT_ROOT": "GENERATIONS",
+  "PROJECT_ROOT": "pkgs",
+  "RESOURCE_KIND": "parser",
+  "INTERFACE_NAME": "IParser",
+  "BASE_CLASS_NAME": "ParserBase",
+  "NEW_RESOURCE_KIND": true,
   "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Microsoft Word (.docx) files, facilitating document text and metadata extraction.",
   "PACKAGE_ROOT": "swarmauri_parser_docx",
-  "RESOURCE_KIND": "parser",
   "MODULE_NAME": "DOCXParser",
-  "BASE_CLASS_NAME": "ParserBase",
-  "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
-  "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
-  "ADDITIONAL_REQUIREMENTS": [
+  "CORE_ADDITIONAL_REQUIREMENTS":[],
+  "BASE_ADDITIONAL_REQUIREMENTS":[],
+  "CITIZENSHIP": "standards",
+  "CONCRETE_ADDITIONAL_REQUIREMENTS": [
     "Extract text and metadata from DOCX files.",
     "Handle various document structures, including tables, lists, and headings.",
     "Support integration with document processing and text analysis pipelines.",
@@ -20,5 +23,4 @@
   "THIRD_PARTY_DEPENDENCIES": [
     { "name": "python-docx", "version": "*" }
   ]
-}
-]
+}]

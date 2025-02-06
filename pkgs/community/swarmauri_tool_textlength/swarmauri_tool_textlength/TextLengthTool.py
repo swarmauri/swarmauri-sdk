@@ -5,6 +5,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_core.ComponentBase import ComponentBase
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
 # Download required NLTK data once during module load
 nltk.download("punkt_tab", quiet=True)
