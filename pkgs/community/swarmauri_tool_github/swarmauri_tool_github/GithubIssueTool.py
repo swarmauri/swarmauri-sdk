@@ -6,7 +6,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
-@ComponentBase.register_type(ToolBase, "GithubCommitTool")
+@ComponentBase.register_type(ToolBase, "GithubIssueTool")
 class GithubIssueTool(ToolBase):
     version: str = "1.1.0"
     parameters: List[Parameter] = Field(

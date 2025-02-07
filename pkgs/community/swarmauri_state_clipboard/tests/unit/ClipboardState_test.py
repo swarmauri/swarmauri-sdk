@@ -1,39 +1,51 @@
 import pytest
-import pyperclip
+from unittest.mock import patch
 from swarmauri_state_clipboard.ClipboardState import ClipboardState
 
 
 @pytest.fixture
 def clipboard_state():
     """
-    Fixture to create a ClipboardState instance and clean up clipboard after tests.
+    Fixture to create a ClipboardState instance with mocked clipboard operations.
     """
-    # Store original clipboard content
-    original_clipboard = pyperclip.paste()
+    mock_clipboard_content = ""
 
-    # Create ClipboardState
-    state = ClipboardState()
+    def mock_copy(text):
+        nonlocal mock_clipboard_content
+        mock_clipboard_content = text
 
-    # Yield the state for tests to use
-    yield state
+    def mock_paste():
+        return mock_clipboard_content
 
-    # Restore original clipboard content after tests
-    pyperclip.copy(original_clipboard)
+    with patch("pyperclip.copy", side_effect=mock_copy), patch(
+        "pyperclip.paste", side_effect=mock_paste
+    ):
+        state = ClipboardState()
+        yield state
 
 
 @pytest.mark.unit
 def test_ubc_resource(clipboard_state):
-    """
-    Test the resource type of the ClipboardState.
-    """
+    """Test the resource type of the ClipboardState."""
     assert clipboard_state.resource == "State"
 
 
 @pytest.mark.unit
+def test_ubc_type(clipboard_state):
+    assert clipboard_state.type == "ClipboardState"
+
+
+@pytest.mark.unit
+def test_serialization(clipboard_state):
+    assert (
+        clipboard_state.id
+        == ClipboardState.model_validate_json(clipboard_state.model_dump_json()).id
+    )
+
+
+@pytest.mark.unit
 def test_write_and_read(clipboard_state):
-    """
-    Test writing data to clipboard and reading it back.
-    """
+    """Test writing data to clipboard and reading it back."""
     test_data = {"key1": "value1", "key2": 42}
     clipboard_state.write(test_data)
     read_data = clipboard_state.read()
@@ -42,18 +54,13 @@ def test_write_and_read(clipboard_state):
 
 @pytest.mark.unit
 def test_update(clipboard_state):
-    """
-    Test updating existing clipboard data.
-    """
-    # Initial write
+    """Test updating existing clipboard data."""
     initial_data = {"existing_key": "existing_value"}
     clipboard_state.write(initial_data)
 
-    # Update with new data
     update_data = {"new_key": "new_value"}
     clipboard_state.update(update_data)
 
-    # Read and verify merged data
     read_data = clipboard_state.read()
     expected_data = {"existing_key": "existing_value", "new_key": "new_value"}
     assert read_data == expected_data
@@ -61,31 +68,19 @@ def test_update(clipboard_state):
 
 @pytest.mark.unit
 def test_reset(clipboard_state):
-    """
-    Test resetting the clipboard state to an empty dictionary.
-    """
-    # Write some data
+    """Test resetting the clipboard state."""
     clipboard_state.write({"some_key": "some_value"})
-
-    # Reset
     clipboard_state.reset()
-
-    # Verify empty state
     assert clipboard_state.read() == {}
 
 
 @pytest.mark.unit
 def test_deep_copy(clipboard_state):
-    """
-    Test creating a deep copy of the clipboard state.
-    """
-    # Write initial data
+    """Test creating a deep copy of the clipboard state."""
     initial_data = {"key1": "value1", "key2": "value2"}
     clipboard_state.write(initial_data)
 
-    # Create deep copy
     copied_state = clipboard_state.deep_copy()
 
-    # Verify copied state
     assert isinstance(copied_state, ClipboardState)
     assert copied_state.read() == initial_data

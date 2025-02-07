@@ -1,5 +1,5 @@
 import pyperclip
-from typing import Dict, Any
+from typing import Dict, Any, Literal
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_core.ComponentBase import ComponentBase
 
@@ -9,6 +9,7 @@ class ClipboardState(StateBase):
     """
     A concrete implementation of StateBase that uses the system clipboard to store and retrieve state data.
     """
+    type: Literal["ClipboardState"] = "ClipboardState"
 
     def read(self) -> Dict[str, Any]:
         """

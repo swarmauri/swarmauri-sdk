@@ -1,4 +1,6 @@
 from typing import Any, Callable, List, Optional, Dict
+
+from pydantic import Field
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
 from swarmauri_core.ComponentBase import ComponentBase
 
@@ -11,22 +13,6 @@ class Pipeline(PipelineBase):
     """
 
     type: str = "Pipeline"
-
-    def __init__(
-        self,
-        tasks: Optional[List[Dict[str, Any]]] = None,
-        parallel: bool = False,
-        error_handler: Optional[Callable[[Exception], Any]] = None,
-    ):
-        """
-        Initialize a customizable pipeline.
-
-        :param tasks: Optional list of tasks to initialize pipeline with
-        :param parallel: Flag to indicate parallel or sequential execution
-        :param error_handler: Optional custom error handling function
-        """
-        super().__init__(tasks, parallel)
-        self._error_handler = error_handler
 
     def execute(self, *args: Any, **kwargs: Any) -> List[Any]:
         """
