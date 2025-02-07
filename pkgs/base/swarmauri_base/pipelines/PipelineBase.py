@@ -19,21 +19,9 @@ class PipelineBase(IPipeline, ComponentBase):
     # Pydantic model fields
     tasks: List[Dict[str, Any]] = Field(default_factory=list)
     parallel: bool = Field(default=False)
-
-    def __init__(
-        self, tasks: Optional[List[Dict[str, Any]]] = None, parallel: bool = False
-    ):
-        """
-        Initialize the pipeline.
-
-        :param tasks: Optional list of tasks to initialize pipeline with
-        :param parallel: Flag to indicate parallel or sequential execution
-        """
-        super().__init__()
-        self.tasks = tasks or []
-        self._results: List[Any] = []
-        self._status: PipelineStatus = PipelineStatus.PENDING
-        self.parallel = parallel
+    _results: List[Any] = list
+    _status: PipelineStatus = PipelineStatus.PENDING
+    _error_handler: Optional[Callable[[Exception], Any]] = None
 
     def add_task(self, task: Callable, *args: Any, **kwargs: Any) -> None:
         """
