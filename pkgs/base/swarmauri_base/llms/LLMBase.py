@@ -24,6 +24,28 @@ class LLMBase(IPredict, ComponentBase):
             )
         return values
 
+    def add_allowed_model(self, model: str) -> None:
+        """
+        Add a new model to the list of allowed models.
+
+        Raises:
+            ValueError: If the model is already in the allowed models list.
+        """
+        if model in self.allowed_models:
+            raise ValueError(f"Model '{model}' is already allowed.")
+        self.allowed_models.append(model)
+
+    def remove_allowed_model(self, model: str) -> None:
+        """
+        Remove a model from the list of allowed models.
+
+        Raises:
+            ValueError: If the model is not in the allowed models list.
+        """
+        if model not in self.allowed_models:
+            raise ValueError(f"Model '{model}' is not in the allowed models list.")
+        self.allowed_models.remove(model)
+
     @abstractmethod
     def predict(self, *args, **kwargs):
         raise NotImplementedError("predict() not implemented in subclass yet.")
