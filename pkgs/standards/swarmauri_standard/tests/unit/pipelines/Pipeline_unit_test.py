@@ -1,30 +1,32 @@
-import logging
 import pytest
 from swarmauri_standard.pipelines.Pipeline import Pipeline
 from swarmauri_core.pipelines.IPipeline import PipelineStatus
 
 
-@pytest.fixture(scope="module")
-def simple_tasks():
-    def task1():
-        return "Task 1 completed"
+@pytest.fixture
+def mock_task():
+    """Fixture for a sample task"""
 
-    def task2(x):
-        return f"Task 2 with {x}"
+    def task(x):
+        return x * 2
 
-    def task3(x, y):
-        return x + y
-
-    return [task1, task2, task3]
+    return task
 
 
-@pytest.fixture(scope="module")
-def pipeline(simple_tasks):
-    pipeline = Pipeline()
-    pipeline.add_task(simple_tasks[0])
-    pipeline.add_task(simple_tasks[1], "parameter")
-    pipeline.add_task(simple_tasks[2], 10, 20)
-    return pipeline
+@pytest.fixture
+def pipeline():
+    """Fixture for a basic pipeline"""
+    return Pipeline()
+
+
+@pytest.fixture
+def error_handler():
+    """Fixture for a custom error handler"""
+
+    def custom_error_handler(e):
+        return f"Error handled: {str(e)}"
+
+    return custom_error_handler
 
 
 @pytest.mark.unit
@@ -39,48 +41,84 @@ def test_ubc_type(pipeline):
 
 @pytest.mark.unit
 def test_serialization(pipeline):
-    logging.info(pipeline)
-    assert pipeline.id == Pipeline.model_validate_json(pipeline.model_dump_json()).id
+    serialized = pipeline.model_dump_json()
+    deserialized = Pipeline.model_validate_json(serialized)
+    assert deserialized.id == pipeline.id
 
 
-@pytest.mark.unit
-def test_pipeline_initial_status(pipeline):
-    assert pipeline.get_status() == PipelineStatus.PENDING
+# Test inherited methods
+def test_add_task(pipeline, mock_task):
+    """Test adding a task to the pipeline"""
+    pipeline.add_task(mock_task, 5)
+    assert len(pipeline.tasks) == 1
+    assert pipeline.tasks[0]["callable"] == mock_task
+    assert pipeline.tasks[0]["args"] == (5,)
 
 
-@pytest.mark.unit
-def test_pipeline_execution(pipeline):
+def test_sequential_execution(pipeline, mock_task):
+    """Test sequential execution of tasks"""
+    pipeline.add_task(mock_task, 5)
+    pipeline.add_task(mock_task, 10)
+
     results = pipeline.execute()
-
-    assert len(results) == 3
-    assert results[0] == "Task 1 completed"
-    assert results[1] == "Task 2 with parameter"
-    assert results[2] == 30
+    assert results == [10, 20]
     assert pipeline.get_status() == PipelineStatus.COMPLETED
 
 
-@pytest.mark.unit
-def test_pipeline_reset(pipeline):
+def test_parallel_execution(mock_task):
+    """Test parallel execution of tasks"""
+    pipeline = Pipeline(parallel=True)
+    pipeline.add_task(mock_task, 5)
+    pipeline.add_task(mock_task, 10)
+
+    results = pipeline.execute()
+    assert sorted(results) == [10, 20]
+    assert pipeline.get_status() == PipelineStatus.COMPLETED
+
+
+def test_reset_pipeline(pipeline, mock_task):
+    """Test resetting the pipeline"""
+    pipeline.add_task(mock_task, 5)
+    pipeline.execute()
+
     pipeline.reset()
     assert pipeline.get_status() == PipelineStatus.PENDING
-    assert len(pipeline.get_results()) == 0
+    assert pipeline.get_results() == []
 
 
-@pytest.mark.unit
-def test_pipeline_add_task(simple_tasks):
-    pipeline = Pipeline()
-    initial_task_count = len(pipeline.tasks)
-
-    pipeline.add_task(simple_tasks[0])
-    assert len(pipeline.tasks) == initial_task_count + 1
-
-
-@pytest.mark.unit
-def test_pipeline_get_results(simple_tasks):
-    pipeline = Pipeline()
-    pipeline.add_task(simple_tasks[0])
+def test_get_results(pipeline, mock_task):
+    """Test getting pipeline results"""
+    pipeline.add_task(mock_task, 5)
     pipeline.execute()
 
     results = pipeline.get_results()
-    assert len(results) == 1
-    assert results[0] == "Task 1 completed"
+    assert results == [10]
+
+
+# Test error handling methods
+def test_pipeline_error_handling(pipeline, error_handler):
+    """Test pipeline execution with error handler"""
+
+    def failing_task():
+        raise ValueError("Task failed")
+
+    pipeline.add_task(failing_task)
+    pipeline = pipeline.with_error_handler(error_handler)
+
+    result = pipeline.execute()
+    assert isinstance(result, list)
+    assert "Error handled" in result[0]
+    assert pipeline.get_status() == PipelineStatus.FAILED
+
+
+def test_pipeline_without_error_handler(pipeline):
+    """Test pipeline execution without error handler"""
+
+    def failing_task():
+        raise ValueError("Task failed")
+
+    pipeline.add_task(failing_task)
+
+    with pytest.raises(RuntimeError):
+        pipeline.execute()
+    assert pipeline.get_status() == PipelineStatus.FAILED

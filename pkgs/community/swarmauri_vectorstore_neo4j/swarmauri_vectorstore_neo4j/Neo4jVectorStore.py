@@ -1,5 +1,5 @@
 from typing import List, Union, Literal, Optional
-from pydantic import BaseModel, PrivateAttr
+from pydantic import PrivateAttr
 from neo4j import GraphDatabase
 import json
 
@@ -16,7 +16,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(VectorStoreBase, "Neo4jVectorStore")
 class Neo4jVectorStore(
-    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase, BaseModel
+    VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):
     type: Literal["Neo4jVectorStore"] = "Neo4jVectorStore"
     uri: str
