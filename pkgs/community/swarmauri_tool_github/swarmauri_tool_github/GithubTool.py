@@ -157,7 +157,7 @@ class GithubTool(ToolBase):
     def create_repo(self, repo_name: str, private: bool = False) -> str:
         try:
             user = self._github.get_user()
-            repo = user.create_repo(repo_name, private=private)
+            user.create_repo(repo_name, private=private)
             return f"Repository '{repo_name}' created successfully."
         except GithubException as e:
             return f"Error creating repository: {e}"
@@ -399,7 +399,7 @@ class GithubTool(ToolBase):
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            milestone = repo.create_milestone(
+            repo.create_milestone(
                 title=title, description=description, state=state
             )
             return f"Milestone '{title}' created successfully."
@@ -449,7 +449,7 @@ class GithubTool(ToolBase):
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            label = repo.create_label(
+            repo.create_label(
                 name=label_name, color=color, description=description
             )
             return f"Label '{label_name}' created successfully."

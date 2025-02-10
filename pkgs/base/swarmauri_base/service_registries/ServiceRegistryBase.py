@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from typing import Dict, Any, List, Literal, Optional
 from pydantic import ConfigDict, Field
 

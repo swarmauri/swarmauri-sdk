@@ -1,4 +1,4 @@
-from .KeywordExtractorParser import KeywordExtractorParser
+from .KeywordExtractorParser import KeywordExtractorParser as KeywordExtractorParser
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

@@ -1,4 +1,4 @@
-from .Doc2VecVectorStore import Doc2VecVectorStore
+from .Doc2VecVectorStore import Doc2VecVectorStore as Doc2VecVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

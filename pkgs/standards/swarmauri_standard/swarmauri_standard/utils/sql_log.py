@@ -57,7 +57,7 @@ def sql_log_decorator(func):
         
         # SQL logging
         # Unpacking the history and other required parameters from kwargs if they were used
-        history = kwargs.get('history', [])
+        kwargs.get('history', [])
         message = kwargs.get('message', '')
         response = result[1]  # Assuming the response is the second item in the returned tuple
         model_name = kwargs.get('model_name', '')

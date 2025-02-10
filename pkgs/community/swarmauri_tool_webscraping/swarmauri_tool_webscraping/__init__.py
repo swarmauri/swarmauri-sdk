@@ -1,4 +1,4 @@
-from .WebScrapingTool import WebScrapingTool
+from .WebScrapingTool import WebScrapingTool as WebScrapingTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

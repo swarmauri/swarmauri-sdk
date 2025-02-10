@@ -1,4 +1,4 @@
-from .EntityRecognitionTool import EntityRecognitionTool
+from .EntityRecognitionTool import EntityRecognitionTool as EntityRecognitionTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

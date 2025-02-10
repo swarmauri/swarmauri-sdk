@@ -1,7 +1,6 @@
 import os
 from unittest.mock import patch, MagicMock
 import pytest
-import logging
 from swarmauri_standard.tools.AdditionTool import AdditionTool
 from swarmauri_tool_github.GithubRepoTool import GithubRepoTool
 from swarmauri_tool_github.GithubToolkit import GithubToolkit as Toolkit

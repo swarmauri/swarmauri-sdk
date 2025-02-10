@@ -1,5 +1,6 @@
-from .BeautifulSoupElementParser import BeautifulSoupElementParser
-__version__ = "0.6.0.dev26"
+from .BeautifulSoupElementParser import BeautifulSoupElementParser as BeautifulSoupElement
+
+Parser__version__ = "0.6.0.dev26"
 __long_desc__ = """
 
 # Swarmauri BeautifulSoupElement Plugin

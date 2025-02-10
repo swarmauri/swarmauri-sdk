@@ -98,7 +98,7 @@ def test_predict(gemini_tool_model, toolkit, conversation, model_name):
 
     conversation = gemini_tool_model.predict(conversation=conversation, toolkit=toolkit)
 
-    assert type(conversation.get_last().content) == str
+    assert type(conversation.get_last().content) is str
 
 
 @timeout(10)

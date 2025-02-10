@@ -1,5 +1,5 @@
-from .GmailReadTool import GmailReadTool
-from .GmailSendTool import GmailSendTool
+from .GmailReadTool import GmailReadTool as GmailReadTool
+from .GmailSendTool import GmailSendTool as GmailSendTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

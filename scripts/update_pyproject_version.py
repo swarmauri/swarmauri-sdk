@@ -1,6 +1,5 @@
 import requests
 from tomlkit import parse, dumps, inline_table
-import os
 from urllib.parse import urljoin
 
 def fetch_remote_pyproject_version(git_url, branch="main", subdirectory=""):

@@ -1,4 +1,4 @@
-from .CaptchaGeneratorTool import CaptchaGeneratorTool
+from .CaptchaGeneratorTool import CaptchaGeneratorTool as CaptchaGeneratorTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

@@ -1,5 +1,4 @@
-from .TfidfEmbedding import TfidfEmbedding
-
+from .TfidfEmbedding import TfidfEmbedding as TfidfEmbedding
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 

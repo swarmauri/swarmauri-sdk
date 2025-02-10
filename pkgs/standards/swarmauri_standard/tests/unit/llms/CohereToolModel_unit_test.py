@@ -102,7 +102,7 @@ def test_predict(cohere_tool_model, toolkit, conversation, model_name):
     conversation = cohere_tool_model.predict(conversation=conversation, toolkit=toolkit)
     logging.info(conversation.get_last().content)
 
-    assert type(conversation.get_last().content) == str
+    assert type(conversation.get_last().content) is str
 
 
 @timeout(5)

@@ -1,4 +1,4 @@
-from .DuckDBVectorStore import DuckDBVectorStore
+from .DuckDBVectorStore import DuckDBVectorStore as DuckDBVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

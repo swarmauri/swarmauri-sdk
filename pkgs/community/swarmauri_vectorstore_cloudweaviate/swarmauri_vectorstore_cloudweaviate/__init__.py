@@ -1,4 +1,4 @@
-from .CloudWeaviateVectorStore import CloudWeaviateVectorStore
+from .CloudWeaviateVectorStore import CloudWeaviateVectorStore as CloudWeaviateVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

@@ -1,4 +1,4 @@
-from .ZapierHookTool import ZapierHookTool
+from .ZapierHookTool import ZapierHookTool as ZapierHookTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
