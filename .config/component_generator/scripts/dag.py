@@ -1,79 +1,95 @@
 import os
 import json
+import re
 from collections import defaultdict, deque
 from jinja2 import Environment, FileSystemLoader
 from pprint import pprint
 
 # ------------------------------------------------------------------------------
-# 1. SETUP: Adjust these paths as needed
+# GLOBAL SETUP
 # ------------------------------------------------------------------------------
-BASE_DIR = os.getcwd()  # Use current working directory
-
-# This JSON file contains a list of project payloads
+BASE_DIR = os.getcwd()  # Current working directory
 PROJECTS_PAYLOAD_PATH = os.path.join(BASE_DIR, "projects_payloads.json")
-
-# Directories for templates
-COPY_TEMPLATES_DIR = os.path.join(BASE_DIR, "templatesv2")
-AGENT_PROMPT_TEMPLATE = os.path.join(BASE_DIR, "templatesv2", "agent.j2")
-
-# Path to your "files payload" template, which is a Jinja2 + JSON
-FILES_PAYLOAD_TEMPLATE_PATH = os.path.join(BASE_DIR, "templatesv2", "component", "payload.json.j2")
-
-# Path to swarmauri package (adjust if necessary)
 SWARMAURI_PACKAGE_PATH = os.path.join("pkgs")
 
 
+def get_template_dir_any(template_set: str) -> str:
+    """
+    Returns the absolute path for a template folder if it exists
+    in the 'templatesv2' directory. Otherwise, raises a ValueError.
+    """
+    template_dir = os.path.join(BASE_DIR, "templatesv2", template_set)
+    if not os.path.isdir(template_dir):
+        raise ValueError(
+            f"Template directory '{template_set}' does not exist in templatesv2."
+        )
+    return template_dir
+
+
+# ------------------------------------------------------------------------------
+# MAIN
+# ------------------------------------------------------------------------------
 def main():
     """
     Main entry point. Loads the list of project payloads from PROJECTS_PAYLOAD_PATH.
     Then processes each payload in turn.
     """
-    # 1) Load an array of project payloads
     projects_list = load_projects_list(PROJECTS_PAYLOAD_PATH)
 
-    # 2) Iterate through each project payload and process it
     for project_index, global_attrs in enumerate(projects_list, start=1):
         print(f"\n[INFO] ---- Processing Project #{project_index} ----")
         process_single_project_payload(global_attrs)
 
 
+# ------------------------------------------------------------------------------
+# PROCESSING A SINGLE PROJECT PAYLOAD
+# ------------------------------------------------------------------------------
 def process_single_project_payload(global_attrs):
     """
-    Processes a single project payload by performing the following steps:
-      1. Load the files payload (list of file records) from Jinja2 template.
-      2. Resolve placeholders in file records.
-      3. Perform a topological sort based on dependencies.
-      4. Render and save files (COPY or GENERATE).
-      5. Save the final global_attrs to payload.json.
+    Processes a single project payload by:
+      1. Determining which template folder to use.
+      2. Loading the files payload (JSON template) from that folder.
+      3. Resolving placeholders, sorting files topologically,
+         and rendering files (either via COPY or GENERATE).
+      4. Saving the final global_attrs payload.
     """
-    # Step 1: Load the files payload for this project
-    files_payload = load_files_payload(FILES_PAYLOAD_TEMPLATE_PATH, global_attrs)
+    # Get the template set from the project payload (or use "default")
+    template_set = global_attrs.get("TEMPLATE_SET", "default")
+    try:
+        template_dir = get_template_dir_any(template_set)
+    except ValueError as e:
+        print(f"[ERROR] {e}")
+        return
+
+    # Build paths for the templates from the selected template folder
+    files_payload_template_path = os.path.join(template_dir, "payload.json.j2")
+    agent_prompt_template_path = os.path.join(template_dir, "agent.j2")
+
+    # Step 1: Load the files payload using the files payload template
+    files_payload = load_files_payload(files_payload_template_path, global_attrs)
 
     # Step 2: Resolve placeholders in the loaded payload
     resolved_payload = resolve_placeholders(files_payload, global_attrs)
 
-    # Step 3: Perform a topological sort of the resolved payload
+    # Step 3: Topologically sort the resolved payload based on dependencies
     ordered_entries = topological_sort(resolved_payload)
 
-    # Debug: Print the sorted order
     print("\n[INFO] Sorted Payload Entries:")
     pprint([e["RENDERED_FILE_NAME"] for e in ordered_entries])
 
-    # Step 4: Prepare a Jinja2 environment for standard COPY templates
+    # Step 4: Set up the Jinja2 environment using the selected template folder
     copy_env = Environment(
         loader=FileSystemLoader([
-            COPY_TEMPLATES_DIR,       # Where your .j2 templates live
-            BASE_DIR,                 # Where the newly created code will live
-            SWARMAURI_PACKAGE_PATH    # To import swarmauri modules
+            template_dir,          # Use the selected template folder
+            BASE_DIR,              # For additional resources if needed
+            SWARMAURI_PACKAGE_PATH # To import swarmauri modules
         ]),
         autoescape=False
     )
 
-    # If your Generate step needs special credentials or environment,
-    # define them here
-    agent_env = {}
+    agent_env = {}  # Define agent-specific settings if required
 
-    # Step 5: Process each file in sorted order
+    # Step 5: Process each file entry
     for entry in ordered_entries:
         process_type = entry.get("PROCESS_TYPE", "COPY").upper()
         final_filename = entry["RENDERED_FILE_NAME"]
@@ -84,18 +100,20 @@ def process_single_project_payload(global_attrs):
                 save_file(content, final_filename)
 
         elif process_type == "GENERATE":
-            content = render_generate_template(entry, agent_env, copy_env, global_attrs)
+            content = render_generate_template(
+                entry, agent_env, copy_env, global_attrs, agent_prompt_template_path
+            )
             if content is not None:
                 save_file(content, final_filename)
 
         else:
             print(f"[WARNING] Unknown PROCESS_TYPE={process_type} for {final_filename}")
 
-    # Step 6: Save the updated global_attrs to a local payload.json
+    # Step 6: Save the final global_attrs payload to payload.json
     package_payload_filename = os.path.join(
         BASE_DIR,
-        global_attrs['PROJECT_ROOT'],
-        global_attrs['PACKAGE_ROOT'],
+        global_attrs.get('PROJECT_ROOT', ''),
+        global_attrs.get('PACKAGE_ROOT', ''),
         "payload.json"
     )
     save_payload(package_payload_filename, global_attrs)
@@ -109,13 +127,6 @@ def process_single_project_payload(global_attrs):
 def load_projects_list(path):
     """
     Loads a JSON file that contains an array of project payloads.
-
-    Example structure:
-    [
-      { ... },  # Project 1
-      { ... },  # Project 2
-      ...
-    ]
     """
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -140,25 +151,19 @@ def load_files_payload(path, global_attrs):
     with `global_attrs`, and then parses the result as JSON.
     """
     try:
-        # 1) Read the file as a string
         with open(path, "r", encoding="utf-8") as f:
             template_str = f.read()
 
-        # 2) Render via Jinja2
         env = Environment(autoescape=False)
         template = env.from_string(template_str)
-        rendered_str = template.render(**global_attrs)  # Ensure global_attrs is a dict
+        rendered_str = template.render(**global_attrs)
 
-        # 3) Parse the rendered string as JSON
         return json.loads(rendered_str)
     except FileNotFoundError:
         print(f"[ERROR] The file {path} does not exist.")
         return []
     except json.JSONDecodeError as e:
         print(f"[ERROR] Failed to parse rendered JSON from {path}: {e}")
-        return []
-    except TypeError as e:
-        print(f"[ERROR] TypeError during template rendering: {e}")
         return []
     except Exception as e:
         print(f"[ERROR] An unexpected error occurred while loading files payload: {e}")
@@ -168,34 +173,31 @@ def load_files_payload(path, global_attrs):
 # 2. PLACEHOLDER RESOLUTION
 def resolve_placeholders(files_payload, global_attrs):
     """
-    For each record in files_payload:
-      - Keep 'FILE_NAME' unmodified (placeholders intact).
-      - Create 'RENDERED_FILE_NAME' by expanding placeholders.
-      - Create 'RENDERED_DEPENDENCIES' by expanding each dependency.
-      - Render placeholders in all other fields in place.
-
-    Returns a new list of fully resolved entries.
+    Resolves placeholders in each record:
+      - Keeps 'FILE_NAME' unchanged.
+      - Creates 'RENDERED_FILE_NAME' by expanding placeholders.
+      - Expands placeholders in 'DEPENDENCIES' to form 'RENDERED_DEPENDENCIES'.
+      - Renders all other string/list fields.
     """
     env = Environment(autoescape=False)
     resolved_entries = []
 
     for record in files_payload:
-        # Merge context: global_attrs + record
         context = {**global_attrs, **record}
         new_record = {}
 
-        # 1) Handle FILE_NAME => RENDERED_FILE_NAME
-        unrendered_name = record["FILE_NAME"] + '.j2'  # Temporarily append .j2
-        new_record["FILE_NAME"] = unrendered_name  # Keep placeholders intact
+        # Render FILE_NAME -> RENDERED_FILE_NAME
+        unrendered_name = record["FILE_NAME"] + '.j2'
+        new_record["FILE_NAME"] = unrendered_name
         try:
             rendered_template = env.from_string(unrendered_name)
             rendered_name = rendered_template.render(**context)
             new_record["RENDERED_FILE_NAME"] = rendered_name.replace('.j2', '')
         except Exception as e:
             print(f"[ERROR] Failed to render FILE_NAME '{unrendered_name}': {e}")
-            new_record["RENDERED_FILE_NAME"] = rendered_name if 'rendered_name' in locals() else unrendered_name.replace('.j2', '')
+            new_record["RENDERED_FILE_NAME"] = unrendered_name.replace('.j2', '')
 
-        # 2) Render placeholders in DEPENDENCIES => RENDERED_DEPENDENCIES
+        # Render DEPENDENCIES -> RENDERED_DEPENDENCIES
         rendered_deps = []
         for dep in record.get("DEPENDENCIES", []):
             try:
@@ -203,20 +205,20 @@ def resolve_placeholders(files_payload, global_attrs):
                 rendered_deps.append(rendered_dep)
             except Exception as e:
                 print(f"[ERROR] Failed to render DEPENDENCY '{dep}': {e}")
-                rendered_deps.append(dep)  # Keep original if rendering fails
+                rendered_deps.append(dep)
         new_record["RENDERED_DEPENDENCIES"] = rendered_deps
 
-        # 3) Render placeholders in all other fields
+        # Render all other fields
         for key, val in record.items():
             if key in ["FILE_NAME", "DEPENDENCIES"]:
-                continue  # Already handled
+                continue
 
             if isinstance(val, str):
                 try:
                     new_record[key] = env.from_string(val).render(**context)
                 except Exception as e:
                     print(f"[ERROR] Failed to render field '{key}' with value '{val}': {e}")
-                    new_record[key] = val  # Keep original if rendering fails
+                    new_record[key] = val
 
             elif isinstance(val, list):
                 rendered_list = []
@@ -227,12 +229,12 @@ def resolve_placeholders(files_payload, global_attrs):
                             rendered_list.append(rendered_item)
                         except Exception as e:
                             print(f"[ERROR] Failed to render list item '{item}' in field '{key}': {e}")
-                            rendered_list.append(item)  # Keep original
+                            rendered_list.append(item)
                     else:
-                        rendered_list.append(item)  # Non-string items are kept as-is
+                        rendered_list.append(item)
                 new_record[key] = rendered_list
             else:
-                new_record[key] = val  # Non-string/non-list fields are copied as-is
+                new_record[key] = val
 
         resolved_entries.append(new_record)
 
@@ -242,18 +244,14 @@ def resolve_placeholders(files_payload, global_attrs):
 # 3. TOPOLOGICAL SORT
 def topological_sort(payload):
     """
-    Returns a list of entries in an order that respects dependencies, i.e.,
-    if file A depends on file B, B must appear before A.
-
-    Uses RENDERED_FILE_NAME for node ID and RENDERED_DEPENDENCIES for edges.
+    Returns a list of entries sorted so that if file A depends on file B,
+    then B comes before A.
     """
     graph, in_degree = build_forward_graph(payload)
 
-    # Kahn’s Algorithm
     queue = deque([node for node, deg in in_degree.items() if deg == 0])
     sorted_entries = []
 
-    # For quick lookup from node -> payload entry
     entry_map = {e["RENDERED_FILE_NAME"]: e for e in payload}
 
     while queue:
@@ -266,7 +264,6 @@ def topological_sort(payload):
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
 
-    # Warn if not all were sorted => cycle or missing dependency
     if len(sorted_entries) < len(entry_map):
         print("[WARNING] Some dependencies may be cyclical or missing.")
 
@@ -275,21 +272,16 @@ def topological_sort(payload):
 
 def build_forward_graph(payload):
     """
-    Create adjacency list + in_degree map:
-      - node = RENDERED_FILE_NAME
-      - edges from each dependency to the dependent file.
-
-    If X depends on Y, add edge Y -> X.
+    Builds a graph (adjacency list and in-degree map) where an edge from Y to X
+    indicates that file X depends on file Y.
     """
     graph = defaultdict(list)
     in_degree = defaultdict(int)
 
-    # Gather all node IDs
     all_nodes = set(entry["RENDERED_FILE_NAME"] for entry in payload)
     for node in all_nodes:
         in_degree[node] = 0
 
-    # Build edges
     for entry in payload:
         file_node = entry["RENDERED_FILE_NAME"]
         for dep in entry.get("RENDERED_DEPENDENCIES", []):
@@ -299,7 +291,6 @@ def build_forward_graph(payload):
             else:
                 print(f"[WARNING] Dependency '{dep}' for file '{file_node}' not found among all nodes.")
 
-    # Ensure every node is in the graph
     for node in all_nodes:
         if node not in graph:
             graph[node] = []
@@ -310,15 +301,7 @@ def build_forward_graph(payload):
 # 4. PROCESSING (COPY / GENERATE)
 def render_copy_template(entry, copy_env, global_attrs):
     """
-    Renders a file template from the local filesystem.
-
-    Parameters:
-      - entry: The resolved payload entry.
-      - copy_env: Jinja2 Environment for COPY templates.
-      - global_attrs: Global attributes dictionary.
-
-    Returns:
-      - Rendered content as a string.
+    Renders a file template (for process type COPY) using the provided Jinja2 environment.
     """
     template_path = entry["FILE_NAME"]  # e.g., "subfolder/my_file.py.j2"
     context = {**global_attrs, **entry}
@@ -331,32 +314,19 @@ def render_copy_template(entry, copy_env, global_attrs):
         return None
 
 
-def render_generate_template(entry, agent_env, copy_env, global_attrs):
+def render_generate_template(entry, agent_env, copy_env, global_attrs, agent_prompt_template_path):
     """
-    For 'GENERATE' process type:
-      1. Build an agent prompt from 'agent.j2' template.
-      2. Call an external LLM/Agent to get final content.
-
-    Parameters:
-      - entry: The resolved payload entry.
-      - agent_env: Environment or credentials for the agent.
-      - copy_env: Jinja2 Environment for COPY templates.
-      - global_attrs: Global attributes dictionary.
-
-    Returns:
-      - Generated content as a string.
+    Renders an agent prompt template (from agent_prompt_template_path) and
+    calls an external agent to generate file content.
     """
     try:
-        # 1) Load the agent prompt template
-        with open(AGENT_PROMPT_TEMPLATE, "r", encoding="utf-8") as f:
+        with open(agent_prompt_template_path, "r", encoding="utf-8") as f:
             agent_prompt_str = f.read()
 
-        # 2) Merge contexts
         context = {**global_attrs, **entry}
         agent_prompt_template = copy_env.from_string(agent_prompt_str)
         agent_prompt = agent_prompt_template.render(**context)
 
-        # 3) Call your external agent to get the content
         content = call_external_agent(agent_prompt, agent_env)
         print(f"[INFO] Generated content length: {len(content)} characters")
         return content
@@ -367,69 +337,55 @@ def render_generate_template(entry, agent_env, copy_env, global_attrs):
 
 def call_external_agent(prompt, agent_env):
     """
-    Placeholder function to integrate with an LLM (e.g. OpenAI, Hugging Face).
+    Placeholder function to integrate with an external LLM/Agent.
     """
     print("[INFO] Prompt sent to agent (truncated):")
-    print(prompt, '\n\n')  # Show partial prompt
-    # print(prompt[:250], "...\n")  # Show partial prompt
-    # Return a dummy code snippet for demonstration
-    #from swarmauri.llms.DeepInfraModel import DeepInfraModel
+    print(prompt[:250] + "...\n")  # Show a truncated version of the prompt
+
+    # Example: Using swarmauri components (adjust as needed)
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
-    #llm = DeepInfraModel(api_key="***", name="meta-llama/Meta-Llama-3.1-405B-Instruct")
-    #llm.allowed_models.append('deepseek-ai/DeepSeek-R1')
-    #llm.name = 'deepseek-ai/DeepSeek-R1'
-    llm = O1Model(api_key="***", name="o1")
-    #llm = TogetherModel(api_key="***")
-    #system_context= "You are a python developer. You responsibility for the development and documentation of python packages."
+    # You can swap in your desired LLM model here
+    llm = O1Model(api_key="your_api_key_here", name="o1")
     system_context = "You are a helpful assistant."
     agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
-    #result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 30000})
     result = agent.exec(prompt, top_k=0)
-    chunk = chunk_content(result)
+    content = chunk_content(result)
     del agent
-    return chunk
+    return content
 
 
 def chunk_content(full_content: str) -> str:
     """
-    Splits the content into chunks using a chunker.
-
-    Parameters:
-      - full_content: The complete content string.
-
-    Returns:
-      - A single chunk or the entire content if chunking is not applicable.
+    Optionally splits the content into chunks. Returns either a single chunk
+    or the full content.
     """
     try:
-        from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
-        import re
+        # Remove any unwanted <think> blocks
         pattern = r"<think>[\s\S]*?</think>"
         cleaned_text = re.sub(pattern, "", full_content).strip()
+
+        from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
         chunker = MdSnippetChunker()
-        split = chunker.chunk_text(cleaned_text)
-        if len(split) > 1:
+        chunks = chunker.chunk_text(cleaned_text)
+        if len(chunks) > 1:
             return cleaned_text
         try:
-            return split[0][2]
+            return chunks[0][2]
         except IndexError:
             return cleaned_text
     except ImportError:
         print("[WARNING] MdSnippetChunker not found. Returning full content without chunking.")
-        return cleaned_text
+        return full_content
     except Exception as e:
         print(f"[ERROR] Failed to chunk content: {e}")
-        return cleaned_text
+        return full_content
 
 
 # 5. FILE SAVING / UTILITY
 def save_file(content, filepath):
     """
-    Creates directories as needed and saves the given content to 'filepath'.
-
-    Parameters:
-      - content: The content to write to the file.
-      - filepath: The path where the file should be saved.
+    Creates directories as needed and saves the given content to the specified filepath.
     """
     try:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -442,11 +398,7 @@ def save_file(content, filepath):
 
 def save_payload(package_payload_filename, global_attrs):
     """
-    Saves the final global_attrs to a local payload.json for reference.
-
-    Parameters:
-      - package_payload_filename: The path where payload.json should be saved.
-      - global_attrs: The global attributes dictionary.
+    Saves the final global_attrs payload to a local payload.json for reference.
     """
     try:
         os.makedirs(os.path.dirname(package_payload_filename), exist_ok=True)
@@ -458,7 +410,7 @@ def save_payload(package_payload_filename, global_attrs):
 
 
 # ------------------------------------------------------------------------------
-# MAIN
+# MAIN EXECUTION
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
     main()
