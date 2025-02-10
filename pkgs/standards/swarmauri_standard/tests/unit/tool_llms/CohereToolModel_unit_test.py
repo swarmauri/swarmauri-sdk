@@ -105,6 +105,7 @@ def test_predict(cohere_tool_model, toolkit, conversation, model_name):
     assert type(conversation.get_last().content) is str
 
 
+
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())

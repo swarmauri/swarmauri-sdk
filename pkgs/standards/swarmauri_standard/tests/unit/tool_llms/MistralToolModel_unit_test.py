@@ -111,7 +111,6 @@ def test_predict(mistral_tool_model, toolkit, conversation, model_name):
         conversation=conversation, toolkit=toolkit
     )
     logging.info(conversation.get_last().content)
-
     assert type(conversation.get_last().content) is str
 
 
