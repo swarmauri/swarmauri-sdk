@@ -1,4 +1,4 @@
-from .BERTEmbeddingParser import BERTEmbeddingParser
+from .BERTEmbeddingParser import BERTEmbeddingParser as BERTEmbeddingParser
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

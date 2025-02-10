@@ -10,13 +10,16 @@ from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentToolMixin import AgentToolMixin
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+
+
 from swarmauri_core.messages import IMessage
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "ToolAgent")
 class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
-    llm: SubclassUnion[ToolLLMBase]
+    llm: SubclassUnion[LLMBase, ToolLLMBase]
     toolkit: SubclassUnion[ToolkitBase]
     conversation: SubclassUnion[ConversationBase]  # 🚧  Placeholder
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)

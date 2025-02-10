@@ -1,4 +1,4 @@
-from .PersistentChromaDBVectorStore import PersistentChromaDBVectorStore
+from .PersistentChromaDBVectorStore import PersistentChromaDBVectorStore as PersistentChromaDBVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

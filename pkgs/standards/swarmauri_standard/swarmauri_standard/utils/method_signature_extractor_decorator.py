@@ -64,7 +64,7 @@ class MethodSignatureExtractor(BaseModel):
                 continue
 
             param_type = type_hints.get(param_name, Any)
-            param_default = (
+            (
                 param.default if param.default is not inspect.Parameter.empty else None
             )
             required = param.default is inspect.Parameter.empty

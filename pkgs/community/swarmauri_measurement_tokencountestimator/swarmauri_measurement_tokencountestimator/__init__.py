@@ -1,4 +1,4 @@
-from .TokenCountEstimatorMeasurement import TokenCountEstimatorMeasurement
+from .TokenCountEstimatorMeasurement import TokenCountEstimatorMeasurement as TokenCountEstimatorMeasurement
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

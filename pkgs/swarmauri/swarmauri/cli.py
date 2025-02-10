@@ -131,7 +131,7 @@ def main():
     register_parser.add_argument("plugin_name", type=str, help="Name of the plugin to register.")
 
     # Subcommand: List Plugins
-    list_parser = subparsers.add_parser("list", help="List all registered plugins.")
+    subparsers.add_parser("list", help="List all registered plugins.")
 
     # Parse arguments and execute the appropriate function
     args = parser.parse_args()

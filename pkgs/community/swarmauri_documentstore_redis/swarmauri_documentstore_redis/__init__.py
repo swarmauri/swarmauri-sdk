@@ -1,4 +1,4 @@
-from .RedisDocumentStore import RedisDocumentStore
+from .RedisDocumentStore import RedisDocumentStore as RedisDocumentStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

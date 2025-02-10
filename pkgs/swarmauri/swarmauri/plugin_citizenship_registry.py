@@ -8,8 +8,8 @@ first, second, and third-class citizens within the swarmauri framework.
 """
 
 import logging
-from typing import Optional, Dict
 from importlib.metadata import EntryPoint
+from typing import Dict, Optional
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -125,7 +125,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.tool_llms.GeminiToolModel": "swarmauri_standard.tool_llms.GeminiToolModel",
         "swarmauri.tool_llms.GroqToolModel": "swarmauri_standard.tool_llms.GroqToolModel",
         "swarmauri.tool_llms.MistralToolModel": "swarmauri_standard.tool_llms.MistralToolModel",
-        "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
         "swarmauri.stt.WhisperLargeSTT": "swarmauri_standard.stt.WhisperLargeSTT",
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",

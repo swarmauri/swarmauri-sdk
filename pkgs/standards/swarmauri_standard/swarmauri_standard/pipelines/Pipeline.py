@@ -1,6 +1,5 @@
-from typing import Any, Callable, List, Optional, Dict
+from typing import Any, Callable, List
 
-from pydantic import Field
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
 from swarmauri_core.ComponentBase import ComponentBase
 

@@ -1,9 +1,9 @@
-from .GithubBranchTool import GithubBranchTool
-from .GithubCommitTool import GithubCommitTool
-from .GithubIssueTool import GithubIssueTool
-from .GithubPRTool import GithubPRTool
-from .GithubRepoTool import GithubRepoTool
-from .GithubTool import GithubTool
+from .GithubBranchTool import GithubBranchTool as GithubBranchTool
+from .GithubCommitTool import GithubCommitTool as GithubCommitTool
+from .GithubIssueTool import GithubIssueTool as GithubIssueTool 
+from .GithubPRTool import GithubPRTool as GithubPRTool
+from .GithubRepoTool import GithubRepoTool as GithubRepoTool
+from .GithubTool import GithubTool as GithubTool
 
 
 __version__ = "0.6.0.dev26"

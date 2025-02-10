@@ -1,4 +1,4 @@
-from .FoliumTool import FoliumTool
+from .FoliumTool import FoliumTool as FoliumTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

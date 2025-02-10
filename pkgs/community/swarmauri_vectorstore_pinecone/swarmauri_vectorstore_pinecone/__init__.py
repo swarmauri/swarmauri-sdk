@@ -1,4 +1,4 @@
-from .PineconeVectorStore import PineconeVectorStore
+from .PineconeVectorStore import PineconeVectorStore as PineconeVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

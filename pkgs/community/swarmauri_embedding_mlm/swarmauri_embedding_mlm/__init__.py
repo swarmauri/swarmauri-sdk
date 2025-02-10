@@ -1,4 +1,4 @@
-from .MlmEmbedding import MlmEmbedding
+from .MlmEmbedding import MlmEmbedding as MlmEmbedding
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

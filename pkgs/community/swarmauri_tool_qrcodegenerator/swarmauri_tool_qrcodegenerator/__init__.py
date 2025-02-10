@@ -1,4 +1,4 @@
-from .QrCodeGeneratorTool import QrCodeGeneratorTool
+from .QrCodeGeneratorTool import QrCodeGeneratorTool as QrCodeGeneratorTool
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
