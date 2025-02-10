@@ -61,9 +61,10 @@ def process_single_project_payload(global_attrs):
         print(f"[ERROR] {e}")
         return
 
-    # Build paths for the templates from the selected template folder
+    # Build paths for the templates from the selected template folder.
+    # Note: The agent prompt template may be defined in a file entry,
+    # so we won't fix a single agent_prompt_template_path here.
     files_payload_template_path = os.path.join(template_dir, "payload.json.j2")
-    agent_prompt_template_path = os.path.join(template_dir, "agent.j2")
 
     # Step 1: Load the files payload using the files payload template
     files_payload = load_files_payload(files_payload_template_path, global_attrs)
@@ -100,6 +101,13 @@ def process_single_project_payload(global_attrs):
                 save_file(content, final_filename)
 
         elif process_type == "GENERATE":
+            # Check if the file entry defines its own agent prompt template.
+            # If not, fallback to the global setting or to "agent_default.j2".
+            agent_prompt_template_name = entry.get(
+                "AGENT_PROMPT_TEMPLATE",
+                global_attrs.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+            )
+            agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
             content = render_generate_template(
                 entry, agent_env, copy_env, global_attrs, agent_prompt_template_path
             )
@@ -149,6 +157,11 @@ def load_files_payload(path, global_attrs):
     """
     Loads a Jinja2-based JSON template (payload.json.j2), renders it
     with `global_attrs`, and then parses the result as JSON.
+    
+    Supports an optional top-level key "AGENT_PROMPT_TEMPLATE" in the payload.
+    If the rendered JSON is a dictionary, it is expected to contain a "FILES"
+    key with the list of file payloads, and optionally an "AGENT_PROMPT_TEMPLATE".
+    If the rendered JSON is a list, then it is taken as the list of file payloads.
     """
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -158,7 +171,16 @@ def load_files_payload(path, global_attrs):
         template = env.from_string(template_str)
         rendered_str = template.render(**global_attrs)
 
-        return json.loads(rendered_str)
+        payload_data = json.loads(rendered_str)
+        if isinstance(payload_data, dict):
+            # If an agent prompt template is defined in the payload, update global_attrs.
+            if "AGENT_PROMPT_TEMPLATE" in payload_data:
+                global_attrs["AGENT_PROMPT_TEMPLATE"] = payload_data["AGENT_PROMPT_TEMPLATE"]
+            # Return the list of file definitions under the "FILES" key.
+            return payload_data.get("FILES", [])
+        else:
+            # If the payload is a list, return it as is.
+            return payload_data
     except FileNotFoundError:
         print(f"[ERROR] The file {path} does not exist.")
         return []
@@ -346,7 +368,7 @@ def call_external_agent(prompt, agent_env):
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
     # You can swap in your desired LLM model here
-    llm = O1Model(api_key="your_api_key_here", name="o1")
+    llm = O1Model(api_key="***", name="o3-mini")
     system_context = "You are a helpful assistant."
     agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
     result = agent.exec(prompt, top_k=0)
