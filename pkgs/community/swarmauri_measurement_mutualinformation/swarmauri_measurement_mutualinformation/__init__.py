@@ -1,4 +1,4 @@
-from .MutualInformationMeasurement import MutualInformationMeasurement
+from .MutualInformationMeasurement import MutualInformationMeasurement as MutualInformationMeasurement
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

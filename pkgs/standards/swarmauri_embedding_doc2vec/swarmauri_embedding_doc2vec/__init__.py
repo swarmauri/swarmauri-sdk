@@ -1,4 +1,4 @@
-from .Doc2VecEmbedding import Doc2VecEmbedding
+from .Doc2VecEmbedding import Doc2VecEmbedding as Doc2VecEmbedding
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

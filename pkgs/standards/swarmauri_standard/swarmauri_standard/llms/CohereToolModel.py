@@ -482,10 +482,10 @@ class CohereToolModel(LLMBase):
             tools=tools,
             force_single_step=True,
         )
-
-        tool_response = await self._async_client.post("/chat", json=tool_payload)
-        tool_response.raise_for_status()
-        tool_data = tool_response.json()
+        with DurationManager() as prompt_timer:
+            tool_response = await self._async_client.post("/chat", json=tool_payload)
+            tool_response.raise_for_status()
+            tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
@@ -509,21 +509,25 @@ class CohereToolModel(LLMBase):
             "POST", "/chat", json=stream_payload
         ) as response:
             response.raise_for_status()
-            async for line in response.aiter_lines():
-                if line:
-                    try:
-                        chunk = json.loads(line)
-                        if "text" in chunk:
-                            content = chunk["text"]
-                            collected_content.append(content)
-                            yield content
-                        elif "usage" in chunk:
-                            usage_data = chunk["usage"]
-                    except json.JSONDecodeError:
-                        continue
-
+            with DurationManager() as completion_timer:
+                async for line in response.aiter_lines():
+                    if line:
+                        try:
+                            chunk = json.loads(line)
+                            if "text" in chunk:
+                                content = chunk["text"]
+                                collected_content.append(content)
+                                yield content
+                            elif "usage" in chunk:
+                                usage_data = chunk["usage"]
+                        except json.JSONDecodeError:
+                            continue
+                            
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+        conversation.add_message(AgentMessage(content=full_content), usage=usage)
 
     def batch(
         self, conversations: List, toolkit=None, temperature=0.3, max_tokens=1024

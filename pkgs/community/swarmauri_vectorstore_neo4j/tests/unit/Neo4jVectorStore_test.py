@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
-from neo4j import GraphDatabase
+from unittest.mock import patch
 from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_neo4j.Neo4jVectorStore import Neo4jVectorStore
 

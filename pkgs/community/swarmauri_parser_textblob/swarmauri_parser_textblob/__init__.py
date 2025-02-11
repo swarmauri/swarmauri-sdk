@@ -1,5 +1,5 @@
-from .TextBlobNounParser import TextBlobNounParser
-from .TextBlobSentenceParser import TextBlobSentenceParser
+from .TextBlobNounParser import TextBlobNounParser as TextBlobNounParser
+from .TextBlobSentenceParser import TextBlobSentenceParser as TextBlobSentenceParser
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

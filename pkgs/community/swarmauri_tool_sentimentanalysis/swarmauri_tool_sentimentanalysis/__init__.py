@@ -1,4 +1,4 @@
-from .SentimentAnalysisTool import SentimentAnalysisTool
+from .SentimentAnalysisTool import SentimentAnalysisTool as SentimentAnalysisTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

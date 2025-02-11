@@ -1,4 +1,3 @@
-import uuid
 from typing import Any, Callable, List, Optional, Dict
 from pydantic import ConfigDict, Field
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes

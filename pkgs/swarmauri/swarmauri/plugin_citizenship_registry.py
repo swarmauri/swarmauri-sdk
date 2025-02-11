@@ -8,8 +8,8 @@ first, second, and third-class citizens within the swarmauri framework.
 """
 
 import logging
-from typing import Optional, Dict
 from importlib.metadata import EntryPoint
+from typing import Dict, Optional
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -119,6 +119,21 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.PerplexityModel": "swarmauri_standard.llms.PerplexityModel",
         "swarmauri.llms.PlayHTModel": "swarmauri_standard.llms.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": "swarmauri_standard.llms.WhisperLargeModel",
+        "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
+        "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_standard.tool_llms.AnthropicToolModel",
+        "swarmauri.tool_llms.CohereToolModel": "swarmauri_standard.tool_llms.CohereToolModel",
+        "swarmauri.tool_llms.GeminiToolModel": "swarmauri_standard.tool_llms.GeminiToolModel",
+        "swarmauri.tool_llms.GroqToolModel": "swarmauri_standard.tool_llms.GroqToolModel",
+        "swarmauri.tool_llms.MistralToolModel": "swarmauri_standard.tool_llms.MistralToolModel",
+        "swarmauri.stt.WhisperLargeSTT": "swarmauri_standard.stt.WhisperLargeSTT",
+        "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
+        "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
+        "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
+        "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
+        "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
+        "swarmauri.ocrs.FalOCR": "swarmauri_standard.ocrs.FalOCR",
+        "swarmauri.ocrs.GroqOCR": "swarmauri_standard.ocrs.GroqOCR",
+        "swarmauri.ocrs.HyperbolicOCR": "swarmauri_standard.ocrs.HyperbolicOCR",
         "swarmauri.measurements.CompletenessMeasurement": "swarmauri_standard.measurements.CompletenessMeasurement",
         "swarmauri.measurements.DistinctivenessMeasurement": "swarmauri_standard.measurements.DistinctivenessMeasurement",
         "swarmauri.measurements.FirstImpressionMeasurement": "swarmauri_standard.measurements.FirstImpressionMeasurement",

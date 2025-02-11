@@ -1,5 +1,4 @@
 import logging
-from math import e
 import os
 import pytest
 from swarmauri_standard.llms.GroqModel import GroqModel

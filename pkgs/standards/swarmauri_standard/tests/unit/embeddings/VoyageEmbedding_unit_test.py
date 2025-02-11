@@ -47,7 +47,7 @@ def test_voyage_infer_vector(voyage_embedder):
     documents = ["test", "cat", "banana"]
     response = voyage_embedder.transform(documents)
     assert 3 == len(response)
-    assert float == type(response[0].value[0])
+    assert float is type(response[0].value[0])
     assert 1024 == len(
         response[0].value
     )  # 1024 is the embedding size for voyage-2 model

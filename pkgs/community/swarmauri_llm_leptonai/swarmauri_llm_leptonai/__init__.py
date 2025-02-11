@@ -1,5 +1,5 @@
-from .LeptonAIImgGenModel import LeptonAIImgGenModel
-from .LeptonAIModel import LeptonAIModel
+from .LeptonAIImgGenModel import LeptonAIImgGenModel as LeptonAIImgGenModel
+from .LeptonAIModel import LeptonAIModel as LeptonAIModel
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

@@ -7,7 +7,6 @@ import pytest
 from swarmauri_standard.utils.print_notebook_metadata import (
     get_notebook_name,
     print_notebook_metadata,
-    get_version_from_pyproject,
 )
 
 

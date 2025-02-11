@@ -1,4 +1,5 @@
-from .RedisVectorStore import RedisVectorStore
+from .RedisVectorStore import RedisVectorStore as RedisVectorStore
+from .RedisDocumentRetriever import RedisDocumentRetriever as RedisDocumentRetriever
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

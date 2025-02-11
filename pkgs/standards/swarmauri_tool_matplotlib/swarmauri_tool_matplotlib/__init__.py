@@ -1,5 +1,5 @@
-from .MatplotlibCsvTool import MatplotlibCsvTool
-from .MatplotlibTool import MatplotlibTool
+from .MatplotlibCsvTool import MatplotlibCsvTool as MatplotlibCsvTool
+from .MatplotlibTool import MatplotlibTool as MatplotlibTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

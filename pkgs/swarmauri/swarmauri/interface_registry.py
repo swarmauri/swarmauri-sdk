@@ -23,6 +23,10 @@ from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_base.tts.TTSBase import TTSBase
+from swarmauri_base.ocrs.OCRBase import OCRBase
+from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.parsers.ParserBase import ParserBase
@@ -67,6 +71,10 @@ class InterfaceRegistry:
         "swarmauri.factories": FactoryBase,
         "swarmauri.image_gens": ImageGenBase,
         "swarmauri.llms": LLMBase,
+        "swarmauri.tool_llms": ToolLLMBase,
+        "swarmauri.tts": TTSBase,
+        "swarmauri.ocrs": OCRBase,
+        "swarmauri.stt": STTBase,
         "swarmauri.measurements": MeasurementBase,
         "swarmauri.messages": MessageBase,
         "swarmauri.parsers": ParserBase,

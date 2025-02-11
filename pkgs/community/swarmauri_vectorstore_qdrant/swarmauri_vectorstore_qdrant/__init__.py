@@ -1,5 +1,5 @@
-from .PersistentQdrantVectorStore import PersistentQdrantVectorStore
-from .CloudQdrantVectorStore import CloudQdrantVectorStore
+from .PersistentQdrantVectorStore import PersistentQdrantVectorStore as PersistentQdrantVectorStore
+from .CloudQdrantVectorStore import CloudQdrantVectorStore as CloudQdrantVectorStore
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

@@ -72,7 +72,7 @@ def test_predict(mistral_tool_model, toolkit, conversation, model_name):
         conversation=conversation, toolkit=toolkit
     )
 
-    assert type(conversation.get_last().content) == str
+    assert type(conversation.get_last().content) is str
 
 
 @timeout(5)

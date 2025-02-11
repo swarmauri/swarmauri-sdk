@@ -53,7 +53,7 @@ class RedisDocumentStore(DocumentStoreBase):
                 documents.append(json.loads(document_data))
         return documents
 
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+    def update_document(self, doc_id: str, updated_document: Document) -> None:
         self.add_document(updated_document)
 
     def delete_document(self, doc_id: str) -> None:
