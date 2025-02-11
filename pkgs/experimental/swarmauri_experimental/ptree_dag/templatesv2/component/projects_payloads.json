@@ -1,0 +1,640 @@
+[
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Markdown (.md) files, facilitating documentation generation and content management.",
+    "PACKAGE_ROOT": "swarmauri_parser_markdown",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "MarkdownParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Markdown content and convert it into HTML or other formats.",
+      "Handle various Markdown syntax variations and extensions.",
+      "Support integration with documentation generation pipelines.",
+      "Allow for customization of parsing rules and output formats.",
+      "Provide a complete implementation of all internal methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "markdown", "version": "*" },
+      { "name": "mistune", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from LaTeX (.tex) files, facilitating scientific document generation and typesetting.",
+    "PACKAGE_ROOT": "swarmauri_parser_latex",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "LaTeXParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse LaTeX content and extract structural elements like sections, equations, and references.",
+      "Handle various LaTeX packages and commands.",
+      "Support conversion to other formats like HTML or PDF.",
+      "Allow integration with scientific document generation pipelines.",
+      "Provide a complete implementation of all internal methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pylatex", "version": "*" },
+      { "name": "plasTeX", "version": "*" },
+      { "name": "latexcodec", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from PDF (.pdf) files, facilitating document analysis, text extraction, and metadata processing.",
+    "PACKAGE_ROOT": "swarmauri_parser_pdf",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "PDFParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Extract text and metadata from PDF documents.",
+      "Handle various PDF structures, including scanned documents and embedded images.",
+      "Support character encoding variations and text extraction accuracy.",
+      "Allow integration with document processing pipelines and OCR tools.",
+      "Provide a complete implementation of all internal methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "PyPDF2", "version": "*" },
+      { "name": "pdfminer.six", "version": "*" },
+      { "name": "pdfplumber", "version": "*" },
+      { "name": "PyMuPDF", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Microsoft Office (.docx, .xlsx, .pptx) files, facilitating document, spreadsheet, and presentation analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_microsoftoffice",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "MicrosoftOfficeParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse .docx, .xlsx, and .pptx files to extract text, data, and metadata.",
+      "Handle various Office document structures and embedded elements.",
+      "Support integration with document processing and data analysis pipelines.",
+      "Allow for customization of parsing rules based on document types.",
+      "Provide a complete implementation of all internal methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "python-docx", "version": "*" },
+      { "name": "openpyxl", "version": "*" },
+      { "name": "python-pptx", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from GeoJSON (.geojson) files, facilitating geospatial data analysis and visualization.",
+    "PACKAGE_ROOT": "swarmauri_parser_geojson",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "GeoJSONParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse GeoJSON files and extract geographic features and properties.",
+      "Handle various GeoJSON geometry types and coordinate systems.",
+      "Support integration with geospatial data processing and visualization pipelines.",
+      "Allow for customization of parsing rules based on feature properties.",
+      "Provide a complete implementation of all internal methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "geojson", "version": "*" },
+      { "name": "geopandas", "version": "*" },
+      { "name": "shapely", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from GeoPackage (.gpkg) files, facilitating geospatial data storage and analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_geopackage",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "GeoPackageParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse GeoPackage files and extract geospatial layers and metadata.",
+      "Handle various GeoPackage feature types and coordinate systems.",
+      "Support integration with geospatial data processing and analysis pipelines.",
+      "Allow for customization of parsing rules based on layer properties.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "geopandas", "version": "*" },
+      { "name": "GDAL/OGR", "version": "*" },
+      { "name": "shapely", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from SAS (.sas7bdat) files, facilitating statistical data analysis and migration from SAS to Python.",
+    "PACKAGE_ROOT": "swarmauri_parser_sas",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SASParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse SAS .sas7bdat files and convert them into pandas DataFrames.",
+      "Handle various SAS data types and metadata.",
+      "Support integration with statistical analysis and data processing pipelines.",
+      "Allow for customization based on SAS file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "sas7bdat", "version": "*" },
+      { "name": "pyreadstat", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from SPSS (.sav) files, facilitating statistical data analysis and migration from SPSS to Python.",
+    "PACKAGE_ROOT": "swarmauri_parser_spss",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SPSSParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse SPSS .sav files and convert them into pandas DataFrames.",
+      "Handle various SPSS data types and metadata.",
+      "Support integration with statistical analysis and data processing pipelines.",
+      "Allow for customization based on SPSS file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyreadstat", "version": "*" },
+      { "name": "savReaderWriter", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Stata (.dta) files, facilitating statistical data analysis and migration from Stata to Python.",
+    "PACKAGE_ROOT": "swarmauri_parser_stata",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "StataParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Stata .dta files and convert them into pandas DataFrames.",
+      "Handle various Stata data types and metadata.",
+      "Support integration with statistical analysis and data processing pipelines.",
+      "Allow for customization based on Stata file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyreadstat", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from BSON (.bson) files, facilitating efficient binary data processing and serialization.",
+    "PACKAGE_ROOT": "swarmauri_parser_bson",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "BSONParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse BSON files and deserialize data into Python objects.",
+      "Support packing and unpacking of various data types.",
+      "Handle streaming BSON data for large datasets.",
+      "Allow integration with binary data processing pipelines.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "bson", "version": "*" },
+      { "name": "pymongo", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Parquet (.parquet) files, facilitating efficient columnar data processing and storage.",
+    "PACKAGE_ROOT": "swarmauri_parser_parquet",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "ParquetParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Parquet files and convert them into pandas DataFrames.",
+      "Handle various Parquet schema versions and data types.",
+      "Support integration with big data processing and analytics pipelines.",
+      "Allow for customization based on Parquet file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyarrow", "version": "*" },
+      { "name": "fastparquet", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from ORC (.orc) files, facilitating efficient columnar data processing and storage in Hadoop ecosystems.",
+    "PACKAGE_ROOT": "swarmauri_parser_orc",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "ORCParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse ORC files and convert them into pandas DataFrames.",
+      "Handle various ORC schema versions and data types.",
+      "Support integration with big data processing and analytics pipelines.",
+      "Allow for customization based on ORC file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyarrow", "version": "*" },
+      { "name": "fastparquet", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Feather (.feather) files, facilitating fast, lightweight data exchange and storage for pandas DataFrames.",
+    "PACKAGE_ROOT": "swarmauri_parser_feather",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "FeatherParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Feather files and convert them into pandas DataFrames.",
+      "Handle various Feather schema versions and data types.",
+      "Support integration with data analysis and machine learning pipelines.",
+      "Allow for customization based on Feather file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyarrow", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from HDF5 (.h5, .hdf5) files, facilitating high-performance storage and retrieval of large-scale scientific data.",
+    "PACKAGE_ROOT": "swarmauri_parser_hdf5",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "HDF5Parser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse HDF5 files and convert datasets into Python objects or pandas DataFrames.",
+      "Handle complex HDF5 group and dataset structures.",
+      "Support integration with scientific data processing and analysis pipelines.",
+      "Allow for customization based on HDF5 file structures and metadata.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "h5py", "version": "*" },
+      { "name": "PyTables", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from NetCDF (.nc) files, facilitating storage and analysis of array-oriented scientific data.",
+    "PACKAGE_ROOT": "swarmauri_parser_netcdf",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "NetCDFParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse NetCDF files and convert datasets into Python objects or xarray Datasets.",
+      "Handle various NetCDF dimensions, variables, and metadata.",
+      "Support integration with scientific data processing and analysis pipelines.",
+      "Allow for customization based on NetCDF file structures and metadata.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "netCDF4", "version": "*" },
+      { "name": "xarray", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from SDF (.sdf) files, facilitating molecular structure analysis in cheminformatics applications.",
+    "PACKAGE_ROOT": "swarmauri_parser_sdf",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SDFParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse SDF files and extract molecular structures and properties.",
+      "Handle various SDF formats and embedded data fields.",
+      "Support integration with cheminformatics and molecular analysis pipelines.",
+      "Allow for customization based on molecular data structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "RDKit", "version": "*" },
+      { "name": "openbabel", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from RDF (.rdf) files, facilitating semantic web data processing and knowledge graph construction.",
+    "PACKAGE_ROOT": "swarmauri_parser_rdf",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "RDFParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse RDF files and extract triples and semantic relationships.",
+      "Handle various RDF serialization formats (e.g., RDF/XML, Turtle, N-Triples).",
+      "Support integration with semantic web and knowledge graph pipelines.",
+      "Allow for customization based on RDF ontologies and vocabularies.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "rdflib", "version": "*" },
+      { "name": "PyLD", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from SQLite (.sqlite, .db) files, facilitating database management and data analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_sqlite",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SQLiteParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Connect to SQLite databases and execute SQL queries to extract data.",
+      "Handle various SQLite schemas and data types.",
+      "Support integration with data analysis and processing pipelines.",
+      "Allow for customization of SQL queries based on data extraction needs.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "sqlite3", "version": "*" },
+      { "name": "SQLAlchemy", "version": "*" },
+      { "name": "pandas", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and execute SQL (.sql) scripts, facilitating database migrations, schema management, and data seeding.",
+    "PACKAGE_ROOT": "swarmauri_parser_sql",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SQLParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse and execute SQL scripts to create, modify, and populate databases.",
+      "Handle various SQL dialects and commands.",
+      "Support integration with database migration and management pipelines.",
+      "Allow for customization of SQL execution based on environment configurations.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "sqlparse", "version": "*" },
+      { "name": "SQLAlchemy", "version": "*" },
+      { "name": "sqlite3", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from EBML (.ebml) files, facilitating binary data processing and analysis in multimedia applications.",
+    "PACKAGE_ROOT": "swarmauri_parser_ebml",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "EBMLParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse EBML files and extract binary data elements and metadata.",
+      "Handle various EBML structures and element types.",
+      "Support integration with multimedia processing and analysis pipelines.",
+      "Allow for customization based on EBML schema definitions.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyebml", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Executable Formats (.exe, .dll) files, facilitating binary analysis and reverse engineering.",
+    "PACKAGE_ROOT": "swarmauri_parser_executable",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "ExecutableParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Executable (.exe) and Dynamic Link Library (.dll) files to extract metadata and binary structures.",
+      "Handle various executable formats and architectures.",
+      "Support integration with reverse engineering and binary analysis pipelines.",
+      "Allow for customization based on executable file structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pefile", "version": "*" },
+      { "name": "lief", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Syslog (.syslog) files, facilitating system monitoring and log analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_syslog",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "SyslogParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse Syslog files and extract log entries with structured data.",
+      "Handle various Syslog message formats and severity levels.",
+      "Support integration with system monitoring and log analysis pipelines.",
+      "Allow for customization based on Syslog message patterns.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pyparsing", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Audio files (.mp3, .wav, .flac), facilitating audio metadata extraction and analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_audio",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "AudioParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse audio files and extract metadata, such as artist, album, and track information.",
+      "Handle various audio codecs and formats.",
+      "Support integration with audio analysis and processing pipelines.",
+      "Allow for customization based on audio file metadata structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "pydub", "version": "*" },
+      { "name": "mutagen", "version": "*" },
+      { "name": "librosa", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Video files (.mp4, .avi, .mkv), facilitating video metadata extraction and analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_video",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "VideoParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse video files and extract metadata, such as codec information, duration, and resolution.",
+      "Handle various video codecs and formats.",
+      "Support integration with video analysis and processing pipelines.",
+      "Allow for customization based on video file metadata structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "opencv-python", "version": "*" },
+      { "name": "moviepy", "version": "*" },
+      { "name": "ffmpeg-python", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from INI (.ini) files, facilitating application configuration management and data extraction.",
+    "PACKAGE_ROOT": "swarmauri_parser_ini",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "INIParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse INI files and extract configuration settings and parameters.",
+      "Handle various INI file structures and sections.",
+      "Support integration with configuration management and application setup pipelines.",
+      "Allow for customization based on INI file structures and key-value pairs.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "configparser", "version": "*" }
+    ]
+  },
+  {
+    "PROJECT_ROOT": "GENERATIONS",
+    "PACKAGE_DESCRIPTION": "A parser designed to interpret and extract data from Image files (.png, .jpg, .jpeg, .bmp, .gif, .tiff), facilitating image metadata extraction and analysis.",
+    "PACKAGE_ROOT": "swarmauri_parser_image",
+    "RESOURCE_KIND": "parser",
+    "MODULE_NAME": "ImageParser",
+    "BASE_CLASS_NAME": "ParserBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/parsers/ParserBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py",
+    "ADDITIONAL_REQUIREMENTS": [
+      "Parse image files and extract metadata, such as EXIF data, resolution, and color profiles.",
+      "Handle various image formats and encoding schemes.",
+      "Support integration with image processing and analysis pipelines.",
+      "Allow for customization based on image metadata structures.",
+      "Provide a complete implementation of all internal parsing methods.",
+      "Ensure robust error handling and logging within the parser."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "Pillow", "version": "*" },
+      { "name": "imageio", "version": "*" },
+      { "name": "opencv-python", "version": "*" }
+    ]
+  }
+]
