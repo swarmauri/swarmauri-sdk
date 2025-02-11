@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.ocrs.FalOCR import FalOCR
+from swarmauri_standard.vcms.FalVCM import FalVCM
 from dotenv import load_dotenv
 from swarmauri_standard.utils.timeout_wrapper import timeout
 
@@ -13,27 +13,27 @@ API_KEY = os.getenv("FAL_API_KEY")
 def falai_vision_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    model = FalOCR(api_key=API_KEY)
+    model = FalVCM(api_key=API_KEY)
     return model
 
 
 def get_allowed_models():
     if not API_KEY:
         return []
-    model = FalOCR(api_key=API_KEY)
+    model = FalVCM(api_key=API_KEY)
     return model.allowed_models
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(falai_vision_model):
-    assert falai_vision_model.resource == "OCR"
+    assert falai_vision_model.resource == "VCM"
 
 
 @timeout(5)
 @pytest.mark.unit
-def test_ubc_type(falai_vision_model: FalOCR):
-    assert falai_vision_model.type == "FalOCR"
+def test_ubc_type(falai_vision_model):
+    assert falai_vision_model.type == "FalVCM"
 
 
 @timeout(5)
@@ -41,7 +41,7 @@ def test_ubc_type(falai_vision_model: FalOCR):
 def test_serialization(falai_vision_model):
     assert (
         falai_vision_model.id
-        == FalOCR.model_validate_json(falai_vision_model.model_dump_json()).id
+        == FalVCM.model_validate_json(falai_vision_model.model_dump_json()).id
     )
 
 
@@ -54,13 +54,13 @@ def test_default_model_name(falai_vision_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-def test_process_image(falai_vision_model, model_name):
+def test_predict_vision(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Who painted this artwork?"
-    result = model.process_image(image_url=image_url, prompt=prompt)
+    result = model.predict_vision(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0
@@ -70,13 +70,13 @@ def test_process_image(falai_vision_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-async def test_aprocess_image(falai_vision_model, model_name):
+async def test_apredict_vision(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Describe the woman in the painting."
-    result = await model.aprocess_image(image_url=image_url, prompt=prompt)
+    result = await model.apredict_vision(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0

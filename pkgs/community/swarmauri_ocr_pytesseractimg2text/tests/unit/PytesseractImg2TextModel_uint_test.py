@@ -2,8 +2,8 @@ import logging
 import pytest
 from PIL import Image
 import io
-from swarmauri_llm_pytesseractimg2text.PytesseractImg2TextModel import (
-    PytesseractImg2TextModel,
+from pkgs.community.swarmauri_ocr_pytesseractimg2text.swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR import (
+    PytesseractImg2OCR,
 )
 from swarmauri_standard.utils.timeout_wrapper import timeout
 
@@ -25,7 +25,7 @@ def create_test_image(
 @pytest.fixture(scope="module")
 def pytesseract_img_2_text_model():
     try:
-        model = PytesseractImg2TextModel()
+        model = PytesseractImg2OCR()
         # Test if tesseract is installed and accessible
         model.extract_text(create_test_image())
         return model
@@ -54,7 +54,7 @@ def test_model_type(pytesseract_img_2_text_model):
 def test_serialization(pytesseract_img_2_text_model):
     assert (
         pytesseract_img_2_text_model.id
-        == PytesseractImg2TextModel.model_validate_json(
+        == PytesseractImg2OCR.model_validate_json(
             pytesseract_img_2_text_model.model_dump_json()
         ).id
     )

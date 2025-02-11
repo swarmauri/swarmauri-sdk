@@ -1,4 +1,4 @@
-from .PytesseractImg2TextModel import PytesseractImg2TextModel as PytesseractImg2TextModel
+from .PytesseractImg2OCR import PytesseractImg2OCR as PytesseractImg2OCR
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """

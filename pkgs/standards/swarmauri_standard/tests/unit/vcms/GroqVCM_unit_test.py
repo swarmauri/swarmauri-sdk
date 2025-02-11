@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.ocrs.GroqOCR import GroqOCR
+from swarmauri_standard.vcms.GroqVCM import GroqVCM
 from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage
@@ -20,7 +20,7 @@ image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisco
 def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    llm = GroqOCR(api_key=API_KEY)
+    llm = GroqVCM(api_key=API_KEY)
     return llm
 
 
@@ -41,7 +41,7 @@ def input_data():
 def get_allowed_models():
     if not API_KEY:
         return []
-    llm = GroqOCR(api_key=API_KEY)
+    llm = GroqVCM(api_key=API_KEY)
 
     allowed_models = [model for model in llm.allowed_models]
 
@@ -51,19 +51,19 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_model):
-    assert groq_model.resource == "OCR"
+    assert groq_model.resource == "VCM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(groq_model):
-    assert groq_model.type == "GroqOCR"
+    assert groq_model.type == "GroqVCM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_model):
-    assert groq_model.id == GroqOCR.model_validate_json(groq_model.model_dump_json()).id
+    assert groq_model.id == GroqVCM.model_validate_json(groq_model.model_dump_json()).id
 
 
 @timeout(5)
@@ -75,7 +75,7 @@ def test_default_name(groq_model):
 @timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_predict(groq_model, model_name, input_data):
+def test_predict_vision(groq_model, model_name, input_data):
     model = groq_model
     model.name = model_name
     conversation = Conversation()
@@ -83,7 +83,7 @@ def test_predict(groq_model, model_name, input_data):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    model.predict(conversation=conversation)
+    model.predict_vision(conversation=conversation)
     prediction = conversation.get_last().content
     usage_data = conversation.get_last().usage
     assert type(prediction) is str
@@ -134,7 +134,7 @@ def test_batch(groq_model, model_name, input_data):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
-async def test_apredict(groq_model, model_name, input_data):
+async def test_apredict_vision(groq_model, model_name, input_data):
     model = groq_model
     model.name = model_name
     conversation = Conversation()
@@ -142,7 +142,7 @@ async def test_apredict(groq_model, model_name, input_data):
     human_message = HumanMessage(content=input_data)
     conversation.add_message(human_message)
 
-    result = await model.apredict(conversation=conversation)
+    result = await model.apredict_vision(conversation=conversation)
     prediction = result.get_last().content
     assert isinstance(prediction, str)
 
