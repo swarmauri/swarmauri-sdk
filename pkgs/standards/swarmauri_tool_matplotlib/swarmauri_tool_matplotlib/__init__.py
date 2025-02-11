@@ -1,17 +1,17 @@
-from .MatplotlibCsvTool import MatplotlibCsvTool as MatplotlibCsvTool
-from .MatplotlibTool import MatplotlibTool as MatplotlibTool
+from .MatplotlibCsvTool import MatplotlibCsvTool
+from .MatplotlibTool import MatplotlibTool
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+__all__ = ["MatplotlibCsvTool", "MatplotlibTool"]
 
-# Swarmauri Matplotlib Based Components
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Components Included:
-- MatplotlibTool
-- MatplotlibCsvTool
-
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_tool_matplotlib")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
