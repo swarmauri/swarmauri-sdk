@@ -1,16 +1,16 @@
-from .SentenceComplexityTool import SentenceComplexityTool as SentenceComplexityTool
+from .SentenceComplexityTool import SentenceComplexityTool
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+__all__ = ["SentenceComplexityTool"]
 
-# Swarmauri SentenceComplexity Plugin
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-This repository includes a SentenceComplexity of a Swarmauri Plugin.
-
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
-
-
+try:
+    __version__ = version("swarmauri_tool_sentencecomplexity")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

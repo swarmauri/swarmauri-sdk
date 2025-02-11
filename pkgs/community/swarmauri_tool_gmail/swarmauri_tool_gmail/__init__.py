@@ -1,17 +1,18 @@
-from .GmailReadTool import GmailReadTool as GmailReadTool
-from .GmailSendTool import GmailSendTool as GmailSendTool
+from .GmailReadTool import GmailReadTool
+from .GmailSendTool import GmailSendTool
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
 
-# Swarmauri Gmail Plugin
+__all__ = ["GmailReadTool", "GmailSendTool"]
 
-Components Included:
-- GmailSendTool
-- GmailReadTool
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_tool_gmail")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

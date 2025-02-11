@@ -1,12 +1,17 @@
-from .ClipboardState import ClipboardState as ClipboardState
+from .ClipboardState import ClipboardState
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
 
-# Swarmauri Clipboard State Plugin
+__all__ = ["ClipboardState"]
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-"""
+try:
+    __version__ = version("swarmauri_state_clipboard")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
