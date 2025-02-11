@@ -1,1 +1,1 @@
-from .IMessage import IMessage
+from .IMessage import IMessage as IMessage

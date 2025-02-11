@@ -1,9 +1,9 @@
-from .TextLengthTool import TextLengthTool
+from .TextLengthTool import TextLengthTool as TextLengthTool
 
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 
-# Swarmauri Example Plugin
+# Swarmauri TextLength Tool Plugin
 
 This repository includes an example of a Swarmauri Plugin.
 

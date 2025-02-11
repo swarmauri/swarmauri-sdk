@@ -38,7 +38,7 @@ def test_ubc_type(github_branch_tool):
 
 @pytest.mark.unit
 def test_initialization(github_branch_tool):
-    assert type(github_branch_tool.id) == str
+    assert type(github_branch_tool.id) is str
 
 
 @pytest.mark.unit

@@ -103,7 +103,7 @@ class ShuttleAIToolModel(LLMBase):
             )
         return conversation
 
-    def _process_tool_calls(self, response, toolkit):
+    def _process_tool_calls(self, response, toolkit, conversation):
         tool_calls = response.get("tool_calls", [])
         for tool_call in tool_calls:
             func_name = tool_call["function"]["name"]
@@ -160,7 +160,7 @@ class ShuttleAIToolModel(LLMBase):
         agent_response = response.json()
 
         tool_calls = self._process_tool_calls(
-            agent_response["choices"][0]["message"], toolkit
+            agent_response["choices"][0]["message"], toolkit, conversation
         )
 
         if tool_calls:

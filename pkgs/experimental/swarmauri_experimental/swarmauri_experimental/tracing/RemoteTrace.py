@@ -1,12 +1,13 @@
-from __future__ import ITraceContext
+# from __future__ import ITraceContext
 
-import requests
 import json
 import uuid
 from datetime import datetime
 
-from swarmauri_core.tracing.ITracer import ITracer
+import requests
 from swarmauri_core.tracing.ITraceContext import ITraceContext
+from swarmauri_core.tracing.ITracer import ITracer
+
 
 # Implementing the RemoteTraceContext class
 class RemoteTraceContext(ITraceContext):
@@ -22,16 +23,17 @@ class RemoteTraceContext(ITraceContext):
 
     def add_attribute(self, key: str, value):
         self.attributes[key] = value
-        
+
     def add_annotation(self, key: str, value):
         self.annotations[key] = value
+
 
 # Implementing the RemoteAPITracer class
 class RemoteAPITracer(ITracer):
     def __init__(self, api_endpoint: str):
         self.api_endpoint = api_endpoint
 
-    def start_trace(self, name: str, initial_attributes=None) -> 'RemoteTraceContext':
+    def start_trace(self, name: str, initial_attributes=None) -> "RemoteTraceContext":
         trace_id = str(uuid.uuid4())
         context = RemoteTraceContext(trace_id, name)
         if initial_attributes:
@@ -39,7 +41,7 @@ class RemoteAPITracer(ITracer):
                 context.add_attribute(key, value)
         return context
 
-    def end_trace(self, trace_context: 'RemoteTraceContext'):
+    def end_trace(self, trace_context: "RemoteTraceContext"):
         trace_context.end_time = datetime.now()
         # Pretending to serialize the context information to JSON
         trace_data = {
@@ -48,13 +50,15 @@ class RemoteAPITracer(ITracer):
             "start_time": str(trace_context.start_time),
             "end_time": str(trace_context.end_time),
             "attributes": trace_context.attributes,
-            "annotations": trace_context.annotations
+            "annotations": trace_context.annotations,
         }
         json_data = json.dumps(trace_data)
         # POST the serialized data to the remote REST API
         response = requests.post(self.api_endpoint, json=json_data)
         if not response.ok:
-            raise Exception(f"Failed to send trace data to {self.api_endpoint}. Status code: {response.status_code}")
+            raise Exception(
+                f"Failed to send trace data to {self.api_endpoint}. Status code: {response.status_code}"
+            )
 
-    def annotate_trace(self, trace_context: 'RemoteTraceContext', key: str, value):
+    def annotate_trace(self, trace_context: "RemoteTraceContext", key: str, value):
         trace_context.add_annotation(key, value)
