@@ -1,20 +1,23 @@
 import asyncio
 import json
 import logging
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
-from typing import List, Dict, Literal, Any, AsyncIterator, Iterator, Type
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'AnthropicToolModel')
+
+@ComponentBase.register_type(LLMBase, "AnthropicToolModel")
 class AnthropicToolModel(LLMBase):
     """
     A model class for integrating with the Anthropic API to enable tool-assisted AI interactions.
@@ -37,7 +40,7 @@ class AnthropicToolModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "claude-3-sonnet-20240229",
         "claude-3-haiku-20240307",
@@ -51,7 +54,7 @@ class AnthropicToolModel(LLMBase):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
-            "x-api-key": self.api_key,
+            "x-api-key": self.api_key.get_secret_value(),
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(

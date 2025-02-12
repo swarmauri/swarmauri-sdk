@@ -2,7 +2,7 @@ import json
 from openai import OpenAI, AsyncOpenAI
 from typing import List, Dict, Literal, Optional, Iterator, AsyncIterator
 import asyncio
-from pydantic import Field
+from pydantic import Field, SecretStr
 from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
@@ -18,7 +18,7 @@ class LeptonAIModel(LLMBase):
     Provider resources: https://www.lepton.ai/playground
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama2-13b",
         "llama3-1-405b",
@@ -44,8 +44,8 @@ class LeptonAIModel(LLMBase):
     def __init__(self, **data):
         super().__init__(**data)
         url = f"https://{self.name}.lepton.run/api/v1/"
-        self.client = OpenAI(base_url=url, api_key=self.api_key)
-        self.async_client = AsyncOpenAI(base_url=url, api_key=self.api_key)
+        self.client = OpenAI(base_url=url, api_key=self.api_key.get_secret_value())
+        self.async_client = AsyncOpenAI(base_url=url, api_key=self.api_key.get_secret_value())
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

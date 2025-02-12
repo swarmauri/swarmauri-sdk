@@ -3,7 +3,7 @@ import os
 import httpx
 import asyncio
 from typing import List, Literal, Dict, Optional
-from pydantic import PrivateAttr, Field
+from pydantic import PrivateAttr, Field, SecretStr
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.ComponentBase import ComponentBase
 
@@ -24,7 +24,7 @@ class HyperbolicTTS(TTSBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    api_key: str
+    api_key: SecretStr
 
     # Supported languages
     allowed_languages: List[str] = ["EN", "ES", "FR", "ZH", "JP", "KR"]
@@ -56,7 +56,7 @@ class HyperbolicTTS(TTSBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 

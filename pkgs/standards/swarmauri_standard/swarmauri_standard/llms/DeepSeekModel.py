@@ -1,15 +1,18 @@
-import json
 import asyncio
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal
+
 import httpx
-from typing import List, Dict, Literal, AsyncIterator, Iterator
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(LLMBase, 'DeepSeekModel')
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "DeepSeekModel")
 class DeepSeekModel(LLMBase):
     """
     A client class for interfacing with DeepSeek's language model for chat completions.
@@ -30,9 +33,9 @@ class DeepSeekModel(LLMBase):
 
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["deepseek-chat"]
-    name: str = "deepseek-chat"
+    name: str = "dSeepseek-chat"
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
@@ -40,7 +43,7 @@ class DeepSeekModel(LLMBase):
     def __init__(self, **data):
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )

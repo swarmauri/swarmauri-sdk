@@ -1,13 +1,16 @@
 import asyncio
+from typing import Dict, List, Literal
+
 import aiofiles
 import httpx
-from typing import List, Literal, Dict
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'OpenAIAudio')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "OpenAIAudio")
 class OpenAIAudio(LLMBase):
     """
     OpenAIAudio is a class that provides transcription and translation capabilities
@@ -23,7 +26,7 @@ class OpenAIAudio(LLMBase):
     Provider Resources:     https://platform.openai.com/docs/api-reference/audio/createTranscription
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["whisper-1"]
 
     name: str = "whisper-1"
@@ -41,11 +44,11 @@ class OpenAIAudio(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
 

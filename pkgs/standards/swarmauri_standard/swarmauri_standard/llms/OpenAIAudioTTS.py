@@ -1,14 +1,17 @@
 import asyncio
 import io
 import os
+from typing import AsyncIterator, Dict, Iterator, List, Literal
+
 import httpx
-from typing import AsyncIterator, Iterator, List, Literal, Dict
-from pydantic import PrivateAttr, model_validator
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from pydantic import PrivateAttr, SecretStr, model_validator
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'OpenAIAudioTTS')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "OpenAIAudioTTS")
 class OpenAIAudioTTS(LLMBase):
     """
     A class to interact with OpenAI's Text-to-Speech API, allowing for synchronous
@@ -26,7 +29,7 @@ class OpenAIAudioTTS(LLMBase):
 
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["tts-1", "tts-1-hd"]
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
@@ -45,7 +48,7 @@ class OpenAIAudioTTS(LLMBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 

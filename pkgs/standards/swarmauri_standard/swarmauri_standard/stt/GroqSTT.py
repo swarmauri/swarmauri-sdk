@@ -1,13 +1,13 @@
 import asyncio
-import httpx
-import aiofiles
-
 from typing import Dict, List, Literal
-from pydantic import PrivateAttr
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+import aiofiles
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(STTBase, "GroqSTT")
@@ -24,7 +24,7 @@ class GroqSTT(STTBase):
         type (Literal["GroqSTT"]): The type identifier for the class.
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "distil-whisper-large-v3-en",
         "whisper-large-v3",
@@ -45,12 +45,12 @@ class GroqSTT(STTBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )

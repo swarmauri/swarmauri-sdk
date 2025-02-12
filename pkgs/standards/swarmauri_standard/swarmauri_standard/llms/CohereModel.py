@@ -1,17 +1,19 @@
-import json
 import asyncio
-import httpx
-from typing import List, Dict, Literal, AsyncIterator, Iterator
-from pydantic import PrivateAttr
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'CohereModel')
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "CohereModel")
 class CohereModel(LLMBase):
     """
     This class provides both synchronous and asynchronous methods for interacting with
@@ -30,7 +32,7 @@ class CohereModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.cohere.ai/v1")
     _client: httpx.Client = PrivateAttr()
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "command",
         "command-r-plus-08-2024",
@@ -53,7 +55,7 @@ class CohereModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30

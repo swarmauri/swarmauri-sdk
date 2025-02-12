@@ -1,14 +1,17 @@
-import os
-import httpx
 import asyncio
+import os
 import time
-from typing import List, Literal, Dict
-from pydantic import Field, PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from typing import Dict, List, Literal
+
+import httpx
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'FalAIVisionModel')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "FalAIVisionModel")
 class FalAIVisionModel(LLMBase):
     """
     A model for processing images and answering questions using FalAI's vision models.
@@ -34,7 +37,7 @@ class FalAIVisionModel(LLMBase):
     allowed_models: List[str] = [
         "fal-ai/llava-next",
     ]
-    api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
+    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     name: str = Field(default="fal-ai/llava-next")
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
     max_retries: int = Field(default=60)
@@ -50,7 +53,7 @@ class FalAIVisionModel(LLMBase):
         super().__init__(**data)
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Key {self.api_key}",
+            "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
 
@@ -159,7 +162,9 @@ class FalAIVisionModel(LLMBase):
         for _ in range(self.max_retries):
             status_data = await self._async_check_status(request_id)
             if status_data.get("status") == "COMPLETED":
-                async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+                async with httpx.AsyncClient(
+                    headers=self._headers, timeout=30
+                ) as client:
                     response = await client.get(status_data.get("response_url"))
                     response.raise_for_status()
                     return response.json()
@@ -241,4 +246,3 @@ class FalAIVisionModel(LLMBase):
             for image_url, prompt in zip(image_urls, prompts)
         ]
         return await asyncio.gather(*tasks)
-

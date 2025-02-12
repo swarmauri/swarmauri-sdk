@@ -1,16 +1,18 @@
-import json
-import httpx
 import asyncio
-from typing import List, Dict, Literal, AsyncIterator, Iterator
-from pydantic import PrivateAttr
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.messages.MessageBase import MessageBase
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(LLMBase, 'DeepInfraModel')
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "DeepInfraModel")
 class DeepInfraModel(LLMBase):
     """
     A class for interacting with DeepInfra's model API for text generation.
@@ -38,7 +40,7 @@ class DeepInfraModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "01-ai/Yi-34B-Chat",
         "Gryphe/MythoMax-L2-13b",  # not consistent with results
@@ -105,7 +107,7 @@ class DeepInfraModel(LLMBase):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30

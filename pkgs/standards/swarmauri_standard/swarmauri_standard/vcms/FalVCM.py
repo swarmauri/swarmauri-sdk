@@ -3,7 +3,7 @@ import httpx
 import asyncio
 import time
 from typing import List, Literal, Dict
-from pydantic import Field, PrivateAttr
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.vcms.VCMBase import VCMBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -35,7 +35,7 @@ class FalVCM(VCMBase):
     allowed_models: List[str] = [
         "fal-ai/llava-next",
     ]
-    api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
+    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     name: str = Field(default="fal-ai/llava-next")
     type: Literal["FalVCM"] = "FalVCM"
     max_retries: int = Field(default=60)
@@ -51,7 +51,7 @@ class FalVCM(VCMBase):
         super().__init__(**data)
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Key {self.api_key}",
+            "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
 

@@ -2,7 +2,7 @@ import json
 import asyncio
 import httpx
 from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union, Type
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
@@ -39,13 +39,13 @@ class CohereToolModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "command-r",
         # "command-r-plus",
         # "command-r-plus-08-2024",
     ]
-    name: str = "command-r"
+    name: SecretStr = "command-r"
     type: Literal["CohereToolModel"] = "CohereToolModel"
     resource: str = "LLM"
 
@@ -60,7 +60,7 @@ class CohereToolModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30

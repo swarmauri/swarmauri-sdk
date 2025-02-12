@@ -1,17 +1,17 @@
 import asyncio
 import json
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+
 import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
-from pydantic import PrivateAttr
-
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_standard.conversations.Conversation import Conversation
-
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIModel")
@@ -31,7 +31,7 @@ class OpenAIModel(LLMBase):
     Provider resources: https://platform.openai.com/docs/models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "gpt-4o",
         "gpt-4-turbo",
@@ -70,7 +70,7 @@ class OpenAIModel(LLMBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 

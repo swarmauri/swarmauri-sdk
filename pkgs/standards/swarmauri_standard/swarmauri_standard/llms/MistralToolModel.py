@@ -1,20 +1,23 @@
 import asyncio
 import json
 import logging
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
+
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.MistralSchemaConverter import (
     MistralSchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'MistralToolModel')
+
+@ComponentBase.register_type(LLMBase, "MistralToolModel")
 class MistralToolModel(LLMBase):
     """
     A model class for interacting with the Mistral API for tool-assisted conversation and prediction.
@@ -31,7 +34,7 @@ class MistralToolModel(LLMBase):
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "open-mixtral-8x22b",
         "mistral-small-latest",
@@ -53,12 +56,12 @@ class MistralToolModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )

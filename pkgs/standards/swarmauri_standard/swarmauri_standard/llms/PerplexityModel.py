@@ -1,18 +1,20 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Dict, Literal, Optional, Type
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'PerplexityModel')
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "PerplexityModel")
 class PerplexityModel(LLMBase):
     """
     Represents a language model interface for Perplexity API.
@@ -31,7 +33,7 @@ class PerplexityModel(LLMBase):
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama-3.1-sonar-small-128k-online",
         "llama-3.1-sonar-large-128k-online",
@@ -56,12 +58,12 @@ class PerplexityModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
@@ -164,7 +166,7 @@ class PerplexityModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
 
         with DurationManager() as prompt_timer:
@@ -229,7 +231,7 @@ class PerplexityModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
 
         with DurationManager() as prompt_timer:
@@ -298,7 +300,7 @@ class PerplexityModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
 
         with DurationManager() as prompt_timer:

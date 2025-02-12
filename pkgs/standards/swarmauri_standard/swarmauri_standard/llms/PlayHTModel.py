@@ -1,16 +1,17 @@
 import asyncio
 import json
 import os
+from typing import Dict, List, Literal
+
 import httpx
-
-from typing import List, Literal, Dict
-from pydantic import Field, PrivateAttr
-
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'PlayHTModel')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "PlayHTModel")
 class PlayHTModel(LLMBase):
     """
     A class for Play.ht text-to-speech (TTS) synthesis using various voice models.
@@ -35,7 +36,7 @@ class PlayHTModel(LLMBase):
     )
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
-    api_key: str
+    api_key: SecretStr
     user_id: str
     name: str = "Play3.0-mini"
     type: Literal["PlayHTModel"] = "PlayHTModel"
@@ -55,7 +56,7 @@ class PlayHTModel(LLMBase):
         self._headers = {
             "accept": "audio/mpeg",
             "content-type": "application/json",
-            "AUTHORIZATION": self.api_key,
+            "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
@@ -287,9 +288,11 @@ class PlayHTModel(LLMBase):
         :return: A dictionary containing the response from the Play.ht API.
         """
         # Constructing the payload with the sample file URL
-        payload = f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n\
+        payload = (
+            f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n\
             {sample_file_url}\r\n-----011000010111000001101001--; name="voice_name"\r\n\r\n\
             {voice_name}\r\n-----011000010111000001101001--'
+        )
 
         self._headers["content-type"] = (
             "multipart/form-data; boundary=---011000010111000001101001"

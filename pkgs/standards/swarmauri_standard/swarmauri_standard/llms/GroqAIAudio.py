@@ -1,15 +1,16 @@
 import asyncio
-import httpx
-import aiofiles
-
 from typing import Dict, List, Literal
-from pydantic import PrivateAttr
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+import aiofiles
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'GroqAIAudio')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "GroqAIAudio")
 class GroqAIAudio(LLMBase):
     """
     GroqAIAudio is a class that provides transcription and translation capabilities
@@ -23,7 +24,7 @@ class GroqAIAudio(LLMBase):
         type (Literal["GroqAIAudio"]): The type identifier for the class.
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "distil-whisper-large-v3-en",
         "whisper-large-v3",
@@ -44,12 +45,12 @@ class GroqAIAudio(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )

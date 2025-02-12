@@ -3,7 +3,7 @@ import io
 import os
 import httpx
 from typing import AsyncIterator, Iterator, List, Literal, Dict
-from pydantic import PrivateAttr, model_validator
+from pydantic import PrivateAttr, SecretStr, model_validator
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -27,7 +27,7 @@ class OpenaiTTS(TTSBase):
 
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["tts-1", "tts-1-hd"]
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
@@ -46,7 +46,7 @@ class OpenaiTTS(TTSBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 

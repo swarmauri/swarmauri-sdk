@@ -1,16 +1,19 @@
 import asyncio
 import json
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+
 import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'GroqModel')
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "GroqModel")
 class GroqModel(LLMBase):
     """
     GroqModel class for interacting with the Groq language models API. This class
@@ -27,7 +30,7 @@ class GroqModel(LLMBase):
     Allowed Models resources: https://console.groq.com/docs/models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "gemma-7b-it",
         "gemma2-9b-it",
@@ -62,12 +65,12 @@ class GroqModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=30,
         )
