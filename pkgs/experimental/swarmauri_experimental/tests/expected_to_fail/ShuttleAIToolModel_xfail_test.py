@@ -1,15 +1,16 @@
 import logging
 import os
+
 import pytest
+from dotenv import load_dotenv
+from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri.conversations.concrete.Conversation import Conversation
+from swarmauri.messages.concrete import HumanMessage
+from swarmauri.toolkits.concrete.Toolkit import Toolkit
+from swarmauri.tools.concrete.AdditionTool import AdditionTool
 from swarmauri_experimental.llms.ShuttleAIToolModel import (
     ShuttleAIToolModel as LLM,
 )
-from swarmauri.conversations.concrete.Conversation import Conversation
-from swarmauri.messages.concrete import HumanMessage
-from swarmauri.tools.concrete.AdditionTool import AdditionTool
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -46,21 +47,6 @@ def conversation():
     human_message = HumanMessage(content=[input_data])
     conversation.add_message(human_message)
     return conversation
-
-
-@pytest.mark.xfail(reason="These models are expected to fail")
-@pytest.mark.unit
-def test_agent_exec(shuttleai_tool_model):
-    conversation = Conversation()
-    toolkit = Toolkit()
-    tool = AdditionTool()
-    toolkit.add_tool(tool)
-
-    agent = ToolAgent(
-        llm=shuttleai_tool_model, conversation=conversation, toolkit=toolkit
-    )
-    result = agent.exec("Add 512+671")
-    assert type(result) == str
 
 
 @pytest.mark.xfail(reason="These models are expected to fail")

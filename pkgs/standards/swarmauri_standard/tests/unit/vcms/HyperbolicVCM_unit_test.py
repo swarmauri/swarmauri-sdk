@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.ocrs.HyperbolicOCR import HyperbolicOCR
+from swarmauri_standard.vcms.HyperbolicVCM import HyperbolicVCM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv
@@ -15,27 +15,27 @@ API_KEY = os.getenv("HYPERBOLIC_API_KEY")
 def hyperbolic_vision_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    model = HyperbolicOCR(api_key=API_KEY)
+    model = HyperbolicVCM(api_key=API_KEY)
     return model
 
 
 def get_allowed_models():
     if not API_KEY:
         return []
-    model = HyperbolicOCR(api_key=API_KEY)
+    model = HyperbolicVCM(api_key=API_KEY)
     return model.allowed_models
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.resource == "OCR"
+    assert hyperbolic_vision_model.resource == "VCM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.type == "HyperbolicOCR"
+    assert hyperbolic_vision_model.type == "HyperbolicVCM"
 
 
 @timeout(5)
@@ -43,7 +43,7 @@ def test_ubc_type(hyperbolic_vision_model):
 def test_serialization(hyperbolic_vision_model):
     assert (
         hyperbolic_vision_model.id
-        == HyperbolicOCR.model_validate_json(
+        == HyperbolicVCM.model_validate_json(
             hyperbolic_vision_model.model_dump_json()
         ).id
     )
@@ -71,7 +71,7 @@ def create_test_conversation(image_url, prompt):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-def test_predict(hyperbolic_vision_model, model_name):
+def test_predict_vision(hyperbolic_vision_model, model_name):
     model = hyperbolic_vision_model
     model.name = model_name
 
@@ -79,7 +79,7 @@ def test_predict(hyperbolic_vision_model, model_name):
     prompt = "Who painted this artwork?"
     conversation = create_test_conversation(image_url, prompt)
 
-    result = model.predict(conversation)
+    result = model.predict_vision(conversation)
 
     assert result.history[-1].content is not None
     assert isinstance(result.history[-1].content, str)
@@ -90,7 +90,7 @@ def test_predict(hyperbolic_vision_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-async def test_apredict(hyperbolic_vision_model, model_name):
+async def test_apredict_vision(hyperbolic_vision_model, model_name):
     model = hyperbolic_vision_model
     model.name = model_name
 
@@ -98,7 +98,7 @@ async def test_apredict(hyperbolic_vision_model, model_name):
     prompt = "Describe the woman in the painting."
     conversation = create_test_conversation(image_url, prompt)
 
-    result = await model.apredict(conversation)
+    result = await model.apredict_vision(conversation)
 
     assert result.history[-1].content is not None
     assert isinstance(result.history[-1].content, str)

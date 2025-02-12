@@ -395,6 +395,7 @@ class ComponentBase(BaseModel):
             # Handle Annotated
             if origin is Annotated:
                 base_type = args[0]
+                logger.debug(f"Base type for field: {base_type}")
                 metadata = [
                     arg for arg in args[1:] if not isinstance(arg, ResourceType)
                 ]

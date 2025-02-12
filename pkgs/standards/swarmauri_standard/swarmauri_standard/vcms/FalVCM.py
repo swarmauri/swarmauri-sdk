@@ -5,12 +5,12 @@ import time
 from typing import List, Literal, Dict
 from pydantic import Field, PrivateAttr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.ocrs.OCRBase import OCRBase
+from swarmauri_base.vcms.VCMBase import VCMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 
-@ComponentBase.register_type(OCRBase, "FalOCR")
-class FalOCR(OCRBase):
+@ComponentBase.register_type(VCMBase, "FalVCM")
+class FalVCM(VCMBase):
     """
     A model for processing images and answering questions using FalAI's vision models.
     This model allows synchronous and asynchronous requests for image processing
@@ -37,7 +37,7 @@ class FalOCR(OCRBase):
     ]
     api_key: str = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     name: str = Field(default="fal-ai/llava-next")
-    type: Literal["FalOCR"] = "FalOCR"
+    type: Literal["FalVCM"] = "FalVCM"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
 
@@ -175,7 +175,7 @@ class FalOCR(OCRBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
-    def process_image(self, image_url: str, prompt: str, **kwargs) -> str:
+    def predict_vision(self, image_url: str, prompt: str, **kwargs) -> str:
         """
         Process an image and answer a question based on the prompt.
 
@@ -190,7 +190,7 @@ class FalOCR(OCRBase):
         response_data = self._send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    async def aprocess_image(self, image_url: str, prompt: str, **kwargs) -> str:
+    async def apredict_vision(self, image_url: str, prompt: str, **kwargs) -> str:
         """
         Asynchronously process an image and answer a question based on the prompt.
 
@@ -218,7 +218,7 @@ class FalOCR(OCRBase):
             List[str]: A list of answers or results for each image.
         """
         return [
-            self.process_image(image_url, prompt, **kwargs)
+            self.predict_vision(image_url, prompt, **kwargs)
             for image_url, prompt in zip(image_urls, prompts)
         ]
 
@@ -240,7 +240,7 @@ class FalOCR(OCRBase):
             TimeoutError: If one or more requests do not complete within the timeout period.
         """
         tasks = [
-            self.aprocess_image(image_url, prompt, **kwargs)
+            self.apredict_vision(image_url, prompt, **kwargs)
             for image_url, prompt in zip(image_urls, prompts)
         ]
         return await asyncio.gather(*tasks)

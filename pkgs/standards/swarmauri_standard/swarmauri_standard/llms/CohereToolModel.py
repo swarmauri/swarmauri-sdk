@@ -352,10 +352,10 @@ class CohereToolModel(LLMBase):
             tools=tools,
             force_single_step=True,
         )
-
-        tool_response = self._client.post("/chat", json=tool_payload)
-        tool_response.raise_for_status()
-        tool_data = tool_response.json()
+        with DurationManager() as prompt_timer:
+            tool_response = self._client.post("/chat", json=tool_payload)
+            tool_response.raise_for_status()
+            tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
@@ -374,21 +374,24 @@ class CohereToolModel(LLMBase):
 
         collected_content = []
         usage_data = {}
-
-        with self._client.stream("POST", "/chat", json=stream_payload) as response:
-            response.raise_for_status()
-            for line in response.iter_lines():
-                if line:
-                    chunk = json.loads(line)
-                    if "text" in chunk:
-                        content = chunk["text"]
-                        collected_content.append(content)
-                        yield content
-                    elif "usage" in chunk:
-                        usage_data = chunk["usage"]
+        with DurationManager() as completion_timer:
+            with self._client.stream("POST", "/chat", json=stream_payload) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if line:
+                        chunk = json.loads(line)
+                        if "text" in chunk:
+                            content = chunk["text"]
+                            collected_content.append(content)
+                            yield content
+                        elif "usage" in chunk:
+                            usage_data = chunk["usage"]
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+        conversation.add_message(AgentMessage(content=full_content), usage=usage)
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(

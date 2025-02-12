@@ -26,7 +26,7 @@ def test_ubc_type(zapier_hook_tool):
 
 @pytest.mark.unit
 def test_initialization(zapier_hook_tool):
-    assert type(zapier_hook_tool.id) == str
+    assert type(zapier_hook_tool.id) is str
 
 
 @pytest.mark.unit
