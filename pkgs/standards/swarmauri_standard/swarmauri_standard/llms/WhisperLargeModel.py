@@ -54,7 +54,7 @@ class WhisperLargeModel(LLMBase):
             ValueError: If required configuration parameters are missing.
         """
         super().__init__(**data)
-        self._header = {"Authorization": f"Bearer {self.api_key}"}
+        self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
         self._client = httpx.Client(header=self._header, timeout=30)
 
     @retry_on_status_codes((429, 529), max_retries=1)

@@ -56,7 +56,7 @@ class PlayhtTTS(TTSBase):
         self._headers = {
             "accept": "audio/mpeg",
             "content-type": "application/json",
-            "AUTHORIZATION": self.api_key,
+            "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
         self.__prebuilt_voices = self._fetch_prebuilt_voices()

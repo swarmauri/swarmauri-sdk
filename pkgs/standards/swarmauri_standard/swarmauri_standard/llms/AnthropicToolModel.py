@@ -54,7 +54,7 @@ class AnthropicToolModel(LLMBase):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
-            "x-api-key": self.api_key,
+            "x-api-key": self.api_key.get_secret_value(),
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(

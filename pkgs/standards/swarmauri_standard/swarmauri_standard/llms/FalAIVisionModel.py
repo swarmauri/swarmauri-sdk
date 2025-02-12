@@ -53,7 +53,7 @@ class FalAIVisionModel(LLMBase):
         super().__init__(**data)
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Key {self.api_key}",
+            "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
 

@@ -57,7 +57,7 @@ class HyperbolicAudioTTS(LLMBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 

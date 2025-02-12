@@ -39,7 +39,7 @@ class CohereToolModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "command-r",
         # "command-r-plus",
@@ -60,7 +60,7 @@ class CohereToolModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30

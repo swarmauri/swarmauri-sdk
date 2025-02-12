@@ -4,7 +4,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -33,7 +33,7 @@ class GeminiToolModel(LLMBase):
 
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "gemini-1.5-pro",
         "gemini-1.5-flash",
@@ -224,7 +224,7 @@ class GeminiToolModel(LLMBase):
 
         with httpx.Client(timeout=30.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -244,7 +244,7 @@ class GeminiToolModel(LLMBase):
 
         with httpx.Client(timeout=30.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -310,7 +310,7 @@ class GeminiToolModel(LLMBase):
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -330,7 +330,7 @@ class GeminiToolModel(LLMBase):
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -396,7 +396,7 @@ class GeminiToolModel(LLMBase):
 
         with httpx.Client(timeout=10.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -416,7 +416,7 @@ class GeminiToolModel(LLMBase):
 
         with httpx.Client(timeout=10.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -482,7 +482,7 @@ class GeminiToolModel(LLMBase):
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -502,7 +502,7 @@ class GeminiToolModel(LLMBase):
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )

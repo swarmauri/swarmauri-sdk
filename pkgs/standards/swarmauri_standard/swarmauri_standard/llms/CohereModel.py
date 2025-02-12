@@ -55,7 +55,7 @@ class CohereModel(LLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30

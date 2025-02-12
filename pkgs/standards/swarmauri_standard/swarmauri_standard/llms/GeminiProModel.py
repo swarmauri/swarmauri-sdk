@@ -180,7 +180,7 @@ class GeminiProModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             response = self._client.post(
-                f"/{self.name}:generateContent?key={self.api_key}", json=payload
+                f"/{self.name}:generateContent?key={self.api_key.get_secret_value()}", json=payload
             )
             response.raise_for_status()
 
@@ -240,7 +240,7 @@ class GeminiProModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             response = await self._async_client.post(
-                f"/{self.name}:generateContent?key={self.api_key}",
+                f"/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
             )
             response.raise_for_status()
@@ -298,7 +298,7 @@ class GeminiProModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             response = self._client.post(
-                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
             )
 
@@ -368,7 +368,7 @@ class GeminiProModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             response = await self._async_client.post(
-                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
             )
             response.raise_for_status()

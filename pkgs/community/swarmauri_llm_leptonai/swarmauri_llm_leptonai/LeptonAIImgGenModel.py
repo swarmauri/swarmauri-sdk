@@ -17,7 +17,7 @@ class LeptonAIImgGenModel(ImageGenBase):
     Get your API KEY from Lepton AI.
     """
 
-    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("LEPTON_API_KEY"))
+    api_key: SecretStr
     model_name: str = Field(default="sdxl")
     type: Literal["LeptonAIImgGenModel"] = "LeptonAIImgGenModel"
     base_url: str = Field(default="https://sdxl.lepton.run")
@@ -26,13 +26,11 @@ class LeptonAIImgGenModel(ImageGenBase):
 
     def __init__(self, **data):
         super().__init__(**data)
-        if self.api_key:
-            os.environ["LEPTON_API_KEY"] = self.api_key
 
     def _send_request(self, prompt: str, **kwargs) -> bytes:
         """Send a request to Lepton AI's API for image generation."""
         client = requests.Session()
-        client.headers.update({"Authorization": f"Bearer {self.api_key}"})
+        client.headers.update({"Authorization": f"Bearer {self.api_key.get_secret_value()}"})
 
         payload = {
             "prompt": prompt,

@@ -45,7 +45,7 @@ class OpenAIReasonModel(LLMBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
 
@@ -149,7 +149,6 @@ class OpenAIReasonModel(LLMBase):
             Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
-        logging.info(formatted_messages)
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -161,6 +160,7 @@ class OpenAIReasonModel(LLMBase):
 
         with DurationManager() as promt_timer:
             with httpx.Client(timeout=30) as client:
+                logging.info(f"headers: {self._headers}")
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

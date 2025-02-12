@@ -3,7 +3,7 @@ import json
 from typing import AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
@@ -40,7 +40,7 @@ class DeepInfraModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "01-ai/Yi-34B-Chat",
         "Gryphe/MythoMax-L2-13b",  # not consistent with results
@@ -107,7 +107,7 @@ class DeepInfraModel(LLMBase):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=30
