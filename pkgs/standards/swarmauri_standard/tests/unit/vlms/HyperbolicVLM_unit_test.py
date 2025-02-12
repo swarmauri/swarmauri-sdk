@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.vcms.HyperbolicVCM import HyperbolicVCM
+from swarmauri_standard.vlms.HyperbolicVLM import HyperbolicVLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv
@@ -15,27 +15,27 @@ API_KEY = os.getenv("HYPERBOLIC_API_KEY")
 def hyperbolic_vision_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    model = HyperbolicVCM(api_key=API_KEY)
+    model = HyperbolicVLM(api_key=API_KEY)
     return model
 
 
 def get_allowed_models():
     if not API_KEY:
         return []
-    model = HyperbolicVCM(api_key=API_KEY)
+    model = HyperbolicVLM(api_key=API_KEY)
     return model.allowed_models
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.resource == "VCM"
+    assert hyperbolic_vision_model.resource == "VLM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.type == "HyperbolicVCM"
+    assert hyperbolic_vision_model.type == "HyperbolicVLM"
 
 
 @timeout(5)
@@ -43,7 +43,7 @@ def test_ubc_type(hyperbolic_vision_model):
 def test_serialization(hyperbolic_vision_model):
     assert (
         hyperbolic_vision_model.id
-        == HyperbolicVCM.model_validate_json(
+        == HyperbolicVLM.model_validate_json(
             hyperbolic_vision_model.model_dump_json()
         ).id
     )

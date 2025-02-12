@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.vcms.GroqVCM import GroqVCM
+from swarmauri_standard.vlms.GroqVLM import GroqVLM
 from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage
@@ -20,7 +20,7 @@ image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisco
 def groq_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    llm = GroqVCM(api_key=API_KEY)
+    llm = GroqVLM(api_key=API_KEY)
     return llm
 
 
@@ -41,7 +41,7 @@ def input_data():
 def get_allowed_models():
     if not API_KEY:
         return []
-    llm = GroqVCM(api_key=API_KEY)
+    llm = GroqVLM(api_key=API_KEY)
 
     allowed_models = [model for model in llm.allowed_models]
 
@@ -51,19 +51,19 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_model):
-    assert groq_model.resource == "VCM"
+    assert groq_model.resource == "VLM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(groq_model):
-    assert groq_model.type == "GroqVCM"
+    assert groq_model.type == "GroqVLM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_model):
-    assert groq_model.id == GroqVCM.model_validate_json(groq_model.model_dump_json()).id
+    assert groq_model.id == GroqVLM.model_validate_json(groq_model.model_dump_json()).id
 
 
 @timeout(5)

@@ -1,11 +1,11 @@
-import pytest
 import os
-from swarmauri_standard.vcms.FalVCM import FalVCM
+
+import pytest
 from dotenv import load_dotenv
 from swarmauri_standard.utils.timeout_wrapper import timeout
+from swarmauri_standard.vlms.FalVLM import FalVLM
 
 load_dotenv()
-
 API_KEY = os.getenv("FAL_API_KEY")
 
 
@@ -13,27 +13,27 @@ API_KEY = os.getenv("FAL_API_KEY")
 def falai_vision_model():
     if not API_KEY:
         pytest.skip("Skipping due to environment variable not set")
-    model = FalVCM(api_key=API_KEY)
+    model = FalVLM(api_key=API_KEY)
     return model
 
 
 def get_allowed_models():
     if not API_KEY:
         return []
-    model = FalVCM(api_key=API_KEY)
+    model = FalVLM(api_key=API_KEY)
     return model.allowed_models
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(falai_vision_model):
-    assert falai_vision_model.resource == "VCM"
+    assert falai_vision_model.resource == "VLM"
 
 
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_type(falai_vision_model):
-    assert falai_vision_model.type == "FalVCM"
+    assert falai_vision_model.type == "FalVLM"
 
 
 @timeout(5)
@@ -41,7 +41,7 @@ def test_ubc_type(falai_vision_model):
 def test_serialization(falai_vision_model):
     assert (
         falai_vision_model.id
-        == FalVCM.model_validate_json(falai_vision_model.model_dump_json()).id
+        == FalVLM.model_validate_json(falai_vision_model.model_dump_json()).id
     )
 
 
