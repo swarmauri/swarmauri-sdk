@@ -1,12 +1,16 @@
-from .PytesseractImg2OCR import PytesseractImg2OCR as PytesseractImg2OCR
+from .PytesseractImg2TextModel import PytesseractImg2TextModel
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+__all__ = ["PytesseractImg2TextModel"]
 
-# Swarmauri PytesseractImg2Text Model Plugin
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_llm_pytesseractimg2text")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

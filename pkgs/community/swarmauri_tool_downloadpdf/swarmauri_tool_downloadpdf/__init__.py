@@ -1,16 +1,17 @@
-from .DownloadPdfTool import DownloadPDFTool as DownloadPDFTool
-
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
-
-# Swarmauri DownloadPdf Tool Plugin
-
-This repository includes an example of a Swarmauri Plugin.
-
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+from .DownloadPdfTool import DownloadPDFTool
 
 
+__all__ = ["DownloadPDFTool"]
+
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("swarmauri_tool_downloadpdf")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
