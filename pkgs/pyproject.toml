@@ -62,7 +62,7 @@ swarmauri_parser_bertembedding = { git = "https://github.com/swarmauri/swarmauri
 swarmauri_measurement_mutualinformation = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_measurement_mutualinformation", optional = true }
 swarmauri_parser_pypdf2 = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_pypdf2", optional = true }
 swarmauri_measurement_tokencountestimator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator", optional = true }
-swarmauri_llm_pytesseractimg2text = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_llm_pytesseractimg2text", optional = true }
+swarmauri_ocr_pytesseractimg2text = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_ocr_pytesseractimg2text", optional = true }
 swarmauri_tool_entityrecognition = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_entityrecognition", optional = true }
 swarmauri_tool_downloadpdf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_downloadpdf", optional = true }
 swarmauri_tool_dalechallreadability = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_dalechallreadability", optional = true }
@@ -121,7 +121,7 @@ tool_dalechallreadability = ["swarmauri_tool_dalechallreadability"]
 tool_github = ["swarmauri_tool_github"]
 tool_folium = ["swarmauri_tool_folium"]
 tool_psutil = ["swarmauri_tool_psutil"]
-llm_pytesseractimg2text = ["swarmauri_llm_pytesseractimg2text"]
+ocr_pytesseractimg2text = ["swarmauri_ocr_pytesseractimg2text"]
 embedding_mlm = ["swarmauri_embedding_mlm"]
 
 # tool_entityrecognition = ["swarmauri_tool_entityrecognition"] # causes resolution lag
@@ -164,7 +164,7 @@ full = [
   "swarmauri_measurement_mutualinformation",
   "swarmauri_parser_pypdf2",
   "swarmauri_measurement_tokencountestimator",
-  "swarmauri_llm_pytesseractimg2text",
+  "swarmauri_ocr_pytesseractimg2text",
   "swarmauri_tool_downloadpdf",
   "swarmauri_tool_dalechallreadability",
   "swarmauri_tool_gmail",
