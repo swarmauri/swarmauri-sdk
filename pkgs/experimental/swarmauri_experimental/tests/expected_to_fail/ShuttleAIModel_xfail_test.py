@@ -47,7 +47,7 @@ def test_no_system_context(shuttleai_model):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
 
 
 @pytest.mark.xfail(reason="These models are expected to fail")
@@ -103,7 +103,7 @@ def test_preamble_system_context(shuttleai_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Jeff" in prediction
 
 
@@ -137,7 +137,7 @@ def test_multiple_system_contexts(shuttleai_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Ben" in prediction
 
 

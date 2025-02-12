@@ -81,7 +81,7 @@ def test_no_system_context(openrouter_model, model_name):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
 
 
 @timeout(5)

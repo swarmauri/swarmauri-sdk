@@ -27,6 +27,7 @@ from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ocrs.OCRBase import OCRBase
 from swarmauri_base.stt.STTBase import STTBase
+from swarmauri_base.vcms.VCMBase import VCMBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.parsers.ParserBase import ParserBase
@@ -75,6 +76,7 @@ class InterfaceRegistry:
         "swarmauri.tts": TTSBase,
         "swarmauri.ocrs": OCRBase,
         "swarmauri.stt": STTBase,
+        "swarmauri.vcms": VCMBase,
         "swarmauri.measurements": MeasurementBase,
         "swarmauri.messages": MessageBase,
         "swarmauri.parsers": ParserBase,

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "swarmauri_llm_pytesseractimg2text"
+name = "swarmauri_ocr_pytesseractimg2text"
 version = "0.6.0.dev154"
 description = "Swarmauri Tesseract Image to Text Model"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
@@ -54,5 +54,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.poetry.plugins."swarmauri.llms"]
-PytesseractImg2TextModel = "swarmauri_llm_pytesseractimg2text.PytesseractImg2TextModel:PytesseractImg2TextModel"
+[tool.poetry.plugins."swarmauri.ocrs"]
+PytesseractImg2OCR = "swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR:PytesseractImg2OCR"

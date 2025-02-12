@@ -1,18 +1,20 @@
-import json
 import asyncio
+import json
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
+
 import httpx
-from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union, Type
 from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.ComponentBase import ComponentBase
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
 from swarmauri_standard.schema_converters.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
 from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "CohereToolModel")
@@ -352,10 +354,10 @@ class CohereToolModel(ToolLLMBase):
             tools=tools,
             force_single_step=True,
         )
-
-        tool_response = self._client.post("/chat", json=tool_payload)
-        tool_response.raise_for_status()
-        tool_data = tool_response.json()
+        with DurationManager() as prompt_timer:
+            tool_response = self._client.post("/chat", json=tool_payload)
+            tool_response.raise_for_status()
+            tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
@@ -374,21 +376,24 @@ class CohereToolModel(ToolLLMBase):
 
         collected_content = []
         usage_data = {}
-
-        with self._client.stream("POST", "/chat", json=stream_payload) as response:
-            response.raise_for_status()
-            for line in response.iter_lines():
-                if line:
-                    chunk = json.loads(line)
-                    if "text" in chunk:
-                        content = chunk["text"]
-                        collected_content.append(content)
-                        yield content
-                    elif "usage" in chunk:
-                        usage_data = chunk["usage"]
+        with DurationManager() as completion_timer:
+            with self._client.stream("POST", "/chat", json=stream_payload) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if line:
+                        chunk = json.loads(line)
+                        if "text" in chunk:
+                            content = chunk["text"]
+                            collected_content.append(content)
+                            yield content
+                        elif "usage" in chunk:
+                            usage_data = chunk["usage"]
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+        conversation.add_message(AgentMessage(content=full_content), usage=usage)
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
@@ -482,10 +487,10 @@ class CohereToolModel(ToolLLMBase):
             tools=tools,
             force_single_step=True,
         )
-
-        tool_response = await self._async_client.post("/chat", json=tool_payload)
-        tool_response.raise_for_status()
-        tool_data = tool_response.json()
+        with DurationManager() as prompt_timer:
+            tool_response = await self._async_client.post("/chat", json=tool_payload)
+            tool_response.raise_for_status()
+            tool_data = tool_response.json()
 
         tool_results = self._process_tool_calls(tool_data, toolkit)
 
@@ -509,21 +514,25 @@ class CohereToolModel(ToolLLMBase):
             "POST", "/chat", json=stream_payload
         ) as response:
             response.raise_for_status()
-            async for line in response.aiter_lines():
-                if line:
-                    try:
-                        chunk = json.loads(line)
-                        if "text" in chunk:
-                            content = chunk["text"]
-                            collected_content.append(content)
-                            yield content
-                        elif "usage" in chunk:
-                            usage_data = chunk["usage"]
-                    except json.JSONDecodeError:
-                        continue
+            with DurationManager() as completion_timer:
+                async for line in response.aiter_lines():
+                    if line:
+                        try:
+                            chunk = json.loads(line)
+                            if "text" in chunk:
+                                content = chunk["text"]
+                                collected_content.append(content)
+                                yield content
+                            elif "usage" in chunk:
+                                usage_data = chunk["usage"]
+                        except json.JSONDecodeError:
+                            continue
 
         full_content = "".join(collected_content)
-        conversation.add_message(AgentMessage(content=full_content))
+        usage = self._prepare_usage_data(
+            usage_data, prompt_timer.duration, completion_timer.duration
+        )
+        conversation.add_message(AgentMessage(content=full_content), usage=usage)
 
     def batch(
         self, conversations: List, toolkit=None, temperature=0.3, max_tokens=1024

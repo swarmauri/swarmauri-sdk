@@ -1,63 +1,61 @@
+import asyncio
 import json
 from pydantic import PrivateAttr
 import httpx
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
-import asyncio
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ocrs.OCRBase import OCRBase
+from swarmauri_base.vcms.VCMBase import VCMBase
+
 from swarmauri_core.ComponentBase import ComponentBase
 
 
-@ComponentBase.register_type(OCRBase, "HyperbolicOCR")
-class HyperbolicOCR(OCRBase):
+@ComponentBase.register_type(VCMBase, "GroqOCR")
+class GroqVCM(VCMBase):
     """
-    HyperbolicOCR class for interacting with the Hyperbolic vision language models API. This class
+    GroqVCM class for interacting with the Groq vision language models API. This class
     provides synchronous and asynchronous methods to send conversation data to the
     model, receive predictions, and stream responses.
 
     Attributes:
-        api_key (str): API key for authenticating requests to the Hyperbolic API.
+        api_key (str): API key for authenticating requests to the Groq API.
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
-        type (Literal["HyperbolicOCR"]): The type identifier for this class.
+        type (Literal["GroqModel"]): The type identifier for this class.
 
-    Link to Allowed Models: https://app.hyperbolic.xyz/models
-    Link to API KEYS: https://app.hyperbolic.xyz/settings
+
+    Allowed Models resources: https://console.groq.com/docs/models
     """
 
     api_key: str
     allowed_models: List[str] = [
-        "Qwen/Qwen2-VL-72B-Instruct",
-        "mistralai/Pixtral-12B-2409",
-        "Qwen/Qwen2-VL-7B-Instruct",
+        "llama-3.2-11b-vision-preview",
     ]
-    name: str = "Qwen/Qwen2-VL-72B-Instruct"
-    type: Literal["HyperbolicOCR"] = "HyperbolicOCR"
-    _headers: Dict[str, str] = PrivateAttr(default=None)
+    name: str = "llama-3.2-11b-vision-preview"
+    type: Literal["GroqVCM"] = "GroqVCM"
     _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
-        default="https://api.hyperbolic.xyz/v1/chat/completions"
+        default="https://api.groq.com/openai/v1/chat/completions"
     )
 
     def __init__(self, **data):
         """
-        Initialize the HyperbolicOCR class with the provided data.
+        Initialize the GroqAIAudio class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
-        self._headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
-        }
         self._client = httpx.Client(
-            headers=self._headers,
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            base_url=self._BASE_URL,
+        )
+        self._async_client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
         )
 
@@ -74,6 +72,7 @@ class HyperbolicOCR(OCRBase):
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
         """
+
         formatted_messages = []
         for message in messages:
             formatted_message = message.model_dump(
@@ -81,22 +80,10 @@ class HyperbolicOCR(OCRBase):
             )
 
             if isinstance(formatted_message["content"], list):
-                formatted_content = []
-                for item in formatted_message["content"]:
-                    if item["type"] == "image_url" and "file_path" in item:
-                        # Convert file path to base64
-                        base64_img = file_path_to_base64(item["file_path"])
-                        formatted_content.append(
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_img}"
-                                },
-                            }
-                        )
-                    else:
-                        formatted_content.append(item)
-                formatted_message["content"] = formatted_content
+                formatted_message["content"] = [
+                    {"type": item["type"], **item}
+                    for item in formatted_message["content"]
+                ]
 
             formatted_messages.append(formatted_message)
         return formatted_messages
@@ -114,12 +101,13 @@ class HyperbolicOCR(OCRBase):
         return UsageData.model_validate(usage_data)
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict(
+    def predict_vision(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
@@ -130,6 +118,7 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
@@ -144,8 +133,11 @@ class HyperbolicOCR(OCRBase):
             "top_p": top_p,
             "stop": stop or [],
         }
+        if enable_json:
+            payload["response_format"] = "json_object"
 
         response = self._client.post(self._BASE_URL, json=payload)
+
         response.raise_for_status()
 
         response_data = response.json()
@@ -158,12 +150,13 @@ class HyperbolicOCR(OCRBase):
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict(
+    async def apredict_vision(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
@@ -174,6 +167,7 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
@@ -188,12 +182,11 @@ class HyperbolicOCR(OCRBase):
             "top_p": top_p,
             "stop": stop or [],
         }
+        if enable_json:
+            payload["response_format"] = "json_object"
 
-        async with httpx.AsyncClient() as async_client:
-            response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
+        response.raise_for_status()
 
         response_data = response.json()
 
@@ -209,8 +202,9 @@ class HyperbolicOCR(OCRBase):
         self,
         conversation: Conversation,
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> Generator[str, None, None]:
         """
@@ -221,11 +215,13 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Yields:
             str: Partial response content from the model.
         """
+
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -236,10 +232,12 @@ class HyperbolicOCR(OCRBase):
             "stream": True,
             "stop": stop or [],
         }
+        if enable_json:
+            payload["response_format"] = "json_object"
 
         response = self._client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
 
+        response.raise_for_status()
         message_content = ""
         for line in response.iter_lines():
             json_str = line.replace("data: ", "")
@@ -260,8 +258,9 @@ class HyperbolicOCR(OCRBase):
         self,
         conversation: Conversation,
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
@@ -272,11 +271,13 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Yields:
             str: Partial response content from the model.
         """
+
         formatted_messages = self._format_messages(conversation.history)
         payload = {
             "model": self.name,
@@ -287,13 +288,12 @@ class HyperbolicOCR(OCRBase):
             "stream": True,
             "stop": stop or [],
         }
+        if enable_json:
+            payload["response_format"] = "json_object"
 
-        async with httpx.AsyncClient as async_client:
-            response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
-            )
-            response.raise_for_status()
+        response = await self._async_client.post(self._BASE_URL, json=payload)
 
+        response.raise_for_status()
         message_content = ""
         async for line in response.aiter_lines():
             json_str = line.replace("data: ", "")
@@ -313,8 +313,9 @@ class HyperbolicOCR(OCRBase):
         self,
         conversations: List[Conversation],
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
     ) -> List[Conversation]:
         """
@@ -325,6 +326,7 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
@@ -332,11 +334,12 @@ class HyperbolicOCR(OCRBase):
         """
         results = []
         for conversation in conversations:
-            result_conversation = self.predict(
+            result_conversation = self.predict_vision(
                 conversation,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,
+                enable_json=enable_json,
                 stop=stop,
             )
             results.append(result_conversation)
@@ -346,8 +349,9 @@ class HyperbolicOCR(OCRBase):
         self,
         conversations: List[Conversation],
         temperature: float = 0.7,
-        max_tokens: int = 2048,
-        top_p: float = 0.9,
+        max_tokens: int = 256,
+        top_p: float = 1.0,
+        enable_json: bool = False,
         stop: Optional[List[str]] = None,
         max_concurrent=5,
     ) -> List[Conversation]:
@@ -359,6 +363,7 @@ class HyperbolicOCR(OCRBase):
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
+            enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
@@ -369,11 +374,12 @@ class HyperbolicOCR(OCRBase):
 
         async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
-                return await self.apredict(
+                return await self.apredict_vision(
                     conv,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     top_p=top_p,
+                    enable_json=enable_json,
                     stop=stop,
                 )
 

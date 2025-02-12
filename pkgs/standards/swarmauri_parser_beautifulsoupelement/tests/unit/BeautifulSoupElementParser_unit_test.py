@@ -22,7 +22,7 @@ def test_ubc_type():
 def test_initialization():
     html_content = "<div><p>Sample HTML content</p></div>"
     parser = Parser(element=html_content)
-    assert type(parser.id) == str
+    assert type(parser.id) is str
 
 
 @pytest.mark.unit

@@ -2,31 +2,31 @@
 
 <div align="center">
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_llm_pytesseractimg2text)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_llm_pytesseractimg2text)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_llm_pytesseractimg2text)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_llm_pytesseractimg2text?label=swarmauri_llm_pytesseractimg2text&color=green)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_ocr_pytesseractimg2text)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_ocr_pytesseractimg2text)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_ocr_pytesseractimg2text)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_ocr_pytesseractimg2text?label=swarmauri_ocr_pytesseractimg2text&color=green)
 
 </div>
 
 ---
 
-# Swarmauri LLM PytesseractImg2Text
+# Swarmauri OCR PytesseractImg2Text
 
 A model for performing OCR (Optical Character Recognition) using Pytesseract. It can process both local images and image bytes, returning extracted text. Requires Tesseract-OCR to be installed on the system.
 
 ## Installation
 
 ```bash
-pip install swarmauri_llm_pytesseractimg2text
+pip install swarmauri_ocr_pytesseractimg2text
 ```
 
 ## Usage
 Basic usage examples with code snippets
 ```python
-from swarmauri.llms.PytesseractImg2TextModel import PytesseractImg2TextModel
+from swarmauri.ocrs.PytesseractImg2OCR import PytesseractImg2OCR
 
-model = PytesseractImg2TextModel()
+model = PytesseractImg2OCR()
 text = model.extract_text("path/to/image.png")
 print(text)
 ```
