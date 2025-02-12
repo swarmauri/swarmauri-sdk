@@ -1,31 +1,30 @@
-from typing import List
+from typing import List, Optional
+
+from pydantic import Field, PrivateAttr
 from redisearch import Client, Query
+from swarmauri_base.document_stores.DocumentStoreRetrieveBase import (
+    DocumentStoreRetrieveBase,
+)
+from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 
-from swarmauri_base.retrievers.DocumentRetrieverBase import DocumentRetrieverBase
-from swarmauri_core.ComponentBase import ComponentBase
 
-
-@ComponentBase.register_type(DocumentRetrieverBase, "RedisDocumentRetriever")
-class RedisDocumentRetriever(DocumentRetrieverBase):
+@ComponentBase.register_type(DocumentStoreRetrieveBase, "RedisDocumentRetriever")
+class RedisDocumentRetriever(DocumentStoreRetrieveBase):
     """
     A document retriever that fetches documents from a Redis store.
     """
 
-    def __init__(self, redis_idx_name, redis_host, redis_port):
-        """
-        Initializes a new instance of RedisDocumentRetriever.
+    type: str = "RedisDocumentRetriever"
+    redis_idx_name: str = Field(..., description="Redis index name")
+    redis_host: str = Field(default="localhost", description="Redis host")
+    redis_port: int = Field(default=6379, description="Redis port")
 
-        Args:
-            redis_client (Redis): An instance of the Redis client.
-        """
-        self._redis_client = None
-        self._redis_idx_name = redis_idx_name
-        self._redis_host = redis_host
-        self._redis_port = redis_port
+    # Private attributes
+    _redis_client: Optional[Client] = PrivateAttr(default=None)
 
     @property
-    def redis_client(self):
+    def redis_client(self) -> Client:
         """Lazily initialize and return the Redis client using a factory method."""
         if self._redis_client is None:
             self._redis_client = Client(
@@ -48,8 +47,8 @@ class RedisDocumentRetriever(DocumentRetrieverBase):
 
         documents = [
             Document(
-                doc_id=doc.id,
-                content=doc.text,  # Note: Adjust 'text' based on actual Redis document schema
+                id=doc.id,
+                content=doc.content,  # Note: Adjust 'text' based on actual Redis document schema
                 metadata=doc.__dict__,  # Including full document fields and values in metadata
             )
             for doc in query_result.docs
