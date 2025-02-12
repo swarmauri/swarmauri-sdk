@@ -37,6 +37,15 @@ jobs:
       # 4. Run the install phase
       ## This will create one lock file
       ## If we want to create a lock file per folder then we use "recursive"
+      - name: Poetry Lock Regenerate
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs
+          poetry lock --regenerate
+
+      # 4. Run the install phase
+      ## This will create one lock file
+      ## If we want to create a lock file per folder then we use "recursive"
       - name: Run install phase
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
