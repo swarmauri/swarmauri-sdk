@@ -1,5 +1,5 @@
 import json
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 import httpx
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
 import asyncio
@@ -30,7 +30,7 @@ class HyperbolicVCM(VCMBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "Qwen/Qwen2-VL-72B-Instruct",
         "mistralai/Pixtral-12B-2409",

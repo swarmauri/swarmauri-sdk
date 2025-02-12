@@ -2,7 +2,7 @@ import json
 import asyncio
 import httpx
 from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union, Type
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
@@ -45,7 +45,7 @@ class CohereToolModel(LLMBase):
         # "command-r-plus",
         # "command-r-plus-08-2024",
     ]
-    name: str = "command-r"
+    name: SecretStr = "command-r"
     type: Literal["CohereToolModel"] = "CohereToolModel"
     resource: str = "LLM"
 

@@ -1,15 +1,16 @@
 import asyncio
-import httpx
-import aiofiles
-
 from typing import Dict, List, Literal
-from pydantic import PrivateAttr
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+import aiofiles
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'GroqAIAudio')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "GroqAIAudio")
 class GroqAIAudio(LLMBase):
     """
     GroqAIAudio is a class that provides transcription and translation capabilities
@@ -23,7 +24,7 @@ class GroqAIAudio(LLMBase):
         type (Literal["GroqAIAudio"]): The type identifier for the class.
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "distil-whisper-large-v3-en",
         "whisper-large-v3",

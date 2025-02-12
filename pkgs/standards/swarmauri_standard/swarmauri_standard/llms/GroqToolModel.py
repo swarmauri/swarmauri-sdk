@@ -1,21 +1,22 @@
 import asyncio
 import json
-import httpx
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
-from pydantic import PrivateAttr
+import httpx
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'GroqToolModel')
+
+@ComponentBase.register_type(LLMBase, "GroqToolModel")
 class GroqToolModel(LLMBase):
     """
     GroqToolModel provides an interface to interact with Groq's large language models for tool usage.
@@ -33,7 +34,7 @@ class GroqToolModel(LLMBase):
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama3-8b-8192",
         "llama3-70b-8192",

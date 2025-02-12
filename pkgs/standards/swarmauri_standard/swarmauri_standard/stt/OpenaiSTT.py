@@ -2,7 +2,7 @@ import asyncio
 import aiofiles
 import httpx
 from typing import List, Literal, Dict
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -24,7 +24,7 @@ class OpenaiSTT(STTBase):
     Provider Resources:     https://platform.openai.com/docs/api-reference/audio/createTranscription
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["whisper-1"]
 
     name: str = "whisper-1"

@@ -1,6 +1,6 @@
 import asyncio
 import json
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 import httpx
 from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
 
@@ -30,7 +30,7 @@ class GroqVCM(VCMBase):
     Allowed Models resources: https://console.groq.com/docs/models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama-3.2-11b-vision-preview",
     ]

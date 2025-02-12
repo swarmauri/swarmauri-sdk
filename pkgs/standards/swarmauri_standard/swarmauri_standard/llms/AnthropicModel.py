@@ -1,17 +1,20 @@
-import json
 import asyncio
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
-from typing import List, Dict, Literal, AsyncIterator, Iterator, Type
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'AnthropicModel')
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "AnthropicModel")
 class AnthropicModel(LLMBase):
     """
     A class representing an integration with the Anthropic API to interact with the Claude model series.
@@ -30,7 +33,7 @@ class AnthropicModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "claude-3-haiku-20240307",
         "claude-3-opus-20240229",

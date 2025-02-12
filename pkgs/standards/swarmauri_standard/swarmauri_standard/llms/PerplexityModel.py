@@ -1,18 +1,20 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Dict, Literal, Optional, Type
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'PerplexityModel')
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "PerplexityModel")
 class PerplexityModel(LLMBase):
     """
     Represents a language model interface for Perplexity API.
@@ -31,7 +33,7 @@ class PerplexityModel(LLMBase):
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama-3.1-sonar-small-128k-online",
         "llama-3.1-sonar-large-128k-online",

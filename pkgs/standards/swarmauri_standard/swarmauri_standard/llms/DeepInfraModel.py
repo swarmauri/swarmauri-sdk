@@ -1,16 +1,18 @@
-import json
-import httpx
 import asyncio
-from typing import List, Dict, Literal, AsyncIterator, Iterator
-from pydantic import PrivateAttr
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_base.messages.MessageBase import MessageBase
+import httpx
+from pydantic import PrivateAttr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(LLMBase, 'DeepInfraModel')
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "DeepInfraModel")
 class DeepInfraModel(LLMBase):
     """
     A class for interacting with DeepInfra's model API for text generation.

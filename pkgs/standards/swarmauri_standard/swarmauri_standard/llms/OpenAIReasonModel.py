@@ -1,16 +1,16 @@
 import logging
+from typing import Any, Dict, List, Literal, Optional, Type
+
 import httpx
-from typing import List, Optional, Dict, Literal, Any, Type
-from pydantic import PrivateAttr
-
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_standard.conversations.Conversation import Conversation
-
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_base.messages.MessageBase import MessageBase
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIReasonModel")
@@ -29,13 +29,8 @@ class OpenAIReasonModel(LLMBase):
     Provider resources: https://platform.openai.com/docs/models
     """
 
-    api_key: str
-    allowed_models: List[str] = [
-        "o1-mini",
-        "o1",
-        "o1-2024-12-17",
-        "o1-mini-2024-09-12"
-    ]
+    api_key: SecretStr
+    allowed_models: List[str] = ["o1-mini", "o1", "o1-2024-12-17", "o1-mini-2024-09-12"]
     name: str = "o1"
     type: Literal["OpenAIReasonModel"] = "OpenAIReasonModel"
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")

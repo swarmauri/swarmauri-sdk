@@ -1,18 +1,20 @@
-import json
-from pydantic import PrivateAttr
-import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
 import asyncio
+import json
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+
+import httpx
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'HyperbolicVisionModel')
+
+@ComponentBase.register_type(LLMBase, "HyperbolicVisionModel")
 class HyperbolicVisionModel(LLMBase):
     """
     HyperbolicVisionModel class for interacting with the Hyperbolic vision language models API. This class
@@ -29,7 +31,7 @@ class HyperbolicVisionModel(LLMBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "Qwen/Qwen2-VL-72B-Instruct",
         "mistralai/Pixtral-12B-2409",

@@ -1,18 +1,20 @@
-import json
-import httpx
 import asyncio
-from typing import AsyncIterator, Iterator, List, Dict, Literal, Type
-from pydantic import PrivateAttr
+import json
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_base.messages.MessageBase import MessageBase
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'GeminiProModel')
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.duration_manager import DurationManager
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "GeminiProModel")
 class GeminiProModel(LLMBase):
     """
     GeminiProModel is a class interface for interacting with the Gemini language model API.
@@ -26,7 +28,7 @@ class GeminiProModel(LLMBase):
     Provider resources: https://deepmind.google/technologies/gemini/pro/
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
     name: str = "gemini-1.5-pro"
     type: Literal["GeminiProModel"] = "GeminiProModel"

@@ -4,7 +4,7 @@ import os
 import httpx
 
 from typing import List, Literal, Dict
-from pydantic import Field, PrivateAttr
+from pydantic import Field, PrivateAttr, SecretStr
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.tts.TTSBase import TTSBase
@@ -36,7 +36,7 @@ class PlayhtTTS(TTSBase):
     )
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
-    api_key: str
+    api_key: SecretStr
     user_id: str
     name: str = "Play3.0-mini"
     type: Literal["PlayhtTTS"] = "PlayhtTTS"

@@ -1,13 +1,15 @@
+import asyncio
 import base64
 import os
+from typing import Dict, List, Literal, Optional
+
 import httpx
-import asyncio
-from typing import List, Literal, Dict, Optional
-from pydantic import PrivateAttr, Field
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'HyperbolicAudioTTS')
+
+@ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")
 class HyperbolicAudioTTS(LLMBase):
     """
     A class to interact with Hyperbolic's Text-to-Speech API, allowing for synchronous
@@ -23,7 +25,7 @@ class HyperbolicAudioTTS(LLMBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    api_key: str
+    api_key: SecretStr
 
     # Supported languages
     allowed_languages: List[str] = ["EN", "ES", "FR", "ZH", "JP", "KR"]

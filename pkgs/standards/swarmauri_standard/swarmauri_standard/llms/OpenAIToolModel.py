@@ -1,20 +1,22 @@
-import json
 import asyncio
-from typing import List, Literal, Dict, Any, Iterator, AsyncIterator, Type
-import httpx
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.conversations.Conversation import Conversation
+import json
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
+import httpx
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'OpenAIToolModel')
+
+@ComponentBase.register_type(LLMBase, "OpenAIToolModel")
 class OpenAIToolModel(LLMBase):
     """
     GroqToolModel provides an interface to interact with Groq's large language models for tool usage.
@@ -32,7 +34,7 @@ class OpenAIToolModel(LLMBase):
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "gpt-4o-2024-05-13",
         "gpt-4-turbo",

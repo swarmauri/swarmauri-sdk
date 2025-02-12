@@ -4,7 +4,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 from typing import List, Literal
-from pydantic import Field, ConfigDict
+from pydantic import Field, ConfigDict, SecretStr
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 
@@ -17,7 +17,7 @@ class LeptonAIImgGenModel(ImageGenBase):
     Get your API KEY from Lepton AI.
     """
 
-    api_key: str = Field(default_factory=lambda: os.environ.get("LEPTON_API_KEY"))
+    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("LEPTON_API_KEY"))
     model_name: str = Field(default="sdxl")
     type: Literal["LeptonAIImgGenModel"] = "LeptonAIImgGenModel"
     base_url: str = Field(default="https://sdxl.lepton.run")

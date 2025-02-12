@@ -1,12 +1,15 @@
-from typing import List, Literal, Dict
-import httpx
 import asyncio
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from typing import Dict, List, Literal
+
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(LLMBase, 'WhisperLargeModel')
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+@ComponentBase.register_type(LLMBase, "WhisperLargeModel")
 class WhisperLargeModel(LLMBase):
     """
     A class implementing OpenAI's Whisper Large V3 model using HuggingFace's Inference API.
@@ -32,7 +35,7 @@ class WhisperLargeModel(LLMBase):
     allowed_models: List[str] = ["openai/whisper-large-v3"]
     name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeModel"] = "WhisperLargeModel"
-    api_key: str
+    api_key: SecretStr
     _BASE_URL: str = PrivateAttr(
         "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
     )

@@ -1,19 +1,19 @@
 import asyncio
 import json
-from pydantic import PrivateAttr
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+
 import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
 
 
-from swarmauri_core.ComponentBase import ComponentBase
-
-@ComponentBase.register_type(LLMBase, 'GroqVisionModel')
+@ComponentBase.register_type(LLMBase, "GroqVisionModel")
 class GroqVisionModel(LLMBase):
     """
     GroqVisionModel class for interacting with the Groq vision language models API. This class
@@ -30,7 +30,7 @@ class GroqVisionModel(LLMBase):
     Allowed Models resources: https://console.groq.com/docs/models
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "llama-3.2-11b-vision-preview",
     ]

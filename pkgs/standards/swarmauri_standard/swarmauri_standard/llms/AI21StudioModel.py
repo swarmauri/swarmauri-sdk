@@ -1,19 +1,20 @@
-import json
-import httpx
 import asyncio
+import json
+from typing import AsyncIterator, Iterator, List, Literal, Type
 
-from typing import List, Literal, AsyncIterator, Iterator, Type
-from pydantic import PrivateAttr
+import httpx
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(LLMBase, 'AI21StudioModel')
+
+@ComponentBase.register_type(LLMBase, "AI21StudioModel")
 class AI21StudioModel(LLMBase):
     """
     A model class for interacting with the AI21 Studio's language models via HTTP API calls.
@@ -31,7 +32,7 @@ class AI21StudioModel(LLMBase):
     Provider resources: https://docs.ai21.com/reference/jamba-15-api-ref
     """
 
-    api_key: str
+    api_key: SecretStr
     allowed_models: List[str] = [
         "jamba-1.5-large",
         "jamba-1.5-mini",
@@ -63,9 +64,7 @@ class AI21StudioModel(LLMBase):
             timeout=30,
         )
 
-    def _format_messages(
-        self, messages: List[Type['MessageBase']]
-    ) -> List[dict]:
+    def _format_messages(self, messages: List[Type["MessageBase"]]) -> List[dict]:
         """
         Formats messages for API request payload.
 

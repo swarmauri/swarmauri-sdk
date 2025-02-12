@@ -1,7 +1,7 @@
 from typing import List, Literal, Dict
 import httpx
 import asyncio
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -33,7 +33,7 @@ class WhisperLargeSTT(STTBase):
     allowed_models: List[str] = ["openai/whisper-large-v3"]
     name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeSTT"] = "WhisperLargeSTT"
-    api_key: str
+    api_key: SecretStr
     _BASE_URL: str = PrivateAttr(
         "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
     )
