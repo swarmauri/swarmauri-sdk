@@ -1,14 +1,17 @@
-from .FoliumTool import FoliumTool as FoliumTool
+from .FoliumTool import FoliumTool
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
 
-# Swarmauri Folium Plugin
+__all__ = ["FoliumTool"]
 
-This repository includes a Folium of a Swarmauri Plugin.
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_tool_folium")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

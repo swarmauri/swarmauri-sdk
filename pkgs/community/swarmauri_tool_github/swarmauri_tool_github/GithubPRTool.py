@@ -91,7 +91,7 @@ class GithubPRTool(ToolBase):
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            pull = repo.create_pull(title=title, body=body, head=head, base=base)
+            repo.create_pull(title=title, body=body, head=head, base=base)
             return f"Pull request '{title}' created successfully."
         except GithubException as e:
             return f"Error creating pull request: {e}"

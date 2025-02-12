@@ -1,16 +1,17 @@
-from .TextBlobNounParser import TextBlobNounParser as TextBlobNounParser
-from .TextBlobSentenceParser import TextBlobSentenceParser as TextBlobSentenceParser
+from .TextBlobNounParser import TextBlobNounParser
+from .TextBlobSentenceParser import TextBlobSentenceParser
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+__all__ = ["TextBlobNounParser", "TextBlobSentenceParser"]
 
-# Swarmauri TextBlob Based Components
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Components Included:
-- TextBlobNounParser
-- TextBlobSentenceParser
-
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_parser_textblob")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

@@ -68,5 +68,5 @@ def test_multiple_system_contexts(openrouter_model):
 
     model.predict(conversation=conversation)
     prediction = conversation.get_last().content
-    assert type(prediction) == str
+    assert type(prediction) is str
     assert "Ben" in prediction

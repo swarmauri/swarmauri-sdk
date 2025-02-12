@@ -1,14 +1,17 @@
-from .Neo4jVectorStore import Neo4jVectorStore as Neo4jVectorStore
+from .Neo4jVectorStore import Neo4jVectorStore
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
 
-# Swarmauri Neo4j Plugin
+__all__ = ["Neo4jVectorStore"]
 
-This repository includes Neo4j of a Swarmauri Plugin.
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_vectorstore_neo4j")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

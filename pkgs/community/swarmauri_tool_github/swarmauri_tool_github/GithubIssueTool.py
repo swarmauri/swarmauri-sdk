@@ -78,7 +78,7 @@ class GithubIssueTool(ToolBase):
     def create_issue(self, repo_name: str, title: str, body: str = None) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            issue = repo.create_issue(title=title, body=body)
+            repo.create_issue(title=title, body=body)
             return f"Issue '{title}' created successfully."
         except GithubException as e:
             return f"Error creating issue: {e}"

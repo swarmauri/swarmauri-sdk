@@ -1,13 +1,17 @@
-from .QrCodeGeneratorTool import QrCodeGeneratorTool as QrCodeGeneratorTool
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+from .QrCodeGeneratorTool import QrCodeGeneratorTool
 
-# Swarmauri Example Plugin
 
-This repository includes an example of a Swarmauri Plugin.
+__all__ = ["QrCodeGeneratorTool"]
 
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-"""
+try:
+    __version__ = version("swarmauri_tool_qrcodegenerator")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"

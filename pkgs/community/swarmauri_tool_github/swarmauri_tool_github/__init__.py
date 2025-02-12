@@ -1,20 +1,29 @@
-from .GithubBranchTool import GithubBranchTool as GithubBranchTool
-from .GithubCommitTool import GithubCommitTool as GithubCommitTool
-from .GithubIssueTool import GithubIssueTool as GithubIssueTool 
-from .GithubPRTool import GithubPRTool as GithubPRTool
-from .GithubRepoTool import GithubRepoTool as GithubRepoTool
-from .GithubTool import GithubTool as GithubTool
+from .GithubBranchTool import GithubBranchTool
+from .GithubCommitTool import GithubCommitTool
+from .GithubIssueTool import GithubIssueTool
+from .GithubPRTool import GithubPRTool
+from .GithubRepoTool import GithubRepoTool
+from .GithubTool import GithubTool
 
 
-__version__ = "0.6.0.dev26"
-__long_desc__ = """
+__all__ = [
+    "GithubBranchTool",
+    "GithubCommitTool",
+    "GithubIssueTool",
+    "GithubPRTool",
+    "GithubRepoTool",
+    "GithubTool"
+]
 
-# Swarmauri github Plugin
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
 
-This repository includes github of a Swarmauri Plugin.
-
-Visit us at: https://swarmauri.com
-Follow us at: https://github.com/swarmauri
-Star us at: https://github.com/swarmauri/swarmauri-sdk
-
-"""
+try:
+    __version__ = version("swarmauri_tool_github")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
