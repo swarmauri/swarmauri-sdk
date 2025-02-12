@@ -1,8 +1,9 @@
+import io
 import logging
+
 import pytest
 from PIL import Image
-import io
-from pkgs.community.swarmauri_ocr_pytesseractimg2text.swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR import (
+from swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR import (
     PytesseractImg2OCR,
 )
 from swarmauri_standard.utils.timeout_wrapper import timeout
@@ -144,7 +145,8 @@ def test_custom_language(pytesseract_img_2_text_model, sample_image_bytes):
 def test_custom_config(pytesseract_img_2_text_model, sample_image_bytes):
     # Test with custom Tesseract configuration
     text = pytesseract_img_2_text_model.extract_text(
-        image=sample_image_bytes, config="--psm 6"  # Assume uniform block of text
+        image=sample_image_bytes,
+        config="--psm 6",  # Assume uniform block of text
     )
     assert isinstance(text, str)
     assert "Hello" in text

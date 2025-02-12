@@ -6,7 +6,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "FitzPdfParser")
-class PDFtoTextParser(ParserBase):
+class FitzPdfParser(ParserBase):
     """
     A parser to extract text from PDF files.
     """

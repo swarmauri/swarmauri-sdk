@@ -234,6 +234,3 @@ class RedisVectorStore(
         top_documents = [doc for doc, _ in similarities[:top_k]]
         # print(f"Found {len(top_documents)} similar documents.")
         return top_documents
-
-    class Config:
-        extra = "allow"
