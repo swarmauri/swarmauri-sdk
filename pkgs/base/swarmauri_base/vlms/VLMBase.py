@@ -3,15 +3,15 @@ from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field, model_validator
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.vcms.IPredictVision import IPredictVision
+from swarmauri_core.vlms.IPredictVision import IPredictVision
 
 
 @ComponentBase.register_model()
-class VCMBase(IPredictVision, ComponentBase):
+class VLMBase(IPredictVision, ComponentBase):
     allowed_models: List[str] = []
-    resource: Optional[str] = Field(default=ResourceTypes.VCM.value, frozen=True)
+    resource: Optional[str] = Field(default=ResourceTypes.VLM.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    type: Literal["VCMBase"] = "VCMBase"
+    type: Literal["VLMBase"] = "VLMBase"
 
     @model_validator(mode="after")
     @classmethod

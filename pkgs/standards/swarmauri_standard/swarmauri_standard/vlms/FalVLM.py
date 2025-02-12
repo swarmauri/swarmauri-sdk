@@ -1,16 +1,18 @@
-import os
-import httpx
 import asyncio
+import logging
 import time
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
+import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.vcms.VCMBase import VCMBase
+from swarmauri_base.vlms.VLMBase import VLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-@ComponentBase.register_type(VCMBase, "FalVCM")
-class FalVCM(VCMBase):
+
+@ComponentBase.register_type(VLMBase, "FalVLM")
+class FalVLM(VLMBase):
     """
     A model for processing images and answering questions using FalAI's vision models.
     This model allows synchronous and asynchronous requests for image processing
@@ -35,9 +37,9 @@ class FalVCM(VCMBase):
     allowed_models: List[str] = [
         "fal-ai/llava-next",
     ]
-    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
+    api_key: SecretStr
     name: str = Field(default="fal-ai/llava-next")
-    type: Literal["FalVCM"] = "FalVCM"
+    type: Literal["FalVLM"] = "FalVLM"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
 
@@ -49,6 +51,7 @@ class FalVCM(VCMBase):
             ValueError: If the provided name is not in allowed_models.
         """
         super().__init__(**data)
+        logging.info("API Key: %s", self.api_key.get_secret_value())
         self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
@@ -95,7 +98,6 @@ class FalVCM(VCMBase):
         """
         url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
-
         async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
@@ -187,6 +189,7 @@ class FalVCM(VCMBase):
         Returns:
             str: The answer or result of the image processing.
         """
+        logging.info(f"Headers: {self._headers}")
         response_data = self._send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 

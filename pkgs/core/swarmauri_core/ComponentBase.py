@@ -100,7 +100,7 @@ class ResourceTypes(Enum):
     UTIL = "Util"
     VECTOR_STORE = "VectorStore"
     VECTOR = "Vector"
-    VCM = "VCM"
+    VLM = "VLM"
     DATA_CONNECTOR = "DataConnector"
     TRANSPORT = "Transport"
     FACTORY = "Factory"
