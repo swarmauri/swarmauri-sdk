@@ -25,44 +25,44 @@ pydantic = "^2.9.2"
 typing_extensions = "*"
 
 
-# joblib = "^1.4.0"
-# numpy = "*"
-# pandas = "*"
+# First Class Citizens
+swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
+swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
+swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
+swarmauri_embedding_nmf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_nmf", optional = true }
+swarmauri-tool-matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
+swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
+swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true }
+swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
+swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
 
+[tool.poetry.extras]
+# First Class Extras
+vectorstore_doc2vec = ["swarmauri_vectorstore_doc2vec"]
+vectorstore_tfidf = ["swarmauri_vectorstore_tfidf"]
 
-# requests = "^2.32.3"
+parser_keywordextractor = ["swarmauri_parser_keywordextractor"]
+parser_beautifulsoupelement = ["swarmauri_parser_beautifulsoupelement"]
 
-# Pillow = ">=8.0,<11.0"
-# aiofiles = { version = "24.1.0", optional = true }
-# aiohttp = { version = "^3.10.10", optional = true }
-# yake = { version = "==0.4.8", optional = true }
-# beautifulsoup4 = { version = "04.12.3", optional = true }
-# scipy = { version = ">=1.7.0,<1.14.0", optional = true }
-# scikit-learn = { version = "^1.4.2", optional = true }
-# matplotlib = { version = ">=3.9.2", optional = true }
+embedding_doc2vec = ["swarmauri_embedding_doc2vec"]
+embedding_tfidf = ["swarmauri_embedding_tfidf"]
+embedding_nmf = ["swarmauri_embedding_nmf"]
 
-# [tool.poetry.extras]
-# io = ["aiofiles", "aiohttp"]
-# nlp = ["yake"]
-# nlp_tools = ["beautifulsoup4"]
-# ml_toolkits = ["scikit-learn"]
-# visualization = ["matplotlib"]
-# full = [
-#     "aiofiles", "aiohttp",
-#     "yake",
-#     "beautifulsoup4",
-#     "scikit-learn",
-#     "matplotlib"
-# ]
-# doc2vec_vectorstore = ["swarmauri_vectorstore_doc2vec"]
-# doc2vec_embedding = ["swarmauri_embedding_doc2vec"]
-# matplotlib_tool = ["swarmauri_tool_matplotlib"]
-# keywordextractor_parser = ["swarmauri_parser_keywordextractor"]
-# tfidf_vectorstore = ["swarmauri_vectorstore_tfidf"]
-# tfidf_embedding = ["swarmauri_embedding_tfidf"]
-# nmf_embedding = ["swarmauri_embedding_nmf"]
-# beautifulsoupelement_parser = ["swarmauri_parser_beautifulsoupelement"]
-# minkowski_distance = ["swarmauri_distance_minkowski"]
+distance_minkowski = ["swarmauri_distance_minkowski"]
+
+tool_matplotlib = ["swarmauri_tool_matplotlib"]
+
+full = [
+  "swarmauri_vectorstore_doc2vec",
+  "swarmauri_vectorstore_tfidf",
+  "swarmauri_parser_keywordextractor",
+  "swarmauri_parser_beautifulsoupelement",
+  "swarmauri_embedding_doc2vec",
+  "swarmauri_embedding_tfidf",
+  "swarmauri_embedding_nmf",
+  "swarmauri_distance_minkowski",
+  "swarmauri_tool_matplotlib"
+]
 
 [tool.setuptools]
 namespace_packages = ["swarmauri"]
