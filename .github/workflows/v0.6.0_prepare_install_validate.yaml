@@ -55,6 +55,11 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
+      - name: Create New Git Branch
+        run: |
+          # Create and switch to the new branch
+          git checkout -b autopatch/${{ github.run_id }}
+          echo "Created and switched to branch autopatch/${{ github.run_id }}"
 
       # 5. Run the prepare phase
       - name: Run prepare phase
