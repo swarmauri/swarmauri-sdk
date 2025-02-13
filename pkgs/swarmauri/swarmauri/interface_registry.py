@@ -27,7 +27,7 @@ from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ocrs.OCRBase import OCRBase
 from swarmauri_base.stt.STTBase import STTBase
-from swarmauri_base.vlms.VCMBase import VLMBase
+from swarmauri_base.vlms.VLMBase import VLMBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.parsers.ParserBase import ParserBase
