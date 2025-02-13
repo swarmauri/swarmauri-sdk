@@ -22,7 +22,7 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
 
 # Dependencies
-leptonai = "^0.22.0"
+#leptonai = "^0.22.0"
 openai = "^1.62.0"
 
 [tool.poetry.group.dev.dependencies]
