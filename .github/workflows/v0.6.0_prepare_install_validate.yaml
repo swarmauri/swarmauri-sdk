@@ -86,7 +86,7 @@ jobs:
           PR_BODY="This pull request "
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "'"autopatch"/"${{ github.run_id }}"'", "base": "master", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "'"autopatch"/"${{ github.run_id }}"'", "base": "${{ github.head_ref }}", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
 
       # 6. Run the validate phase
