@@ -1,11 +1,14 @@
+from typing import Any, List, Literal
+
 import httpx
-from typing import List, Literal, Any
-from pydantic import PrivateAttr
-from swarmauri_standard.vectors.Vector import Vector
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(EmbeddingBase, 'VoyageEmbedding')
+from swarmauri_standard.vectors.Vector import Vector
+
+
+@ComponentBase.register_type(EmbeddingBase, "VoyageEmbedding")
 class VoyageEmbedding(EmbeddingBase):
     """
     Class for embedding using VogageEmbedding
@@ -20,25 +23,24 @@ class VoyageEmbedding(EmbeddingBase):
         "voyage-lite-02-instruct",
     ]
 
+    api_key: SecretStr = None
     model: str = "voyage-2"
     type: Literal["VoyageEmbedding"] = "VoyageEmbedding"
     _BASE_URL: str = PrivateAttr(default="https://api.voyageai.com/v1/embeddings")
     _headers: dict = PrivateAttr()
     _client: httpx.Client = PrivateAttr()
 
-    def __init__(self, api_key: str, model: str = "voyage-2", **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        if model not in self.allowed_models:
+        if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
-
-        self.model = model
 
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client()
 

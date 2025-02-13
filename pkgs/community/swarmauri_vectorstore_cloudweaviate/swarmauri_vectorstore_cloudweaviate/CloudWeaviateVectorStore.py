@@ -49,7 +49,7 @@ class CloudWeaviateVectorStore(
         if self._client is None:
             self._client = weaviate.connect_to_weaviate_cloud(
                 cluster_url=self.url,
-                auth_credentials=Auth.api_key(self.api_key),
+                auth_credentials=Auth.api_key(self.api_key.get_secret_value()),
                 headers=kwargs.get("headers", {}),
             )
 

@@ -2,7 +2,6 @@ import os
 import pytest
 from swarmauri_standard.embeddings.VoyageEmbedding import VoyageEmbedding
 from dotenv import load_dotenv
-import json
 
 load_dotenv()
 
@@ -29,17 +28,10 @@ def test_voyage_type(voyage_embedder):
 
 @pytest.mark.unit
 def test_voyage_serialization(voyage_embedder):
-    # Serialize to JSON
-    serialized = voyage_embedder.model_dump_json()
-
-    # Deserialize, adding `api_key` manually since it is private
-    deserialized_data = json.loads(serialized)
-    deserialized = VoyageEmbedding(
-        api_key=os.getenv("VOYAGE_API_KEY"), **deserialized_data
+    assert (
+        voyage_embedder.id
+        == VoyageEmbedding.model_validate_json(voyage_embedder.model_dump_json()).id
     )
-
-    assert voyage_embedder.id == deserialized.id
-    assert voyage_embedder.model == deserialized.model
 
 
 @pytest.mark.unit

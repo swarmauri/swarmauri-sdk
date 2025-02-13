@@ -4506,7 +4506,7 @@ description = "Python-tesseract is a python wrapper for Google's Tesseract-OCR"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "(extra == \"llm-pytesseractimg2text\" or extra == \"full\") and (python_version <= \"3.11\" or python_version >= \"3.12\")"
+markers = "(extra == \"ocr-pytesseractimg2text\" or extra == \"full\") and (python_version <= \"3.11\" or python_version >= \"3.12\")"
 files = [
     {file = "pytesseract-0.3.13-py3-none-any.whl", hash = "sha256:7a99c6c2ac598360693d83a416e36e0b33a67638bb9d77fdcac094a3589d4b34"},
     {file = "pytesseract-0.3.13.tar.gz", hash = "sha256:4bf5f880c99406f52a3cfc2633e42d9dc67615e69d8a509d74867d3baddb5db9"},
@@ -5886,29 +5886,6 @@ resolved_reference = "8423fcf03523ef638f575192f8b3fc8d431f52b0"
 subdirectory = "pkgs/community/swarmauri_llm_leptonai"
 
 [[package]]
-name = "swarmauri-llm-pytesseractimg2text"
-version = "0.6.0.dev154"
-description = "Swarmauri Tesseract Image to Text Model"
-optional = true
-python-versions = ">=3.10,<3.13"
-groups = ["main"]
-markers = "(extra == \"llm-pytesseractimg2text\" or extra == \"full\") and (python_version <= \"3.11\" or python_version >= \"3.12\")"
-files = []
-develop = false
-
-[package.dependencies]
-pytesseract = "^0.3.13"
-swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
-swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
-
-[package.source]
-type = "git"
-url = "https://github.com/swarmauri/swarmauri-sdk.git"
-reference = "mono/0.6.0.dev1"
-resolved_reference = "8423fcf03523ef638f575192f8b3fc8d431f52b0"
-subdirectory = "pkgs/community/swarmauri_llm_pytesseractimg2text"
-
-[[package]]
 name = "swarmauri-measurement-mutualinformation"
 version = "0.6.0.dev154"
 description = "Swarmauri Mutual Information Measurement Community Package."
@@ -5954,6 +5931,29 @@ url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
 resolved_reference = "8423fcf03523ef638f575192f8b3fc8d431f52b0"
 subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator"
+
+[[package]]
+name = "swarmauri-ocr-pytesseractimg2text"
+version = "0.6.0.dev154"
+description = "Swarmauri Tesseract Image to Text Model"
+optional = true
+python-versions = ">=3.10,<3.13"
+groups = ["main"]
+markers = "(extra == \"ocr-pytesseractimg2text\" or extra == \"full\") and (python_version <= \"3.11\" or python_version >= \"3.12\")"
+files = []
+develop = false
+
+[package.dependencies]
+pytesseract = "^0.3.13"
+swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
+swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
+
+[package.source]
+type = "git"
+url = "https://github.com/swarmauri/swarmauri-sdk.git"
+reference = "mono/0.6.0.dev1"
+resolved_reference = "5945152a30f2d9eacd62a1d99918ca2d098d2e84"
+subdirectory = "pkgs/community/swarmauri_ocr_pytesseractimg2text"
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
@@ -7963,10 +7963,10 @@ embedding-doc2vec = ["swarmauri_embedding_doc2vec"]
 embedding-mlm = ["swarmauri_embedding_mlm"]
 embedding-nmf = ["swarmauri_embedding_nmf"]
 embedding-tfidf = ["swarmauri_embedding_tfidf"]
-full = ["swarmauri-tool-matplotlib", "swarmauri_distance_minkowski", "swarmauri_documentstore_redis", "swarmauri_embedding_doc2vec", "swarmauri_embedding_mlm", "swarmauri_embedding_nmf", "swarmauri_embedding_tfidf", "swarmauri_llm_pytesseractimg2text", "swarmauri_measurement_mutualinformation", "swarmauri_measurement_tokencountestimator", "swarmauri_parser_beautifulsoupelement", "swarmauri_parser_bertembedding", "swarmauri_parser_entityrecognition", "swarmauri_parser_fitzpdf", "swarmauri_parser_keywordextractor", "swarmauri_parser_pypdf2", "swarmauri_parser_textblob", "swarmauri_state_clipboard", "swarmauri_tool_captchagenerator", "swarmauri_tool_dalechallreadability", "swarmauri_tool_downloadpdf", "swarmauri_tool_folium", "swarmauri_tool_github", "swarmauri_tool_gmail", "swarmauri_tool_lexicaldensity", "swarmauri_tool_psutil", "swarmauri_tool_qrcodegenerator", "swarmauri_tool_sentencecomplexity", "swarmauri_tool_sentimentanalysis", "swarmauri_tool_smogindex", "swarmauri_tool_textlength", "swarmauri_tool_webscraping", "swarmauri_tool_zapierhook", "swarmauri_vectorstore_cloudweaviate", "swarmauri_vectorstore_doc2vec", "swarmauri_vectorstore_duckdb", "swarmauri_vectorstore_mlm", "swarmauri_vectorstore_neo4j", "swarmauri_vectorstore_persistentchromadb", "swarmauri_vectorstore_pinecone", "swarmauri_vectorstore_qdrant", "swarmauri_vectorstore_redis", "swarmauri_vectorstore_tfidf"]
-llm-pytesseractimg2text = ["swarmauri_llm_pytesseractimg2text"]
+full = ["swarmauri-tool-matplotlib", "swarmauri_distance_minkowski", "swarmauri_documentstore_redis", "swarmauri_embedding_doc2vec", "swarmauri_embedding_mlm", "swarmauri_embedding_nmf", "swarmauri_embedding_tfidf", "swarmauri_measurement_mutualinformation", "swarmauri_measurement_tokencountestimator", "swarmauri_ocr_pytesseractimg2text", "swarmauri_parser_beautifulsoupelement", "swarmauri_parser_bertembedding", "swarmauri_parser_entityrecognition", "swarmauri_parser_fitzpdf", "swarmauri_parser_keywordextractor", "swarmauri_parser_pypdf2", "swarmauri_parser_textblob", "swarmauri_state_clipboard", "swarmauri_tool_captchagenerator", "swarmauri_tool_dalechallreadability", "swarmauri_tool_downloadpdf", "swarmauri_tool_folium", "swarmauri_tool_github", "swarmauri_tool_gmail", "swarmauri_tool_lexicaldensity", "swarmauri_tool_psutil", "swarmauri_tool_qrcodegenerator", "swarmauri_tool_sentencecomplexity", "swarmauri_tool_sentimentanalysis", "swarmauri_tool_smogindex", "swarmauri_tool_textlength", "swarmauri_tool_webscraping", "swarmauri_tool_zapierhook", "swarmauri_vectorstore_cloudweaviate", "swarmauri_vectorstore_doc2vec", "swarmauri_vectorstore_duckdb", "swarmauri_vectorstore_mlm", "swarmauri_vectorstore_neo4j", "swarmauri_vectorstore_persistentchromadb", "swarmauri_vectorstore_pinecone", "swarmauri_vectorstore_qdrant", "swarmauri_vectorstore_redis", "swarmauri_vectorstore_tfidf"]
 measurement-mutualinformation = ["swarmauri_measurement_mutualinformation"]
 measurement-tokencountestimator = ["swarmauri_measurement_tokencountestimator"]
+ocr-pytesseractimg2text = ["swarmauri_ocr_pytesseractimg2text"]
 parser-beautifulsoupelement = ["swarmauri_parser_beautifulsoupelement"]
 parser-bertembedding = ["swarmauri_parser_bertembedding"]
 parser-entityrecognition = ["swarmauri_parser_entityrecognition"]
@@ -8005,4 +8005,4 @@ vectorstore-tfidf = ["swarmauri_vectorstore_tfidf"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "6ce49f399661033bb45d13ba0cce162478e08069e9cfa3839fad1ab42bfeee3b"
+content-hash = "253629526721f45492a8d433ecddff4d44256247d38fb7182630dedd2e10cba3"
