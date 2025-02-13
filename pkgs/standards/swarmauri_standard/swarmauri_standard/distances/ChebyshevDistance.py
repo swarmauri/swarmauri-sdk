@@ -3,13 +3,15 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'ChebyshevDistance')
+
+@ComponentBase.register_type(DistanceBase, "ChebyshevDistance")
 class ChebyshevDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
     Chebyshev distance is the maximum absolute distance between two vectors' elements.
     """
-    type: Literal['ChebyshevDistance'] = 'ChebyshevDistance'   
+
+    type: Literal["ChebyshevDistance"] = "ChebyshevDistance"
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
@@ -40,11 +42,11 @@ class ChebyshevDistance(DistanceBase):
         """
 
         return 1 / (1 + self.distance(vector_a, vector_b))
-    
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

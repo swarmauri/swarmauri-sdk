@@ -6,7 +6,8 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ParserBase, 'CSVParser')
+
+@ComponentBase.register_type(ParserBase, "CSVParser")
 class CSVParser(ParserBase):
     """
     Concrete implementation of IParser for parsing CSV formatted text into Document instances.
@@ -15,8 +16,9 @@ class CSVParser(ParserBase):
     represented as a separate Document. Assumes the first row is the header which will
     be used as keys for document metadata.
     """
-    type: Literal['CSVParser'] = 'CSVParser'
-    
+
+    type: Literal["CSVParser"] = "CSVParser"
+
     def parse(self, data: Union[str, Any]) -> List[IDocument]:
         """
         Parses the given CSV data into a list of Document instances.
@@ -40,9 +42,9 @@ class CSVParser(ParserBase):
         reader = csv.DictReader(data_stream)
         for row in reader:
             # Each row represents a document, where the column headers are metadata fields
-            document = Document(doc_id=row.get('id', None), 
-                                        content=row.get('content', ''), 
-                                        metadata=row)
+            document = Document(
+                doc_id=row.get("id", None), content=row.get("content", ""), metadata=row
+            )
             documents.append(document)
 
         return documents

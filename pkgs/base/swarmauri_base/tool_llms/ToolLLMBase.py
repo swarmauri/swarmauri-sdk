@@ -45,7 +45,7 @@ class ToolLLMBase(IPredict, ComponentBase):
         if model not in self.allowed_models:
             raise ValueError(f"Model '{model}' is not in the allowed models list.")
         self.allowed_models.remove(model)
-        
+
     @abstractmethod
     def predict(self, *args, **kwargs):
         raise NotImplementedError("predict() not implemented in subclass yet.")

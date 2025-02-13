@@ -18,7 +18,9 @@ def test_img_url_to_file_path(tmp_path):
     mock_response.status_code = 200
     mock_response._content = img_data
 
-    with patch("swarmauri_standard.utils.img_url_to_file_path.requests.get") as mock_get:
+    with patch(
+        "swarmauri_standard.utils.img_url_to_file_path.requests.get"
+    ) as mock_get:
         mock_get.return_value = mock_response
 
         # Define the file path where the image will be saved

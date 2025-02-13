@@ -45,13 +45,15 @@ def install_poetry():
     print("Installing Poetry...")
     run_command("curl -sSL https://install.python-poetry.org | python3")
     # Update PATH so that ~/.local/bin is included for subsequent commands.
-    os.environ["PATH"] = f"{os.path.expanduser('~')}/.local/bin:{os.environ.get('PATH', '')}"
+    os.environ["PATH"] = (
+        f"{os.path.expanduser('~')}/.local/bin:{os.environ.get('PATH', '')}"
+    )
 
 
 def poetry_lock(directory=None, file=None):
     """
     Run 'poetry lock' in the specified directory or on the specified file's directory.
-    
+
     :param directory: Directory containing pyproject.toml.
     :param file: Path to a specific pyproject.toml file.
     """
@@ -60,10 +62,12 @@ def poetry_lock(directory=None, file=None):
     run_command("poetry lock", cwd=location)
 
 
-def poetry_install(directory=None, file=None, extras=None, with_dev=False, all_extras=False):
+def poetry_install(
+    directory=None, file=None, extras=None, with_dev=False, all_extras=False
+):
     """
     Run 'poetry install' in the specified directory or file.
-    
+
     :param directory: Directory containing pyproject.toml.
     :param file: Path to a specific pyproject.toml file.
     :param extras: Extras to include (e.g., "full").
@@ -85,9 +89,9 @@ def poetry_install(directory=None, file=None, extras=None, with_dev=False, all_e
 def extract_path_dependencies(pyproject_path):
     """
     Extract path dependencies from a pyproject.toml file.
-    
+
     Looks for dependency entries that are defined as tables with a "path" key.
-    
+
     :param pyproject_path: Path to the pyproject.toml file.
     :return: List of dependency paths found.
     """
@@ -100,14 +104,16 @@ def extract_path_dependencies(pyproject_path):
         sys.exit(1)
 
     dependencies = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-    path_deps = [v["path"] for v in dependencies.values() if isinstance(v, dict) and "path" in v]
+    path_deps = [
+        v["path"] for v in dependencies.values() if isinstance(v, dict) and "path" in v
+    ]
     return path_deps
 
 
 def recursive_build(directory=None, file=None):
     """
     Recursively build packages based on path dependencies extracted from a pyproject.toml.
-    
+
     :param directory: Directory containing pyproject.toml.
     :param file: Specific pyproject.toml file to use.
     """
@@ -137,7 +143,7 @@ def show_pip_freeze():
 def publish_package(directory=None, file=None, username=None, password=None):
     """
     Build and publish packages to PyPI.
-    
+
     :param directory: Directory containing one or more packages.
     :param file: Specific pyproject.toml file to use.
     :param username: PyPI username.
@@ -169,7 +175,7 @@ def publish_package(directory=None, file=None, username=None, password=None):
 def publish_from_dependencies(directory=None, file=None, username=None, password=None):
     """
     Build and publish packages based on path dependencies defined in a pyproject.toml.
-    
+
     :param directory: Directory containing the base pyproject.toml.
     :param file: Specific pyproject.toml file.
     :param username: PyPI username.
@@ -196,12 +202,13 @@ def publish_from_dependencies(directory=None, file=None, username=None, password
         else:
             print(f"Skipping {full_path}: not a valid package directory")
 
+
 def run_pytests(test_directory=".", num_workers=1):
     """
     Run pytest in the specified directory.
-    
+
     If num_workers is greater than 1, uses pytest‑xdist to run tests in parallel.
-    
+
     :param test_directory: Directory in which to run tests (default: current directory).
     :param num_workers: Number of workers to use (default: 1). Requires pytest-xdist when > 1.
     """

@@ -2,7 +2,8 @@ from typing import Any, Callable, Dict, Literal
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(FactoryBase, 'AgentFactory')
+
+@ComponentBase.register_type(FactoryBase, "AgentFactory")
 class AgentFactory(FactoryBase):
     """
     Class-specific factory for managing resources and types.

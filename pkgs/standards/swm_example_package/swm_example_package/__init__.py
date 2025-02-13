@@ -1,4 +1,5 @@
 from .ExampleAgent import ExampleAgent as ExampleAgent
+
 __version__ = "0.6.0.dev26"
 __long_desc__ = """
 

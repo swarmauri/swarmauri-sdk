@@ -1,8 +1,8 @@
 from typing import Any
 from abc import ABC, abstractmethod
 
-class IMeasurementAggregate(ABC):
 
+class IMeasurementAggregate(ABC):
     @abstractmethod
     def add_measurement(self, measurement: Any) -> None:
         pass

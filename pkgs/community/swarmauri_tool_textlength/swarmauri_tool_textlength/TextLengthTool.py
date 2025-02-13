@@ -24,9 +24,7 @@ class TextLengthTool(ToolBase):
         ]
     )
     name: str = "TextLengthTool"
-    description: str = (
-        "Calculates the length of the provided text in terms of characters, words, and sentences."
-    )
+    description: str = "Calculates the length of the provided text in terms of characters, words, and sentences."
     type: Literal["TextLengthTool"] = "TextLengthTool"
 
     def __call__(self, text: str) -> Dict[str, int]:

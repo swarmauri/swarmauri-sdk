@@ -58,14 +58,12 @@ def test_parse(html_content, element, expected_count, expected_content):
     documents = parser.parse(html_content)
 
     assert isinstance(documents, list), "The result should be a list."
-    assert (
-        len(documents) == expected_count
-    ), f"Expected {expected_count} documents, got {len(documents)}."
-    assert all(
-        isinstance(doc, Document) for doc in documents
-    ), "All items in the result should be Document instances."
-    assert [
-        doc.content for doc in documents
-    ] == expected_content, (
+    assert len(documents) == expected_count, (
+        f"Expected {expected_count} documents, got {len(documents)}."
+    )
+    assert all(isinstance(doc, Document) for doc in documents), (
+        "All items in the result should be Document instances."
+    )
+    assert [doc.content for doc in documents] == expected_content, (
         "The content of documents does not match the expected content."
     )

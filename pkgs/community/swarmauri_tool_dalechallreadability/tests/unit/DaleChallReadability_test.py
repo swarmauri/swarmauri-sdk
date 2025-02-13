@@ -44,19 +44,19 @@ def test_call():
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
 
     # Verify the result contains the 'dale_chall_score' key
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys}, but got {result.keys()}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys}, but got {result.keys()}"
+    )
 
     # Verify the 'dale_chall_score' value is a float
     dale_chall_score = result.get("dale_chall_score")
-    assert isinstance(
-        dale_chall_score, float
-    ), f"Expected float for 'dale_chall_score', but got {type(dale_chall_score).__name__}"
+    assert isinstance(dale_chall_score, float), (
+        f"Expected float for 'dale_chall_score', but got {type(dale_chall_score).__name__}"
+    )
 
     # Check if the score is approximately what is expected
     expected_output = 7.98
 
-    assert dale_chall_score == pytest.approx(
-        expected_output, rel=1e-2
-    ), f"Expected score {expected_output}, but got {dale_chall_score}"
+    assert dale_chall_score == pytest.approx(expected_output, rel=1e-2), (
+        f"Expected score {expected_output}, but got {dale_chall_score}"
+    )

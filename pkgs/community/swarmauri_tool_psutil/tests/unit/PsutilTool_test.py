@@ -59,8 +59,8 @@ def test_call(info_type, expected_keys, should_raise):
             tool(info_type=info_type)
     else:
         result = tool(info_type=info_type)
-        assert isinstance(
-            result, dict
-        ), f"Expected result for {info_type} to be a dictionary"
+        assert isinstance(result, dict), (
+            f"Expected result for {info_type} to be a dictionary"
+        )
         for key in expected_keys:
             assert key in result, f"Expected '{key}' in the result for {info_type}"

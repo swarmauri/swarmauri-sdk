@@ -3,8 +3,14 @@ from typing import Dict, Any, Optional
 
 from swarmauri_core.tracing.ITraceContext import ITraceContext
 
+
 class SimpleTraceContext(ITraceContext):
-    def __init__(self, trace_id: str, name: str, initial_attributes: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        trace_id: str,
+        name: str,
+        initial_attributes: Optional[Dict[str, Any]] = None,
+    ):
         self.trace_id = trace_id
         self.name = name
         self.attributes = initial_attributes if initial_attributes else {}

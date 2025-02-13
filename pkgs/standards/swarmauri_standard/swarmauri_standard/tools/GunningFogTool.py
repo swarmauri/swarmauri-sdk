@@ -4,7 +4,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'GunningFogTool')
+
+@ComponentBase.register_type(ToolBase, "GunningFogTool")
 class GunningFogTool(ToolBase):
     """
     A tool for calculating the Gunning-Fog readability score.
@@ -147,4 +148,3 @@ class GunningFogTool(ToolBase):
             and "input_text" in data
             and isinstance(data["input_text"], str)
         )
-

@@ -15,7 +15,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'CalculatorTool')
+
+@ComponentBase.register_type(ToolBase, "CalculatorTool")
 class CalculatorTool(ToolBase):
     """
     CalculatorTool is a tool that performs basic arithmetic operations such as addition,
@@ -28,6 +29,7 @@ class CalculatorTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["CalculatorTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [

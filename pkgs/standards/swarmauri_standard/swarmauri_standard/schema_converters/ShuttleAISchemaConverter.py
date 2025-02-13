@@ -1,11 +1,12 @@
-from typing import  Dict, Any, Literal
+from typing import Dict, Any, Literal
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(SchemaConverterBase, 'ShuttleAISchemaConverter')
+
+@ComponentBase.register_type(SchemaConverterBase, "ShuttleAISchemaConverter")
 class ShuttleAISchemaConverter(SchemaConverterBase):
-    type: Literal['ShuttleAISchemaConverter'] = 'ShuttleAISchemaConverter'
+    type: Literal["ShuttleAISchemaConverter"] = "ShuttleAISchemaConverter"
 
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
@@ -17,7 +18,7 @@ class ShuttleAISchemaConverter(SchemaConverterBase):
                 "description": param.description,
             }
             if param.enum:
-                properties[param.name]['enum'] = param.enum
+                properties[param.name]["enum"] = param.enum
 
             if param.required:
                 required.append(param.name)
@@ -31,6 +32,6 @@ class ShuttleAISchemaConverter(SchemaConverterBase):
                     "type": "object",
                     "properties": properties,
                     "required": required,
-                }
-            }
+                },
+            },
         }

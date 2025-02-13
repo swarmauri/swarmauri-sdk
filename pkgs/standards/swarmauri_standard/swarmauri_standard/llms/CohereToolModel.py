@@ -525,7 +525,7 @@ class CohereToolModel(LLMBase):
                                 usage_data = chunk["usage"]
                         except json.JSONDecodeError:
                             continue
-                            
+
         full_content = "".join(collected_content)
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration

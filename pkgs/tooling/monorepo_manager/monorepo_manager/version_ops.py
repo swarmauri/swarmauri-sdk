@@ -35,12 +35,14 @@ def read_pyproject_version(file_path):
     except Exception as e:
         print(f"Error reading {file_path}: {e}", file=sys.stderr)
         sys.exit(1)
-    
+
     doc = parse(content)
     try:
         version = doc["tool"]["poetry"]["version"]
     except KeyError:
-        raise KeyError("No version found under [tool.poetry] in the given pyproject.toml")
+        raise KeyError(
+            "No version found under [tool.poetry] in the given pyproject.toml"
+        )
     return version, doc
 
 
@@ -94,7 +96,9 @@ def bump_version(current_version, bump_type):
             patch += 1
             new_version = f"{major}.{minor}.{patch}.dev1"
     else:
-        raise ValueError("bump_type must be one of: 'major', 'minor', 'patch', or 'finalize'")
+        raise ValueError(
+            "bump_type must be one of: 'major', 'minor', 'patch', or 'finalize'"
+        )
 
     return new_version
 
@@ -119,8 +123,10 @@ def validate_and_set_version(current_version, new_version):
         raise ValueError(f"Invalid version provided: {e}")
 
     if tgt_ver < cur_ver:
-        raise ValueError("You cannot bump the version downwards. The target version must be higher than the current version.")
-    
+        raise ValueError(
+            "You cannot bump the version downwards. The target version must be higher than the current version."
+        )
+
     return new_version
 
 
@@ -131,7 +137,7 @@ def update_pyproject_version(file_path, new_version):
     Args:
         file_path (str): The path to the pyproject.toml file.
         new_version (str): The new version string.
-    
+
     Returns:
         None
     """
@@ -145,7 +151,9 @@ def update_pyproject_version(file_path, new_version):
     if "tool" in doc and "poetry" in doc["tool"]:
         doc["tool"]["poetry"]["version"] = new_version
     else:
-        print(f"Error: Invalid pyproject.toml structure in {file_path}.", file=sys.stderr)
+        print(
+            f"Error: Invalid pyproject.toml structure in {file_path}.", file=sys.stderr
+        )
         sys.exit(1)
 
     try:
@@ -161,12 +169,12 @@ def update_pyproject_version(file_path, new_version):
 def bump_or_set_version(pyproject_file, bump=None, set_ver=None):
     """
     Executes either a version bump or a direct version set on the given pyproject.toml file.
-    
+
     Args:
         pyproject_file (str): Path to the pyproject.toml file.
         bump (str, optional): The type of bump ("major", "minor", "patch", or "finalize").
         set_ver (str, optional): A specific version string to set.
-    
+
     Returns:
         None
     """
@@ -201,8 +209,16 @@ if __name__ == "__main__":
     parser.add_argument("file", help="Path to the pyproject.toml file")
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--bump", choices=["major", "minor", "patch", "finalize"], help="Type of version bump to perform")
-    group.add_argument("--set", dest="set_ver", help="Set the version explicitly (e.g. 1.2.3 or 1.2.3.dev1)")
-    
+    group.add_argument(
+        "--bump",
+        choices=["major", "minor", "patch", "finalize"],
+        help="Type of version bump to perform",
+    )
+    group.add_argument(
+        "--set",
+        dest="set_ver",
+        help="Set the version explicitly (e.g. 1.2.3 or 1.2.3.dev1)",
+    )
+
     args = parser.parse_args()
     bump_or_set_version(args.file, bump=args.bump, set_ver=args.set_ver)

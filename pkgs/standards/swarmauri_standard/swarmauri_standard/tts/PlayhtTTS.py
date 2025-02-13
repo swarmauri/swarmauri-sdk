@@ -288,9 +288,11 @@ class PlayhtTTS(TTSBase):
         :return: A dictionary containing the response from the Play.ht API.
         """
         # Constructing the payload with the sample file URL
-        payload = f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n\
+        payload = (
+            f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n\
             {sample_file_url}\r\n-----011000010111000001101001--; name="voice_name"\r\n\r\n\
             {voice_name}\r\n-----011000010111000001101001--'
+        )
 
         self._headers["content-type"] = (
             "multipart/form-data; boundary=---011000010111000001101001"

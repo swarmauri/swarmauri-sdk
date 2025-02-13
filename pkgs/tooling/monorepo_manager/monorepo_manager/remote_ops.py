@@ -9,7 +9,7 @@ Provides functions to:
       - Replace their version with an inline table containing the fetched version,
       - Mark dependencies as optional.
   - Write the updated pyproject.toml to a file (or overwrite the input file).
-  
+
 Intended for use in a unified monorepo management CLI.
 """
 
@@ -34,24 +34,26 @@ def fetch_remote_pyproject_version(git_url, branch="main", subdirectory=""):
     try:
         if "github.com" not in git_url:
             raise ValueError("Only GitHub repositories are supported by this function.")
-        
+
         # Remove trailing .git if present.
         repo_path = git_url.split("github.com/")[1]
         if repo_path.endswith(".git"):
             repo_path = repo_path[:-4]
-        
+
         # Build the raw URL; ensure subdirectory ends with "/" if provided.
         base_url = f"https://raw.githubusercontent.com/{repo_path}/{branch}/"
         if subdirectory and not subdirectory.endswith("/"):
             subdirectory += "/"
         pyproject_url = urljoin(base_url, f"{subdirectory}pyproject.toml")
-        
+
         response = requests.get(pyproject_url)
         response.raise_for_status()
         doc = parse(response.text)
         version = doc.get("tool", {}).get("poetry", {}).get("version")
         if version is None:
-            print(f"Version key not found in remote pyproject.toml from {pyproject_url}")
+            print(
+                f"Version key not found in remote pyproject.toml from {pyproject_url}"
+            )
         return version
     except Exception as e:
         print(f"Error fetching pyproject.toml from {git_url}: {e}")
@@ -61,16 +63,16 @@ def fetch_remote_pyproject_version(git_url, branch="main", subdirectory=""):
 def update_pyproject_with_versions(file_path):
     """
     Reads the local pyproject.toml file and updates Git-based dependencies.
-    
+
     For dependencies defined as a table with a 'git' key, it:
       - Fetches the version from the remote repository.
       - Creates an inline table for the dependency with the resolved version (prefixed with '^').
       - Marks the dependency as optional.
     Also ensures that dependencies referenced in extras are marked as optional.
-    
+
     Args:
         file_path (str): Path to the local pyproject.toml file.
-    
+
     Returns:
         tomlkit.document.Document: The updated TOML document.
         If an error occurs, prints the error and returns None.
@@ -103,7 +105,9 @@ def update_pyproject_with_versions(file_path):
             print(f"  Repository: {git_url}")
             print(f"  Branch: {branch}")
             print(f"  Subdirectory: {subdirectory}")
-            remote_version = fetch_remote_pyproject_version(git_url, branch=branch, subdirectory=subdirectory)
+            remote_version = fetch_remote_pyproject_version(
+                git_url, branch=branch, subdirectory=subdirectory
+            )
             if remote_version:
                 print(f"  Fetched version: {remote_version}")
                 # Create an inline table with the resolved version and mark as optional.
@@ -112,7 +116,9 @@ def update_pyproject_with_versions(file_path):
                 dep_inline["optional"] = True
                 dependencies[dep_name] = dep_inline
             else:
-                print(f"  Could not fetch remote version for '{dep_name}'. Marking as optional.")
+                print(
+                    f"  Could not fetch remote version for '{dep_name}'. Marking as optional."
+                )
                 # Mark as optional if version could not be fetched.
                 details["optional"] = True
                 dependencies[dep_name] = details
@@ -141,14 +147,14 @@ def update_pyproject_with_versions(file_path):
 
 def update_and_write_pyproject(input_file_path, output_file_path=None):
     """
-    Updates the specified pyproject.toml file with resolved versions for Git-based dependencies 
+    Updates the specified pyproject.toml file with resolved versions for Git-based dependencies
     and writes the updated document to a file.
-    
+
     Args:
         input_file_path (str): Path to the original pyproject.toml file.
         output_file_path (str, optional): Path to write the updated file.
                                         If not provided, the input file is overwritten.
-    
+
     Returns:
         bool: True if the update and write succeed, False otherwise.
     """
@@ -177,8 +183,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Update local pyproject.toml with versions fetched from Git dependencies."
     )
-    parser.add_argument("--input", required=True, help="Path to the local pyproject.toml to update")
-    parser.add_argument("--output", help="Optional output file path (if not specified, overwrites input)")
+    parser.add_argument(
+        "--input", required=True, help="Path to the local pyproject.toml to update"
+    )
+    parser.add_argument(
+        "--output",
+        help="Optional output file path (if not specified, overwrites input)",
+    )
     args = parser.parse_args()
 
     success = update_and_write_pyproject(args.input, args.output)

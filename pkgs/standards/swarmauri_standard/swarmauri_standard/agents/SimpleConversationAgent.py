@@ -20,7 +20,6 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
         input_data: Optional[Union[str, List[contentItem]]] = "",
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
-
         if input_data:
             human_message = HumanMessage(content=input_data)
             self.conversation.add_message(human_message)

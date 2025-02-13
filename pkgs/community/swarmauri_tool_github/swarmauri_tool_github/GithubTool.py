@@ -399,9 +399,7 @@ class GithubTool(ToolBase):
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            repo.create_milestone(
-                title=title, description=description, state=state
-            )
+            repo.create_milestone(title=title, description=description, state=state)
             return f"Milestone '{title}' created successfully."
         except GithubException as e:
             return f"Error creating milestone: {e}"
@@ -449,9 +447,7 @@ class GithubTool(ToolBase):
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            repo.create_label(
-                name=label_name, color=color, description=description
-            )
+            repo.create_label(name=label_name, color=color, description=description)
             return f"Label '{label_name}' created successfully."
         except GithubException as e:
             return f"Error creating label: {e}"

@@ -11,5 +11,3 @@ Follow us at: https://github.com/swarmauri
 Star us at: https://github.com/swarmauri/swarmauri-sdk
 
 """
-
-

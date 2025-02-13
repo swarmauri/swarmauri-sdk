@@ -52,7 +52,10 @@ def test_ubc_type(openai_tts_model):
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_tts_model):
-    assert openai_tts_model.id == OpenaiTTS.model_validate_json(openai_tts_model.model_dump_json()).id
+    assert (
+        openai_tts_model.id
+        == OpenaiTTS.model_validate_json(openai_tts_model.model_dump_json()).id
+    )
 
 
 @timeout(5)
