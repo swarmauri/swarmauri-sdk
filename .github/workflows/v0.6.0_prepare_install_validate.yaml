@@ -65,6 +65,12 @@ jobs:
           cd pkgs
           soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --lint-fix
 
+      # 5.5. Push changes to branch
+      - name: Push changes to branch
+        run: |
+          cd ${{ github.workspace }}
+          git push origin HEAD:${{ github.ref }}
+
       # 6. Run the validate phase
       - name: Run validate phase
         run: |
