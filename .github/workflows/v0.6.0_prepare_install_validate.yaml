@@ -82,8 +82,8 @@ jobs:
         run: |
           # Create a pull request from the new branch to the master branch
           PR_TITLE="patch: prepared by soliloquy"
-          PR_BODY="This pull request "
-          BASE_BRANCH="${{ github.event.repository.default_branch }}"
+          PR_BODY="This pull request bumps versions, autolints, and autoformats."
+          BASE_BRANCH="mono/0.6.0.dev1"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
