@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class IFit(ABC):
     """
     Interface for training models.

@@ -8,7 +8,7 @@ The JSON file is expected to have:
   - A "summary" section with keys: "total", "passed", "failed", "skipped".
   - A "tests" list, where each test contains an "outcome" (e.g., "passed", "failed", "skipped")
     and a "keywords" list for tags.
-    
+
 The module:
   - Reads the JSON file.
   - Prints a summary table with counts and percentages.
@@ -25,7 +25,9 @@ import argparse
 
 def parse_arguments(args):
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Analyze test results from a JSON file.")
+    parser = argparse.ArgumentParser(
+        description="Analyze test results from a JSON file."
+    )
     parser.add_argument("file", help="Path to the JSON file containing test results")
     parser.add_argument(
         "--required-passed",
@@ -128,11 +130,17 @@ def analyze_test_file(file_path, required_passed=None, required_skipped=None):
     for category in ["passed", "skipped", "failed"]:
         count = summary.get(category, 0)
         percentage = (count / total_tests) * 100 if total_tests > 0 else 0
-        print(f"{category.capitalize():<15}{count:<10}{total_tests:<10}{percentage:<10.2f}")
+        print(
+            f"{category.capitalize():<15}{count:<10}{total_tests:<10}{percentage:<10.2f}"
+        )
 
     # Calculate percentages for threshold evaluation.
-    passed_pct = (summary.get("passed", 0) / total_tests) * 100 if total_tests > 0 else 0
-    skipped_pct = (summary.get("skipped", 0) / total_tests) * 100 if total_tests > 0 else 0
+    passed_pct = (
+        (summary.get("passed", 0) / total_tests) * 100 if total_tests > 0 else 0
+    )
+    skipped_pct = (
+        (summary.get("skipped", 0) / total_tests) * 100 if total_tests > 0 else 0
+    )
 
     threshold_error = False
     if required_passed and not evaluate_threshold(passed_pct, required_passed):
@@ -153,7 +161,12 @@ def analyze_test_file(file_path, required_passed=None, required_skipped=None):
         outcome = test.get("outcome", "").lower()
         for tag in test.get("keywords", []):
             # Exclude unwanted tags.
-            if tag == "tests" or tag.startswith("test_") or tag.endswith("_test.py") or tag.strip() == "":
+            if (
+                tag == "tests"
+                or tag.startswith("test_")
+                or tag.endswith("_test.py")
+                or tag.strip() == ""
+            ):
                 continue
             if tag not in tag_outcomes:
                 tag_outcomes[tag] = {"passed": 0, "skipped": 0, "failed": 0, "total": 0}
@@ -173,7 +186,11 @@ def analyze_test_file(file_path, required_passed=None, required_skipped=None):
     sorted_tags = sorted(
         tag_outcomes.items(),
         key=lambda item: (
-            -(item[1]["passed"] / item[1]["total"] * 100 if item[1]["total"] > 0 else 0),
+            -(
+                item[1]["passed"] / item[1]["total"] * 100
+                if item[1]["total"] > 0
+                else 0
+            ),
             item[0],
         ),
     )

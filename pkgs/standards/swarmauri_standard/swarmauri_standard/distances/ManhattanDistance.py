@@ -3,15 +3,18 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'ManhattanDistance')
+
+@ComponentBase.register_type(DistanceBase, "ManhattanDistance")
 class ManhattanDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Manhattan distance.
-    
+
     The Manhattan distance between two points is the sum of the absolute differences of their Cartesian coordinates.
     This is also known as L1 distance.
     """
-    type: Literal['ManhattanDistance'] = 'ManhattanDistance'   
+
+    type: Literal["ManhattanDistance"] = "ManhattanDistance"
+
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Manhattan distance between two vectors.
@@ -25,7 +28,7 @@ class ManhattanDistance(DistanceBase):
         """
         if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must have the same dimensionality.")
-        
+
         return sum(abs(a - b) for a, b in zip(vector_a.value, vector_b.value))
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
@@ -41,11 +44,15 @@ class ManhattanDistance(DistanceBase):
         Returns:
             NotImplementedError: This is intended as this distance metric doesn't directly offer a similarity metric.
         """
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity metric.")
-        
+        raise NotImplementedError(
+            "ManhattanDistance does not directly provide a similarity metric."
+        )
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        raise NotImplementedError("ManhattanDistance does not directly provide a similarity metric.")
+        raise NotImplementedError(
+            "ManhattanDistance does not directly provide a similarity metric."
+        )

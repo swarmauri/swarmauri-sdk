@@ -68,15 +68,15 @@ def test_call(csv_content, x_column, y_column, expected_error):
             tool(csv_file_path, x_column, y_column, output_file_path)
     else:
         result = tool(csv_file_path, x_column, y_column, output_file_path)
-        assert isinstance(
-            result, dict
-        ), f"Expected dict, but got {type(result).__name__}"
-        assert expected_keys.issubset(
-            result.keys()
-        ), f"Expected keys {expected_keys} but got {result.keys()}"
-        assert isinstance(
-            result.get("data"), list
-        ), f"Expected list, but got {type(result).__name__}"
+        assert isinstance(result, dict), (
+            f"Expected dict, but got {type(result).__name__}"
+        )
+        assert expected_keys.issubset(result.keys()), (
+            f"Expected keys {expected_keys} but got {result.keys()}"
+        )
+        assert isinstance(result.get("data"), list), (
+            f"Expected list, but got {type(result).__name__}"
+        )
         assert os.path.exists(output_file_path)
 
     os.remove(csv_file_path)

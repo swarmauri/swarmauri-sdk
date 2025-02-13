@@ -19,7 +19,6 @@ class NmfEmbedding(EmbeddingBase):
     type: Literal["NmfEmbedding"] = "NmfEmbedding"
 
     def __init__(self, **kwargs):
-
         super().__init__(**kwargs)
         # Initialize TF-IDF Vectorizer
         self._tfidf_vectorizer = TfidfVectorizer()

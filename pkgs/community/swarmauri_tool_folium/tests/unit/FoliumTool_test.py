@@ -62,14 +62,14 @@ def test_call(map_center, markers):
             expected_keys = {"image_b64"}
 
             # Verify that the result is a dictionary
-            assert isinstance(
-                result, dict
-            ), f"Expected dict, but got {type(result).__name__}"
+            assert isinstance(result, dict), (
+                f"Expected dict, but got {type(result).__name__}"
+            )
 
             # Check if the result contains the 'image_b64' key
-            assert expected_keys.issubset(
-                result.keys()
-            ), f"Expected keys {expected_keys}, but got {result.keys()}"
+            assert expected_keys.issubset(result.keys()), (
+                f"Expected keys {expected_keys}, but got {result.keys()}"
+            )
 
             # Verify that the value associated with 'image_b64' is a valid base64 string
             try:

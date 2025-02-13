@@ -4,6 +4,7 @@ from io import BytesIO
 from unittest.mock import patch
 from swarmauri_standard.utils.img_url_to_in_memory_img import img_url_to_in_memory_img
 
+
 def test_img_url_to_in_memory_img():
     # Create a sample image in memory (RGB, 10x10, red)
     img = Image.new("RGB", (10, 10), color="red")
@@ -23,7 +24,9 @@ def test_img_url_to_in_memory_img():
         result_image = img_url_to_in_memory_img("http://example.com/fake-image-url")
 
         # Assert the result is a valid PIL Image object
-        assert isinstance(result_image, Image.Image), "The result is not a PIL Image object."
+        assert isinstance(result_image, Image.Image), (
+            "The result is not a PIL Image object."
+        )
 
         # Assert the dimensions of the image are correct
         assert result_image.size == (10, 10), "The image has incorrect dimensions."

@@ -10,7 +10,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 nltk.download("punkt", quiet=True)
 
 
-@ComponentBase.register_type(ToolBase, 'SentenceComplexityTool')
+@ComponentBase.register_type(ToolBase, "SentenceComplexityTool")
 class SentenceComplexityTool(ToolBase):
     version: str = "0.1.dev2"
     parameters: List[Parameter] = Field(
@@ -78,4 +78,3 @@ class SentenceComplexityTool(ToolBase):
             "average_sentence_length": avg_sentence_length,
             "average_clauses_per_sentence": avg_clauses_per_sentence,
         }
-

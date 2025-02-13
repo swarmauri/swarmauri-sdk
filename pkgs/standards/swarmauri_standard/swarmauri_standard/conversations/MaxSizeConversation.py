@@ -5,10 +5,11 @@ from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ConversationBase, 'MaxSizeConversation')
+
+@ComponentBase.register_type(ConversationBase, "MaxSizeConversation")
 class MaxSizeConversation(IMaxSize, ConversationBase):
     max_size: int = Field(default=2, gt=1)
-    type: Literal['MaxSizeConversation'] = 'MaxSizeConversation'
+    type: Literal["MaxSizeConversation"] = "MaxSizeConversation"
 
     def add_message(self, message: IMessage):
         """Adds a message and ensures the conversation does not exceed the max size."""
@@ -22,6 +23,5 @@ class MaxSizeConversation(IMaxSize, ConversationBase):
         We pop two messages (one for the user's prompt, one for the assistant's response)
         """
         while len(self._history) > self.max_size:
-            
             self._history.pop(0)
             self._history.pop(0)

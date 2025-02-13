@@ -1,6 +1,7 @@
 import hashlib
 import inspect
 
+
 def get_class_hash(cls):
     """
     Generates a unique hash value for a given class.
@@ -26,10 +27,10 @@ def get_class_hash(cls):
 
     # Update the hash with each member's name and signature
     for name, member in members:
-        hash_obj.update(name.encode('utf-8'))
+        hash_obj.update(name.encode("utf-8"))
         if inspect.isfunction(member):
             sig = inspect.signature(member)
-            hash_obj.update(str(sig).encode('utf-8'))
+            hash_obj.update(str(sig).encode("utf-8"))
 
     # Return the hexadecimal digest of the hash
     return hash_obj.hexdigest()

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+
 class IVectorMeta(ABC):
     """
     Interface for a high-dimensional data vector. This interface defines the
@@ -25,4 +26,3 @@ class IVectorMeta(ABC):
         useful for retrieval, categorization, or description of the vector data.
         """
         pass
-

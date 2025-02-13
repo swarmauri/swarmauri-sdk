@@ -52,7 +52,10 @@ def test_ubc_type(playht_tts_model):
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(playht_tts_model):
-    assert playht_tts_model.id == PlayhtTTS.model_validate_json(playht_tts_model.model_dump_json()).id
+    assert (
+        playht_tts_model.id
+        == PlayhtTTS.model_validate_json(playht_tts_model.model_dump_json()).id
+    )
 
 
 @timeout(5)

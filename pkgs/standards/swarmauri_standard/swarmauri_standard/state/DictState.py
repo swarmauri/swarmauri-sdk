@@ -4,7 +4,8 @@ from pydantic import Field, model_validator
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(StateBase, 'DictState')
+
+@ComponentBase.register_type(StateBase, "DictState")
 class DictState(StateBase):
     """
     A concrete implementation of StateBase that manages state as a dictionary.

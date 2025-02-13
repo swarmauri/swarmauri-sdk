@@ -58,8 +58,14 @@ def validate_plugin(plugin_name):
             if entry_point.name == plugin_name:
                 plugin_class = entry_point.load()
                 plugin_manager = determine_plugin_manager(entry_point)
-                resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
-                plugin_manager.validate(entry_point.name, plugin_class, resource_kind, None)
+                resource_kind = (
+                    entry_point.group[len("swarmauri.") :]
+                    if "." in entry_point.group
+                    else None
+                )
+                plugin_manager.validate(
+                    entry_point.name, plugin_class, resource_kind, None
+                )
                 logger.info(f"Plugin '{plugin_name}' validated successfully.")
                 return
         logger.warning(f"Plugin '{plugin_name}' not found among entry points.")
@@ -78,7 +84,11 @@ def register_plugin(plugin_name):
             if entry_point.name == plugin_name:
                 plugin_class = entry_point.load()
                 plugin_manager = determine_plugin_manager(entry_point)
-                resource_kind = entry_point.group[len("swarmauri."):] if "." in entry_point.group else None
+                resource_kind = (
+                    entry_point.group[len("swarmauri.") :]
+                    if "." in entry_point.group
+                    else None
+                )
                 plugin_manager.register(entry_point.name, plugin_class, resource_kind)
                 logger.info(f"Plugin '{plugin_name}' registered successfully.")
                 return
@@ -106,29 +116,49 @@ def main():
     """
     Entry point for the Swarmauri CLI.
     """
-    parser = argparse.ArgumentParser(description="Swarmauri CLI: Manage plugins and namespace components.")
+    parser = argparse.ArgumentParser(
+        description="Swarmauri CLI: Manage plugins and namespace components."
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Subcommands for the CLI")
 
     # Subcommand: Install Plugin
     install_parser = subparsers.add_parser("install", help="Install a new plugin.")
-    install_parser.add_argument("plugin_name", type=str, help="Name of the plugin to install.")
-    install_parser.add_argument("--use-pip", action="store_true", help="Install using pip.")
-    install_parser.add_argument("--use-poetry", action="store_true", help="Install using poetry.")
+    install_parser.add_argument(
+        "plugin_name", type=str, help="Name of the plugin to install."
+    )
+    install_parser.add_argument(
+        "--use-pip", action="store_true", help="Install using pip."
+    )
+    install_parser.add_argument(
+        "--use-poetry", action="store_true", help="Install using poetry."
+    )
 
     # Subcommand: Remove Plugin
     remove_parser = subparsers.add_parser("remove", help="Remove a plugin.")
-    remove_parser.add_argument("plugin_name", type=str, help="Name of the plugin to remove.")
-    remove_parser.add_argument("--use-pip", action="store_true", help="Remove using pip.")
-    remove_parser.add_argument("--use-poetry", action="store_true", help="Remove using poetry.")
+    remove_parser.add_argument(
+        "plugin_name", type=str, help="Name of the plugin to remove."
+    )
+    remove_parser.add_argument(
+        "--use-pip", action="store_true", help="Remove using pip."
+    )
+    remove_parser.add_argument(
+        "--use-poetry", action="store_true", help="Remove using poetry."
+    )
 
     # Subcommand: Validate Plugin
-    validate_parser = subparsers.add_parser("validate", help="Validate a plugin without registering it.")
-    validate_parser.add_argument("plugin_name", type=str, help="Name of the plugin to validate.")
+    validate_parser = subparsers.add_parser(
+        "validate", help="Validate a plugin without registering it."
+    )
+    validate_parser.add_argument(
+        "plugin_name", type=str, help="Name of the plugin to validate."
+    )
 
     # Subcommand: Register Plugin
     register_parser = subparsers.add_parser("register", help="Register a plugin.")
-    register_parser.add_argument("plugin_name", type=str, help="Name of the plugin to register.")
+    register_parser.add_argument(
+        "plugin_name", type=str, help="Name of the plugin to register."
+    )
 
     # Subcommand: List Plugins
     subparsers.add_parser("list", help="List all registered plugins.")
@@ -137,9 +167,13 @@ def main():
     args = parser.parse_args()
 
     if args.command == "install":
-        install_plugin(args.plugin_name, use_pip=args.use_pip, use_poetry=args.use_poetry)
+        install_plugin(
+            args.plugin_name, use_pip=args.use_pip, use_poetry=args.use_poetry
+        )
     elif args.command == "remove":
-        remove_plugin(args.plugin_name, use_pip=args.use_pip, use_poetry=args.use_poetry)
+        remove_plugin(
+            args.plugin_name, use_pip=args.use_pip, use_poetry=args.use_poetry
+        )
     elif args.command == "validate":
         validate_plugin(args.plugin_name)
     elif args.command == "register":

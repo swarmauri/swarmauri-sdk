@@ -22,6 +22,7 @@ Reference
 
 """
 
+
 @ComponentBase.register_type(ToolBase, "ZapierHookTool")
 class ZapierHookTool(ToolBase):
     version: str = "1.0.0"

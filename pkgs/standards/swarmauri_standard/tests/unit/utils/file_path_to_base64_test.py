@@ -18,6 +18,6 @@ def test_file_path_to_base64():
         expected = base64.b64encode(img_file.read()).decode("utf-8")
 
     # Assert the result is the expected base64 string
-    assert (
-        result == expected
-    ), "Base64 conversion of the image does not match the expected output."
+    assert result == expected, (
+        "Base64 conversion of the image does not match the expected output."
+    )

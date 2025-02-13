@@ -50,7 +50,10 @@ def test_ubc_type(openai_stt_model):
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_stt_model):
-    assert openai_stt_model.id == OpenaiSTT.model_validate_json(openai_stt_model.model_dump_json()).id
+    assert (
+        openai_stt_model.id
+        == OpenaiSTT.model_validate_json(openai_stt_model.model_dump_json()).id
+    )
 
 
 @timeout(5)

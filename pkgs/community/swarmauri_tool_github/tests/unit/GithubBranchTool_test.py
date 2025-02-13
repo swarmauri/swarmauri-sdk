@@ -91,15 +91,15 @@ def test_call(mock_github, github_branch_tool, action, kwargs, method_called):
             mock_method.assert_called_once_with(**kwargs)
 
             # Check the result
-            assert isinstance(
-                result, dict
-            ), f"Expected dict, but got {type(result).__name__}"
-            assert expected_keys.issubset(
-                result.keys()
-            ), f"Expected keys {expected_keys} but got {result.keys()}"
-            assert isinstance(
-                result.get(action), str
-            ), f"Expected str, but got {type(result.get(action)).__name__}"
+            assert isinstance(result, dict), (
+                f"Expected dict, but got {type(result).__name__}"
+            )
+            assert expected_keys.issubset(result.keys()), (
+                f"Expected keys {expected_keys} but got {result.keys()}"
+            )
+            assert isinstance(result.get(action), str), (
+                f"Expected str, but got {type(result.get(action)).__name__}"
+            )
             assert result == {f"{action}": "performed a test action successfully"}
     else:
         # If an invalid action is provided, it should raise a ValueError

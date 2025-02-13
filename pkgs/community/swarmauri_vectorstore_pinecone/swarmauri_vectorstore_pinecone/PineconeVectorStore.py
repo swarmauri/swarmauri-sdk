@@ -62,7 +62,12 @@ class PineconeVectorStore(
                 f"Failed to delete index {self.collection_name}: {str(e)}"
             )
 
-    def connect(self, metric: Optional[str] = "cosine", cloud: Optional[str] = "aws", region: Optional[str] = "us-east-1"):
+    def connect(
+        self,
+        metric: Optional[str] = "cosine",
+        cloud: Optional[str] = "aws",
+        region: Optional[str] = "us-east-1",
+    ):
         """
         Connect to the Pinecone index, creating it if it doesn't exist.
 

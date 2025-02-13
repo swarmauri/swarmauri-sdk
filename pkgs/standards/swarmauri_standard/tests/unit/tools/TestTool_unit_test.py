@@ -36,13 +36,13 @@ def test_call():
     result = tool("calc")
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("program"), str
-    ), f"Expected str, but got {type(result.get('program')).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("program"), str), (
+        f"Expected str, but got {type(result.get('program')).__name__}"
+    )
 
-    assert (
-        result.get("program") == success_message
-    ), f"Expected Calculated result {success_message}, but got {result.get('program')}"
+    assert result.get("program") == success_message, (
+        f"Expected Calculated result {success_message}, but got {result.get('program')}"
+    )

@@ -28,6 +28,6 @@ def test_img_url_to_base64():
         result = img_url_to_base64("http://example.com/fake-image-url")
 
         # Assert that the base64 result matches the manually encoded base64
-        assert (
-            result == expected_base64
-        ), "The base64 conversion did not match the expected result."
+        assert result == expected_base64, (
+            "The base64 conversion did not match the expected result."
+        )
