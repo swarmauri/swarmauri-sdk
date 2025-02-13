@@ -23,7 +23,6 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 redis = "^4.0"
-redisearch = "^2.1.1"
 
 
 [tool.poetry.group.dev.dependencies]
