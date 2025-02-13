@@ -1,23 +1,25 @@
+from typing import Any, List, Literal
+
 import joblib
+from pydantic import PrivateAttr
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from typing import List, Any, Literal
-from pydantic import PrivateAttr
-from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(EmbeddingBase, 'NmfEmbedding')
+from swarmauri_standard.vectors.Vector import Vector
+
+
+@ComponentBase.register_type(EmbeddingBase, "NmfEmbedding")
 class NmfEmbedding(EmbeddingBase):
     n_components: int = 10
     _tfidf_vectorizer = PrivateAttr()
     _model = PrivateAttr()
     feature_names: List[Any] = []
-    
-    type: Literal['NmfEmbedding'] = 'NmfEmbedding'
-    def __init__(self,**kwargs):
 
+    type: Literal["NmfEmbedding"] = "NmfEmbedding"
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialize TF-IDF Vectorizer
         self._tfidf_vectorizer = TfidfVectorizer()
@@ -59,7 +61,7 @@ class NmfEmbedding(EmbeddingBase):
     def fit_transform(self, data):
         """
         Fit the model to data and then transform it.
-        
+
         Args:
             data (Union[str, Any]): The text data to fit and transform.
 
@@ -72,7 +74,7 @@ class NmfEmbedding(EmbeddingBase):
     def infer_vector(self, data):
         """
         Convenience method for transforming a single data point.
-        
+
         Args:
             data (Union[str, Any]): Single text data to transform.
 
@@ -80,11 +82,11 @@ class NmfEmbedding(EmbeddingBase):
             IVector: A vector representing the transformed single data point.
         """
         return self.transform([data])[0]
-    
+
     def extract_features(self):
         """
         Extract the feature names from the TF-IDF vectorizer.
-        
+
         Returns:
             The feature names.
         """
