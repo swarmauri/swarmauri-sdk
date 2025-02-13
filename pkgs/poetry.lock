@@ -41,27 +41,27 @@ files = [
 
 [[package]]
 name = "anyio"
-version = "4.4.0"
+version = "4.8.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
 files = [
-    {file = "anyio-4.4.0-py3-none-any.whl", hash = "sha256:c1b2d8f46a8a812513012e1107cb0e68c17159a7a594208005a57dc776e1bdc7"},
-    {file = "anyio-4.4.0.tar.gz", hash = "sha256:5aadc6a1bbb7cdb0bede386cac5e2940f5e2ff3aa20277e991cf028e0585ce94"},
+    {file = "anyio-4.8.0-py3-none-any.whl", hash = "sha256:b5011f270ab5eb0abf13385f851315585cc37ef330dd88e27ec3d34d651fd47a"},
+    {file = "anyio-4.8.0.tar.gz", hash = "sha256:1d9fe889df5212298c0c0723fa20479d1b94883a2df44bd3897aa91083316f7a"},
 ]
 
 [package.dependencies]
 exceptiongroup = {version = ">=1.0.2", markers = "python_version < \"3.11\""}
 idna = ">=2.8"
 sniffio = ">=1.1"
-typing-extensions = {version = ">=4.1", markers = "python_version < \"3.11\""}
+typing_extensions = {version = ">=4.5", markers = "python_version < \"3.13\""}
 
 [package.extras]
-doc = ["Sphinx (>=7)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme"]
-test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypothesis (>=4.0)", "psutil (>=5.9)", "pytest (>=7.0)", "pytest-mock (>=3.6.1)", "trustme", "uvloop (>=0.17)"]
-trio = ["trio (>=0.23)"]
+doc = ["Sphinx (>=7.4,<8.0)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx_rtd_theme"]
+test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypothesis (>=4.0)", "psutil (>=5.9)", "pytest (>=7.0)", "trustme", "truststore (>=0.9.1)", "uvloop (>=0.21)"]
+trio = ["trio (>=0.26.1)"]
 
 [[package]]
 name = "asgiref"
@@ -675,19 +675,6 @@ gs = ["google-cloud-storage"]
 s3 = ["boto3 (>=1.34.0)"]
 
 [[package]]
-name = "cloudpickle"
-version = "3.0.0"
-description = "Pickler class to extend the standard pickle.Pickler functionality"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
-    {file = "cloudpickle-3.0.0.tar.gz", hash = "sha256:996d9a482c6fb4f33c1a35335cf8afd065d2a56e973270364840712d9131a882"},
-]
-
-[[package]]
 name = "cmudict"
 version = "1.0.32"
 description = "A versioned python wrapper package for The CMU Pronouncing Dictionary data files."
@@ -752,19 +739,6 @@ files = [
 [package.dependencies]
 pydantic = ">=1.7.4,<1.8 || >1.8,<1.8.1 || >1.8.1,<3.0.0"
 srsly = ">=2.4.0,<3.0.0"
-
-[[package]]
-name = "contextlib2"
-version = "21.6.0"
-description = "Backports and enhancements for the contextlib module"
-optional = false
-python-versions = ">=3.6"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "contextlib2-21.6.0-py2.py3-none-any.whl", hash = "sha256:3fbdb64466afd23abaf6c977627b75b6139a5a3e8ce38405c5b413aed7a0471f"},
-    {file = "contextlib2-21.6.0.tar.gz", hash = "sha256:ab1e2bfe1d01d968e1b7e8d9023bc51ef3509bba217bb730cee3827e1ee82869"},
-]
 
 [[package]]
 name = "contourpy"
@@ -1087,11 +1061,11 @@ description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
 groups = ["main", "dev"]
+markers = "python_version < \"3.11\""
 files = [
     {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
     {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
 ]
-markers = {main = "python_version <= \"3.11\" or python_version >= \"3.12\"", dev = "python_version < \"3.11\""}
 
 [package.extras]
 test = ["pytest (>=6)"]
@@ -2403,77 +2377,6 @@ marisa-trie = ">=1.1.0"
 [package.extras]
 build = ["build", "twine"]
 test = ["pytest", "pytest-cov"]
-
-[[package]]
-name = "ledoc-ui"
-version = "0.1.0"
-description = "A bundle of static files for ledoc as a python package."
-optional = false
-python-versions = "*"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "ledoc-ui-0.1.0.tar.gz", hash = "sha256:4f202c898e6c6219e06c1d77b83e03522872bb38b560c5d9b2bc9b41d73ca5ed"},
-    {file = "ledoc_ui-0.1.0-py3-none-any.whl", hash = "sha256:6ccf50c0d777cdabc7f1adfce716c488eeb1018da0e559b72e31666217ffe935"},
-]
-
-[[package]]
-name = "leptonai"
-version = "0.22.1"
-description = "Lepton AI Platform"
-optional = false
-python-versions = "<3.13,>=3.8"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "leptonai-0.22.1-py3-none-any.whl", hash = "sha256:deb4a0842fd8ee8d9254a3ea56811b941c8440415fad5887f5820838e4be253b"},
-]
-
-[package.dependencies]
-anyio = "4.4.0"
-click = "*"
-cloudpickle = "3.0.0"
-contextlib2 = "*"
-exceptiongroup = "*"
-fastapi = "*"
-httpx = {version = "*", extras = ["http2"]}
-huggingface-hub = "*"
-ledoc-ui = "*"
-loguru = "*"
-pillow = "*"
-prometheus-fastapi-instrumentator = "*"
-pydantic = "!=2.1.0"
-python-multipart = "*"
-pyyaml = "*"
-requests = "*"
-rich = "*"
-typing-extensions = "*"
-uvicorn = ">=0.22.0"
-
-[package.extras]
-lint = ["black (==23.12.0)", "ruff (==0.5.7)"]
-runtime = ["accelerate", "diffusers[torch] (>=0.27.0)", "huggingface-hub", "sentence-transformers (>=2.3.0)", "torch", "transformers"]
-test = ["pytest", "pytest-cov", "responses", "respx"]
-
-[[package]]
-name = "loguru"
-version = "0.7.3"
-description = "Python logging made (stupidly) simple"
-optional = false
-python-versions = "<4.0,>=3.5"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c"},
-    {file = "loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6"},
-]
-
-[package.dependencies]
-colorama = {version = ">=0.3.4", markers = "sys_platform == \"win32\""}
-win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
-
-[package.extras]
-dev = ["Sphinx (==8.1.3)", "build (==1.2.2)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptiongroup (==1.1.3)", "freezegun (==1.1.0)", "freezegun (==1.5.0)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v1.13.0)", "mypy (==v1.4.1)", "myst-parser (==4.0.0)", "pre-commit (==4.0.1)", "pytest (==6.1.2)", "pytest (==8.3.2)", "pytest-cov (==2.12.1)", "pytest-cov (==5.0.0)", "pytest-cov (==6.0.0)", "pytest-mypy-plugins (==1.9.3)", "pytest-mypy-plugins (==3.1.0)", "sphinx-rtd-theme (==3.0.2)", "tox (==3.27.1)", "tox (==4.23.2)", "twine (==6.0.1)"]
 
 [[package]]
 name = "lz4"
@@ -4057,39 +3960,6 @@ cymem = ">=2.0.2,<2.1.0"
 murmurhash = ">=0.28.0,<1.1.0"
 
 [[package]]
-name = "prometheus-client"
-version = "0.21.1"
-description = "Python client for the Prometheus monitoring system."
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "prometheus_client-0.21.1-py3-none-any.whl", hash = "sha256:594b45c410d6f4f8888940fe80b5cc2521b305a1fafe1c58609ef715a001f301"},
-    {file = "prometheus_client-0.21.1.tar.gz", hash = "sha256:252505a722ac04b0456be05c05f75f45d760c2911ffc45f2a06bcaed9f3ae3fb"},
-]
-
-[package.extras]
-twisted = ["twisted"]
-
-[[package]]
-name = "prometheus-fastapi-instrumentator"
-version = "7.0.2"
-description = "Instrument your FastAPI app with Prometheus metrics"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "prometheus_fastapi_instrumentator-7.0.2-py3-none-any.whl", hash = "sha256:975e39992acb7a112758ff13ba95317e6c54d1bbf605f9156f31ac9f2800c32d"},
-    {file = "prometheus_fastapi_instrumentator-7.0.2.tar.gz", hash = "sha256:8a4d8fb13dbe19d2882ac6af9ce236e4e1f98dc48e3fa44fe88d8e23ac3c953f"},
-]
-
-[package.dependencies]
-prometheus-client = ">=0.8.0,<1.0.0"
-starlette = ">=0.30.0,<1.0.0"
-
-[[package]]
 name = "prompt-toolkit"
 version = "3.0.50"
 description = "Library for building powerful interactive command lines in Python"
@@ -4811,19 +4681,6 @@ files = [
 
 [package.extras]
 cli = ["click (>=5.0)"]
-
-[[package]]
-name = "python-multipart"
-version = "0.0.20"
-description = "A streaming multipart parser for Python"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
-files = [
-    {file = "python_multipart-0.0.20-py3-none-any.whl", hash = "sha256:8a62d3a8335e06589fe01f2a3e178cdcc632f3fbe0d492ad9ee0ec35aab1f104"},
-    {file = "python_multipart-0.0.20.tar.gz", hash = "sha256:8dd0cab45b8e23064ae09147625994d090fa46f5b0d1e13af944c331a7fa9d13"},
-]
 
 [[package]]
 name = "pytz"
@@ -5776,7 +5633,7 @@ full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart 
 
 [[package]]
 name = "swarmauri"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5810,12 +5667,12 @@ vectorstore-tfidf = ["swarmauri_vectorstore_tfidf @ git+https://github.com/swarm
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/swarmauri"
 
 [[package]]
 name = "swarmauri-base"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "This repository includes base classes and mixins for the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5832,12 +5689,12 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/base"
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.0.dev160"
+version = "0.6.0.dev161"
 description = "This repository includes core interfaces for the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5854,12 +5711,12 @@ pyyaml = "^6.0.2"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/core"
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Minkowski Distance for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5878,12 +5735,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_distance_minkowski"
 
 [[package]]
 name = "swarmauri-documentstore-redis"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Psutil Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5902,12 +5759,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_documentstore_redis"
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "A Doc2Vec based Embedding Model."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5926,12 +5783,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "example community package"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5949,12 +5806,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_embedding_mlm"
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "NMF Embedding for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5973,12 +5830,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_embedding_nmf"
 
 [[package]]
 name = "swarmauri-embedding-tfidf"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Tfidf Embedding for Swarmauri"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -5997,12 +5854,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_embedding_tfidf"
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Lepton AI Model"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6012,7 +5869,6 @@ files = []
 develop = false
 
 [package.dependencies]
-leptonai = "^0.22.0"
 openai = "^1.62.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
@@ -6022,12 +5878,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_llm_leptonai"
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Mutual Information Measurement Community Package."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6046,12 +5902,12 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_measurement_mutualinformation"
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "This repository includes an example of a First Class Swarmauri Example."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6069,12 +5925,12 @@ tiktoken = "^0.8.0"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator"
 
 [[package]]
 name = "swarmauri-ocr-pytesseractimg2text"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Tesseract Image to Text Model"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6092,12 +5948,12 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_ocr_pytesseractimg2text"
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "BeautifulSoup Element Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6116,12 +5972,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement"
 
 [[package]]
 name = "swarmauri-parser-bertembedding"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Bert Embedding Parser"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6140,12 +5996,12 @@ transformers = ">=4.45.0"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_parser_bertembedding"
 
 [[package]]
 name = "swarmauri-parser-entityrecognition"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Entity Recognition Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6164,12 +6020,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_parser_entityrecognition"
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Fitz PDF Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6188,12 +6044,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_parser_fitzpdf"
 
 [[package]]
 name = "swarmauri-parser-keywordextractor"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Keyword Extractor Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6212,12 +6068,12 @@ yake = "==0.4.8"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor"
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "PyPDF2 Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6236,12 +6092,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_parser_pypdf2"
 
 [[package]]
 name = "swarmauri-parser-textblob"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "TextBlob Parser for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6261,12 +6117,12 @@ textblob = "^0.18.0"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_parser_textblob"
 
 [[package]]
 name = "swarmauri-standard"
-version = "0.6.0.dev155"
+version = "0.6.0.dev156"
 description = "This repository includes standard components within the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6293,12 +6149,12 @@ typing_extensions = "*"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_standard"
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Community Clipboard State"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6316,12 +6172,12 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_state_clipboard"
 
 [[package]]
 name = "swarmauri-tool-captchagenerator"
-version = "0.6.0.dev156"
+version = "0.6.0.dev157"
 description = "Swarmauri Community Captcha Generator Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6340,12 +6196,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_captchagenerator"
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Community Dale-Chall Readability Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6364,12 +6220,12 @@ textstat = "^0.7.4"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_dalechallreadability"
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Community Download PDF Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6387,12 +6243,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_downloadpdf"
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Community Entity Recognition Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6411,12 +6267,12 @@ transformers = ">=4.45.0"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_entityrecognition"
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "This repository includes an example of a First Class Swarmauri Example."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6435,12 +6291,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_folium"
 
 [[package]]
 name = "swarmauri-tool-github"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Github Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6459,12 +6315,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_github"
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "example community package"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6483,12 +6339,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_gmail"
 
 [[package]]
 name = "swarmauri-tool-lexicaldensity"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Lexical Density Tool for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6508,12 +6364,12 @@ textstat = "^0.7.4"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_lexicaldensity"
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Matplotlib tool for Swarmauri."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6532,12 +6388,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_tool_matplotlib"
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Psutil Tool."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6556,12 +6412,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_psutil"
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri QR Code Generator Tool."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6580,12 +6436,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_qrcodegenerator"
 
 [[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "This repository includes an example of a First Class Swarmauri Example."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6604,12 +6460,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_sentencecomplexity"
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Sentiment Analysis Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6627,12 +6483,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_sentimentanalysis"
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.6.0.dev158"
+version = "0.6.0.dev159"
 description = "Swarmauri Smog Index Tool."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6651,12 +6507,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_smogindex"
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Text Length Tool for Swarmauri"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6675,12 +6531,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_textlength"
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Web Scraping Tool for Swarmauri"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6699,12 +6555,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_webscraping"
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Zapier Hook Tool"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6722,12 +6578,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_tool_zapierhook"
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Annoy Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6747,12 +6603,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_annoy"
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Weaviate Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6772,12 +6628,12 @@ weaviate-client = "^4.9.2"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_cloudweaviate"
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "A Doc2Vec based Vector Store and Doc2Vec Based Embedding Model."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6796,12 +6652,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec"
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "A DuckDB based Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6821,12 +6677,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_duckdb"
 
 [[package]]
 name = "swarmauri-vectorstore-mlm"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri MLM Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6847,12 +6703,12 @@ transformers = ">=4.45.0"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_mlm"
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Neo4j Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6871,12 +6727,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_neo4j"
 
 [[package]]
 name = "swarmauri-vectorstore-persistentchromadb"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "A Persistent ChromaDB based Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6896,12 +6752,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_persistentchromadb"
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Pinecone Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6921,12 +6777,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_pinecone"
 
 [[package]]
 name = "swarmauri-vectorstore-qdrant"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Persistent Qdrant Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6946,12 +6802,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_qdrant"
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "Swarmauri Redis Vector Store"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6970,12 +6826,12 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/community/swarmauri_vectorstore_redis"
 
 [[package]]
 name = "swarmauri-vectorstore-tfidf"
-version = "0.6.0.dev154"
+version = "0.6.0.dev155"
 description = "A Tfidf based Vector Store and Tfidf Based Embedding Model."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -6994,7 +6850,7 @@ swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", br
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/0.6.0.dev1"
-resolved_reference = "0ff8e19d1e5d49e38d11bb09b6764864fac07a33"
+resolved_reference = "fa3194c75c48e80e5ba848af438bb0dcd1ee31d1"
 subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf"
 
 [[package]]
@@ -7934,22 +7790,6 @@ files = [
     {file = "websockets-14.2-py3-none-any.whl", hash = "sha256:7a6ceec4ea84469f15cf15807a747e9efe57e369c384fa86e022b3bea679b79b"},
     {file = "websockets-14.2.tar.gz", hash = "sha256:5059ed9c54945efb321f097084b4c7e52c246f2c869815876a69d1efc4ad6eb5"},
 ]
-
-[[package]]
-name = "win32-setctime"
-version = "1.2.0"
-description = "A small Python utility to set file creation time on Windows"
-optional = false
-python-versions = ">=3.5"
-groups = ["main"]
-markers = "(python_version <= \"3.11\" or python_version >= \"3.12\") and sys_platform == \"win32\""
-files = [
-    {file = "win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390"},
-    {file = "win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0"},
-]
-
-[package.extras]
-dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 
 [[package]]
 name = "wrapt"

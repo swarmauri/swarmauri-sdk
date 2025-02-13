@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_mlm"
-version = "0.6.0.dev155"
+version = "0.6.0.dev156"
 description = "Swarmauri MLM Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
