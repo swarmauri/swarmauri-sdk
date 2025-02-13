@@ -63,7 +63,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare"
+          soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --lint-fix
 
       # 6. Run the validate phase
       - name: Run validate phase
