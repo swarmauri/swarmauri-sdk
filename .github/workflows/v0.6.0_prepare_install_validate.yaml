@@ -55,11 +55,11 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           pip freeze
 
-      - name: Create New Git Branch
-        run: |
-          # Create and switch to the new branch
-          git checkout -b autopatch/${{ github.run_id }}
-          echo "Created and switched to branch autopatch/${{ github.run_id }}"
+      # - name: Create New Git Branch
+      #   run: |
+      #     # Create and switch to the new branch
+      #     git checkout -b autopatch/${{ github.run_id }}
+      #     echo "Created and switched to branch autopatch/${{ github.run_id }}"
 
       # 5. Run the prepare phase
       - name: Run prepare phase
@@ -76,18 +76,18 @@ jobs:
           git push origin autopatch/${{ github.run_id }}
           echo "Pushed branch autopatch/${{ github.run_id }} to GitHub"
 
-      - name: Create Pull Request
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Create a pull request from the new branch to the master branch
-          PR_TITLE="patch: prepared by soliloquy"
-          PR_BODY="This pull request bumps versions, autolints, and autoformats."
-          BASE_BRANCH="mono/0.6.0.dev1"
-          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
-            https://api.github.com/repos/${{ github.repository }}/pulls
+      # - name: Create Pull Request
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     # Create a pull request from the new branch to the master branch
+      #     PR_TITLE="patch: prepared by soliloquy"
+      #     PR_BODY="This pull request bumps versions, autolints, and autoformats."
+      #     BASE_BRANCH="mono/0.6.0.dev1"
+      #     curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+      #       -H "Accept: application/vnd.github+json" \
+      #       -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
+      #       https://api.github.com/repos/${{ github.repository }}/pulls
 
       # 6. Run the validate phase
       - name: Run validate phase
