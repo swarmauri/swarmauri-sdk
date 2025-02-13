@@ -4,13 +4,15 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'CanberraDistance')
+
+@ComponentBase.register_type(DistanceBase, "CanberraDistance")
 class CanberraDistance(DistanceBase):
     """
     Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
     This class now processes Vector instances instead of raw lists.
     """
-    type: Literal['CanberraDistance'] = 'CanberraDistance'   
+
+    type: Literal["CanberraDistance"] = "CanberraDistance"
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
@@ -36,7 +38,7 @@ class CanberraDistance(DistanceBase):
         # Handling the case where both vectors have a zero value for the same dimension
         distance = np.nan_to_num(distance)
         return distance
-    
+
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Compute similarity using the Canberra distance. Since this distance metric isn't
@@ -59,11 +61,11 @@ class CanberraDistance(DistanceBase):
         similarity = np.exp(-distance)
 
         return similarity
-    
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

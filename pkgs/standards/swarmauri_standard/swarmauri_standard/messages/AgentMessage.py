@@ -5,6 +5,7 @@ from swarmauri_standard.messages.HumanMessage import contentItem
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_core.ComponentBase import ComponentBase
 
+
 class UsageData(BaseModel):
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
@@ -15,7 +16,7 @@ class UsageData(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-@ComponentBase.register_type(MessageBase, 'AgentMessage')
+@ComponentBase.register_type(MessageBase, "AgentMessage")
 class AgentMessage(MessageBase):
     content: Optional[Union[str, List[contentItem]]] = None
     role: str = Field(default="assistant")

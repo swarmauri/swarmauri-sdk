@@ -3,13 +3,15 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'JaccardIndexDistance')
+
+@ComponentBase.register_type(DistanceBase, "JaccardIndexDistance")
 class JaccardIndexDistance(DistanceBase):
     """
     A class implementing Jaccard Index as a similarity and distance metric between two vectors.
-    """    
-    type: Literal['JaccardIndexDistance'] = 'JaccardIndexDistance'
-    
+    """
+
+    type: Literal["JaccardIndexDistance"] = "JaccardIndexDistance"
+
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Jaccard distance between two vectors.
@@ -64,11 +66,11 @@ class JaccardIndexDistance(DistanceBase):
 
         # Compute and return Jaccard similarity.
         return intersection / union
-    
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

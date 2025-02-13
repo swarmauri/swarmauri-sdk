@@ -4,7 +4,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'FleschKincaidTool')
+
+@ComponentBase.register_type(ToolBase, "FleschKincaidTool")
 class FleschKincaidTool(ToolBase):
     """
     A tool for calculating the Flesch-Kincaid readability scores.

@@ -78,15 +78,15 @@ def test_call(mock_github, github_repo_tool, action, kwargs, method_called):
 
             mock_method.assert_called_once_with(**kwargs)
 
-            assert isinstance(
-                result, dict
-            ), f"Expected dict, but got {type(result).__name__}"
-            assert expected_keys.issubset(
-                result.keys()
-            ), f"Expected keys {expected_keys} but got {result.keys()}"
-            assert isinstance(
-                result.get(action), str
-            ), f"Expected int, but got {type(result.get(action)).__name__}"
+            assert isinstance(result, dict), (
+                f"Expected dict, but got {type(result).__name__}"
+            )
+            assert expected_keys.issubset(result.keys()), (
+                f"Expected keys {expected_keys} but got {result.keys()}"
+            )
+            assert isinstance(result.get(action), str), (
+                f"Expected int, but got {type(result.get(action)).__name__}"
+            )
             assert result == {f"{action}": "performed a test action successfully"}
     else:
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):

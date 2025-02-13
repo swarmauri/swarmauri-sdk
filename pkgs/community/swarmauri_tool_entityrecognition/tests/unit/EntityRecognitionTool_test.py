@@ -35,13 +35,13 @@ def test_call():
     result = tool(text=text)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("entities"), str
-    ), f"Expected str, but got {type(result.get('program')).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("entities"), str), (
+        f"Expected str, but got {type(result.get('program')).__name__}"
+    )
 
-    assert result.get("entities") == json.dumps(
-        expected_result
-    ), f"Expected Entities result {json.dumps(expected_result)}, but got {result.get('entities')}"
+    assert result.get("entities") == json.dumps(expected_result), (
+        f"Expected Entities result {json.dumps(expected_result)}, but got {result.get('entities')}"
+    )

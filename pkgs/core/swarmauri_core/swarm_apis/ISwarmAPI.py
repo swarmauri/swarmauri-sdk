@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
+
 class ISwarmAPI(ABC):
     """
     Interface for managing the swarm's API endpoints.
     """
-    
+
     @abstractmethod
     def dispatch_request(self, request_data: Dict[str, Any]) -> Any:
         """

@@ -6,7 +6,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'JSONRequestsTool')
+
+@ComponentBase.register_type(ToolBase, "JSONRequestsTool")
 class JSONRequestsTool(ToolBase):
     """
     A tool that leverages the `requests` library to perform HTTP operations.
@@ -180,4 +181,3 @@ class JSONRequestsTool(ToolBase):
                 "headers": dict(response.headers),
                 "content": response.text,
             }
-

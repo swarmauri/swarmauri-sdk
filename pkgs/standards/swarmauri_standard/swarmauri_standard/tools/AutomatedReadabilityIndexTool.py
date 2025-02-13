@@ -6,7 +6,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'AutomatedReadabilityIndexTool')
+
+@ComponentBase.register_type(ToolBase, "AutomatedReadabilityIndexTool")
 class AutomatedReadabilityIndexTool(ToolBase):
     """
     A tool for calculating the Automated Readability Index (ARI).

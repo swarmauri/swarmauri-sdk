@@ -4,15 +4,17 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ParserBase, 'OpenAPISpecParser')
+
+@ComponentBase.register_type(ParserBase, "OpenAPISpecParser")
 class OpenAPISpecParser(ParserBase):
     """
     A parser that processes OpenAPI Specification files (YAML or JSON format)
-    and extracts information into structured Document instances. 
+    and extracts information into structured Document instances.
     This is useful for building documentation, APIs inventory, or analyzing the API specification.
     """
-    type: Literal['OpenAPISpecParser'] = 'OpenAPISpecParser'
-    
+
+    type: Literal["OpenAPISpecParser"] = "OpenAPISpecParser"
+
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
         Parses an OpenAPI Specification from a YAML or JSON string into a list of Document instances.
@@ -28,7 +30,7 @@ class OpenAPISpecParser(ParserBase):
             spec_dict = yaml.safe_load(data)
         except yaml.YAMLError as e:
             raise ValueError(f"Failed to parse the OpenAPI specification: {e}")
-        
+
         documents = []
         # Iterate over paths in the OpenAPI spec to extract endpoint information
         for path, path_item in spec_dict.get("paths", {}).items():
@@ -38,7 +40,7 @@ class OpenAPISpecParser(ParserBase):
                 metadata = {
                     "path": path,
                     "method": method.upper(),
-                    "operationId": operation.get("operationId", "")
+                    "operationId": operation.get("operationId", ""),
                 }
                 document = Document(content=content, metadata=metadata)
                 documents.append(document)

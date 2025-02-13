@@ -6,7 +6,6 @@ from swarmauri_core.vector_stores.IVectorStoreRetrieve import IVectorStoreRetrie
 
 
 class VectorStoreRetrieveMixin(IVectorStoreRetrieve, BaseModel):
-    
     @abstractmethod
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """

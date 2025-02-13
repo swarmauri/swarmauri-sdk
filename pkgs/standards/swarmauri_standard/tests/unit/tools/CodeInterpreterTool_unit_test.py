@@ -38,13 +38,13 @@ def test_call():
     result = tool(python_code)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("code_output"), str
-    ), f"Expected str, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("code_output"), str), (
+        f"Expected str, but got {type(result).__name__}"
+    )
 
-    assert (
-        result.get("code_output") == expected_output
-    ), f"Expected Code Output {expected_output}, but got {result.get('code_output')}"
+    assert result.get("code_output") == expected_output, (
+        f"Expected Code Output {expected_output}, but got {result.get('code_output')}"
+    )

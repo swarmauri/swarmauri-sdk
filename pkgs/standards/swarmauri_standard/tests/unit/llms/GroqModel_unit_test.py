@@ -57,9 +57,7 @@ def get_allowed_models():
 
     # Filter out the failing models
     allowed_models = [
-        model
-        for model in llm.allowed_models
-        if model not in failing_llms
+        model for model in llm.allowed_models if model not in failing_llms
     ]
 
     return allowed_models

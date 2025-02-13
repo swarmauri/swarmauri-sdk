@@ -26,7 +26,6 @@ class RedisDocumentStore(DocumentStoreBase):
         return self._redis_client
 
     def add_document(self, document: Document) -> None:
-
         data = document.as_dict()
         doc_id = data["id"]
         del data["id"]

@@ -7,7 +7,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'ImportMemoryModuleTool')
+
+@ComponentBase.register_type(ToolBase, "ImportMemoryModuleTool")
 class ImportMemoryModuleTool(ToolBase):
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(

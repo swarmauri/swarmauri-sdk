@@ -4,10 +4,11 @@ from pydantic import Field
 from swarmauri_core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
+
 class PromptMatrixBase(IPromptMatrix, ComponentBase):
     matrix: List[List[str]] = []
-    resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value)
-    type: Literal['PromptMatrixBase'] = 'PromptMatrixBase'    
+    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value)
+    type: Literal["PromptMatrixBase"] = "PromptMatrixBase"
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -20,7 +21,9 @@ class PromptMatrixBase(IPromptMatrix, ComponentBase):
         if not self.matrix or (self.matrix and len(sequence) == len(self.matrix[0])):
             self.matrix.append(sequence)
         else:
-            raise ValueError("Sequence length does not match the prompt matrix dimensions.")
+            raise ValueError(
+                "Sequence length does not match the prompt matrix dimensions."
+            )
 
     def remove_prompt_sequence(self, index: int) -> None:
         if 0 <= index < len(self.matrix):

@@ -14,8 +14,8 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
 
     template: str = ""
     variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
-    resource: Optional[str] =  Field(default=ResourceTypes.PROMPT.value, frozen=True)
-    type: Literal['PromptGeneratorBase'] = 'PromptGeneratorBase'
+    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    type: Literal["PromptGeneratorBase"] = "PromptGeneratorBase"
 
     def set_template(self, template: str) -> None:
         self.template = template
@@ -28,12 +28,14 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
         Generates a prompt using the provided variables if any
         else uses the next variables set in the list.
         """
-        variables = variables if variables else self.variables.pop(0) if self.variables else {}
+        variables = (
+            variables if variables else self.variables.pop(0) if self.variables else {}
+        )
         return self.template.format(**variables)
 
     def __call__(self) -> Generator[str, None, None]:
         """
-        Returns a generator that yields prompts constructed from the template and 
+        Returns a generator that yields prompts constructed from the template and
         each set of variables in the variables list.
         """
         for variables_set in self.variables:

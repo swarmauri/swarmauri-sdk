@@ -66,12 +66,12 @@ def test_call(plot_type, x_data, y_data, title, x_label, y_label, save_path):
     result = tool(plot_type, x_data, y_data, title, x_label, y_label, save_path)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("data"), list
-    ), f"Expected list, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("data"), list), (
+        f"Expected list, but got {type(result).__name__}"
+    )
     assert os.path.exists(save_path)
 
     os.remove(save_path)

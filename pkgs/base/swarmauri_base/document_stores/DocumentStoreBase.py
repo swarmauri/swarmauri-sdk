@@ -17,6 +17,7 @@ class DocumentStoreBase(IDocumentStore):
     This class provides a standard API for adding, updating, getting, and deleting documents in a store.
     The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
     """
+
     resource: ResourceTypes = Field(default=ResourceTypes.DOCUMENT_STORE.value)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["DocumentStoreBase"] = "DocumentStoreBase"

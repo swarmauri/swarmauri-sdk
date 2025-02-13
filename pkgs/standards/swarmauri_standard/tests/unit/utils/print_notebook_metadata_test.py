@@ -97,13 +97,15 @@ def mock_environment():
     # Set a fixed datetime value for modification time
     mock_datetime = datetime(2024, 1, 1, 12, 0)
 
-    with patch("os.path.getmtime", return_value=mock_datetime.timestamp()), patch(
-        "platform.system", return_value="Test OS"
-    ), patch("platform.release", return_value="1.0"), patch.object(
-        sys, "version", "3.8.0"
-    ), patch(
-        "swarmauri_standard.utils.print_notebook_metadata.get_notebook_name",
-        return_value="test_notebook.ipynb",
+    with (
+        patch("os.path.getmtime", return_value=mock_datetime.timestamp()),
+        patch("platform.system", return_value="Test OS"),
+        patch("platform.release", return_value="1.0"),
+        patch.object(sys, "version", "3.8.0"),
+        patch(
+            "swarmauri_standard.utils.print_notebook_metadata.get_notebook_name",
+            return_value="test_notebook.ipynb",
+        ),
     ):
         yield mock_datetime
 

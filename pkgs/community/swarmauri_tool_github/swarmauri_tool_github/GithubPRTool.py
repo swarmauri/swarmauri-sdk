@@ -5,6 +5,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
+
 @ComponentBase.register_type(ToolBase, "GithubPRTool")
 class GithubPRTool(ToolBase):
     version: str = "1.1.0"

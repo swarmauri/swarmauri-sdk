@@ -40,6 +40,6 @@ def test_base64_to_img_url():
     # Optionally, check if the URL is accessible
     with httpx.Client() as client:
         response = client.get(image_url)
-    assert (
-        response.status_code == 200
-    ), f"Failed to access the uploaded image at {image_url}"
+    assert response.status_code == 200, (
+        f"Failed to access the uploaded image at {image_url}"
+    )

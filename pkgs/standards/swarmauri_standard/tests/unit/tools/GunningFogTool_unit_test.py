@@ -69,13 +69,13 @@ def test_call(
     result = tool(data)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("gunning_fog_score"), float
-    ), f"Expected float, but got {type(result.get('gunning_fog_score')).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("gunning_fog_score"), float), (
+        f"Expected float, but got {type(result.get('gunning_fog_score')).__name__}"
+    )
 
-    assert result.get("gunning_fog_score") == pytest.approx(
-        expected_score, rel=0.01
-    ), f"Expected Gunning-Fog score {pytest.approx(expected_score, rel=0.01)}, but got {result.get('gunning_fog_score')}"
+    assert result.get("gunning_fog_score") == pytest.approx(expected_score, rel=0.01), (
+        f"Expected Gunning-Fog score {pytest.approx(expected_score, rel=0.01)}, but got {result.get('gunning_fog_score')}"
+    )

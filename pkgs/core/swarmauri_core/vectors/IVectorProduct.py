@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class IVectorProduct(ABC):
     """
     Interface for various vector products including dot product, cross product,
@@ -22,7 +23,9 @@ class IVectorProduct(ABC):
         pass
 
     @abstractmethod
-    def cross_product(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
+    def cross_product(
+        self, vector_a: List[float], vector_b: List[float]
+    ) -> List[float]:
         """
         Calculate the cross product of two vectors.
 
@@ -36,7 +39,9 @@ class IVectorProduct(ABC):
         pass
 
     @abstractmethod
-    def vector_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> List[float]:
+    def vector_triple_product(
+        self, vector_a: List[float], vector_b: List[float], vector_c: List[float]
+    ) -> List[float]:
         """
         Calculate the vector triple product of three vectors.
 
@@ -51,7 +56,9 @@ class IVectorProduct(ABC):
         pass
 
     @abstractmethod
-    def scalar_triple_product(self, vector_a: List[float], vector_b: List[float], vector_c: List[float]) -> float:
+    def scalar_triple_product(
+        self, vector_a: List[float], vector_b: List[float], vector_c: List[float]
+    ) -> float:
         """
         Calculate the scalar triple product of three vectors.
 

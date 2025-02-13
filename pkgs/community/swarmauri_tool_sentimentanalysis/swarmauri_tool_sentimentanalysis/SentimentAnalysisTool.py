@@ -8,6 +8,7 @@ from pydantic import Field
 
 hf_logging.set_verbosity_error()
 
+
 @ComponentBase.register_type(ToolBase, "SentimentAnalysisTool")
 class SentimentAnalysisTool(ToolBase):
     """

@@ -4,7 +4,8 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'MinkowskiDistance')
+
+@ComponentBase.register_type(DistanceBase, "MinkowskiDistance")
 class MinkowskiDistance(DistanceBase):
     """
     Implementation of the IDistanceSimiliarity interface using the Minkowski distance metric.
@@ -15,9 +16,10 @@ class MinkowskiDistance(DistanceBase):
 
     Parameters:
     - p (int): The order of the Minkowski distance. p=2 corresponds to the Euclidean distance,
-               while p=1 corresponds to the Manhattan distance. Default is 
+               while p=1 corresponds to the Manhattan distance. Default is
     """
-    type: Literal['MinkowskiDistance'] = 'MinkowskiDistance'
+
+    type: Literal["MinkowskiDistance"] = "MinkowskiDistance"
     p: int = 2
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
@@ -56,11 +58,11 @@ class MinkowskiDistance(DistanceBase):
         """
         dist = self.distance(vector_a, vector_b)
         return 1 / (1 + dist)  # An example similarity score
-    
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
         return similarities

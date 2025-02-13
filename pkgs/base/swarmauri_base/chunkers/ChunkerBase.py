@@ -6,6 +6,7 @@ from pydantic import Field
 from swarmauri_core.chunkers.IChunker import IChunker
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
 
+
 @ComponentBase.register_model()
 class ChunkerBase(IChunker, ComponentBase):
     """
@@ -15,9 +16,10 @@ class ChunkerBase(IChunker, ComponentBase):
     should provide concrete implementations for these methods tailored to their specific
     chunking algorithms.
     """
-    resource: Optional[str] =  Field(default=ResourceTypes.CHUNKER.value)
-    type: Literal['ChunkerBase'] = 'ChunkerBase'
-    
+
+    resource: Optional[str] = Field(default=ResourceTypes.CHUNKER.value)
+    type: Literal["ChunkerBase"] = "ChunkerBase"
+
     @abstractmethod
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[Any]:
         pass

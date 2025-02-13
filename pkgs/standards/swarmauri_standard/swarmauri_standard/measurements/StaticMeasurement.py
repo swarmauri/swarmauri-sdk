@@ -2,12 +2,14 @@ from typing import Any, Literal
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(MeasurementBase, 'StaticMeasurement')
+
+@ComponentBase.register_type(MeasurementBase, "StaticMeasurement")
 class StaticMeasurement(MeasurementBase):
     """
     Measurement for capturing the first impression score from a set of scores.
     """
-    type: Literal['StaticMeasurement'] = 'StaticMeasurement'
+
+    type: Literal["StaticMeasurement"] = "StaticMeasurement"
 
     def __call__(self, **kwargs) -> Any:
         """

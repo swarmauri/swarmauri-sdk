@@ -3,7 +3,8 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(SchemaConverterBase, 'GeminiSchemaConverter')
+
+@ComponentBase.register_type(SchemaConverterBase, "GeminiSchemaConverter")
 class GeminiSchemaConverter(SchemaConverterBase):
     type: Literal["GeminiSchemaConverter"] = "GeminiSchemaConverter"
 
@@ -18,10 +19,10 @@ class GeminiSchemaConverter(SchemaConverterBase):
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         """
         Convert a tool's parameters into a function declaration schema.
-        
+
         Args:
             tool: The tool to convert
-            
+
         Returns:
             Dict containing the function declaration schema
         """
@@ -53,10 +54,10 @@ class GeminiSchemaConverter(SchemaConverterBase):
     def convert_type(self, param_type: str) -> str:
         """
         Convert a parameter type to its corresponding schema type.
-        
+
         Args:
             param_type: The parameter type to convert
-            
+
         Returns:
             The corresponding schema type string
         """

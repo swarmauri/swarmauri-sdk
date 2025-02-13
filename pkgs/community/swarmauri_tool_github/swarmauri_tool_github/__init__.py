@@ -12,7 +12,7 @@ __all__ = [
     "GithubIssueTool",
     "GithubPRTool",
     "GithubRepoTool",
-    "GithubTool"
+    "GithubTool",
 ]
 
 try:
