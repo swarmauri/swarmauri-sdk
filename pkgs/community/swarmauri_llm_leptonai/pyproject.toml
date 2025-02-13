@@ -23,6 +23,7 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 leptonai = "^0.22.0"
+openai = "^1.62.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
