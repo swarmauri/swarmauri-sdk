@@ -78,15 +78,15 @@ jobs:
 
       - name: Create Pull Request
         env:
-          PROJECT_ROOT: ${{ env.PROJECT_ROOT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Create a pull request from the new branch to the master branch
           PR_TITLE="patch: prepared by soliloquy"
           PR_BODY="This pull request "
+          BASE_BRANCH="${{ github.event.repository.default_branch }}"
           curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            -d '{"title": "'"${PR_TITLE}"'", "head": "'"autopatch"/"${{ github.run_id }}"'", "base": "${{ github.head_ref }}", "body": "'"${PR_BODY}"'"}' \
+            -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls
 
       # 6. Run the validate phase
