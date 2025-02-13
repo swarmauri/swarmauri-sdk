@@ -16,7 +16,7 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     def exec(
         self,
-        input_str: Optional[Union[str, List[contentItem]]] = "",
+        input_data: Optional[Union[str, List[contentItem]]] = "",
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
 

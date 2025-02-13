@@ -1,37 +1,29 @@
-import importlib
+from swarmauri.utils._lazy_import import _lazy_import
 
-# Define a lazy loader function with a warning message if the module is not found
-def _lazy_import(module_name, module_description=None):
-    try:
-        return importlib.import_module(module_name)
-    except ImportError:
-        # If module is not available, print a warning message
-        print(f"Warning: The module '{module_description or module_name}' is not available. "
-              f"Please install the necessary dependencies to enable this functionality.")
-        return None
-
-# List of parser names (file names without the ".py" extension)
-parser_files = [
-    "BeautifulSoupElementParser",
-    "BERTEmbeddingParser",
-    "CSVParser",
-    "EntityRecognitionParser",
-    "HTMLTagStripParser",
-    "KeywordExtractorParser",
-    "Md2HtmlParser",
-    "OpenAPISpecParser",
-    "PhoneNumberExtractorParser",
-    "PythonParser",
-    "RegExParser",
-    "TextBlobNounParser",
-    "TextBlobSentenceParser",
-    "URLExtractorParser",
-    "XMLParser",
+# List of parsers names (file names without the ".py" extension) and corresponding class names
+parsers_files = [
+    (
+        "swarmauri.parsers.concrete.BeautifulSoupElementParser",
+        "BeautifulSoupElementParser",
+    ),
+    ("swarmauri.parsers.concrete.CSVParser", "CSVParser"),
+    ("swarmauri.parsers.concrete.HTMLTagStripParser", "HTMLTagStripParser"),
+    ("swarmauri.parsers.concrete.KeywordExtractorParser", "KeywordExtractorParser"),
+    ("swarmauri.parsers.concrete.Md2HtmlParser", "Md2HtmlParser"),
+    ("swarmauri.parsers.concrete.OpenAPISpecParser", "OpenAPISpecParser"),
+    (
+        "swarmauri.parsers.concrete.PhoneNumberExtractorParser",
+        "PhoneNumberExtractorParser",
+    ),
+    ("swarmauri.parsers.concrete.PythonParser", "PythonParser"),
+    ("swarmauri.parsers.concrete.RegExParser", "RegExParser"),
+    ("swarmauri.parsers.concrete.URLExtractorParser", "URLExtractorParser"),
+    ("swarmauri.parsers.concrete.XMLParser", "XMLParser"),
 ]
 
-# Lazy loading of parser modules, storing them in variables
-for parser in parser_files:
-    globals()[parser] = _lazy_import(f"swarmauri.parsers.concrete.{parser}", parser)
+# Lazy loading of parsers classes, storing them in variables
+for module_name, class_name in parsers_files:
+    globals()[class_name] = _lazy_import(module_name, class_name)
 
-# Adding the lazy-loaded parser modules to __all__
-__all__ = parser_files
+# Adding the lazy-loaded parsers classes to __all__
+__all__ = [class_name for _, class_name in parsers_files]
