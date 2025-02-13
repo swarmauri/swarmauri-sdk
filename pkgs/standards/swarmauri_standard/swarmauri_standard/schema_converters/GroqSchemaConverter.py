@@ -1,11 +1,12 @@
-from typing import  Dict, Any, Literal
+from typing import Dict, Any, Literal
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(SchemaConverterBase, 'GroqSchemaConverter')
+
+@ComponentBase.register_type(SchemaConverterBase, "GroqSchemaConverter")
 class GroqSchemaConverter(SchemaConverterBase):
-    type: Literal['GroqSchemaConverter'] = 'GroqSchemaConverter'
+    type: Literal["GroqSchemaConverter"] = "GroqSchemaConverter"
 
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
@@ -17,7 +18,7 @@ class GroqSchemaConverter(SchemaConverterBase):
                 "description": param.description,
             }
             if param.enum:
-                properties[param.name]['enum'] = param.enum
+                properties[param.name]["enum"] = param.enum
 
             if param.required:
                 required.append(param.name)
@@ -30,10 +31,10 @@ class GroqSchemaConverter(SchemaConverterBase):
                 "parameters": {
                     "type": "object",
                     "properties": properties,
-                }
-            }
+                },
+            },
         }
         if required:
-            function['function']['parameters']['required'] = required
+            function["function"]["parameters"]["required"] = required
 
         return function

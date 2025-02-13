@@ -5,6 +5,7 @@ from swarmauri_core.conversations.IConversation import IConversation
 from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 
+
 @ComponentBase.register_model()
 class ConversationBase(IConversation, ComponentBase):
     """
@@ -25,11 +26,11 @@ class ConversationBase(IConversation, ComponentBase):
 
     def add_message(self, message: SubclassUnion[MessageBase]):
         self._history.append(message)
-        
+
     def remove_message(self, message: SubclassUnion[MessageBase]):
-        """ 
+        """
         Remove a message from the history
-        
+
         @param message: Message to remove from the history
         @return None
         """

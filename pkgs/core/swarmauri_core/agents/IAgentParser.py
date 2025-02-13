@@ -3,7 +3,6 @@ from swarmauri_core.parsers.IParser import IParser
 
 
 class IAgentParser(ABC):
-
     @property
     @abstractmethod
     def parser(self) -> IParser:

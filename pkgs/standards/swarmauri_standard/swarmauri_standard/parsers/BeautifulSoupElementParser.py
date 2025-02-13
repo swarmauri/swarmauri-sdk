@@ -4,13 +4,15 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ParserBase, 'BeautifulSoupElementParser')
+
+@ComponentBase.register_type(ParserBase, "BeautifulSoupElementParser")
 class BeautifulSoupElementParser(ParserBase):
     """
     A concrete parser that leverages BeautifulSoup to extract specific HTML elements and their content.
     """
+
     element: str
-    type: Literal['BeautifulSoupElementParser'] = 'BeautifulSoupElementParser'
+    type: Literal["BeautifulSoupElementParser"] = "BeautifulSoupElementParser"
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
@@ -24,21 +26,22 @@ class BeautifulSoupElementParser(ParserBase):
         """
         # Ensure that input is a string
         if not isinstance(data, str):
-            raise ValueError("BeautifulSoupElementParser expects input data to be of type str.")
-        
+            raise ValueError(
+                "BeautifulSoupElementParser expects input data to be of type str."
+            )
+
         # Initialize BeautifulSoup parser
-        soup = BeautifulSoup(data, 'html.parser')
-        
+        soup = BeautifulSoup(data, "html.parser")
+
         # Find all specified elements
         elements = soup.find_all(self.element)
-        
+
         # Create a document for each element
         documents = [
             Document(
-                content=str(element),
-                metadata={"element": self.element, "index": index}
-            ) 
+                content=str(element), metadata={"element": self.element, "index": index}
+            )
             for index, element in enumerate(elements)
         ]
-        
+
         return documents

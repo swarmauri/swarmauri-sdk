@@ -2,14 +2,18 @@ from typing import Literal
 import pandas as pd
 
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
-from swarmauri_base.measurements.MeasurementCalculateMixin import MeasurementCalculateMixin
+from swarmauri_base.measurements.MeasurementCalculateMixin import (
+    MeasurementCalculateMixin,
+)
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(MeasurementBase, 'PatternMatchingMeasurement')
+
+@ComponentBase.register_type(MeasurementBase, "PatternMatchingMeasurement")
 class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """
     A measurement class to calculate the percentage of data points that match a given pattern in a column.
     """
+
     unit: str = "percentage"
     type: Literal["PatternMatchingMeasurement"] = "PatternMatchingMeasurement"
 

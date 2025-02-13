@@ -18,7 +18,10 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     measurement = Measurement(value=10)
-    assert measurement.id == Measurement.model_validate_json(measurement.model_dump_json()).id
+    assert (
+        measurement.id
+        == Measurement.model_validate_json(measurement.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

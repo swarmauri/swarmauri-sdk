@@ -4,7 +4,8 @@ from pydantic import Field
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(MeasurementBase, 'MiscMeasurement')
+
+@ComponentBase.register_type(MeasurementBase, "MiscMeasurement")
 class MiscMeasurement(MeasurementBase):
     """
     A measurement class that provides various basic metrics including sum, minimum,

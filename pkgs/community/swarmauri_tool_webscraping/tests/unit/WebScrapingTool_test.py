@@ -71,16 +71,16 @@ def test_call(url, selector, expected_substring):
     assert isinstance(result, dict), "Result should be a dictionary."
 
     # Check if the result contains either 'extracted_text' or 'error'
-    assert (
-        "extracted_text" in result or "error" in result
-    ), "Result should contain either 'extracted_text' or 'error'."
+    assert "extracted_text" in result or "error" in result, (
+        "Result should contain either 'extracted_text' or 'error'."
+    )
 
     # Handle the result depending on whether extraction was successful
     if "extracted_text" in result:
-        assert (
-            expected_substring in result["extracted_text"]
-        ), f"Expected '{expected_substring}' in extracted text."
+        assert expected_substring in result["extracted_text"], (
+            f"Expected '{expected_substring}' in extracted text."
+        )
     else:
-        assert (
-            expected_substring in result["error"]
-        ), f"Expected '{expected_substring}' in error message. Actual error: {result['error']}"
+        assert expected_substring in result["error"], (
+            f"Expected '{expected_substring}' in error message. Actual error: {result['error']}"
+        )

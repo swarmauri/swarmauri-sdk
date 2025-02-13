@@ -20,9 +20,9 @@ def test_parser_type():
     Test to ensure the parser's type attribute is correctly set.
     """
     parser = Parser()
-    assert (
-        parser.type == "PyPDFTKParser"
-    ), "The type attribute should be 'PyPDFTKParser'."
+    assert parser.type == "PyPDFTKParser", (
+        "The type attribute should be 'PyPDFTKParser'."
+    )
 
 
 @pytest.mark.unit
@@ -33,9 +33,9 @@ def test_parser_serialization():
     parser = Parser()
     serialized = parser.model_dump_json()
     deserialized = Parser.model_validate_json(serialized)
-    assert (
-        parser.id == deserialized.id
-    ), "Serialization and deserialization should preserve the parser's ID."
+    assert parser.id == deserialized.id, (
+        "Serialization and deserialization should preserve the parser's ID."
+    )
 
 
 @pytest.mark.unit
@@ -57,13 +57,13 @@ def test_parser_success():
         # Assertions
         mock_dump_data_fields.assert_called_once_with(file_path)
         assert len(documents) == 1, "Parser should return a list with one document."
-        assert isinstance(
-            documents[0], IDocument
-        ), "Returned object should be an instance of IDocument."
+        assert isinstance(documents[0], IDocument), (
+            "Returned object should be an instance of IDocument."
+        )
         expected_content = "Field1: Value1\nField2: Value2"
-        assert (
-            documents[0].content == expected_content
-        ), "Extracted content does not match expected."
-        assert (
-            documents[0].metadata["source"] == file_path
-        ), "Metadata 'source' should match the file path."
+        assert documents[0].content == expected_content, (
+            "Extracted content does not match expected."
+        )
+        assert documents[0].metadata["source"] == file_path, (
+            "Metadata 'source' should match the file path."
+        )

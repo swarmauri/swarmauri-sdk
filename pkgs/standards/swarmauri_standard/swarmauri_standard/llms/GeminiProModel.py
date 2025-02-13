@@ -180,7 +180,8 @@ class GeminiProModel(LLMBase):
 
         with DurationManager() as prompt_timer:
             response = self._client.post(
-                f"/{self.name}:generateContent?key={self.api_key.get_secret_value()}", json=payload
+                f"/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
+                json=payload,
             )
             response.raise_for_status()
 

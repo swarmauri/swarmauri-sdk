@@ -7,7 +7,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'MatplotlibCsvTool')
+
+@ComponentBase.register_type(ToolBase, "MatplotlibCsvTool")
 class MatplotlibCsvTool(ToolBase):
     type: Literal["MatplotlibCsvTool"] = "MatplotlibCsvTool"
     name: str = Field(
@@ -75,5 +76,3 @@ class MatplotlibCsvTool(ToolBase):
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
         return {"img_path": output_file, "img_base64": encoded_image, "data": []}
-
-

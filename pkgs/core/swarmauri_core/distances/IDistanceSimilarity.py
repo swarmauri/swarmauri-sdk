@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from typing import List
 from swarmauri_core.vectors.IVector import IVector
 
+
 class IDistanceSimilarity(ABC):
     """
     Interface for computing distances and similarities between high-dimensional data vectors. This interface
-    abstracts the method for calculating the distance and similarity, allowing for the implementation of various 
+    abstracts the method for calculating the distance and similarity, allowing for the implementation of various
     distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
     """
 
@@ -22,12 +23,10 @@ class IDistanceSimilarity(ABC):
             float: The computed distance between vector_a and vector_b.
         """
         pass
-    
 
     @abstractmethod
     def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
         pass
-
 
     @abstractmethod
     def similarity(self, vector_a: IVector, vector_b: IVector) -> float:

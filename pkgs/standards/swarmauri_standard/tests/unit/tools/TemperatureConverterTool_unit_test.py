@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.tools.TemperatureConverterTool import TemperatureConverterTool as Tool
+from swarmauri_standard.tools.TemperatureConverterTool import (
+    TemperatureConverterTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -46,16 +48,16 @@ def test_call(from_unit, to_unit, value, expected_result):
     if isinstance(result, str):
         assert result == expected_result
     else:
-        assert isinstance(
-            result, dict
-        ), f"Expected dict, but got {type(result).__name__}"
-        assert expected_keys.issubset(
-            result.keys()
-        ), f"Expected keys {expected_keys} but got {result.keys()}"
-        assert isinstance(
-            result.get(f"temperature_in_{to_unit}"), str
-        ), f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+        assert isinstance(result, dict), (
+            f"Expected dict, but got {type(result).__name__}"
+        )
+        assert expected_keys.issubset(result.keys()), (
+            f"Expected keys {expected_keys} but got {result.keys()}"
+        )
+        assert isinstance(result.get(f"temperature_in_{to_unit}"), str), (
+            f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+        )
 
-        assert (
-            result.get(f"temperature_in_{to_unit}") == expected_result
-        ), f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"
+        assert result.get(f"temperature_in_{to_unit}") == expected_result, (
+            f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"
+        )

@@ -64,9 +64,7 @@ class MethodSignatureExtractor(BaseModel):
                 continue
 
             param_type = type_hints.get(param_name, Any)
-            (
-                param.default if param.default is not inspect.Parameter.empty else None
-            )
+            (param.default if param.default is not inspect.Parameter.empty else None)
             required = param.default is inspect.Parameter.empty
             enum = None
             param_type_json_schema = self._python_type_to_json_schema_type(param_type)

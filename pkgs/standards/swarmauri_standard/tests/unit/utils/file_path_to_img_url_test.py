@@ -34,6 +34,6 @@ def test_file_path_to_img_url():
 
     # Optionally, check if the URL is accessible
     response = requests.get(image_url)
-    assert (
-        response.status_code == 200
-    ), f"Failed to access the uploaded image at {image_url}"
+    assert response.status_code == 200, (
+        f"Failed to access the uploaded image at {image_url}"
+    )

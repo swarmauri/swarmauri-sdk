@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from swarmauri_core.agents.IAgent import IAgent
 
+
 class IAgentRegistrationAPI(ABC):
     """
     Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.

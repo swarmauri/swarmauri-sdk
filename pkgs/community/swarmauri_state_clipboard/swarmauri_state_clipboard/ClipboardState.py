@@ -9,6 +9,7 @@ class ClipboardState(StateBase):
     """
     A concrete implementation of StateBase that uses the system clipboard to store and retrieve state data.
     """
+
     type: Literal["ClipboardState"] = "ClipboardState"
 
     def read(self) -> Dict[str, Any]:
@@ -59,7 +60,7 @@ class ClipboardState(StateBase):
 
     def deep_copy(self) -> "ClipboardState":
         """
-        Creates a deep copy of the current state. In this context, simply returns a new 
+        Creates a deep copy of the current state. In this context, simply returns a new
         ClipboardState with the same clipboard data.
         """
         try:

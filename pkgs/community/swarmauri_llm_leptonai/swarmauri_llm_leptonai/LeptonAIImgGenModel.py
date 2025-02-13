@@ -29,7 +29,9 @@ class LeptonAIImgGenModel(ImageGenBase):
     def _send_request(self, prompt: str, **kwargs) -> bytes:
         """Send a request to Lepton AI's API for image generation."""
         client = requests.Session()
-        client.headers.update({"Authorization": f"Bearer {self.api_key.get_secret_value()}"})
+        client.headers.update(
+            {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
+        )
 
         payload = {
             "prompt": prompt,

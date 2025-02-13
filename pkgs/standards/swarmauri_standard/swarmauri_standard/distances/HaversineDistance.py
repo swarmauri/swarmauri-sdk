@@ -4,15 +4,18 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(DistanceBase, 'HaversineDistance')
+
+@ComponentBase.register_type(DistanceBase, "HaversineDistance")
 class HaversineDistance(DistanceBase):
     """
     Concrete implementation of IDistanceSimiliarity interface using the Haversine formula.
-    
-    Haversine formula determines the great-circle distance between two points on a sphere given their 
+
+    Haversine formula determines the great-circle distance between two points on a sphere given their
     longitudes and latitudes. This implementation is particularly useful for geo-spatial data.
-    """ 
-    type: Literal['HaversineDistance'] = 'HaversineDistance'   
+    """
+
+    type: Literal["HaversineDistance"] = "HaversineDistance"
+
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
         Computes the Haversine distance between two geo-spatial points.
@@ -34,7 +37,7 @@ class HaversineDistance(DistanceBase):
         dlon = lon2 - lon1
 
         # Haversine formula
-        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
         distance = R * c
 
@@ -42,10 +45,10 @@ class HaversineDistance(DistanceBase):
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         raise NotImplementedError("Similarity not implemented for Haversine distance.")
-        
+
     def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
         return distances
-    
+
     def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
         raise NotImplementedError("Similarity not implemented for Haversine distance.")

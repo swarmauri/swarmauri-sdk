@@ -1,4 +1,3 @@
-
 import base64
 import matplotlib.pyplot as plt
 from typing import List, Literal
@@ -7,7 +6,8 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'MatplotlibTool')
+
+@ComponentBase.register_type(ToolBase, "MatplotlibTool")
 class MatplotlibTool(ToolBase):
     version: str = "1.0.0"
     name: str = "MatplotlibTool"
@@ -118,4 +118,3 @@ class MatplotlibTool(ToolBase):
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
         return {"img_path": save_path, "img_base64": encoded_image, "data": []}
-
