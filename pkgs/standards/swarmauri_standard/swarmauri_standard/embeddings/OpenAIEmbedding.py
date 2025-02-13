@@ -1,11 +1,14 @@
-import httpx
 from typing import List, Literal, Optional
-from pydantic import PrivateAttr, Field
-from swarmauri_standard.vectors.Vector import Vector
+
+import httpx
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(EmbeddingBase, 'OpenAIEmbedding')
+from swarmauri_standard.vectors.Vector import Vector
+
+
+@ComponentBase.register_type(EmbeddingBase, "OpenAIEmbedding")
 class OpenAIEmbedding(EmbeddingBase):
     """
     A class for generating embeddings using the OpenAI API via REST endpoints.
@@ -34,7 +37,7 @@ class OpenAIEmbedding(EmbeddingBase):
     ]
 
     model: str = Field(default="text-embedding-3-small")
-    api_key: Optional[str] = Field(default=None, exclude=True)
+    api_key: Optional[SecretStr] = Field(default=None)
 
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/embeddings")
     _headers: dict = PrivateAttr(default_factory=dict)
@@ -42,24 +45,18 @@ class OpenAIEmbedding(EmbeddingBase):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        model: str = "text-embedding-3-small",
         **kwargs,
     ):
         super().__init__(**kwargs)
-
-        if model not in self.allowed_models:
+        if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
             )
 
-        self.model = model
-        self.api_key = api_key
-
-        if api_key:
+        if self.api_key.get_secret_value():
             self._headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             }
             self._client = httpx.Client()
 
@@ -76,7 +73,7 @@ class OpenAIEmbedding(EmbeddingBase):
         Raises:
             ValueError: If an error occurs during the API request or response processing.
         """
-        if not self.api_key:
+        if not self.api_key.get_secret_value():
             raise ValueError("API key must be provided for inference")
 
         if not data:

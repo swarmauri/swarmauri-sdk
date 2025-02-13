@@ -1,39 +1,43 @@
 import os
+
 import pytest
-from swarmauri_standard.embeddings.GeminiEmbedding import GeminiEmbedding
 from dotenv import load_dotenv
+from swarmauri_standard.embeddings.GeminiEmbedding import GeminiEmbedding
 
 load_dotenv()
 
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+
+@pytest.fixture
+def gemini_embedding(scope="module"):
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    return GeminiEmbedding(api_key=API_KEY)
+
 
 @pytest.mark.unit
-def test_ubc_resource():
-    assert GeminiEmbedding().resource == "Embedding"
+def test_ubc_resource(gemini_embedding):
+    assert gemini_embedding.resource == "Embedding"
 
 
 @pytest.mark.unit
-def test_ubc_type():
-    assert GeminiEmbedding().type == "GeminiEmbedding"
+def test_ubc_type(gemini_embedding):
+    assert gemini_embedding.type == "GeminiEmbedding"
 
 
 @pytest.mark.unit
-def test_serialization():
-    embedder = GeminiEmbedding()
+def test_serialization(gemini_embedding):
     assert (
-        embedder.id
-        == GeminiEmbedding.model_validate_json(embedder.model_dump_json()).id
+        gemini_embedding.id
+        == GeminiEmbedding.model_validate_json(gemini_embedding.model_dump_json()).id
     )
 
 
 @pytest.mark.unit
-@pytest.mark.skipif(
-    not os.getenv("GEMINI_API_KEY"),
-    reason="Skipping due to environment variable not set",
-)
-def test_infer():
-    embedder = GeminiEmbedding(api_key=os.getenv("GEMINI_API_KEY"))
+def test_infer(gemini_embedding):
     documents = ["test", "cat", "banana"]
-    response = embedder.infer_vector(documents)
+    response = gemini_embedding.infer_vector(documents)
     assert 3 == len(response)
     assert float is type(response[0].value[0])
     assert 768 == len(response[0].value)

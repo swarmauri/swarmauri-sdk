@@ -54,7 +54,7 @@ class PineconeVectorStore(
 
         """
         try:
-            pc = Pinecone(api_key=self.api_key)
+            pc = Pinecone(api_key=self.api_key.get_secret_value())
             pc.delete_index(self.collection_name)
             self.client = None
         except Exception as e:
@@ -73,7 +73,7 @@ class PineconeVectorStore(
 
         """
         try:
-            pc = Pinecone(api_key=self.api_key)
+            pc = Pinecone(api_key=self.api_key.get_secret_value())
             if not pc.has_index(self.collection_name):
                 pc.create_index(
                     name=self.collection_name,

@@ -60,7 +60,7 @@ class CloudQdrantVectorStore(
         """
         if self.client is None:
             self.client = QdrantClient(
-                api_key=self.api_key,
+                api_key=self.api_key.get_secret_value(),
                 url=self.url,
             )
 

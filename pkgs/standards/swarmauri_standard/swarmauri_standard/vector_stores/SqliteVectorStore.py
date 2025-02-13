@@ -2,11 +2,9 @@ import json
 import os
 import sqlite3
 import tempfile
-from typing import List, Optional, Literal, Dict
+from typing import Dict, List, Literal, Optional
+
 import numpy as np
-from swarmauri_standard.vectors.Vector import Vector
-from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -14,9 +12,14 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-
 from swarmauri_core.ComponentBase import ComponentBase
-@ComponentBase.register_type(VectorStoreBase, 'SqliteVectorStore')
+
+from swarmauri_standard.distances.CosineDistance import CosineDistance
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.vectors.Vector import Vector
+
+
+@ComponentBase.register_type(VectorStoreBase, "SqliteVectorStore")
 class SqliteVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):
