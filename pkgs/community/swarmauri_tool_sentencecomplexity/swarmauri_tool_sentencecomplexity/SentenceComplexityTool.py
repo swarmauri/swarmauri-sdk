@@ -25,9 +25,7 @@ class SentenceComplexityTool(ToolBase):
     )
 
     name: str = "SentenceComplexityTool"
-    description: str = (
-        "Evaluates sentence complexity based on average sentence length and the number of clauses."
-    )
+    description: str = "Evaluates sentence complexity based on average sentence length and the number of clauses."
     type: Literal["SentenceComplexityTool"] = "SentenceComplexityTool"
 
     def __call__(self, text: str) -> Dict[str, float]:

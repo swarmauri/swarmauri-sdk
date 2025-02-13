@@ -46,7 +46,10 @@ def test_ubc_type(groq_stt_model):
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_stt_model):
-    assert groq_stt_model.id == GroqSTT.model_validate_json(groq_stt_model.model_dump_json()).id
+    assert (
+        groq_stt_model.id
+        == GroqSTT.model_validate_json(groq_stt_model.model_dump_json()).id
+    )
 
 
 @timeout(5)

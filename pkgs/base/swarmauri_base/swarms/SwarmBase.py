@@ -13,6 +13,7 @@ class SwarmStatus(Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
+
 @ComponentBase.register_model()
 class SwarmBase(ISwarm, ComponentBase):
     """Base class for Swarm implementations"""

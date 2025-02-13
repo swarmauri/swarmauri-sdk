@@ -37,13 +37,13 @@ def test_call():
     result = tool(location)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("weather_info"), str
-    ), f"Expected str, but got {type(result.get('weather_info')).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("weather_info"), str), (
+        f"Expected str, but got {type(result.get('weather_info')).__name__}"
+    )
 
-    assert (
-        result.get("weather_info") == expected_result
-    ), f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"
+    assert result.get("weather_info") == expected_result, (
+        f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"
+    )

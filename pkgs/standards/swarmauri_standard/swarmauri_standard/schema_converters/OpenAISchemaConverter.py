@@ -1,11 +1,12 @@
-from typing import  Dict, Any, Literal
+from typing import Dict, Any, Literal
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(SchemaConverterBase, 'OpenAISchemaConverter')
+
+@ComponentBase.register_type(SchemaConverterBase, "OpenAISchemaConverter")
 class OpenAISchemaConverter(SchemaConverterBase):
-    type: Literal['OpenAISchemaConverter'] = 'OpenAISchemaConverter'
+    type: Literal["OpenAISchemaConverter"] = "OpenAISchemaConverter"
 
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
@@ -17,7 +18,7 @@ class OpenAISchemaConverter(SchemaConverterBase):
                 "description": param.description,
             }
             if param.enum:
-                properties[param.name]['enum'] = param.enum
+                properties[param.name]["enum"] = param.enum
 
             if param.required:
                 required.append(param.name)
@@ -31,6 +32,6 @@ class OpenAISchemaConverter(SchemaConverterBase):
                     "type": "object",
                     "properties": properties,
                     "required": required,
-                }
-            }
+                },
+            },
         }

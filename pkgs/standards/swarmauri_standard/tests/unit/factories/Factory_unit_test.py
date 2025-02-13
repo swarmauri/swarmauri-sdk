@@ -27,7 +27,6 @@ def test_serialization(factory):
 
 @pytest.mark.unit
 def test_factory_register_create_resource(factory):
-
     # Register a resource and type
     factory.register("Parser", "BeautifulSoupElementParser", BeautifulSoupElementParser)
 
@@ -43,7 +42,6 @@ def test_factory_register_create_resource(factory):
 
 @pytest.mark.unit
 def test_factory_create_unregistered_resource(factory):
-
     # Attempt to create an instance of an unregistered resource
     with pytest.raises(
         ModuleNotFoundError, match="Resource 'UnknownResource' is not registered."
@@ -53,7 +51,6 @@ def test_factory_create_unregistered_resource(factory):
 
 @pytest.mark.unit
 def test_factory_duplicate_register(factory):
-
     # Attempt to register the same type again
     with pytest.raises(
         ValueError,
@@ -66,7 +63,6 @@ def test_factory_duplicate_register(factory):
 
 @pytest.mark.unit
 def test_factory_create_unregistered_type(factory):
-
     # Attempt to create an instance of an unregistered type
     with pytest.raises(
         ValueError,

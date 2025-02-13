@@ -3,19 +3,24 @@ from pydantic import Field, ConfigDict
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.conversations.ConversationSystemContextMixin import ConversationSystemContextMixin
+from swarmauri_base.conversations.ConversationSystemContextMixin import (
+    ConversationSystemContextMixin,
+)
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ConversationBase, 'SessionCacheConversation')
-class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, ConversationBase):
+
+@ComponentBase.register_type(ConversationBase, "SessionCacheConversation")
+class SessionCacheConversation(
+    IMaxSize, ConversationSystemContextMixin, ConversationBase
+):
     max_size: int = Field(default=2, gt=1)
     system_context: Optional[SystemMessage] = None
     session_max_size: int = Field(default=-1)
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['SessionCacheConversation'] = 'SessionCacheConversation'
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    type: Literal["SessionCacheConversation"] = "SessionCacheConversation"
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -29,14 +34,21 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
         We are forcing the SystemContext to be a preamble only.
         """
         if isinstance(message, SystemMessage):
-            raise ValueError(f"System context cannot be set through this method on {self.__class_name__}.")
+            raise ValueError(
+                f"System context cannot be set through this method on {self.__class_name__}."
+            )
         if not self._history and not isinstance(message, HumanMessage):
-            raise ValueError("The first message in the history must be an HumanMessage.")
-        if self._history and isinstance(self._history[-1], HumanMessage) and isinstance(message, HumanMessage):
+            raise ValueError(
+                "The first message in the history must be an HumanMessage."
+            )
+        if (
+            self._history
+            and isinstance(self._history[-1], HumanMessage)
+            and isinstance(message, HumanMessage)
+        ):
             raise ValueError("Cannot have two repeating HumanMessages.")
-        
-        super().add_message(message)
 
+        super().add_message(message)
 
     def session_to_dict(self) -> List[dict]:
         """
@@ -44,10 +56,10 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
         """
         included_fields = {"role", "content"}
         return [message.dict(include=included_fields) for message in self.session]
-    
+
     @property
     def session(self) -> List[IMessage]:
-        return self._history[-self.session_max_size:]
+        return self._history[-self.session_max_size :]
 
     @property
     def history(self):
@@ -62,7 +74,7 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
         alternating = True
         count = 0
 
-        for message in self._history[-self.max_size:]:
+        for message in self._history[-self.max_size :]:
             if isinstance(message, HumanMessage) and alternating:
                 res.append(message)
                 alternating = not alternating  # Switch to expecting AgentMessage
@@ -74,9 +86,8 @@ class SessionCacheConversation(IMaxSize, ConversationSystemContextMixin, Convers
 
             if count >= self.max_size:
                 break
-                
+
         if self.system_context:
             res = [self.system_context] + res
-            
-        return res
 
+        return res

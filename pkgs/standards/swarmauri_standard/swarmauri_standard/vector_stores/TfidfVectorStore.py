@@ -12,7 +12,8 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 )
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(VectorStoreBase, 'TfidfVectorStore')
+
+@ComponentBase.register_type(VectorStoreBase, "TfidfVectorStore")
 class TfidfVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
 ):

@@ -20,7 +20,8 @@ def test_ubc_type(tfidf_embedder):
 @pytest.mark.unit
 def test_serialization(tfidf_embedder):
     assert (
-        tfidf_embedder.id == TfidfEmbedding.model_validate_json(tfidf_embedder.model_dump_json()).id
+        tfidf_embedder.id
+        == TfidfEmbedding.model_validate_json(tfidf_embedder.model_dump_json()).id
     )
 
 

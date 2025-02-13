@@ -9,7 +9,9 @@ class ITracer(ABC):
     """
 
     @abstractmethod
-    def start_trace(self, name: str, initial_attributes: Optional[Dict[str, Any]] = None) -> ITraceContext:
+    def start_trace(
+        self, name: str, initial_attributes: Optional[Dict[str, Any]] = None
+    ) -> ITraceContext:
         """
         Starts a new trace with a given name and optional initial attributes.
 

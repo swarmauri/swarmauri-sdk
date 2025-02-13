@@ -50,20 +50,20 @@ def test_call():
     result = tool(input_data)
 
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
 
-    assert isinstance(
-        result.get("reading_ease"), float
-    ), f"Expected float, but got {type(result.get('reading_ease')).__name__}"
-    assert isinstance(
-        result.get("grade_level"), float
-    ), f"Expected float, but got {type(result.get('grade_level')).__name__}"
+    assert isinstance(result.get("reading_ease"), float), (
+        f"Expected float, but got {type(result.get('reading_ease')).__name__}"
+    )
+    assert isinstance(result.get("grade_level"), float), (
+        f"Expected float, but got {type(result.get('grade_level')).__name__}"
+    )
 
-    assert (
-        result.get("reading_ease") == expected_reading_ease
-    ), f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"
-    assert (
-        result.get("grade_level") == expected_grade_level
-    ), f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"
+    assert result.get("reading_ease") == expected_reading_ease, (
+        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"
+    )
+    assert result.get("grade_level") == expected_grade_level, (
+        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"
+    )

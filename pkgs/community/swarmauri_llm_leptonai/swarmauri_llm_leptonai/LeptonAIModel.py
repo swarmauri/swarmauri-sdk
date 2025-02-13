@@ -45,7 +45,9 @@ class LeptonAIModel(LLMBase):
         super().__init__(**data)
         url = f"https://{self.name}.lepton.run/api/v1/"
         self.client = OpenAI(base_url=url, api_key=self.api_key.get_secret_value())
-        self.async_client = AsyncOpenAI(base_url=url, api_key=self.api_key.get_secret_value())
+        self.async_client = AsyncOpenAI(
+            base_url=url, api_key=self.api_key.get_secret_value()
+        )
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

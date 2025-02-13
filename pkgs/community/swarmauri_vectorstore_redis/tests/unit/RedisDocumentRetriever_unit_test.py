@@ -21,6 +21,7 @@ def retriever():
         redis_idx_name="test_index", redis_host="localhost", redis_port=6379
     )
 
+
 @pytest.mark.unit
 def test_ubc_resource(retriever):
     assert retriever.resource == "DocumentStore"
@@ -35,9 +36,7 @@ def test_ubc_type(retriever):
 def test_serialization(retriever):
     assert (
         retriever.id
-        == RedisDocumentRetriever.model_validate_json(
-            retriever.model_dump_json()
-        ).id
+        == RedisDocumentRetriever.model_validate_json(retriever.model_dump_json()).id
     )
 
 

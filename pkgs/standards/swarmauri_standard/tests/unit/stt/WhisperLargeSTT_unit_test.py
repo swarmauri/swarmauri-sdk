@@ -48,7 +48,12 @@ def test_ubc_type(whisperlarge_stt_model):
 @timeout(5)
 @pytest.mark.unit
 def test_serialization(whisperlarge_stt_model):
-    assert whisperlarge_stt_model.id == WhisperLargeSTT.model_validate_json(whisperlarge_stt_model.model_dump_json()).id
+    assert (
+        whisperlarge_stt_model.id
+        == WhisperLargeSTT.model_validate_json(
+            whisperlarge_stt_model.model_dump_json()
+        ).id
+    )
 
 
 @timeout(5)

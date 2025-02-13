@@ -1,8 +1,8 @@
 from typing import Any
 from abc import ABC, abstractmethod
 
-class IMeasurementCalculate(ABC):
 
+class IMeasurementCalculate(ABC):
     @abstractmethod
     def calculate(self, **kwargs) -> Any:
         """
@@ -27,4 +27,3 @@ class IMeasurementCalculate(ABC):
             This method is intended for internal use and should not be publicly accessible.
         """
         pass
-        

@@ -26,9 +26,7 @@ class LexicalDensityTool(ToolBase):
     )
 
     name: str = "LexicalDensityTool"
-    description: str = (
-        "Calculates the lexical density of a text, indicating the proportion of lexical words."
-    )
+    description: str = "Calculates the lexical density of a text, indicating the proportion of lexical words."
     type: Literal["LexicalDensityTool"] = "LexicalDensityTool"
 
     def __call__(self, text: str) -> Dict[str, float]:

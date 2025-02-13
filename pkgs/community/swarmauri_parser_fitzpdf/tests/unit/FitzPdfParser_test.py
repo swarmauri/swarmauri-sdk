@@ -62,6 +62,6 @@ def test_parser():
             documents[0].content
             == "This is the text from page 1.\nThis is the text from page 2.\n"
         ), "The extracted text content is incorrect."
-        assert (
-            documents[0].metadata["source"] == file_path
-        ), "The metadata 'source' should match the file path."
+        assert documents[0].metadata["source"] == file_path, (
+            "The metadata 'source' should match the file path."
+        )

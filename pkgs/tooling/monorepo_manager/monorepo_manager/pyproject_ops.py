@@ -5,7 +5,7 @@ pyproject_ops.py
 Provides functions for operating on pyproject.toml files:
   - extract_path_dependencies: Retrieves dependencies that are defined with a "path".
   - extract_git_dependencies: Retrieves dependencies that are defined with a "git" key.
-  - update_dependency_versions: For local dependencies (with a "path"), update their version in the parent 
+  - update_dependency_versions: For local dependencies (with a "path"), update their version in the parent
     pyproject.toml and optionally in the dependency’s own pyproject.toml.
 
 These functions can be used independently or integrated into a larger monorepo management tool.
@@ -121,11 +121,18 @@ def update_dependency_versions(pyproject_path, new_version):
                         dep_data["tool"]["poetry"]["version"] = new_version
                         with open(dependency_pyproject, "w") as dep_file:
                             toml.dump(dep_data, dep_file)
-                        print(f"Updated {dependency_pyproject} to version {new_version}")
+                        print(
+                            f"Updated {dependency_pyproject} to version {new_version}"
+                        )
                     else:
-                        print(f"Invalid structure in {dependency_pyproject}", file=sys.stderr)
+                        print(
+                            f"Invalid structure in {dependency_pyproject}",
+                            file=sys.stderr,
+                        )
                 except Exception as e:
-                    print(f"Error updating {dependency_pyproject}: {e}", file=sys.stderr)
+                    print(
+                        f"Error updating {dependency_pyproject}: {e}", file=sys.stderr
+                    )
         else:
             updated_deps[dep_name] = details
 
@@ -143,7 +150,7 @@ def update_dependency_versions(pyproject_path, new_version):
 def main():
     """
     Provides a basic CLI for testing pyproject.toml operations.
-    
+
     Usage Examples:
       - Extract dependencies:
             python pyproject_ops.py --pyproject path/to/pyproject.toml
@@ -152,7 +159,9 @@ def main():
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Operate on pyproject.toml dependencies")
+    parser = argparse.ArgumentParser(
+        description="Operate on pyproject.toml dependencies"
+    )
     parser.add_argument(
         "--pyproject",
         required=True,

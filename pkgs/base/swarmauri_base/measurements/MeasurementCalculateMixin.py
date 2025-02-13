@@ -4,12 +4,13 @@ from pydantic import BaseModel
 
 from swarmauri_core.measurements.IMeasurementCalculate import IMeasurementCalculate
 
+
 class MeasurementCalculateMixin(IMeasurementCalculate, BaseModel):
     """
     A base implementation of the IMeasurement interface that provides the foundation
     for specific measurement implementations.
     """
-    
+
     def update(self, value) -> None:
         """
         Update the measurement value based on new information.
@@ -23,8 +24,8 @@ class MeasurementCalculateMixin(IMeasurementCalculate, BaseModel):
         Calculate the measurement based on the provided data.
         This method must be implemented by subclasses to define specific calculation logic.
         """
-        raise NotImplementedError('calculate is not implemented yet.')
-    
+        raise NotImplementedError("calculate is not implemented yet.")
+
     def __call__(self, **kwargs) -> Any:
         """
         Calculates the measurement, updates the value, and returns the current value.

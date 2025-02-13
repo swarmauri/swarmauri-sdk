@@ -4,7 +4,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'TestTool')
+
+@ComponentBase.register_type(ToolBase, "TestTool")
 class TestTool(ToolBase):
     version: str = "1.0.0"
 
@@ -29,4 +30,3 @@ class TestTool(ToolBase):
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return {"program": f"Program Opened: {program}"}
-

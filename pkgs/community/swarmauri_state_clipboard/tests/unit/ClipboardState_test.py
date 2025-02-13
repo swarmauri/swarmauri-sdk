@@ -17,8 +17,9 @@ def clipboard_state():
     def mock_paste():
         return mock_clipboard_content
 
-    with patch("pyperclip.copy", side_effect=mock_copy), patch(
-        "pyperclip.paste", side_effect=mock_paste
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
     ):
         state = ClipboardState()
         yield state
