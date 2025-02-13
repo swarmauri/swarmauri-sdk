@@ -1,0 +1,111 @@
+PROJECTS:
+  - PROJECT_NAME: "tooling"
+    PROJECT_ROOT: "pkgs"
+    PROJECT_REQUIREMENTS:
+      - "Initialize profiling using libraries such as cProfile or psutil."
+      - "Capture CPU, memory, and I/O metrics from the application."
+      - "Log the start of the profiling session with appropriate timestamps."
+    TEMPLATE_SET: "test3"
+    PACKAGES:
+      - NAME: "swarmauri_tool_profiling_startsession_beta722"
+        AUTHORS:
+          - "Jacob Stewart"
+        PURPOSE: "Starts a performance profiling session."
+        DESCRIPTION: "Starts a performance profiling session to capture CPU, memory, and I/O usage metrics."
+        REQUIREMENTS:
+          - "Initialize profiling using libraries such as cProfile or psutil."
+          - "Capture CPU, memory, and I/O metrics from the application."
+          - "Log the start of the profiling session with appropriate timestamps."
+        PACKAGE_REQUIRES:
+          - NAME: "psutil"
+            VERSION: "*"
+        MODULES:
+          - NAME: "StartProfilingSessionTool"
+            PURPOSE: "Implements the performance profiling tool."
+            DESCRIPTION: "This module starts a profiling session to capture CPU, memory, and I/O usage metrics."
+            REQUIREMENTS:
+              - "Initialize profiling using libraries such as cProfile or psutil."
+              - "Capture CPU, memory, and I/O metrics from the application."
+              - "Log the start of the profiling session with appropriate timestamps."
+            RESOURCE_KIND: "tools"
+            BASE_NAME: "ToolBase"
+            BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
+            EXAMPLES:
+              - "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py"
+
+      - NAME: "swarmauri_tool_profiling_stopsession_alpha722"
+        AUTHORS:
+          - "Jacob Stewart"
+        PURPOSE: "Stops a performance profiling session."
+        DESCRIPTION: "Stops a performance profiling session to capture CPU, memory, and I/O usage metrics."
+        REQUIREMENTS:
+          - "Initialize profiling using libraries such as cProfile or psutil."
+          - "Capture CPU, memory, and I/O metrics from the application."
+          - "Log the start of the profiling session with appropriate timestamps."
+        PACKAGE_REQUIRES:
+          - NAME: "psutil"
+            VERSION: "^0.99.0.dev14"
+        MODULES:
+          - NAME: "StopProfilingSessionTool"
+            PURPOSE: "Implements the performance profiling tool."
+            DESCRIPTION: "This module stops a profiling session to capture CPU, memory, and I/O usage metrics."
+            REQUIREMENTS:
+              - "Initialize profiling using libraries such as cProfile or psutil."
+              - "Capture CPU, memory, and I/O metrics from the application."
+              - "Log the start of the profiling session with appropriate timestamps."
+            RESOURCE_KIND: "tools"
+            BASE_NAME: "ToolBase"
+            BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
+            EXAMPLES:
+              - "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py"
+
+          - NAME: "ReviewProfilingSessionTool"
+            PURPOSE: "Implements the performance profiling tool."
+            DESCRIPTION: "This module reviews a profiling session to capture CPU, memory, and I/O usage metrics."
+            REQUIREMENTS:
+              - "Review results"
+            RESOURCE_KIND: "tools"
+            BASE_NAME: "ToolBase"
+            BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
+            EXAMPLES:
+              - "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py"
+
+          - NAME: "TestTool"
+            PURPOSE: "Implements the test profiling tool."
+            DESCRIPTION: "This module tests a profiling session to capture CPU, memory, and I/O usage metrics."
+            REQUIREMENTS:
+              - "test tool"
+            RESOURCE_KIND: "tools"
+            BASE_NAME: "ToolBase"
+            BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
+            EXAMPLES:
+              - "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py"
+
+      - NAME: "swarmauri_toolkit_profiling_cal722"
+        AUTHORS:
+          - "Jacob Stewart"
+        PURPOSE: "A performance profiling toolkit."
+        DESCRIPTION: "Stops a performance profiling session to capture CPU, memory, and I/O usage metrics."
+        REQUIREMENTS:
+          - "Initialize profiling using libraries such as cProfile or psutil."
+          - "Capture CPU, memory, and I/O metrics from the application."
+          - "Log the start of the profiling session with appropriate timestamps."
+        PACKAGE_REQUIRES:
+          - NAME: "psutil"
+            VERSION: "^0.99.0.dev14"
+        MODULES:
+          - NAME: "ProfilingToolkit"
+            PURPOSE: "Implements the profiling tools."
+            DESCRIPTION: "This module supports an array of profiling tools design to capture CPU, memory, and I/O usage metrics."
+            REQUIREMENTS:
+              - "Install/Import all tool packages as package dependencies."
+              - "Nest all tool modules on the toolkit class."
+            RESOURCE_KIND: "toolkits"
+            BASE_NAME: "ToolkitBase"
+            BASE_FILE: "base/swarmauri_base/toolkits/ToolkitBase.py"
+            EXAMPLES:
+              - "standards/swarmauri_standard/swarmauri_standard/toolkits/AccessibilityToolkit.py"
+            DEPENDENCIES:
+              - "swarmauri_tool_profiling_stopsession_alpha722.ReviewProfilingSessionTool.py"
+              - "swarmauri_tool_profiling_stopsession_alpha722.StopProfilingSessionTool.py"
+              - "swarmauri_tool_profiling_stopsession_alpha722.TestTool.py"

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional
+
 
 class IPromptMatrix(ABC):
-
     @property
     @abstractmethod
     def shape(self) -> Tuple[int, int]:

@@ -1,0 +1,44 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div align="center">
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_sentimentanalysis)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_sentimentanalysis)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_sentimentanalysis)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_sentimentanalysis?label=swarmauri_tool_sentimentanalysis&color=green)
+
+</div>
+
+---
+
+# Sentiment Analysis Tool
+
+A tool for analyzing the sentiment of text using Hugging Face's transformers library. This tool provides simple sentiment analysis capabilities, classifying text as POSITIVE, NEGATIVE, or NEUTRAL.
+
+## Installation
+
+```bash
+pip install swarmauri_tool_sentimentanalysis
+```
+
+## Usage
+Here's a basic example of how to use the Sentiment Analysis Tool:
+```python
+from swarmauri.tools.SentimentAnalysisTool import SentimentAnalysisTool
+
+# Initialize the tool
+tool = SentimentAnalysisTool()
+
+# Analyze sentiment
+result = tool("I love this product!")
+print(result)  # {'sentiment': 'POSITIVE'}
+
+# Another example
+result = tool("This product is okay.")
+print(result)  # {'sentiment': 'NEUTRAL'}
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+

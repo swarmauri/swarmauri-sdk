@@ -56,7 +56,7 @@ def load_pytest_results(report_file):
 
 def ask_agent_for_fix(test_name, failure_message, stack_trace):
     """Ask the LLM Model for suggestions on fixing the test failure."""
-    system_context = f"Utilizing the following codebase solve the user's problem.\nCodebase:\n\n"
+    system_context = "Utilizing the following codebase solve the user's problem.\nCodebase:\n\n"
     prompt = f"""
     \n\nUser Problem:
     I have a failing pytest test case named '{test_name}' in a Python project. The error message is:

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Any
+from typing import List, Union
 
 from swarmauri_core.documents.IDocument import IDocument
 from typing_extensions import Annotated

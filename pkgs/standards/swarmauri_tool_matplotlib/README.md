@@ -1,0 +1,64 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div align="center">
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_matplotlib)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_matplotlib)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_matplotlib)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_matplotlib?label=swarmauri_tool_matplotlib&color=green)
+
+</div>
+
+---
+
+# Matplotlib Tool Package
+
+A Swarmauri package that provides tools for generating plots using Matplotlib. Includes support for basic plots and CSV data visualization.
+
+## Installation
+
+```bash
+pip install swarmauri_tool_matplotlib
+```
+
+## Usage
+
+### Basic Plotting
+```python
+from swarmauri.tools.MatplotlibTool import MatplotlibTool
+
+# Create a tool instance
+tool = MatplotlibTool()
+
+# Generate a line plot
+result = tool(
+    plot_type="line",
+    x_data=[1, 2, 3],
+    y_data=[4, 5, 6],
+    title="Line Plot",
+    x_label="X-axis",
+    y_label="Y-axis",
+    save_path="plot.png"
+)
+```
+
+### CSV Data Plotting
+```python
+from swarmauri_tool_matplotlib.MatplotlibCsvTool import MatplotlibCsvTool
+
+# Create a CSV tool instance
+csv_tool = MatplotlibCsvTool()
+
+# Generate a plot from CSV data
+result = csv_tool(
+    csv_file="data.csv",
+    x_column="x",
+    y_column="y",
+    output_file="csv_plot.png"
+)
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+

@@ -1,0 +1,78 @@
+name: v0.6.0.dev1 - Install and Build Specified Packages
+
+on:
+  push:
+
+jobs:
+  test:
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Generate poetry.lock (if missing)
+        run: |
+          if [ ! -f "poetry.lock" ]; then
+            echo "poetry.lock not found. Generating it..."
+            cd pkgs
+            poetry lock
+          else
+            echo "poetry.lock exists."
+          fi
+
+      - name: Install All Path Dependencies
+        run: |
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs/
+          poetry install --no-cache -vv --all-extras --with dev
+
+      - name: Extract Path Dependencies
+        id: extract-paths
+        run: |
+          cd pkgs
+          source $UNIQUE_VENV_PATH/bin/activate
+          output_file=$(mktemp)
+          poetry run python ../scripts/extract_path_dependencies.py --pyproject pyproject.toml > $output_file
+          path_dependencies=$(cat $output_file)
+          echo "path_dependencies=$path_dependencies" >> $GITHUB_ENV
+        env:
+          UNIQUE_VENV_PATH: ${{ env.UNIQUE_VENV_PATH }}
+
+      - name: Build Specified Packages
+        run: |
+          cd pkgs
+          source $UNIQUE_VENV_PATH/bin/activate
+          for package_path in $(echo ${{ env.path_dependencies }} | tr ',' ' '); do
+            full_path="./$package_path"
+            if [ -d "$full_path" ] && [ -f "$full_path/pyproject.toml" ]; then
+              echo "Building $full_path"
+              cd "$full_path"
+              poetry build
+              cd - >/dev/null
+            else
+              echo "Skipping $full_path: not a valid package directory"
+            fi
+          done
+
+
+      - name: Show Pip Freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
+
+      - name: Clean up virtual environment
+        if: always()
+        run: |
+          rm -rf ${{ env.UNIQUE_VENV_PATH }}

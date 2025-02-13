@@ -1,0 +1,44 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div align="center">
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_pypdf2)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_pypdf2)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_pypdf2)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_pypdf2?label=swarmauri_parser_pypdf2&color=green)
+
+</div>
+
+---
+
+# Swarmauri PyPDF2 Parser
+
+A parser for reading and extracting text from PDF files using PyPDF2.
+
+## Installation
+
+```bash
+pip install swarmauri_parser_pypdf2
+```
+
+## Usage
+Basic usage examples with code snippets
+```python
+from swarmauri.parsers.PyPDF2Parser import PyPDF2Parser
+
+parser = PyPDF2Parser()
+
+# Parsing from a file path
+documents = parser.parse("path/to/your/file.pdf")
+for doc in documents:
+    print(doc.content)
+
+# Parsing from bytes
+pdf_bytes = b"%PDF-1.4 ... (binary content)"
+documents = parser.parse(pdf_bytes)
+for doc in documents:
+    print(doc.content)
+```
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

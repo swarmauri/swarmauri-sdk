@@ -1,1 +1,1 @@
-from swarmauri_core.chains.ICallableChain import ICallableChain
+from swarmauri_core.chains.ICallableChain import ICallableChain as ICallableChain
