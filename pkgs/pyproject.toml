@@ -63,16 +63,16 @@ swarmauri_measurement_mutualinformation = { git = "https://github.com/swarmauri/
 swarmauri_parser_pypdf2 = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_parser_pypdf2", optional = true }
 swarmauri_measurement_tokencountestimator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator", optional = true }
 swarmauri_ocr_pytesseractimg2text = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_ocr_pytesseractimg2text", optional = true }
-swarmauri_tool_entityrecognition = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_entityrecognition", optional = true }
 swarmauri_tool_downloadpdf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_downloadpdf", optional = true }
 swarmauri_tool_dalechallreadability = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_dalechallreadability", optional = true }
-swarmauri_llm_leptonai = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_llm_leptonai", optional = true }
 swarmauri_tool_gmail = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_gmail", optional = true }
 swarmauri_tool_folium = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_folium", optional = true }
 swarmauri_tool_psutil = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_psutil", optional = true }
 swarmauri_embedding_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_embedding_mlm", optional = true }
 swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_github", optional = true }
-swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
+#swarmauri_tool_entityrecognition = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_tool_entityrecognition", optional = true }
+#swarmauri_llm_leptonai = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_llm_leptonai", optional = true }
+#swarmauri_vectorstore_annoy = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/community/swarmauri_vectorstore_annoy", optional = true }
 
 #swm_example_community_package = { path = "./community/swm_example_community_package" }
 
