@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from swarmauri_core.vectors.IVector import IVector
 
+
 class ISimilarity(ABC):
     """
     Interface to define operations for computing similarity and distance between vectors.
@@ -22,4 +23,3 @@ class ISimilarity(ABC):
             float: A similarity score between vector_a and vector_b.
         """
         pass
-

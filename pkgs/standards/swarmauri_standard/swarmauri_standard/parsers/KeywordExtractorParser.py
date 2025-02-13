@@ -5,27 +5,30 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ParserBase, 'KeywordExtractorParser')
+
+@ComponentBase.register_type(ParserBase, "KeywordExtractorParser")
 class KeywordExtractorParser(ParserBase):
     """
     Extracts keywords from text using the YAKE keyword extraction library.
     """
-    lang: str = 'en'
+
+    lang: str = "en"
     num_keywords: int = 10
     _kw_extractor: yake.KeywordExtractor = PrivateAttr(default=None)
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['KeywordExtractorParser'] = 'KeywordExtractorParser'
-    
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    type: Literal["KeywordExtractorParser"] = "KeywordExtractorParser"
+
     def __init__(self, **data):
         super().__init__(**data)
-        self._kw_extractor = yake.KeywordExtractor(lan=self.lang,
-                                                   n=3, 
-                                                   dedupLim=0.9, 
-                                                   dedupFunc='seqm', 
-                                                   windowsSize=1, 
-                                                   top=self.num_keywords, 
-                                                   features=None)
-    
+        self._kw_extractor = yake.KeywordExtractor(
+            lan=self.lang,
+            n=3,
+            dedupLim=0.9,
+            dedupFunc="seqm",
+            windowsSize=1,
+            top=self.num_keywords,
+            features=None,
+        )
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
@@ -44,6 +47,9 @@ class KeywordExtractorParser(ParserBase):
         keywords = self._kw_extractor.extract_keywords(text)
 
         # Create Document instances for each keyword
-        documents = [Document(content=keyword, metadata={"score": score}) for index, (keyword, score) in enumerate(keywords)]
-        
+        documents = [
+            Document(content=keyword, metadata={"score": score})
+            for index, (keyword, score) in enumerate(keywords)
+        ]
+
         return documents

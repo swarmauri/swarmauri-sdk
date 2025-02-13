@@ -1,12 +1,13 @@
-from typing import  Dict, Any, Literal
+from typing import Dict, Any, Literal
 
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(SchemaConverterBase, 'AnthropicSchemaConverter')
+
+@ComponentBase.register_type(SchemaConverterBase, "AnthropicSchemaConverter")
 class AnthropicSchemaConverter(SchemaConverterBase):
-    type: Literal['AnthropicSchemaConverter'] = 'AnthropicSchemaConverter'
+    type: Literal["AnthropicSchemaConverter"] = "AnthropicSchemaConverter"
 
     def convert(self, tool: SubclassUnion[ToolBase]) -> Dict[str, Any]:
         properties = {}
@@ -27,5 +28,5 @@ class AnthropicSchemaConverter(SchemaConverterBase):
                 "type": "object",
                 "properties": properties,
                 "required": required,
-            }
+            },
         }

@@ -51,7 +51,6 @@ def test_serialization(vector_store):
 
 @pytest.mark.unit
 def test_top_k(vector_store):
-
     document1 = Document(
         id="doc-001",
         content="This is the content of the first document.",

@@ -1,5 +1,6 @@
 from abc import ABC
 
+
 class IVector(ABC):
     """
     Interface for a high-dimensional data vector. This interface defines the

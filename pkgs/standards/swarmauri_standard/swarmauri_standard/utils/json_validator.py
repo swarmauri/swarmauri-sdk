@@ -3,9 +3,11 @@ import json
 import jsonschema
 from jsonschema import validate
 
+
 def load_json_file(file_path: str) -> dict:
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         return json.load(file)
+
 
 def validate_json(data: dict, schema_file: str) -> bool:
     schema = load_json_file(schema_file)

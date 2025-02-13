@@ -20,7 +20,6 @@ class QAAgent(AgentBase):
     def exec(
         self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
     ) -> Any:
-
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         self.conversation.add_message(HumanMessage(content=input_str))
@@ -31,7 +30,6 @@ class QAAgent(AgentBase):
     async def aexec(
         self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
     ) -> Any:
-
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         self.conversation.add_message(HumanMessage(content=input_str))

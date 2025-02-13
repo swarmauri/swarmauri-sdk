@@ -28,7 +28,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         input_data: Optional[Union[str, IMessage]] = "",
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
-
         # Check if the input is a string, then wrap it in a HumanMessage
         if isinstance(input_data, str):
             human_message = HumanMessage(content=input_data)
@@ -54,7 +53,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         input_data: Optional[Union[str, IMessage]] = "",
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
-
         # Check if the input is a string, then wrap it in a HumanMessage
         if isinstance(input_data, str):
             human_message = HumanMessage(content=input_data)

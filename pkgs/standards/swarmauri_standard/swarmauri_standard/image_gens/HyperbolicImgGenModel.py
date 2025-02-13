@@ -7,7 +7,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ImageGenBase, 'HyperbolicImgGenModel')
+
+@ComponentBase.register_type(ImageGenBase, "HyperbolicImgGenModel")
 class HyperbolicImgGenModel(ImageGenBase):
     """
     A model class for generating images from text prompts using Hyperbolic's image generation API.

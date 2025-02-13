@@ -14,31 +14,40 @@ class ToolkitBase(IToolkit, ComponentBase):
     """
 
     tools: Dict[str, SubclassUnion[ToolBase]] = {}
-    resource: Optional[str] =  Field(default=ResourceTypes.TOOLKIT.value, frozen=True)
-    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True)
-    type: Literal['ToolkitBase'] = 'ToolkitBase'
+    resource: Optional[str] = Field(default=ResourceTypes.TOOLKIT.value, frozen=True)
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    type: Literal["ToolkitBase"] = "ToolkitBase"
 
-    def get_tools(self, 
-                   include: Optional[List[str]] = None, 
-                   exclude: Optional[List[str]] = None,
-                   by_alias: bool = False, 
-                   exclude_unset: bool = False,
-                   exclude_defaults: bool = False, 
-                   exclude_none: bool = False
-                   ) -> Dict[str, SubclassUnion[ToolBase]]:
-            """
-            List all tools in the toolkit with options to include or exclude specific fields.
-    
-            Parameters:
-                include (List[str], optional): Fields to include in the returned dictionary.
-                exclude (List[str], optional): Fields to exclude from the returned dictionary.
-    
-            Returns:
-                Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with specified fields included or excluded.
-            """
-            return [tool.model_dump(include=include, exclude=exclude, by_alias=by_alias,
-                                   exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, 
-                                    exclude_none=exclude_none) for name, tool in self.tools.items()]
+    def get_tools(
+        self,
+        include: Optional[List[str]] = None,
+        exclude: Optional[List[str]] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -> Dict[str, SubclassUnion[ToolBase]]:
+        """
+        List all tools in the toolkit with options to include or exclude specific fields.
+
+        Parameters:
+            include (List[str], optional): Fields to include in the returned dictionary.
+            exclude (List[str], optional): Fields to exclude from the returned dictionary.
+
+        Returns:
+            Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with specified fields included or excluded.
+        """
+        return [
+            tool.model_dump(
+                include=include,
+                exclude=exclude,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+            )
+            for name, tool in self.tools.items()
+        ]
 
     def add_tools(self, tools: Dict[str, SubclassUnion[ToolBase]]) -> None:
         """
@@ -49,7 +58,7 @@ class ToolkitBase(IToolkit, ComponentBase):
         """
         self.tools.update(tools)
 
-    def add_tool(self, tool: SubclassUnion[ToolBase])  -> None:
+    def add_tool(self, tool: SubclassUnion[ToolBase]) -> None:
         """
         Add a single tool to the toolkit.
 

@@ -4,7 +4,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, 'AdditionTool')
+
+@ComponentBase.register_type(ToolBase, "AdditionTool")
 class AdditionTool(ToolBase):
     version: str = "0.0.1"
     parameters: List[Parameter] = Field(

@@ -62,12 +62,14 @@ def test_call(input_text, expected_cli_score):
 
     result = tool(input_data)
     assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(
-        result.keys()
-    ), f"Expected keys {expected_keys} but got {result.keys()}"
-    assert isinstance(
-        result.get("coleman_liau_index"), float
-    ), f"Expected float, but got {type(result).__name__}"
+    assert expected_keys.issubset(result.keys()), (
+        f"Expected keys {expected_keys} but got {result.keys()}"
+    )
+    assert isinstance(result.get("coleman_liau_index"), float), (
+        f"Expected float, but got {type(result).__name__}"
+    )
     assert result.get("coleman_liau_index") == pytest.approx(
         expected_cli_score_calculated, 0.01
-    ), f"Expected CLI score {pytest.approx(expected_cli_score_calculated, 0.01)}, but got {result.get('coleman_liau_index')}"
+    ), (
+        f"Expected CLI score {pytest.approx(expected_cli_score_calculated, 0.01)}, but got {result.get('coleman_liau_index')}"
+    )

@@ -38,7 +38,9 @@ from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverter
 from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_base.swarms.SwarmBase import SwarmBase
-from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import TaskMgmtStrategyBase
+from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
+    TaskMgmtStrategyBase,
+)
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.transports.TransportBase import TransportBase
@@ -102,28 +104,36 @@ class InterfaceRegistry:
     def get_interface_for_resource(cls, resource_kind: str) -> Optional[Type[Any]]:
         """
         Retrieve the interface class for a given resource kind.
-        
+
         :param resource_kind: The namespace or resource kind (e.g., "swarmauri.conversations").
         :return: The corresponding interface class if registered; otherwise, None.
         :raises KeyError: If the resource kind is not registered.
         """
         if resource_kind not in cls.INTERFACE_REGISTRY:
             logger.error(f"No interface registered for resource kind: {resource_kind}")
-            raise KeyError(f"No interface registered for resource kind: {resource_kind}")
-        
+            raise KeyError(
+                f"No interface registered for resource kind: {resource_kind}"
+            )
+
         interface = cls.INTERFACE_REGISTRY[resource_kind]
         if interface is None:
-            logger.warning(f"Resource kind '{resource_kind}' has no associated interface.")
+            logger.warning(
+                f"Resource kind '{resource_kind}' has no associated interface."
+            )
         else:
-            logger.debug(f"Retrieved interface '{interface.__name__}' for resource kind '{resource_kind}'.")
-        
+            logger.debug(
+                f"Retrieved interface '{interface.__name__}' for resource kind '{resource_kind}'."
+            )
+
         return interface
 
     @classmethod
-    def register_interface(cls, resource_kind: str, interface_class: Optional[Type[Any]]) -> None:
+    def register_interface(
+        cls, resource_kind: str, interface_class: Optional[Type[Any]]
+    ) -> None:
         """
         Register or update the interface class for a given resource kind.
-        
+
         :param resource_kind: The namespace or resource kind (e.g., "swarmauri.conversations").
         :param interface_class: The interface class to associate with the resource kind.
                                 If None, removes the existing association.
@@ -131,18 +141,22 @@ class InterfaceRegistry:
         if not isinstance(resource_kind, str):
             logger.error("Resource kind must be a string.")
             raise ValueError("Resource kind must be a string.")
-        
+
         cls.INTERFACE_REGISTRY[resource_kind] = interface_class
         if interface_class:
-            logger.info(f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'.")
+            logger.info(
+                f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."
+            )
         else:
-            logger.info(f"Removed interface association for resource kind '{resource_kind}'.")
+            logger.info(
+                f"Removed interface association for resource kind '{resource_kind}'."
+            )
 
     @classmethod
     def unregister_interface(cls, resource_kind: str) -> None:
         """
         Unregister the interface class for a given resource kind.
-        
+
         :param resource_kind: The namespace or resource kind to unregister.
         """
         cls.register_interface(resource_kind, None)
@@ -151,7 +165,7 @@ class InterfaceRegistry:
     def list_registered_interfaces(cls) -> Dict[str, Optional[Type[Any]]]:
         """
         List all registered resource kinds and their corresponding interfaces.
-        
+
         :return: A dictionary mapping resource kinds to their interface classes.
         """
         return cls.INTERFACE_REGISTRY.copy()
