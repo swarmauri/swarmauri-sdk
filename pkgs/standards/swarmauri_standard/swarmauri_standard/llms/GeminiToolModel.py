@@ -34,12 +34,8 @@ class GeminiToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "gemini-1.5-pro",
-        "gemini-1.5-flash",
-        # "gemini-1.0-pro",  giving an unexpected response
-    ]
-    name: str = "gemini-1.5-pro"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     _BASE_URL: str = PrivateAttr(
         default="https://generativelanguage.googleapis.com/v1beta/models"
@@ -66,6 +62,18 @@ class GeminiToolModel(LLMBase):
             },
         ]
     )
+
+    def __init__(self, api_key: SecretStr, name: str):
+        """
+        Initializes the GeminiToolModel instance with the provided API key and model name.
+
+        Args:
+            api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
+            name (str): The name of the Gemini model in use.
+        """
+        self.api_key = api_key
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -582,3 +590,19 @@ class GeminiToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        url = f"{self._BASE_URL}/models?key={self.api_key.get_secret_value()}"
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(url, headers=self._headers)
+            response.raise_for_status()
+            models_data = response.json()
+
+        allowed_models = [model["name"] for model in models_data["models"]]
+        return allowed_models

@@ -35,19 +35,8 @@ class GroqToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "llama3-8b-8192",
-        "llama3-70b-8192",
-        "llama3-groq-70b-8192-tool-use-preview",
-        "llama3-groq-8b-8192-tool-use-preview",
-        "llama-3.1-70b-versatile",
-        "llama-3.1-8b-instant",
-        # parallel tool use not supported
-        # "mixtral-8x7b-32768",
-        # "gemma-7b-it",
-        # "gemma2-9b-it",
-    ]
-    name: str = "llama3-groq-70b-8192-tool-use-preview"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["GroqToolModel"] = "GroqToolModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -73,6 +62,9 @@ class GroqToolModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=30,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -468,3 +460,15 @@ class GroqToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get(f"{self._BASE_URL}/models")
+        response.raise_for_status()
+        models_data = response.json()
+        return [model["id"] for model in models_data["data"]]

@@ -25,12 +25,9 @@ class GroqAIAudio(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "distil-whisper-large-v3-en",
-        "whisper-large-v3",
-    ]
+    allowed_models: List[str] = []
 
-    name: str = "distil-whisper-large-v3-en"
+    name: str = ""
     type: Literal["GroqAIAudio"] = "GroqAIAudio"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -54,6 +51,9 @@ class GroqAIAudio(LLMBase):
             base_url=self._BASE_URL,
             timeout=30,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -202,3 +202,18 @@ class GroqAIAudio(LLMBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+
+        Raises:
+            httpx.HTTPStatusError: If the API request fails.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data["models"]

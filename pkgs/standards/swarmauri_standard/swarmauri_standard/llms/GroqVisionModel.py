@@ -31,10 +31,8 @@ class GroqVisionModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "llama-3.2-11b-vision-preview",
-    ]
-    name: str = "llama-3.2-11b-vision-preview"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -58,6 +56,9 @@ class GroqVisionModel(LLMBase):
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -385,3 +386,15 @@ class GroqVisionModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get(f"{self._BASE_URL}/models")
+        response.raise_for_status()
+        models_data = response.json()
+        return [model["id"] for model in models_data["data"]]

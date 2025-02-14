@@ -41,59 +41,9 @@ class DeepInfraModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "01-ai/Yi-34B-Chat",
-        "Gryphe/MythoMax-L2-13b",  # not consistent with results
-        "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
-        "Phind/Phind-CodeLlama-34B-v2",
-        "Qwen/Qwen2-72B-Instruct",
-        "Qwen/Qwen2-7B-Instruct",
-        "Qwen/Qwen2.5-72B-Instruct",
-        "Sao10K/L3-70B-Euryale-v2.1",
-        "Sao10K/L3.1-70B-Euryale-v2.2",
-        "bigcode/starcoder2-15b",
-        "bigcode/starcoder2-15b-instruct-v0.1",
-        "codellama/CodeLlama-34b-Instruct-hf",
-        "codellama/CodeLlama-70b-Instruct-hf",
-        "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
-        "cognitivecomputations/dolphin-2.9.1-llama-3-70b",
-        "databricks/dbrx-instruct",
-        "google/codegemma-7b-it",
-        "google/gemma-1.1-7b-it",
-        "google/gemma-2-27b-it",
-        "google/gemma-2-9b-it",
-        "lizpreciatior/lzlv_70b_fp16_hf",  # not consistent with results
-        "mattshumer/Reflection-Llama-3.1-70B",
-        "mattshumer/Reflection-Llama-3.1-70B",
-        "meta-llama/Llama-2-13b-chat-hf",
-        "meta-llama/Llama-2-70b-chat-hf",
-        "meta-llama/Llama-2-7b-chat-hf",
-        "meta-llama/Meta-Llama-3-70B-Instruct",
-        "meta-llama/Meta-Llama-3-8B-Instruct",
-        "meta-llama/Meta-Llama-3.1-405B-Instruct",
-        "meta-llama/Meta-Llama-3.1-70B-Instruct",
-        "meta-llama/Meta-Llama-3.1-8B-Instruct",
-        "microsoft/Phi-3-medium-4k-instruct",
-        "microsoft/WizardLM-2-7B",
-        "microsoft/WizardLM-2-8x22B",
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        "mistralai/Mistral-7B-Instruct-v0.2",
-        "mistralai/Mistral-7B-Instruct-v0.3",
-        "mistralai/Mistral-Nemo-Instruct-2407",
-        "mistralai/Mixtral-8x22B-Instruct-v0.1",
-        "mistralai/Mixtral-8x22B-v0.1",
-        "mistralai/Mixtral-8x22B-v0.1",
-        "mistralai/Mixtral-8x7B-Instruct-v0.1",
-        "nvidia/Nemotron-4-340B-Instruct",
-        "openbmb/MiniCPM-Llama3-V-2_5",
-        "openchat/openchat-3.6-8b",
-        "openchat/openchat_3.5",  # not compliant with system context
-        # "deepinfra/airoboros-70b", # deprecated: https://deepinfra.com/deepinfra/airoboros-70b
-        #  'Gryphe/MythoMax-L2-13b-turbo', # deprecated: https://deepinfra.com/Gryphe/MythoMax-L2-13b-turbo/api
-        # "Austism/chronos-hermes-13b-v2",  # deprecating: https://deepinfra.com/Austism/chronos-hermes-13b-v2/api
-    ]
+    allowed_models: List[str] = []
 
-    name: str = "Qwen/Qwen2-72B-Instruct"
+    name: str = ""
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
 
     def __init__(self, **data):
@@ -115,6 +65,9 @@ class DeepInfraModel(LLMBase):
         self._async_client = httpx.AsyncClient(
             headers=headers, base_url=self._BASE_URL, timeout=30
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -407,3 +360,15 @@ class DeepInfraModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model identifiers.
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        models = response.json()
+        return [model["id"] for model in models]

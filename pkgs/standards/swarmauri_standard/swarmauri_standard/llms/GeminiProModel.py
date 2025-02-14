@@ -29,8 +29,8 @@ class GeminiProModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
-    name: str = "gemini-1.5-pro"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["GeminiProModel"] = "GeminiProModel"
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
@@ -67,6 +67,18 @@ class GeminiProModel(LLMBase):
             timeout=30,
         )
     )
+
+    def __init__(self, api_key: SecretStr, **kwargs):
+        """
+        Initializes the GeminiProModel object with the given API key.
+
+        Args:
+            api_key (SecretStr): The API key for the GeminiProModel.
+        """
+        super().__init__(api_key=api_key, **kwargs)
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -451,3 +463,17 @@ class GeminiProModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+        """
+        response = self._client.get(
+            f"/{self.name}/allowedModels?key={self.api_key.get_secret_value()}"
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data.get("allowedModels", [])
