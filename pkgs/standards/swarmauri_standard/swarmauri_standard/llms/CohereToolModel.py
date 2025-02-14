@@ -40,16 +40,13 @@ class CohereToolModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "command-r",
-        # "command-r-plus",
-        # "command-r-plus-08-2024",
-    ]
-    name: SecretStr = "command-r"
+    allowed_models: List[str] = []
+    name: str = ""
+
     type: Literal["CohereToolModel"] = "CohereToolModel"
     resource: str = "LLM"
 
-    def __init__(self, **data):
+    def __init__(self, request_timeout: int = 30, **data):
         """
         Initialize the CohereToolModel with the provided configuration.
 
@@ -63,11 +60,14 @@ class CohereToolModel(LLMBase):
             "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
+        self.request_timeout = request_timeout
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -606,3 +606,15 @@ class CohereToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names from the API
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        models_data = response.json()
+        return models_data.get("models", [])

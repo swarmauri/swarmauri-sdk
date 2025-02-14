@@ -41,16 +41,11 @@ class AnthropicToolModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "claude-3-sonnet-20240229",
-        "claude-3-haiku-20240307",
-        "claude-3-opus-20240229",
-        "claude-3-5-sonnet-20240620",
-    ]
-    name: str = "claude-3-sonnet-20240229"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    def __init__(self, **data):
+    def __init__(self, request_timeout: int = 30, **data):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
@@ -58,11 +53,14 @@ class AnthropicToolModel(LLMBase):
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
+        self.request_timeout = request_timeout
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -445,3 +443,18 @@ class AnthropicToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names retrieved from the API.
+        """
+        allowed_models = [
+            "claude-3-sonnet-20240229",
+            "claude-3-haiku-20240307",
+            "claude-3-opus-20240229",
+            "claude-3-5-sonnet-20240620",
+        ]
+        return allowed_models

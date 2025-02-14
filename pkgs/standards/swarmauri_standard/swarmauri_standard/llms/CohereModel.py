@@ -33,18 +33,11 @@ class CohereModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "command",
-        "command-r-plus-08-2024",
-        "command-r-plus-04-2024",
-        "command-r-03-2024",
-        "command-r-08-2024",
-        "command-light",
-    ]
-    name: str = "command"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["CohereModel"] = "CohereModel"
 
-    def __init__(self, **data):
+    def __init__(self, request_timeout: int = 30, **data):
         """
         Initialize the CohereModel with the provided configuration.
 
@@ -57,9 +50,12 @@ class CohereModel(LLMBase):
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
+        self.request_timeout = request_timeout
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def get_headers(self) -> Dict[str, str]:
         return {
@@ -440,3 +436,15 @@ class CohereModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model identifiers from the API.
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        data = response.json()
+        return data.get("models", [])
