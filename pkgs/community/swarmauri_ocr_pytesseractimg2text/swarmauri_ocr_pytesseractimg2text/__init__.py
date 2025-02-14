@@ -1,6 +1,6 @@
-from .PytesseractImg2TextModel import PytesseractImg2TextModel
+from .PytesseractImg2TextOCR import PytesseractImg2TextOCR
 
-__all__ = ["PytesseractImg2TextModel"]
+__all__ = ["PytesseractImg2TextOCR"]
 
 try:
     # For Python 3.8 and newer
@@ -10,7 +10,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_llm_pytesseractimg2text")
+    __version__ = version("swarmauri_ocr_pytesseractimg2text")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"

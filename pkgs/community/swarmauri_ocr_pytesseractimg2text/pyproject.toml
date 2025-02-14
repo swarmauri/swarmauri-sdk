@@ -55,4 +55,4 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.ocrs"]
-PytesseractImg2OCR = "swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR:PytesseractImg2OCR"
+PytesseractImg2TextOCR = "swarmauri_ocr_pytesseractimg2text.PytesseractImg2TextOCR:PytesseractImg2TextOCR"

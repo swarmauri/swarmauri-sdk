@@ -49,7 +49,6 @@ class CohereToolModel(ToolLLMBase):
     ]
     name: str = "command-r"
     type: Literal["CohereToolModel"] = "CohereToolModel"
-    resource: str = "LLM"
 
     def __init__(self, **data):
         """
