@@ -56,7 +56,7 @@ def test_serialization(perplexity_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(perplexity_model):
-    assert perplexity_model.name == "llama-3.1-70b-instruct"
+    assert perplexity_model.name == "sonar"
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

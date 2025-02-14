@@ -9,7 +9,7 @@ from io import BytesIO
 from swarmauri_base.ocrs.OCRBase import OCRBase
 
 
-@ComponentBase.register_type(OCRBase, "PytesseractImg2TextModel")
+@ComponentBase.register_type(OCRBase, "PytesseractImg2TextOCR")
 class PytesseractImg2TextOCR(OCRBase):
     """
     A model for performing OCR (Optical Character Recognition) using Pytesseract.

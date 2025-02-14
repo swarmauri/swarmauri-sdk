@@ -1,9 +1,10 @@
-import pytest
 import os
-from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.HumanMessage import HumanMessage
+
+import pytest
 from dotenv import load_dotenv
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.utils.timeout_wrapper import timeout
 
 load_dotenv()
@@ -24,6 +25,23 @@ def get_allowed_models():
         return []
     model = HyperbolicVisionModel(api_key=API_KEY)
     return model.allowed_models
+
+
+@pytest.fixture(scope="module")
+def conversation():
+    image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
+    prompt = "Who painted this artwork?"
+
+    conversation = Conversation()
+    conversation.add_message(
+        HumanMessage(
+            content=[
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": image_url}},
+            ]
+        )
+    )
+    return conversation
 
 
 @timeout(5)
@@ -52,32 +70,15 @@ def test_serialization(hyperbolic_vision_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.name == "Qwen/Qwen2-VL-72B-Instruct"
-
-
-def create_test_conversation(image_url, prompt):
-    conversation = Conversation()
-    conversation.add_message(
-        HumanMessage(
-            content=[
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": image_url}},
-            ]
-        )
-    )
-    return conversation
+    assert hyperbolic_vision_model.name == hyperbolic_vision_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-def test_predict(hyperbolic_vision_model, model_name):
+def test_predict(hyperbolic_vision_model, model_name, conversation):
     model = hyperbolic_vision_model
     model.name = model_name
-
-    image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
-    prompt = "Who painted this artwork?"
-    conversation = create_test_conversation(image_url, prompt)
 
     result = model.predict(conversation)
 
@@ -90,13 +91,9 @@ def test_predict(hyperbolic_vision_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-async def test_apredict(hyperbolic_vision_model, model_name):
+async def test_apredict(hyperbolic_vision_model, model_name, conversation):
     model = hyperbolic_vision_model
     model.name = model_name
-
-    image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
-    prompt = "Describe the woman in the painting."
-    conversation = create_test_conversation(image_url, prompt)
 
     result = await model.apredict(conversation)
 
@@ -108,23 +105,26 @@ async def test_apredict(hyperbolic_vision_model, model_name):
 @timeout(5)
 @pytest.mark.unit
 def test_batch(hyperbolic_vision_model):
-    image_urls = [
-        "https://llava-vl.github.io/static/images/monalisa.jpg",
-        "https://llava-vl.github.io/static/images/monalisa.jpg",
-    ]
-    prompts = [
-        "Who painted this artwork?",
-        "Describe the woman in the painting.",
-    ]
-
-    conversations = [
-        create_test_conversation(image_url, prompt)
-        for image_url, prompt in zip(image_urls, prompts)
-    ]
+    image_prompt = {
+        "Who painted this artwork?": "https://llava-vl.github.io/static/images/monalisa.jpg",
+        "Describe the woman in the painting.": "https://llava-vl.github.io/static/images/monalisa.jpg",
+    }
+    conversations = []
+    for prompt, image_url in image_prompt.items():
+        conversation = Conversation()
+        conversation.add_message(
+            HumanMessage(
+                content=[
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ]
+            )
+        )
+        conversations.append(conversation)
 
     results = hyperbolic_vision_model.batch(conversations)
 
-    assert len(results) == len(image_urls)
+    assert len(results) == len(image_prompt.keys())
     for result in results:
         assert result.history[-1].content is not None
         assert isinstance(result.history[-1].content, str)

@@ -1,18 +1,14 @@
 import logging
-import pytest
 import os
 
-from swarmauri_standard.llms.HyperbolicModel import HyperbolicModel as LLM
+import pytest
+from dotenv import load_dotenv
 from swarmauri_standard.conversations.Conversation import Conversation
-
+from swarmauri_standard.llms.HyperbolicModel import HyperbolicModel as LLM
+from swarmauri_standard.messages.AgentMessage import UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
-
-from swarmauri_standard.messages.AgentMessage import UsageData
-
 from swarmauri_standard.utils.timeout_wrapper import timeout
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -58,7 +54,7 @@ def test_serialization(hyperbolic_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(hyperbolic_model):
-    assert hyperbolic_model.name == "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    assert hyperbolic_model.name == hyperbolic_model.allowed_models[0]
 
 
 @timeout(5)

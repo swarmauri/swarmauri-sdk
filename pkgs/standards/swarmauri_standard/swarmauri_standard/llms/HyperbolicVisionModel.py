@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
@@ -32,17 +33,14 @@ class HyperbolicVisionModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "Qwen/Qwen2-VL-72B-Instruct",
-        "mistralai/Pixtral-12B-2409",
-        "Qwen/Qwen2-VL-7B-Instruct",
-    ]
-    name: str = "Qwen/Qwen2-VL-72B-Instruct"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
+    request_timeout: int = 30
     _headers: Dict[str, str] = PrivateAttr(default=None)
     _client: httpx.Client = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
-        default="https://api.hyperbolic.xyz/v1/chat/completions"
+        default="https://api.hyperbolic.xyz/v1/"
     )
 
     def __init__(self, **data):
@@ -60,7 +58,10 @@ class HyperbolicVisionModel(LLMBase):
         self._client = httpx.Client(
             headers=self._headers,
             base_url=self._BASE_URL,
+            timeout=self.request_timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -115,6 +116,24 @@ class HyperbolicVisionModel(LLMBase):
         return UsageData.model_validate(usage_data)
 
     @retry_on_status_codes((429, 529), max_retries=1)
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Hyperbolic API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        chat_models = [
+            model["id"] for model in response_data["data"] if model["supports_image_input"]
+        ]
+
+        return chat_models
+
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -146,7 +165,7 @@ class HyperbolicVisionModel(LLMBase):
             "stop": stop or [],
         }
 
-        response = self._client.post(self._BASE_URL, json=payload)
+        response = self._client.post("chat/completions", json=payload)
         response.raise_for_status()
 
         response_data = response.json()
@@ -192,7 +211,7 @@ class HyperbolicVisionModel(LLMBase):
 
         async with httpx.AsyncClient() as async_client:
             response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
             )
             response.raise_for_status()
 
@@ -291,7 +310,7 @@ class HyperbolicVisionModel(LLMBase):
 
         async with httpx.AsyncClient as async_client:
             response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
             )
             response.raise_for_status()
 
