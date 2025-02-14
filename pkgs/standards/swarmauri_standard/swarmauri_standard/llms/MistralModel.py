@@ -32,22 +32,13 @@ class MistralModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "open-mistral-7b",
-        "open-mixtral-8x7b",
-        "open-mixtral-8x22b",
-        "mistral-small-latest",
-        "mistral-medium-latest",
-        "mistral-large-latest",
-        "open-mistral-nemo",
-        "codestral-latest",
-        "open-codestral-mamba",
-    ]
-    name: str = "open-mixtral-8x7b"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["MistralModel"] = "MistralModel"
+    request_timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1")
 
     def __init__(self, **data):
         """
@@ -59,14 +50,14 @@ class MistralModel(LLMBase):
         super().__init__(**data)
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
-            base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
-            base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -118,6 +109,26 @@ class MistralModel(LLMBase):
         return usage
 
     @retry_on_status_codes((429, 529), max_retries=1)
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Mistral API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get(f"{self._BASE_URL}/models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        chat_models = [
+            model["id"]
+            for model in response_data["data"]
+            if model["capabilities"]["completion_chat"]
+        ]
+
+        return chat_models
+
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -156,7 +167,9 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = self._client.post(self._BASE_URL, json=payload)
+            response = self._client.post(
+                f"{self._BASE_URL}/chat/completions", json=payload
+            )
             response.raise_for_status()
 
         response_data = response.json()
@@ -209,7 +222,9 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response = await self._async_client.post(
+                f"{self._BASE_URL}/chat/completions", json=payload
+            )
             response.raise_for_status()
 
         response_data = response.json()
@@ -259,7 +274,9 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = self._client.post(self._BASE_URL, json=payload)
+            response = self._client.post(
+                f"{self._BASE_URL}/chat/completions", json=payload
+            )
             response.raise_for_status()
 
         usage_data = {}
@@ -324,7 +341,9 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response = await self._async_client.post(
+                f"{self._BASE_URL}/chat/completions", json=payload
+            )
             response.raise_for_status()
 
         usage_data = {}
