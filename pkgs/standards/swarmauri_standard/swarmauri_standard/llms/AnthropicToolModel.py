@@ -45,7 +45,7 @@ class AnthropicToolModel(LLMBase):
     name: str = ""
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    def __init__(self, **data):
+    def __init__(self, request_timeout: int = 30, **data):
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
@@ -53,11 +53,12 @@ class AnthropicToolModel(LLMBase):
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
         )
+        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 

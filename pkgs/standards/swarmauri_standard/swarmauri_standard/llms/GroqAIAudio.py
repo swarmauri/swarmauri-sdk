@@ -33,7 +33,7 @@ class GroqAIAudio(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
 
-    def __init__(self, **data):
+    def __init__(self, request_timeout: int = 30, **data):
         """
         Initialize the GroqAIAudio class with the provided data.
 
@@ -44,14 +44,15 @@ class GroqAIAudio(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=request_timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=request_timeout,
         )
 
+        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 

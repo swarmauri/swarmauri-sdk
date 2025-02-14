@@ -42,25 +42,26 @@ class AI21StudioModel(LLMBase):
         default="https://api.ai21.com/studio/v1/chat/completions"
     )
 
-    def __init__(self, **data) -> None:
+    def __init__(self, request_timeout: int = 30, **data) -> None:
         """
         Initializes the GroqToolModel instance, setting up headers for API requests.
 
         Parameters:
             **data: Arbitrary keyword arguments for initialization.
         """
+        request_timeout = data.pop("request_timeout", 30)
         super().__init__(**data)
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
-
+        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 

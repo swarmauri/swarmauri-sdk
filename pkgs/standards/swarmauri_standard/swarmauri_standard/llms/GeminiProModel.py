@@ -31,7 +31,10 @@ class GeminiProModel(LLMBase):
     api_key: SecretStr
     allowed_models: List[str] = []
     name: str = ""
+    request_timeout: int = 30
+
     type: Literal["GeminiProModel"] = "GeminiProModel"
+
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
             {
@@ -53,22 +56,7 @@ class GeminiProModel(LLMBase):
         ]
     )
 
-    _client: httpx.Client = PrivateAttr(
-        default_factory=lambda: httpx.Client(
-            base_url="https://generativelanguage.googleapis.com/v1beta/models",
-            headers={"Content-Type": "application/json"},
-            timeout=30,
-        )
-    )
-    _async_client: httpx.AsyncClient = PrivateAttr(
-        default_factory=lambda: httpx.AsyncClient(
-            base_url="https://generativelanguage.googleapis.com/v1beta/models",
-            headers={"Content-Type": "application/json"},
-            timeout=30,
-        )
-    )
-
-    def __init__(self, api_key: SecretStr, **kwargs):
+    def __init__(self, api_key: SecretStr, request_timeout: int = 30, **kwargs):
         """
         Initializes the GeminiProModel object with the given API key.
 
@@ -77,6 +65,21 @@ class GeminiProModel(LLMBase):
         """
         super().__init__(api_key=api_key, **kwargs)
 
+        self._client: httpx.Client = PrivateAttr(
+            default_factory=lambda: httpx.Client(
+                base_url="https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"Content-Type": "application/json"},
+                timeout=request_timeout,
+            )
+        )
+        self._async_client: httpx.AsyncClient = PrivateAttr(
+            default_factory=lambda: httpx.AsyncClient(
+                base_url="https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"Content-Type": "application/json"},
+                timeout=request_timeout,
+            )
+        )
+        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 
