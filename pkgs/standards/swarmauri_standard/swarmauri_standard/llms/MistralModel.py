@@ -38,7 +38,7 @@ class MistralModel(LLMBase):
     request_timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1")
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
 
     def __init__(self, **data):
         """
@@ -50,6 +50,7 @@ class MistralModel(LLMBase):
         super().__init__(**data)
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            base_url=self._BASE_URL,
             timeout=self.request_timeout,
         )
         self._async_client = httpx.AsyncClient(
@@ -116,7 +117,7 @@ class MistralModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        response = self._client.get(f"{self._BASE_URL}/models")
+        response = self._client.get("models")
         response.raise_for_status()
         response_data = response.json()
 
@@ -167,9 +168,7 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = self._client.post(
-                f"{self._BASE_URL}/chat/completions", json=payload
-            )
+            response = self._client.post("chat/completions", json=payload)
             response.raise_for_status()
 
         response_data = response.json()
@@ -222,9 +221,7 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(
-                f"{self._BASE_URL}/chat/completions", json=payload
-            )
+            response = await self._async_client.post("chat/completions", json=payload)
             response.raise_for_status()
 
         response_data = response.json()
@@ -274,9 +271,7 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = self._client.post(
-                f"{self._BASE_URL}/chat/completions", json=payload
-            )
+            response = self._client.post("chat/completions", json=payload)
             response.raise_for_status()
 
         usage_data = {}
@@ -341,9 +336,7 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(
-                f"{self._BASE_URL}/chat/completions", json=payload
-            )
+            response = await self._async_client.post("chat/completions", json=payload)
             response.raise_for_status()
 
         usage_data = {}
