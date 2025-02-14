@@ -30,21 +30,11 @@ class HyperbolicModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "Qwen/Qwen2.5-Coder-32B-Instruct",
-        "meta-llama/Llama-3.2-3B-Instruct",
-        "Qwen/Qwen2.5-72B-Instruct",
-        "deepseek-ai/DeepSeek-V2.5",
-        "meta-llama/Meta-Llama-3-70B-Instruct",
-        "NousResearch/Hermes-3-Llama-3.1-70B",
-        "meta-llama/Meta-Llama-3.1-70B-Instruct",
-        "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    ]
-    name: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["HyperbolicModel"] = "HyperbolicModel"
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.hyperbolic.xyz/v1/chat/completions"
-    )
+    request_timeout: int = 30
+    _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **data) -> None:
@@ -60,6 +50,13 @@ class HyperbolicModel(LLMBase):
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
+        self._client = httpx.Client(
+            headers=self._headers,
+            base_url=self._BASE_URL,
+            timeout=self.request_timeout,
+        )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -136,6 +133,24 @@ class HyperbolicModel(LLMBase):
         return usage
 
     @retry_on_status_codes((429, 529), max_retries=1)
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Hyperbolic API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        chat_models = [
+            model["id"] for model in response_data["data"] if model["supports_chat"]
+        ]
+
+        return chat_models
+
+    @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
         conversation: Conversation,
@@ -177,11 +192,8 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            with httpx.Client(timeout=30) as client:
-                response = client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = self._client.post("chat/completions", json=payload)
+            response.raise_for_status()
 
         response_data = response.json()
         message_content = response_data["choices"][0]["message"]["content"]
@@ -223,9 +235,11 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
                 response = await client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    f"{self._BASE_URL}chat/completions",
+                    headers=self._headers,
+                    json=payload,
                 )
                 response.raise_for_status()
 
@@ -272,11 +286,8 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            with httpx.Client(timeout=30) as client:
-                response = client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
+            response = self._client.post("chat/completions", json=payload)
+            response.raise_for_status()
 
         message_content = ""
         usage_data = {}
@@ -335,9 +346,11 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
                 response = await client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    f"{self._BASE_URL}chat/completions",
+                    headers=self._headers,
+                    json=payload,
                 )
                 response.raise_for_status()
 

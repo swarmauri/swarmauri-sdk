@@ -55,6 +55,7 @@ class MistralModel(LLMBase):
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            base_url=self._BASE_URL,
             timeout=self.request_timeout,
         )
         self.allowed_models = self.get_allowed_models()
@@ -124,7 +125,7 @@ class MistralModel(LLMBase):
         chat_models = [
             model["id"]
             for model in response_data["data"]
-            if model["capabilities"]["completion_chat"]
+            if model["supports_chat"]["completion_chat"]
         ]
 
         return chat_models

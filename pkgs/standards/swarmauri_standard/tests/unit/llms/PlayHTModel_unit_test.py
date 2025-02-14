@@ -64,12 +64,12 @@ def test_default_name(playht_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-def test_predict(playht_model, model_name):
+def test_stream(playht_model, model_name):
     playht_model.name = model_name
 
     text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
-    audio_path = playht_model.predict(text=text, audio_path=file_path)
+    audio_path = playht_model.stream(text=text, audio_path=file_path)
 
     logging.info(audio_path)
 
@@ -81,12 +81,12 @@ def test_predict(playht_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @timeout(5)
 @pytest.mark.unit
-async def test_apredict(playht_model, model_name):
+async def test_astream(playht_model, model_name):
     playht_model.name = model_name
 
     text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
-    audio_file_path = await playht_model.apredict(text=text, audio_path=file_path)
+    audio_file_path = await playht_model.astream(text=text, audio_path=file_path)
 
     logging.info(audio_file_path)
 

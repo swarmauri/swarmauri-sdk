@@ -35,17 +35,13 @@ class MistralToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "open-mixtral-8x22b",
-        "mistral-small-latest",
-        "mistral-large-latest",
-        "open-mistral-nemo",
-    ]
-    name: str = "open-mixtral-8x22b"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
+    request_timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
 
     def __init__(self, **data) -> None:
         """
@@ -58,13 +54,15 @@ class MistralToolModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.request_timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -98,6 +96,26 @@ class MistralToolModel(LLMBase):
         ]
         logging.info(formatted_messages)
         return formatted_messages
+
+    @retry_on_status_codes((429, 529), max_retries=1)
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Mistral API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        tool_models = [
+            model["id"]
+            for model in response_data["data"]
+            if model["capabilities"]["function_calling"]
+        ]
+
+        return tool_models
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

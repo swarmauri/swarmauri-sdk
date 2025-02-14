@@ -35,15 +35,21 @@ class PerplexityModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "llama-3.1-sonar-small-128k-online",
-        "llama-3.1-sonar-large-128k-online",
-        "llama-3.1-sonar-huge-128k-online",
-        "llama-3.1-sonar-small-128k-chat",
-        "llama-3.1-sonar-large-128k-chat",
-        "llama-3.1-8b-instruct",
-        "llama-3.1-70b-instruct",
+        # deprecated 
+        # "llama-3.1-sonar-small-128k-online",
+        # "llama-3.1-sonar-large-128k-online",
+        # "llama-3.1-sonar-huge-128k-online",
+        # "llama-3.1-sonar-small-128k-chat",
+        # "llama-3.1-sonar-large-128k-chat",
+        # "llama-3.1-8b-instruct",
+        # "llama-3.1-70b-instruct",
+
+        "sonar-reasoning-pro",
+        "sonar-reasoning",
+        "sonar-pro",
+        "sonar",
     ]
-    name: str = "llama-3.1-70b-instruct"
+    name: str = "sonar"
     type: Literal["PerplexityModel"] = "PerplexityModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
