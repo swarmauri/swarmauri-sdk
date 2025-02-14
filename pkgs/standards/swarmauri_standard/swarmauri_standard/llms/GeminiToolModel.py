@@ -598,11 +598,4 @@ class GeminiToolModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        url = f"{self._BASE_URL}/models?key={self.api_key.get_secret_value()}"
-        with httpx.Client(timeout=30.0) as client:
-            response = client.get(url, headers=self._headers)
-            response.raise_for_status()
-            models_data = response.json()
-
-        allowed_models = [model["name"] for model in models_data["models"]]
-        return allowed_models
+        return ["gemini-1.5-pro", "gemini-1.5-flash"]

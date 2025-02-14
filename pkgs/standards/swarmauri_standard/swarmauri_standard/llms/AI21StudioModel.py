@@ -416,7 +416,4 @@ class AI21StudioModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        response = self._client.get(f"{self._BASE_URL}/models")
-        response.raise_for_status()
-        models_data = response.json()
-        return models_data.get("models", [])
+        return ["jamba-1.5-large", "jamba-1.5-mini"]

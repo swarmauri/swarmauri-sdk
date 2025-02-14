@@ -450,9 +450,10 @@ class AnthropicToolModel(LLMBase):
         Returns:
             List[str]: A list of allowed model names retrieved from the API.
         """
-        response = self._client.get("/models")
-        response.raise_for_status()
-        models_data = response.json()
-        allowed_models = models_data.get("allowed_models", [])
-        logging.info(f"Allowed models retrieved: {allowed_models}")
+        allowed_models = [
+            "claude-3-sonnet-20240229",
+            "claude-3-haiku-20240307",
+            "claude-3-opus-20240229",
+            "claude-3-5-sonnet-20240620",
+        ]
         return allowed_models

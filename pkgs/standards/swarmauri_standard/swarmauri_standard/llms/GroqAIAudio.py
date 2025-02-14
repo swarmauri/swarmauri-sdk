@@ -213,7 +213,8 @@ class GroqAIAudio(LLMBase):
         Raises:
             httpx.HTTPStatusError: If the API request fails.
         """
-        response = self._client.get("models")
-        response.raise_for_status()
-        response_data = response.json()
-        return response_data["models"]
+        return [
+            "whisper-large-v3-turbo",
+            "distil-whisper-large-v3-en",
+            "whisper-large-v3",
+        ]

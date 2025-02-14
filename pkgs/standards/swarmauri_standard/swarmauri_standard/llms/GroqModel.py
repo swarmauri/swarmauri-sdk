@@ -400,6 +400,7 @@ class GroqModel(LLMBase):
             List[str]: List of allowed model names.
         """
         response = self._client.get("https://api.groq.com/openai/v1/models")
+
         response.raise_for_status()
         models_data = response.json()
         return [model["id"] for model in models_data["data"]]

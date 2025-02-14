@@ -472,7 +472,7 @@ class GeminiProModel(LLMBase):
             List[str]: A list of allowed model names.
         """
         response = self._client.get(
-            f"/{self.name}/allowedModels?key={self.api_key.get_secret_value()}"
+            f"https://generativelanguage.googleapis.com/v1beta/models?key={self.api_key.get_secret_value()}"
         )
         response.raise_for_status()
         data = response.json()

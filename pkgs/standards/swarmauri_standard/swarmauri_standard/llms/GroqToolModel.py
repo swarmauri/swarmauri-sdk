@@ -468,7 +468,13 @@ class GroqToolModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        response = self._client.get(f"{self._BASE_URL}/models")
-        response.raise_for_status()
-        models_data = response.json()
-        return [model["id"] for model in models_data["data"]]
+        models_data = [
+            "qwen-2.5-32b",
+            "deepseek-r1-distill-qwen-32b",
+            "deepseek-r1-distill-llama-70b",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it",
+        ]
+        return models_data

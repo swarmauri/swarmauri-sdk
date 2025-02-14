@@ -394,7 +394,4 @@ class GroqVisionModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        response = self._client.get(f"{self._BASE_URL}/models")
-        response.raise_for_status()
-        models_data = response.json()
-        return [model["id"] for model in models_data["data"]]
+        return ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"]
