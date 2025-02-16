@@ -35,6 +35,7 @@ class WhisperLargeModel(LLMBase):
     allowed_models: List[str] = ["openai/whisper-large-v3"]
     name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeModel"] = "WhisperLargeModel"
+    request_timeout: int = 30
     api_key: SecretStr
     _BASE_URL: str = PrivateAttr(
         "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
@@ -55,7 +56,7 @@ class WhisperLargeModel(LLMBase):
         """
         super().__init__(**data)
         self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
-        self._client = httpx.Client(header=self._header, timeout=30)
+        self._client = httpx.Client(header=self._header, timeout=self.request_timeout)
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
