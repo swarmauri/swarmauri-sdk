@@ -19,7 +19,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.stt import "
     "OpenaiSTT' or 'from swarmauri.stt import OpenaiSTT' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

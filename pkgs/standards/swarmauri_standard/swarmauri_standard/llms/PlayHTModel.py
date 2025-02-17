@@ -16,7 +16,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.tts import "
     "PlayhtTTS' or 'from swarmauri.tts import PlayhtTTS' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

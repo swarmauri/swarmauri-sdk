@@ -16,7 +16,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.vlms import "
     "FalVLM' or 'from swarmauri.vlms import FalVLM' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

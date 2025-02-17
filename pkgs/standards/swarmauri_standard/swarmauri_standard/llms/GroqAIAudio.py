@@ -15,7 +15,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.stt import "
     "GroqSTT' or 'from swarmauri.stt import GroqSTT' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

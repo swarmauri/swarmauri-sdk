@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_parser_bertembedding"
-version = "0.6.1.dev1"
+version = "0.6.1.dev2"
 description = "Swarmauri Bert Embedding Parser"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

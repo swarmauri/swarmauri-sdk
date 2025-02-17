@@ -59,7 +59,9 @@ class DeepInfraImgGenModel(ImageGenBase):
         Gets or creates an async client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=self.timeout)
+            self._async_client = httpx.AsyncClient(
+                headers=self._headers, timeout=self.timeout
+            )
         return self._async_client
 
     async def _close_async_client(self):
