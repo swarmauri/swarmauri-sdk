@@ -18,7 +18,7 @@ To make the best use of the Standard Library, first ensure that the Core Library
 
 ```python
 # Example usage of a concrete model from the Standard Library
-from swarmauri.standard.models.concrete import OpenAIModel
+from swarmauri_standard.llms.OpenAIModel import OpenAIModel
 
 # Initialize the model with necessary configuration
 model = OpenAIModel(api_key="your_api_key_here")
