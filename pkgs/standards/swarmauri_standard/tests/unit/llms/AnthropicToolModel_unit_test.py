@@ -79,7 +79,7 @@ def test_serialization(anthropic_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(anthropic_tool_model):
-    assert anthropic_tool_model.name == "claude-3-sonnet-20240229"
+    assert anthropic_tool_model.name == anthropic_tool_model.allowed_models[0]
 
 
 @timeout(5)

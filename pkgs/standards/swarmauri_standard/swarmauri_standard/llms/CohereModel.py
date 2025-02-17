@@ -37,7 +37,7 @@ class CohereModel(LLMBase):
     name: str = ""
     type: Literal["CohereModel"] = "CohereModel"
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """

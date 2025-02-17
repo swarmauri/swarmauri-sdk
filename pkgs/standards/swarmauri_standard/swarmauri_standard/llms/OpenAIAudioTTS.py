@@ -30,13 +30,13 @@ class OpenAIAudioTTS(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["tts-1", "tts-1-hd"]
+    allowed_models: List[str] = []
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-    name: str = "tts-1"
+    name: str = ""
     type: Literal["OpenAIAudioTTS"] = "OpenAIAudioTTS"
     voice: str = "alloy"
-    timeout: int = 30
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/speech")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -52,6 +52,8 @@ class OpenAIAudioTTS(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @model_validator(mode="after")
     @classmethod
@@ -227,3 +229,13 @@ class OpenAIAudioTTS(LLMBase):
             process_conversation(text, path) for text, path in text_path_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["tts-1", "tts-1-hd"]
+        return models_data

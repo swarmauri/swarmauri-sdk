@@ -1,10 +1,12 @@
-from pydantic import PrivateAttr
 import asyncio
-import httpx
 from typing import Dict, List, Literal, Optional
+
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ImageGenBase, "OpenAIImgGenModel")
@@ -21,9 +23,9 @@ class OpenAIImgGenModel(ImageGenBase):
     Provider Resources: https://platform.openai.com/docs/api-reference/images/generate
     """
 
-    api_key: str
-    allowed_models: List[str] = ["dall-e-2", "dall-e-3"]
-    name: str = "dall-e-3"
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["OpenAIImgGenModel"] = "OpenAIImgGenModel"
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
     _headers: Dict[str, str] = PrivateAttr(default=None)
@@ -37,9 +39,11 @@ class OpenAIImgGenModel(ImageGenBase):
         """
         super().__init__(**kwargs)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def generate_image(
@@ -192,3 +196,12 @@ class OpenAIImgGenModel(ImageGenBase):
 
         tasks = [process_prompt(prompt) for prompt in prompts]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return ["dall-e-2", "dall-e-3"]

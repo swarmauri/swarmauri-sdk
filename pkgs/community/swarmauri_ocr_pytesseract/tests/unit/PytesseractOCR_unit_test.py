@@ -133,9 +133,7 @@ def test_invalid_image_format(pytesseract_ocr_model):
 
 def test_custom_language(pytesseract_ocr_model, sample_image_bytes):
     # Test with explicit English language setting
-    text = pytesseract_ocr_model.extract_text(
-        image=sample_image_bytes, language="eng"
-    )
+    text = pytesseract_ocr_model.extract_text(image=sample_image_bytes, language="eng")
     assert isinstance(text, str)
     assert "Hello" in text
 

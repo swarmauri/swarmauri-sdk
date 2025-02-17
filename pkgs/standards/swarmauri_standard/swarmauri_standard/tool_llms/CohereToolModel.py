@@ -3,7 +3,7 @@ import json
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_core.ComponentBase import ComponentBase
@@ -41,14 +41,11 @@ class CohereToolModel(ToolLLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    api_key: str
-    allowed_models: List[str] = [
-        "command-r",
-        # "command-r-plus",
-        # "command-r-plus-08-2024",
-    ]
-    name: str = "command-r"
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["CohereToolModel"] = "CohereToolModel"
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """
@@ -61,14 +58,16 @@ class CohereToolModel(ToolLLMBase):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {self.api_key}",
+            "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -607,3 +606,15 @@ class CohereToolModel(ToolLLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names from the API
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        models_data = response.json()
+        return models_data.get("models", [])

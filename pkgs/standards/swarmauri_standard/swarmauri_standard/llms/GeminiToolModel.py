@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import warnings
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
@@ -16,6 +17,14 @@ from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
 )
 from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing GeminiToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "GeminiToolModel' or 'from swarmauri.tool_llms import GeminiToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "GeminiToolModel")

@@ -57,6 +57,8 @@ class FalVLM(VLMBase):
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
@@ -247,3 +249,16 @@ class FalVLM(VLMBase):
             for image_url, prompt in zip(image_urls, prompts)
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: The list of allowed models from the API.
+        """
+        url = "https://fal.ai/models?categories=vision"
+        response = self._client.get(url)
+        response.raise_for_status()
+        models_data = response.json()
+        return models_data.get("models", [])

@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
@@ -36,12 +35,10 @@ class HyperbolicVisionModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _headers: Dict[str, str] = PrivateAttr(default=None)
     _client: httpx.Client = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.hyperbolic.xyz/v1/"
-    )
+    _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
 
     def __init__(self, **data):
         """
@@ -128,7 +125,9 @@ class HyperbolicVisionModel(LLMBase):
         response_data = response.json()
 
         chat_models = [
-            model["id"] for model in response_data["data"] if model["supports_image_input"]
+            model["id"]
+            for model in response_data["data"]
+            if model["supports_image_input"]
         ]
 
         return chat_models

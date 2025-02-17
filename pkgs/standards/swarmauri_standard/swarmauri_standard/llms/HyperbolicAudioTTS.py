@@ -44,7 +44,7 @@ class HyperbolicAudioTTS(LLMBase):
     language: Optional[str] = None
     speaker: Optional[str] = None
     speed: Optional[float] = Field(default=1.0, ge=0.1, le=5)
-    timeout: int = 30
+    timeout: float = 600.0
 
     type: Literal["HyperbolicAudioTTS"] = "HyperbolicAudioTTS"
     _BASE_URL: str = PrivateAttr(
@@ -61,6 +61,8 @@ class HyperbolicAudioTTS(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _prepare_payload(self, text: str) -> Dict:
         """

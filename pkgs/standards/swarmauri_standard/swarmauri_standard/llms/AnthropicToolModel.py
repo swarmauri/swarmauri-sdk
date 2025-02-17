@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import warnings
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
@@ -15,6 +16,14 @@ from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing AnthropicToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "AnthropicToolModel' or 'from swarmauri.tool_llms import AnthropicToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "AnthropicToolModel")
@@ -45,7 +54,7 @@ class AnthropicToolModel(LLMBase):
     name: str = ""
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         super().__init__(**data)

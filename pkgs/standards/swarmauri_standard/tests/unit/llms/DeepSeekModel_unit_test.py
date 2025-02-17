@@ -53,7 +53,7 @@ def test_serialization(deepseek_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(deepseek_model):
-    assert deepseek_model.name == "deepseek-chat"
+    assert deepseek_model.name == deepseek_model.allowed_models[0]
 
 
 @timeout(5)

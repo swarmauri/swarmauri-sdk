@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_state_clipboard"
-version = "0.6.0.dev156"
+version = "0.6.0.dev157"
 description = "Swarmauri Community Clipboard State"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

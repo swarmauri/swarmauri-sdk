@@ -48,7 +48,7 @@ def test_serialization(falai_vision_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(falai_vision_model):
-    assert falai_vision_model.name == "fal-ai/llava-next"
+    assert falai_vision_model.name == falai_vision_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

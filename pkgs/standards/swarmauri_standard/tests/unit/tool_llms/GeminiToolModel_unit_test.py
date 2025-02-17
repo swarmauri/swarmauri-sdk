@@ -74,7 +74,7 @@ def test_serialization(gemini_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(gemini_tool_model):
-    assert gemini_tool_model.name == "gemini-1.5-pro"
+    assert gemini_tool_model.name == gemini_tool_model.allowed_models[0]
 
 
 @timeout(10)

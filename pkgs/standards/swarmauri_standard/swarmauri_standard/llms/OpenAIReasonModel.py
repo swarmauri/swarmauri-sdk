@@ -30,10 +30,10 @@ class OpenAIReasonModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["o1-mini", "o1", "o1-2024-12-17", "o1-mini-2024-09-12"]
-    name: str = "o1"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["OpenAIReasonModel"] = "OpenAIReasonModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -49,6 +49,8 @@ class OpenAIReasonModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -223,6 +225,23 @@ class OpenAIReasonModel(LLMBase):
         usage = self._prepare_usage_data(usage_data, promt_timer.duration)
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = [
+            "o1-mini",
+            "o1",
+            "o1-2024-12-17",
+            "o1-mini-2024-09-12",
+            "o3-mini",
+            "o3-mini-2025-01-31",
+        ]
+        return models_data
 
     def stream(
         self,

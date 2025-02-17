@@ -57,7 +57,7 @@ def test_serialization(whisperlarge_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(whisperlarge_model):
-    assert whisperlarge_model.name == "openai/whisper-large-v3"
+    assert whisperlarge_model.name == whisperlarge_model.allowed_models[0]
 
 
 @timeout(5)

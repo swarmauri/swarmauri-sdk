@@ -1,14 +1,14 @@
 import asyncio
 import json
 import os
+from typing import Dict, List, Literal
+
 import httpx
-
-from typing import List, Literal, Dict
 from pydantic import Field, PrivateAttr, SecretStr
-
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(TTSBase, "PlayhtTTS")
@@ -31,14 +31,12 @@ class PlayhtTTS(TTSBase):
     Provider resourses: https://docs.play.ht/reference/api-getting-started
     """
 
-    allowed_models: List[str] = Field(
-        default=["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
-    )
+    allowed_models: List[str] = []
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
     api_key: SecretStr
     user_id: str
-    name: str = "Play3.0-mini"
+    name: str = ""
     type: Literal["PlayhtTTS"] = "PlayhtTTS"
     output_format: str = "mp3"
     _voice_id: str = PrivateAttr(default=None)
@@ -59,6 +57,8 @@ class PlayhtTTS(TTSBase):
             "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
         self.allowed_voices = self._get_allowed_voices(self.name)
         self._validate_voice_in_allowed_voices()
@@ -354,6 +354,16 @@ class PlayhtTTS(TTSBase):
         except httpx.RequestError as e:
             print(f"An error occurred while retrieving cloned voices: {e}")
             return {"error": str(e)}
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
+        return models_data
 
     def stream(self, text: str) -> bytes:
         """

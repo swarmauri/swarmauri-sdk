@@ -51,7 +51,7 @@ def test_serialization(deepinfra_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(deepinfra_imggen_model):
-    assert deepinfra_imggen_model.name == "stabilityai/stable-diffusion-2-1"
+    assert deepinfra_imggen_model.name == deepinfra_imggen_model.allowed_models[0]
 
 
 @timeout(5)
