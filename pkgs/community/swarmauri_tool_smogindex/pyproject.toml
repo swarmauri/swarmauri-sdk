@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_smogindex"
-version = "0.6.0.dev162"
+version = "0.6.0.dev163"
 description = "Swarmauri Smog Index Tool."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
