@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_sentencecomplexity"
-version = "0.6.1.dev4"
+version = "0.6.1.dev5"
 description = "This repository includes an example of a First Class Swarmauri Example."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
