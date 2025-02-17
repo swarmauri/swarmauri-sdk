@@ -145,7 +145,13 @@ jobs:
           echo "Test files: $TEST_FILES"
           
           cd pkgs/$PKG
-          poetry lock
-          poetry install --no-cache --all-extras -vv
+          soliloquy install -f pyproject.toml
 
-          poetry run pytest -v $TEST_FILES -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          soliloquy prepare -f pyroject.toml --bump patch --commit-msg "chore: auto prepare" --lint-fix
+          git push origin mono/dev
+          echo "Pushed branch mono/dev to GitHub"
+
+          soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
