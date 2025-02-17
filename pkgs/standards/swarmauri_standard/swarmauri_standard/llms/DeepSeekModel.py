@@ -34,24 +34,31 @@ class DeepSeekModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
     api_key: SecretStr
-    allowed_models: List[str] = ["deepseek-chat"]
-    name: str = "dSeepseek-chat"
+    allowed_models: List[str] = []
+    name: str = ""
+
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
+    timeout: float = 30.0
+
     def __init__(self, **data):
         super().__init__(**data)
+
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -356,3 +363,15 @@ class DeepSeekModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the DeepSeek API to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        models = response.json().get("models", [])
+        return models

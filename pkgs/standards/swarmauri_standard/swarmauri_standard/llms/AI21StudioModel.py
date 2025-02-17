@@ -33,17 +33,15 @@ class AI21StudioModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "jamba-1.5-large",
-        "jamba-1.5-mini",
-    ]
-    name: str = "jamba-1.5-mini"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
         default="https://api.ai21.com/studio/v1/chat/completions"
     )
+    timeout: float = 30.0
 
     def __init__(self, **data) -> None:
         """
@@ -56,13 +54,15 @@ class AI21StudioModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(self, messages: List[Type["MessageBase"]]) -> List[dict]:
         """
@@ -408,3 +408,12 @@ class AI21StudioModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return ["jamba-1.5-large", "jamba-1.5-mini"]

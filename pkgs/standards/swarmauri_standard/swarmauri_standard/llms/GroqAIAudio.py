@@ -25,16 +25,15 @@ class GroqAIAudio(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "distil-whisper-large-v3-en",
-        "whisper-large-v3",
-    ]
+    allowed_models: List[str] = []
 
-    name: str = "distil-whisper-large-v3-en"
+    name: str = ""
     type: Literal["GroqAIAudio"] = "GroqAIAudio"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
+
+    timeout: float = 30.0
 
     def __init__(self, **data):
         """
@@ -47,13 +46,16 @@ class GroqAIAudio(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -202,3 +204,19 @@ class GroqAIAudio(LLMBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+
+        Raises:
+            httpx.HTTPStatusError: If the API request fails.
+        """
+        return [
+            "whisper-large-v3-turbo",
+            "distil-whisper-large-v3-en",
+            "whisper-large-v3",
+        ]
