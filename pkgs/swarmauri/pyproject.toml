@@ -15,9 +15,9 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
-swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
+swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
 
 toml = {version = "^0.10.2"}
 httpx = "^0.27.0"
@@ -26,15 +26,15 @@ typing_extensions = "*"
 
 
 # First Class Citizens
-swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
-swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
-swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
-swarmauri_embedding_nmf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_embedding_nmf", optional = true }
-swarmauri-tool-matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
-swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
-swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true }
-swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
-swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
+swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_vectorstore_doc2vec", optional = true }
+swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec", optional = true }
+swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf", optional = true }
+swarmauri_embedding_nmf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_nmf", optional = true }
+swarmauri-tool-matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib", optional = true }
+swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor", optional = true }
+swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement", optional = true }
+swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
+swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
 
 [tool.poetry.extras]
 # First Class Extras

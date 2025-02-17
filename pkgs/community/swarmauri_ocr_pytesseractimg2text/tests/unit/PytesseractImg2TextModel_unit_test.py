@@ -3,7 +3,7 @@ import logging
 
 import pytest
 from PIL import Image
-from swarmauri_ocr_pytesseractimg2text.PytesseractImg2OCR import (
+from pkgs.community.swarmauri_ocr_pytesseractimg2text.swarmauri_ocr_pytesseractimg2text.PytesseractImg2TextOCR import (
     PytesseractImg2OCR,
 )
 from swarmauri_standard.utils.timeout_wrapper import timeout
