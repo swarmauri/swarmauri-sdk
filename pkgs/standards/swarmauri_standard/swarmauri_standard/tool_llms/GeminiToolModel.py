@@ -3,7 +3,7 @@ import json
 import logging
 from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (

@@ -3,7 +3,7 @@ import json
 import httpx
 
 from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
