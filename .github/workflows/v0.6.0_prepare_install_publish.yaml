@@ -1,4 +1,4 @@
-name: 0.6.0 - Install, Prepare, Publish
+name: 0.6.0 - Prepare, Install, Publish
 
 on:
   workflow_dispatch:
