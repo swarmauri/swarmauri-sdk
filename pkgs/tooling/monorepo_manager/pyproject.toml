@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "monorepo-manager"
-version = "0.6.0"
+version = "0.6.1.dev1"
 description = "A CLI for managing a Python monorepo"
 authors = [
   { name="Your Name", email="you@example.com" }
