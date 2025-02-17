@@ -1,12 +1,21 @@
 import asyncio
 import base64
 import os
+import warnings
 from typing import Dict, List, Literal, Optional
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+warnings.warn(
+    "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "HyperbolicTTS' or 'from swarmauri.tts import HyperbolicTTS' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")

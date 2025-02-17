@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_persistentchromadb"
-version = "0.6.1.dev1"
+version = "0.6.1.dev2"
 description = "A Persistent ChromaDB based Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
