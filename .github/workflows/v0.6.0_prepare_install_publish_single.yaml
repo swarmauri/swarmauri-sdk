@@ -1,4 +1,4 @@
-name: 0.6.0 - Prepare, Install, Publish
+name: 0.6.0 - Single (Prepare, Install, Publish)
 
 on:
   workflow_dispatch:
@@ -15,6 +15,10 @@ on:
         description: "Commit message for the prepare phase"
         required: false
         default: "chore: auto finalize packages"
+
+concurrency:
+  group: dev-branch-workflow-group
+  cancel-in-progress: false
 
 jobs:
   install-prepare-validate:

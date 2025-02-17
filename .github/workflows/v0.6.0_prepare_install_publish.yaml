@@ -1,7 +1,11 @@
-name: 0.6.0 - Prepare, Install, Publish
+name: 0.6.0 - Mono (Prepare, Install, Publish)
 
 on:
   workflow_dispatch:
+
+concurrency:
+  group: dev-branch-workflow-group
+  cancel-in-progress: false
 
 jobs:
   install-prepare-validate:
