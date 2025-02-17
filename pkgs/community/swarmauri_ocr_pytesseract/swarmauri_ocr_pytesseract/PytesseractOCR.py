@@ -9,8 +9,8 @@ from io import BytesIO
 from swarmauri_base.ocrs.OCRBase import OCRBase
 
 
-@ComponentBase.register_type(OCRBase, "PytesseractImg2TextOCR")
-class PytesseractImg2TextOCR(OCRBase):
+@ComponentBase.register_type(OCRBase, "PytesseractOCR")
+class PytesseractOCR(OCRBase):
     """
     A model for performing OCR (Optical Character Recognition) using Pytesseract.
     It can process both local images and image bytes, returning extracted text.
@@ -23,7 +23,7 @@ class PytesseractImg2TextOCR(OCRBase):
             ("/usr/bin/tesseract" if os.path.exists("/usr/bin/tesseract") else None),
         )
     )
-    type: Literal["PytesseractImg2TextOCR"] = "PytesseractImg2TextOCR"
+    type: Literal["PytesseractOCR"] = "PytesseractOCR"
     language: str = Field(default="eng")
     config: str = Field(default="")  # Custom configuration string
     model_config = ConfigDict(protected_namespaces=())

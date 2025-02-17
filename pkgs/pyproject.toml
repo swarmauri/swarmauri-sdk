@@ -77,7 +77,7 @@ swarmauri_parser_pypdf2 = { git = "https://github.com/swarmauri/swarmauri-sdk.gi
 swarmauri_measurement_mutualinformation = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_measurement_mutualinformation"}
 swarmauri_measurement_tokencountestimator = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_measurement_tokencountestimator"}
 
-swarmauri_ocr_pytesseractimg2text = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_ocr_pytesseractimg2text"}
+swarmauri_ocr_pytesseract = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_ocr_pytesseract"}
 swarmauri_embedding_mlm = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_embedding_mlm"}
 
 

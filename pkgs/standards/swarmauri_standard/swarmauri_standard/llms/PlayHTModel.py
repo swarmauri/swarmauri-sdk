@@ -41,6 +41,7 @@ class PlayHTModel(LLMBase):
     name: str = "Play3.0-mini"
     type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
+    timeout: int = 30
     _voice_id: str = PrivateAttr(default=None)
     _prebuilt_voices: Dict[
         Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"], List[dict]
@@ -91,7 +92,7 @@ class PlayHTModel(LLMBase):
 
         self._headers["accept"] = "application/json"
 
-        with httpx.Client(base_url=self._BASE_URL, timeout=30) as client:
+        with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
             voice_response = client.get("/voices", headers=self._headers)
 
         for item in json.loads(voice_response.text):
@@ -147,7 +148,7 @@ class PlayHTModel(LLMBase):
         raise ValueError(f"Voice name {voice_name} not found in allowed voices.")
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict(self, text: str, audio_path: str = "output.mp3") -> str:
+    def stream(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Convert text to speech using Play.ht's API and save as an audio file.
 
@@ -165,7 +166,7 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=30) as self._client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as self._client:
                 response = self._client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )
@@ -179,7 +180,7 @@ class PlayHTModel(LLMBase):
             raise RuntimeError(f"Text-to-Speech synthesis failed: {e}")
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
+    async def astream(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Asynchronously convert text to speech and save it as an audio file.
 
@@ -199,7 +200,7 @@ class PlayHTModel(LLMBase):
 
         try:
             async with httpx.AsyncClient(
-                base_url=self._BASE_URL, timeout=30
+                base_url=self._BASE_URL, timeout=self.timeout
             ) as async_client:
                 response = await async_client.post(
                     "/tts/stream", json=payload, headers=self._headers
@@ -220,7 +221,7 @@ class PlayHTModel(LLMBase):
         Returns:
             List: List of audio file paths.
         """
-        return [self.predict(text, path) for text, path in text_path_dict.items()]
+        return [self.stream(text, path) for text, path in text_path_dict.items()]
 
     async def abatch(
         self, text_path_dict: Dict[str, str], max_concurrent: int = 5
@@ -238,7 +239,7 @@ class PlayHTModel(LLMBase):
 
         async def process_text(text, path) -> str:
             async with semaphore:
-                return await self.apredict(text, path)
+                return await self.astream(text, path)
 
         tasks = [process_text(text, path) for text, path in text_path_dict.items()]
         return await asyncio.gather(*tasks)
@@ -300,7 +301,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.post(
                     "/cloned-voices/instant", data=payload, headers=self._headers
                 )
@@ -324,7 +325,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.delete(
                     "/cloned-voices", json=payload, headers=self._headers
                 )
@@ -345,7 +346,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.get("/cloned-voices", headers=self._headers)
                 response.raise_for_status()
 
@@ -354,3 +355,9 @@ class PlayHTModel(LLMBase):
         except httpx.RequestError as e:
             print(f"An error occurred while retrieving cloned voices: {e}")
             return {"error": str(e)}
+
+    def predict(self, text: str, audio_path: str = "output.mp3") -> str:
+        raise NotImplementedError("Predict method not implemented for PlayHTModel")
+
+    async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
+        raise NotImplementedError("Apredict method not implemented for PlayHTModel")

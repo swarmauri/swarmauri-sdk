@@ -36,6 +36,7 @@ class OpenAIAudioTTS(LLMBase):
     name: str = "tts-1"
     type: Literal["OpenAIAudioTTS"] = "OpenAIAudioTTS"
     voice: str = "alloy"
+    timeout: int = 30
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/speech")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -88,7 +89,7 @@ class OpenAIAudioTTS(LLMBase):
         """
         payload = {"model": self.name, "voice": self.voice, "input": text}
 
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -108,7 +109,7 @@ class OpenAIAudioTTS(LLMBase):
         """
         payload = {"model": self.name, "voice": self.voice, "input": text}
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -136,7 +137,7 @@ class OpenAIAudioTTS(LLMBase):
         }
 
         try:
-            with httpx.Client(timeout=30) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -168,7 +169,7 @@ class OpenAIAudioTTS(LLMBase):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

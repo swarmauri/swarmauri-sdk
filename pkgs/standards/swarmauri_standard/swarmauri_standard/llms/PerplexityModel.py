@@ -35,16 +35,23 @@ class PerplexityModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "llama-3.1-sonar-small-128k-online",
-        "llama-3.1-sonar-large-128k-online",
-        "llama-3.1-sonar-huge-128k-online",
-        "llama-3.1-sonar-small-128k-chat",
-        "llama-3.1-sonar-large-128k-chat",
-        "llama-3.1-8b-instruct",
-        "llama-3.1-70b-instruct",
+        # deprecated 
+        # "llama-3.1-sonar-small-128k-online",
+        # "llama-3.1-sonar-large-128k-online",
+        # "llama-3.1-sonar-huge-128k-online",
+        # "llama-3.1-sonar-small-128k-chat",
+        # "llama-3.1-sonar-large-128k-chat",
+        # "llama-3.1-8b-instruct",
+        # "llama-3.1-70b-instruct",
+
+        "sonar-reasoning-pro",
+        "sonar-reasoning",
+        "sonar-pro",
+        "sonar",
     ]
-    name: str = "llama-3.1-70b-instruct"
+    name: str = "sonar"
     type: Literal["PerplexityModel"] = "PerplexityModel"
+    timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.perplexity.ai/chat/completions")
@@ -60,12 +67,12 @@ class PerplexityModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
 
     def _format_messages(

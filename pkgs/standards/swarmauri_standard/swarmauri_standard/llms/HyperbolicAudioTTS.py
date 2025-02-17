@@ -44,6 +44,7 @@ class HyperbolicAudioTTS(LLMBase):
     language: Optional[str] = None
     speaker: Optional[str] = None
     speed: Optional[float] = Field(default=1.0, ge=0.1, le=5)
+    timeout: int = 30
 
     type: Literal["HyperbolicAudioTTS"] = "HyperbolicAudioTTS"
     _BASE_URL: str = PrivateAttr(
@@ -83,7 +84,7 @@ class HyperbolicAudioTTS(LLMBase):
         """
         payload = self._prepare_payload(text)
 
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -101,7 +102,7 @@ class HyperbolicAudioTTS(LLMBase):
         """
         payload = self._prepare_payload(text)
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )

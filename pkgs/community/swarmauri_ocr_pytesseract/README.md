@@ -2,10 +2,10 @@
 
 <div align="center">
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_ocr_pytesseractimg2text)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_ocr_pytesseractimg2text)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_ocr_pytesseractimg2text)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_ocr_pytesseractimg2text?label=swarmauri_ocr_pytesseractimg2text&color=green)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_ocr_pytesseract)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_ocr_pytesseract)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_ocr_pytesseract)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_ocr_pytesseract?label=swarmauri_ocr_pytesseract&color=green)
 
 </div>
 
@@ -18,15 +18,15 @@ A model for performing OCR (Optical Character Recognition) using Pytesseract. It
 ## Installation
 
 ```bash
-pip install swarmauri_ocr_pytesseractimg2text
+pip install swarmauri_ocr_pytesseract
 ```
 
 ## Usage
 Basic usage examples with code snippets
 ```python
-from swarmauri.ocrs.PytesseractImg2OCR import PytesseractImg2OCR
+from swarmauri.ocrs.PytesseractOCR import PytesseractOCR
 
-model = PytesseractImg2OCR()
+model = PytesseractOCR()
 text = model.extract_text("path/to/image.png")
 print(text)
 ```
