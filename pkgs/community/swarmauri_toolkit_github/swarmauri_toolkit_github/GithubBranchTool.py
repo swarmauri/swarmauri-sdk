@@ -7,7 +7,6 @@ from pydantic import Field, ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
-
 @ComponentBase.register_type(ToolBase, "GithubBranchTool")
 class GithubBranchTool(ToolBase):
     version: str = "1.1.0"

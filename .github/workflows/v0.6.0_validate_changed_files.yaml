@@ -41,44 +41,51 @@ jobs:
 
           declare -A PACKAGE_TEST_MAP
 
-          # Helper function to find the nearest pyproject.toml up the directory tree
+          # Helper function to find the nearest pyproject.toml, checking 
+          # the local directory first, then walking up.
           find_pyproject_root() {
             local path="$1"
-            while [ "$path" != "." ] && [ -n "$path" ]; do
+            while true; do
+              # 1) Check current directory
               if [ -f "$path/pyproject.toml" ]; then
                 echo "$path"
                 return
               fi
-              # Move one directory up
+              # 2) If we're at '.' or empty, no pyproject found
+              if [ "$path" = "." ] || [ -z "$path" ]; then
+                echo ""
+                return
+              fi
+              # 3) Move one directory up
               path="$(dirname "$path")"
             done
-            # If none found, return empty
-            echo ""
           }
 
           for FILE in $CHANGED_FILES; do
-            # Determine the directory of this file (relative to root)
+            # Directory of this file (relative to root)
             DIR=$(dirname "$FILE")
 
             # Find the package root containing pyproject.toml
             PACKAGE_ROOT=$(find_pyproject_root "$DIR")
             if [ -z "$PACKAGE_ROOT" ]; then
-              # If we can't find a pyproject.toml by walking upwards, 
-              # you could handle it as a fallback or skip
               echo "No pyproject.toml found for $FILE"
               continue
             fi
 
-            # The name of the package is often the last directory in the path with the pyproject.toml
-            PACKAGE_NAME=$(basename "$PACKAGE_ROOT")
+            # Strip leading "pkgs/" from PACKAGE_ROOT to form a relative path
+            # e.g., if PACKAGE_ROOT="pkgs/community/swarmauri_toolkit_github",
+            # then PACKAGE_ROOT_PATH="community/swarmauri_toolkit_github"
+            PACKAGE_ROOT_PATH="${PACKAGE_ROOT#pkgs/}"
 
-            # If the changed file is a test file, store it directly. Otherwise, look for associated tests.
+            # If the changed file itself is a test...
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
-              # Convert from `pkgs/package_name/tests/xyz_test.py` to `tests/xyz_test.py`
+              # Keep test file path relative to the package root
+              # For example, if FILE="pkgs/community/swarmauri_toolkit_github/tests/unit/test_xyz.py",
+              #   then RELATIVE_TEST_FILE="tests/unit/test_xyz.py"
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^$PACKAGE_ROOT/||")
-              PACKAGE_TEST_MAP["$PACKAGE_NAME"]="${PACKAGE_TEST_MAP[$PACKAGE_NAME]} $RELATIVE_TEST_FILE"
+              PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
             else
-              # It's not a direct test file, so guess test files by matching the changed filename
+              # Not a direct test file, so guess test files based on the changed filename
               COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
               TEST_DIR="$PACKAGE_ROOT/tests"
 
@@ -87,7 +94,7 @@ jobs:
                 MATCHING_TEST_FILES=$(find "$TEST_DIR" -type f -iname "*${COMPONENT_NAME}*_test.py")
                 for TEST_FILE in $MATCHING_TEST_FILES; do
                   RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^$PACKAGE_ROOT/||")
-                  PACKAGE_TEST_MAP["$PACKAGE_NAME"]="${PACKAGE_TEST_MAP[$PACKAGE_NAME]} $RELATIVE_TEST_FILE"
+                  PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
                 done
               fi
             fi
@@ -95,14 +102,14 @@ jobs:
 
           # Build a JSON matrix
           MATRIX="["
-
-          for PKG in "${!PACKAGE_TEST_MAP[@]}"; do
+          for PKG_PATH in "${!PACKAGE_TEST_MAP[@]}"; do
             # Deduplicate test files
-            UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PKG]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-            MATRIX="$MATRIX{\"package\":\"$PKG\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
+            UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PKG_PATH]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+            
+            # In the JSON, store both the subpath (PKG_PATH) and the collected test files
+            MATRIX="$MATRIX{\"package_path\":\"$PKG_PATH\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
           done
-
-          # Remove trailing comma if any
+          # Remove trailing comma, close JSON array
           MATRIX="${MATRIX%,}]"
 
           echo "Final test matrix: $MATRIX"
@@ -116,6 +123,8 @@ jobs:
       fail-fast: false
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
 
     steps:
       - name: Check out code
@@ -126,23 +135,49 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Install and test
+      - name: Create and Activate Virtual Environment
         run: |
-          PKG="${{ matrix.package_tests.package }}"
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
+
+      # 3. Install project dependencies via Poetry
+      - name: Install dependencies
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python -m pip install --upgrade pip
+          pip install poetry
+          pip install soliloquy=="0.1.4"
+
+      - name: Soliloquy Install 
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          PKG_PATH="${{ matrix.package_tests.package_path }}"
           TEST_FILES="${{ matrix.package_tests.tests }}"
-          
-          echo "Package root: pkgs/$PKG"
+
+          echo "Package path: pkgs/$PKG_PATH"
           echo "Test files: $TEST_FILES"
           
-          # Install
-          cd pkgs/$PKG
-          poetry lock
-          poetry install --no-cache --all-extras -vv
+          # Move into the directory that has pyproject.toml
+          cd "pkgs/$PKG_PATH"
 
-          # Run tests
-          poetry run pytest -v $TEST_FILES -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
+          soliloquy install -f pyproject.toml
+
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
+
+      - name: Soliloquy Validate
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          PKG_PATH="${{ matrix.package_tests.package_path }}"
+          TEST_FILES="${{ matrix.package_tests.tests }}"
+
+          echo "Package path: pkgs/$PKG_PATH"
+          echo "Test files: $TEST_FILES"
+          
+          # Move into the directory that has pyproject.toml
+          cd "pkgs/$PKG_PATH"
+
+          soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
