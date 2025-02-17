@@ -47,7 +47,7 @@ class DeepInfraModel(LLMBase):
 
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """

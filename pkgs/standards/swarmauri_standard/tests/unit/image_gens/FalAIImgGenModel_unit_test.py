@@ -50,7 +50,7 @@ def test_serialization(fluxpro_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(fluxpro_imggen_model):
-    assert fluxpro_imggen_model.name == "fal-ai/flux-pro"
+    assert fluxpro_imggen_model.name == fluxpro_imggen_model.allowed_models[0]
 
 
 @timeout(5)

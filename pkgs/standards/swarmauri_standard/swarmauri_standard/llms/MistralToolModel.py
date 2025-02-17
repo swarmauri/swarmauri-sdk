@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import warnings
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
@@ -15,6 +16,14 @@ from swarmauri_standard.schema_converters.MistralSchemaConverter import (
     MistralSchemaConverter,
 )
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing MistralToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "MistralToolModel' or 'from swarmauri.tool_llms import MistralToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 @ComponentBase.register_type(LLMBase, "MistralToolModel")
@@ -38,7 +47,7 @@ class MistralToolModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")

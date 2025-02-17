@@ -58,7 +58,7 @@ def test_serialization(playht_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(playht_model):
-    assert playht_model.name == "Play3.0-mini"
+    assert playht_model.name == playht_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

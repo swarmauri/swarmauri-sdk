@@ -1,5 +1,6 @@
 import asyncio
 import json
+import warnings
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
@@ -14,6 +15,14 @@ from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing OpenAIToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "OpenAIToolModel' or 'from swarmauri.tool_llms import OpenAIToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIToolModel")
@@ -35,25 +44,10 @@ class OpenAIToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "gpt-4o-2024-05-13",
-        "gpt-4-turbo",
-        "gpt-4o-mini",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4o-2024-08-06",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-turbo-preview",
-        "gpt-4-0125-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-    ]
-    name: str = "gpt-3.5-turbo-0125"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -69,6 +63,8 @@ class OpenAIToolModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
@@ -445,3 +441,28 @@ class OpenAIToolModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = [
+            "gpt-4o-2024-05-13",
+            "gpt-4-turbo",
+            "gpt-4o-mini",
+            "gpt-4o-mini-2024-07-18",
+            "gpt-4o-2024-08-06",
+            "gpt-4-turbo-2024-04-09",
+            "gpt-4-turbo-preview",
+            "gpt-4-0125-preview",
+            "gpt-4-1106-preview",
+            "gpt-4",
+            "gpt-4-0613",
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-0125",
+            "gpt-3.5-turbo-1106",
+        ]
+        return models_data

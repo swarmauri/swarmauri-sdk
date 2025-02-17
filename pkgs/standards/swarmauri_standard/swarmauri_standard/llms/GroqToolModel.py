@@ -1,5 +1,6 @@
 import asyncio
 import json
+import warnings
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
@@ -14,6 +15,14 @@ from swarmauri_standard.schema_converters.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing GroqToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "GroqToolModel' or 'from swarmauri.tool_llms import GroqToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 @ComponentBase.register_type(LLMBase, "GroqToolModel")
@@ -45,7 +54,7 @@ class GroqToolModel(LLMBase):
         default="https://api.groq.com/openai/v1/chat/completions"
     )
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """

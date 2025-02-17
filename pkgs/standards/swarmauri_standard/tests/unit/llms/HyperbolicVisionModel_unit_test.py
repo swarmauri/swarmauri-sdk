@@ -135,23 +135,26 @@ def test_batch(hyperbolic_vision_model):
 @timeout(5)
 @pytest.mark.unit
 async def test_abatch(hyperbolic_vision_model):
-    image_urls = [
-        "https://llava-vl.github.io/static/images/monalisa.jpg",
-        "https://llava-vl.github.io/static/images/monalisa.jpg",
-    ]
-    prompts = [
-        "Who painted this artwork?",
-        "Describe the woman in the painting.",
-    ]
-
-    conversations = [
-        create_test_conversation(image_url, prompt)
-        for image_url, prompt in zip(image_urls, prompts)
-    ]
+    image_prompt = {
+        "Who painted this artwork?": "https://llava-vl.github.io/static/images/monalisa.jpg",
+        "Describe the woman in the painting.": "https://llava-vl.github.io/static/images/monalisa.jpg",
+    }
+    conversations = []
+    for prompt, image_url in image_prompt.items():
+        conversation = Conversation()
+        conversation.add_message(
+            HumanMessage(
+                content=[
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ]
+            )
+        )
+        conversations.append(conversation)
 
     results = await hyperbolic_vision_model.abatch(conversations)
 
-    assert len(results) == len(image_urls)
+    assert len(results) == len(image_prompt.keys())
     for result in results:
         assert result.history[-1].content is not None
         assert isinstance(result.history[-1].content, str)

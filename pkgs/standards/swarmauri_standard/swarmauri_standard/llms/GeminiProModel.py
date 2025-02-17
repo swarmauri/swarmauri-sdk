@@ -32,7 +32,7 @@ class GeminiProModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     type: Literal["GeminiProModel"] = "GeminiProModel"
 

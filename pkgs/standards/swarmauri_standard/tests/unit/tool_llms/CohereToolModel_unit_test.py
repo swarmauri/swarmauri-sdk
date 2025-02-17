@@ -79,7 +79,7 @@ def test_serialization(cohere_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(cohere_tool_model):
-    assert cohere_tool_model.name == "command-r"
+    assert cohere_tool_model.name == cohere_tool_model.allowed_models[0]
 
 
 @timeout(5)

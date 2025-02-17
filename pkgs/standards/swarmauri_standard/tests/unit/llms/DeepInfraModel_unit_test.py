@@ -66,7 +66,7 @@ def test_serialization(deepinfra_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(deepinfra_model):
-    assert deepinfra_model.name == "Qwen/Qwen2-72B-Instruct"
+    assert deepinfra_model.name == deepinfra_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

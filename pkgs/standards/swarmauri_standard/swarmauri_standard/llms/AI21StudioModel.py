@@ -41,7 +41,7 @@ class AI21StudioModel(LLMBase):
     _BASE_URL: str = PrivateAttr(
         default="https://api.ai21.com/studio/v1/chat/completions"
     )
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data) -> None:
         """

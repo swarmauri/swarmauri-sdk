@@ -32,33 +32,10 @@ class OpenAIModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "gpt-4o",
-        "gpt-4-turbo",
-        "gpt-4-turbo-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo",
-        "gpt-4o-mini",
-        "gpt-4o-2024-05-13",
-        "gpt-4o-2024-08-06",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-0125-preview",
-        "gpt-4-0613",
-        "gpt-3.5-turbo-0125",
-        # "chatgpt-4o-latest",
-        # "gpt-3.5-turbo-instruct", # gpt-3.5-turbo-instruct does not support v1/chat/completions endpoint. only supports (/v1/completions)
-        # "o1-preview",   # Does not support max_tokens and temperature
-        # "o1-mini",      # Does not support max_tokens and temperature
-        # "o1-preview-2024-09-12", # Does not support max_tokens and temperature
-        # "o1-mini-2024-09-12",   # Does not support max_tokens and temperature
-        # "gpt-4-0314",  #  it's deprecated
-    ]
-    name: str = "gpt-3.5-turbo"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["OpenAIModel"] = "OpenAIModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -74,6 +51,8 @@ class OpenAIModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -470,3 +449,29 @@ class OpenAIModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = [
+            "gpt-4o-mini",
+            "gpt-4o-2024-05-13",
+            "gpt-4o-2024-08-06",
+            "gpt-4o-mini-2024-07-18",
+            "gpt-4o",
+            "gpt-4-turbo",
+            "gpt-4-turbo-preview",
+            "gpt-4-1106-preview",
+            "gpt-4",
+            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo",
+            "gpt-4-turbo-2024-04-09",
+            "gpt-4-0125-preview",
+            "gpt-4-0613",
+            "gpt-3.5-turbo-0125",
+        ]
+        return models_data

@@ -55,7 +55,7 @@ def test_serialization(groq_stt_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_stt_model):
-    assert groq_stt_model.name == "distil-whisper-large-v3-en"
+    assert groq_stt_model.name == groq_stt_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

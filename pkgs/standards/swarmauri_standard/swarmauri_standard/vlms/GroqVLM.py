@@ -1,16 +1,16 @@
 import asyncio
 import json
-from pydantic import PrivateAttr, SecretStr
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+
 import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
+from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.vlms.VLMBase import VLMBase
+from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.vlms.VLMBase import VLMBase
-
-from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(VLMBase, "GroqVLM")
@@ -58,6 +58,8 @@ class GroqVLM(VLMBase):
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -385,3 +387,12 @@ class GroqVLM(VLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"]

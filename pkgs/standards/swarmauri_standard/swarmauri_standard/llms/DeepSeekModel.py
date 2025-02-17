@@ -41,7 +41,7 @@ class DeepSeekModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         super().__init__(**data)

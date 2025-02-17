@@ -25,12 +25,9 @@ class GroqSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "distil-whisper-large-v3-en",
-        "whisper-large-v3",
-    ]
+    allowed_models: List[str] = []
 
-    name: str = "distil-whisper-large-v3-en"
+    name: str = ""
     type: Literal["GroqSTT"] = "GroqSTT"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -54,6 +51,8 @@ class GroqSTT(STTBase):
             base_url=self._BASE_URL,
             timeout=30,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -202,6 +201,22 @@ class GroqSTT(STTBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+
+        Raises:
+            httpx.HTTPStatusError: If the API request fails.
+        """
+        return [
+            "whisper-large-v3-turbo",
+            "distil-whisper-large-v3-en",
+            "whisper-large-v3",
+        ]
 
     def stream(
         self,

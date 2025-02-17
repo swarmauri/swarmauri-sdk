@@ -1,12 +1,14 @@
 import asyncio
 import io
 import os
+from typing import AsyncIterator, Dict, Iterator, List, Literal
+
 import httpx
-from typing import AsyncIterator, Iterator, List, Literal, Dict
 from pydantic import PrivateAttr, SecretStr, model_validator
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(TTSBase, "OpenaiTTS")
@@ -28,10 +30,10 @@ class OpenaiTTS(TTSBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["tts-1", "tts-1-hd"]
+    allowed_models: List[str] = []
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-    name: str = "tts-1"
+    name: str = ""
     type: Literal["OpenaiTTS"] = "OpenaiTTS"
     voice: str = "alloy"
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/speech")
@@ -49,6 +51,8 @@ class OpenaiTTS(TTSBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @model_validator(mode="after")
     @classmethod
@@ -224,3 +228,13 @@ class OpenaiTTS(TTSBase):
             process_conversation(text, path) for text, path in text_path_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["tts-1", "tts-1-hd"]
+        return models_data
