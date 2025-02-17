@@ -133,10 +133,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Poetry
+      - name: Install Poetry & Soliloquy
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          pip install soliloquy=="0.1.4"
 
       - name: Install and test
         run: |
