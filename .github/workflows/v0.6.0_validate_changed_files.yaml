@@ -125,7 +125,7 @@ jobs:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
-      
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -151,10 +151,10 @@ jobs:
 
       - name: Soliloquy Install 
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           PKG_PATH="${{ matrix.package_tests.package_path }}"
           TEST_FILES="${{ matrix.package_tests.tests }}"
 
-          source $UNIQUE_VENV_PATH/bin/activate
           echo "Package path: pkgs/$PKG_PATH"
           echo "Test files: $TEST_FILES"
           
@@ -163,13 +163,17 @@ jobs:
 
           soliloquy install -f pyproject.toml
 
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
 
       - name: Soliloquy Validate
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           PKG_PATH="${{ matrix.package_tests.package_path }}"
           TEST_FILES="${{ matrix.package_tests.tests }}"
 
-          source $UNIQUE_VENV_PATH/bin/activate
           echo "Package path: pkgs/$PKG_PATH"
           echo "Test files: $TEST_FILES"
           
