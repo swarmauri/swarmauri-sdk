@@ -1,10 +1,22 @@
-name: 0.6.0 - Prepare, Install, Publish
+name: 0.6.0 - Mono (Prepare, Install, Publish)
 
 on:
   workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Bump type (patch or finalize) for the prepare phase"
+        required: false
+        default: "patch"
+      commit_msg:
+        description: "Commit message for the prepare phase"
+        required: false
+        default: "chore: auto increment packages"
+concurrency:
+  group: dev-branch-workflow-group
+  cancel-in-progress: false
 
 jobs:
-  install-prepare-validate:
+  install-prepare-publish:
     runs-on: ubuntu-latest
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
@@ -52,7 +64,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          soliloquy prepare --directory . --recursive --bump finalize --commit-msg "chore: auto finalize packages" --lint-fix
+          soliloquy prepare --directory . --recursive \
+            --bump "${{ github.event.inputs.bump_type }}" \
+            --commit-msg "${{ github.event.inputs.commit_msg }}" \
+            --lint-fix
 
       - name: Push Branch to GitHub
         run: |
@@ -65,4 +80,8 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          soliloquy release --file pyproject.toml --test-mode each --num-workers 4 --no-cleanup --required-passed ge:80 --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+          soliloquy release --file pyproject.toml --test-mode each \
+            --num-workers 4 \
+            --no-cleanup \
+            --required-passed ge:80 \
+            --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}

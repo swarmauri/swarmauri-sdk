@@ -27,6 +27,7 @@ class OpenAIImgGenModel(ImageGenBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["OpenAIImgGenModel"] = "OpenAIImgGenModel"
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -82,7 +83,7 @@ class OpenAIImgGenModel(ImageGenBase):
             payload["style"] = style
 
         try:
-            with httpx.Client(timeout=30.0) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -128,7 +129,7 @@ class OpenAIImgGenModel(ImageGenBase):
             payload["style"] = style
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
 
 import pytest
-from swarmauri_tool_github.GithubPRTool import (
-    GithubPRTool as Tool,
+from swarmauri_toolkit_github.GithubRepoTool import (
+    GithubRepoTool as Tool,
 )
 
 load_dotenv()
@@ -19,32 +19,32 @@ def github_token():
     return token
 
 
-# Fixture for initializing the GithubPRTool
+# Fixture for initializing the GithubRepoTool
 @pytest.fixture(scope="module")
-def github_pr_tool(github_token):
+def github_repo_tool(github_token):
     return Tool(token=github_token)
 
 
 @pytest.mark.unit
-def test_ubc_resource(github_pr_tool):
-    assert github_pr_tool.resource == "Tool"
+def test_ubc_resource(github_repo_tool):
+    assert github_repo_tool.resource == "Tool"
 
 
 @pytest.mark.unit
-def test_ubc_type(github_pr_tool):
-    assert github_pr_tool.type == "GithubPRTool"
+def test_ubc_type(github_repo_tool):
+    assert github_repo_tool.type == "GithubRepoTool"
 
 
 @pytest.mark.unit
-def test_initialization(github_pr_tool):
-    assert type(github_pr_tool.id) is str
+def test_initialization(github_repo_tool):
+    assert type(github_repo_tool.id) is str
 
 
 @pytest.mark.unit
-def test_serialization(github_pr_tool):
+def test_serialization(github_repo_tool):
     assert (
-        github_pr_tool.id
-        == Tool.model_validate_json(github_pr_tool.model_dump_json()).id
+        github_repo_tool.id
+        == Tool.model_validate_json(github_repo_tool.model_dump_json()).id
     )
 
 
@@ -52,18 +52,18 @@ def test_serialization(github_pr_tool):
     "action, kwargs, method_called",
     [
         # Valid cases for repo management
-        ("create_pull", {"repo_name": "test-repo", "title": "Test PR"}, "create_pull"),
-        ("merge_pull", {"repo_name": "test-repo", "pull_number": 1}, "merge_pull"),
-        ("close_pull", {"repo_name": "test-repo", "pull_number": 1}, "close_pull"),
-        ("list_pulls", {"repo_name": "test-repo"}, "list_pulls"),
-        ("get_pull", {"repo_name": "test-repo", "pull_number": 1}, "get_pull"),
+        ("create_repo", {"repo_name": "test-repo"}, "create_repo"),
+        ("delete_repo", {"repo_name": "test-repo"}, "delete_repo"),
+        ("get_repo", {"repo_name": "test-repo"}, "get_repo"),
+        ("list_repos", {}, "list_repos"),
+        ("update_repo", {"repo_name": "test-repo"}, "update_repo"),
         # Invalid action
         ("invalid_action", {}, None),
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri_community.tools.concrete.GithubPRTool.Github")
-def test_call(mock_github, github_pr_tool, action, kwargs, method_called):
+@patch("swarmauri_community.tools.concrete.GithubRepoTool.Github")
+def test_call(mock_github, github_repo_tool, action, kwargs, method_called):
     expected_keys = {action}
 
     mock_github.return_value = MagicMock()
@@ -74,7 +74,7 @@ def test_call(mock_github, github_pr_tool, action, kwargs, method_called):
             method_called,
             return_value="performed a test action successfully",
         ) as mock_method:
-            result = github_pr_tool(action=action, **kwargs)
+            result = github_repo_tool(action=action, **kwargs)
 
             mock_method.assert_called_once_with(**kwargs)
 
@@ -90,4 +90,4 @@ def test_call(mock_github, github_pr_tool, action, kwargs, method_called):
             assert result == {f"{action}": "performed a test action successfully"}
     else:
         with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
-            github_pr_tool(action=action, **kwargs)
+            github_repo_tool(action=action, **kwargs)

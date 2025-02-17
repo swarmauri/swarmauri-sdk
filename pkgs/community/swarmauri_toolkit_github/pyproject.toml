@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "swarmauri_tool_github"
-version = "0.6.1.dev1"
-description = "Github Tool"
+name = "swarmauri_toolkit_github"
+version = "0.6.1.dev6"
+description = "Github Toolkit"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -56,13 +56,12 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
-GithubBranchTool = "swarmauri_tool_github.GithubBranchTool:GithubBranchTool"
-GithubCommitTool = "swarmauri_tool_github.GithubCommitTool:GithubCommitTool"
-GithubIssueTool = "swarmauri_tool_github.GithubIssueTool:GithubIssueTool"
-GithubPRTool = "swarmauri_tool_github.GithubPRTool:GithubPRTool"
-GithubTool = "swarmauri_tool_github.GithubTool:GithubTool"
-GithubRepoTool = "swarmauri_tool_github.GithubRepoTool:GithubRepoTool"
+GithubBranchTool = "swarmauri_toolkit_github.GithubBranchTool:GithubBranchTool"
+GithubCommitTool = "swarmauri_toolkit_github.GithubCommitTool:GithubCommitTool"
+GithubIssueTool = "swarmauri_toolkit_github.GithubIssueTool:GithubIssueTool"
+GithubPRTool = "swarmauri_toolkit_github.GithubPRTool:GithubPRTool"
+GithubRepoTool = "swarmauri_toolkit_github.GithubRepoTool:GithubRepoTool"
 
 [tool.poetry.plugins."swarmauri.toolkits"]
-GithubToolkit = "swarmauri_tool_github.GithubToolkit:GithubToolkit"
+GithubToolkit = "swarmauri_toolkit_github.GithubToolkit:GithubToolkit"
 

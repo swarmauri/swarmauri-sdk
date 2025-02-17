@@ -29,7 +29,7 @@ class DeepInfraImgGenModel(ImageGenBase):
     _BASE_URL: str = PrivateAttr("https://api.deepinfra.com/v1/inference")
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-
+    timeout: float = 600.0
     api_key: SecretStr
     allowed_models: List[str] = []
     name: str = ""  # Default model
@@ -50,7 +50,7 @@ class DeepInfraImgGenModel(ImageGenBase):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=30)
+        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -59,7 +59,9 @@ class DeepInfraImgGenModel(ImageGenBase):
         Gets or creates an async client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
+            self._async_client = httpx.AsyncClient(
+                headers=self._headers, timeout=self.timeout
+            )
         return self._async_client
 
     async def _close_async_client(self):

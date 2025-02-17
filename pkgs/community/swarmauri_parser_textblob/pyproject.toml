@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_parser_textblob"
-version = "0.6.1.dev1"
+version = "0.6.1.dev6"
 description = "TextBlob Parser for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

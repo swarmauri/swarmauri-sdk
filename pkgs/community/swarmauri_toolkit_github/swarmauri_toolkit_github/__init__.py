@@ -3,7 +3,7 @@ from .GithubCommitTool import GithubCommitTool
 from .GithubIssueTool import GithubIssueTool
 from .GithubPRTool import GithubPRTool
 from .GithubRepoTool import GithubRepoTool
-from .GithubTool import GithubTool
+from .GithubToolkit import GithubToolkit
 
 
 __all__ = [
@@ -12,7 +12,7 @@ __all__ = [
     "GithubIssueTool",
     "GithubPRTool",
     "GithubRepoTool",
-    "GithubTool",
+    "GithubToolkit",
 ]
 
 try:
@@ -23,7 +23,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_tool_github")
+    __version__ = version("swarmauri_toolkit_github")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"

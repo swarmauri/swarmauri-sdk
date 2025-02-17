@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_llm_leptonai"
-version = "0.6.1.dev1"
+version = "0.6.1.dev6"
 description = "Swarmauri Lepton AI Model"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

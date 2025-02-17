@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
-version = "0.6.1.dev1"
+version = "0.6.1.dev6"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
@@ -64,7 +64,7 @@ swarmauri_tool_dalechallreadability = { git = "https://github.com/swarmauri/swar
 swarmauri_tool_gmail = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_tool_gmail"}
 swarmauri_tool_folium = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_tool_folium"}
 swarmauri_tool_psutil = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_tool_psutil"}
-swarmauri_tool_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_tool_github"}
+swarmauri_toolkit_github = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_toolkit_github"}
 
 swarmauri_state_clipboard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/community/swarmauri_state_clipboard"}
 

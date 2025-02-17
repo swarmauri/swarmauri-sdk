@@ -1,23 +1,27 @@
-name: 0.6.0 - Prepare, Install, Publish
+name: 0.6.0 - Single (Prepare, Install, Publish)
 
 on:
   workflow_dispatch:
     inputs:
       soliloquy_file:
         description: "File to use for install, prepare, and release steps"
-        required: false
+        required: true
         default: "pyproject.toml"
       bump_type:
-        description: "Bump type (patch, finalize, etc.) for the prepare phase"
+        description: "Bump type (patch or finalize) for the prepare phase"
         required: false
-        default: "finalize"
+        default: "patch"
       commit_msg:
         description: "Commit message for the prepare phase"
         required: false
-        default: "chore: auto finalize packages"
+        default: "chore: auto increment packages"
+
+concurrency:
+  group: dev-branch-workflow-group
+  cancel-in-progress: false
 
 jobs:
-  install-prepare-validate:
+  install-prepare-publish:
     runs-on: ubuntu-latest
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
