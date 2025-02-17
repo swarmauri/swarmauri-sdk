@@ -3,13 +3,12 @@ from openai import OpenAI, AsyncOpenAI
 from typing import List, Dict, Literal, Optional, Iterator, AsyncIterator
 import asyncio
 from pydantic import Field, SecretStr
-from swarmauri_core.typing import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
 
 
 @ComponentBase.register_type(LLMBase, "LeptonAIModel")
