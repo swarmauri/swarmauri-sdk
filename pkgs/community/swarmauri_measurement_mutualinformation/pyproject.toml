@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_measurement_mutualinformation"
-version = "0.6.1.dev4"
+version = "0.6.1.dev5"
 description = "Swarmauri Mutual Information Measurement Community Package."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
