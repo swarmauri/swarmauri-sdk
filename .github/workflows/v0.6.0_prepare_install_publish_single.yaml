@@ -2,6 +2,19 @@ name: 0.6.0 - Prepare, Install, Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      soliloquy_file:
+        description: "File to use for install, prepare, and release steps"
+        required: false
+        default: "pyproject.toml"
+      bump_type:
+        description: "Bump type (patch, finalize, etc.) for the prepare phase"
+        required: false
+        default: "finalize"
+      commit_msg:
+        description: "Commit message for the prepare phase"
+        required: false
+        default: "chore: auto finalize packages"
 
 jobs:
   install-prepare-validate:
@@ -25,7 +38,7 @@ jobs:
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
 
-      # 3. Install project dependencies via Poetry
+      # 3. Install project dependencies
       - name: Install dependencies
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
@@ -38,7 +51,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          soliloquy install --file pyproject.toml
+          soliloquy install --file "${{ github.event.inputs.soliloquy_file }}"
 
       - name: Pip freeze
         run: |
@@ -52,7 +65,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          soliloquy prepare --directory . --recursive --bump finalize --commit-msg "chore: auto finalize packages" --lint-fix
+          soliloquy prepare \
+            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --bump "${{ github.event.inputs.bump_type }}" \
+            --commit-msg "${{ github.event.inputs.commit_msg }}" \
+            --lint-fix
 
       - name: Push Branch to GitHub
         run: |
@@ -65,4 +82,10 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          soliloquy release --file pyproject.toml --test-mode each --num-workers 4 --no-cleanup --required-passed ge:80 --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+          soliloquy release \
+            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --test-mode single \
+            --num-workers 4 \
+            --no-cleanup \
+            --required-passed ge:80 \
+            --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
