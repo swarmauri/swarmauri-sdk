@@ -26,6 +26,7 @@ jobs:
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
 
+
       # 3. Install project dependencies via Poetry
       - name: Install dependencies
         run: |
@@ -53,6 +54,7 @@ jobs:
       #     # Create and switch to the new branch
       #     git checkout -b autopatch/${{ github.run_id }}
       #     echo "Created and switched to branch autopatch/${{ github.run_id }}"
+
 
       # 5. Run the prepare phase
       - name: Run prepare phase
@@ -87,6 +89,7 @@ jobs:
       #       -H "Accept: application/vnd.github+json" \
       #       -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
       #       https://api.github.com/repos/${{ github.repository }}/pulls
+
 
       # 6. Run the validate phase
       - name: Run validate phase
