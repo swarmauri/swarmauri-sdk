@@ -52,7 +52,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          soliloquy prepare --file pyproject.toml --bump finalize --commit-msg "chore: auto finalize monorepo" --lint-fix
           soliloquy prepare --directory . --recursive --bump finalize --commit-msg "chore: auto finalize packages" --lint-fix
 
       - name: Push Branch to GitHub
