@@ -1,6 +1,7 @@
 import asyncio
 import os
 import time
+import warnings
 from typing import Dict, List, Literal
 
 import httpx
@@ -9,6 +10,14 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing FalAIVisionModel from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.vlms import "
+    "FalVLM' or 'from swarmauri.vlms import FalVLM' instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 @ComponentBase.register_type(LLMBase, "FalAIVisionModel")

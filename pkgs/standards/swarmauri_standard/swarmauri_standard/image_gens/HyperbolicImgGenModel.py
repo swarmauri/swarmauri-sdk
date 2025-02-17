@@ -38,6 +38,7 @@ class HyperbolicImgGenModel(ImageGenBase):
 
     api_key: SecretStr
     allowed_models: List[str] = []
+    timeout: float = 600.0
 
     name: str = "SDXL1.0-base"  # Default model
     type: Literal["HyperbolicImgGenModel"] = "HyperbolicImgGenModel"

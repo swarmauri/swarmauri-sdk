@@ -18,7 +18,7 @@ from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing CohereToolModel from swarmauri_standard.llms is deprecated and will be "
+    "Importing CohereToolModel from swarmauri.llms is deprecated and will be "
     "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
     "CohereToolModel' or 'from swarmauri.tool_llms import CohereToolModel' instead.",
     DeprecationWarning,
