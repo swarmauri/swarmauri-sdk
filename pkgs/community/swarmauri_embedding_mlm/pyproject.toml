@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_embedding_mlm"
-version = "0.6.1.dev7"
+version = "0.6.1.dev8"
 description = "example community package"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

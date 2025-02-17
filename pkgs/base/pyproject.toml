@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-base"
-version = "0.6.1.dev7"
+version = "0.6.1.dev8"
 description = "This repository includes base classes and mixins for the Swarmauri framework."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
