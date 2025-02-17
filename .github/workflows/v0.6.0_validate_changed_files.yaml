@@ -133,24 +133,46 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Poetry & Soliloquy
+
+      - name: Create and Activate Virtual Environment
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
+
+
+      # 3. Install project dependencies via Poetry
+      - name: Install dependencies
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python -m pip install --upgrade pip
+          pip install poetry
           pip install soliloquy=="0.1.4"
 
-      - name: Install and test
+      - name: Soliloquy Install 
         run: |
           PKG_PATH="${{ matrix.package_tests.package_path }}"
           TEST_FILES="${{ matrix.package_tests.tests }}"
-          
+
+          source $UNIQUE_VENV_PATH/bin/activate
           echo "Package path: pkgs/$PKG_PATH"
           echo "Test files: $TEST_FILES"
           
           # Move into the directory that has pyproject.toml
           cd "pkgs/$PKG_PATH"
 
-          # Example commands using soliloquy (as per your snippet)
           soliloquy install -f pyproject.toml
+
+
+      - name: Soliloquy Validate
+        run: |
+          PKG_PATH="${{ matrix.package_tests.package_path }}"
+          TEST_FILES="${{ matrix.package_tests.tests }}"
+
+          source $UNIQUE_VENV_PATH/bin/activate
+          echo "Package path: pkgs/$PKG_PATH"
+          echo "Test files: $TEST_FILES"
+          
+          # Move into the directory that has pyproject.toml
+          cd "pkgs/$PKG_PATH"
 
           soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
