@@ -77,6 +77,7 @@ def test_serialization(openai_tool_model):
 def test_default_name(openai_tool_model):
     assert openai_tool_model.name == openai_tool_model.allowed_models[0]
 
+
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())

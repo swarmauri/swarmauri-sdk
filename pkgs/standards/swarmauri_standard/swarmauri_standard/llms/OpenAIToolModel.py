@@ -21,7 +21,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
     "OpenAIToolModel' or 'from swarmauri.tool_llms import OpenAIToolModel' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

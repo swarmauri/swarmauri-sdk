@@ -71,6 +71,7 @@ def test_serialization(groq_model):
 def test_default_name(groq_model):
     assert groq_model.name == groq_model.allowed_models[0]
 
+
 @timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

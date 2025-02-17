@@ -76,6 +76,7 @@ def test_serialization(gemini_tool_model):
 def test_default_name(gemini_tool_model):
     assert gemini_tool_model.name == gemini_tool_model.allowed_models[0]
 
+
 @timeout(10)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())

@@ -23,7 +23,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
     "GeminiToolModel' or 'from swarmauri.tool_llms import GeminiToolModel' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

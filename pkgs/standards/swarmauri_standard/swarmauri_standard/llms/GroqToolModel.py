@@ -21,7 +21,7 @@ warnings.warn(
     "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
     "GroqToolModel' or 'from swarmauri.tool_llms import GroqToolModel' instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 

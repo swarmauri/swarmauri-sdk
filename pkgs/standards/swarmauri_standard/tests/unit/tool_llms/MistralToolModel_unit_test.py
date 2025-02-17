@@ -85,6 +85,7 @@ def test_serialization(mistral_tool_model):
 def test_default_name(mistral_tool_model):
     assert mistral_tool_model.name == mistral_tool_model.allowed_models[0]
 
+
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
