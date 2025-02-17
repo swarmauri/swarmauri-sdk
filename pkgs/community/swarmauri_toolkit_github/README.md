@@ -3,9 +3,9 @@
 <div align="center">
 
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_toolkit_github)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri-tool-github)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_github)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri-tool-github?label=swarmauri_tool_github&color=green)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri-toolkit-github)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_toolkit_github)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri-toolkit-github?label=swarmauri_tool_github&color=green)
 
 </div>
 
@@ -18,7 +18,7 @@ A collection of GitHub tools for repository, issue, pull request, branch, and co
 ## Installation
 
 ```bash
-pip install swarmauri_tool_github
+pip install swarmauri_toolkit_github
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ pip install swarmauri_tool_github
 Here's a basic example using the GitHub toolkit:
 
 ```python
-from swarmauri.tools.GithubToolkit import GithubToolkit
+from swarmauri.toolkits.GithubToolkit import GithubToolkit
 
 # Initialize the toolkit with your GitHub token
 toolkit = GithubToolkit(token="your_github_token")
