@@ -31,30 +31,17 @@ class GroqModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "gemma-7b-it",
-        "gemma2-9b-it",
-        "llama-3.1-70b-versatile",
-        "llama-3.1-8b-instant",
-        "llama-3.2-11b-text-preview",
-        "llama-3.2-1b-preview",
-        "llama-3.2-3b-preview",
-        "llama-3.2-90b-text-preview",
-        "llama-guard-3-8b",
-        "llama3-70b-8192",
-        "llama3-8b-8192",
-        "llama3-groq-70b-8192-tool-use-preview",
-        "llama3-groq-8b-8192-tool-use-preview",
-        "llava-v1.5-7b-4096-preview",
-        "mixtral-8x7b-32768",
-    ]
-    name: str = "gemma-7b-it"
+    allowed_models: List[str] = []
+    name: str = ""
+
     type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
         default="https://api.groq.com/openai/v1/chat/completions"
     )
+
+    timeout: float = 30.0
 
     def __init__(self, **data):
         """
@@ -67,13 +54,16 @@ class GroqModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -403,3 +393,16 @@ class GroqModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("https://api.groq.com/openai/v1/models")
+
+        response.raise_for_status()
+        models_data = response.json()
+        return [model["id"] for model in models_data["data"]]
