@@ -38,7 +38,7 @@ class FalAIVisionModel(LLMBase):
     api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     name: str = Field(default="")
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
     max_retries: int = Field(default=60)

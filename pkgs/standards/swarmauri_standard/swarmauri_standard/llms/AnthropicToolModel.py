@@ -45,7 +45,7 @@ class AnthropicToolModel(LLMBase):
     name: str = ""
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         super().__init__(**data)

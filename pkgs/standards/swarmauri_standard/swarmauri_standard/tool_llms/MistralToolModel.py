@@ -1,18 +1,20 @@
 import asyncio
 import json
 import logging
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
 from pydantic import PrivateAttr
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.ComponentBase import ComponentBase
+
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.MistralSchemaConverter import (
     MistralSchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "MistralToolModel")
@@ -32,18 +34,14 @@ class MistralToolModel(ToolLLMBase):
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
 
-    api_key: str
-    allowed_models: List[str] = [
-        "open-mixtral-8x22b",
-        "mistral-small-latest",
-        "mistral-large-latest",
-        "open-mistral-nemo",
-    ]
-    name: str = "open-mixtral-8x22b"
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
+    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
 
     def __init__(self, **data) -> None:
         """
@@ -54,15 +52,17 @@ class MistralToolModel(ToolLLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=30,
+            timeout=self.timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -96,6 +96,26 @@ class MistralToolModel(ToolLLMBase):
         ]
         logging.info(formatted_messages)
         return formatted_messages
+
+    @retry_on_status_codes((429, 529), max_retries=1)
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Mistral API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        tool_models = [
+            model["id"]
+            for model in response_data["data"]
+            if model["capabilities"]["function_calling"]
+        ]
+
+        return tool_models
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

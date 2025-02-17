@@ -83,8 +83,7 @@ def test_serialization(mistral_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(mistral_tool_model):
-    assert mistral_tool_model.name == "open-mixtral-8x22b"
-
+    assert mistral_tool_model.name == mistral_tool_model.allowed_models[0]
 
 @timeout(5)
 @pytest.mark.unit

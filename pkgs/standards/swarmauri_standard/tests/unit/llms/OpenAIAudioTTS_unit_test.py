@@ -58,7 +58,7 @@ def test_serialization(openai_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_model):
-    assert openai_model.name == "tts-1"
+    assert openai_model.name == openai_model.allowed_models[0]
     assert openai_model.voice == "alloy"
 
 

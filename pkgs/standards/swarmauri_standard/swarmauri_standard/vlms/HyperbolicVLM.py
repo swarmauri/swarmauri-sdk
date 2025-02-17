@@ -1,16 +1,17 @@
-import json
-from pydantic import PrivateAttr, SecretStr
-import httpx
-from typing import List, Optional, Dict, Literal, Any, AsyncGenerator, Generator, Type
 import asyncio
+import json
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.vlms.VLMBase import VLMBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(VLMBase, "HyperbolicVLM")
@@ -31,22 +32,17 @@ class HyperbolicVLM(VLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "Qwen/Qwen2-VL-72B-Instruct",
-        "mistralai/Pixtral-12B-2409",
-        "Qwen/Qwen2-VL-7B-Instruct",
-    ]
-    name: str = "Qwen/Qwen2-VL-72B-Instruct"
-    type: Literal["HyperbolicVLM"] = "HyperbolicVLM"
+    allowed_models: List[str] = []
+    name: str = ""
+    type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
+    timeout: float = 600.0
     _headers: Dict[str, str] = PrivateAttr(default=None)
     _client: httpx.Client = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.hyperbolic.xyz/v1/chat/completions"
-    )
+    _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
 
     def __init__(self, **data):
         """
-        Initialize the HyperbolicOCR class with the provided data.
+        Initialize the HyperbolicVisionModel class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
@@ -59,7 +55,10 @@ class HyperbolicVLM(VLMBase):
         self._client = httpx.Client(
             headers=self._headers,
             base_url=self._BASE_URL,
+            timeout=self.timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -114,7 +113,27 @@ class HyperbolicVLM(VLMBase):
         return UsageData.model_validate(usage_data)
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict_vision(
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get a list of allowed models for the Hyperbolic API.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        response = self._client.get("models")
+        response.raise_for_status()
+        response_data = response.json()
+
+        chat_models = [
+            model["id"]
+            for model in response_data["data"]
+            if model["supports_image_input"]
+        ]
+
+        return chat_models
+
+    @retry_on_status_codes((429, 529), max_retries=1)
+    def predict(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
@@ -145,7 +164,7 @@ class HyperbolicVLM(VLMBase):
             "stop": stop or [],
         }
 
-        response = self._client.post(self._BASE_URL, json=payload)
+        response = self._client.post("chat/completions", json=payload)
         response.raise_for_status()
 
         response_data = response.json()
@@ -158,7 +177,7 @@ class HyperbolicVLM(VLMBase):
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict_vision(
+    async def apredict(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
@@ -191,7 +210,7 @@ class HyperbolicVLM(VLMBase):
 
         async with httpx.AsyncClient() as async_client:
             response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
             )
             response.raise_for_status()
 
@@ -290,7 +309,7 @@ class HyperbolicVLM(VLMBase):
 
         async with httpx.AsyncClient as async_client:
             response = await async_client.post(
-                self._BASE_URL, json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
             )
             response.raise_for_status()
 
@@ -332,7 +351,7 @@ class HyperbolicVLM(VLMBase):
         """
         results = []
         for conversation in conversations:
-            result_conversation = self.predict_vision(
+            result_conversation = self.predict(
                 conversation,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -369,7 +388,7 @@ class HyperbolicVLM(VLMBase):
 
         async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
-                return await self.apredict_vision(
+                return await self.apredict(
                     conv,
                     temperature=temperature,
                     max_tokens=max_tokens,

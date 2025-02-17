@@ -58,7 +58,7 @@ def test_serialization(openai_reason_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_reason_model):
-    assert openai_reason_model.name == "o1"
+    assert openai_reason_model.name == openai_reason_model.allowed_models[0]
 
 
 @timeout(5)

@@ -84,7 +84,7 @@ def test_serialization(groq_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_model):
-    assert groq_model.name == "gemma-7b-it"
+    assert groq_model.name == groq_model.allowed_models[0]
 
 
 @timeout(5)

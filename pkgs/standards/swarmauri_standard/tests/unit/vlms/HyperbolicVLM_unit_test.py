@@ -52,7 +52,7 @@ def test_serialization(hyperbolic_vision_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.name == "Qwen/Qwen2-VL-72B-Instruct"
+    assert hyperbolic_vision_model.name == hyperbolic_vision_model.allowed_models[0]
 
 
 def create_test_conversation(image_url, prompt):

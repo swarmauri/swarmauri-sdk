@@ -1,11 +1,13 @@
-import httpx
 import asyncio
 import time
-from typing import List, Literal, Optional, Dict
-from pydantic import Field, PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from typing import Dict, List, Literal, Optional
+
+import httpx
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ImageGenBase, "FalAIImgGenModel")
@@ -27,11 +29,9 @@ class FalAIImgGenModel(ImageGenBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: Optional[httpx.AsyncClient] = PrivateAttr(default=None)
 
-    allowed_models: List[str] = [
-        "fal-ai/flux-pro",
-    ]
-    api_key: str = Field(default=None)
-    name: str = Field(default="fal-ai/flux-pro")
+    allowed_models: List[str] = []
+    api_key: SecretStr = Field(default=None)
+    name: str = ""
     type: Literal["FalAIImgGenModel"] = "FalAIImgGenModel"
     max_retries: int = Field(default=60)  # Maximum number of status check retries
     retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
@@ -49,9 +49,11 @@ class FalAIImgGenModel(ImageGenBase):
         super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Key {self.api_key}",
+            "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """
@@ -322,3 +324,14 @@ class FalAIImgGenModel(ImageGenBase):
     def __del__(self):
         """Cleanup method to close HTTP clients."""
         self._client.close()
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return [
+            "fal-ai/flux-pro",
+        ]

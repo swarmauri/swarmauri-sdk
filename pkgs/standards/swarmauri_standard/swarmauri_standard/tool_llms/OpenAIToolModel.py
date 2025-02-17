@@ -1,18 +1,19 @@
-import json
 import asyncio
-from typing import List, Literal, Dict, Any, Iterator, AsyncIterator, Type
+import json
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
 from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.ComponentBase import ComponentBase
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "OpenAIToolModel")
@@ -33,25 +34,11 @@ class OpenAIToolModel(ToolLLMBase):
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
 
-    api_key: str
-    allowed_models: List[str] = [
-        "gpt-4o-2024-05-13",
-        "gpt-4-turbo",
-        "gpt-4o-mini",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4o-2024-08-06",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-turbo-preview",
-        "gpt-4-0125-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-    ]
-    name: str = "gpt-3.5-turbo-0125"
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -64,9 +51,11 @@ class OpenAIToolModel(ToolLLMBase):
         """
         super().__init__(**data)
         self._headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
@@ -144,7 +133,7 @@ class OpenAIToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
             tool_response = response.json()
@@ -158,7 +147,7 @@ class OpenAIToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -202,7 +191,7 @@ class OpenAIToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -217,7 +206,7 @@ class OpenAIToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -265,7 +254,7 @@ class OpenAIToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -281,7 +270,7 @@ class OpenAIToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client() as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -334,7 +323,7 @@ class OpenAIToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -352,7 +341,7 @@ class OpenAIToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             agent_response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -443,3 +432,28 @@ class OpenAIToolModel(ToolLLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = [
+            "gpt-4o-2024-05-13",
+            "gpt-4-turbo",
+            "gpt-4o-mini",
+            "gpt-4o-mini-2024-07-18",
+            "gpt-4o-2024-08-06",
+            "gpt-4-turbo-2024-04-09",
+            "gpt-4-turbo-preview",
+            "gpt-4-0125-preview",
+            "gpt-4-1106-preview",
+            "gpt-4",
+            "gpt-4-0613",
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-0125",
+            "gpt-3.5-turbo-1106",
+        ]
+        return models_data

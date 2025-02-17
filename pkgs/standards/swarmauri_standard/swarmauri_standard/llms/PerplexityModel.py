@@ -34,24 +34,10 @@ class PerplexityModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        # deprecated 
-        # "llama-3.1-sonar-small-128k-online",
-        # "llama-3.1-sonar-large-128k-online",
-        # "llama-3.1-sonar-huge-128k-online",
-        # "llama-3.1-sonar-small-128k-chat",
-        # "llama-3.1-sonar-large-128k-chat",
-        # "llama-3.1-8b-instruct",
-        # "llama-3.1-70b-instruct",
-
-        "sonar-reasoning-pro",
-        "sonar-reasoning",
-        "sonar-pro",
-        "sonar",
-    ]
-    name: str = "sonar"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["PerplexityModel"] = "PerplexityModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.perplexity.ai/chat/completions")
@@ -74,6 +60,8 @@ class PerplexityModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -496,3 +484,18 @@ class PerplexityModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = [
+            "sonar-reasoning-pro",
+            "sonar-reasoning",
+            "sonar-pro",
+            "sonar",
+        ]
+        return models_data

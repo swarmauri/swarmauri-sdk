@@ -1,12 +1,14 @@
-import httpx
-import time
 import asyncio
 import contextlib
-from typing import List, Literal, Optional, Dict
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+import time
+from typing import Dict, List, Literal, Optional
+
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ImageGenBase, "BlackForestImgGenModel")
@@ -21,10 +23,10 @@ class BlackForestImgGenModel(ImageGenBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    api_key: str
-    allowed_models: List[str] = ["flux-pro-1.1", "flux-pro", "flux-dev"]
+    api_key: SecretStr
+    allowed_models: List[str] = []
 
-    name: str = "flux-pro"  # Default model
+    name: str = ""  # Default model
     type: Literal["BlackForestImgGenModel"] = "BlackForestImgGenModel"
 
     def __init__(self, **kwargs):
@@ -34,9 +36,11 @@ class BlackForestImgGenModel(ImageGenBase):
         super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
-            "X-Key": self.api_key,
+            "X-Key": self.api_key.get_secret_value(),
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """Gets or creates an async client instance."""
@@ -259,3 +263,12 @@ class BlackForestImgGenModel(ImageGenBase):
         if self._async_client is not None and not self._async_client.is_closed:
             with contextlib.suppress(Exception):
                 asyncio.run(self._close_async_client())
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return ["flux-pro-1.1", "flux-pro", "flux-dev"]

@@ -31,17 +31,16 @@ class GeminiToolModel(ToolLLMBase):
 
     """
 
-    api_key: str
-    allowed_models: List[str] = [
-        "gemini-1.5-pro",
-        "gemini-1.5-flash",
-        # "gemini-1.0-pro",  giving an unexpected response
-    ]
-    name: str = "gemini-1.5-pro"
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     _BASE_URL: str = PrivateAttr(
         default="https://generativelanguage.googleapis.com/v1beta/models"
     )
+
+    timeout: float = 600.0
+
     _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
 
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
@@ -64,6 +63,18 @@ class GeminiToolModel(ToolLLMBase):
             },
         ]
     )
+
+    def __init__(self, api_key: SecretStr, name: str):
+        """
+        Initializes the GeminiToolModel instance with the provided API key and model name.
+
+        Args:
+            api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
+            name (str): The name of the Gemini model in use.
+        """
+        self.api_key = api_key
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -220,9 +231,9 @@ class GeminiToolModel(ToolLLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        with httpx.Client(timeout=30.0) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -240,9 +251,9 @@ class GeminiToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        with httpx.Client(timeout=30.0) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -306,9 +317,9 @@ class GeminiToolModel(ToolLLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -326,9 +337,9 @@ class GeminiToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -394,7 +405,7 @@ class GeminiToolModel(ToolLLMBase):
 
         with httpx.Client(timeout=10.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -414,7 +425,7 @@ class GeminiToolModel(ToolLLMBase):
 
         with httpx.Client(timeout=10.0) as client:
             response = client.post(
-                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -478,9 +489,9 @@ class GeminiToolModel(ToolLLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -498,9 +509,9 @@ class GeminiToolModel(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key}",
+                f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,
                 headers=self._headers,
             )
@@ -580,3 +591,12 @@ class GeminiToolModel(ToolLLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return ["gemini-1.5-pro", "gemini-1.5-flash"]

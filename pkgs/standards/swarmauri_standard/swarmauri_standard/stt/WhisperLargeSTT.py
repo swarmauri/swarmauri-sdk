@@ -1,10 +1,12 @@
-from typing import List, Literal, Dict
-import httpx
 import asyncio
+from typing import Dict, List, Literal
+
+import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(STTBase, "WhisperLargeSTT")
@@ -30,8 +32,8 @@ class WhisperLargeSTT(STTBase):
         >>> print(text)
     """
 
-    allowed_models: List[str] = ["openai/whisper-large-v3"]
-    name: str = "openai/whisper-large-v3"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["WhisperLargeSTT"] = "WhisperLargeSTT"
     api_key: SecretStr
     _BASE_URL: str = PrivateAttr(
@@ -54,6 +56,8 @@ class WhisperLargeSTT(STTBase):
         super().__init__(**data)
         self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
         self._client = httpx.Client(header=self._header, timeout=30)
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -217,6 +221,16 @@ class WhisperLargeSTT(STTBase):
 
         tasks = [process_audio(path, task) for path, task in path_task_dict.items()]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["openai/whisper-large-v3"]
+        return models_data
 
     def stream(
         self,

@@ -59,7 +59,7 @@ def test_serialization(openai_stt_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_stt_model):
-    assert openai_stt_model.name == "whisper-1"
+    assert openai_stt_model.name == openai_stt_model.allowed_models[0]
 
 
 @timeout(5)

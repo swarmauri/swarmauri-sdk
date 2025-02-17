@@ -33,7 +33,7 @@ class GroqAIAudio(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
 
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """

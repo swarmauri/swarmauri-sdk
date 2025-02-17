@@ -55,7 +55,7 @@ def test_serialization(geminipro_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(geminipro_model):
-    assert geminipro_model.name == "gemini-1.5-pro"
+    assert geminipro_model.name == geminipro_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

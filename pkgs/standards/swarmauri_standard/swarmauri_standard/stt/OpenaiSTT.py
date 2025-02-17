@@ -1,11 +1,13 @@
 import asyncio
+from typing import Dict, List, Literal
+
 import aiofiles
 import httpx
-from typing import List, Literal, Dict
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(STTBase, "OpenaiSTT")
@@ -25,9 +27,9 @@ class OpenaiSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["whisper-1"]
+    allowed_models: List[str] = []
 
-    name: str = "whisper-1"
+    name: str = ""
     type: Literal["OpenaiSTT"] = "OpenaiSTT"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -49,6 +51,8 @@ class OpenaiSTT(STTBase):
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -192,6 +196,16 @@ class OpenaiSTT(STTBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["whisper-1"]
+        return models_data
 
     def stream(
         self,

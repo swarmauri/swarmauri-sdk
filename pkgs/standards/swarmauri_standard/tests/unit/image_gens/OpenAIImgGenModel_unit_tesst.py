@@ -50,7 +50,7 @@ def test_serialization(openai_image_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(openai_image_model):
-    assert openai_image_model.name == "dall-e-3"
+    assert openai_image_model.name == openai_image_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

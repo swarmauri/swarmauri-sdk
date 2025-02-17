@@ -27,11 +27,11 @@ class OpenAIAudio(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["whisper-1"]
+    allowed_models: List[str] = []
 
-    name: str = "whisper-1"
+    name: str = ""
     type: Literal["OpenAIAudio"] = "OpenAIAudio"
-    timeout: int = 30
+    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/")
@@ -54,6 +54,8 @@ class OpenAIAudio(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
@@ -197,3 +199,13 @@ class OpenAIAudio(LLMBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["whisper-1"]
+        return models_data

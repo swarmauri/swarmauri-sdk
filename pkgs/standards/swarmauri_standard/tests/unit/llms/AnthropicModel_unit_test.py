@@ -57,7 +57,7 @@ def test_serialization(anthropic_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(anthropic_model):
-    assert anthropic_model.name == "claude-3-haiku-20240307"
+    assert anthropic_model.name == anthropic_model.allowed_models
 
 
 @timeout(5)

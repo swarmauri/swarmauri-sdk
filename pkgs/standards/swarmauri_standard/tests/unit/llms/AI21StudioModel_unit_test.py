@@ -58,7 +58,7 @@ def test_serialization(ai21studio_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(ai21studio_model):
-    assert ai21studio_model.name == "jamba-1.5-mini"
+    assert ai21studio_model.name == ai21studio_model.allowed_models[0]
 
 
 @timeout(5)

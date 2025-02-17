@@ -33,7 +33,7 @@ class HyperbolicModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["HyperbolicModel"] = "HyperbolicModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 

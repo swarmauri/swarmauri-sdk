@@ -31,17 +31,15 @@ class PlayHTModel(LLMBase):
     Provider resourses: https://docs.play.ht/reference/api-getting-started
     """
 
-    allowed_models: List[str] = Field(
-        default=["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
-    )
+    allowed_models: List[str] = []
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
     api_key: SecretStr
     user_id: str
-    name: str = "Play3.0-mini"
+    name: str = ""
     type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
-    timeout: int = 30
+    timeout: float = 600.0
     _voice_id: str = PrivateAttr(default=None)
     _prebuilt_voices: Dict[
         Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"], List[dict]
@@ -60,6 +58,8 @@ class PlayHTModel(LLMBase):
             "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
         self.allowed_voices = self._get_allowed_voices(self.name)
         self._validate_voice_in_allowed_voices()
@@ -148,7 +148,7 @@ class PlayHTModel(LLMBase):
         raise ValueError(f"Voice name {voice_name} not found in allowed voices.")
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def stream(self, text: str, audio_path: str = "output.mp3") -> str:
+    def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Convert text to speech using Play.ht's API and save as an audio file.
 
@@ -166,7 +166,9 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as self._client:
+            with httpx.Client(
+                base_url=self._BASE_URL, timeout=self.timeout
+            ) as self._client:
                 response = self._client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )
@@ -180,7 +182,7 @@ class PlayHTModel(LLMBase):
             raise RuntimeError(f"Text-to-Speech synthesis failed: {e}")
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def astream(self, text: str, audio_path: str = "output.mp3") -> str:
+    async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
         """
         Asynchronously convert text to speech and save it as an audio file.
 
@@ -221,7 +223,7 @@ class PlayHTModel(LLMBase):
         Returns:
             List: List of audio file paths.
         """
-        return [self.stream(text, path) for text, path in text_path_dict.items()]
+        return [self.predict(text, path) for text, path in text_path_dict.items()]
 
     async def abatch(
         self, text_path_dict: Dict[str, str], max_concurrent: int = 5
@@ -239,7 +241,7 @@ class PlayHTModel(LLMBase):
 
         async def process_text(text, path) -> str:
             async with semaphore:
-                return await self.astream(text, path)
+                return await self.apredict(text, path)
 
         tasks = [process_text(text, path) for text, path in text_path_dict.items()]
         return await asyncio.gather(*tasks)
@@ -356,8 +358,18 @@ class PlayHTModel(LLMBase):
             print(f"An error occurred while retrieving cloned voices: {e}")
             return {"error": str(e)}
 
-    def predict(self, text: str, audio_path: str = "output.mp3") -> str:
-        raise NotImplementedError("Predict method not implemented for PlayHTModel")
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
 
-    async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
-        raise NotImplementedError("Apredict method not implemented for PlayHTModel")
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        models_data = ["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
+        return models_data
+
+    def stream(self, text: str, audio_path: str = "output.mp3") -> str:
+        raise NotImplementedError("stream method not implemented for PlayHTModel")
+
+    async def astream(self, text: str, audio_path: str = "output.mp3") -> str:
+        raise NotImplementedError("astream method not implemented for PlayHTModel")

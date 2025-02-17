@@ -52,7 +52,7 @@ def test_serialization(groqai_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(groqai_model):
-    assert groqai_model.name == "distil-whisper-large-v3-en"
+    assert groqai_model.name == groqai_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())

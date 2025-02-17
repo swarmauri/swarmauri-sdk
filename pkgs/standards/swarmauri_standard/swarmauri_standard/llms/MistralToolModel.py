@@ -38,7 +38,7 @@ class MistralToolModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
-    timeout: int = 30
+    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")

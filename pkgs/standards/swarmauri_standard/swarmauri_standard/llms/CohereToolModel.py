@@ -42,11 +42,8 @@ class CohereToolModel(LLMBase):
     api_key: SecretStr
     allowed_models: List[str] = []
     name: str = ""
-
     type: Literal["CohereToolModel"] = "CohereToolModel"
-    resource: str = "LLM"
-
-    timeout: float = 30.0
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """

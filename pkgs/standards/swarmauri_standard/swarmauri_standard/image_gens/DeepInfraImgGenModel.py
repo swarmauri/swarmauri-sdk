@@ -1,11 +1,13 @@
-import httpx
 import asyncio
 import contextlib
 from typing import List, Literal
-from pydantic import PrivateAttr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+import httpx
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ImageGenBase, "DeepInfraImgGenModel")
@@ -28,15 +30,9 @@ class DeepInfraImgGenModel(ImageGenBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-    api_key: str
-    allowed_models: List[str] = [
-        "black-forest-labs/FLUX-1-dev",
-        "black-forest-labs/FLUX-1-schnell",
-        "stabilityai/sdxl-turbo",
-        "stabilityai/stable-diffusion-2-1",
-    ]
-
-    name: str = "stabilityai/stable-diffusion-2-1"  # Default model
+    api_key: SecretStr
+    allowed_models: List[str] = []
+    name: str = ""  # Default model
     type: Literal["DeepInfraImgGenModel"] = "DeepInfraImgGenModel"
 
     def __init__(self, **kwargs):
@@ -52,9 +48,11 @@ class DeepInfraImgGenModel(ImageGenBase):
         super().__init__(**kwargs)
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """
@@ -195,3 +193,17 @@ class DeepInfraImgGenModel(ImageGenBase):
         if self._async_client is not None and not self._async_client.is_closed:
             with contextlib.suppress(Exception):
                 asyncio.run(self._close_async_client())
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: List of allowed model names.
+        """
+        return [
+            "black-forest-labs/FLUX-1-dev",
+            "black-forest-labs/FLUX-1-schnell",
+            "stabilityai/sdxl-turbo",
+            "stabilityai/stable-diffusion-2-1",
+        ]
