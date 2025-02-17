@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
-version = "0.6.0.dev170"
+version = "0.6.0.dev171"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
