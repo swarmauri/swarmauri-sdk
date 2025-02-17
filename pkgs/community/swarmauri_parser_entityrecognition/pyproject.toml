@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_parser_entityrecognition"
-version = "0.6.1.dev8"
+version = "0.6.1.dev9"
 description = "Entity Recognition Parser for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
