@@ -33,7 +33,7 @@ class HyperbolicModel(LLMBase):
     allowed_models: List[str] = []
     name: str = ""
     type: Literal["HyperbolicModel"] = "HyperbolicModel"
-    request_timeout: int = 30
+    timeout: int = 30
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -53,7 +53,7 @@ class HyperbolicModel(LLMBase):
         self._client = httpx.Client(
             headers=self._headers,
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
@@ -235,7 +235,7 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     f"{self._BASE_URL}chat/completions",
                     headers=self._headers,
@@ -346,7 +346,7 @@ class HyperbolicModel(LLMBase):
             payload["stop"] = stop
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     f"{self._BASE_URL}chat/completions",
                     headers=self._headers,

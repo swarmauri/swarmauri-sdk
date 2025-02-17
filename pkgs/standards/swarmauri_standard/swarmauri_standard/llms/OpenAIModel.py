@@ -58,7 +58,7 @@ class OpenAIModel(LLMBase):
     ]
     name: str = "gpt-3.5-turbo"
     type: Literal["OpenAIModel"] = "OpenAIModel"
-    request_timeout: int = 30
+    timeout: int = 30
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -190,7 +190,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            with httpx.Client(timeout=self.request_timeout) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -242,7 +242,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -297,7 +297,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            with httpx.Client(timeout=self.request_timeout) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )
@@ -366,7 +366,7 @@ class OpenAIModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

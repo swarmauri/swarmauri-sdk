@@ -33,7 +33,7 @@ class OpenAIReasonModel(LLMBase):
     allowed_models: List[str] = ["o1-mini", "o1", "o1-2024-12-17", "o1-mini-2024-09-12"]
     name: str = "o1"
     type: Literal["OpenAIReasonModel"] = "OpenAIReasonModel"
-    request_timeout: int = 30
+    timeout: int = 30
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -160,7 +160,7 @@ class OpenAIReasonModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            with httpx.Client(timeout=self.request_timeout) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 logging.info(f"headers: {self._headers}")
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -209,7 +209,7 @@ class OpenAIReasonModel(LLMBase):
             payload["response_format"] = "json_object"
 
         with DurationManager() as promt_timer:
-            async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
                 )

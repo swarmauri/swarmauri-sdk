@@ -53,7 +53,7 @@ class OpenAIToolModel(LLMBase):
     ]
     name: str = "gpt-3.5-turbo-0125"
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
-    request_timeout: int = 30
+    timeout: int = 30
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -146,7 +146,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
             tool_response = response.json()
@@ -160,7 +160,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -204,7 +204,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -219,7 +219,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -267,7 +267,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -283,7 +283,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(self._BASE_URL, headers=self._headers, json=payload)
             response.raise_for_status()
 
@@ -336,7 +336,7 @@ class OpenAIToolModel(LLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )
@@ -354,7 +354,7 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             agent_response = await client.post(
                 self._BASE_URL, headers=self._headers, json=payload
             )

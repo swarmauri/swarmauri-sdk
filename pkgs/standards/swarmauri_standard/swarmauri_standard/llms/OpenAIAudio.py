@@ -31,7 +31,7 @@ class OpenAIAudio(LLMBase):
 
     name: str = "whisper-1"
     type: Literal["OpenAIAudio"] = "OpenAIAudio"
-    request_timeout: int = 30
+    timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/")
@@ -47,12 +47,12 @@ class OpenAIAudio(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
 
     @retry_on_status_codes((429, 529), max_retries=1)

@@ -51,7 +51,7 @@ class PerplexityModel(LLMBase):
     ]
     name: str = "sonar"
     type: Literal["PerplexityModel"] = "PerplexityModel"
-    request_timeout: int = 30
+    timeout: int = 30
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.perplexity.ai/chat/completions")
@@ -67,12 +67,12 @@ class PerplexityModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
 
     def _format_messages(

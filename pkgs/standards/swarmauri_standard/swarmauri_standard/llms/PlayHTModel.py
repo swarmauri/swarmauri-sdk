@@ -41,7 +41,7 @@ class PlayHTModel(LLMBase):
     name: str = "Play3.0-mini"
     type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
-    request_timeout: int = 30
+    timeout: int = 30
     _voice_id: str = PrivateAttr(default=None)
     _prebuilt_voices: Dict[
         Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"], List[dict]
@@ -92,7 +92,7 @@ class PlayHTModel(LLMBase):
 
         self._headers["accept"] = "application/json"
 
-        with httpx.Client(base_url=self._BASE_URL, timeout=self.request_timeout) as client:
+        with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
             voice_response = client.get("/voices", headers=self._headers)
 
         for item in json.loads(voice_response.text):
@@ -166,7 +166,7 @@ class PlayHTModel(LLMBase):
         }
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=self.request_timeout) as self._client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as self._client:
                 response = self._client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )
@@ -200,7 +200,7 @@ class PlayHTModel(LLMBase):
 
         try:
             async with httpx.AsyncClient(
-                base_url=self._BASE_URL, timeout=self.request_timeout
+                base_url=self._BASE_URL, timeout=self.timeout
             ) as async_client:
                 response = await async_client.post(
                     "/tts/stream", json=payload, headers=self._headers
@@ -301,7 +301,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=self.request_timeout) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.post(
                     "/cloned-voices/instant", data=payload, headers=self._headers
                 )
@@ -325,7 +325,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=self.request_timeout) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.delete(
                     "/cloned-voices", json=payload, headers=self._headers
                 )
@@ -346,7 +346,7 @@ class PlayHTModel(LLMBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=self.request_timeout) as client:
+            with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
                 response = client.get("/cloned-voices", headers=self._headers)
                 response.raise_for_status()
 
