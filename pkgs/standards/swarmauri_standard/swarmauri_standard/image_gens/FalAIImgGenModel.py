@@ -32,6 +32,7 @@ class FalAIImgGenModel(ImageGenBase):
     allowed_models: List[str] = []
     api_key: SecretStr = Field(default=None)
     name: str = ""
+    timeout: float = 600.0
     type: Literal["FalAIImgGenModel"] = "FalAIImgGenModel"
     max_retries: int = Field(default=60)  # Maximum number of status check retries
     retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
@@ -51,7 +52,7 @@ class FalAIImgGenModel(ImageGenBase):
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=30)
+        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -63,7 +64,7 @@ class FalAIImgGenModel(ImageGenBase):
             httpx.AsyncClient: The async HTTP client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
+            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=self.timeout)
         return self._async_client
 
     async def _close_async_client(self):
