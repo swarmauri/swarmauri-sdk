@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       bump_type:
-        description: "Bump type (patch, finalize, etc.) for the prepare phase"
+        description: "Bump type (patch or finalize) for the prepare phase"
         required: false
-        default: "finalize"
+        default: "patch"
       commit_msg:
         description: "Commit message for the prepare phase"
         required: false
-        default: "chore: auto finalize packages"
+        default: "chore: auto increment packages"
 concurrency:
   group: dev-branch-workflow-group
   cancel-in-progress: false
