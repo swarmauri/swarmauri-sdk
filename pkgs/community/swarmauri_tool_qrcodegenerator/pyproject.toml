@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_qrcodegenerator"
-version = "0.6.1.dev6"
+version = "0.6.1.dev7"
 description = "Swarmauri QR Code Generator Tool."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
