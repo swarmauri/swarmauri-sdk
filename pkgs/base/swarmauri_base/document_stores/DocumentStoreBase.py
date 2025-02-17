@@ -10,7 +10,7 @@ from swarmauri_core.documents.IDocument import IDocument
 
 
 @ComponentBase.register_model()
-class DocumentStoreBase(IDocumentStore):
+class DocumentStoreBase(IDocumentStore, ComponentBase):
     """
     Abstract base class for document stores, implementing the IDocumentStore interface.
 
