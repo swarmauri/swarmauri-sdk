@@ -34,11 +34,12 @@ class FalAIVisionModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _header: Dict[str, str] = PrivateAttr()
 
-    allowed_models: List[str] = [
-        "fal-ai/llava-next",
-    ]
+    allowed_models: List[str] = []
     api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
-    name: str = Field(default="fal-ai/llava-next")
+    name: str = Field(default="")
+
+    timeout: float = 30.0
+
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
@@ -55,7 +56,10 @@ class FalAIVisionModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=30)
+        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
@@ -98,7 +102,9 @@ class FalAIVisionModel(LLMBase):
         url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
 
-        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=self.timeout
+        ) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
             response_data = response.json()
@@ -135,7 +141,9 @@ class FalAIVisionModel(LLMBase):
             Dict: The status response.
         """
         url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
-        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=self.timeout
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
             return response.json()
@@ -163,7 +171,7 @@ class FalAIVisionModel(LLMBase):
             status_data = await self._async_check_status(request_id)
             if status_data.get("status") == "COMPLETED":
                 async with httpx.AsyncClient(
-                    headers=self._headers, timeout=30
+                    headers=self._headers, timeout=self.timeout
                 ) as client:
                     response = await client.get(status_data.get("response_url"))
                     response.raise_for_status()
@@ -246,3 +254,16 @@ class FalAIVisionModel(LLMBase):
             for image_url, prompt in zip(image_urls, prompts)
         ]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Query the LLMProvider API endpoint to get the list of allowed models.
+
+        Returns:
+            List[str]: The list of allowed models from the API.
+        """
+        url = "https://fal.ai/models?categories=vision"
+        response = self._client.get(url)
+        response.raise_for_status()
+        models_data = response.json()
+        return models_data.get("models", [])

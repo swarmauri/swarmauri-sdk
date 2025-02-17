@@ -29,9 +29,13 @@ class GeminiProModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["gemini-1.5-pro", "gemini-1.5-flash"]
-    name: str = "gemini-1.5-pro"
+    allowed_models: List[str] = []
+    name: str = ""
+
+    timeout: float = 30.0
+
     type: Literal["GeminiProModel"] = "GeminiProModel"
+
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
             {
@@ -53,20 +57,32 @@ class GeminiProModel(LLMBase):
         ]
     )
 
-    _client: httpx.Client = PrivateAttr(
-        default_factory=lambda: httpx.Client(
-            base_url="https://generativelanguage.googleapis.com/v1beta/models",
-            headers={"Content-Type": "application/json"},
-            timeout=30,
+    def __init__(self, api_key: SecretStr, **kwargs):
+        """
+        Initializes the GeminiProModel object with the given API key.
+
+        Args:
+            api_key (SecretStr): The API key for the GeminiProModel.
+        """
+        super().__init__(api_key=api_key, **kwargs)
+
+        self._client: httpx.Client = PrivateAttr(
+            default_factory=lambda: httpx.Client(
+                base_url="https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"Content-Type": "application/json"},
+                timeout=self.timeout,
+            )
         )
-    )
-    _async_client: httpx.AsyncClient = PrivateAttr(
-        default_factory=lambda: httpx.AsyncClient(
-            base_url="https://generativelanguage.googleapis.com/v1beta/models",
-            headers={"Content-Type": "application/json"},
-            timeout=30,
+        self._async_client: httpx.AsyncClient = PrivateAttr(
+            default_factory=lambda: httpx.AsyncClient(
+                base_url="https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"Content-Type": "application/json"},
+                timeout=self.timeout,
+            )
         )
-    )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -451,3 +467,17 @@ class GeminiProModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+        """
+        response = self._client.get(
+            f"https://generativelanguage.googleapis.com/v1beta/models?key={self.api_key.get_secret_value()}"
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data.get("allowedModels", [])

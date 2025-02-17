@@ -34,16 +34,11 @@ class AnthropicModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = [
-        "claude-3-haiku-20240307",
-        "claude-3-opus-20240229",
-        "claude-3-sonnet-20240229",
-        "claude-3-5-sonnet-20240620",
-        "claude-2.1",
-        "claude-2.0",
-    ]
-    name: str = "claude-3-haiku-20240307"
+    allowed_models: List[str] = []
+    name: str = ""
     type: Literal["AnthropicModel"] = "AnthropicModel"
+
+    timeout: float = 30.0
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -53,11 +48,14 @@ class AnthropicModel(LLMBase):
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=30
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
+
+        self.allowed_models = self.get_allowed_models()
+        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -427,3 +425,15 @@ class AnthropicModel(LLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Queries the Anthropic API to retrieve the list of allowed models.
+
+        Returns:
+            List[str]: A list of allowed model names.
+        """
+        response = self._client.get("/models")
+        response.raise_for_status()
+        models_data = response.json()
+        return [model["name"] for model in models_data["models"]]
