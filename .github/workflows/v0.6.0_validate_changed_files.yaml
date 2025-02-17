@@ -41,19 +41,24 @@ jobs:
 
           declare -A PACKAGE_TEST_MAP
 
-          # Helper function to find the nearest pyproject.toml up the directory tree
+          # Helper function to find the nearest pyproject.toml, checking 
+          # the local directory first, then walking up.
           find_pyproject_root() {
             local path="$1"
-            while [ "$path" != "." ] && [ -n "$path" ]; do
+            while true; do
+              # 1) Check current directory
               if [ -f "$path/pyproject.toml" ]; then
                 echo "$path"
                 return
               fi
-              # Move one directory up
+              # 2) If we're at '.' or empty, no pyproject found
+              if [ "$path" = "." ] || [ -z "$path" ]; then
+                echo ""
+                return
+              fi
+              # 3) Move one directory up
               path="$(dirname "$path")"
             done
-            # If none found, return empty
-            echo ""
           }
 
           for FILE in $CHANGED_FILES; do
@@ -63,18 +68,18 @@ jobs:
             # Find the package root containing pyproject.toml
             PACKAGE_ROOT=$(find_pyproject_root "$DIR")
             if [ -z "$PACKAGE_ROOT" ]; then
-              # If we can't find a pyproject.toml by walking upwards, 
-              # you could handle it as a fallback or skip
+              # If we can't find a pyproject.toml by walking upwards,
+              # you can decide whether to skip or fail
               echo "No pyproject.toml found for $FILE"
               continue
             fi
 
-            # The name of the package is often the last directory in the path with the pyproject.toml
+            # The name of the package is typically the directory that holds pyproject.toml
             PACKAGE_NAME=$(basename "$PACKAGE_ROOT")
 
-            # If the changed file is a test file, store it directly. Otherwise, look for associated tests.
+            # If the changed file is a test file, store it directly
             if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
-              # Convert from `pkgs/package_name/tests/xyz_test.py` to `tests/xyz_test.py`
+              # Convert from `pkgs/package_name/tests/...` to `tests/...`
               RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^$PACKAGE_ROOT/||")
               PACKAGE_TEST_MAP["$PACKAGE_NAME"]="${PACKAGE_TEST_MAP[$PACKAGE_NAME]} $RELATIVE_TEST_FILE"
             else
@@ -139,10 +144,8 @@ jobs:
           echo "Package root: pkgs/$PKG"
           echo "Test files: $TEST_FILES"
           
-          # Install
           cd pkgs/$PKG
           poetry lock
           poetry install --no-cache --all-extras -vv
 
-          # Run tests
           poetry run pytest -v $TEST_FILES -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
