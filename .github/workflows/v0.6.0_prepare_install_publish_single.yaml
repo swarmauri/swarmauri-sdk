@@ -5,7 +5,7 @@ on:
     inputs:
       soliloquy_file:
         description: "File to use for install, prepare, and release steps"
-        required: false
+        required: true
         default: "pyproject.toml"
       bump_type:
         description: "Bump type (patch or finalize) for the prepare phase"
@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  install-prepare-validate:
+  install-prepare-publish:
     runs-on: ubuntu-latest
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"

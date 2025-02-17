@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  install-prepare-validate:
+  install-prepare-publish:
     runs-on: ubuntu-latest
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
