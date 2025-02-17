@@ -1,0 +1,164 @@
+[
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}",
+    "PURPOSE": "Defines the functional and non-functional requirements.",
+    "DESCRIPTION": "This file describes the functional and non-functional requirements of a standalone package containing a single concrete class implementation.",
+    "REQUIREMENTS": [
+      "Provide provide functional requirements for the package.",
+      "Provide provide non-functional requirements for the package."
+      {% if GLOAL_REQUIREMENTS %}
+        {% for requirement in GLOAL_REQUIREMENTS %},
+        "{{ requirement }}"
+        {% endfor %}
+      {% endif %}
+      ],
+    "PROCESS_TYPE": "GENERATE",
+    "AGENT_PROMPT_TEMPLATE": "agent_requirements.j2",
+    "DEPENDENCIES": [
+      {% if BASE_CLASS_DEPENDENCY_FILE %}
+        "{% raw %}{{ BASE_CLASS_DEPENDENCY_FILE }}{% endraw %}"
+        {% if EXTERNAL_DOC_FILE %}
+          {% for doc_item in EXTERNAL_DOC_FILE %}
+            , "{% raw %}{{ doc_item }}{% endraw %}"
+          {% endfor %}
+        {% endif %}
+      {% elif EXTERNAL_DOC_FILE %}
+        {% for doc_item in EXTERNAL_DOC_FILE %}
+          "{% raw %}{{ doc_item }}{% endraw %}"{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    ],
+    "PROCESS_TYPE": "GENERATE",
+    "BASE_CLASS": "{{ BASE_CLASS_NAME }}",
+    "MIXINS": [],
+    "EXAMPLES": [
+      {% if CONCRETE_EXAMPLE_FILE %}
+        "{{ CONCRETE_EXAMPLE_FILE }}"
+        {% if EXTERNAL_DOC_EXAMPLE_FILE %}
+          , "{{ EXTERNAL_DOC_EXAMPLE_FILE }}"
+        {% endif %}
+      {% elif EXTERNAL_DOC_EXAMPLE_FILE %}
+        "{{ EXTERNAL_DOC_EXAMPLE_FILE }}"
+      {% endif %}
+    ]
+  },
+{
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
+    "PURPOSE": "Implements the new component's main class.",
+    "DESCRIPTION": "This file defines the concrete class implementation.",
+    "REQUIREMENTS": [
+      "Provide implementation logic for inherited methods when applicable.",
+      "Ensure that all methods include complete, comprehensive, and fully functional implementation logic."
+      {% if ADDITIONAL_REQUIREMENTS %}
+        {% for requirement in ADDITIONAL_REQUIREMENTS %},
+        "{{ requirement }}"
+        {% endfor %}
+      {% endif %}
+    ],
+    "DEPENDENCIES": [
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}"
+      {% if BASE_CLASS_DEPENDENCY_FILE %}
+        ,"{% raw %}{{ BASE_CLASS_DEPENDENCY_FILE }}{% endraw %}"
+        {% if EXTERNAL_DOC_FILE %}
+          {% for doc_item in EXTERNAL_DOC_FILE %}
+            , "{% raw %}{{ doc_item }}{% endraw %}"
+          {% endfor %}
+        {% endif %}
+      {% elif EXTERNAL_DOC_FILE %}
+        {% for doc_item in EXTERNAL_DOC_FILE %}
+          ,"{% raw %}{{ doc_item }}{% endraw %}"{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    ],
+    "PROCESS_TYPE": "GENERATE",
+    "BASE_CLASS": "{{ BASE_CLASS_NAME }}",
+    "MIXINS": [],
+    "EXAMPLES": [
+      {% if CONCRETE_EXAMPLE_FILE %}
+        "{{ CONCRETE_EXAMPLE_FILE }}"
+        {% if EXTERNAL_DOC_EXAMPLE_FILE %}
+          , "{{ EXTERNAL_DOC_EXAMPLE_FILE }}"
+        {% endif %}
+      {% elif EXTERNAL_DOC_EXAMPLE_FILE %}
+        "{{ EXTERNAL_DOC_EXAMPLE_FILE }}"
+      {% endif %}
+    ]
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
+    "PURPOSE": "Initializes the new component's package.",
+    "DESCRIPTION": "Exposes and imports the main class from {{ MODULE_NAME }}.py.",
+    "REQUIREMENTS": [
+      "Should import the class defined in {{ MODULE_NAME }}.py."
+    ],
+    "DEPENDENCIES": [],
+    "PROCESS_TYPE": "COPY"
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/tests/unit/test_{{ MODULE_NAME }}.py{% endraw %}",
+    "PURPOSE": "Contains pytest based test cases for the new component class.",
+    "DESCRIPTION": "Verifies the functionality and correctness of the class in {{ MODULE_NAME }}.py.",
+    "REQUIREMENTS": [
+      "Should import and test the class from the main module."
+    ],
+    "DEPENDENCIES": [
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/tests/unit/test___init__.py{% endraw %}",
+    "PURPOSE": "Contains pytest based test cases for the package initialization.",
+    "DESCRIPTION": "Ensures __init__.py correctly exposes the new component class.",
+    "REQUIREMENTS": [
+      "Should import from the package's __init__.py file."
+    ],
+    "DEPENDENCIES": [
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/README.md{% endraw %}",
+    "PURPOSE": "Create a comprehensive README.md, detailing usage of the new component.",
+    "DESCRIPTION": "Includes branding header, installation and usage instructions, and examples for {{ MODULE_NAME }}.py",
+    "REQUIREMENTS": [
+      "Include all of the HTML header shown in the example output.",
+      "Based on the dependencies, create comprehensive installation and usage documentation sections.",
+      "The installation and usage documentation sections should be significantly more complete than the example format provided.",
+      "Do not include details regarding cloning or forking the repository."
+    ],
+    "DEPENDENCIES": [
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/pyproject.toml{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/LICENSE{% endraw %}",
+    "PURPOSE": "Defines the licensing terms for this project.",
+    "DESCRIPTION": "Contains the open-source (or proprietary) LICENSE text.",
+    "PROCESS_TYPE": "COPY"
+  },
+  {
+    "FILE_NAME": "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/pyproject.toml{% endraw %}",
+    "PURPOSE": "Specifies Python project metadata and dependencies.",
+    "DESCRIPTION": "Indicates the project’s name, version, dependencies, and build system.",
+    "REQUIREMENTS": [
+      "Must reference the main module, README, and LICENSE as applicable.",
+      "Add keywords.",
+      "Add missing third party dependencies."
+    ],
+    "DEPENDENCIES": [
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/{{ MODULE_NAME }}.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/{{ PACKAGE_ROOT }}/__init__.py{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/LICENSE{% endraw %}",
+      "{% raw %}{{ PROJECT_ROOT }}/{{ PACKAGE_ROOT }}/REQUIREMENTS.md{% endraw %}"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  }
+]

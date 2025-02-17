@@ -1,0 +1,182 @@
+import logging
+import pytest
+import os
+
+from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
+from dotenv import load_dotenv
+from swarmauri_standard.utils.timeout_wrapper import timeout
+from pathlib import Path
+
+load_dotenv()
+
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+
+# Get the current working directory
+root_dir = Path(__file__).resolve().parents[2]
+
+# Construct file paths dynamically
+file_path = os.path.join(root_dir, "static", "test_tts.mp3")
+file_path2 = os.path.join(root_dir, "static", "test.mp3")
+file_path3 = os.path.join(root_dir, "static", "test_fr.mp3")
+
+
+@pytest.fixture(scope="module")
+def openai_tts_model():
+    if not API_KEY:
+        pytest.skip("Skipping due to environment variable not set")
+    llm = OpenaiTTS(api_key=API_KEY)
+    return llm
+
+
+@timeout(5)
+def get_allowed_models():
+    if not API_KEY:
+        return []
+    llm = OpenaiTTS(api_key=API_KEY)
+    return llm.allowed_models
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_ubc_resource(openai_tts_model):
+    assert openai_tts_model.resource == "TTS"
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_ubc_type(openai_tts_model):
+    assert openai_tts_model.type == "OpenAIAudioTTS"
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_serialization(openai_tts_model):
+    assert (
+        openai_tts_model.id
+        == OpenaiTTS.model_validate_json(openai_tts_model.model_dump_json()).id
+    )
+
+
+@timeout(5)
+@pytest.mark.unit
+def test_default_name(openai_tts_model):
+    assert openai_tts_model.name == openai_tts_model.allowed_models[0]
+    assert openai_tts_model.voice == "alloy"
+
+
+@timeout(5)
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_predict(openai_tts_model, model_name):
+    openai_tts_model.name = model_name
+
+    text = "Hello, this is a test of streaming text-to-speech output."
+
+    audio_file_path = openai_tts_model.predict(text=text, audio_path=file_path)
+
+    # audio_bytes.seek(0)
+    # audio = AudioSegment.from_file(audio_bytes, format="mp3")
+    # play(audio)
+
+    logging.info(audio_file_path)
+
+    assert isinstance(audio_file_path, str)
+
+
+@timeout(5)
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_stream(openai_tts_model, model_name):
+    openai_tts_model.name = model_name
+
+    text = "Hello, this is a test of streaming text-to-speech output."
+
+    collected_chunks = []
+    for chunk in openai_tts_model.stream(text=text):
+        assert isinstance(chunk, bytes), f"is type is {type(chunk)}"
+        collected_chunks.append(chunk)
+
+    full_audio_byte = b"".join(collected_chunks)
+    assert len(full_audio_byte) > 0
+
+    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
+    # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
+    # play(audio)
+
+
+@timeout(5)
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_apredict(openai_tts_model, model_name):
+    openai_tts_model.name = model_name
+
+    text = "Hello, this is a test of streaming text-to-speech output."
+
+    audio_file_path = await openai_tts_model.apredict(text=text, audio_path=file_path)
+
+    logging.info(audio_file_path)
+
+    assert isinstance(audio_file_path, str)
+
+
+@timeout(5)
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_astream(openai_tts_model, model_name):
+    openai_tts_model.name = model_name
+
+    text = "Hello, this is a test of streaming text-to-speech output."
+
+    collected_chunks = []
+    async for chunk in openai_tts_model.astream(text=text):
+        assert isinstance(chunk, bytes)
+        collected_chunks.append(chunk)
+
+    full_audio_byte = b"".join(collected_chunks)
+    assert len(full_audio_byte) > 0
+
+    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
+    # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
+    # play(audio)
+
+
+@timeout(5)
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+def test_batch(openai_tts_model, model_name):
+    model = openai_tts_model
+    model.name = model_name
+
+    text_path_dict = {
+        "Hello": file_path,
+        "Hi there": file_path2,
+        "Good morning": file_path3,
+    }
+
+    results = model.batch(text_path_dict=text_path_dict)
+    assert len(results) == len(text_path_dict)
+    for result in results:
+        assert isinstance(result, str)
+
+
+@timeout(5)
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize("model_name", get_allowed_models())
+@pytest.mark.unit
+async def test_abatch(openai_tts_model, model_name):
+    model = openai_tts_model
+    model.name = model_name
+
+    text_path_dict = {
+        "Hello": file_path,
+        "Hi there": file_path2,
+        "Good morning": file_path3,
+    }
+
+    results = await model.abatch(text_path_dict=text_path_dict)
+    assert len(results) == len(text_path_dict)
+    for result in results:
+        assert isinstance(result, str)

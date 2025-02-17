@@ -13,3 +13,5 @@ env
 .env
 .DS_STORE
 /combined
+.venv_core*
+*.obj

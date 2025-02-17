@@ -1,43 +1,99 @@
 name: 0.6.0 - Prepare, Install, Validate
 
 on:
-  workflow_dispatch:
   push:
-    branches: ["mono/dev0.6.0.dev1"]
+    branches: [ "mono/dev" ]
+
 jobs:
   install-prepare-validate:
     runs-on: ubuntu-latest
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
 
     steps:
       # 1. Check out the repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Set up Python
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
+
+      - name: Create and Activate Virtual Environment
+        run: |
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
+
 
       # 3. Install project dependencies via Poetry
       - name: Install dependencies
         run: |
+          source $UNIQUE_VENV_PATH/bin/activate
           python -m pip install --upgrade pip
           pip install poetry
-          poetry install
+          pip install soliloquy=="0.1.4"
 
       # 4. Run the install phase
+      ## This will create one lock file
+      ## If we want to create a lock file per folder then we use "recursive"
       - name: Run install phase
         run: |
-          poetry run soliloquy install --directory ./pkgs --recursive
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs
+          soliloquy install --file pyproject.toml
+
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
+
+      # - name: Create New Git Branch
+      #   run: |
+      #     # Create and switch to the new branch
+      #     git checkout -b autopatch/${{ github.run_id }}
+      #     echo "Created and switched to branch autopatch/${{ github.run_id }}"
+
 
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
-          # This example bumps the patch version and uses a custom commit message.
-          poetry run soliloquy prepare --directory ./pkgs --recursive --bump patch --commit-msg "chore: auto prepare"
+          source $UNIQUE_VENV_PATH/bin/activate
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd pkgs
+          soliloquy prepare --directory . --recursive --bump patch --commit-msg "chore: auto prepare" --lint-fix
+
+      - name: Push Branch to GitHub
+        run: |
+          # Push the new branch to GitHub
+          git push origin mono/dev
+          echo "Pushed branch mono/dev to GitHub"
+
+      # - name: Push Branch to GitHub
+      #   run: |
+      #     # Push the new branch to GitHub
+      #     git push origin autopatch/${{ github.run_id }}
+      #     echo "Pushed branch autopatch/${{ github.run_id }} to GitHub"
+
+      # - name: Create Pull Request
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     # Create a pull request from the new branch to the master branch
+      #     PR_TITLE="patch: prepared by soliloquy"
+      #     PR_BODY="This pull request bumps versions, autolints, and autoformats."
+      #     BASE_BRANCH="mono/0.6.0.dev1"
+      #     curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+      #       -H "Accept: application/vnd.github+json" \
+      #       -d '{"title": "'"${PR_TITLE}"'", "head": "autopatch/${{ github.run_id }}", "base": "'"${BASE_BRANCH}"'", "body": "'"${PR_BODY}"'"}' \
+      #       https://api.github.com/repos/${{ github.repository }}/pulls
+
 
       # 6. Run the validate phase
       - name: Run validate phase
         run: |
-          poetry run soliloquy validate --directory ./pkgs --recursive --test-mode each --num-workers 4
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs
+          soliloquy validate --file pyproject.toml --test-mode each --num-workers 4

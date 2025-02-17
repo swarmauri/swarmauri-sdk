@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Union
 from swarmauri_core.documents.IDocument import IDocument
 
+
 class IDocumentStore(ABC):
     """
     Interface for a Document Store responsible for storing, indexing, and retrieving documents.
@@ -59,7 +60,6 @@ class IDocumentStore(ABC):
         - doc_id (str): The unique identifier of the document to delete.
         """
         pass
-
 
     @abstractmethod
     def update_document(self, doc_id: str, updated_document: IDocument) -> None:

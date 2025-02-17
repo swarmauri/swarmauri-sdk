@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+
 class ISaveModel(ABC):
     """
     Interface to abstract the ability to save and load models.

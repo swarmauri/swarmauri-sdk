@@ -1,0 +1,91 @@
+name: 0.6.0 - Prepare, Install, Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      soliloquy_file:
+        description: "File to use for install, prepare, and release steps"
+        required: false
+        default: "pyproject.toml"
+      bump_type:
+        description: "Bump type (patch, finalize, etc.) for the prepare phase"
+        required: false
+        default: "finalize"
+      commit_msg:
+        description: "Commit message for the prepare phase"
+        required: false
+        default: "chore: auto finalize packages"
+
+jobs:
+  install-prepare-validate:
+    runs-on: ubuntu-latest
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+
+    steps:
+      # 1. Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create and Activate Virtual Environment
+        run: |
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
+
+      # 3. Install project dependencies
+      - name: Install dependencies
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          python -m pip install --upgrade pip
+          pip install poetry
+          pip install soliloquy=="0.1.4"
+
+      # 4. Run the install phase
+      - name: Run install phase
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs
+          soliloquy install --file "${{ github.event.inputs.soliloquy_file }}"
+
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
+
+      # 5. Run the prepare phase
+      - name: Run prepare phase
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd pkgs
+          soliloquy prepare \
+            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --bump "${{ github.event.inputs.bump_type }}" \
+            --commit-msg "${{ github.event.inputs.commit_msg }}" \
+            --lint-fix
+
+      - name: Push Branch to GitHub
+        run: |
+          # Push the new branch to GitHub
+          git push origin mono/dev
+          echo "Pushed branch mono/dev to GitHub"
+
+      # 6. Run the release phase
+      - name: Run release phase
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          cd pkgs
+          soliloquy release \
+            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --test-mode single \
+            --num-workers 4 \
+            --no-cleanup \
+            --required-passed ge:80 \
+            --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}

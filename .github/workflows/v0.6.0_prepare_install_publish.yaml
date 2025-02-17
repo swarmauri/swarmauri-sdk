@@ -52,7 +52,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cd pkgs
-          soliloquy prepare --file pyproject.toml --bump finalize --commit-msg "chore: auto finalize monorepo" --lint-fix
           soliloquy prepare --directory . --recursive --bump finalize --commit-msg "chore: auto finalize packages" --lint-fix
 
       - name: Push Branch to GitHub
@@ -61,9 +60,9 @@ jobs:
           git push origin mono/dev
           echo "Pushed branch mono/dev to GitHub"
 
-      # 6. Run the validate phase
-      - name: Run validate phase
+      # 6. Run the release phase
+      - name: Run release phase
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          soliloquy validate --file pyproject.toml --test-mode each --num-workers 4
+          soliloquy release --file pyproject.toml --test-mode each --num-workers 4 --no-cleanup --required-passed ge:80 --publish-password ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}

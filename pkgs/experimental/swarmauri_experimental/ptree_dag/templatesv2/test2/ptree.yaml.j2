@@ -1,0 +1,243 @@
+# =====================================================
+# Global Project Files
+# =====================================================
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/PROJECT_REQUIREMENTS.md.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/PROJECT_REQUIREMENTS.md"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "agent_requirements.j2"
+  PROJECT_NAME: "Global"
+  PACKAGE_NAME: "None"
+  MODULE_NAME: "None"
+  DEPENDENCIES: []
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Defines project-wide functional and non-functional requirements."
+    DESCRIPTION: "This file contains the global requirements for the project."
+    REQUIREMENTS:
+      - "Provide functional and non-functional requirements at the project level."
+    {% if PROJECT_REQUIREMENTS is defined %}
+    {% for req in PROJECT_REQUIREMENTS %}
+      - "{{ req }}"
+    {% endfor %}
+    {% endif %}
+
+# =====================================================
+# Begin Package File Entries
+# =====================================================
+{% for PKG in PACKAGES %}
+
+# -------------------------
+# Package-Level Files for {{ PKG.NAME }}
+# -------------------------
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/LICENSE.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/LICENSE"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES: []
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Defines the license for package {{ PKG.NAME }}."
+    DESCRIPTION: "This file contains the license for package {{ PKG.NAME }}."
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/pyproject.toml.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES:
+    {# Loop over modules to include their main file as dependencies #}
+    {% for MOD in PKG.MODULES %}
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+    {% endfor %}
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+  TEMPLATE_SET: "{{ PKG.TEMPLATE_SET_OVERRIDE | default(TEMPLATE_SET) }}"
+  FILE_CONTEXT:
+    PURPOSE: "Specifies package metadata and dependencies for {{ PKG.NAME }}."
+    DESCRIPTION: "Configuration for package {{ PKG.NAME }}. Must reference all module source files, README, and LICENSE."
+    REQUIREMENTS:
+      - "Must reference the main module, README, and LICENSE as applicable."
+      - "Must include any third party dependencies, setting the version to '*'"
+      - "Must include a comprehensive list of applicable keywords."
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/README.md.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/README.md"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES:
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+    {% for MOD in PKG.MODULES %}
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+    {% endfor %}
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+      - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md"
+  TEMPLATE_SET: "{{ PKG.TEMPLATE_SET_OVERRIDE | default(TEMPLATE_SET) }}"
+  FILE_CONTEXT:
+    PURPOSE: "Documents package {{ PKG.NAME }}."
+    DESCRIPTION: "{{ PKG.DESCRIPTION }}"
+    REQUIREMENTS:
+      - "Purpose: {{ PKG.PURPOSE }}"
+      - "Authors: {{ PKG.AUTHORS | join(', ') }}"
+      - "Include all of the HTML header shown in the example output."
+      - "Based on the dependencies, create comprehensive installation and usage documentation sections."
+      - "The installation and usage documentation sections should be significantly more complete than the example format provided."
+      - "Do not include details regarding cloning or forking the repository."
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "agent_requirements.j2"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES:
+    - "{{ PROJECT_ROOT }}/PROJECT_REQUIREMENTS.md"
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Lists requirements for package {{ PKG.NAME }}."
+    DESCRIPTION: "Functional and non-functional requirements for package {{ PKG.NAME }}."
+    REQUIREMENTS:
+      - "Provide functional requirements for the package."
+      - "Provide non-functional requirements for the package."
+    {% if PKG.REQUIREMENTS %}
+    {% for req in PKG.REQUIREMENTS %}
+      - "{{ req }}"
+    {% endfor %}
+    {% else %}
+    {# If no package-specific requirements are provided, fall back to project-wide ones #}
+    {% for req in PROJECT_REQUIREMENTS %}
+      - "{{ req }}"
+    {% endfor %}
+    {% endif %}
+
+# -------------------------
+# Package Source Files
+# -------------------------
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES: []
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
+    DESCRIPTION: "This file makes the directory a Python package."
+
+{% for MOD in PKG.MODULES %}
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  DEPENDENCIES:
+            - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md"
+    {% if MOD.BASE_FILE %}
+            - "{{ MOD.BASE_FILE }}"
+    {% endif %}
+    {% if MOD.EXTERNAL_DOC_FILES %}
+      {% for doc in MOD.EXTERNAL_DOC_FILES %}
+            - "{{ doc }}"
+      {% endfor %}
+    {% endif %}
+    {% if MOD.DEPENDENCIES %}
+      {% for dep in MOD.DEPENDENCIES %}
+        {% if "/" in dep %}
+            - "{{ dep }}"
+        {% else %}
+          {% set parts = dep | split('.') %}
+          {% if parts | length > 2 %}
+            - "{{ PROJECT_ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
+          {% else %}
+            - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if MOD.MIXIN_FILES %}
+      {% for mf in MOD.MIXIN_FILES %}
+            - "{{ mf }}"
+      {% endfor %}
+    {% endif %}
+  TEMPLATE_SET: "{{ MOD.TEMPLATE_SET_OVERRIDE | default(PKG.TEMPLATE_SET_OVERRIDE | default(TEMPLATE_SET)) }}"
+  FILE_CONTEXT:
+    PURPOSE: "{{ MOD.PURPOSE }}"
+    DESCRIPTION: "{{ MOD.DESCRIPTION }}"
+    REQUIREMENTS:
+      - "Implement the functionality for module {{ MOD.NAME }}."
+      - "Provide implementation logic for inherited methods when applicable."
+      - "Ensure that all methods include complete, comprehensive, and fully functional implementation logic."
+    {% if MOD.REQUIREMENTS %}
+    {% for req in MOD.REQUIREMENTS %}
+      - "{{ req }}"
+    {% endfor %}
+    {% endif %}
+    BASE_CLASS: "{{ MOD.BASE_NAME }}"
+    MIXINS: {{ MOD.MIXINS | default([]) | tojson }}
+    RESOURCE_KIND: "{{ MOD.RESOURCE_KIND }}"
+    CONCRETE_EXAMPLES: {{ MOD.CONCRETE_EXAMPLES | default([]) | tojson }}
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  DEPENDENCIES:
+    - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+    - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md"
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
+    DESCRIPTION: "Tests for module {{ MOD.NAME }}."
+    REQUIREMENTS:
+      - "Must use pytest."
+      - "Must use @pytest.mark.unit decorator to mark test cases."
+      - "Where applicable use pytest fixtures and parameterize."
+      - "Should import and test the class from the main module."
+
+{% endfor %}
+
+# -------------------------
+# Package-Level Tests
+# -------------------------
+
+- FILE_NAME: "{% raw %}{{ PROJECT_ROOT }}/{{ PKG.NAME }}/tests/unit/test___init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/tests/unit/test___init__.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJECT_NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  DEPENDENCIES:
+    - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+    - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/PACKAGE_REQUIREMENTS.md"
+  TEMPLATE_SET: null
+  FILE_CONTEXT:
+    PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
+    DESCRIPTION: "Ensures that the __init__.py in the source folder loads correctly."
+    REQUIREMENTS:
+      - "Must use pytest."
+      - "Must use @pytest.mark.i9n decorator to mark test cases."
+      - "Where applicable use pytest fixtures."
+
+{% endfor %}
+
+# =====================================================
+# End of Payload
+# =====================================================

@@ -1,0 +1,42 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<div align="center">
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_entityrecognition)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_entityrecognition)
+![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_entityrecognition)
+![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_entityrecognition?label=swarmauri_parser_entityrecognition&color=green)
+
+</div>
+
+---
+
+# Swarmauri Entity Recognition Parser
+
+EntityRecognitionParser leverages NER capabilities to parse text and extract entities with their respective tags such as PERSON, LOCATION, ORGANIZATION, etc.
+
+## Installation
+
+```bash
+pip install swarmauri_parser_entityrecognition
+```
+
+## Usage
+Basic usage examples with code snippets
+```python
+from swarmauri.parsers.EntityRecognitionParser import EntityRecognitionParser
+
+# Initialize the parser
+parser = EntityRecognitionParser()
+
+# Parse text to extract entities
+text = "Barack Obama was born in Hawaii."
+entities = parser.parse(text)
+
+# Print extracted entities
+for entity in entities:
+    print(f"Entity: {entity.content}, Type: {entity.metadata['entity_type']}")
+```
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
