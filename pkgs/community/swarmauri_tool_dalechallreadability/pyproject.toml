@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_dalechallreadability"
-version = "0.6.0.dev157"
+version = "0.6.0.dev158"
 description = "Swarmauri Community Dale-Chall Readability Tool"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
