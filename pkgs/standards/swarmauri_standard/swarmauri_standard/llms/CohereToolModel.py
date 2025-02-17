@@ -1,18 +1,29 @@
-import json
 import asyncio
+import json
+import warnings
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
+
 import httpx
-from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Union, Type
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_core.ComponentBase import ComponentBase
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
 from swarmauri_standard.schema_converters.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
 from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing CohereToolModel from swarmauri_standard.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
+    "CohereToolModel' or 'from swarmauri.tool_llms import CohereToolModel' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "CohereToolModel")
