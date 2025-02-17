@@ -123,7 +123,9 @@ jobs:
       fail-fast: false
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
-
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+      
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -138,7 +140,6 @@ jobs:
         run: |
           python -m venv $UNIQUE_VENV_PATH
           source $UNIQUE_VENV_PATH/bin/activate
-
 
       # 3. Install project dependencies via Poetry
       - name: Install dependencies
