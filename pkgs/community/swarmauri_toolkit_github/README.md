@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_github)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_toolkit_github)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri-tool-github)
 ![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_github)
 ![PyPI - Version](https://img.shields.io/pypi/v/swarmauri-tool-github?label=swarmauri_tool_github&color=green)
