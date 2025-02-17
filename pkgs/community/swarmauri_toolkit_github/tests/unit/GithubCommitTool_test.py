@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from dotenv import load_dotenv
 
 import pytest
-from swarmauri_tool_github.GithubCommitTool import (
+from swarmauri_toolkit_github.GithubCommitTool import (
     GithubCommitTool as Tool,
 )
 

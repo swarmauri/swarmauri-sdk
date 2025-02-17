@@ -2,8 +2,8 @@ import os
 from unittest.mock import patch, MagicMock
 import pytest
 from swarmauri_standard.tools.AdditionTool import AdditionTool
-from swarmauri_tool_github.GithubRepoTool import GithubRepoTool
-from swarmauri_tool_github.GithubToolkit import GithubToolkit as Toolkit
+from swarmauri_toolkit_github.GithubRepoTool import GithubRepoTool
+from swarmauri_toolkit_github.GithubToolkit import GithubToolkit as Toolkit
 from dotenv import load_dotenv
 
 load_dotenv()
