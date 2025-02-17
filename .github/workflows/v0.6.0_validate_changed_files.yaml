@@ -1,4 +1,4 @@
-name: Test Changed Files
+name: v0.6.0 - Validate Changed Files
 
 on:
   pull_request:
