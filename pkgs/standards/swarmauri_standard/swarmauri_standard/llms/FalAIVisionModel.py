@@ -37,13 +37,14 @@ class FalAIVisionModel(LLMBase):
     allowed_models: List[str] = []
     api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
     name: str = Field(default="")
-    request_timeout: int = 30
+
+    timeout: float = 30.0
 
     type: Literal["FalAIVisionModel"] = "FalAIVisionModel"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
 
-    def __init__(self, request_timeout: int = 30, **data):
+    def __init__(self, **data):
         """
         Initialize the FalAIVisionModel with API key, HTTP clients, and model name validation.
 
@@ -55,9 +56,8 @@ class FalAIVisionModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=request_timeout)
+        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
 
-        self.request_timeout: int = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -103,7 +103,7 @@ class FalAIVisionModel(LLMBase):
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
 
         async with httpx.AsyncClient(
-            headers=self._headers, timeout=self.request_timeout
+            headers=self._headers, timeout=self.timeout
         ) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
@@ -142,7 +142,7 @@ class FalAIVisionModel(LLMBase):
         """
         url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
         async with httpx.AsyncClient(
-            headers=self._headers, timeout=self.request_timeout
+            headers=self._headers, timeout=self.timeout
         ) as client:
             response = await client.get(url)
             response.raise_for_status()
@@ -171,7 +171,7 @@ class FalAIVisionModel(LLMBase):
             status_data = await self._async_check_status(request_id)
             if status_data.get("status") == "COMPLETED":
                 async with httpx.AsyncClient(
-                    headers=self._headers, timeout=self.request_timeout
+                    headers=self._headers, timeout=self.timeout
                 ) as client:
                     response = await client.get(status_data.get("response_url"))
                     response.raise_for_status()

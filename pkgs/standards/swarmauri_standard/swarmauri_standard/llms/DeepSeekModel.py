@@ -41,20 +41,20 @@ class DeepSeekModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
-    def __init__(self, request_timeout: int = 30, **data):
-        super().__init__(**data)
+    timeout: float = 30.0
 
-        self.request_timeout = request_timeout
+    def __init__(self, **data):
+        super().__init__(**data)
 
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key}"},
             base_url=self._BASE_URL,
-            timeout=self.request_timeout,
+            timeout=self.timeout,
         )
 
         self.allowed_models = self.get_allowed_models()

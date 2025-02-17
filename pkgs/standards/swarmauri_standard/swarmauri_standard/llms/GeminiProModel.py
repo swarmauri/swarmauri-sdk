@@ -31,7 +31,8 @@ class GeminiProModel(LLMBase):
     api_key: SecretStr
     allowed_models: List[str] = []
     name: str = ""
-    request_timeout: int = 30
+
+    timeout: float = 30.0
 
     type: Literal["GeminiProModel"] = "GeminiProModel"
 
@@ -56,7 +57,7 @@ class GeminiProModel(LLMBase):
         ]
     )
 
-    def __init__(self, api_key: SecretStr, request_timeout: int = 30, **kwargs):
+    def __init__(self, api_key: SecretStr, **kwargs):
         """
         Initializes the GeminiProModel object with the given API key.
 
@@ -69,17 +70,17 @@ class GeminiProModel(LLMBase):
             default_factory=lambda: httpx.Client(
                 base_url="https://generativelanguage.googleapis.com/v1beta/models",
                 headers={"Content-Type": "application/json"},
-                timeout=request_timeout,
+                timeout=self.timeout,
             )
         )
         self._async_client: httpx.AsyncClient = PrivateAttr(
             default_factory=lambda: httpx.AsyncClient(
                 base_url="https://generativelanguage.googleapis.com/v1beta/models",
                 headers={"Content-Type": "application/json"},
-                timeout=request_timeout,
+                timeout=self.timeout,
             )
         )
-        self.request_timeout = request_timeout
+
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 

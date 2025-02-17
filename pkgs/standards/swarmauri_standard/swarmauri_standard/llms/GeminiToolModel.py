@@ -40,6 +40,9 @@ class GeminiToolModel(LLMBase):
     _BASE_URL: str = PrivateAttr(
         default="https://generativelanguage.googleapis.com/v1beta/models"
     )
+
+    timeout: float = 30.0
+
     _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
 
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
@@ -230,7 +233,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
@@ -250,7 +253,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        with httpx.Client(timeout=self.request_timeout) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
@@ -316,7 +319,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
@@ -336,7 +339,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
@@ -488,7 +491,7 @@ class GeminiToolModel(LLMBase):
         if system_context:
             payload["system_instruction"] = system_context
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:generateContent?key={self.api_key.get_secret_value()}",
                 json=payload,
@@ -508,7 +511,7 @@ class GeminiToolModel(LLMBase):
         payload.pop("tools", None)
         payload.pop("tool_config", None)
 
-        async with httpx.AsyncClient(timeout=self.request_timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 f"{self._BASE_URL}/{self.name}:streamGenerateContent?alt=sse&key={self.api_key.get_secret_value()}",
                 json=payload,

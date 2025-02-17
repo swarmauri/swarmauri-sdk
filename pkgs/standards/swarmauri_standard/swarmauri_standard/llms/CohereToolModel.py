@@ -46,7 +46,9 @@ class CohereToolModel(LLMBase):
     type: Literal["CohereToolModel"] = "CohereToolModel"
     resource: str = "LLM"
 
-    def __init__(self, request_timeout: int = 30, **data):
+    timeout: float = 30.0
+
+    def __init__(self, **data):
         """
         Initialize the CohereToolModel with the provided configuration.
 
@@ -60,12 +62,11 @@ class CohereToolModel(LLMBase):
             "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=self.request_timeout
+            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 

@@ -45,7 +45,9 @@ class GroqToolModel(LLMBase):
         default="https://api.groq.com/openai/v1/chat/completions"
     )
 
-    def __init__(self, request_timeout: int = 30, **data):
+    timeout: float = 30.0
+
+    def __init__(self, **data):
         """
         Initialize the GroqAIAudio class with the provided data.
 
@@ -56,15 +58,14 @@ class GroqToolModel(LLMBase):
         self._client = httpx.Client(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=request_timeout,
+            timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
-            timeout=request_timeout,
+            timeout=self.timeout,
         )
 
-        self.request_timeout = request_timeout
         self.allowed_models = self.get_allowed_models()
         self.name = self.allowed_models[0]
 
