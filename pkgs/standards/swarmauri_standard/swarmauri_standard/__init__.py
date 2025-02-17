@@ -29,9 +29,16 @@ The Swarmauri SDK is an evolving platform, and the community is encouraged to co
 Visit us at: https://swarmauri.com
 Follow us at: https://github.com/swarmauri 
 """
-from .__version__ import __version__
 
-__all__ = [
-    "__version__",
-    # other packages you want to expose
-]
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions, use the backport
+    from importlib_metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("swarmauri_standard")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
