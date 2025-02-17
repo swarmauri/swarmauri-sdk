@@ -153,11 +153,4 @@ jobs:
           # Example commands using soliloquy (as per your snippet)
           soliloquy install -f pyproject.toml
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          soliloquy prepare -f pyproject.toml --bump patch --commit-msg "chore: auto prepare" --lint-fix
-          git push origin mono/dev
-          echo "Pushed branch mono/dev to GitHub"
-
           soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
