@@ -73,7 +73,7 @@ def test_call_file_not_found(
 
 
 @patch("nbformat.read", return_value={"cells": [], "metadata": {}})
-@patch("nbformat.validate", side_effect=NotebookValidationError("Notebook is invalid"))
+@patch("nbformat.validate", side_effect=NotebookValidationError(Exception("Notebook is invalid")))
 def test_call_validation_error(
     mock_validate: MagicMock,
     mock_read: MagicMock,
@@ -100,3 +100,41 @@ def test_call_unexpected_exception(
     assert "error" in result
     assert "Failed to read notebook" in result["error"]
     mock_read.assert_called_once()
+
+
+@patch("nbformat.read")
+@patch("nbformat.validate")
+def test_call_non_empty_read(
+    mock_validate: MagicMock,
+    mock_read: MagicMock,
+    jupyter_read_notebook_tool: JupyterReadNotebookTool,
+) -> None:
+    """
+    Test reading and validating a non-empty Jupyter notebook.
+    """
+    # Arrange: Create a non-empty notebook node
+    non_empty_notebook = {
+        "cells": [
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "outputs": [],
+                "source": "print('Hello, world!')"
+            }
+        ],
+        "metadata": {"language_info": {"name": "python"}}
+    }
+    mock_read.return_value = non_empty_notebook
+
+    # Act
+    result = jupyter_read_notebook_tool("non_empty_notebook.ipynb", as_version=4)
+
+    # Assert
+    mock_read.assert_called_once_with("non_empty_notebook.ipynb", as_version=4)
+    mock_validate.assert_called_once_with(non_empty_notebook)
+    assert "notebook_node" in result
+    # Verify that the notebook returned is the non-empty notebook we defined
+    assert result["notebook_node"] == non_empty_notebook
+    # Optionally, check that the notebook contains at least one cell
+    assert len(result["notebook_node"]["cells"]) > 0
