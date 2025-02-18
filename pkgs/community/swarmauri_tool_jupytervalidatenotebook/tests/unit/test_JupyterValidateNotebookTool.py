@@ -56,9 +56,9 @@ def test_invalid_notebook_validation() -> None:
     """
     Test the validation process with an invalid notebook. Expecting a failure response.
     """
-    # Create a notebook missing a required key ('cells') to trigger NotebookValidationError
+    # Create a notebook with an invalid nbformat field (should be an integer)
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
-    del invalid_notebook["cells"]
+    invalid_notebook["nbformat"] = "invalid"  # This should trigger a NotebookValidationError
 
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
@@ -74,7 +74,7 @@ def test_unexpected_error_handling(monkeypatch) -> None:
     """
     tool = JupyterValidateNotebookTool()
 
-    def fake_validate(notebook):
+    def fake_validate(notebook, **kwargs):
         raise RuntimeError("Unexpected runtime error!")
 
     monkeypatch.setattr(nbformat, "validate", fake_validate)
