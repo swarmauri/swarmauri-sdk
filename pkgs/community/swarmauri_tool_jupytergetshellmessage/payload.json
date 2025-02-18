@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupytergetshellmessage",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterGetShellMessageTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Retrieve messages from the kernel's shell channel.",
+        "Parse and log the shell messages for diagnostics.",
+        "Handle message retrieval errors gracefully.",
+        "Support configurable timeouts for message waiting.",
+        "Return structured message data.",
+        "Integrate with cell execution tools for comprehensive output."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "jupyter_client",
+            "version": "*"
+        }
+    ]
+}

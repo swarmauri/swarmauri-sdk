@@ -1,0 +1,30 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to execute all cells in a Jupyter Notebook using nbconvert\u2019s ExecutePreprocessor, capturing outputs for testing and reporting.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexecutenotebook",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExecuteNotebookTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Execute all cells in the notebook sequentially.",
+        "Capture and log output and errors.",
+        "Support configurable execution timeouts.",
+        "Update the NotebookNode with execution outputs.",
+        "Handle cell execution failures gracefully.",
+        "Return the executed notebook object."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        },
+        {
+            "name": "nbformat",
+            "version": "*"
+        }
+    ]
+}
