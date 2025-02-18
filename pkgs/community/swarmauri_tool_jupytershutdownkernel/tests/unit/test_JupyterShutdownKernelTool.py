@@ -1,3 +1,4 @@
+import inspect
 import pytest
 from unittest.mock import patch, MagicMock
 from typing import Dict
@@ -25,23 +26,26 @@ class TestJupyterShutdownKernelTool:
         assert tool.type == "JupyterShutdownKernelTool"
         assert isinstance(tool.parameters, list), "Parameters should be a list."
 
-        # Check parameters
+        # Check parameters exist
         kernel_id_param = next((p for p in tool.parameters if p.name == "kernel_id"), None)
         timeout_param = next((p for p in tool.parameters if p.name == "shutdown_timeout"), None)
 
         assert kernel_id_param is not None, "Missing required parameter 'kernel_id'."
         assert kernel_id_param.required is True, "Parameter 'kernel_id' should be required."
         assert timeout_param is not None, "Missing optional parameter 'shutdown_timeout'."
-        # Use model_fields to verify the default value in Pydantic V2:
-        assert timeout_param.model_fields["default"].default == 5, "Default shutdown timeout should be 5."
+
+        # Instead of checking the Parameter instance for a default value,
+        # inspect the __call__ method signature to confirm the default value is 5.
+        sig = inspect.signature(tool.__call__)
+        assert sig.parameters["shutdown_timeout"].default == 5, "Default shutdown timeout should be 5."
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_success(self, mock_kernel_manager: MagicMock) -> None:
         mock_manager_instance = mock_kernel_manager.return_value
-        # The shutdown logic calls is_alive() 4 times in this scenario:
-        # 1. while-loop condition (iteration 1)
-        # 2. while-loop condition (iteration 2) -> exit loop
-        # 3. Check for forced shutdown
+        # The shutdown logic calls is_alive() several times:
+        # 1. While-loop condition (iteration 1)
+        # 2. While-loop condition (iteration 2) → exit loop
+        # 3. Forced shutdown check (should not be called)
         # 4. Final check confirming kernel is down
         mock_manager_instance.is_alive.side_effect = [True, False, False, False]
 
@@ -55,11 +59,8 @@ class TestJupyterShutdownKernelTool:
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_forced_shutdown(self, mock_kernel_manager: MagicMock) -> None:
         mock_manager_instance = mock_kernel_manager.return_value
-        # For forced shutdown, is_alive() is called 5 times:
-        # 1-2. While loop iterations
-        # 3. Check before forced shutdown (kernel still alive)
-        # 4. Final check after forced shutdown (still alive)
-        # 5. (If any additional check, ensuring the count is enough)
+        # For forced shutdown, is_alive() is called multiple times:
+        # Provide enough responses to cover all calls.
         mock_manager_instance.is_alive.side_effect = [True, True, True, True, True]
 
         tool = JupyterShutdownKernelTool()
@@ -72,7 +73,7 @@ class TestJupyterShutdownKernelTool:
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_no_such_kernel(self, mock_kernel_manager: MagicMock) -> None:
         mock_manager_instance = mock_kernel_manager.return_value
-        # Instantiate NoSuchKernel with a dummy argument to satisfy its constructor.
+        # Instantiate NoSuchKernel with a dummy argument.
         mock_manager_instance.load_connection_file.side_effect = NoSuchKernel("dummy")
 
         tool = JupyterShutdownKernelTool()
