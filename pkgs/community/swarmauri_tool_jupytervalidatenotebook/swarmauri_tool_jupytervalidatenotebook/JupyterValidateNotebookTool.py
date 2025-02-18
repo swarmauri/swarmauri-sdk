@@ -65,7 +65,11 @@ class JupyterValidateNotebookTool(ToolBase):
                 "valid": "True",
                 "report": "The notebook is valid according to its JSON schema.",
             }
-        except (NotebookValidationError, jsonschema.ValidationError) as e:
+        except (
+            NotebookValidationError,
+            jsonschema.ValidationError,
+            AttributeError,
+        ) as e:
             logger.error(f"Notebook validation error: {e}")
             return {"valid": "False", "report": f"Validation error: {str(e)}"}
         except Exception as e:
