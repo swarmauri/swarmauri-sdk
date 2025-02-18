@@ -1267,7 +1267,7 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
+resolved_reference = "c20c1ca6b38639f02eaa0d65de8992a9df50863f"
 subdirectory = "pkgs/base"
 
 [[package]]
@@ -1288,7 +1288,7 @@ pyyaml = "^6.0.2"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
+resolved_reference = "c20c1ca6b38639f02eaa0d65de8992a9df50863f"
 subdirectory = "pkgs/core"
 
 [[package]]
@@ -1319,7 +1319,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
+resolved_reference = "c20c1ca6b38639f02eaa0d65de8992a9df50863f"
 subdirectory = "pkgs/standards/swarmauri_standard"
 
 [[package]]
