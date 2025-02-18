@@ -58,7 +58,8 @@ def test_invalid_notebook_validation() -> None:
     """
     # Create a notebook missing a required field to cause validation error
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
-    invalid_notebook["nbformat"] = "invalid"  # Should be an integer
+    # Remove a required key to trigger NotebookValidationError
+    del invalid_notebook["nbformat_minor"]
 
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
@@ -67,13 +68,17 @@ def test_invalid_notebook_validation() -> None:
     assert "Validation error:" in result["report"], "Report should contain the validation error message."
 
 
-def test_unexpected_error_handling(mocker) -> None:
+def test_unexpected_error_handling(monkeypatch) -> None:
     """
     Test how the tool handles unexpected errors during validation.
-    We mock nbformat.validate to raise a general exception.
+    We monkeypatch nbformat.validate to raise a general exception.
     """
     tool = JupyterValidateNotebookTool()
-    mocker.patch("nbformat.validate", side_effect=RuntimeError("Unexpected runtime error!"))
+
+    def fake_validate(notebook):
+        raise RuntimeError("Unexpected runtime error!")
+
+    monkeypatch.setattr(nbformat, "validate", fake_validate)
 
     notebook: NotebookNode = nbformat.v4.new_notebook()
     notebook["cells"] = [nbformat.v4.new_markdown_cell("Test")]
