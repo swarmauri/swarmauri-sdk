@@ -88,6 +88,7 @@ def process_text(text: str) -> Doc:
         raise ValueError("Input text must not be empty.")
     # Processing code goes here
 ```
+
 Below is an example demonstrating the spaCy docstring style at the module level:
 
 ```python
@@ -101,7 +102,9 @@ to simplify common text processing tasks.
 
 import spacy
 ```
+
 Below is an example demonstrating spaCy docstring style at the class level:
+
 ```python
 class TextProcessor:
     """
