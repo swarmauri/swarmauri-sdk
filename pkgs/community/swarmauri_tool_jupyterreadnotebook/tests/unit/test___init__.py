@@ -19,7 +19,7 @@ class TestPackageInitialization:
         """
         Test that JupyterReadNotebookTool is successfully imported from the package's __init__.
         """
-        from swarmauri_tools_jupyterreadnotebook import JupyterReadNotebookTool
+        from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
 
         # Verify we can access the class
         assert JupyterReadNotebookTool is not None, (
