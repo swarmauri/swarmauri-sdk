@@ -56,9 +56,9 @@ def test_invalid_notebook_validation() -> None:
     """
     Test the validation process with an invalid notebook. Expecting a failure response.
     """
-    # Create a notebook with an invalid nbformat field (should be an integer)
+    # Create a notebook with an invalid nbformat value (it must be 4 for v4 notebooks)
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
-    invalid_notebook["nbformat"] = "invalid"  # This should trigger a NotebookValidationError
+    invalid_notebook["nbformat"] = 3  # This violates the schema and should trigger NotebookValidationError
 
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
@@ -77,10 +77,11 @@ def test_unexpected_error_handling(monkeypatch) -> None:
     def fake_validate(notebook, **kwargs):
         raise RuntimeError("Unexpected runtime error!")
 
-    monkeypatch.setattr(nbformat, "validate", fake_validate)
-
+    # Create the notebook first to avoid affecting nbformat.v4.new_notebook()
     notebook: NotebookNode = nbformat.v4.new_notebook()
     notebook["cells"] = [nbformat.v4.new_markdown_cell("Test")]
+
+    monkeypatch.setattr(nbformat, "validate", fake_validate)
 
     result = tool(notebook)
 
