@@ -56,10 +56,9 @@ def test_invalid_notebook_validation() -> None:
     """
     Test the validation process with an invalid notebook. Expecting a failure response.
     """
-    # Create a notebook missing a required field to cause validation error
+    # Create a notebook missing a required key ('cells') to trigger NotebookValidationError
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
-    # Remove a required key to trigger NotebookValidationError
-    del invalid_notebook["nbformat_minor"]
+    del invalid_notebook["cells"]
 
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
