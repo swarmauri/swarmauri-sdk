@@ -9,7 +9,7 @@ ToolBase and integrates with the swarmauri framework's tool architecture.
 import logging
 from typing import List, Dict, Literal
 from pydantic import Field
-from IPython.display import display, HTML, Image, Latex, Markdown
+import IPython.display as ipyd  # Updated import to use namespace
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -77,17 +77,17 @@ class JupyterDisplayTool(ToolBase):
 
         try:
             if data_format == "html":
-                display(HTML(data))
+                ipyd.display(ipyd.HTML(data))
             elif data_format == "latex":
-                display(Latex(data))
+                ipyd.display(ipyd.Latex(data))
             elif data_format == "image":
                 # If data is a path to an image, display it. Otherwise, it may fail.
-                display(Image(data))
+                ipyd.display(ipyd.Image(data))
             elif data_format == "text":
-                display(Markdown(data))
+                ipyd.display(ipyd.Markdown(data))
             else:
                 # 'auto' or anything else defaults to treating the data as text
-                display(Markdown(data))
+                ipyd.display(ipyd.Markdown(data))
 
             logger.debug("Data displayed successfully.")
             return {"status": "success", "message": "Data displayed successfully."}

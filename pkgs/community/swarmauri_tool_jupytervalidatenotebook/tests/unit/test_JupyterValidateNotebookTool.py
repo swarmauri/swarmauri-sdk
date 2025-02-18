@@ -11,11 +11,10 @@ import pytest
 import nbformat
 from nbformat import NotebookNode
 from nbformat.validator import NotebookValidationError
-from swarmauri_tool_jupytervalidatenotebook.swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
+from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
     JupyterValidateNotebookTool,
 )
 from swarmauri_base.tools.ToolBase import ToolBase
-
 
 def test_class_inheritance() -> None:
     """

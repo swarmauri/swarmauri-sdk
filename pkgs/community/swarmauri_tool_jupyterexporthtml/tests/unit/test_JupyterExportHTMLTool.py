@@ -57,7 +57,8 @@ def test_jupyter_export_html_tool_call_basic(valid_notebook_json: str) -> None:
     result = tool(notebook_json=valid_notebook_json)
     assert isinstance(result, dict), "Result should be a dictionary."
     assert "exported_html" in result, "The result should contain 'exported_html'."
-    assert "<html>" in result["exported_html"], "The exported HTML should contain an <html> tag."
+    assert "<html" in result["exported_html"], "The exported HTML should contain an <html> tag."
+
 
 def test_jupyter_export_html_tool_call_with_template(valid_notebook_json: str) -> None:
     """
