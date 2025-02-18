@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_tfidf"
-version = "0.6.1.dev10"
+version = "0.6.1.dev11"
 description = "A Tfidf based Vector Store and Tfidf Based Embedding Model."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

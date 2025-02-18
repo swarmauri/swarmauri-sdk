@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_duckdb"
-version = "0.6.1.dev10"
+version = "0.6.1.dev11"
 description = "A DuckDB based Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

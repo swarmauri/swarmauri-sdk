@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_textlength"
-version = "0.6.1.dev10"
+version = "0.6.1.dev11"
 description = "Text Length Tool for Swarmauri"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
