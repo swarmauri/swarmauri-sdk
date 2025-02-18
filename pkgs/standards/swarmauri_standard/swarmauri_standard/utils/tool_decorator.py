@@ -31,7 +31,7 @@ def tool(func):
         annotated_type = type_hints.get(param_name, str)
 
         # Derive a required flag by checking if the parameter has a default
-        required = (param.default == inspect.Parameter.empty)
+        required = param.default == inspect.Parameter.empty
 
         # Use the parameter’s name, the string version of the annotated type, etc.
         parameters_list.append(
