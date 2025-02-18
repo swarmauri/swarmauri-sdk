@@ -67,7 +67,7 @@ class PlayHTModel(LLMBase):
             "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
-        self.allowed_models.extend(self.get_allowed_models())
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
         self.allowed_voices = self._get_allowed_voices(self.name)

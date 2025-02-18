@@ -51,7 +51,7 @@ class DeepInfraImgGenModel(ImageGenBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
-        self.allowed_models.extend(self.get_allowed_models())
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     async def _get_async_client(self) -> httpx.AsyncClient:

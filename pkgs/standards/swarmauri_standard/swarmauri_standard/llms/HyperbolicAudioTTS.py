@@ -70,7 +70,7 @@ class HyperbolicAudioTTS(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models.extend(self.get_allowed_models())
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     def _prepare_payload(self, text: str) -> Dict:

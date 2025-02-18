@@ -63,7 +63,7 @@ class GroqAIAudio(LLMBase):
             timeout=self.timeout,
         )
 
-        self.allowed_models.extend(self.get_allowed_models())
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
