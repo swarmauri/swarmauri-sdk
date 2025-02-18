@@ -18,35 +18,11 @@ jobs:
         with:
           fetch-depth: 0  # Fetch entire history for diffing
 
-      - name: Set up Git
-        run: |
-          git fetch --all
-
-      - name: Get Changed Files (Push)
-        if: github.event_name == 'push'
-        run: |
-          echo "Files changed in this push:"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
-
       - name: Get Changed Files (Pull Request)
         if: github.event_name == 'pull_request'
         run: |
           echo "Files changed in this pull request:"
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
-
-      - name: Save Changed Files List (Push)
-        if: github.event_name == 'push'
-        run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
-
-      - name: Save Changed Files List (Pull Request)
-        if: github.event_name == 'pull_request'
-        run: |
           git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
-
-      - name: Output Changed Files
-        run: |
-          echo "Changed files:"
           cat changed_files.txt
 
       - name: Detect changes and generate test matrix
@@ -54,43 +30,86 @@ jobs:
         run: |
           echo "Detecting changes..."
 
-          CHANGED_FILES=$(cat changed_files.txt | grep '^pkgs/')
+          # Filter only files in pkgs/
+          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt || true)
 
           if [ -z "$CHANGED_FILES" ]; then
-              echo "No changes detected."
-              echo "matrix=[]" >> $GITHUB_OUTPUT
-              exit 0
+            echo "No changes in pkgs/. Exiting."
+            echo "matrix=[]" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
           declare -A PACKAGE_TEST_MAP
-          
-          for FILE in $CHANGED_FILES; do
-              PACKAGE=$(echo "$FILE" | grep -oE '^pkgs/[^/]+' | cut -d/ -f2)
-              COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
 
-              if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
-                  RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^pkgs/$PACKAGE/||")
-                  PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
-              else
-                  TEST_DIR="pkgs/$PACKAGE/tests"
-                  if [ -d "$TEST_DIR" ]; then
-                      MATCHING_TEST_FILES=$(find $TEST_DIR -type f -iname "*${COMPONENT_NAME}*_test.py")
-                      for TEST_FILE in $MATCHING_TEST_FILES; do
-                          RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^pkgs/$PACKAGE/||")
-                          PACKAGE_TEST_MAP[$PACKAGE]="${PACKAGE_TEST_MAP[$PACKAGE]} $RELATIVE_TEST_FILE"
-                      done
-                  fi
+          # Helper function to find the nearest pyproject.toml, checking 
+          # the local directory first, then walking up.
+          find_pyproject_root() {
+            local path="$1"
+            while true; do
+              # 1) Check current directory
+              if [ -f "$path/pyproject.toml" ]; then
+                echo "$path"
+                return
               fi
+              # 2) If we're at '.' or empty, no pyproject found
+              if [ "$path" = "." ] || [ -z "$path" ]; then
+                echo ""
+                return
+              fi
+              # 3) Move one directory up
+              path="$(dirname "$path")"
+            done
+          }
+
+          for FILE in $CHANGED_FILES; do
+            # Directory of this file (relative to root)
+            DIR=$(dirname "$FILE")
+
+            # Find the package root containing pyproject.toml
+            PACKAGE_ROOT=$(find_pyproject_root "$DIR")
+            if [ -z "$PACKAGE_ROOT" ]; then
+              echo "No pyproject.toml found for $FILE"
+              continue
+            fi
+
+            # Strip leading "pkgs/" from PACKAGE_ROOT to form a relative path
+            # e.g., if PACKAGE_ROOT="pkgs/community/swarmauri_toolkit_github",
+            # then PACKAGE_ROOT_PATH="community/swarmauri_toolkit_github"
+            PACKAGE_ROOT_PATH="${PACKAGE_ROOT#pkgs/}"
+
+            # If the changed file itself is a test...
+            if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+              # Keep test file path relative to the package root
+              # For example, if FILE="pkgs/community/swarmauri_toolkit_github/tests/unit/test_xyz.py",
+              #   then RELATIVE_TEST_FILE="tests/unit/test_xyz.py"
+              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^$PACKAGE_ROOT/||")
+              PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
+            else
+              # Not a direct test file, so guess test files based on the changed filename
+              COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
+              TEST_DIR="$PACKAGE_ROOT/tests"
+
+              if [ -d "$TEST_DIR" ]; then
+                # Find any test file that includes the changed component name
+                MATCHING_TEST_FILES=$(find "$TEST_DIR" -type f -iname "*${COMPONENT_NAME}*_test.py")
+                for TEST_FILE in $MATCHING_TEST_FILES; do
+                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^$PACKAGE_ROOT/||")
+                  PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
+                done
+              fi
+            fi
           done
 
-          MATRIX="["  
-          for PACKAGE in "${!PACKAGE_TEST_MAP[@]}"; do
-              UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PACKAGE]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-              MATRIX="$MATRIX{\"package\":\"$PACKAGE\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
+          # Build a JSON matrix
+          MATRIX="["
+          for PKG_PATH in "${!PACKAGE_TEST_MAP[@]}"; do
+            # Deduplicate test files
+            UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PKG_PATH]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+            
+            # In the JSON, store both the subpath (PKG_PATH) and the collected test files
+            MATRIX="$MATRIX{\"package_path\":\"$PKG_PATH\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
           done
+          # Remove trailing comma, close JSON array
           MATRIX="${MATRIX%,}]"
 
           echo "Final test matrix: $MATRIX"
@@ -99,65 +118,66 @@ jobs:
   run-tests:
     needs: detect-changed-files
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+    env:
+      UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-
-      - name: Log matrix output
-        run: |
-          echo "Matrix: ${{ needs.detect-changed-files.outputs.matrix }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install Poetry
+
+      - name: Create and Activate Virtual Environment
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          python -m venv $UNIQUE_VENV_PATH
+          source $UNIQUE_VENV_PATH/bin/activate
 
-      - name: Install swarmauri_core package dependency
+      # 3. Install project dependencies via Poetry
+      - name: Install dependencies
         run: |
-          cd pkgs/core
-          poetry install --no-cache --all-extras -vv
+          source $UNIQUE_VENV_PATH/bin/activate
+          python -m pip install --upgrade pip
+          pip install poetry
+          pip install soliloquy=="0.1.4"
 
-      - name: Install package dependencies
-        if: matrix.package_tests.package != 'core'
+      - name: Soliloquy Install 
         run: |
-          cd pkgs/${{ matrix.package_tests.package }}
-          poetry lock
-          poetry install --no-cache --all-extras -vv
+          source $UNIQUE_VENV_PATH/bin/activate
+          PKG_PATH="${{ matrix.package_tests.package_path }}"
+          TEST_FILES="${{ matrix.package_tests.tests }}"
 
-      - name: Run tests and save results
-        run: |
-          echo "Running tests for package: ${{ matrix.package_tests.package }}"
-          echo "Test files: ${{ matrix.package_tests.tests }}"
-          cd pkgs/${{ matrix.package_tests.package }}
-          poetry run pytest -v ${{ matrix.package_tests.tests }} -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json || true
-
-      # - name: Classify test results
-      #   run: |
-      #     python scripts/classify_json_results.py pkgs/${{ matrix.package_tests.package }}/pytest_results.json --required-passed ge:50 --required-skipped lt:30
-      #   continue-on-error: false
-
-      # - name: Process test results and manage issues
-      #   if: |
-      #     github.event.pull_request.head.repo.full_name == github.repository && always()
-      #   env:
-      #     DEEPINFRA_API_KEY: ${{ secrets.DEEPINFRA_API_KEY }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     REPO: ${{ github.repository }}
-      #   run: |
-      #     cd pkgs/swarmauri  # Change to the directory containing pyproject.toml
-      #     poetry run python ../../scripts/rag_issue_manager.py --results-file=pytest_results.json --package=${{ matrix.package_tests.package }}
+          echo "Package path: pkgs/$PKG_PATH"
+          echo "Test files: $TEST_FILES"
           
+          # Move into the directory that has pyproject.toml
+          cd "pkgs/$PKG_PATH"
+
+          soliloquy install -f pyproject.toml
+
+      - name: Pip freeze
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          pip freeze
+
+      - name: Soliloquy Validate
+        run: |
+          source $UNIQUE_VENV_PATH/bin/activate
+          PKG_PATH="${{ matrix.package_tests.package_path }}"
+          TEST_FILES="${{ matrix.package_tests.tests }}"
+
+          echo "Package path: pkgs/$PKG_PATH"
+          echo "Test files: $TEST_FILES"
+          
+          # Move into the directory that has pyproject.toml
+          cd "pkgs/$PKG_PATH"
+
+          soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
