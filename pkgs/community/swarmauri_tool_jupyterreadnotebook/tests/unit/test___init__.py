@@ -8,6 +8,7 @@ swarmauri_tools_jupyterreadnotebook package.
 import pytest
 from swarmauri_base.tools.ToolBase import ToolBase
 
+
 class TestPackageInitialization:
     """
     Class containing tests for the initialization of the
@@ -35,7 +36,9 @@ class TestPackageInitialization:
         assert isinstance(__version__, str), "__version__ should be a string."
         assert len(__version__) > 0, "__version__ should not be an empty string."
 
-    @pytest.mark.skip(reason="Example test for demonstration of base class inheritance.")
+    @pytest.mark.skip(
+        reason="Example test for demonstration of base class inheritance."
+    )
     def test_jupyter_read_notebook_tool_inherits_correctly(self) -> None:
         """
         Test that JupyterReadNotebookTool inherits from the expected base class.

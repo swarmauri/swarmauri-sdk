@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import JupyterReadNotebookTool
+from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import (
+    JupyterReadNotebookTool,
+)
 
 
-__all__ = [ "JupyterReadNotebookTool" ]
+__all__ = ["JupyterReadNotebookTool"]
 
 try:
     # For Python 3.8 and newer

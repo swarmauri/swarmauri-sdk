@@ -7,10 +7,11 @@ as handling various error conditions.
 """
 
 import pytest
-import nbformat
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, MagicMock
 from nbformat.validator import NotebookValidationError
-from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import JupyterReadNotebookTool
+from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import (
+    JupyterReadNotebookTool,
+)
 
 
 @pytest.fixture
@@ -21,7 +22,9 @@ def jupyter_read_notebook_tool() -> JupyterReadNotebookTool:
     return JupyterReadNotebookTool()
 
 
-def test_tool_initialization(jupyter_read_notebook_tool: JupyterReadNotebookTool) -> None:
+def test_tool_initialization(
+    jupyter_read_notebook_tool: JupyterReadNotebookTool,
+) -> None:
     """
     Test that the tool initializes correctly with the expected default values.
     """
@@ -34,8 +37,11 @@ def test_tool_initialization(jupyter_read_notebook_tool: JupyterReadNotebookTool
 
 @patch("nbformat.read")
 @patch("nbformat.validate")
-def test_call_success(mock_validate: MagicMock, mock_read: MagicMock,
-                      jupyter_read_notebook_tool: JupyterReadNotebookTool) -> None:
+def test_call_success(
+    mock_validate: MagicMock,
+    mock_read: MagicMock,
+    jupyter_read_notebook_tool: JupyterReadNotebookTool,
+) -> None:
     """
     Test successful reading and validating of a Jupyter notebook.
     """
@@ -54,8 +60,9 @@ def test_call_success(mock_validate: MagicMock, mock_read: MagicMock,
 
 
 @patch("nbformat.read", side_effect=FileNotFoundError)
-def test_call_file_not_found(mock_read: MagicMock,
-                             jupyter_read_notebook_tool: JupyterReadNotebookTool) -> None:
+def test_call_file_not_found(
+    mock_read: MagicMock, jupyter_read_notebook_tool: JupyterReadNotebookTool
+) -> None:
     """
     Test handling of the FileNotFoundError when the notebook file is absent.
     """
@@ -67,8 +74,11 @@ def test_call_file_not_found(mock_read: MagicMock,
 
 @patch("nbformat.read", return_value={"cells": [], "metadata": {}})
 @patch("nbformat.validate", side_effect=NotebookValidationError("Notebook is invalid"))
-def test_call_validation_error(mock_validate: MagicMock, mock_read: MagicMock,
-                               jupyter_read_notebook_tool: JupyterReadNotebookTool) -> None:
+def test_call_validation_error(
+    mock_validate: MagicMock,
+    mock_read: MagicMock,
+    jupyter_read_notebook_tool: JupyterReadNotebookTool,
+) -> None:
     """
     Test handling of a NotebookValidationError when the notebook structure is invalid.
     """
@@ -80,8 +90,9 @@ def test_call_validation_error(mock_validate: MagicMock, mock_read: MagicMock,
 
 
 @patch("nbformat.read", side_effect=Exception("Unexpected error"))
-def test_call_unexpected_exception(mock_read: MagicMock,
-                                   jupyter_read_notebook_tool: JupyterReadNotebookTool) -> None:
+def test_call_unexpected_exception(
+    mock_read: MagicMock, jupyter_read_notebook_tool: JupyterReadNotebookTool
+) -> None:
     """
     Test that an unexpected exception is handled gracefully with an appropriate error message.
     """

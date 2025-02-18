@@ -52,8 +52,10 @@ class JupyterReadNotebookTool(ToolBase):
         ]
     )
     name: str = "JupyterReadNotebookTool"
-    description: str = ("Reads a Jupyter notebook file from the filesystem, parses it into a "
-                        "NotebookNode, validates its schema, and returns the node.")
+    description: str = (
+        "Reads a Jupyter notebook file from the filesystem, parses it into a "
+        "NotebookNode, validates its schema, and returns the node."
+    )
     type: Literal["JupyterReadNotebookTool"] = "JupyterReadNotebookTool"
 
     def __call__(self, notebook_file_path: str, as_version: int = 4) -> Dict[str, Any]:
@@ -70,15 +72,21 @@ class JupyterReadNotebookTool(ToolBase):
                             occurred.
         """
         logger = logging.getLogger(__name__)
-        logger.info("Attempting to read Jupyter notebook from '%s' with nbformat version '%d'.",
-                    notebook_file_path, as_version)
+        logger.info(
+            "Attempting to read Jupyter notebook from '%s' with nbformat version '%d'.",
+            notebook_file_path,
+            as_version,
+        )
 
         try:
             # Read and parse the notebook
             nb_data = nbformat.read(notebook_file_path, as_version=as_version)
             # Validate the notebook's schema
             nbformat.validate(nb_data)
-            logger.info("Successfully read and validated notebook from '%s'.", notebook_file_path)
+            logger.info(
+                "Successfully read and validated notebook from '%s'.",
+                notebook_file_path,
+            )
             return {"notebook_node": nb_data}
         except FileNotFoundError:
             error_message = f"File not found: {notebook_file_path}"

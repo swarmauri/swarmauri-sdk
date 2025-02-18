@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_parser_fitzpdf"
-version = "0.6.1.dev9"
+version = "0.6.1.dev10"
 description = "Fitz PDF Parser for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
