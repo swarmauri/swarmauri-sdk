@@ -63,6 +63,24 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
         ]
         class_names = [cls_name for cls_name, _ in classes]
 
+        # ---- Write the module Markdown file ----
+        with open(doc_file_path, "w", encoding="utf-8") as md_file:
+            md_file.write(f"# Documentation for `{module_name}`\n\n")
+            md_file.write(f"::: {module_name}\n")
+            md_file.write("    options.extra:\n")
+            md_file.write("      show_submodules: false\n")
+            md_file.write("      show_inheritance: false\n")
+            # Exclude children so we don't double-document classes
+            md_file.write("      filters:\n")
+            md_file.write("        - '!.*'  # exclude everything but the module docstring\n\n")
+
+            if class_names:
+                md_file.write("## Classes\n\n")
+                for cls_name in class_names:
+                    # Link to a separate class doc
+                    md_file.write(f"- [`{cls_name}`]({cls_name}.md)\n")
+                md_file.write("\n")
+        
         # ---- Write separate files for each class ----
         for cls_name, _ in classes:
             class_file_path = os.path.join(os.path.dirname(doc_file_path), f"{cls_name}.md")
@@ -91,46 +109,34 @@ def build_nav(
     nav:
       - core:
         - Home: index.md
-        - module1: ...
-        - module2: ...
+        - ClassOne: path/to/ClassOne.md
+        - ClassTwo: path/to/ClassTwo.md
+        ...
     """
-    # We'll build a single top-level list that contains one dictionary: { core: [...] }.
-    # Inside that list, we start with "Home: index.md", then each discovered module.
-    
-    # Sort modules for stable output
+    # Sort the modules for stable output
     sorted_modules = sorted(module_classes_map.keys())
 
-    # 1) Build a list of items that go *inside* the core label
-    core_items = []
+    # We'll build a single top-level list containing one dictionary: { core: [...] }.
+    # 1) Start with "Home" => index.md
+    core_items = [{"Home": os.path.join(
+                local_output_dir,
+                home_page
+            )}]
 
-    # Place the home page as the first item
-    core_items.append({"Home": home_page})
-
+    # 2) For each module, add each class to the nav at the same level
     for module_name in sorted_modules:
-        module_md_path = os.path.join(local_output_dir, module_name.replace(".", "/") + ".md")
-
-        # Start the sub-list with the module file
-        sub_list = [module_md_path]
-
-        # Then each class
         class_names = sorted(module_classes_map[module_name])
         for cls_name in class_names:
-            cls_md_path = os.path.join(
-                local_output_dir, 
-                module_name.replace(".", "/"), 
-                cls_name + ".md"
+            # E.g. "src/swarmauri_core/ComponentBase/ComponentBase.md"
+            class_md_path = os.path.join(
+                local_output_dir,
+                module_name.replace(".", "/"),
+                f"{cls_name}.md"
             )
-            sub_list.append({cls_name: cls_md_path})
+            core_items.append({cls_name: class_md_path})
 
-        
-        if len(sub_list) > 1:
-            # e.g., { "swarmauri_core.agent_apis": [module.md, {ClassName: class.md}, ...] }
-            core_items.append({module_name.replace(f"{package_name}.", ''): sub_list})
-
-    # 2) Wrap everything under the top_label, e.g. "core"
-    # so nav is [ { "core": [ { "Home": "index.md" }, ... ] } ]
+    # Wrap everything under the top_label (e.g. "core")
     return [{top_label: core_items}]
-
 
 def write_nav_to_mkdocs_yml(mkdocs_yml_path: str, new_nav: list, replace_nav: bool = True):
     """
@@ -175,7 +181,7 @@ def generate(
     """
     # Step 1: Ensure Home page
     home_page_dir = os.path.join(docs_dir, package_name)
-    home_page_file_path = os.path.join(docs_dir, package_name, home_page)
+    home_page_file_path = os.path.join(package_name, home_page)
     ensure_home_page(home_page_dir)
     
 
