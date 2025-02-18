@@ -77,7 +77,19 @@ class PluginCitizenshipRegistry:
         # "swarmauri.distances.MinkowskiDistance": "swarmauri_standard.distances.MinkowskiDistance",
         "swarmauri.distances.SorensenDiceDistance": "swarmauri_standard.distances.SorensenDiceDistance",
         "swarmauri.distances.SquaredEuclideanDistance": "swarmauri_standard.distances.SquaredEuclideanDistance",
+        ###
+        # decorators
+        ###
+        "swarmauri.decorators.maybe_async": "swarmauri.decorators.maybe_async",
+        "swarmauri.decorators.tool_decorator": "swarmauri.decorators.tool_decorator",
+        "swarmauri.decorators.retry_on_status_codes": "swarmauri.decorators.retry_on_status_codes",
+        ###
+        # documents
+        ###
         "swarmauri.documents.Document": "swarmauri_standard.documents.Document",
+        ###
+        # embeddings
+        ###
         "swarmauri.embeddings.CohereEmbedding": "swarmauri_standard.embeddings.CohereEmbedding",
         "swarmauri.embeddings.GeminiEmbedding": "swarmauri_standard.embeddings.GeminiEmbedding",
         "swarmauri.embeddings.MistralEmbedding": "swarmauri_standard.embeddings.MistralEmbedding",
