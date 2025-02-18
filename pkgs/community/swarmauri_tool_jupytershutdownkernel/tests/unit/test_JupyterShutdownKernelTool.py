@@ -1,11 +1,3 @@
-"""Unit tests for the JupyterShutdownKernelTool component.
-
-This module uses pytest to verify the functionality and correctness of the
-JupyterShutdownKernelTool class. It checks that the tool can be instantiated, that
-it inherits from the correct base classes, and that its shutdown logic behaves
-as expected in different scenarios.
-"""
-
 import pytest
 from unittest.mock import patch, MagicMock
 from typing import Dict
@@ -19,23 +11,13 @@ from jupyter_client.kernelspec import NoSuchKernel
 class TestJupyterShutdownKernelTool:
     """
     Test suite for the JupyterShutdownKernelTool class.
-
-    Ensures that the tool is correctly initialized, inherits from the appropriate
-    base class, contains the right parameters, and properly handles various
-    shutdown scenarios.
     """
 
     def test_class_inheritance(self) -> None:
-        """
-        Test that JupyterShutdownKernelTool inherits from ToolBase.
-        """
         tool = JupyterShutdownKernelTool()
         assert isinstance(tool, ToolBase), "JupyterShutdownKernelTool does not inherit from ToolBase."
 
     def test_initial_attributes(self) -> None:
-        """
-        Test the tool's default attribute values.
-        """
         tool = JupyterShutdownKernelTool()
         assert tool.version == "1.0.0"
         assert tool.name == "JupyterShutdownKernelTool"
@@ -50,16 +32,15 @@ class TestJupyterShutdownKernelTool:
         assert kernel_id_param is not None, "Missing required parameter 'kernel_id'."
         assert kernel_id_param.required is True, "Parameter 'kernel_id' should be required."
         assert timeout_param is not None, "Missing optional parameter 'shutdown_timeout'."
-        assert timeout_param.default == 5, "Default shutdown timeout should be 5."
+        # Access the default value via the model's dict representation
+        assert timeout_param.dict().get("default") == 5, "Default shutdown timeout should be 5."
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_success(self, mock_kernel_manager: MagicMock) -> None:
-        """
-        Test a successful kernel shutdown scenario.
-        """
         mock_manager_instance = mock_kernel_manager.return_value
-        # Simulate kernel shutting down before timeout
-        mock_manager_instance.is_alive.side_effect = [True, False]
+        # Extend side_effect to cover all calls to is_alive():
+        # Call sequence: while loop (2 calls) + final check (1 call)
+        mock_manager_instance.is_alive.side_effect = [True, False, False]
 
         tool = JupyterShutdownKernelTool()
         result: Dict[str, str] = tool(kernel_id="test_kernel")
@@ -70,29 +51,24 @@ class TestJupyterShutdownKernelTool:
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_forced_shutdown(self, mock_kernel_manager: MagicMock) -> None:
-        """
-        Test the scenario where a kernel does not shut down gracefully and requires a forced shutdown.
-        """
         mock_manager_instance = mock_kernel_manager.return_value
-        # Simulate kernel still alive after waiting
-        mock_manager_instance.is_alive.side_effect = [True, True, True]
+        # For forced shutdown, ensure that is_alive() always returns True:
+        # Call sequence: while loop (2 calls), check before forced shutdown (1 call),
+        # and final check (2 calls) = 5 calls total.
+        mock_manager_instance.is_alive.side_effect = [True, True, True, True, True]
 
         tool = JupyterShutdownKernelTool()
         result: Dict[str, str] = tool(kernel_id="test_kernel", shutdown_timeout=1)
 
         assert result["status"] == "error"
         assert "could not be shut down" in result["message"]
-        # Ensure forced shutdown is attempted
         mock_manager_instance.shutdown_kernel.assert_any_call(now=True)
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_no_such_kernel(self, mock_kernel_manager: MagicMock) -> None:
-        """
-        Test the scenario where the specified kernel does not exist.
-        """
         mock_manager_instance = mock_kernel_manager.return_value
-        # Raise NoSuchKernel when load_connection_file is called
-        mock_manager_instance.load_connection_file.side_effect = NoSuchKernel
+        # Properly instantiate NoSuchKernel with the required argument.
+        mock_manager_instance.load_connection_file.side_effect = NoSuchKernel("dummy")
 
         tool = JupyterShutdownKernelTool()
         result: Dict[str, str] = tool(kernel_id="non_existent")
@@ -102,9 +78,6 @@ class TestJupyterShutdownKernelTool:
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_connection_file_not_found(self, mock_kernel_manager: MagicMock) -> None:
-        """
-        Test the scenario where a connection file is not found for the specified kernel.
-        """
         mock_manager_instance = mock_kernel_manager.return_value
         mock_manager_instance.load_connection_file.side_effect = FileNotFoundError
 
@@ -116,9 +89,6 @@ class TestJupyterShutdownKernelTool:
 
     @patch("swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager")
     def test_call_unexpected_exception(self, mock_kernel_manager: MagicMock) -> None:
-        """
-        Test the scenario where an unexpected exception is raised during kernel shutdown.
-        """
         mock_manager_instance = mock_kernel_manager.return_value
         mock_manager_instance.load_connection_file.side_effect = RuntimeError("Unexpected error")
 
