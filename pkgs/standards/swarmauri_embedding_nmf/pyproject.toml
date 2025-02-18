@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_embedding_nmf"
-version = "0.6.1.dev11"
+version = "0.6.1.dev12"
 description = "NMF Embedding for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
