@@ -13,6 +13,12 @@ from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import (
     JupyterReadNotebookTool,
 )
 
+# Helper function to simulate a notebook validation error
+def fake_nb_validation(*args, **kwargs):
+    # Create a dummy exception with a 'message' attribute
+    dummy = type("DummyException", (), {"message": "Notebook is invalid"})()
+    raise NotebookValidationError(dummy)
+
 
 @pytest.fixture
 def jupyter_read_notebook_tool() -> JupyterReadNotebookTool:
@@ -73,7 +79,7 @@ def test_call_file_not_found(
 
 
 @patch("nbformat.read", return_value={"cells": [], "metadata": {}})
-@patch("nbformat.validate", side_effect=NotebookValidationError(Exception("Notebook is invalid")))
+@patch("nbformat.validate", side_effect=fake_nb_validation)
 def test_call_validation_error(
     mock_validate: MagicMock,
     mock_read: MagicMock,
@@ -134,7 +140,6 @@ def test_call_non_empty_read(
     mock_read.assert_called_once_with("non_empty_notebook.ipynb", as_version=4)
     mock_validate.assert_called_once_with(non_empty_notebook)
     assert "notebook_node" in result
-    # Verify that the notebook returned is the non-empty notebook we defined
     assert result["notebook_node"] == non_empty_notebook
-    # Optionally, check that the notebook contains at least one cell
+    # Ensure the notebook contains at least one cell
     assert len(result["notebook_node"]["cells"]) > 0
