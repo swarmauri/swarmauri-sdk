@@ -1,0 +1,29 @@
+site_name: Swarmauri SDK
+theme:
+  name: material
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.path
+  - navigation.sections
+  - navigation.indexes
+  - toc.integrate
+  - content.action.edit
+  - search.share
+  icon:
+    repo: fontawesome/brands/github
+repo_url: https://github.com/swarmauri/swarmauri-sdk
+repo_name: swarmauri/swarmauri-sdk
+plugins:
+  - blog:
+      blog_dir: .
+  - tags:
+      enabled: true
+  - search
+nav:
+  - Home: index.md
+  - Install: install.md
+  - Usage: usage.md
+  - Blog:
+     - blog/index.md
+
