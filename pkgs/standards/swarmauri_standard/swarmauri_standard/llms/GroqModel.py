@@ -62,7 +62,7 @@ class GroqModel(LLMBase):
             timeout=self.timeout,
         )
 
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models.extend(self.get_allowed_models())
         self.name = self.allowed_models[0]
 
     def _format_messages(

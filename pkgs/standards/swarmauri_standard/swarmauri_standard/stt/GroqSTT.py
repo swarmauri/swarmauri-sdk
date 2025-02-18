@@ -51,7 +51,7 @@ class GroqSTT(STTBase):
             base_url=self._BASE_URL,
             timeout=30,
         )
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models.extend(self.get_allowed_models())
         self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)

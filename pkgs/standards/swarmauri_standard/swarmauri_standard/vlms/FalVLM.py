@@ -57,7 +57,7 @@ class FalVLM(VLMBase):
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models.extend(self.get_allowed_models())
         self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)

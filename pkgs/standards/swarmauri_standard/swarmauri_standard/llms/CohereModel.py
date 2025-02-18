@@ -55,7 +55,7 @@ class CohereModel(LLMBase):
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models.extend(self.get_allowed_models())
         self.name = self.allowed_models[0]
 
     def get_headers(self) -> Dict[str, str]:
