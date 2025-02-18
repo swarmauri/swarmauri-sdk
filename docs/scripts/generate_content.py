@@ -128,11 +128,22 @@ def build_nav(
         class_names = sorted(module_classes_map[module_name])
         for cls_name in class_names:
             # E.g. "src/swarmauri_core/ComponentBase/ComponentBase.md"
-            class_md_path = os.path.join(
-                local_output_dir,
-                module_name.replace(".", "/"),
-                f"{cls_name}.md"
-            )
+            if len(module_name.split('.')) > 2:
+                print(module_name)
+                module_name = '/'.join(module_name.split('.')[:2])
+                class_md_path = os.path.join(
+                    local_output_dir,
+                    module_name,
+                    f"{cls_name}.md"
+                )
+            else:
+                module_name = '/'.join(module_name.split('.')[:1])
+                class_md_path = os.path.join(
+                    local_output_dir,
+                    module_name,
+                    f"{cls_name}.md"
+                )
+            
             core_items.append({cls_name: class_md_path})
 
     # Wrap everything under the top_label (e.g. "core")
