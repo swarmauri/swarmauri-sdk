@@ -36,9 +36,6 @@ class TestPackageInitialization:
         assert isinstance(__version__, str), "__version__ should be a string."
         assert len(__version__) > 0, "__version__ should not be an empty string."
 
-    @pytest.mark.skip(
-        reason="Example test for demonstration of base class inheritance."
-    )
     def test_jupyter_read_notebook_tool_inherits_correctly(self) -> None:
         """
         Test that JupyterReadNotebookTool inherits from the expected base class.
@@ -47,6 +44,6 @@ class TestPackageInitialization:
         from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
 
         # Here we check only as an example scenario; adjust accordingly for real use.
-        assert issubclass(JupyterReadNotebookTool, ToolBase) is False, (
+        assert issubclass(JupyterReadNotebookTool, ToolBase) is True, (
             "Inherit from ToolBase if JupyterReadNotebookTool must extend a known base class."
         )
