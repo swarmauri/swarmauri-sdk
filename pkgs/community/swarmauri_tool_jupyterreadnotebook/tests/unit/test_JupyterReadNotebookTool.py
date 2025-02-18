@@ -13,10 +13,17 @@ from swarmauri_tool_jupyterreadnotebook.JupyterReadNotebookTool import (
     JupyterReadNotebookTool,
 )
 
-# Helper function to simulate a notebook validation error
+
 def fake_nb_validation(*args, **kwargs):
-    # Create a dummy exception with a 'message' attribute
-    dummy = type("DummyException", (), {"message": "Notebook is invalid"})()
+    """
+    Helper function to simulate a notebook validation error by raising
+    NotebookValidationError with a dummy exception object that has the
+    required 'message' and 'instance' attributes.
+    """
+    from types import SimpleNamespace
+
+    # Create a dummy object with 'message' and 'instance'
+    dummy = SimpleNamespace(message="Notebook is invalid", instance="dummy instance")
     raise NotebookValidationError(dummy)
 
 
