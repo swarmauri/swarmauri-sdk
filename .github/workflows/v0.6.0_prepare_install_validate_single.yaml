@@ -18,7 +18,7 @@ on:
       test_mode:
         description: "Test-mode (each, single, monorepo) for the validate phase"
         required: false
-        default: "each"
+        default: "single"
 
 concurrency:
   group: dev-branch-workflow-group
