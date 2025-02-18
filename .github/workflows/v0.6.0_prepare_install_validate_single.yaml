@@ -15,6 +15,10 @@ on:
         description: "Commit message for the prepare phase"
         required: false
         default: "chore: auto increment packages"
+      test_mode:
+        description: "Test-mode (each, single, monorepo) for the validate phase"
+        required: false
+        default: "each"
 
 concurrency:
   group: dev-branch-workflow-group
@@ -88,5 +92,5 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
           soliloquy validate --file "${{ github.event.inputs.soliloquy_file }}" \
-           --test-mode each \
+           --test-mode "${{ github.event.inputs.test_mode }}" \
            --num-workers 4
