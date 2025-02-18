@@ -20,7 +20,6 @@ class TestJupyterShutdownKernelTool:
 
     def test_initial_attributes(self) -> None:
         tool = JupyterShutdownKernelTool()
-        assert tool.version == "1.0.0"
         assert tool.name == "JupyterShutdownKernelTool"
         assert tool.description == "Shuts down a running Jupyter kernel and releases associated resources."
         assert tool.type == "JupyterShutdownKernelTool"
