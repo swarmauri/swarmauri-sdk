@@ -1251,7 +1251,7 @@ files = [
 
 [[package]]
 name = "swarmauri-base"
-version = "0.6.1.dev6"
+version = "0.6.1.dev9"
 description = "This repository includes base classes and mixins for the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1267,12 +1267,12 @@ swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "0feb55021d56fd776b2a28fe9c3e47ec8fc68bc5"
+resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
 subdirectory = "pkgs/base"
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.1.dev6"
+version = "0.6.1.dev9"
 description = "This repository includes core interfaces for the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1288,12 +1288,12 @@ pyyaml = "^6.0.2"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "0feb55021d56fd776b2a28fe9c3e47ec8fc68bc5"
+resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
 subdirectory = "pkgs/core"
 
 [[package]]
 name = "swarmauri-standard"
-version = "0.6.1.dev6"
+version = "0.6.1.dev9"
 description = "This repository includes standard components within the Swarmauri framework."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1319,7 +1319,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://github.com/swarmauri/swarmauri-sdk.git"
 reference = "mono/dev"
-resolved_reference = "0feb55021d56fd776b2a28fe9c3e47ec8fc68bc5"
+resolved_reference = "a5198ee159345c9accd7dc43d1d4b67391aaa424"
 subdirectory = "pkgs/standards/swarmauri_standard"
 
 [[package]]
