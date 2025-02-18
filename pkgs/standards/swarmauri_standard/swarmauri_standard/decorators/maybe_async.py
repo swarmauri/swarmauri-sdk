@@ -9,10 +9,9 @@ def maybe_async(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            loop = asyncio.get_running_loop()
-            # If we have a running loop, assume we can await
+            # Check for a running loop without assignment.
+            asyncio.get_running_loop()
             return func(*args, **kwargs)
         except RuntimeError:
-            # No running loop, run in a fresh event loop
             return asyncio.run(func(*args, **kwargs))
     return wrapper
