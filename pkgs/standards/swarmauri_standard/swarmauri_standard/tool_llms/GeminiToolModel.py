@@ -73,7 +73,7 @@ class GeminiToolModel(ToolLLMBase):
             name (str): The name of the Gemini model in use.
         """
         self.api_key = api_key
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
