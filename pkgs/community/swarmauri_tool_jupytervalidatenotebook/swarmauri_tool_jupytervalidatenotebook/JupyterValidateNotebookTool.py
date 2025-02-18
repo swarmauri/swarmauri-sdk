@@ -10,9 +10,11 @@ import logging
 from typing import List, Dict
 from pydantic import Field
 from typing_extensions import Literal
+import jsonschema
 import nbformat
 from nbformat import NotebookNode
 from nbformat.validator import NotebookValidationError
+
 
 from swarmauri_core.ComponentBase import ComponentBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -49,19 +51,7 @@ class JupyterValidateNotebookTool(ToolBase):
     type: Literal["JupyterValidateNotebookTool"] = "JupyterValidateNotebookTool"
 
     def __call__(self, notebook: NotebookNode) -> Dict[str, str]:
-        """
-        Validates the given notebook against its JSON schema.
-
-        Args:
-            notebook (NotebookNode): The Jupyter NotebookNode object to validate.
-
-        Returns:
-            Dict[str, str]: A dictionary containing:
-                - "valid": "True" if the notebook is valid, otherwise "False".
-                - "report": A summary of validation results or errors.
-        """
         logger = logging.getLogger(__name__)
-
         try:
             nbformat.validate(notebook)
             logger.info("Notebook validation succeeded.")
@@ -69,7 +59,7 @@ class JupyterValidateNotebookTool(ToolBase):
                 "valid": "True",
                 "report": "The notebook is valid according to its JSON schema."
             }
-        except NotebookValidationError as e:
+        except (NotebookValidationError, jsonschema.ValidationError) as e:
             logger.error(f"Notebook validation error: {e}")
             return {
                 "valid": "False",
