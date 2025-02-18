@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexecutecell",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExecuteCellTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Send a code cell to the running kernel for execution.",
+        "Capture and log the output and errors of the cell.",
+        "Support synchronous execution with timeout settings.",
+        "Return the cell execution result for further processing.",
+        "Handle execution failures gracefully.",
+        "Integrate with notebook execution workflows."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "jupyter_client",
+            "version": "*"
+        }
+    ]
+}

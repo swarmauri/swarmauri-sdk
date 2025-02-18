@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that programmatically executes and converts a Jupyter Notebook using nbconvert's CLI functionality, enabling automated notebook execution and format conversion.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexecuteandconvert",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExecuteAndConvertTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Execute a notebook via CLI using nbconvert --execute.",
+        "Convert the executed notebook to a specified format (e.g., HTML or PDF).",
+        "Log execution and conversion processes.",
+        "Handle timeouts and execution errors gracefully.",
+        "Return the output file path and conversion status.",
+        "Integrate with automated reporting workflows."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        }
+    ]
+}

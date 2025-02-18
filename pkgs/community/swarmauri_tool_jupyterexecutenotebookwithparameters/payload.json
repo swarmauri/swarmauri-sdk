@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to execute parameterized notebooks using papermill, allowing dynamic input and output capture for automated workflows.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexecutenotebookwithparameters",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExecuteNotebookWithParametersTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Execute notebooks with injected parameters using papermill.",
+        "Capture execution outputs and errors.",
+        "Log execution details for auditing.",
+        "Handle parameter validation and substitution.",
+        "Return the path to the executed notebook output.",
+        "Integrate with CI/CD pipelines for batch processing."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "papermill",
+            "version": "*"
+        }
+    ]
+}

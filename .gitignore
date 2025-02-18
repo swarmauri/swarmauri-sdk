@@ -15,3 +15,4 @@ env
 /combined
 .venv_core*
 *.obj
+pytest_results.json

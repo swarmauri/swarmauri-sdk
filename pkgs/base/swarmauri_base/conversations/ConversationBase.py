@@ -13,7 +13,7 @@ class ConversationBase(IConversation, ComponentBase):
     """
 
     _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
-    resource: ResourceTypes = Field(default=ResourceTypes.CONVERSATION.value)
+    resource: ResourceTypes = Field(default=ResourceTypes.CONVERSATION)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ConversationBase"] = "ConversationBase"
 

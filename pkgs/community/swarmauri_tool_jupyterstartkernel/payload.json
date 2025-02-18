@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to start a new Jupyter kernel programmatically using jupyter_client, enabling execution of notebook cells.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterstartkernel",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterStartKernelTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Initialize a new Jupyter kernel instance.",
+        "Support configuration of kernel specifications.",
+        "Log kernel start events.",
+        "Handle initialization errors gracefully.",
+        "Return the kernel ID for reference.",
+        "Integrate with further cell execution tools."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "jupyter_client",
+            "version": "*"
+        }
+    ]
+}

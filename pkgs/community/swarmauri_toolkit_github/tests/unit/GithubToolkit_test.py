@@ -10,16 +10,16 @@ load_dotenv()
 
 
 @pytest.fixture(scope="module")
-def github_token():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    if not token:
+def github_api_token():
+    api_token = os.getenv("GITHUBTOOL_TEST_TOKEN")
+    if not api_token:
         pytest.skip("Skipping due to GITHUBTOOL_TEST_TOKEN not set")
-    return token
+    return api_token
 
 
 @pytest.fixture(scope="module")
-def github_toolkit(github_token):
-    return Toolkit(token=github_token)
+def github_toolkit(github_api_token):
+    return Toolkit(api_token=github_api_token)
 
 
 @pytest.mark.unit

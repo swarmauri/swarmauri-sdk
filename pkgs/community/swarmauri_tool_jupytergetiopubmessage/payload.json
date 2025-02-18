@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupytergetiopubmessage",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterGetIOPubMessageTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Retrieve IOPub messages from the kernel with a specified timeout.",
+        "Capture standard output, errors, and logging messages.",
+        "Log IOPub retrieval events for debugging.",
+        "Handle timeouts and message parsing errors.",
+        "Return the output data for each executed cell.",
+        "Integrate with cell execution tools for complete output capture."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "jupyter_client",
+            "version": "*"
+        }
+    ]
+}
