@@ -180,4 +180,4 @@ jobs:
           # Move into the directory that has pyproject.toml
           cd "pkgs/$PKG_PATH"
 
-          soliloquy validate -f pyproject.toml --test-mode single --num-workers 4
+          soliloquy validate -f pyproject.toml --test-mode single --num-workers 4 --required-passed ge:99
