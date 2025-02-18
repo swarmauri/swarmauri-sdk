@@ -53,6 +53,11 @@ class JupyterValidateNotebookTool(ToolBase):
     def __call__(self, notebook: NotebookNode) -> Dict[str, str]:
         logger = logging.getLogger(__name__)
         try:
+            # Explicitly check that the notebook is version 4.
+            if notebook.get("nbformat") != 4:
+                raise NotebookValidationError(
+                    f"Invalid nbformat version: {notebook.get('nbformat')}. Expected 4."
+                )
             nbformat.validate(notebook)
             logger.info("Notebook validation succeeded.")
             return {
