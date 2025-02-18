@@ -18,7 +18,7 @@ def fake_nb_validation(*args, **kwargs):
     """
     Helper function to simulate a notebook validation error by raising
     NotebookValidationError with a dummy exception object that has the
-    required attributes: 'message', 'instance', and 'validator'.
+    required attributes: 'message', 'instance', 'validator', and 'relative_schema_path'.
     """
     from types import SimpleNamespace
 
@@ -26,6 +26,7 @@ def fake_nb_validation(*args, **kwargs):
         message="Notebook is invalid",
         instance="dummy instance",
         validator="dummy validator",
+        relative_schema_path=[],  # Required by NotebookValidationError for formatting
     )
     raise NotebookValidationError(dummy)
 
