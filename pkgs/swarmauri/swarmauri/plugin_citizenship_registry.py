@@ -83,6 +83,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.decorators.maybe_async": "swarmauri.decorators.maybe_async",
         "swarmauri.decorators.tool_decorator": "swarmauri.decorators.tool_decorator",
         "swarmauri.decorators.retry_on_status_codes": "swarmauri.decorators.retry_on_status_codes",
+        "swarmauri.decorators.deprecate": "swarmauri.decorators.deprecate",
         ###
         # documents
         ###
