@@ -29,15 +29,15 @@ class GithubToolkit(ToolkitBase):
         super().__init__(**kwargs)
 
         if not api_token:
-            raise ValueError("Invalid Token or Missing token")
+            raise ValueError("Invalid Token or Missing api_token")
 
         self.api_token = api_token
 
-        self.github_repo_tool = GithubRepoTool(token=self.api_token)
-        self.github_issue_tool = GithubIssueTool(token=self.api_token)
-        self.github_pr_tool = GithubPRTool(token=self.token)
-        self.github_branch_tool = GithubBranchTool(token=self.api_token)
-        self.github_commit_tool = GithubCommitTool(token=self.api_token)
+        self.github_repo_tool = GithubRepoTool(api_token=self.api_token)
+        self.github_issue_tool = GithubIssueTool(api_token=self.api_token)
+        self.github_pr_tool = GithubPRTool(api_token=self.token)
+        self.github_branch_tool = GithubBranchTool(api_token=self.api_token)
+        self.github_commit_tool = GithubCommitTool(api_token=self.api_token)
 
         self.add_tool(self.github_repo_tool)
         self.add_tool(self.github_issue_tool)

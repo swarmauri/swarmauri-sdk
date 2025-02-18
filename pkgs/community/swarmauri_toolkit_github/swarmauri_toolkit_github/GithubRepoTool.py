@@ -34,7 +34,7 @@ class GithubRepoTool(ToolBase):
     name: str = "GithubRepoTool"
     description: str = "Interacts with GitHub repositories using PyGithub."
     type: Literal["GithubRepoTool"] = "GithubRepoTool"
-    token: str
+    api_token: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __call__(self, action: str, **kwargs) -> Dict[str, Any]:
@@ -57,7 +57,7 @@ class GithubRepoTool(ToolBase):
         }
 
         if action in action_map:
-            self._github = Github(self.token)
+            self._github = Github(self.api_token)
             return {action: action_map[action](**kwargs)}
 
         raise ValueError(f"Action '{action}' is not supported.")

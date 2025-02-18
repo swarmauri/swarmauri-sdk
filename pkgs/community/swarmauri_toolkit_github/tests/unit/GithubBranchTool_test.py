@@ -11,19 +11,19 @@ from swarmauri_toolkit_github.GithubBranchTool import (
 load_dotenv()
 
 
-# Fixture for retrieving GitHub token and skipping tests if not available
+# Fixture for retrieving GitHub api_token and skipping tests if not available
 @pytest.fixture(scope="module")
-def github_token():
-    token = os.getenv("GITHUBTOOL_TEST_TOKEN")
-    if not token:
+def github_api_token():
+    api_token = os.getenv("GITHUBTOOL_TEST_TOKEN")
+    if not api_token:
         pytest.skip("Skipping due to GITHUBTOOL_TEST_TOKEN not set")
-    return token
+    return api_token
 
 
 # Fixture for initializing the GithubBranchTool
 @pytest.fixture(scope="module")
-def github_branch_tool(github_token):
-    return Tool(token=github_token)
+def github_branch_tool(github_api_token):
+    return Tool(api_token=github_api_token)
 
 
 @pytest.mark.unit
