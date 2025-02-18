@@ -10,20 +10,40 @@ theme:
   - toc.integrate
   - content.action.edit
   - search.share
+  - announce.dismiss  
   icon:
     repo: fontawesome/brands/github
 repo_url: https://github.com/swarmauri/swarmauri-sdk
 repo_name: swarmauri/swarmauri-sdk
 plugins:
   - blog:
-      blog_dir: .
+      blog_dir: news
   - tags:
       enabled: true
   - search
 nav:
   - Home: index.md
-  - Install: install.md
-  - Usage: usage.md
-  - Blog:
-     - blog/index.md
+  - Announcements:
+      - news/index.md
+  - Guide:
+      - Installation: guide/installation.md
+      - Usage: guide/usage.md
+  - Foundation:
+      - Core: api/module1.md
+      - Base: api/module2.md
+      - Standard: api/module2.md
+      - Swarmauri: api/module2.md
+  - Standalone:
+      - First Class: api/module2.md
+      - Second Class: api/module2.md
+      - Third Class: api/module2.md
 
+
+extra:
+  alternate:
+    - name: English
+      link: /en/ 
+      lang: en
+    - name: Deutsch
+      link: /de/
+      lang: de
