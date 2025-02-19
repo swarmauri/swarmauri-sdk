@@ -79,6 +79,8 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "integration: Integration tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "experimental: Experimental tests",
     "timeout: mark test to timeout after X seconds",
