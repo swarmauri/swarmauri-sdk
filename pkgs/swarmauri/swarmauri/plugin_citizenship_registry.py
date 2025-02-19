@@ -217,6 +217,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.tracing.TracedVariable": "swarmauri_standard.tracing.TracedVariable",
         "swarmauri.tracing.VariableTracer": "swarmauri_standard.tracing.VariableTracer",
         "swarmauri.transports.PubSubTransport": "swarmauri_standard.transports.PubSubTransport",
+        ###
+        # Utils
+        ##
         "swarmauri.utils.LazyLoader": "swarmauri_standard.utils.LazyLoader",
         "swarmauri.utils._get_subclasses": "swarmauri_standard.utils._get_subclasses",
         "swarmauri.utils._lazy_import": "swarmauri_standard.utils._lazy_import",
@@ -246,6 +249,10 @@ class PluginCitizenshipRegistry:
         "swarmauri.utils.retry_decorator": "swarmauri_standard.utils.retry_decorator",
         "swarmauri.utils.sql_log": "swarmauri_standard.utils.sql_log",
         "swarmauri.utils.timeout_wrapper": "swarmauri_standard.utils.timeout_wrapper",
+        "swarmauri.utils.gguf": "swarmauri_standard.utils.gguf",
+        ###
+        # Vector Stores
+        ###
         "swarmauri.vector_stores.SqliteVectorStore": "swarmauri_standard.vector_stores.SqliteVectorStore",
         # "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
         "swarmauri.vectors.Vector": "swarmauri_standard.vectors.Vector",
