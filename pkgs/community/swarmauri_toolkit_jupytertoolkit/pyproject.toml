@@ -24,31 +24,31 @@ keywords = [
 python = ">=3.10,<3.13"
 
 # Swarmauri
-swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
-swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
+swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
+swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
 
 # Community
-swarmuri_tool_jupyterclearoutput = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterclearoutput"}
-swarmuri_tool_jupyterdisplay = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterdisplay"}
-swarmuri_tool_jupyterdisplayhtml = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterdisplayhtml"}
-swarmuri_tool_jupyterexecuteandconvert = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexecuteandconvert"}
-swarmuri_tool_jupyterexecutecell = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexecutecell"}
-swarmuri_tool_jupyterexecutenotebook = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexecutenotebook"}
-swarmuri_tool_jupyterexecutenotebookwithparameters = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexecutenotebookwithparameters"}
-swarmuri_tool_jupyterexporthtml = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexporthtml"}
-swarmuri_tool_jupyterexportlatex = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexportlatex"}
-swarmuri_tool_jupyterexportmarkdown = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexportmarkdown"}
-swarmuri_tool_jupyterexportpython = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterexportpython"}
-swarmuri_tool_jupyterfromdict = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterfromdict"}
-swarmuri_tool_jupytergetiopubmessage = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupytergetiopubmessage"}
-swarmuri_tool_jupytergetshellmessage = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupytergetshellmessage"}
-swarmuri_tool_jupyterreadnotebook = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterreadnotebook"}
-swarmuri_tool_jupyterruncell = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterruncell"}
-swarmuri_tool_jupytershutdownkernel = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupytershutdownkernel"}
-swarmuri_tool_jupyterstartkernel = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterstartkernel"}
-swarmuri_tool_jupytervalidatenotebook = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupytervalidatenotebook"}
-swarmuri_tool_jupyterwritenotebook = { git = "https://github.com/swarmauri/community.git", branch = "main", subdirectory = "pkgs/swarmauri_tool_jupyterwritenotebook"}
+swarmuri_tool_jupyterclearoutput = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterclearoutput"}
+swarmuri_tool_jupyterdisplay = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterdisplay"}
+swarmuri_tool_jupyterdisplayhtml = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterdisplayhtml"}
+swarmuri_tool_jupyterexecuteandconvert = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexecuteandconvert"}
+swarmuri_tool_jupyterexecutecell = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexecutecell"}
+swarmuri_tool_jupyterexecutenotebook = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexecutenotebook"}
+swarmuri_tool_jupyterexecutenotebookwithparameters = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexecutenotebookwithparameters"}
+swarmuri_tool_jupyterexporthtml = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexporthtml"}
+swarmuri_tool_jupyterexportlatex = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexportlatex"}
+swarmuri_tool_jupyterexportmarkdown = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexportmarkdown"}
+swarmuri_tool_jupyterexportpython = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterexportpython"}
+swarmuri_tool_jupyterfromdict = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterfromdict"}
+swarmuri_tool_jupytergetiopubmessage = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupytergetiopubmessage"}
+swarmuri_tool_jupytergetshellmessage = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupytergetshellmessage"}
+swarmuri_tool_jupyterreadnotebook = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterreadnotebook"}
+swarmuri_tool_jupyterruncell = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterruncell"}
+swarmuri_tool_jupytershutdownkernel = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupytershutdownkernel"}
+swarmuri_tool_jupyterstartkernel = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterstartkernel"}
+swarmuri_tool_jupytervalidatenotebook = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupytervalidatenotebook"}
+swarmuri_tool_jupyterwritenotebook = { git = "https://github.com/swarmauri/community.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_tool_jupyterwritenotebook"}
 
 # Dependencies
 pydantic = "*"
