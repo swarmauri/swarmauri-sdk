@@ -36,7 +36,7 @@ typing_extensions = "*"
 scikit-learn = "^1.6.1"
 matplotlib = "^3.10.0"
 Pillow = ">=8.0,<11.0"
-BeautifulSoup = "^3.2.2"
+beautifulsoup4 = "^4.13.3"
 scipy = "^1.15.2"
 yake = "^0.4.8"
 
@@ -49,8 +49,6 @@ requests = "^2.32.3"
 # what requires joblib?
 joblib = "^1.4.0"
 ###########################
-
-
 
 
 
