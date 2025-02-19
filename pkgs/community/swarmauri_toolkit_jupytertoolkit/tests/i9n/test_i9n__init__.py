@@ -12,7 +12,7 @@ class TestI9nInit:
     def test_init(self):
         """Ensures that the __init__.py loads correctly."""
         try:
-            from swarmauri_toolkit_jupytertoolkit import JupyterToolkit
+            from swarmauri_toolkit_jupytertoolkit import JupyterToolkit as JupyterToolkit
         except ImportError:
             pytest.fail("Failed to import JupyterToolkit")
 
