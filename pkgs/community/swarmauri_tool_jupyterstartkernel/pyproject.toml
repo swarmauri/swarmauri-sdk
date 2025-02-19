@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterstartkernel"
-version = "0.6.1.dev9"
+version = "0.6.1.dev10"
 description = "A tool designed to start a new Jupyter kernel programmatically using jupyter_client, enabling execution of notebook cells."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

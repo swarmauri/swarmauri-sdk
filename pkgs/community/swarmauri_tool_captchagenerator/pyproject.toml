@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_captchagenerator"
-version = "0.6.1.dev15"
+version = "0.6.1.dev16"
 description = "Swarmauri Community Captcha Generator Tool" 
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
