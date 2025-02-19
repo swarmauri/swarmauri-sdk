@@ -36,7 +36,9 @@ class JupyterGetShellMessageTool(ToolBase):
     type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
 
     # Public class attributes for patching.
-    find_connection_file: ClassVar[Callable[[], str]] = find_connection_file
+    find_connection_file: ClassVar[Callable[[], str]] = staticmethod(
+        find_connection_file
+    )
     BlockingKernelClient: ClassVar[Callable[..., Any]] = BlockingKernelClient
 
     # Private attributes to hold the patched functions.
