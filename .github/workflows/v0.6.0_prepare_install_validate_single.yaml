@@ -58,8 +58,8 @@ jobs:
       - name: Run install phase
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs
-          soliloquy install --file "${{ github.event.inputs.soliloquy_file }}"
+          cd "pkgs/${{ github.event.inputs.pyproject_directory }}"
+          soliloquy install --file "pyproject.toml"
 
       - name: Pip freeze
         run: |
