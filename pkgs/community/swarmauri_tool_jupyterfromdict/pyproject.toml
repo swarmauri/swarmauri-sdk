@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterfromdict"
-version = "0.6.1.dev9"
+version = "0.6.1.dev10"
 description = "A tool that converts a plain dictionary into a NotebookNode object using nbformat, facilitating programmatic notebook creation."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
