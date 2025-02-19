@@ -4,12 +4,13 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.conversations.MaxSizeConversation import (
     MaxSizeConversation,
 )
+from swarmauri_core.ComponentBase import ResourceTypes
 
 
 @pytest.mark.unit
 def test_ubc_resource():
     conversation = MaxSizeConversation()
-    assert conversation.resource == "Conversation"
+    assert conversation.resource == ResourceTypes.CONVERSATION
 
 
 @pytest.mark.unit

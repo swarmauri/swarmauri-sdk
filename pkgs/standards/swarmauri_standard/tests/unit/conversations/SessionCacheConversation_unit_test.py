@@ -6,15 +6,14 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.conversations.SessionCacheConversation import (
     SessionCacheConversation,
 )
-
+from swarmauri_core.ComponentBase import ResourceTypes
 
 @pytest.mark.unit
 def test_ubc_resource():
     conversation = SessionCacheConversation(
         system_context=SystemMessage(content="systest"), max_size=4
     )
-    assert conversation.resource == "Conversation"
-
+    assert conversation.resource == ResourceTypes.CONVERSATION
 
 @pytest.mark.unit
 def test_ubc_type():
