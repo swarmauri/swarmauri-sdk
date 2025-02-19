@@ -55,3 +55,6 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
 jupytergetshellmessagetool = "swarmauri_tool_jupytergetshellmessage:JupyterGetShellMessageTool"
+
+[tool.poetry.scripts]
+install_kernel = "swarmauri_tool_jupytergetshellmessage.install_kernel:main"
