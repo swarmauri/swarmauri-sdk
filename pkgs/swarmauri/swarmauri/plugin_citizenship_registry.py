@@ -106,6 +106,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.image_gens.FalAIImgGenModel": "swarmauri_standard.image_gens.FalAIImgGenModel",
         "swarmauri.image_gens.HyperbolicImgGenModel": "swarmauri_standard.image_gens.HyperbolicImgGenModel",
         "swarmauri.image_gens.OpenAIImgGenModel": "swarmauri_standard.image_gens.OpenAIImgGenModel",
+        ###
+        # LLMS
+        ##
         "swarmauri.llms.AI21StudioModel": "swarmauri_standard.llms.AI21StudioModel",
         "swarmauri.llms.AnthropicModel": "swarmauri_standard.llms.AnthropicModel",
         "swarmauri.llms.AnthropicToolModel": "swarmauri_standard.llms.AnthropicToolModel",
@@ -123,6 +126,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.HyperbolicAudioTTS": "swarmauri_standard.llms.HyperbolicAudioTTS",
         "swarmauri.llms.HyperbolicModel": "swarmauri_standard.llms.HyperbolicModel",
         "swarmauri.llms.HyperbolicVisionModel": "swarmauri_standard.llms.HyperbolicVisionModel",
+        "swarmauri.llms.LlamaCppModel": "swarmauri_standard.llms.LlamaCppModel",
         "swarmauri.llms.MistralModel": "swarmauri_standard.llms.MistralModel",
         "swarmauri.llms.MistralToolModel": "swarmauri_standard.llms.MistralToolModel",
         "swarmauri.llms.OpenAIAudio": "swarmauri_standard.llms.OpenAIAudio",
@@ -132,6 +136,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.PerplexityModel": "swarmauri_standard.llms.PerplexityModel",
         "swarmauri.llms.PlayHTModel": "swarmauri_standard.llms.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": "swarmauri_standard.llms.WhisperLargeModel",
+        ###
+        # Tool LLMS
+        ###
         "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
         "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_standard.tool_llms.AnthropicToolModel",
         "swarmauri.tool_llms.CohereToolModel": "swarmauri_standard.tool_llms.CohereToolModel",
