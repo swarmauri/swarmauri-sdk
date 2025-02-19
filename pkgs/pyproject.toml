@@ -112,6 +112,8 @@ asyncio_mode = "auto"
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
     "integration: Integration tests",
     "acceptance: Acceptance tests",
     "experimental: Experimental tests",
