@@ -1,8 +1,8 @@
-from typing import ClassVar, List, Literal, Dict, Any, Callable
+from typing import ClassVar, Callable, Any, Dict, List, Literal
 import logging
 import time
 
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from jupyter_client import find_connection_file, BlockingKernelClient
 
 from swarmauri_standard.tools.Parameter import Parameter
@@ -35,16 +35,26 @@ class JupyterGetShellMessageTool(ToolBase):
     description: str = "Retrieves messages from the Jupyter kernel's shell channel."
     type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
 
-    # Annotate as class variables so Pydantic ignores them as fields
+    # Public class attributes for patching.
     find_connection_file: ClassVar[Callable[[], str]] = find_connection_file
     BlockingKernelClient: ClassVar[Callable[..., Any]] = BlockingKernelClient
+
+    # Private attributes to hold the patched functions.
+    _find_connection_file: Callable[[], str] = PrivateAttr()
+    _BlockingKernelClient: Callable[..., Any] = PrivateAttr()
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        # Add the patched functions to private attributes.
+        self._find_connection_file = self.__class__.find_connection_file
+        self._BlockingKernelClient = self.__class__.BlockingKernelClient
 
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
         messages = []
         try:
-            # Now this correctly calls the patched function (or the original)
-            connection_file = self.find_connection_file()
-            client = self.BlockingKernelClient(connection_file=connection_file)
+            # Use the private attribute that now holds the patched find_connection_file.
+            connection_file = self._find_connection_file()
+            client = self._BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
             client.start_channels()
 
