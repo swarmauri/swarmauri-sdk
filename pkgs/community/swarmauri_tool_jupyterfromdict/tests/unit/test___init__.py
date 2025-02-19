@@ -11,7 +11,6 @@ All tests in this file ensure that:
   - __version__ is a valid string
 """
 
-import pytest
 from swarmauri_tool_jupyterfromdict import JupyterFromDictTool, __version__
 from swarmauri_tool_jupyterfromdict import __all__
 
@@ -51,9 +50,5 @@ class TestInit:
         """
         Ensure that __version__ is a valid non-empty string.
         """
-        assert isinstance(__version__, str), (
-            "__version__ should be a string."
-        )
-        assert __version__, (
-            "__version__ should not be an empty string."
-        )
+        assert isinstance(__version__, str), "__version__ should be a string."
+        assert __version__, "__version__ should not be an empty string."

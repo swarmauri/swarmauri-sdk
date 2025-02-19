@@ -72,7 +72,7 @@ class JupyterExportHTMLTool(ToolBase):
         notebook_json: str,
         template_file: Optional[str] = None,
         extra_css: Optional[str] = None,
-        extra_js: Optional[str] = None
+        extra_js: Optional[str] = None,
     ) -> Dict[str, str]:
         """
         Converts a Jupyter Notebook (provided as a JSON string) into HTML format.

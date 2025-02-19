@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Literal, Optional
+from typing import List, Dict, Any, Literal
 from pydantic import Field
 import time
 import logging
@@ -24,23 +24,27 @@ class JupyterGetIOPubMessageTool(ToolBase):
     """
 
     version: str = "1.0.0"
-    parameters: List[Parameter] = Field(default_factory=lambda: [
-        Parameter(
-            name="kernel_client",
-            type="object",
-            description="A Jupyter kernel client instance used to retrieve IOPub messages.",
-            required=True,
-        ),
-        Parameter(
-            name="timeout",
-            type="number",
-            description="Time (in seconds) to wait for incoming IOPub messages before timing out.",
-            required=False,
-            default=5.0,
-        ),
-    ])
+    parameters: List[Parameter] = Field(
+        default_factory=lambda: [
+            Parameter(
+                name="kernel_client",
+                type="object",
+                description="A Jupyter kernel client instance used to retrieve IOPub messages.",
+                required=True,
+            ),
+            Parameter(
+                name="timeout",
+                type="number",
+                description="Time (in seconds) to wait for incoming IOPub messages before timing out.",
+                required=False,
+                default=5.0,
+            ),
+        ]
+    )
     name: str = "JupyterGetIOPubMessageTool"
-    description: str = "Retrieves IOPub messages from a Jupyter kernel with a specified timeout."
+    description: str = (
+        "Retrieves IOPub messages from a Jupyter kernel with a specified timeout."
+    )
     type: Literal["JupyterGetIOPubMessageTool"] = "JupyterGetIOPubMessageTool"
 
     def __call__(self, kernel_client: Any, timeout: float = 5.0) -> Dict[str, Any]:
@@ -70,7 +74,10 @@ class JupyterGetIOPubMessageTool(ToolBase):
             >>> print(result["stdout"])
             ['Hello world!']
         """
-        logger.debug("Starting retrieval of IOPub messages with a timeout of %s seconds.", timeout)
+        logger.debug(
+            "Starting retrieval of IOPub messages with a timeout of %s seconds.",
+            timeout,
+        )
         start_time = time.time()
 
         # Containers for captured data
@@ -118,14 +125,20 @@ class JupyterGetIOPubMessageTool(ToolBase):
                 elif msg_type == "error":
                     # Captures error messages
                     traceback = msg_content.get("traceback", [])
-                    error_message = "\n".join(traceback) if traceback else msg_content.get("evalue", "")
+                    error_message = (
+                        "\n".join(traceback)
+                        if traceback
+                        else msg_content.get("evalue", "")
+                    )
                     stderr_messages.append(error_message)
                 elif msg_type == "status":
                     # Status updates: 'busy', 'idle', etc.
                     execution_state = msg_content.get("execution_state", "")
                     if execution_state == "idle":
                         # Kernel is done processing
-                        logger.debug("Kernel reported idle state. Stopping message capture.")
+                        logger.debug(
+                            "Kernel reported idle state. Stopping message capture."
+                        )
                         break
                 else:
                     # Other messages (e.g., clear_output, update_display_data) can be logged

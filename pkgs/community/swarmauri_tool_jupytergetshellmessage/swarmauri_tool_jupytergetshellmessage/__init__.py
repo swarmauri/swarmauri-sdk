@@ -1,7 +1,9 @@
-from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import JupyterGetShellMessageTool
+from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
+    JupyterGetShellMessageTool,
+)
 
 
-__all__ = [ "JupyterGetShellMessageTool" ]
+__all__ = ["JupyterGetShellMessageTool"]
 
 try:
     # For Python 3.8 and newer

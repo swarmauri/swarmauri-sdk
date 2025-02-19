@@ -1,10 +1,12 @@
 import pytest
 from swarmauri_toolkit_jupytertoolkit.JupyterToolkit import JupyterToolkit
 
+
 @pytest.mark.unit
 def test_type():
     """Test the type of JupyterToolkit"""
     assert JupyterToolkit.type == "JupyterToolkit"
+
 
 @pytest.mark.unit
 def test_tools():
@@ -13,6 +15,7 @@ def test_tools():
     assert isinstance(jupyter_toolkit.tools, dict)
     assert len(jupyter_toolkit.tools) > 0
 
+
 @pytest.mark.unit
 def test_tool_instantiation():
     """Test the instantiation of tools in JupyterToolkit"""
@@ -20,10 +23,12 @@ def test_tool_instantiation():
     for tool in jupyter_toolkit.tools.values():
         assert tool is not None
 
+
 @pytest.mark.unit
 def test_toolkit_registration():
     """Test the registration of JupyterToolkit as a ToolkitBase subclass"""
     assert JupyterToolkit.__bases__[0].__name__ == "ToolkitBase"
+
 
 @pytest.mark.unit
 def test_model_dump_json():
@@ -31,6 +36,7 @@ def test_model_dump_json():
     jupyter_toolkit = JupyterToolkit()
     json_data = jupyter_toolkit.model_dump_json()
     assert isinstance(json_data, dict)
+
 
 @pytest.mark.unit
 def test_model_validate_json():

@@ -4,7 +4,6 @@ This module ensures that __init__.py exposes the JupyterGetIOPubMessageTool clas
 that the package version is defined as expected.
 """
 
-import pytest
 from typing import Callable
 
 from swarmauri_tool_jupytergetiopubmessage import (
@@ -43,7 +42,9 @@ class TestInit(BaseTest):
         Test that the JupyterGetIOPubMessageTool class is correctly imported from __init__.py.
         """
         tool_instance = JupyterGetIOPubMessageTool()
-        assert tool_instance is not None, "Failed to create an instance of JupyterGetIOPubMessageTool."
+        assert tool_instance is not None, (
+            "Failed to create an instance of JupyterGetIOPubMessageTool."
+        )
 
     def test_version_defined(self) -> None:
         """

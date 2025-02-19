@@ -35,6 +35,7 @@ class JupyterValidateNotebookTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterValidateNotebookTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -62,17 +63,11 @@ class JupyterValidateNotebookTool(ToolBase):
             logger.info("Notebook validation succeeded.")
             return {
                 "valid": "True",
-                "report": "The notebook is valid according to its JSON schema."
+                "report": "The notebook is valid according to its JSON schema.",
             }
         except (NotebookValidationError, jsonschema.ValidationError) as e:
             logger.error(f"Notebook validation error: {e}")
-            return {
-                "valid": "False",
-                "report": f"Validation error: {str(e)}"
-            }
+            return {"valid": "False", "report": f"Validation error: {str(e)}"}
         except Exception as e:
             logger.error(f"An unexpected error occurred during validation: {e}")
-            return {
-                "valid": "False",
-                "report": f"Unexpected error: {str(e)}"
-            }
+            return {"valid": "False", "report": f"Unexpected error: {str(e)}"}

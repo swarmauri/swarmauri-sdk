@@ -36,6 +36,7 @@ class JupyterGetShellMessageTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterGetShellMessageTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [

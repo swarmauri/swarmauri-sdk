@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool import JupyterStartKernelTool
+from swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool import (
+    JupyterStartKernelTool,
+)
 
 
-__all__ = [ "JupyterStartKernelTool" ]
+__all__ = ["JupyterStartKernelTool"]
 
 try:
     # For Python 3.8 and newer

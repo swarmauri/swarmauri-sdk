@@ -33,9 +33,7 @@ def test_factory_register_create_resource(factory):
     html_content = "<div><p>Sample HTML content</p></div>"
 
     # Create an instance
-    instance = factory.create(
-        "Parser", "HTMLTagStripParser", element=html_content
-    )
+    instance = factory.create("Parser", "HTMLTagStripParser", element=html_content)
     assert isinstance(instance, HTMLTagStripParser)
     assert instance.type == "HTMLTagStripParser"
 
@@ -56,9 +54,7 @@ def test_factory_duplicate_register(factory):
         ValueError,
         match="Type 'HTMLTagStripParser' is already registered under resource 'Parser'.",
     ):
-        factory.register(
-            "Parser", "HTMLTagStripParser", HTMLTagStripParser
-        )
+        factory.register("Parser", "HTMLTagStripParser", HTMLTagStripParser)
 
 
 @pytest.mark.unit

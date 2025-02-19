@@ -46,6 +46,7 @@ class JupyterRunCellTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterRunCellTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -65,7 +66,9 @@ class JupyterRunCellTool(ToolBase):
         ]
     )
     name: str = "JupyterRunCellTool"
-    description: str = "Executes Python code in an IPython environment, capturing stdout and stderr."
+    description: str = (
+        "Executes Python code in an IPython environment, capturing stdout and stderr."
+    )
     type: Literal["JupyterRunCellTool"] = "JupyterRunCellTool"
 
     def __call__(self, code: str, timeout: Optional[float] = 0) -> Dict[str, Any]:
@@ -122,7 +125,10 @@ class JupyterRunCellTool(ToolBase):
 
         try:
             # Redirect stdout and stderr to capture them
-            with contextlib.redirect_stdout(output_buffer), contextlib.redirect_stderr(error_buffer):
+            with (
+                contextlib.redirect_stdout(output_buffer),
+                contextlib.redirect_stderr(error_buffer),
+            ):
                 shell.run_cell(code)
             cell_output = output_buffer.getvalue()
             error_output = error_buffer.getvalue()

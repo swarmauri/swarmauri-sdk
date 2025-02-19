@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_toolkit_jupytertoolkit"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "A unified toolkit for aggregating standalone jupyter notebook tools."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

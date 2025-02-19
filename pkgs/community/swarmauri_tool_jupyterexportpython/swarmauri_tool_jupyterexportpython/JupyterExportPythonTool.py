@@ -35,6 +35,7 @@ class JupyterExportPythonTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterExportPythonTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -57,9 +58,7 @@ class JupyterExportPythonTool(ToolBase):
     type: Literal["JupyterExportPythonTool"] = "JupyterExportPythonTool"
 
     def __call__(
-        self,
-        notebook: NotebookNode,
-        template_file: Optional[str] = None
+        self, notebook: NotebookNode, template_file: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Converts the provided Jupyter Notebook (NotebookNode) to a Python script using

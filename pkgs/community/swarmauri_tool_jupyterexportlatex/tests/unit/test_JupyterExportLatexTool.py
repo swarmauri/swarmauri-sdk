@@ -10,7 +10,9 @@ import os
 import pytest
 from typing import Dict, Any
 from nbformat.v4.nbbase import new_notebook
-from swarmauri_tool_jupyterexportlatex.JupyterExportLatexTool import JupyterExportLatexTool
+from swarmauri_tool_jupyterexportlatex.JupyterExportLatexTool import (
+    JupyterExportLatexTool,
+)
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
@@ -43,7 +45,9 @@ def test_jupyter_export_latex_tool_init() -> None:
     """
     tool = JupyterExportLatexTool()
     assert tool.version == "0.1.0", "Default version should be '0.1.0'."
-    assert tool.name == "JupyterExportLatexTool", "Tool name should match its class name."
+    assert tool.name == "JupyterExportLatexTool", (
+        "Tool name should match its class name."
+    )
     assert tool.type == "JupyterExportLatexTool", (
         "Tool type should be 'JupyterExportLatexTool'."
     )
@@ -56,11 +60,11 @@ def test_conversion_no_custom_template_no_pdf(sample_notebook_node: Any) -> None
     """
     tool = JupyterExportLatexTool()
     result: Dict[str, Any] = tool(
-        notebook_node=sample_notebook_node,
-        use_custom_template=False,
-        to_pdf=False
+        notebook_node=sample_notebook_node, use_custom_template=False, to_pdf=False
     )
-    assert "error" not in result, f"Error returned unexpectedly: {result.get('error', '')}"
+    assert "error" not in result, (
+        f"Error returned unexpectedly: {result.get('error', '')}"
+    )
     assert "latex_content" in result, "Expected 'latex_content' key in the result."
     assert result["latex_content"], "LaTeX content should not be empty."
 
@@ -72,11 +76,11 @@ def test_conversion_no_custom_template_with_pdf(sample_notebook_node: Any) -> No
     """
     tool = JupyterExportLatexTool()
     result: Dict[str, Any] = tool(
-        notebook_node=sample_notebook_node,
-        use_custom_template=False,
-        to_pdf=True
+        notebook_node=sample_notebook_node, use_custom_template=False, to_pdf=True
     )
-    assert "error" not in result, f"Error returned unexpectedly: {result.get('error', '')}"
+    assert "error" not in result, (
+        f"Error returned unexpectedly: {result.get('error', '')}"
+    )
     assert "latex_content" in result, "Missing 'latex_content' in the result."
     assert "pdf_file_path" in result, "Missing 'pdf_file_path' in the result."
     assert os.path.isfile(result["pdf_file_path"]), (
@@ -102,10 +106,14 @@ def test_conversion_with_custom_template(sample_notebook_node: Any, tmp_path) ->
         notebook_node=sample_notebook_node,
         use_custom_template=True,
         template_path=str(custom_template),
-        to_pdf=False
+        to_pdf=False,
     )
-    assert "error" not in result, f"Error returned unexpectedly with custom template: {result.get('error', '')}"
-    assert "latex_content" in result, "Expected 'latex_content' key in the result (custom template)."
+    assert "error" not in result, (
+        f"Error returned unexpectedly with custom template: {result.get('error', '')}"
+    )
+    assert "latex_content" in result, (
+        "Expected 'latex_content' key in the result (custom template)."
+    )
 
 
 def test_conversion_error_handling() -> None:
@@ -118,7 +126,9 @@ def test_conversion_error_handling() -> None:
         notebook_node=None,  # Invalid
         use_custom_template=False,
         template_path=None,
-        to_pdf=False
+        to_pdf=False,
     )
     assert "error" in result, "Expected an error message for invalid notebook input."
-    assert "latex_content" not in result, "There should be no 'latex_content' for invalid input."
+    assert "latex_content" not in result, (
+        "There should be no 'latex_content' for invalid input."
+    )

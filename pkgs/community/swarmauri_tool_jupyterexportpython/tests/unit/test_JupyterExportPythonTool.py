@@ -10,7 +10,9 @@ import pytest
 from unittest.mock import patch, MagicMock
 from nbformat import NotebookNode
 
-from swarmauri_tool_jupyterexportpython.JupyterExportPythonTool import JupyterExportPythonTool
+from swarmauri_tool_jupyterexportpython.JupyterExportPythonTool import (
+    JupyterExportPythonTool,
+)
 
 
 @pytest.fixture
@@ -30,11 +32,15 @@ def test_tool_initialization() -> None:
     """
     tool = JupyterExportPythonTool()
     assert tool.version == "1.0.0", "Expected default version to be 1.0.0"
-    assert tool.name == "JupyterExportPythonTool", "Expected name to match class definition"
+    assert tool.name == "JupyterExportPythonTool", (
+        "Expected name to match class definition"
+    )
     assert tool.description == "Converts Jupyter Notebooks to Python scripts.", (
         "Tool description should match the declared string."
     )
-    assert tool.type == "JupyterExportPythonTool", "Type should be 'JupyterExportPythonTool'"
+    assert tool.type == "JupyterExportPythonTool", (
+        "Type should be 'JupyterExportPythonTool'"
+    )
     assert len(tool.parameters) == 2, "Expected exactly two default parameters"
 
 
@@ -66,7 +72,10 @@ def test_export_notebook_with_template(
     Tests that the tool applies a custom template file when provided.
     """
     mock_exporter = mock_exporter_class.return_value
-    mock_exporter.from_notebook_node.return_value = ("# Exported Python Script with Template", None)
+    mock_exporter.from_notebook_node.return_value = (
+        "# Exported Python Script with Template",
+        None,
+    )
 
     tool = JupyterExportPythonTool()
     custom_template_path = "path/to/custom_template.tpl"
@@ -93,7 +102,9 @@ def test_export_notebook_failure(
     result = tool(notebook=mock_notebook)
 
     assert "error" in result, "Expected 'error' key in the result due to exception"
-    assert "Test failure" in result["error"], "Error message should contain the exception text"
+    assert "Test failure" in result["error"], (
+        "Error message should contain the exception text"
+    )
 
 
 def test_invalid_notebook_input() -> None:

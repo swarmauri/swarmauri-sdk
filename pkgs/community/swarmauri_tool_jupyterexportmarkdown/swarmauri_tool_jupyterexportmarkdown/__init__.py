@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterexportmarkdown.JupyterExportMarkdownTool import JupyterExportMarkdownTool
+from swarmauri_tool_jupyterexportmarkdown.JupyterExportMarkdownTool import (
+    JupyterExportMarkdownTool,
+)
 
 
-__all__ = [ "JupyterExportMarkdownTool" ]
+__all__ = ["JupyterExportMarkdownTool"]
 
 try:
     # For Python 3.8 and newer

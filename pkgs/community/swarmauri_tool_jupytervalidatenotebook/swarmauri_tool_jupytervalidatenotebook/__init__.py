@@ -1,7 +1,9 @@
-from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import JupyterValidateNotebookTool
+from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
+    JupyterValidateNotebookTool,
+)
 
 
-__all__ = [ "JupyterValidateNotebookTool" ]
+__all__ = ["JupyterValidateNotebookTool"]
 
 try:
     # For Python 3.8 and newer

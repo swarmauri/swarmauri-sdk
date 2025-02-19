@@ -5,7 +5,6 @@ This module ensures that the __init__.py file correctly exposes the JupyterExpor
 class and the __version__ attribute.
 """
 
-import pytest
 from swarmauri_tool_jupyterexportmarkdown import (
     JupyterExportMarkdownTool,
     __version__,

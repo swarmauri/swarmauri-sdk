@@ -5,7 +5,6 @@ is correctly exposed by the package's __init__.py file and that the version attr
 is properly set.
 """
 
-import pytest
 from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool, __version__
 
 
@@ -43,9 +42,10 @@ class TestInit:
         Ensure that JupyterExportPythonTool is listed in the __all__ attribute of the package.
         """
         import swarmauri_tool_jupyterexportpython
+
         assert hasattr(swarmauri_tool_jupyterexportpython, "__all__"), (
             "__all__ attribute not found in the package's __init__.py."
         )
-        assert "JupyterExportPythonTool" in swarmauri_tool_jupyterexportpython.__all__, (
-            "JupyterExportPythonTool not found in __all__."
-        )
+        assert (
+            "JupyterExportPythonTool" in swarmauri_tool_jupyterexportpython.__all__
+        ), "JupyterExportPythonTool not found in __all__."

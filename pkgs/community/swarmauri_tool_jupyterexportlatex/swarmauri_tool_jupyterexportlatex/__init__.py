@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterexportlatex.JupyterExportLatexTool import JupyterExportLatexTool
+from swarmauri_tool_jupyterexportlatex.JupyterExportLatexTool import (
+    JupyterExportLatexTool,
+)
 
 
-__all__ = [ "JupyterExportLatexTool" ]
+__all__ = ["JupyterExportLatexTool"]
 
 try:
     # For Python 3.8 and newer

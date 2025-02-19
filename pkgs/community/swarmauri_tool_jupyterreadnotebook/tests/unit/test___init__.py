@@ -5,7 +5,6 @@ Module containing unit tests for the initialization of the
 swarmauri_tools_jupyterreadnotebook package.
 """
 
-import pytest
 from swarmauri_base.tools.ToolBase import ToolBase
 
 

@@ -9,13 +9,12 @@ class and the package version.
 
 from typing import Any
 
-import pytest
 
 # Import from the package's __init__.py file
 from swarmauri_tool_jupytergetshellmessage import (
     JupyterGetShellMessageTool,
     __version__,
-    __all__
+    __all__,
 )
 
 
@@ -25,6 +24,7 @@ class BaseTestCase:
     class could house shared setup logic, tear-down routines, or common
     utility methods needed by all test classes.
     """
+
     def common_setup(self) -> None:
         """
         Common setup method for all test classes inheriting from BaseTestCase.
@@ -56,7 +56,9 @@ class TestInit(BaseTestCase):
         """
         self.common_setup()
         tool_instance: Any = JupyterGetShellMessageTool()
-        assert tool_instance is not None, "Failed to instantiate JupyterGetShellMessageTool."
+        assert tool_instance is not None, (
+            "Failed to instantiate JupyterGetShellMessageTool."
+        )
 
     def test_version_is_string(self) -> None:
         """

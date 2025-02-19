@@ -6,7 +6,6 @@ the tool's functionality under various scenarios, including normal execution, er
 handling, and timeout handling.
 """
 
-import pytest
 from swarmauri_tool_jupyterruncell.JupyterRunCellTool import JupyterRunCellTool
 
 
@@ -20,7 +19,9 @@ def test_jupyter_run_cell_tool_basic() -> None:
     result = tool(code=code, timeout=2)
 
     assert result["success"] is True, "Expected execution success to be True."
-    assert "Hello, test!" in result["cell_output"], "Expected 'Hello, test!' in cell output."
+    assert "Hello, test!" in result["cell_output"], (
+        "Expected 'Hello, test!' in cell output."
+    )
     assert result["error_output"] == "", "Expected empty error output."
 
 
@@ -33,9 +34,15 @@ def test_jupyter_run_cell_tool_error_handling() -> None:
     code = "raise ValueError('Test error')"
     result = tool(code=code, timeout=2)
 
-    assert result["success"] is False, "Expected execution success to be False due to exception."
-    assert "ValueError" in result["error_output"], "Expected 'ValueError' in error output."
-    assert "Test error" in result["error_output"], "Expected 'Test error' message in error output."
+    assert result["success"] is False, (
+        "Expected execution success to be False due to exception."
+    )
+    assert "ValueError" in result["error_output"], (
+        "Expected 'ValueError' in error output."
+    )
+    assert "Test error" in result["error_output"], (
+        "Expected 'Test error' message in error output."
+    )
 
 
 def test_jupyter_run_cell_tool_syntax_error() -> None:
@@ -47,8 +54,12 @@ def test_jupyter_run_cell_tool_syntax_error() -> None:
     code = "This is not valid Python code!"
     result = tool(code=code, timeout=2)
 
-    assert result["success"] is False, "Expected execution success to be False due to syntax error."
-    assert "SyntaxError" in result["error_output"], "Expected 'SyntaxError' in error output."
+    assert result["success"] is False, (
+        "Expected execution success to be False due to syntax error."
+    )
+    assert "SyntaxError" in result["error_output"], (
+        "Expected 'SyntaxError' in error output."
+    )
 
 
 def test_jupyter_run_cell_tool_timeout() -> None:
@@ -64,5 +75,9 @@ time.sleep(2)
     result = tool(code=code, timeout=1)
 
     assert result["success"] is False, "Expected success to be False due to timeout."
-    assert "TimeoutError" in result["error_output"], "Expected 'TimeoutError' in error output."
-    assert "Cell execution timed out." in result["error_output"], "Expected timeout message in error output."
+    assert "TimeoutError" in result["error_output"], (
+        "Expected 'TimeoutError' in error output."
+    )
+    assert "Cell execution timed out." in result["error_output"], (
+        "Expected timeout message in error output."
+    )

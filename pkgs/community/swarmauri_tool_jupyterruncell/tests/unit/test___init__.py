@@ -3,7 +3,6 @@ This module contains pytest-based unit tests for the swarmauri_tool_jupyterrunce
 It ensures that the package initialization is correct and that exposed classes and variables behave as expected.
 """
 
-import pytest
 from swarmauri_tool_jupyterruncell import JupyterRunCellTool, __version__
 
 
@@ -12,7 +11,9 @@ def test_jupyter_run_cell_tool_import() -> None:
     Test that the JupyterRunCellTool class is imported from the package's __init__.py.
     Ensures that the class is accessible after the package is initialized.
     """
-    assert JupyterRunCellTool is not None, "JupyterRunCellTool should be exposed by __init__.py"
+    assert JupyterRunCellTool is not None, (
+        "JupyterRunCellTool should be exposed by __init__.py"
+    )
 
 
 def test_jupyter_run_cell_tool_instantiation() -> None:

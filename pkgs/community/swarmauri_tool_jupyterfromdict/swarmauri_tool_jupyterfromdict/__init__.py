@@ -1,7 +1,7 @@
 from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
 
 
-__all__ = [ "JupyterFromDictTool" ]
+__all__ = ["JupyterFromDictTool"]
 
 try:
     # For Python 3.8 and newer

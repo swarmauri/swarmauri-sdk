@@ -1,7 +1,9 @@
 import pytest
 from unittest.mock import patch
 
-from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool import JupyterDisplayHTMLTool
+from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool import (
+    JupyterDisplayHTMLTool,
+)
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
@@ -38,12 +40,15 @@ def test_tool_attributes(tool: JupyterDisplayHTMLTool) -> None:
     match the expected values.
     """
     assert tool.name == "JupyterDisplayHTMLTool", "Tool name is incorrect."
-    assert tool.description == "Renders HTML content within a Jupyter environment.", \
+    assert tool.description == "Renders HTML content within a Jupyter environment.", (
         "Tool description is incorrect."
+    )
     assert tool.version == "1.0.0", "Tool version is incorrect."
     assert tool.type == "JupyterDisplayHTMLTool", "Tool type is incorrect."
     assert len(tool.parameters) == 1, "Unexpected number of parameters."
-    assert tool.parameters[0].name == "html_content", "First parameter should be 'html_content'."
+    assert tool.parameters[0].name == "html_content", (
+        "First parameter should be 'html_content'."
+    )
 
 
 def test_tool_call_success(tool: JupyterDisplayHTMLTool) -> None:
@@ -54,7 +59,9 @@ def test_tool_call_success(tool: JupyterDisplayHTMLTool) -> None:
     test_html = "<p>Hello, World!</p>"
     result = tool(test_html)
     assert result["status"] == "success", "Expected success status."
-    assert "HTML displayed successfully." in result["message"], "Expected success message."
+    assert "HTML displayed successfully." in result["message"], (
+        "Expected success message."
+    )
 
 
 @patch("swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool.display")
@@ -68,5 +75,7 @@ def test_tool_call_error(mock_display, tool: JupyterDisplayHTMLTool) -> None:
     test_html = "<p>This will fail</p>"
     result = tool(test_html)
     assert result["status"] == "error", "Expected error status."
-    assert "An error occurred while displaying HTML: Simulated display error" in result["message"], \
-        "Expected error message to contain the simulated exception."
+    assert (
+        "An error occurred while displaying HTML: Simulated display error"
+        in result["message"]
+    ), "Expected error message to contain the simulated exception."

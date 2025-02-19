@@ -1,7 +1,9 @@
-from swarmauri_tool_jupytergetiopubmessage.JupyterGetIOPubMessageTool import JupyterGetIOPubMessageTool
+from swarmauri_tool_jupytergetiopubmessage.JupyterGetIOPubMessageTool import (
+    JupyterGetIOPubMessageTool,
+)
 
 
-__all__ = [ "JupyterGetIOPubMessageTool" ]
+__all__ = ["JupyterGetIOPubMessageTool"]
 
 try:
     # For Python 3.8 and newer

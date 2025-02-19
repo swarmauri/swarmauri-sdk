@@ -19,6 +19,7 @@ content updates, integrates with other visualization tools, handles malformed HT
 and returns a confirmation of the displayed output.
 """
 
+
 @ComponentBase.register_type(ToolBase, "JupyterDisplayHTMLTool")
 class JupyterDisplayHTMLTool(ToolBase):
     """
@@ -34,6 +35,7 @@ class JupyterDisplayHTMLTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterDisplayHTMLTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -76,14 +78,8 @@ class JupyterDisplayHTMLTool(ToolBase):
             display(HTML(html_content))
 
             logger.info("HTML content displayed successfully.")
-            return {
-                "status": "success",
-                "message": "HTML displayed successfully."
-            }
+            return {"status": "success", "message": "HTML displayed successfully."}
         except Exception as e:
             error_msg = f"An error occurred while displaying HTML: {str(e)}"
             logger.error(error_msg)
-            return {
-                "status": "error",
-                "message": error_msg
-            }
+            return {"status": "error", "message": error_msg}

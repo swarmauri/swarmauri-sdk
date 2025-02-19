@@ -12,13 +12,14 @@ confirms the success of write operations to ensure notebook integrity.
 
 import json
 import logging
-from typing import List, Literal, Dict, Optional
+from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(ToolBase, "JupyterWriteNotebookTool")
 class JupyterWriteNotebookTool(ToolBase):
@@ -65,10 +66,7 @@ class JupyterWriteNotebookTool(ToolBase):
     type: Literal["JupyterWriteNotebookTool"] = "JupyterWriteNotebookTool"
 
     def __call__(
-        self,
-        notebook_data: dict,
-        output_file: str,
-        encoding: str = "utf-8"
+        self, notebook_data: dict, output_file: str, encoding: str = "utf-8"
     ) -> Dict[str, str]:
         """
         Writes the provided Jupyter notebook data (NotebookNode) to the specified
@@ -93,7 +91,11 @@ class JupyterWriteNotebookTool(ToolBase):
                                 "error": "An error occurred: <error message>"
                             }
         """
-        logger.info("Attempting to write notebook to file '%s' with encoding '%s'", output_file, encoding)
+        logger.info(
+            "Attempting to write notebook to file '%s' with encoding '%s'",
+            output_file,
+            encoding,
+        )
 
         try:
             # Convert the notebook data to JSON text.
@@ -109,10 +111,15 @@ class JupyterWriteNotebookTool(ToolBase):
                 content = json.load(f)
             if not content:
                 logger.error("Notebook data verification failed: File is empty.")
-                return {"error": f"Notebook data verification failed: File '{output_file}' is empty."}
+                return {
+                    "error": f"Notebook data verification failed: File '{output_file}' is empty."
+                }
 
             logger.info("Notebook data verification successful for '%s'", output_file)
-            return {"message": "Notebook written successfully", "file_path": output_file}
+            return {
+                "message": "Notebook written successfully",
+                "file_path": output_file,
+            }
 
         except Exception as e:
             error_msg = f"An error occurred during notebook write operation: {str(e)}"

@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import JupyterExecuteNotebookTool
+from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
+    JupyterExecuteNotebookTool,
+)
 
 
-__all__ = [ "JupyterExecuteNotebookTool" ]
+__all__ = ["JupyterExecuteNotebookTool"]
 
 try:
     # For Python 3.8 and newer

@@ -6,7 +6,7 @@
 
 import logging
 import time
-from typing import List, Literal, Dict, Optional
+from typing import List, Literal, Dict
 
 from pydantic import Field
 from jupyter_client import KernelManager
@@ -54,7 +54,9 @@ class JupyterShutdownKernelTool(ToolBase):
         ]
     )
     name: str = "JupyterShutdownKernelTool"
-    description: str = "Shuts down a running Jupyter kernel and releases associated resources."
+    description: str = (
+        "Shuts down a running Jupyter kernel and releases associated resources."
+    )
     type: Literal["JupyterShutdownKernelTool"] = "JupyterShutdownKernelTool"
 
     def __call__(self, kernel_id: str, shutdown_timeout: int = 5) -> Dict[str, str]:
@@ -88,7 +90,11 @@ class JupyterShutdownKernelTool(ToolBase):
 
             # Request a graceful shutdown.
             manager.shutdown_kernel(now=False)
-            logger.debug("Shutdown request sent to kernel_id='%s'; waiting up to %s seconds.", kernel_id, shutdown_timeout)
+            logger.debug(
+                "Shutdown request sent to kernel_id='%s'; waiting up to %s seconds.",
+                kernel_id,
+                shutdown_timeout,
+            )
 
             # Wait for kernel to terminate, polling periodically.
             elapsed = 0
@@ -99,18 +105,29 @@ class JupyterShutdownKernelTool(ToolBase):
 
             # If kernel is still alive, attempt a forced shutdown.
             if manager.is_alive():
-                logger.warning("Kernel did not shut down within %s seconds; forcing shutdown.", shutdown_timeout)
+                logger.warning(
+                    "Kernel did not shut down within %s seconds; forcing shutdown.",
+                    shutdown_timeout,
+                )
                 manager.shutdown_kernel(now=True)
 
             # Final check to confirm kernel termination.
             if manager.is_alive():
                 error_message = f"Kernel {kernel_id} could not be shut down."
                 logger.error(error_message)
-                return {"kernel_id": kernel_id, "status": "error", "message": error_message}
+                return {
+                    "kernel_id": kernel_id,
+                    "status": "error",
+                    "message": error_message,
+                }
 
             success_message = f"Kernel {kernel_id} shut down successfully."
             logger.info(success_message)
-            return {"kernel_id": kernel_id, "status": "success", "message": success_message}
+            return {
+                "kernel_id": kernel_id,
+                "status": "success",
+                "message": success_message,
+            }
 
         except NoSuchKernel:
             error_message = f"No such kernel: {kernel_id}."
@@ -121,9 +138,11 @@ class JupyterShutdownKernelTool(ToolBase):
             logger.error(error_message)
             return {"kernel_id": kernel_id, "status": "error", "message": error_message}
         except Exception as e:
-            logger.exception("An error occurred while shutting down kernel_id='%s'.", kernel_id)
+            logger.exception(
+                "An error occurred while shutting down kernel_id='%s'.", kernel_id
+            )
             return {
                 "kernel_id": kernel_id,
                 "status": "error",
-                "message": f"Kernel shutdown failed due to unexpected error: {str(e)}"
+                "message": f"Kernel shutdown failed due to unexpected error: {str(e)}",
             }

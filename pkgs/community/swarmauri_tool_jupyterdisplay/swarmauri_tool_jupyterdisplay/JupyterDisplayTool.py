@@ -16,7 +16,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 
-@ComponentBase.register_type(ToolBase, 'JupyterDisplayTool')
+@ComponentBase.register_type(ToolBase, "JupyterDisplayTool")
 class JupyterDisplayTool(ToolBase):
     """
     JupyterDisplayTool is a tool that displays data in a Jupyter environment using IPython's
@@ -38,7 +38,7 @@ class JupyterDisplayTool(ToolBase):
                 name="data",
                 type="string",
                 description="The data to be displayed. Accepts text, HTML, image paths, or LaTeX content.",
-                required=True
+                required=True,
             ),
             Parameter(
                 name="data_format",
@@ -46,7 +46,7 @@ class JupyterDisplayTool(ToolBase):
                 description="The format of the data ('auto', 'text', 'html', 'image', or 'latex').",
                 required=False,
                 default="auto",
-                enum=["auto", "text", "html", "image", "latex"]
+                enum=["auto", "text", "html", "image", "latex"],
             ),
         ]
     )

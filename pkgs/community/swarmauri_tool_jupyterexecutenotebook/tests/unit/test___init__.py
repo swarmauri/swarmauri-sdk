@@ -5,8 +5,6 @@ components, including the JupyterExecuteNotebookTool class and the __version__
 attribute.
 """
 
-import pytest
-from typing import Any
 
 def test_jupyter_execute_notebook_tool_exposed() -> None:
     """

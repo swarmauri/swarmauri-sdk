@@ -37,8 +37,16 @@ def test_call_method_no_messages(timeout_value: float) -> None:
     # Simulate no messages on the shell channel
     mock_client.shell_channel.msg_ready.return_value = False
 
-    with patch("swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file", return_value="fake_connection_file"), \
-         patch("swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient", return_value=mock_client):
+    with (
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+            return_value="fake_connection_file",
+        ),
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+            return_value=mock_client,
+        ),
+    ):
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=timeout_value)
         assert "error" in result, "Expected an error when no messages are available."
@@ -56,8 +64,16 @@ def test_call_method_with_messages() -> None:
     mock_client.shell_channel.msg_ready.side_effect = [True, False]
     mock_client.shell_channel.get_msg.return_value = fake_message
 
-    with patch("swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file", return_value="fake_connection_file"), \
-         patch("swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient", return_value=mock_client):
+    with (
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+            return_value="fake_connection_file",
+        ),
+        patch(
+            "swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+            return_value=mock_client,
+        ),
+    ):
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=1.0)
         assert "messages" in result, "Expected 'messages' key in result."
@@ -72,8 +88,13 @@ def test_call_method_exception_handling() -> None:
     Verify that when an exception occurs during message retrieval,
     the tool returns an error dictionary.
     """
-    with patch("swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file", side_effect=RuntimeError("Test Error")):
+    with patch(
+        "swarmauri_tool_jupytergetshellmessage.swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        side_effect=RuntimeError("Test Error"),
+    ):
         tool = JupyterGetShellMessageTool()
         result = tool()
         assert "error" in result, "Expected an error when exception is raised."
-        assert "Test Error" in result["error"], "Expected 'Test Error' in the error message."
+        assert "Test Error" in result["error"], (
+            "Expected 'Test Error' in the error message."
+        )

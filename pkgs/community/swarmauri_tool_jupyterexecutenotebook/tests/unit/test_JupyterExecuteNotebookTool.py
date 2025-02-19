@@ -5,7 +5,6 @@ the JupyterExecuteNotebookTool class. The tests ensure that the tool correctly
 executes Jupyter notebooks, handles errors, and returns the expected results.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock, mock_open
 from nbclient.exceptions import CellExecutionError
 from nbformat.notebooknode import NotebookNode
@@ -37,16 +36,16 @@ def test_default_attributes() -> None:
     assert tool.type == "JupyterExecuteNotebookTool", (
         "Expected tool type to be JupyterExecuteNotebookTool."
     )
-    assert len(tool.parameters) == 2, "Expected two default parameters (notebook_path, timeout)."
+    assert len(tool.parameters) == 2, (
+        "Expected two default parameters (notebook_path, timeout)."
+    )
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 @patch("nbformat.read")
 @patch("nbclient.NotebookClient")
 def test_call_executes_notebook(
-    mock_notebook_client: MagicMock,
-    mock_nbformat_read: MagicMock,
-    mock_file: MagicMock
+    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
 ) -> None:
     """
     Test that calling the tool with valid arguments executes the notebook
@@ -61,10 +60,7 @@ def test_call_executes_notebook(
     result = tool("fake_notebook.ipynb", timeout=60)
 
     mock_notebook_client.assert_called_once_with(
-        mock_notebook,
-        timeout=60,
-        kernel_name="python3",
-        allow_errors=True
+        mock_notebook, timeout=60, kernel_name="python3", allow_errors=True
     )
     client_instance.execute.assert_called_once()
     assert result == mock_notebook, (
@@ -76,9 +72,7 @@ def test_call_executes_notebook(
 @patch("nbformat.read")
 @patch("nbclient.NotebookClient")
 def test_call_cell_execution_error(
-    mock_notebook_client: MagicMock,
-    mock_nbformat_read: MagicMock,
-    mock_file: MagicMock
+    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
 ) -> None:
     """
     Test that a CellExecutionError raised during notebook execution is logged
@@ -104,9 +98,7 @@ def test_call_cell_execution_error(
 @patch("nbformat.read")
 @patch("nbclient.NotebookClient")
 def test_call_unexpected_exception(
-    mock_notebook_client: MagicMock,
-    mock_nbformat_read: MagicMock,
-    mock_file: MagicMock
+    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
 ) -> None:
     """
     Test that an unexpected exception during notebook execution is logged

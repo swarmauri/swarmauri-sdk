@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import JupyterExecuteCellTool
+from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import (
+    JupyterExecuteCellTool,
+)
 
 
-__all__ = [ "JupyterExecuteCellTool" ]
+__all__ = ["JupyterExecuteCellTool"]
 
 try:
     # For Python 3.8 and newer

@@ -17,6 +17,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(ToolBase, "JupyterFromDictTool")
 class JupyterFromDictTool(ToolBase):
     """
@@ -31,6 +32,7 @@ class JupyterFromDictTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterFromDictTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [

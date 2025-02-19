@@ -31,6 +31,7 @@ class JupyterClearOutputTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterClearOutputTool"]): The type identifier for this tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -43,7 +44,9 @@ class JupyterClearOutputTool(ToolBase):
         ]
     )
     name: str = "JupyterClearOutputTool"
-    description: str = "Removes outputs from a Jupyter notebook while preserving code and metadata."
+    description: str = (
+        "Removes outputs from a Jupyter notebook while preserving code and metadata."
+    )
     type: Literal["JupyterClearOutputTool"] = "JupyterClearOutputTool"
 
     def __call__(self, notebook_data: Dict[str, Any]) -> Dict[str, Any]:

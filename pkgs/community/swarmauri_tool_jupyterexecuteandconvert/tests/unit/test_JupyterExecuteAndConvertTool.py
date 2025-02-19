@@ -2,7 +2,9 @@ import os
 import pytest
 import subprocess
 from unittest.mock import patch, MagicMock
-from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import JupyterExecuteAndConvertTool
+from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import (
+    JupyterExecuteAndConvertTool,
+)
 
 
 @pytest.fixture
@@ -18,7 +20,10 @@ def test_tool_attributes(tool_instance: JupyterExecuteAndConvertTool) -> None:
     Test that the JupyterExecuteAndConvertTool instance has the expected attributes.
     """
     assert tool_instance.name == "JupyterExecuteAndConvertTool"
-    assert tool_instance.description == "Executes a Jupyter notebook and converts it to a specified format."
+    assert (
+        tool_instance.description
+        == "Executes a Jupyter notebook and converts it to a specified format."
+    )
     assert tool_instance.type == "JupyterExecuteAndConvertTool"
     assert len(tool_instance.parameters) == 3
 
@@ -30,14 +35,16 @@ def test_notebook_not_found(tool_instance: JupyterExecuteAndConvertTool) -> None
     result = tool_instance(
         notebook_path="non_existent_notebook.ipynb",
         output_format="html",
-        execution_timeout=10
+        execution_timeout=10,
     )
     assert "error" in result
     assert result["error"] == "Notebook file does not exist."
 
 
 @patch("subprocess.run")
-def test_successful_execution_and_conversion(mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool) -> None:
+def test_successful_execution_and_conversion(
+    mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
+) -> None:
     """
     Test successful execution and conversion of a notebook by mocking subprocess.run.
     Ensures the tool returns a dictionary with status 'success' and the correct converted file name.
@@ -51,9 +58,7 @@ def test_successful_execution_and_conversion(mock_subprocess: MagicMock, tool_in
         f.write("# Test notebook content")
 
     result = tool_instance(
-        notebook_path=temp_notebook,
-        output_format="html",
-        execution_timeout=10
+        notebook_path=temp_notebook, output_format="html", execution_timeout=10
     )
 
     # Clean up the temporary file
@@ -66,22 +71,24 @@ def test_successful_execution_and_conversion(mock_subprocess: MagicMock, tool_in
 
 
 @patch("subprocess.run")
-def test_execution_timeout(mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool) -> None:
+def test_execution_timeout(
+    mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
+) -> None:
     """
     Test that a TimeoutExpired exception is handled properly.
     Ensures the tool returns an error dictionary with the appropriate keys.
     """
     # Mock to raise TimeoutExpired
-    mock_subprocess.side_effect = subprocess.TimeoutExpired(cmd="jupyter nbconvert", timeout=5)
+    mock_subprocess.side_effect = subprocess.TimeoutExpired(
+        cmd="jupyter nbconvert", timeout=5
+    )
 
     temp_notebook = "timeout_notebook.ipynb"
     with open(temp_notebook, "w", encoding="utf-8") as f:
         f.write("# Test notebook content for timeout")
 
     result = tool_instance(
-        notebook_path=temp_notebook,
-        output_format="html",
-        execution_timeout=1
+        notebook_path=temp_notebook, output_format="html", execution_timeout=1
     )
 
     os.remove(temp_notebook)
@@ -91,7 +98,9 @@ def test_execution_timeout(mock_subprocess: MagicMock, tool_instance: JupyterExe
 
 
 @patch("subprocess.run")
-def test_execution_error(mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool) -> None:
+def test_execution_error(
+    mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
+) -> None:
     """
     Test that a CalledProcessError during notebook execution is handled properly.
     Ensures the tool returns an error dictionary with the appropriate keys.
@@ -106,9 +115,7 @@ def test_execution_error(mock_subprocess: MagicMock, tool_instance: JupyterExecu
         f.write("# Test notebook content for execution error")
 
     result = tool_instance(
-        notebook_path=temp_notebook,
-        output_format="html",
-        execution_timeout=10
+        notebook_path=temp_notebook, output_format="html", execution_timeout=10
     )
 
     os.remove(temp_notebook)
@@ -118,7 +125,9 @@ def test_execution_error(mock_subprocess: MagicMock, tool_instance: JupyterExecu
 
 
 @patch("subprocess.run")
-def test_conversion_error(mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool) -> None:
+def test_conversion_error(
+    mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
+) -> None:
     """
     Test that a CalledProcessError during notebook conversion is handled properly.
     Ensures the tool returns an error dictionary with the appropriate keys.
@@ -126,7 +135,9 @@ def test_conversion_error(mock_subprocess: MagicMock, tool_instance: JupyterExec
     # First run: simulate successful notebook execution
     call_effects = [
         None,  # Successful execution
-        subprocess.CalledProcessError(returncode=2, cmd="jupyter nbconvert")  # Conversion fails
+        subprocess.CalledProcessError(
+            returncode=2, cmd="jupyter nbconvert"
+        ),  # Conversion fails
     ]
     mock_subprocess.side_effect = call_effects
 
@@ -135,9 +146,7 @@ def test_conversion_error(mock_subprocess: MagicMock, tool_instance: JupyterExec
         f.write("# Test notebook content for conversion error")
 
     result = tool_instance(
-        notebook_path=temp_notebook,
-        output_format="html",
-        execution_timeout=10
+        notebook_path=temp_notebook, output_format="html", execution_timeout=10
     )
 
     os.remove(temp_notebook)

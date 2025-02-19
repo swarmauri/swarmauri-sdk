@@ -6,7 +6,6 @@ correctly exposes and imports required classes and variables.
 It also ensures that the exposed objects behave as expected.
 """
 
-import pytest
 from swarmauri_tool_jupyterclearoutput import JupyterClearOutputTool, __version__
 
 

@@ -1,7 +1,9 @@
-from swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool import JupyterShutdownKernelTool
+from swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool import (
+    JupyterShutdownKernelTool,
+)
 
 
-__all__ = [ "JupyterShutdownKernelTool" ]
+__all__ = ["JupyterShutdownKernelTool"]
 
 try:
     # For Python 3.8 and newer

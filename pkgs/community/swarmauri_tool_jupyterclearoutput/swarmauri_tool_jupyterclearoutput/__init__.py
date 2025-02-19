@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterclearoutput.JupyterClearOutputTool import JupyterClearOutputTool
+from swarmauri_tool_jupyterclearoutput.JupyterClearOutputTool import (
+    JupyterClearOutputTool,
+)
 
 
-__all__ = [ "JupyterClearOutputTool" ]
+__all__ = ["JupyterClearOutputTool"]
 
 try:
     # For Python 3.8 and newer

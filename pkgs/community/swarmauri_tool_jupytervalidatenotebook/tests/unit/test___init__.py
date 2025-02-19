@@ -7,7 +7,10 @@ file correctly exposes the JupyterValidateNotebookTool class and the __version__
 """
 
 import unittest
-from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool, __version__
+from swarmauri_tool_jupytervalidatenotebook import (
+    JupyterValidateNotebookTool,
+    __version__,
+)
 
 
 class TestInit(unittest.TestCase):
@@ -21,7 +24,10 @@ class TestInit(unittest.TestCase):
         Test that the JupyterValidateNotebookTool is properly importable from the package.
         """
         # Check that the imported object is indeed a class.
-        self.assertTrue(callable(JupyterValidateNotebookTool), "JupyterValidateNotebookTool should be callable")
+        self.assertTrue(
+            callable(JupyterValidateNotebookTool),
+            "JupyterValidateNotebookTool should be callable",
+        )
 
     def test_instantiate_tool(self) -> None:
         """
@@ -29,7 +35,9 @@ class TestInit(unittest.TestCase):
         """
         # Creating an instance to ensure the class is functional.
         tool_instance = JupyterValidateNotebookTool()
-        self.assertIsNotNone(tool_instance, "Failed to instantiate JupyterValidateNotebookTool")
+        self.assertIsNotNone(
+            tool_instance, "Failed to instantiate JupyterValidateNotebookTool"
+        )
 
     def test_version_attribute(self) -> None:
         """
@@ -37,4 +45,6 @@ class TestInit(unittest.TestCase):
         """
         # Ensure __version__ is a non-empty string.
         self.assertIsInstance(__version__, str, "__version__ should be a string")
-        self.assertGreater(len(__version__), 0, "__version__ string should not be empty")
+        self.assertGreater(
+            len(__version__), 0, "__version__ string should not be empty"
+        )

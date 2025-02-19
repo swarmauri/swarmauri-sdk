@@ -20,7 +20,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 
-@ComponentBase.register_type(ToolBase, 'JupyterExportLatexTool')
+@ComponentBase.register_type(ToolBase, "JupyterExportLatexTool")
 class JupyterExportLatexTool(ToolBase):
     """
     JupyterExportLatexTool is responsible for converting a Jupyter Notebook (NotebookNode)
@@ -34,6 +34,7 @@ class JupyterExportLatexTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterExportLatexTool"]): The type identifier for the tool.
     """
+
     version: str = "0.1.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -41,25 +42,25 @@ class JupyterExportLatexTool(ToolBase):
                 name="notebook_node",
                 type="object",
                 description="A nbformat.NotebookNode object representing a Jupyter notebook.",
-                required=True
+                required=True,
             ),
             Parameter(
                 name="use_custom_template",
                 type="boolean",
                 description="Whether or not to use a custom LaTeX template.",
-                required=False
+                required=False,
             ),
             Parameter(
                 name="template_path",
                 type="string",
                 description="Path to a custom LaTeX template if use_custom_template is True.",
-                required=False
+                required=False,
             ),
             Parameter(
                 name="to_pdf",
                 type="boolean",
                 description="If True, also convert the LaTeX output to PDF.",
-                required=False
+                required=False,
             ),
         ]
     )
@@ -72,7 +73,7 @@ class JupyterExportLatexTool(ToolBase):
         notebook_node: NotebookNode,
         use_custom_template: bool = False,
         template_path: Optional[str] = None,
-        to_pdf: bool = False
+        to_pdf: bool = False,
     ) -> Dict[str, Any]:
         """
         Converts a Jupyter notebook (NotebookNode) into LaTeX format, optionally using a

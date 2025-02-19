@@ -6,7 +6,6 @@ and the __version__ attribute, validating the package setup and exports.
 """
 
 from typing import Any
-import pytest
 from swarmauri_tool_jupyterexportlatex import JupyterExportLatexTool, __version__
 
 

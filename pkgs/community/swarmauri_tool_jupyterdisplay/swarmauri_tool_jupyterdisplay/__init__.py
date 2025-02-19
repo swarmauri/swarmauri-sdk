@@ -1,7 +1,7 @@
 from swarmauri_tool_jupyterdisplay.JupyterDisplayTool import JupyterDisplayTool
 
 
-__all__ = [ "JupyterDisplayTool" ]
+__all__ = ["JupyterDisplayTool"]
 
 try:
     # For Python 3.8 and newer

@@ -1,4 +1,4 @@
-from typing import List, Union, Any, Literal
+from typing import List, Literal
 import joblib
 import math
 from collections import Counter, defaultdict
@@ -14,15 +14,15 @@ class TfidfEmbedding(EmbeddingBase):
     # Private attributes to store our custom model data.
     _fit_matrix = PrivateAttr()
     _features = PrivateAttr()  # Sorted list of vocabulary terms.
-    _idf = PrivateAttr()       # Dict mapping term -> idf value.
-    
+    _idf = PrivateAttr()  # Dict mapping term -> idf value.
+
     type: Literal["TfidfEmbedding"] = "TfidfEmbedding"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialize our internal attributes.
         self._features = []  # This will hold our vocabulary.
-        self._idf = {}       # This will hold the computed idf for each token.
+        self._idf = {}  # This will hold the computed idf for each token.
         self._fit_matrix = []  # This will hold the TF-IDF vectors.
 
     def extract_features(self) -> List[str]:
@@ -51,7 +51,7 @@ class TfidfEmbedding(EmbeddingBase):
 
         # Build a sorted vocabulary for consistent vector ordering.
         self._features = sorted(list(df.keys()))
-        
+
         # Compute idf for each term using the formula: log(N / df)
         self._idf = {token: math.log(N / df[token]) for token in self._features}
 
@@ -83,7 +83,9 @@ class TfidfEmbedding(EmbeddingBase):
         computed during fitting. Any term not in the vocabulary is ignored.
         """
         if not self._features or not self._idf:
-            raise ValueError("The model has not been fitted yet. Please call fit first.")
+            raise ValueError(
+                "The model has not been fitted yet. Please call fit first."
+            )
 
         transformed_vectors = []
         for doc in documents:
@@ -116,8 +118,8 @@ class TfidfEmbedding(EmbeddingBase):
         using joblib.
         """
         model_data = {
-            'features': self._features,
-            'idf': self._idf,
+            "features": self._features,
+            "idf": self._idf,
         }
         joblib.dump(model_data, path)
 
@@ -127,5 +129,5 @@ class TfidfEmbedding(EmbeddingBase):
         using joblib.
         """
         model_data = joblib.load(path)
-        self._features = model_data.get('features', [])
-        self._idf = model_data.get('idf', {})
+        self._features = model_data.get("features", [])
+        self._idf = model_data.get("idf", {})

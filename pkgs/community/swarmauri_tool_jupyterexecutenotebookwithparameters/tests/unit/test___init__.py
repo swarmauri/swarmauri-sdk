@@ -3,7 +3,6 @@ Unit tests for the package's initialization. Ensures that the __init__ module
 correctly exposes the JupyterExecuteNotebookWithParametersTool class and version.
 """
 
-import pytest
 from typing import Any
 
 from swarmauri_tool_jupyterexecutenotebookwithparameters import (

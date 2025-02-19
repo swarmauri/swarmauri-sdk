@@ -28,7 +28,7 @@ def fake_nb_validation(*args, **kwargs):
         instance="dummy instance",
         validator="dummy validator",
         relative_schema_path=[],  # Required for formatting the error
-        relative_path=[],         # Added to satisfy the expected attribute
+        relative_path=[],  # Added to satisfy the expected attribute
     )
     raise NotebookValidationError(dummy)
 
@@ -139,10 +139,10 @@ def test_call_non_empty_read(
                 "execution_count": 1,
                 "metadata": {},
                 "outputs": [],
-                "source": "print('Hello, world!')"
+                "source": "print('Hello, world!')",
             }
         ],
-        "metadata": {"language_info": {"name": "python"}}
+        "metadata": {"language_info": {"name": "python"}},
     }
     mock_read.return_value = non_empty_notebook
 

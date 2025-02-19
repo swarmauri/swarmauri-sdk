@@ -1,8 +1,6 @@
 from .JupyterToolkit import JupyterToolkit
 
-__all__ = [
-    "JupyterToolkit"
-]
+__all__ = ["JupyterToolkit"]
 
 try:
     # For Python 3.8 and newer

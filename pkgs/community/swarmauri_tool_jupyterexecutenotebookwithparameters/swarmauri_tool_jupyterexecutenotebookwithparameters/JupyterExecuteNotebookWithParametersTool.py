@@ -60,13 +60,15 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
     )
     name: str = "JupyterExecuteNotebookWithParametersTool"
     description: str = "Executes Jupyter notebooks with papermill, injecting parameters and capturing outputs."
-    type: Literal["JupyterExecuteNotebookWithParametersTool"] = "JupyterExecuteNotebookWithParametersTool"
+    type: Literal["JupyterExecuteNotebookWithParametersTool"] = (
+        "JupyterExecuteNotebookWithParametersTool"
+    )
 
     def __call__(
         self,
         notebook_path: str,
         output_notebook_path: str,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
         Executes the specified Jupyter notebook using papermill, injecting the provided parameters
@@ -86,8 +88,15 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
         Raises:
             ValueError: If the notebook_path is not a .ipynb file.
         """
-        logger.info("Starting notebook execution with JupyterExecuteNotebookWithParametersTool.")
-        logger.debug("notebook_path: %s, output_notebook_path: %s, params: %s", notebook_path, output_notebook_path, params)
+        logger.info(
+            "Starting notebook execution with JupyterExecuteNotebookWithParametersTool."
+        )
+        logger.debug(
+            "notebook_path: %s, output_notebook_path: %s, params: %s",
+            notebook_path,
+            output_notebook_path,
+            params,
+        )
 
         if not notebook_path.endswith(".ipynb"):
             error_message = "The specified notebook_path is not a .ipynb file."
@@ -103,7 +112,7 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
             pm.execute_notebook(
                 input_path=notebook_path,
                 output_path=output_notebook_path,
-                parameters=params or {}
+                parameters=params or {},
             )
             logger.info("Notebook execution completed successfully.")
             return {"executed_notebook": output_notebook_path}

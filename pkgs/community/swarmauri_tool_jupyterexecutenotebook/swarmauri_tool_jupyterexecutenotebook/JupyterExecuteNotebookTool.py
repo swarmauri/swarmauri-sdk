@@ -41,6 +41,7 @@ class JupyterExecuteNotebookTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterExecuteNotebookTool"]): The type identifier for the tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -48,13 +49,13 @@ class JupyterExecuteNotebookTool(ToolBase):
                 name="notebook_path",
                 type="string",
                 description="The path to the Jupyter notebook to be executed.",
-                required=True
+                required=True,
             ),
             Parameter(
                 name="timeout",
                 type="number",
                 description="Maximum time (in seconds) for each cell to execute. Defaults to 30.",
-                required=False
+                required=False,
             ),
         ]
     )
@@ -95,7 +96,7 @@ class JupyterExecuteNotebookTool(ToolBase):
                 notebook,
                 timeout=timeout,
                 kernel_name="python3",
-                allow_errors=True  # Continue execution even if a cell fails
+                allow_errors=True,  # Continue execution even if a cell fails
             )
 
             logger.info("Executing notebook cells...")

@@ -23,6 +23,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(ToolBase, "JupyterExecuteAndConvertTool")
 class JupyterExecuteAndConvertTool(ToolBase):
     """
@@ -65,14 +66,16 @@ class JupyterExecuteAndConvertTool(ToolBase):
         ]
     )
     name: str = "JupyterExecuteAndConvertTool"
-    description: str = "Executes a Jupyter notebook and converts it to a specified format."
+    description: str = (
+        "Executes a Jupyter notebook and converts it to a specified format."
+    )
     type: Literal["JupyterExecuteAndConvertTool"] = "JupyterExecuteAndConvertTool"
 
     def __call__(
         self,
         notebook_path: str,
         output_format: str = "html",
-        execution_timeout: int = 600
+        execution_timeout: int = 600,
     ) -> Dict[str, Any]:
         """
         Executes the specified Jupyter notebook file and converts it to the chosen output format.
@@ -105,7 +108,10 @@ class JupyterExecuteAndConvertTool(ToolBase):
             logger.info("Starting Jupyter notebook execution process.")
             if not os.path.exists(notebook_path):
                 logger.error(f"Notebook not found: {notebook_path}")
-                return {"error": "Notebook file does not exist.", "message": notebook_path}
+                return {
+                    "error": "Notebook file does not exist.",
+                    "message": notebook_path,
+                }
 
             # Derive base name and set output notebook name
             base_name = os.path.splitext(os.path.basename(notebook_path))[0]
@@ -120,7 +126,7 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 "--execute",
                 notebook_path,
                 "--output",
-                executed_notebook
+                executed_notebook,
             ]
 
             logger.info(f"Executing notebook via command: {' '.join(execute_cmd)}")
@@ -128,22 +134,24 @@ class JupyterExecuteAndConvertTool(ToolBase):
             logger.info(f"Notebook execution completed: {executed_notebook}")
 
         except subprocess.TimeoutExpired:
-            logger.error(f"Notebook execution timed out after {execution_timeout} seconds.")
+            logger.error(
+                f"Notebook execution timed out after {execution_timeout} seconds."
+            )
             return {
                 "error": "TimeoutExpired",
-                "message": f"Notebook execution timed out after {execution_timeout} seconds."
+                "message": f"Notebook execution timed out after {execution_timeout} seconds.",
             }
         except subprocess.CalledProcessError as cpe:
             logger.error(f"Error occurred during notebook execution: {str(cpe)}")
             return {
                 "error": "ExecutionError",
-                "message": f"An error occurred while executing the notebook: {str(cpe)}"
+                "message": f"An error occurred while executing the notebook: {str(cpe)}",
             }
         except Exception as e:
             logger.error(f"Unexpected error during execution: {str(e)}")
             return {
                 "error": "UnexpectedError",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }
 
         try:
@@ -154,7 +162,7 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 "nbconvert",
                 "--to",
                 output_format,
-                executed_notebook
+                executed_notebook,
             ]
             logger.info(f"Converting notebook via command: {' '.join(convert_cmd)}")
             subprocess.run(convert_cmd, check=True)
@@ -165,20 +173,17 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 f"Notebook successfully converted to {output_format}. File: {converted_file}"
             )
 
-            return {
-                "converted_file": converted_file,
-                "status": "success"
-            }
+            return {"converted_file": converted_file, "status": "success"}
 
         except subprocess.CalledProcessError as cpe:
             logger.error(f"Error occurred during notebook conversion: {str(cpe)}")
             return {
                 "error": "ConversionError",
-                "message": f"An error occurred while converting the notebook: {str(cpe)}"
+                "message": f"An error occurred while converting the notebook: {str(cpe)}",
             }
         except Exception as e:
             logger.error(f"Unexpected error during conversion: {str(e)}")
             return {
                 "error": "UnexpectedError",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }

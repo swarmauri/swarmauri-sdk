@@ -13,7 +13,6 @@ captured during execution.
 
 import concurrent.futures
 import logging
-import sys
 import io
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
@@ -27,6 +26,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(ToolBase, "JupyterExecuteCellTool")
 class JupyterExecuteCellTool(ToolBase):
@@ -85,6 +85,7 @@ class JupyterExecuteCellTool(ToolBase):
             >>> result = executor("print('Hello, world!')")
             >>> print(result['stdout'])  # Should contain "Hello, world!"
         """
+
         def _run_code(cell_code: str) -> Dict[str, str]:
             """
             Internal helper function to run the provided code in the current IPython kernel,
@@ -96,7 +97,7 @@ class JupyterExecuteCellTool(ToolBase):
                 return {
                     "stdout": "",
                     "stderr": "No active IPython kernel found.",
-                    "error": "KernelNotFoundError"
+                    "error": "KernelNotFoundError",
                 }
 
             stdout_buffer = io.StringIO()
@@ -112,13 +113,13 @@ class JupyterExecuteCellTool(ToolBase):
                 return {
                     "stdout": stdout_buffer.getvalue(),
                     "stderr": stderr_buffer.getvalue(),
-                    "error": str(traceback.format_exc())
+                    "error": str(traceback.format_exc()),
                 }
 
             return {
                 "stdout": stdout_buffer.getvalue(),
                 "stderr": stderr_buffer.getvalue(),
-                "error": ""
+                "error": "",
             }
 
         # Use a ThreadPoolExecutor to support timeouts during synchronous execution.
@@ -133,12 +134,12 @@ class JupyterExecuteCellTool(ToolBase):
                 return {
                     "stdout": "",
                     "stderr": "",
-                    "error": f"Execution timed out after {timeout} seconds."
+                    "error": f"Execution timed out after {timeout} seconds.",
                 }
             except Exception as exc:
                 logger.error("Unexpected error during cell execution: %s", exc)
                 return {
                     "stdout": "",
                     "stderr": "",
-                    "error": f"An unexpected error occurred: {str(exc)}"
+                    "error": f"An unexpected error occurred: {str(exc)}",
                 }

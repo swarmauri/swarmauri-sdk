@@ -1,7 +1,7 @@
 from swarmauri_tool_jupyterexporthtml.JupyterExportHTMLTool import JupyterExportHTMLTool
 
 
-__all__ = [ "JupyterExportHTMLTool" ]
+__all__ = ["JupyterExportHTMLTool"]
 
 try:
     # For Python 3.8 and newer

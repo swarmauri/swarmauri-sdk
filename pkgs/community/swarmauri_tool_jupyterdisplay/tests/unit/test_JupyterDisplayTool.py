@@ -14,7 +14,9 @@ def jupyter_display_tool() -> JupyterDisplayTool:
     return JupyterDisplayTool()
 
 
-def test_jupyter_display_tool_instantiate(jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_instantiate(
+    jupyter_display_tool: JupyterDisplayTool,
+) -> None:
     """
     Tests basic instantiation of JupyterDisplayTool and checks
     that the default attributes match expected values.
@@ -26,7 +28,9 @@ def test_jupyter_display_tool_instantiate(jupyter_display_tool: JupyterDisplayTo
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_text(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_text(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests calling the JupyterDisplayTool with plain text data_format.
     Verifies that the response includes a success status and that the display function is called.
@@ -40,7 +44,9 @@ def test_jupyter_display_tool_call_text(mock_display: MagicMock, jupyter_display
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_html(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_html(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests calling the JupyterDisplayTool with HTML data_format.
     Verifies that the response includes a success status and that the display function is called.
@@ -54,7 +60,9 @@ def test_jupyter_display_tool_call_html(mock_display: MagicMock, jupyter_display
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_latex(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_latex(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests calling the JupyterDisplayTool with LaTeX data_format.
     Verifies that the response includes a success status and that the display function is called.
@@ -68,7 +76,9 @@ def test_jupyter_display_tool_call_latex(mock_display: MagicMock, jupyter_displa
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_image(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_image(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests calling the JupyterDisplayTool with image data_format.
     Verifies that the response includes a success status and that the display function is called.
@@ -82,7 +92,9 @@ def test_jupyter_display_tool_call_image(mock_display: MagicMock, jupyter_displa
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_auto(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_auto(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests calling the JupyterDisplayTool with the default (auto) data_format.
     In this scenario, it should treat the data as text and display it accordingly.
@@ -96,7 +108,9 @@ def test_jupyter_display_tool_call_auto(mock_display: MagicMock, jupyter_display
 
 
 @patch("IPython.display.display")
-def test_jupyter_display_tool_call_error(mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool) -> None:
+def test_jupyter_display_tool_call_error(
+    mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
+) -> None:
     """
     Tests error handling in the JupyterDisplayTool by causing an exception to be raised
     during display. Verifies that an error response is returned.

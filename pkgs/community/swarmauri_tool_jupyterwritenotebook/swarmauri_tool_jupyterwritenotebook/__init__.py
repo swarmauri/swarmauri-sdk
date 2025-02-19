@@ -1,7 +1,9 @@
-from swarmauri_tool_jupyterwritenotebook.JupyterWriteNotebookTool import JupyterWriteNotebookTool
+from swarmauri_tool_jupyterwritenotebook.JupyterWriteNotebookTool import (
+    JupyterWriteNotebookTool,
+)
 
 
-__all__ = [ "JupyterWriteNotebookTool" ]
+__all__ = ["JupyterWriteNotebookTool"]
 
 try:
     # For Python 3.8 and newer

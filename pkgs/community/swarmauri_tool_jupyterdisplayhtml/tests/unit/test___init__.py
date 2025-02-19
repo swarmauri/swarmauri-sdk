@@ -6,7 +6,11 @@ from __init__.py are exposed as expected.
 """
 
 import pytest
-from swarmauri_tool_jupyterdisplayhtml import __version__, __all__, JupyterDisplayHTMLTool
+from swarmauri_tool_jupyterdisplayhtml import (
+    __version__,
+    __all__,
+    JupyterDisplayHTMLTool,
+)
 
 
 class TestInit(object):
@@ -51,7 +55,7 @@ class TestInit(object):
         try:
             tool = JupyterDisplayHTMLTool()
         except Exception as exc:
-            pytest.fail(f"Instantiating JupyterDisplayHTMLTool raised an exception: {exc}")
-        assert tool is not None, (
-            "Failed to instantiate JupyterDisplayHTMLTool."
-        )
+            pytest.fail(
+                f"Instantiating JupyterDisplayHTMLTool raised an exception: {exc}"
+            )
+        assert tool is not None, "Failed to instantiate JupyterDisplayHTMLTool."

@@ -4,14 +4,13 @@ and the package version from the swarmauri_tool_jupyterexecutecell package's
 __init__.py file.
 """
 
-import pytest
 from typing import Any
 
 # Import directly from the package's __init__.py
 from swarmauri_tool_jupyterexecutecell import (
     JupyterExecuteCellTool,
     __version__,
-    __all__ as exposed_items
+    __all__ as exposed_items,
 )
 
 
@@ -20,7 +19,9 @@ def test_jupyter_execute_cell_tool_exposed() -> None:
     Test if the JupyterExecuteCellTool is exposed correctly by the package's __init__.py.
     """
     # Ensure the imported class is not None.
-    assert JupyterExecuteCellTool is not None, "JupyterExecuteCellTool should not be None."
+    assert JupyterExecuteCellTool is not None, (
+        "JupyterExecuteCellTool should not be None."
+    )
 
 
 def test_jupyter_execute_cell_tool_in_all() -> None:
@@ -46,6 +47,7 @@ def test_jupyter_execute_cell_tool_inherit_base_class() -> None:
     Note:
     Replace 'ExpectedBaseClass' with the actual base class name if different.
     """
+
     # For demonstration only; adjust to match actual base class usage.
     class ExpectedBaseClass:
         """
@@ -78,6 +80,4 @@ def test_jupyter_execute_cell_tool_methods() -> None:
     # Example call. Replace with realistic test logic.
     # The test is purely demonstrative; actual tests should verify real logic.
     execute_result = tool_instance.execute_cell("print('Test')")
-    assert execute_result is not None, (
-        "execute_cell method should return a result."
-    )
+    assert execute_result is not None, "execute_cell method should return a result."

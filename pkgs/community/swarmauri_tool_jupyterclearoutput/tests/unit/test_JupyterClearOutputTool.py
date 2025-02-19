@@ -6,9 +6,11 @@ outputs from Jupyter notebooks and adheres to its defined interface.
 """
 
 import pytest
-from typing import Dict, Any, List
+from typing import Dict, Any
 
-from swarmauri_tool_jupyterclearoutput.JupyterClearOutputTool import JupyterClearOutputTool
+from swarmauri_tool_jupyterclearoutput.JupyterClearOutputTool import (
+    JupyterClearOutputTool,
+)
 
 
 @pytest.fixture
@@ -24,28 +26,26 @@ def sample_notebook() -> Dict[str, Any]:
                 "execution_count": 1,
                 "metadata": {},
                 "outputs": [{"output_type": "stream", "text": "Hello World\n"}],
-                "source": ["print('Hello World')"]
+                "source": ["print('Hello World')"],
             },
             {
                 "cell_type": "markdown",
                 "metadata": {},
-                "source": ["# This is a markdown cell"]
+                "source": ["# This is a markdown cell"],
             },
             {
                 "cell_type": "code",
                 "execution_count": 2,
                 "metadata": {},
-                "outputs": [{"output_type": "execute_result", "data": {"text/plain": "2"}}],
-                "source": ["2"]
-            }
+                "outputs": [
+                    {"output_type": "execute_result", "data": {"text/plain": "2"}}
+                ],
+                "source": ["2"],
+            },
         ],
-        "metadata": {
-            "language_info": {
-                "name": "python"
-            }
-        },
+        "metadata": {"language_info": {"name": "python"}},
         "nbformat": 4,
-        "nbformat_minor": 5
+        "nbformat_minor": 5,
     }
 
 
@@ -63,8 +63,12 @@ def test_tool_attributes() -> None:
     """
     tool = JupyterClearOutputTool()
     assert tool.version == "1.0.0", "Version does not match expected default."
-    assert tool.name == "JupyterClearOutputTool", "Name does not match expected default."
-    assert tool.type == "JupyterClearOutputTool", "Type does not match expected default."
+    assert tool.name == "JupyterClearOutputTool", (
+        "Name does not match expected default."
+    )
+    assert tool.type == "JupyterClearOutputTool", (
+        "Type does not match expected default."
+    )
     assert len(tool.parameters) > 0, "Tool parameters should not be empty."
 
 
@@ -78,7 +82,8 @@ def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
 
     # Check that code cells have had their outputs cleared.
     code_cells = [
-        cell for cell in cleaned_notebook.get("cells", [])
+        cell
+        for cell in cleaned_notebook.get("cells", [])
         if cell.get("cell_type") == "code"
     ]
     for cell in code_cells:
@@ -87,7 +92,8 @@ def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
 
     # Verify that markdown cells remain unchanged.
     markdown_cells = [
-        cell for cell in cleaned_notebook.get("cells", [])
+        cell
+        for cell in cleaned_notebook.get("cells", [])
         if cell.get("cell_type") == "markdown"
     ]
     assert len(markdown_cells) == 1, "Unexpected number of markdown cells."
@@ -104,12 +110,7 @@ def test_clearing_with_no_cells() -> None:
     The notebook dict should remain structurally the same, minus any alterations to cells.
     """
     tool = JupyterClearOutputTool()
-    empty_notebook = {
-        "cells": [],
-        "metadata": {},
-        "nbformat": 4,
-        "nbformat_minor": 5
-    }
+    empty_notebook = {"cells": [], "metadata": {}, "nbformat": 4, "nbformat_minor": 5}
     cleaned_notebook = tool(empty_notebook)
 
     assert "cells" in cleaned_notebook, "Cleaned notebook is missing the 'cells' key."
@@ -128,17 +129,17 @@ def test_clearing_with_only_markdown_cells() -> None:
             {
                 "cell_type": "markdown",
                 "metadata": {},
-                "source": ["# Just a heading in markdown"]
+                "source": ["# Just a heading in markdown"],
             },
             {
                 "cell_type": "markdown",
                 "metadata": {},
-                "source": ["Some more markdown content."]
-            }
+                "source": ["Some more markdown content."],
+            },
         ],
         "metadata": {},
         "nbformat": 4,
-        "nbformat_minor": 5
+        "nbformat_minor": 5,
     }
     cleaned_notebook = tool(markdown_only_notebook)
 
@@ -155,7 +156,9 @@ def test_parameters_structure() -> None:
     tool = JupyterClearOutputTool()
     assert len(tool.parameters) == 1, "There should be exactly one parameter defined."
     param = tool.parameters[0]
-    assert param.name == "notebook_data", "Parameter name does not match expected value."
+    assert param.name == "notebook_data", (
+        "Parameter name does not match expected value."
+    )
     assert param.type == "object", "Parameter type does not match expected value."
     assert param.required, "Parameter should be required."
     assert "A dictionary that represents" in param.description, (

@@ -21,6 +21,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(ToolBase, "JupyterStartKernelTool")
 class JupyterStartKernelTool(ToolBase):
     """
@@ -34,6 +35,7 @@ class JupyterStartKernelTool(ToolBase):
         description (str): A brief description of the tool's functionality.
         type (Literal["JupyterStartKernelTool"]): The type identifier for this tool.
     """
+
     version: str = "1.0.0"
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -57,7 +59,9 @@ class JupyterStartKernelTool(ToolBase):
     description: str = "Initializes and configures a Jupyter kernel instance."
     type: Literal["JupyterStartKernelTool"] = "JupyterStartKernelTool"
 
-    def __call__(self, kernel_name: str = "python3", kernel_spec: Optional[Dict[str, Any]] = None) -> Dict[str, str]:
+    def __call__(
+        self, kernel_name: str = "python3", kernel_spec: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, str]:
         """
         Starts a new Jupyter kernel instance with the provided kernel name and optional specifications.
 
@@ -87,18 +91,15 @@ class JupyterStartKernelTool(ToolBase):
             self._kernel_manager = km
 
             # Log the successful start
-            logger.info(f"Started Jupyter kernel '{kernel_name}' with ID '{kernel_id}'.")
-            return {
-                "kernel_name": kernel_name,
-                "kernel_id": kernel_id
-            }
+            logger.info(
+                f"Started Jupyter kernel '{kernel_name}' with ID '{kernel_id}'."
+            )
+            return {"kernel_name": kernel_name, "kernel_id": kernel_id}
 
         except Exception as ex:
             # Log and return error details
             logger.error(f"Failed to start Jupyter kernel '{kernel_name}': {ex}")
-            return {
-                "error": str(ex)
-            }
+            return {"error": str(ex)}
 
     def get_kernel_manager(self) -> Optional[KernelManager]:
         """

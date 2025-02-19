@@ -5,7 +5,6 @@ This module tests that the swarmauri_tool_jupyterexporthtml package
 exposes the necessary components through its __init__.py.
 """
 
-import pytest
 from swarmauri_tool_jupyterexporthtml import JupyterExportHTMLTool, __version__
 
 

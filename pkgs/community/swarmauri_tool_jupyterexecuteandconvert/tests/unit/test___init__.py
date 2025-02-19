@@ -6,11 +6,11 @@ Specifically, it ensures that JupyterExecuteAndConvertTool is correctly exposed
 and that the package version attribute is accessible.
 """
 
-import pytest
 from swarmauri_tool_jupyterexecuteandconvert import (
     JupyterExecuteAndConvertTool,
-    __version__
+    __version__,
 )
+
 
 def test_jupyter_execute_and_convert_tool_exposed() -> None:
     """
@@ -18,7 +18,10 @@ def test_jupyter_execute_and_convert_tool_exposed() -> None:
     """
     # Create an instance of JupyterExecuteAndConvertTool to verify it's imported correctly.
     instance = JupyterExecuteAndConvertTool()
-    assert instance is not None, "Expected a valid instance of JupyterExecuteAndConvertTool."
+    assert instance is not None, (
+        "Expected a valid instance of JupyterExecuteAndConvertTool."
+    )
+
 
 def test_package_version_available() -> None:
     """

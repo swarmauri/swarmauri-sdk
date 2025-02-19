@@ -1,7 +1,7 @@
 from swarmauri_tool_jupyterruncell.JupyterRunCellTool import JupyterRunCellTool
 
 
-__all__ = [ "JupyterRunCellTool" ]
+__all__ = ["JupyterRunCellTool"]
 
 try:
     # For Python 3.8 and newer

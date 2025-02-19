@@ -5,7 +5,6 @@ This module tests that the package's __init__.py file correctly exposes its
 public API and provides necessary metadata such as version information.
 """
 
-import pytest
 from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool, __version__
 
 
@@ -14,7 +13,9 @@ def test_jupyter_write_notebook_tool_import() -> None:
     Test that JupyterWriteNotebookTool can be imported from the package.
     Ensures that the class is properly exposed in __init__.py.
     """
-    assert JupyterWriteNotebookTool is not None, "Expected JupyterWriteNotebookTool to be exposed."
+    assert JupyterWriteNotebookTool is not None, (
+        "Expected JupyterWriteNotebookTool to be exposed."
+    )
 
 
 def test_jupyter_write_notebook_tool_instantiation() -> None:

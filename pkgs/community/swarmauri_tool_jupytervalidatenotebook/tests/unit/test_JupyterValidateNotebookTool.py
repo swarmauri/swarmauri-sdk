@@ -7,21 +7,22 @@ This file ensures that the tool behaves correctly for valid and invalid notebook
 and checks various attributes and features of the class.
 """
 
-import pytest
 import nbformat
 from nbformat import NotebookNode
-from nbformat.validator import NotebookValidationError
 from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
     JupyterValidateNotebookTool,
 )
 from swarmauri_base.tools.ToolBase import ToolBase
+
 
 def test_class_inheritance() -> None:
     """
     Test whether JupyterValidateNotebookTool inherits from ToolBase.
     """
     tool = JupyterValidateNotebookTool()
-    assert isinstance(tool, ToolBase), "JupyterValidateNotebookTool should inherit from ToolBase."
+    assert isinstance(tool, ToolBase), (
+        "JupyterValidateNotebookTool should inherit from ToolBase."
+    )
 
 
 def test_class_attributes() -> None:
@@ -31,7 +32,10 @@ def test_class_attributes() -> None:
     tool = JupyterValidateNotebookTool()
     assert tool.version == "1.0.0", "Version attribute should be '1.0.0'."
     assert tool.name == "JupyterValidateNotebookTool", "Name attribute mismatch."
-    assert tool.description == "Validates a Jupyter notebook structure against its JSON schema."
+    assert (
+        tool.description
+        == "Validates a Jupyter notebook structure against its JSON schema."
+    )
     assert tool.type == "JupyterValidateNotebookTool", "Type attribute mismatch."
     assert len(tool.parameters) == 1, "Should have exactly one parameter definition."
     assert tool.parameters[0].name == "notebook", "Parameter name should be 'notebook'."
@@ -49,7 +53,9 @@ def test_valid_notebook_validation() -> None:
     result = tool(valid_notebook)
 
     assert result["valid"] == "True", "Valid notebook should return 'True'."
-    assert "The notebook is valid" in result["report"], "Report should indicate successful validation."
+    assert "The notebook is valid" in result["report"], (
+        "Report should indicate successful validation."
+    )
 
 
 def test_invalid_notebook_validation() -> None:
@@ -58,13 +64,17 @@ def test_invalid_notebook_validation() -> None:
     """
     # Create a notebook with an invalid nbformat value (it must be 4 for v4 notebooks)
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
-    invalid_notebook["nbformat"] = 3  # This violates the schema and should trigger NotebookValidationError
+    invalid_notebook["nbformat"] = (
+        3  # This violates the schema and should trigger NotebookValidationError
+    )
 
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
 
     assert result["valid"] == "False", "Invalid notebook should return 'False'."
-    assert "Validation error:" in result["report"], "Report should contain the validation error message."
+    assert "Validation error:" in result["report"], (
+        "Report should contain the validation error message."
+    )
 
 
 def test_unexpected_error_handling(monkeypatch) -> None:
@@ -86,5 +96,9 @@ def test_unexpected_error_handling(monkeypatch) -> None:
     result = tool(notebook)
 
     assert result["valid"] == "False", "Should return 'False' on unexpected error."
-    assert "Unexpected error:" in result["report"], "Report should indicate an unexpected error."
-    assert "Unexpected runtime error!" in result["report"], "Should capture the actual error message."
+    assert "Unexpected error:" in result["report"], (
+        "Report should indicate an unexpected error."
+    )
+    assert "Unexpected runtime error!" in result["report"], (
+        "Should capture the actual error message."
+    )

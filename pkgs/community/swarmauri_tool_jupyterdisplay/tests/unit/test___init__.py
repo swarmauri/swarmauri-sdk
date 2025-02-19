@@ -6,7 +6,6 @@ exposed at the package level, including verifying the presence of JupyterDisplay
 the package's version string.
 """
 
-import pytest
 from swarmauri_tool_jupyterdisplay import JupyterDisplayTool, __version__
 
 
