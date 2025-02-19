@@ -13,7 +13,7 @@ on:
       commit_msg:
         description: "Commit message for the prepare phase"
         required: false
-        default: "chore: auto increment packages"
+        default: "chore: auto increment package"
       test_mode:
         description: "Test-mode (each, single, monorepo) for the validate phase"
         required: false
