@@ -1213,7 +1213,7 @@ develop = false
 
 [package.dependencies]
 pydantic = "^2.0"
-swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
+swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core" }
 
 [package.source]
 type = "git"
@@ -1265,7 +1265,7 @@ Pillow = ">=8.0,<11.0"
 pydantic = "^2.9.2"
 requests = "^2.32.3"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
-swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
+swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core" }
 toml = "^0.10.2"
 typing_extensions = "*"
 
