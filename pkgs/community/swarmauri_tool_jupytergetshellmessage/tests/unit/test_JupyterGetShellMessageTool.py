@@ -54,13 +54,13 @@ def test_call_method_with_messages() -> None:
     Verify that the tool retrieves shell messages correctly.
     """
     with patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._find_connection_file",
         return_value="/path/to/fake/connection_file.json"
     ), patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._BlockingKernelClient"
     ) as MockClient:
         mock_client_instance = MockClient.return_value
-        mock_client_instance.shell_channel.msg_ready.return_value = True
+        mock_client_instance.shell_channel.msg_ready.side_effect = [True, False]
         mock_client_instance.shell_channel.get_msg.return_value = {
             "content": {"text": "Hello, world!"}
         }
@@ -80,7 +80,7 @@ def test_call_method_exception_handling() -> None:
     the tool returns an error dictionary.
     """
     with patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._find_connection_file",
         side_effect=RuntimeError("Test Error"),
     ):
         tool = JupyterGetShellMessageTool()
