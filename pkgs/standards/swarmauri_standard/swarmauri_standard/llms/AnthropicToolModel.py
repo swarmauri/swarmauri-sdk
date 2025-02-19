@@ -69,7 +69,7 @@ class AnthropicToolModel(LLMBase):
         self._async_client = httpx.AsyncClient(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.get_allowed_models()
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
