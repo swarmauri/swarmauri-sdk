@@ -96,7 +96,9 @@ def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any]) 
 
 def _render_generate_template(file_record: Dict[str, Any], 
                               context: Dict[str, Any], 
-                              agent_prompt_template: str) -> str:
+                              agent_prompt_template: str,
+                              agent_env: Dict[str, str] = {},
+                              ) -> str:
     """
     Renders the agent prompt template for a "GENERATE" operation using the provided context,
     then calls an external agent (e.g., an LLM) to generate file content.
@@ -116,7 +118,7 @@ def _render_generate_template(file_record: Dict[str, Any],
         # Call the external agent to generate content.
         # Here we assume a function call_external_agent exists in external.py.
         from .external import call_external_agent
-        rendered_content = call_external_agent(rendered_prompt, context.get("agent_env", {}))
+        rendered_content = call_external_agent(rendered_prompt, agent_env)
         return rendered_content
     except Exception as e:
         print(f"[ERROR] Failed to render generate template '{agent_prompt_template}': {e}")

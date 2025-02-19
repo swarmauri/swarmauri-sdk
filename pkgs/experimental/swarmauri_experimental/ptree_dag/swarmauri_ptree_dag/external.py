@@ -38,25 +38,34 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str]) -> str:
     Note:
       This is a placeholder implementation. Replace this with an actual API call to your LLM provider.
     """
+    print(os.getenv("PROVIDER", agent_env.get("provider", None)))
+    print(agent_env)
     from .O1Model import O1Model
     from .DeepInfraModel import DeepInfraModel 
+    from .LlamaCppModel import LlamaCppModel
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
     # For demonstration purposes, we simply log the prompt and return a dummy response.
     truncated_prompt = prompt + "..." if len(prompt) > 100 else prompt
     print(f"[INFO] Sending prompt to external agent: \n{truncated_prompt}")
     
+    
     llm = DeepInfraModel(api_key=os.getenv("DEEPINFRA_API_KEY"), name="meta-llama/Meta-Llama-3.1-405B-Instruct")
-    system_context = "You are a helpful assistant."
+    system_context = "You are a software developer."
     agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
 
-    if os.getenv("PROVIDER", agent_env.get("provider", "DeepInfra")) != "DeepInfra":
+    if os.getenv("PROVIDER", agent_env.get("provider", None)) == "Openai":
         llm = O1Model(api_key=os.getenv("API_KEY"), name=agent_env.get("model_name", "o3-mini"))
         agent.llm = llm
         result = agent.exec(prompt, top_k=0)
+    elif os.getenv("PROVIDER", agent_env.get("provider", None)) == "LlamaCpp":
+        llm = LlamaCppModel(allowed_models=['localhost'], name="localhost")
+        agent.llm = llm
+        result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000}) 
     else:
         agent.llm.name == agent_env.get("model_name", "meta-llama/Meta-Llama-3.1-405B-Instruct")
         result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000})
+        
 
     content = chunk_content(result)
     del agent

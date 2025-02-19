@@ -110,7 +110,7 @@ def _process_file(file_record: Dict[str, Any],
         # Determine the agent prompt template.
         agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
         agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
-        content = _render_generate_template(file_record, context, agent_prompt_template_path)
+        content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env)
     else:
         print(f"[WARNING] Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping.")
         return
