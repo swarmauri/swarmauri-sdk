@@ -3,11 +3,7 @@ import functools
 
 
 def _construct_deprecation_message(
-    item_type: str,
-    item_name: str,
-    since: str,
-    removed_in: str,
-    alternative: str = None
+    item_type: str, item_name: str, since: str, removed_in: str, alternative: str = None
 ) -> str:
     """
     Helper function to construct a deprecation message.
@@ -30,7 +26,9 @@ def _construct_deprecation_message(
     return base_msg
 
 
-def deprecated_import_path(item_name: str, since: str, removed_in: str, alternative: str = None):
+def deprecated_import_path(
+    item_name: str, since: str, removed_in: str, alternative: str = None
+):
     """
     A decorator to trigger a DeprecationWarning at import time for a deprecated import path.
 
@@ -67,7 +65,7 @@ def deprecated_import_path(item_name: str, since: str, removed_in: str, alternat
         item_name=item_name,
         since=since,
         removed_in=removed_in,
-        alternative=alternative
+        alternative=alternative,
     )
 
     def decorator(obj):
@@ -75,9 +73,10 @@ def deprecated_import_path(item_name: str, since: str, removed_in: str, alternat
         warnings.warn(
             warning_msg,
             category=DeprecationWarning,
-            stacklevel=2  # Ensures warning points to the user's import line (or near it).
+            stacklevel=2,  # Ensures warning points to the user's import line (or near it).
         )
         return obj  # Return the object unmodified (usually a dummy class).
+
     return decorator
 
 
@@ -86,6 +85,7 @@ def deprecated_class(since: str, removed_in: str, alternative: str = None):
     Class decorator that marks the class as deprecated. A DeprecationWarning
     is raised whenever an instance of the class is created.
     """
+
     def decorator(cls):
         original_init = cls.__init__
         item_name = cls.__name__
@@ -97,13 +97,14 @@ def deprecated_class(since: str, removed_in: str, alternative: str = None):
                 item_name=item_name,
                 since=since,
                 removed_in=removed_in,
-                alternative=alternative
+                alternative=alternative,
             )
             warnings.warn(message, category=DeprecationWarning, stacklevel=2)
             return original_init(self, *args, **kwargs)
 
         cls.__init__ = new_init
         return cls
+
     return decorator
 
 
@@ -112,6 +113,7 @@ def deprecated_method(since: str, removed_in: str, alternative: str = None):
     Method (or function) decorator that raises a DeprecationWarning whenever
     the decorated method is called.
     """
+
     def decorator(func):
         item_name = func.__name__
 
@@ -122,9 +124,11 @@ def deprecated_method(since: str, removed_in: str, alternative: str = None):
                 item_name=item_name,
                 since=since,
                 removed_in=removed_in,
-                alternative=alternative
+                alternative=alternative,
             )
             warnings.warn(message, category=DeprecationWarning, stacklevel=2)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
