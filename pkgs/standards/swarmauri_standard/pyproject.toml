@@ -23,7 +23,6 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 # Dependencies
 toml = "^0.10.2"
 httpx = "^0.27.0"
-joblib = "^1.4.0"
 numpy = "*"
 pandas = "*"
 pydantic = "^2.9.2"
