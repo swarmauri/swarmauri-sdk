@@ -1,0 +1,23 @@
+[
+  {
+    "PROJECT_ROOT": "pkgs",
+    "TEMPLATE_SET": "test",
+    "PACKAGE_DESCRIPTION": "Starts a performance profiling session to capture CPU, memory, and I/O usage metrics.",
+    "PACKAGE_ROOT": "swarmauri_tool_profiling_startsession22",
+    "RESOURCE_KIND": "tools",
+    "MODULE_NAME": "StartProfilingSessionTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "GLOAL_REQUIREMENTS": [
+      "Initialize profiling using libraries such as cProfile or py-spy.",
+      "Capture CPU, memory, and I/O metrics from the application.",
+      "Log the start of the profiling session with appropriate timestamps."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+      { "name": "py-spy", "version": "*" }
+    ]
+  }
+]

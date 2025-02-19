@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "swarmauri_ptree_dag"
+name = "{{ PKG.NAME }}"
 version = "0.1.0.dev1"
-description = "."
+description = "{{ PKG.DESCRIPTION }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/ptree_dag/swarmauri_ptree_dag"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJECT_ROOT }}/{{ PKG.NAME }}/"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
@@ -13,7 +13,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13"
 ]
-keywords = [""]
+keywords = []
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -22,9 +22,18 @@ python = ">=3.10,<3.13"
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/core"}
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/base"}
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/0.6.0.dev1", subdirectory = "pkgs/standards/swarmauri_standard"}
-inflect = "*"
 
-# Third-party dependencies
+
+# Dependencies
+<!-- include additional dependencies here -->
+{% if PACKAGE_REQUIRES %}
+{% for required in PACKAGE_REQUIRES %}
+{{ required.NAME }} = "{{ required.VERSION }}"
+{% endfor %}
+{% endif %}
+
+
+[tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
 pytest = "^8.0"
 pytest-asyncio = ">=0.24.0"
@@ -38,14 +47,24 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
+
 markers = [
     "unit: Unit tests",
     "i9n: Integration tests",
-    "xfail: Expected failures",
-    "xpass: Expected passes"
+    "xfail": Expected failures"
+    "xpass": Expected passes"
 ]
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+
+{%- set grouped_modules = PKG.MODULES | groupby('RESOURCE_KIND') %}
+{%- for kind, mods in grouped_modules %}
+[tool.poetry.plugins."swarmauri.{{ kind }}"]
+{%- for mod in mods %}
+{{ mod.NAME|lower }} = "{{ PKG.NAME }}:{{ mod.NAME|capitalize }}"
+{%- endfor %}
+{%- endfor %}
+

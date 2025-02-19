@@ -1,0 +1,65 @@
+I need you to generate a file named "{{ RENDERED_FILE_NAME }}". This file consists of a complete concrete implementation within the "{{ PACKAGE_ROOT }}" package.
+
+Below are the details and requirements for this task:
+
+1. **Purpose / Description**:
+   {{ PURPOSE }}
+
+   {{ DESCRIPTION }}
+
+2. **Requirements / Constraints**:
+   {%- for requirement in REQUIREMENTS %}
+   - {{ requirement }}
+   {%- endfor %}
+
+
+3. **File and Code Preferences**:
+   - The code follows PEP 8 style guidelines.
+   - All functions, classes, and methods include clear docstrings that explain their functionality.
+   - Include module-level docstrings to explain the purpose of modules.
+   - Type hints are used throughout the code.
+   - Critical sections of the code include comments explaining the logic.
+   - Assume the user will copy-paste this code as-is into their project.
+   - Provide the concrete fully functional implementation of the code.
+   - All methods must feature a complete implementation.
+   
+
+4. **Behavior**:
+   - Must inherit the base class.
+   - Must provide fully functional implementations for all required methods.
+
+### Desired Output
+Produce a single code snippet that contains the entire content for the file {{ RENDERED_FILE_NAME }}. 
+Do not wrap it in triple backticks! Just provide the raw code ready to copy-paste.
+Do not provide an explanation afterward.
+
+{# At the bottom of the template, include any example files specified by the EXAMPLES array #}
+{% if EXAMPLES %}
+#### 
+Leverage the reference file below as a guideline to utilize when creating the new component.
+
+{%- for example in EXAMPLES %}
+#### Reference File: `{{ example }}`
+```
+{% include example %}
+
+```
+{%- endfor %}
+{% endif %}
+ 
+### Example Format of the Output
+<!-- Example only; your code will vary. This is to show how your response should look. -->
+{% include FILE_NAME %}
+
+{# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
+{% if RENDERED_DEPENDENCIES %}
+### Dependencies
+{%- for dependency in RENDERED_DEPENDENCIES %}
+#### `{{ dependency }}`
+```
+{% include dependency %}
+
+```
+
+{%- endfor %}
+{% endif %}
