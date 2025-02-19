@@ -1,7 +1,7 @@
 from unittest import mock
 
 import pytest
-from swarmauri_parser_fitzpdf.FitzPdfParser import PDFtoTextParser as Parser
+from swarmauri_parser_fitzpdf.FitzPdfParser import FitzPdfParser as Parser
 
 
 @pytest.mark.unit
