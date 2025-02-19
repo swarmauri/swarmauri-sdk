@@ -13,7 +13,7 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector
@@ -26,9 +26,11 @@ class SqliteVectorStore(
     type: Literal["SqliteVectorStore"] = "SqliteVectorStore"
     db_path: str = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
 
+    
     def __init__(self, db_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self._distance = CosineDistance()
+        self._embedder = TfidfEmbedding()
         self.documents: List[Document] = []
         if db_path is not None:
             self.db_path = db_path
