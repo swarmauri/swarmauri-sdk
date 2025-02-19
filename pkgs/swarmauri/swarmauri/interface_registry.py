@@ -67,6 +67,7 @@ class InterfaceRegistry:
         "swarmauri.control_panels": ControlPanelBase,
         "swarmauri.conversations": ConversationBase,
         "swarmauri.dataconnectors": DataConnectorBase,
+        "swarmauri.decorators": None,
         "swarmauri.distances": DistanceBase,
         "swarmauri.documents": DocumentBase,
         "swarmauri.embeddings": EmbeddingBase,
