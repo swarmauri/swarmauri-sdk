@@ -64,9 +64,7 @@ class LlamaCppModel(LLMBase):
                 "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             }
         else:
-            headers = {
-                "Content-Type": "application/json"
-            }
+            headers = {"Content-Type": "application/json"}
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
