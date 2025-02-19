@@ -1,4 +1,3 @@
-
 from .JupyterToolkit import JupyterToolkit
 
 __all__ = [

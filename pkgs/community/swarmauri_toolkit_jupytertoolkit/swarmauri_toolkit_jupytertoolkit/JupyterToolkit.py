@@ -1,5 +1,4 @@
 from typing import Dict, Literal
-from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
