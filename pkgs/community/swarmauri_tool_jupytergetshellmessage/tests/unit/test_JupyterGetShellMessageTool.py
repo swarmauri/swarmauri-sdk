@@ -1,10 +1,3 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
-    JupyterGetShellMessageTool,
-)
-
-
 """
 test_JupyterGetShellMessageTool.py
 
@@ -12,6 +5,13 @@ This module contains pytest-based unit tests for the JupyterGetShellMessageTool 
 The tests ensure the tool correctly retrieves shell messages from a Jupyter kernel,
 handles timeouts, and manages exceptions.
 """
+import pytest
+from unittest.mock import patch, MagicMock
+from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
+    JupyterGetShellMessageTool,
+)
+
+
 
 
 def test_class_attributes() -> None:
@@ -51,23 +51,20 @@ def test_call_method_no_messages(timeout_value: float) -> None:
 
 def test_call_method_with_messages() -> None:
     """
-    Verify that when messages are available, the tool retrieves them
-    and returns them in the 'messages' field.
+    Verify that the tool retrieves shell messages correctly.
     """
-    mock_client = MagicMock()
-    # Create a fake message
-    fake_message = {"content": {"text": "Hello, world!"}}
-    # Simulate message availability: first call True, then always False
-    mock_client.shell_channel.msg_ready.side_effect = [True] + [False] * 10
-    mock_client.shell_channel.get_msg.return_value = fake_message
-
     with patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
-        return_value="fake_connection_file",
+        return_value="/path/to/fake/connection_file.json"
     ), patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
-        return_value=mock_client,
-    ):
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
+    ) as MockClient:
+        mock_client_instance = MockClient.return_value
+        mock_client_instance.shell_channel.msg_ready.return_value = True
+        mock_client_instance.shell_channel.get_msg.return_value = {
+            "content": {"text": "Hello, world!"}
+        }
+
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=1.0)
         assert "messages" in result, "Expected 'messages' key in result."
