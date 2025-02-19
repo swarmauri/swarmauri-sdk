@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterexportmarkdown"
-version = "1.0.1.dev3"
+version = "1.0.1"
 description = "A Swarmauri tool designed to export Jupyter Notebooks to Markdown."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

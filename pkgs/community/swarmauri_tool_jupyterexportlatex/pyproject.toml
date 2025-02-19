@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterexportlatex"
-version = "0.6.1.dev10"
+version = "0.6.1"
 description = "A tool that exports a Jupyter Notebook to LaTeX format using nbconvert’s LatexExporter, enabling further conversion to PDF."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
