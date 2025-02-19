@@ -256,7 +256,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.utils.retry_decorator": "swarmauri_standard.utils.retry_decorator",
         "swarmauri.utils.sql_log": "swarmauri_standard.utils.sql_log",
         "swarmauri.utils.timeout_wrapper": "swarmauri_standard.utils.timeout_wrapper",
-        "swarmauri.utils.gguf": "swarmauri_standard.utils.gguf",
         ###
         # Vector Stores
         ###
