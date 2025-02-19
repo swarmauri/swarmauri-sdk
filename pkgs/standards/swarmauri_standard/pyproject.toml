@@ -37,7 +37,7 @@ scikit-learn = "^1.6.1"
 matplotlib = "^3.10.0"
 Pillow = ">=8.0,<11.0"
 beautifulsoup4 = "^4.13.3"
-scipy = "^1.15.2"
+#scipy = ">=1.7.0,<1.14.0"
 yake = "^0.4.8"
 
 # Are we dependent upon this forever?
