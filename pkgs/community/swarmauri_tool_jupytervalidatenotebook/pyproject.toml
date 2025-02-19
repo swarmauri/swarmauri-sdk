@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupytervalidatenotebook"
-version = "0.6.1.dev8"
+version = "0.6.1.dev9"
 description = "A tool that validates a NotebookNode object against the Jupyter Notebook schema using nbformat, ensuring structural correctness."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

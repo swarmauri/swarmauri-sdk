@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterexecutenotebookwithparameters"
-version = "1.0.1.dev1"
+version = "1.0.1.dev2"
 description = "A tool designed to execute parameterized notebooks using papermill, allowing dynamic input and output capture for automated workflows."
 authors = ["Swarmauri Contributors <contributors@swarmauri.com>"]
 license = "Apache-2.0"

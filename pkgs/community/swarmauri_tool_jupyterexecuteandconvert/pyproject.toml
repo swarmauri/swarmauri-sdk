@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterexecuteandconvert"
-version = "0.6.1.dev8"
+version = "0.6.1.dev9"
 description = "A tool that programmatically executes and converts a Jupyter Notebook using nbconvert's CLI functionality, enabling automated notebook execution and format conversion."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
