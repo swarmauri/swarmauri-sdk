@@ -21,7 +21,7 @@ python = ">=3.10,<3.13"
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

@@ -5475,7 +5475,7 @@ httpx = "^0.27.0"
 pydantic = "^2.9.2"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 toml = "^0.10.2"
 typing_extensions = "*"
 
@@ -5554,7 +5554,7 @@ develop = false
 scipy = ">=1.7.0,<1.14.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5577,7 +5577,7 @@ develop = false
 redis = "^4.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5600,7 +5600,7 @@ develop = false
 gensim = "==4.3.3"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5622,7 +5622,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5645,7 +5645,7 @@ develop = false
 scikit-learn = "^1.4.2"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5668,7 +5668,7 @@ develop = false
 scikit-learn = "^1.4.2"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5691,7 +5691,7 @@ develop = false
 openai = "^1.62.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5781,7 +5781,7 @@ develop = false
 beautifulsoup4 = "^4.13.3"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5803,7 +5803,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 transformers = ">=4.45.0"
 
 [package.source]
@@ -5827,7 +5827,7 @@ develop = false
 spacy = ">=3.0.0,<=3.8.2"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5850,7 +5850,7 @@ develop = false
 PyMuPDF = "^1.24.12"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5872,7 +5872,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 yake = "==0.4.8"
 
 [package.source]
@@ -5896,7 +5896,7 @@ develop = false
 PyPDF2 = "^3.0.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -5919,7 +5919,7 @@ develop = false
 nltk = "^3.9.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 textblob = "^0.18.0"
 
 [package.source]
@@ -5996,7 +5996,7 @@ develop = false
 captcha = "^0.6.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6018,7 +6018,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 textstat = "^0.7.4"
 
 [package.source]
@@ -6041,7 +6041,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6063,7 +6063,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 transformers = ">=4.45.0"
 
 [package.source]
@@ -6087,7 +6087,7 @@ develop = false
 folium = "^0.18.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6110,7 +6110,7 @@ develop = false
 google-api-python-client = "^2.157.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6133,7 +6133,7 @@ develop = false
 nltk = "^3.9.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 textstat = "^0.7.4"
 
 [package.source]
@@ -6157,7 +6157,7 @@ develop = false
 matplotlib = ">=3.9.2"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6180,7 +6180,7 @@ develop = false
 psutil = "^6.1.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6203,7 +6203,7 @@ develop = false
 qrcode = "^7.3.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6226,7 +6226,7 @@ develop = false
 nltk = "^3.9.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6248,7 +6248,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6271,7 +6271,7 @@ develop = false
 nltk = "^3.9.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6294,7 +6294,7 @@ develop = false
 nltk = "^3.9.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6317,7 +6317,7 @@ develop = false
 beautifulsoup4 = "^4.10.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6339,7 +6339,7 @@ develop = false
 [package.dependencies]
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6362,7 +6362,7 @@ develop = false
 pygithub = "^2.4.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6386,7 +6386,7 @@ annoy = "^1.17.3"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6409,7 +6409,7 @@ develop = false
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 weaviate-client = "^4.9.2"
 
 [package.source]
@@ -6433,7 +6433,7 @@ develop = false
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6457,7 +6457,7 @@ duckdb = "^1.1.1"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6480,7 +6480,7 @@ develop = false
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 torch = "^2.4.1"
 transformers = ">=4.45.0"
 
@@ -6505,7 +6505,7 @@ develop = false
 neo4j = "^5.25.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6529,7 +6529,7 @@ chromadb = "^0.5.17"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6553,7 +6553,7 @@ pinecone-client = {version = "^5.0.1", extras = ["grpc"]}
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6577,7 +6577,7 @@ qdrant-client = "^1.12.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_doc2vec = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6600,7 +6600,7 @@ develop = false
 redis = "^4.0"
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
@@ -6623,7 +6623,7 @@ develop = false
 swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
 swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_embedding_tfidf = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf"}
-swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 [package.source]
 type = "git"
