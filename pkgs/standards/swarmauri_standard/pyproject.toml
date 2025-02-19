@@ -29,14 +29,26 @@ pandas = "*"
 pydantic = "^2.9.2"
 typing_extensions = "*"
 
+#####################
+# Technical Debt
+#
+#####################
+# Should only appear on a standalone package
+sklearn = "^1.6.1"
+matplotlib = "^3.10.0"
+Pillow = ">=8.0,<11.0"
+
+# Are we dependent upon this forever?
+aiofiles = { version = "24.1.0"}
+
 # We should remove and only rely on httpx
 requests = "^2.32.3"
 
-# This should be set to optional also
-Pillow = ">=8.0,<11.0"
+# what requires joblib?
+joblib = "^1.4.0"
+###########################
 
-# Optional dependencies with versions specified
-aiofiles = { version = "24.1.0"}
+
 
 
 [tool.poetry.group.dev.dependencies]
