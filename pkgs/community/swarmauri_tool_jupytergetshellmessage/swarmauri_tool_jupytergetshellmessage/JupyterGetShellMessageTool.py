@@ -1,8 +1,7 @@
-from typing import ClassVar, List, Literal, Dict, Any
+from typing import Any, Dict, ClassVar
 import logging
 import time
 
-from pydantic import Field
 from jupyter_client import find_connection_file, BlockingKernelClient
 
 from swarmauri_standard.tools.Parameter import Parameter
@@ -12,74 +11,69 @@ from swarmauri_core.ComponentBase import ComponentBase
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_type(ToolBase, "JupyterGetShellMessageTool")
-class JupyterGetShellMessageTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "JupyterExecuteCellTool")
+class JupyterExecuteCellTool(ToolBase):
     """
-    JupyterGetShellMessageTool is a tool designed to retrieve messages from the kernel's shell channel.
-    It listens for shell messages within a specified timeout, logs them for diagnostics, and returns
-    the structured messages.
+    JupyterExecuteCellTool executes a cell on a Jupyter kernel and returns the output.
+    It properly handles cases where no active kernel is available or when an exception occurs.
     """
 
     version: str = "1.0.0"
-    parameters: List[Parameter] = Field(
-        default_factory=lambda: [
-            Parameter(
-                name="timeout",
-                type="number",
-                description="The time in seconds to wait for shell messages before giving up.",
-                required=False,
-            ),
-        ]
-    )
-    name: str = "JupyterGetShellMessageTool"
-    description: str = "Retrieves messages from the Jupyter kernel's shell channel."
-    type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
+    parameters = [
+        Parameter(
+            name="cell",
+            type="string",
+            description="Cell code to execute.",
+            required=True,
+        ),
+        Parameter(
+            name="timeout",
+            type="number",
+            description="Time in seconds to wait for a response.",
+            required=False,
+        ),
+    ]
+    name: str = "JupyterExecuteCellTool"
+    description: str = "Executes a cell on a Jupyter kernel and returns the output."
+    type: str = "JupyterExecuteCellTool"
 
-    # Expose module-level functions/classes as class attributes for easier patching
+    # Expose module-level functions/classes as class attributes for easier patching in tests.
     find_connection_file: ClassVar = find_connection_file
     BlockingKernelClient: ClassVar = BlockingKernelClient
 
-    def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
-        """
-        Retrieves messages from the Jupyter kernel's shell channel within the specified timeout.
-
-        Args:
-            timeout (float, optional): The number of seconds to wait for shell messages
-                                       before timing out. Defaults to 5.0.
-
-        Returns:
-            Dict[str, Any]: A dictionary containing all retrieved shell messages or an error message.
-        """
-        messages = []
+    def __call__(self, cell: str, timeout: float = 5.0) -> Dict[str, Any]:
         try:
-            connection_file = (
-                self.find_connection_file()
-            )  # Now uses the class attribute
+            # Use the class attribute to allow patching
+            connection_file = self.find_connection_file()
             client = self.BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
             client.start_channels()
 
+            client.execute(cell)
             start_time = time.monotonic()
-            retrieved_any_message = False
+            output = None
 
+            # Wait for an "execute_reply" message
             while time.monotonic() - start_time < timeout:
                 if client.shell_channel.msg_ready():
                     msg = client.shell_channel.get_msg(block=False)
-                    messages.append(msg)
-                    logging.debug(f"Retrieved a shell message: {msg}")
-                    retrieved_any_message = True
+                    if msg.get("header", {}).get("msg_type") == "execute_reply":
+                        output = msg
+                        break
                 else:
                     time.sleep(0.1)
 
             client.stop_channels()
 
-            if not retrieved_any_message:
-                return {
-                    "error": f"No shell messages received within {timeout} seconds."
-                }
+            if output is None:
+                error_msg = (
+                    f"No response received from the kernel within {timeout} seconds."
+                )
+                logger.error(error_msg)
+                return {"error": error_msg}
 
-            return {"messages": messages}
+            return {"output": output}
 
         except Exception as e:
-            logging.exception("Error retrieving shell messages")
+            logger.exception("Error executing cell")
             return {"error": str(e)}
