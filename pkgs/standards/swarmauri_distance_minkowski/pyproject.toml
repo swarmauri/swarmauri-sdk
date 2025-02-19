@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_distance_minkowski"
-version = "0.6.1.dev14"
+version = "0.6.1.dev15"
 description = "Minkowski Distance for Swarmauri."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
