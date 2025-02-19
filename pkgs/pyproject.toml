@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
-version = "0.6.1.dev9"
+version = "0.6.1"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
@@ -17,7 +17,7 @@ ipython = "^8.28.0"
 ###
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core" }
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base" }
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 swarmauri = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri" }
 
 ###
@@ -27,7 +27,7 @@ swarmauri_vectorstore_doc2vec = { git = "https://github.com/swarmauri/swarmauri-
 swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
 swarmauri_embedding_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_tfidf"}
 swarmauri_embedding_nmf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_nmf"}
-swarmauri-tool-matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib"}
+swarmauri_tool_matplotlib = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_tool_matplotlib"}
 swarmauri_parser_keywordextractor = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_parser_keywordextractor"}
 swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_parser_beautifulsoupelement"}
 swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf"}

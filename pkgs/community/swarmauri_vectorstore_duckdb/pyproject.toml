@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_vectorstore_duckdb"
-version = "0.6.1.dev9"
+version = "0.6.1"
 description = "A DuckDB based Vector Store"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -19,7 +19,7 @@ python = ">=3.10,<3.13"
 # Swarmauri
 swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
 swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_standard"}
+swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 swarmauri_embedding_doc2vec = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_embedding_doc2vec"}
 
 # Dependencies

@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that exports a Jupyter Notebook to Markdown format using nbconvert\u2019s MarkdownExporter, suitable for documentation and static site generation.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexportmarkdown",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExportMarkdownTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Convert a NotebookNode into Markdown format.",
+        "Support custom Markdown templates and styling.",
+        "Log export operations and potential errors.",
+        "Ensure proper formatting of code and outputs.",
+        "Return the generated Markdown content.",
+        "Facilitate integration with static site generators."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        }
+    ]
+}

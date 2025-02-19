@@ -3,10 +3,9 @@ name: 0.6.0 - Single (Prepare, Install, Publish)
 on:
   workflow_dispatch:
     inputs:
-      soliloquy_file:
+      pyproject_directory:
         description: "File to use for install, prepare, and release steps"
         required: true
-        default: "pyproject.toml"
       bump_type:
         description: "Bump type (patch or finalize) for the prepare phase"
         required: false
@@ -14,7 +13,7 @@ on:
       commit_msg:
         description: "Commit message for the prepare phase"
         required: false
-        default: "chore: auto increment packages"
+        default: "chore: auto increment package"
 
 concurrency:
   group: dev-branch-workflow-group
@@ -54,8 +53,8 @@ jobs:
       - name: Run install phase
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs
-          soliloquy install --file "${{ github.event.inputs.soliloquy_file }}"
+          cd "pkgs/${{ github.event.inputs.pyproject_directory }}"
+          soliloquy install --file "pyproject.toml"
 
       - name: Pip freeze
         run: |
@@ -68,9 +67,9 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          cd pkgs
+          cd "pkgs/${{ github.event.inputs.pyproject_directory }}"
           soliloquy prepare \
-            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --file "pyproject.toml" \
             --bump "${{ github.event.inputs.bump_type }}" \
             --commit-msg "${{ github.event.inputs.commit_msg }}" \
             --lint-fix
@@ -85,9 +84,9 @@ jobs:
       - name: Run release phase
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
-          cd pkgs
+          cd "pkgs/${{ github.event.inputs.pyproject_directory }}"
           soliloquy release \
-            --file "${{ github.event.inputs.soliloquy_file }}" \
+            --file "pyproject.toml" \
             --test-mode single \
             --num-workers 4 \
             --no-cleanup \

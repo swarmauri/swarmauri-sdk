@@ -77,7 +77,20 @@ class PluginCitizenshipRegistry:
         # "swarmauri.distances.MinkowskiDistance": "swarmauri_standard.distances.MinkowskiDistance",
         "swarmauri.distances.SorensenDiceDistance": "swarmauri_standard.distances.SorensenDiceDistance",
         "swarmauri.distances.SquaredEuclideanDistance": "swarmauri_standard.distances.SquaredEuclideanDistance",
+        ###
+        # decorators
+        ###
+        "swarmauri.decorators.maybe_async": "swarmauri.decorators.maybe_async",
+        "swarmauri.decorators.tool_decorator": "swarmauri.decorators.tool_decorator",
+        "swarmauri.decorators.retry_on_status_codes": "swarmauri.decorators.retry_on_status_codes",
+        "swarmauri.decorators.deprecate": "swarmauri.decorators.deprecate",
+        ###
+        # documents
+        ###
         "swarmauri.documents.Document": "swarmauri_standard.documents.Document",
+        ###
+        # embeddings
+        ###
         "swarmauri.embeddings.CohereEmbedding": "swarmauri_standard.embeddings.CohereEmbedding",
         "swarmauri.embeddings.GeminiEmbedding": "swarmauri_standard.embeddings.GeminiEmbedding",
         "swarmauri.embeddings.MistralEmbedding": "swarmauri_standard.embeddings.MistralEmbedding",
@@ -93,6 +106,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.image_gens.FalAIImgGenModel": "swarmauri_standard.image_gens.FalAIImgGenModel",
         "swarmauri.image_gens.HyperbolicImgGenModel": "swarmauri_standard.image_gens.HyperbolicImgGenModel",
         "swarmauri.image_gens.OpenAIImgGenModel": "swarmauri_standard.image_gens.OpenAIImgGenModel",
+        ###
+        # LLMS
+        ##
         "swarmauri.llms.AI21StudioModel": "swarmauri_standard.llms.AI21StudioModel",
         "swarmauri.llms.AnthropicModel": "swarmauri_standard.llms.AnthropicModel",
         "swarmauri.llms.AnthropicToolModel": "swarmauri_standard.llms.AnthropicToolModel",
@@ -110,6 +126,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.HyperbolicAudioTTS": "swarmauri_standard.llms.HyperbolicAudioTTS",
         "swarmauri.llms.HyperbolicModel": "swarmauri_standard.llms.HyperbolicModel",
         "swarmauri.llms.HyperbolicVisionModel": "swarmauri_standard.llms.HyperbolicVisionModel",
+        "swarmauri.llms.LlamaCppModel": "swarmauri_standard.llms.LlamaCppModel",
         "swarmauri.llms.MistralModel": "swarmauri_standard.llms.MistralModel",
         "swarmauri.llms.MistralToolModel": "swarmauri_standard.llms.MistralToolModel",
         "swarmauri.llms.OpenAIAudio": "swarmauri_standard.llms.OpenAIAudio",
@@ -119,6 +136,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.PerplexityModel": "swarmauri_standard.llms.PerplexityModel",
         "swarmauri.llms.PlayHTModel": "swarmauri_standard.llms.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": "swarmauri_standard.llms.WhisperLargeModel",
+        ###
+        # Tool LLMS
+        ###
         "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
         "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_standard.tool_llms.AnthropicToolModel",
         "swarmauri.tool_llms.CohereToolModel": "swarmauri_standard.tool_llms.CohereToolModel",
@@ -204,6 +224,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.tracing.TracedVariable": "swarmauri_standard.tracing.TracedVariable",
         "swarmauri.tracing.VariableTracer": "swarmauri_standard.tracing.VariableTracer",
         "swarmauri.transports.PubSubTransport": "swarmauri_standard.transports.PubSubTransport",
+        ###
+        # Utils
+        ##
         "swarmauri.utils.LazyLoader": "swarmauri_standard.utils.LazyLoader",
         "swarmauri.utils._get_subclasses": "swarmauri_standard.utils._get_subclasses",
         "swarmauri.utils._lazy_import": "swarmauri_standard.utils._lazy_import",
@@ -233,6 +256,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.utils.retry_decorator": "swarmauri_standard.utils.retry_decorator",
         "swarmauri.utils.sql_log": "swarmauri_standard.utils.sql_log",
         "swarmauri.utils.timeout_wrapper": "swarmauri_standard.utils.timeout_wrapper",
+        ###
+        # Vector Stores
+        ###
         "swarmauri.vector_stores.SqliteVectorStore": "swarmauri_standard.vector_stores.SqliteVectorStore",
         # "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
         "swarmauri.vectors.Vector": "swarmauri_standard.vectors.Vector",

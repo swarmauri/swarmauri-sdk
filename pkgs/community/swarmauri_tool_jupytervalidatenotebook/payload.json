@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that validates a NotebookNode object against the Jupyter Notebook schema using nbformat, ensuring structural correctness.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupytervalidatenotebook",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterValidateNotebookTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Accept a NotebookNode as input.",
+        "Validate the notebook against its JSON schema.",
+        "Log any discrepancies or validation errors.",
+        "Handle invalid notebook structures gracefully.",
+        "Provide a report on the validation results.",
+        "Return a boolean status indicating validity."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbformat",
+            "version": "*"
+        }
+    ]
+}

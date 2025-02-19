@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that converts a plain dictionary into a NotebookNode object using nbformat, facilitating programmatic notebook creation.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterfromdict",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterFromDictTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Accept a dictionary representing notebook structure.",
+        "Convert the dictionary into a NotebookNode.",
+        "Validate the generated NotebookNode against schema.",
+        "Log the conversion process.",
+        "Handle conversion errors gracefully.",
+        "Return the NotebookNode for further usage."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbformat",
+            "version": "*"
+        }
+    ]
+}

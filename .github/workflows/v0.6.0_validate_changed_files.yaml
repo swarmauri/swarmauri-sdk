@@ -78,7 +78,7 @@ jobs:
             PACKAGE_ROOT_PATH="${PACKAGE_ROOT#pkgs/}"
 
             # If the changed file itself is a test...
-            if echo "$FILE" | grep -qE '/tests/.*_test\.py$'; then
+            if echo "$FILE" | grep -qE '/tests/.*(test_.*\.py|.*_test\.py)$'; then
               # Keep test file path relative to the package root
               # For example, if FILE="pkgs/community/swarmauri_toolkit_github/tests/unit/test_xyz.py",
               #   then RELATIVE_TEST_FILE="tests/unit/test_xyz.py"
@@ -91,7 +91,7 @@ jobs:
 
               if [ -d "$TEST_DIR" ]; then
                 # Find any test file that includes the changed component name
-                MATCHING_TEST_FILES=$(find "$TEST_DIR" -type f -iname "*${COMPONENT_NAME}*_test.py")
+                MATCHING_TEST_FILES=$(find "$TEST_DIR" -type f \( -iname "*${COMPONENT_NAME}_test.py" -o -iname "test_${COMPONENT_NAME}.py" \))
                 for TEST_FILE in $MATCHING_TEST_FILES; do
                   RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^$PACKAGE_ROOT/||")
                   PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
@@ -147,7 +147,7 @@ jobs:
           source $UNIQUE_VENV_PATH/bin/activate
           python -m pip install --upgrade pip
           pip install poetry
-          pip install soliloquy=="0.1.4"
+          pip install soliloquy=="0.1.5.dev1"
 
       - name: Soliloquy Install 
         run: |
@@ -180,4 +180,4 @@ jobs:
           # Move into the directory that has pyproject.toml
           cd "pkgs/$PKG_PATH"
 
-          soliloquy validate -f pyproject.toml --test-mode each --num-workers 4
+          soliloquy validate -f pyproject.toml --test-mode single --num-workers 4 --required-passed ge:99
