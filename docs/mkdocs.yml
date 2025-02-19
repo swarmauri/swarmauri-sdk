@@ -65,7 +65,11 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-
+  - abbr
+  - attr_list
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
 extra:
   alternate:
   - name: English
