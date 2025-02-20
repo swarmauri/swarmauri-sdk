@@ -31,14 +31,13 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, ConfigD
 # Logging
 ###########################################
 
-import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.INFO)
 logger.propagate = False
 if not logger.handlers:
     console_handler = logging.StreamHandler()
-    formatter = logging.Formatter('[%(name)s][%(levelname)s] %(message)s')
+    formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
@@ -53,6 +52,7 @@ T = TypeVar("T", bound="ComponentBase")
 ###########################################
 # Subclass Union
 ###########################################
+
 
 class ResourceType:
     """
@@ -96,7 +96,6 @@ class SubclassUnion(type):
 ###########################################
 # Intersection
 ###########################################
-from typing import Tuple
 class IntersectionMetadata:
     def __init__(self, classes: Tuple[Type["BaseModel"]]):
         self.classes = classes
@@ -121,17 +120,21 @@ class Intersection(type):
         common = set(classes[0].__mro__)
         for c in classes[1:]:
             common.intersection_update(c.__mro__)
-        
+
         # Order the common classes as they appear in the first class's MRO.
         ordered_common = [c for c in classes[0].__mro__ if c in common]
-        
+
         if not ordered_common:
             # Fallback to Any (should not happen as 'object' is always common)
             return Annotated[Any, Field(...), IntersectionMetadata(classes=(classes))]
         else:
             # Construct a Union type from the ordered common bases.
             union_type = Union[tuple(ordered_common)]
-            return Annotated[union_type, Field(discriminator="type"), IntersectionMetadata(classes=(classes))]
+            return Annotated[
+                union_type,
+                Field(discriminator="type"),
+                IntersectionMetadata(classes=(classes)),
+            ]
 
 
 ###########################################
@@ -185,6 +188,7 @@ class ResourceTypes(Enum):
 # ComponentBase
 ###########################################
 
+
 def generate_id() -> str:
     return str(uuid4())
 
@@ -214,16 +218,16 @@ class ComponentBase(BaseModel):
     host: Optional[str] = None
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
-    
+
     logger: Optional[Any] = Field(exclude=True, default=None)
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Dynamically update _type to the subclass's name.
         cls._type = cls.__name__
         # Change the annotation for `type` to a Literal of the subclass's name.
-        cls.__annotations__['type'] = Literal[cls.__name__]
+        cls.__annotations__["type"] = Literal[cls.__name__]
         # Set the default value for the `type` field.
         cls.type = cls.__name__
 
@@ -235,7 +239,7 @@ class ComponentBase(BaseModel):
         self.logger.propagate = False  # Stops propagation to root
         if not self.logger.handlers:
             console_handler = logging.StreamHandler()
-            formatter = logging.Formatter('[%(name)s][%(levelname)s] %(message)s')
+            formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
             console_handler.setFormatter(formatter)
             self.logger.addHandler(console_handler)
 
@@ -291,7 +295,6 @@ class ComponentBase(BaseModel):
     @property
     def _swm_isremote(self):
         return bool(self.host)
-
 
     @classmethod
     def _get_class_by_type(
@@ -679,12 +682,15 @@ class ComponentBase(BaseModel):
         # Convert the filtered data into YAML
         return yaml.dump(filtered_data, default_flow_style=False)
 
-
     ###############################################################
     # Public Class Methods
     ###############################################################
     @classmethod
-    def register_type(cls, resource_type: Union[Type[T], List[Type[T]]], type_name: Optional[str] = None):
+    def register_type(
+        cls,
+        resource_type: Union[Type[T], List[Type[T]]],
+        type_name: Optional[str] = None,
+    ):
         """
         Decorator to register a component class with a specific type name under one or multiple resource types,
         preventing duplicate registrations.
@@ -703,7 +709,9 @@ class ComponentBase(BaseModel):
                     f"Registered class '{subclass.__name__}' must be a subclass of one of ({allowed})"
                 )
             # Resolve the type name: use provided type_name or fallback to subclass's _type or __name__
-            resolved_type_name = type_name or getattr(subclass, "_type", subclass.__name__)
+            resolved_type_name = type_name or getattr(
+                subclass, "_type", subclass.__name__
+            )
 
             # Register the subclass for each resource type.
             for rt in resource_types:
@@ -721,7 +729,9 @@ class ComponentBase(BaseModel):
                         f"Type '{resolved_type_name}' for resource '{canonical_resource_type.__name__}' is already registered; skipping duplicate registration."
                     )
                     continue  # Skip duplicate registration for this resource type.
-                cls._TYPE_REGISTRY[canonical_resource_type][resolved_type_name] = subclass
+                cls._TYPE_REGISTRY[canonical_resource_type][resolved_type_name] = (
+                    subclass
+                )
                 logger.info(
                     f"Registered type '{resolved_type_name}' for resource '{canonical_resource_type.__name__}' with subclass '{subclass.__name__}'"
                 )
@@ -729,13 +739,14 @@ class ComponentBase(BaseModel):
             return subclass
 
         return decorator
-        
+
     @classmethod
     def register_model(cls):
         """
         Decorator to register a Pydantic model by automatically detecting resource types
         from fields that use SubclassUnion, ensuring no duplicate registrations occur.
         """
+
         def decorator(model_cls: Type[BaseModel]):
             # Check if any already-registered model has the same __name__.
             for registered_model in cls._MODEL_REGISTRY:
@@ -757,7 +768,9 @@ class ComponentBase(BaseModel):
                 # Check if the field uses SubclassUnion.
                 if cls._field_contains_subclass_union(field_annotation):
                     # Extract resource types from the field's annotation.
-                    resource_types = cls._extract_resource_types_from_field(field_annotation)
+                    resource_types = cls._extract_resource_types_from_field(
+                        field_annotation
+                    )
                     for resource_type in resource_types:
                         # Add to the set (automatically avoids duplicates).
                         if resource_type not in cls._MODEL_REGISTRY[model_cls]:
@@ -775,6 +788,7 @@ class ComponentBase(BaseModel):
             return model_cls
 
         return decorator
+
 
 ###########################################
 # Exports

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterwritenotebook"
-version = "0.6.1"
+version = "0.6.2.dev1"
 description = "A tool that writes a NotebookNode object to a file in JSON format, preserving the notebook structure."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
