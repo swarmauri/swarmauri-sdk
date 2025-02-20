@@ -458,7 +458,7 @@ class ComponentBase(BaseModel):
             logger.debug(f"New type for field: {new_type}")
             return new_type
         except TypeError as e:
-            self.logger.error(
+            logger.error(
                 f"TypeError while determining new type for field annotation '{field_annotation}': {e}"
             )
             return field_annotation  # Fallback to original type if error occurs
