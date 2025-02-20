@@ -256,7 +256,7 @@ class ComponentBase(BaseModel):
         return sig_hash.hexdigest()
 
     @classmethod
-    def swm_public_interfaces(cls):
+    def _swm_public_interfaces(cls):
         methods = []
         for attr_name in dir(cls):
             attr_value = getattr(cls, attr_name)
@@ -267,11 +267,11 @@ class ComponentBase(BaseModel):
         return methods
 
     @classmethod
-    def swm_ismethod_registered(cls, method_name: str):
+    def _swm_ismethod_registered(cls, method_name: str):
         return method_name in cls.swm_public_interfaces()
 
     @classmethod
-    def swm_method_signature(cls, input_signature):
+    def _swm_method_signature(cls, input_signature):
         for method_name in cls.swm_public_interfaces():
             method = getattr(cls, method_name)
             if callable(method):
@@ -281,7 +281,7 @@ class ComponentBase(BaseModel):
         return False
 
     @property
-    def swm_path(self):
+    def _swm_path(self):
         if self.host and self.owner:
             return f"{self.host}/{self.owner}/{self.resource}/{self.name}/{self.id}"
         if self.resource and self.name:
@@ -289,7 +289,7 @@ class ComponentBase(BaseModel):
         return f"/{self.resource}/{self.id}"
 
     @property
-    def swm_isremote(self):
+    def _swm_isremote(self):
         return bool(self.host)
 
 
