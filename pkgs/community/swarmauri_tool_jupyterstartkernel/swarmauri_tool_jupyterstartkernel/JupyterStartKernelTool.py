@@ -62,7 +62,7 @@ class JupyterStartKernelTool(ToolBase):
         """
         try:
             # Initialize the kernel manager using the class attribute
-            km = self.KernelManager(kernel_name=kernel_name)
+            km = KernelManager(kernel_name=kernel_name)
 
             if kernel_spec:
                 logger.debug(f"Applying kernel specification: {kernel_spec}")
