@@ -49,13 +49,13 @@ class JupyterExecuteCellTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="code",
-                type="string",
+                input_type="string",
                 description="The code to be executed in the Jupyter kernel.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Timeout in seconds for the cell execution.",
                 required=False,
                 default=30,
@@ -96,7 +96,6 @@ class JupyterExecuteCellTool(ToolBase):
             # Obtain the IPython kernel (or a patched value)
             ip = self.get_ipython()
             if not ip:
-
                 # If get_ipython() returns None, check whether the method has been patched.
                 # When unpatched, get_ipython is our original static method (a FunctionType),
                 # so we simulate a dummy kernel. When patched (e.g. in the no-active-kernel test),
@@ -163,7 +162,6 @@ class JupyterExecuteCellTool(ToolBase):
                     "stderr": "",
                     "error": f"An unexpected error occurred: {str(exc)}",
                 }
-
 
     def execute_cell(self, code: str, timeout: Optional[int] = 30) -> Dict[str, str]:
         """
