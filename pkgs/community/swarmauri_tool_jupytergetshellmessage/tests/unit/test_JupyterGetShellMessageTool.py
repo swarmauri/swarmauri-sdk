@@ -84,7 +84,7 @@ def test_call_method_exception_handling() -> None:
     the tool returns an error dictionary.
     """
     with patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._find_connection_file",
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
         side_effect=RuntimeError("Test Error"),
     ):
         tool = JupyterGetShellMessageTool()
