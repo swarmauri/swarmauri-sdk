@@ -22,7 +22,7 @@ class PsutilTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="info_type",
-                type="string",
+                input_type="string",
                 description="Type of system information to retrieve (cpu, memory, disk, network, sensors).",
                 required=True,
             )

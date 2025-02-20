@@ -22,13 +22,13 @@ class FoliumTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="map_center",
-                type="tuple",
+                input_type="tuple",
                 description="The (latitude, longitude) center of the map.",
                 required=True,
             ),
             Parameter(
                 name="markers",
-                type="list",
+                input_type="list",
                 description="A list of (latitude, longitude, popup) tuples for markers.",
                 required=False,
                 default=[],

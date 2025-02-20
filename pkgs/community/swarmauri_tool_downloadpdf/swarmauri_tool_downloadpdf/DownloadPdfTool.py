@@ -20,13 +20,13 @@ class DownloadPDFTool(ToolBase):
     parameters: List[Parameter] = [
         Parameter(
             name="url",
-            type="string",
+            input_type="string",
             description="The URL of the PDF file to download",
             required=True,
         ),
         Parameter(
             name="destination",
-            type="string",
+            input_type="string",
             description="The path where the PDF file will be saved",
             required=True,
         ),

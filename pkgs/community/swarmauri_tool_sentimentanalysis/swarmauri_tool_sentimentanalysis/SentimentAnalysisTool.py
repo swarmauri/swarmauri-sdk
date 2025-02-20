@@ -20,7 +20,7 @@ class SentimentAnalysisTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for sentiment analysis",
                 required=True,
             )

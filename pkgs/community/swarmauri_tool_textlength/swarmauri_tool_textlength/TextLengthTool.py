@@ -17,7 +17,7 @@ class TextLengthTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text to analyze for length.",
                 required=True,
             )
