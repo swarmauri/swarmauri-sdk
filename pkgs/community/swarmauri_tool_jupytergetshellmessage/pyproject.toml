@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupytergetshellmessage"
-version = "0.6.2.dev1"
+version = "0.6.2.dev2"
 description = "A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

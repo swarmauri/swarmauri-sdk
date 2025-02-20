@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupytershutdownkernel"
-version = "0.6.2.dev1"
+version = "0.6.2.dev2"
 description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
