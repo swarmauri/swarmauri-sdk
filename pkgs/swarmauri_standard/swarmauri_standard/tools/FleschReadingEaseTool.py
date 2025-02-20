@@ -13,7 +13,7 @@ class FleschReadingEaseTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for which to calculate the Flesch Reading Ease score.",
                 required=True,
             )

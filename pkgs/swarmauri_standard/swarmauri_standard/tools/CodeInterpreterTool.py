@@ -14,7 +14,7 @@ class CodeInterpreterTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="user_code",
-                type="string",
+                input_type="string",
                 description=(
                     "Executes the provided Python code snippet in a secure sandbox environment. "
                     "This tool is designed to interpret the execution of the python code snippet."

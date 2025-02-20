@@ -11,10 +11,10 @@ class AdditionTool(ToolBase):
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
-                name="x", type="integer", description="The left operand", required=True
+                name="x", input_type="integer", description="The left operand", required=True
             ),
             Parameter(
-                name="y", type="integer", description="The right operand", required=True
+                name="y", input_type="integer", description="The right operand", required=True
             ),
         ]
     )

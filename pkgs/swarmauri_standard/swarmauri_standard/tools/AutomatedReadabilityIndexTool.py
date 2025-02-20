@@ -29,7 +29,7 @@ class AutomatedReadabilityIndexTool(ToolBase):
     parameters: List[Parameter] = [
         Parameter(
             name="input_text",
-            type="string",
+            input_type="string",
             description="The input text for which to calculate the ARI.",
             required=True,
         )

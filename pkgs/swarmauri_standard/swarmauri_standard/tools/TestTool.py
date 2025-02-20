@@ -14,7 +14,7 @@ class TestTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="program",
-                type="string",
+                input_type="string",
                 description="The program that the user wants to open ('notepad' or 'calc' or 'mspaint')",
                 required=True,
                 enum=["notepad", "calc", "mspaint"],
