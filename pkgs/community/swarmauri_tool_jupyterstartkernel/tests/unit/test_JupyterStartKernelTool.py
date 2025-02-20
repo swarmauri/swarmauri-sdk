@@ -119,7 +119,7 @@ def test_tool_parameters() -> None:
     custom_params = [
         {
             "name": "kernel_name",
-            "tinput_ype": "string",
+            "input_ype": "string",
             "description": "Customized kernel name parameter.",
             "required": True,
             "default": "python3",
