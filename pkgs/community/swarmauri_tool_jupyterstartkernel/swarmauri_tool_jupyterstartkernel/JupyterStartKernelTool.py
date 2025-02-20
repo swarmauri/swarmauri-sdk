@@ -33,14 +33,14 @@ class JupyterStartKernelTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="kernel_name",
-                type="string",
+                input_type="string",
                 description="The name of the Jupyter kernel to start (e.g., 'python3').",
                 required=False,
                 default="python3",
             ),
             Parameter(
                 name="kernel_spec",
-                type="object",
+                input_type="object",
                 description="Optional dictionary to configure kernel specifications (if supported).",
                 required=False,
                 default=None,

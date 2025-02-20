@@ -25,7 +25,7 @@ class JupyterGetShellMessageTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="The time in seconds to wait for shell messages before giving up.",
                 required=False,
             ),

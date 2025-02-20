@@ -41,7 +41,7 @@ class JupyterExportMarkdownTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_json",
-                type="object",
+                input_type="object",
                 description=(
                     "A JSON-like dictionary representing the Jupyter Notebook to export. "
                     "It should conform to the NotebookNode structure."
@@ -50,7 +50,7 @@ class JupyterExportMarkdownTool(ToolBase):
             ),
             Parameter(
                 name="template",
-                type="string",
+                input_type="string",
                 description=(
                     "An optional nbconvert-compatible template name or path to "
                     "customize the Markdown output."
@@ -59,7 +59,7 @@ class JupyterExportMarkdownTool(ToolBase):
             ),
             Parameter(
                 name="styles",
-                type="string",
+                input_type="string",
                 description=(
                     "Optional custom CSS style definitions as a string. "
                     "These styles will be embedded into the exported Markdown."
