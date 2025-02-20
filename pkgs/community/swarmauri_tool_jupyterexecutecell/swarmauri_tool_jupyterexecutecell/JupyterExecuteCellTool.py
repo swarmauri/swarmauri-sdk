@@ -90,9 +90,18 @@ class JupyterExecuteCellTool(ToolBase):
                 - 'stdout': The standard output captured from the execution.
                 - 'stderr': The error output captured from the execution, if any.
                 - 'error':  Any exception or error message if the execution fails or times out.
+
+         Example:
+            >>> executor = JupyterExecuteCellTool()
+            >>> result = executor("print('Hello, world!')")
+            >>> print(result['stdout'])  # Should contain "Hello, world!"
         """
 
         def _run_code(cell_code: str) -> Dict[str, str]:
+            """
+            Internal helper function to run the provided code in the current IPython kernel,
+            capturing stdout and stderr.
+            """
             # Obtain the IPython kernel (or a patched value)
             ip = self.get_ipython()
             if not ip:

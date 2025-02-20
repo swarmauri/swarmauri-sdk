@@ -23,6 +23,18 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ToolBase, "JupyterExportLatexTool")
 class JupyterExportLatexTool(ToolBase):
+    """
+    JupyterExportLatexTool is responsible for converting a Jupyter Notebook (NotebookNode)
+    into a LaTeX document. It supports using a custom LaTeX template, can log and handle
+    conversion errors, and optionally convert the generated LaTeX to PDF.
+    Attributes:
+        version (str): The version of the JupyterExportLatexTool.
+        parameters (List[Parameter]): A list of parameters required to perform the export.
+        name (str): The name of the tool.
+        description (str): A brief description of the tool's functionality.
+        type (Literal["JupyterExportLatexTool"]): The type identifier for the tool.
+    """
+
     model_config = {"arbitrary_types_allowed": True}  # Allow arbitrary types
 
     version: str = "0.1.0"

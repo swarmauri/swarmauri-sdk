@@ -92,6 +92,25 @@ class JupyterExportMarkdownTool(ToolBase):
         Returns:
             Dict[str, str]: A dictionary containing either the exported Markdown content or
             an error message if the conversion fails.
+
+         Example:
+            >>> tool = JupyterExportMarkdownTool()
+            >>> notebook_dict = {
+            ...     "cells": [
+            ...         {
+            ...             "cell_type": "markdown",
+            ...             "metadata": {},
+            ...             "source": ["# Sample Notebook\\n", "Some introductory text."]
+            ...         }
+            ...     ],
+            ...     "metadata": {},
+            ...     "nbformat": 4,
+            ...     "nbformat_minor": 5
+            ... }
+            >>> result = tool(notebook_dict)
+            >>> print(result["exported_markdown"])
+            # Sample Notebook
+            Some introductory text.
         """
 
         logger.info("Starting export of notebook to Markdown.")
