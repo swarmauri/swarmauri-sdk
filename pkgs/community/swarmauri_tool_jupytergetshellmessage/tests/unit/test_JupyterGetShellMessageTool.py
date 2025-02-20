@@ -83,9 +83,13 @@ def test_call_method_exception_handling() -> None:
     Verify that when an exception occurs during message retrieval,
     the tool returns an error dictionary.
     """
+    # Here we force find_connection_file to raise an exception.
     with patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
         side_effect=RuntimeError("Test Error"),
+    ), patch(
+        "glob.glob",
+        return_value=["/path/to/fake/connection_file.json"],
     ):
         tool = JupyterGetShellMessageTool()
         result = tool()
