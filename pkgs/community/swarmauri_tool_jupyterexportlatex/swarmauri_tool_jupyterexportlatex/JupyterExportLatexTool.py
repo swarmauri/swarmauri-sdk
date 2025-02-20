@@ -32,7 +32,7 @@ class JupyterExportLatexTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_node",
-                type="object",
+                input_type="object",
                 description="A nbformat.NotebookNode object representing a Jupyter notebook.",
                 required=True,
             ),
@@ -44,13 +44,13 @@ class JupyterExportLatexTool(ToolBase):
             ),
             Parameter(
                 name="template_path",
-                type="string",
+                input_type="string",
                 description="Path to a custom LaTeX template if use_custom_template is True.",
                 required=False,
             ),
             Parameter(
                 name="to_pdf",
-                type="boolean",
+                input_type="boolean",
                 description="If True, also convert the LaTeX output to PDF.",
                 required=False,
             ),
