@@ -49,18 +49,12 @@ class JupyterGetShellMessageTool(ToolBase):
         default_factory=lambda: JupyterGetShellMessageTool.BlockingKernelClient
     )
 
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-        # Add the patched functions to private attributes.
-        self._find_connection_file = self.__class__.find_connection_file
-        self._BlockingKernelClient = self.__class__.BlockingKernelClient
-
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
         messages = []
         try:
             # Use the private attribute that now holds the patched find_connection_file.
-            connection_file = self._find_connection_file()
-            client = self._BlockingKernelClient(connection_file=connection_file)
+            connection_file = find_connection_file()
+            client = BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
             client.start_channels()
 
