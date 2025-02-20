@@ -5,13 +5,12 @@ This module contains pytest-based unit tests for the JupyterGetShellMessageTool 
 The tests ensure the tool correctly retrieves shell messages from a Jupyter kernel,
 handles timeouts, and manages exceptions.
 """
+
 import pytest
 from unittest.mock import patch, MagicMock
 from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
     JupyterGetShellMessageTool,
 )
-
-
 
 
 def test_class_attributes() -> None:
@@ -53,14 +52,19 @@ def test_call_method_with_messages() -> None:
     """
     Verify that the tool retrieves shell messages correctly.
     """
+    from itertools import chain, repeat
+
     with patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._find_connection_file",
-        return_value="/path/to/fake/connection_file.json"
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        return_value="/path/to/fake/connection_file.json",
     ), patch(
-        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool._BlockingKernelClient"
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
     ) as MockClient:
         mock_client_instance = MockClient.return_value
-        mock_client_instance.shell_channel.msg_ready.side_effect = [True, False]
+        # Use an iterator that returns True once and then False indefinitely
+        mock_client_instance.shell_channel.msg_ready.side_effect = chain(
+            [True], repeat(False)
+        )
         mock_client_instance.shell_channel.get_msg.return_value = {
             "content": {"text": "Hello, world!"}
         }

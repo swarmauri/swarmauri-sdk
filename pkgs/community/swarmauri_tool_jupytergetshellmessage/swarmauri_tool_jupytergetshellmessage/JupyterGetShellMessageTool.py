@@ -42,8 +42,12 @@ class JupyterGetShellMessageTool(ToolBase):
     BlockingKernelClient: ClassVar[Callable[..., Any]] = BlockingKernelClient
 
     # Private attributes to hold the patched functions.
-    _find_connection_file: Callable[[], str] = PrivateAttr()
-    _BlockingKernelClient: Callable[..., Any] = PrivateAttr()
+    _find_connection_file: Callable[[], str] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.find_connection_file
+    )
+    _BlockingKernelClient: Callable[..., Any] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.BlockingKernelClient
+    )
 
     def __init__(self, **data: Any):
         super().__init__(**data)
