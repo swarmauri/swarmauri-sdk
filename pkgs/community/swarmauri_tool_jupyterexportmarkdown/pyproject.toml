@@ -29,6 +29,7 @@ pytest-xdist = "^3.6.1"
 pytest-json-report = "^1.5.0"
 python-dotenv = "*"
 requests = "^2.32.3"
+nbconvert = "^7.16.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

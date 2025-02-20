@@ -19,9 +19,9 @@ def test_inheritance() -> None:
     """
     Test that JupyterExecuteNotebookTool inherits from the base class ToolBase.
     """
-    assert issubclass(JupyterExecuteNotebookTool, ToolBase), (
-        "JupyterExecuteNotebookTool should inherit from ToolBase."
-    )
+    assert issubclass(
+        JupyterExecuteNotebookTool, ToolBase
+    ), "JupyterExecuteNotebookTool should inherit from ToolBase."
 
 
 def test_default_attributes() -> None:
@@ -30,6 +30,7 @@ def test_default_attributes() -> None:
     """
     tool = JupyterExecuteNotebookTool()
     assert tool.version == "1.0.0", "Expected default version to be 1.0.0."
+<<<<<<< HEAD
     assert tool.name == "JupyterExecuteNotebookTool", (
         "Expected default name to be JupyterExecuteNotebookTool."
     )
@@ -39,11 +40,24 @@ def test_default_attributes() -> None:
     assert len(tool.parameters) == 2, (
         "Expected two default parameters (notebook_path, timeout)."
     )
+=======
+    assert (
+        tool.name == "JupyterExecuteNotebookTool"
+    ), "Expected default name to be JupyterExecuteNotebookTool."
+    assert (
+        tool.type == "JupyterExecuteNotebookTool"
+    ), "Expected tool type to be JupyterExecuteNotebookTool."
+    assert (
+        len(tool.parameters) == 2
+    ), "Expected two default parameters (notebook_path, timeout)."
+>>>>>>> cb142145 (Fix: Failing errors in Jupyter notebook)
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 @patch("nbformat.read")
-@patch("nbclient.NotebookClient")
+@patch(
+    "swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool.NotebookClient"
+)
 def test_call_executes_notebook(
     mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
 ) -> None:
@@ -63,9 +77,9 @@ def test_call_executes_notebook(
         mock_notebook, timeout=60, kernel_name="python3", allow_errors=True
     )
     client_instance.execute.assert_called_once()
-    assert result == mock_notebook, (
-        "Expected the tool to return the executed NotebookNode."
-    )
+    assert (
+        result == mock_notebook
+    ), "Expected the tool to return the executed NotebookNode."
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
@@ -84,14 +98,16 @@ def test_call_cell_execution_error(
     mock_notebook_client.return_value = client_instance
 
     # Configure the client to raise CellExecutionError
-    client_instance.execute.side_effect = CellExecutionError("Error in cell execution.")
+    client_instance.execute.side_effect = CellExecutionError(
+        "ErrorName", "ErrorValue", "Traceback"
+    )
 
     tool = JupyterExecuteNotebookTool()
     result = tool("fake_notebook.ipynb")
 
-    assert result == mock_notebook, (
-        "Even if a CellExecutionError occurs, the tool should return the notebook."
-    )
+    assert (
+        result == mock_notebook
+    ), "Even if a CellExecutionError occurs, the tool should return the notebook."
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
@@ -115,6 +131,12 @@ def test_call_unexpected_exception(
     tool = JupyterExecuteNotebookTool()
     result = tool("fake_notebook.ipynb")
 
+<<<<<<< HEAD
     assert result == mock_notebook, (
         "When an unexpected exception occurs, the tool should still return the notebook."
     )
+=======
+    assert (
+        result == mock_notebook
+    ), "When an unexpected exception occurs, the tool should still return the notebook."
+>>>>>>> cb142145 (Fix: Failing errors in Jupyter notebook)

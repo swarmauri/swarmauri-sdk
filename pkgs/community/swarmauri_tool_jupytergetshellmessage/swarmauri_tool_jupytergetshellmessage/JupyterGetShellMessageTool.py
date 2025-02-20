@@ -1,4 +1,4 @@
-from typing import List, Literal, Dict, Any
+from typing import ClassVar, List, Literal, Dict, Any
 import logging
 import time
 
@@ -9,17 +9,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.ComponentBase import ComponentBase
 
-
-"""
-JupyterGetShellMessageTool.py
-
-This module defines the JupyterGetShellMessageTool, a component that retrieves messages
-from the Jupyter kernel's shell channel. It leverages the ToolBase and ComponentBase
-classes from the swarmauri framework to integrate with the system's tool architecture.
-
-The JupyterGetShellMessageTool supports retrieving and parsing messages for diagnostic
-purposes. It includes timeout-based handling to avoid hanging during message retrieval.
-"""
+logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(ToolBase, "JupyterGetShellMessageTool")
@@ -28,13 +18,6 @@ class JupyterGetShellMessageTool(ToolBase):
     JupyterGetShellMessageTool is a tool designed to retrieve messages from the kernel's shell channel.
     It listens for shell messages within a specified timeout, logs them for diagnostics, and returns
     the structured messages.
-
-    Attributes:
-        version (str): The version of the JupyterGetShellMessageTool.
-        parameters (List[Parameter]): A list of parameters that configure message retrieval.
-        name (str): The name of the tool.
-        description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterGetShellMessageTool"]): The type identifier for the tool.
     """
 
     version: str = "1.0.0"
@@ -52,6 +35,10 @@ class JupyterGetShellMessageTool(ToolBase):
     description: str = "Retrieves messages from the Jupyter kernel's shell channel."
     type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
 
+    # Expose module-level functions/classes as class attributes for easier patching
+    find_connection_file: ClassVar = find_connection_file
+    BlockingKernelClient: ClassVar = BlockingKernelClient
+
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
         """
         Retrieves messages from the Jupyter kernel's shell channel within the specified timeout.
@@ -62,22 +49,13 @@ class JupyterGetShellMessageTool(ToolBase):
 
         Returns:
             Dict[str, Any]: A dictionary containing all retrieved shell messages or an error message.
-
-        Example:
-            >>> tool = JupyterGetShellMessageTool()
-            >>> result = tool(timeout=10.0)
-            >>> print(result)
-            {
-                'messages': [
-                    {'header': {...}, 'parent_header': {...}, 'metadata': {...}, 'content': {...}, 'buffers': [...]},
-                    ...
-                ]
-            }
         """
         messages = []
         try:
-            connection_file = find_connection_file()  # Find the kernel connection file
-            client = BlockingKernelClient(connection_file=connection_file)
+            connection_file = (
+                self.find_connection_file()
+            )  # Now uses the class attribute
+            client = self.BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
             client.start_channels()
 

@@ -14,12 +14,13 @@ def test_tool_initialization():
     assert (
         tool.description == "Executes code cells within a Jupyter kernel environment."
     )
-    assert tool.type == "JupyterExecuteCellTool", (
-        "Tool type should be 'JupyterExecuteCellTool'."
-    )
-    assert len(tool.parameters) == 2, (
-        "There should be two default parameters: code, timeout."
-    )
+
+    assert (
+        tool.type == "JupyterExecuteCellTool"
+    ), "Tool type should be 'JupyterExecuteCellTool'."
+    assert (
+        len(tool.parameters) == 2
+    ), "There should be two default parameters: code, timeout."
 
 
 def test_tool_parameters():
@@ -38,9 +39,9 @@ def test_tool_call_basic_execution():
     """
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello, world!')")
-    assert "Hello, world!" in result["stdout"], (
-        "Expected code execution output not found in stdout."
-    )
+    assert (
+        "Hello, world!" in result["stdout"]
+    ), "Expected code execution output not found in stdout."
     assert result["stderr"] == "", "stderr should be empty when executing valid code."
     assert result["error"] == "", "error should be empty when executing valid code."
 
@@ -51,9 +52,9 @@ def test_tool_call_syntax_error():
     """
     tool = JupyterExecuteCellTool()
     result = tool("print('Missing parenthesis'")
-    assert "SyntaxError" in result["error"], (
-        "Expected a SyntaxError in the error field."
-    )
+    assert (
+        "SyntaxError" in result["error"]
+    ), "Expected a SyntaxError in the error field."
     assert result["stderr"] != "", "stderr should capture syntax error details."
 
 
@@ -64,9 +65,10 @@ def test_tool_call_timeout():
     tool = JupyterExecuteCellTool()
     # This code sleeps for 3 seconds, but we enforce a 1-second timeout to trigger a timeout error.
     result = tool("import time; time.sleep(3)", timeout=1)
-    assert "Execution timed out after 1 seconds." in result["error"], (
-        "Expected timeout error message."
-    )
+    assert (
+        "Execution timed out after 1 seconds." in result["error"]
+    ), "Expected timeout error message."
+    
     assert result["stdout"] == "", "stdout should be empty on timeout."
     assert result["stderr"] == "", "stderr should be empty on timeout."
 
@@ -81,12 +83,12 @@ def test_tool_call_no_active_kernel(mock_ipython):
     """
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello')", timeout=1)
-    assert result["stderr"] == "No active IPython kernel found.", (
-        "Expected stderr to mention no active kernel."
-    )
-    assert result["error"] == "KernelNotFoundError", (
-        "Expected error to be 'KernelNotFoundError'."
-    )
+    assert (
+        result["stderr"] == "No active IPython kernel found."
+    ), "Expected stderr to mention no active kernel."
+    assert (
+        result["error"] == "KernelNotFoundError"
+    ), "Expected error to be 'KernelNotFoundError'."
     assert result["stdout"] == "", "stdout should be empty when no kernel is found."
 
 
@@ -102,13 +104,13 @@ def test_tool_call_exception_during_execution(mock_ipython):
 
     tool = JupyterExecuteCellTool()
     result = tool("print('Testing exception')")
-    assert "Mocked runtime error" in result["error"], (
-        "Expected mocked runtime error in the error field."
-    )
-    assert "RuntimeError" in result["error"], (
-        "Expected 'RuntimeError' text in error field."
-    )
+    assert (
+        "Mocked runtime error" in result["error"]
+    ), "Expected mocked runtime error in the error field."
+    assert (
+        "RuntimeError" in result["error"]
+    ), "Expected 'RuntimeError' text in error field."
     assert result["stderr"] != "", "stderr should capture exception details."
-    assert "Testing exception" not in result["stdout"], (
-        "stdout should not have content from failing command."
-    )
+    assert (
+        "Testing exception" not in result["stdout"]
+    ), "stdout should not have content from failing command."
