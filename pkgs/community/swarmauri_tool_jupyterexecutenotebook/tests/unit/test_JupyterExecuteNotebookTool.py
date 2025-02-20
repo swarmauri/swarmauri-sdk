@@ -30,17 +30,6 @@ def test_default_attributes() -> None:
     """
     tool = JupyterExecuteNotebookTool()
     assert tool.version == "1.0.0", "Expected default version to be 1.0.0."
-<<<<<<< HEAD
-    assert tool.name == "JupyterExecuteNotebookTool", (
-        "Expected default name to be JupyterExecuteNotebookTool."
-    )
-    assert tool.type == "JupyterExecuteNotebookTool", (
-        "Expected tool type to be JupyterExecuteNotebookTool."
-    )
-    assert len(tool.parameters) == 2, (
-        "Expected two default parameters (notebook_path, timeout)."
-    )
-=======
     assert (
         tool.name == "JupyterExecuteNotebookTool"
     ), "Expected default name to be JupyterExecuteNotebookTool."
@@ -50,7 +39,6 @@ def test_default_attributes() -> None:
     assert (
         len(tool.parameters) == 2
     ), "Expected two default parameters (notebook_path, timeout)."
->>>>>>> cb142145 (Fix: Failing errors in Jupyter notebook)
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
@@ -131,12 +119,6 @@ def test_call_unexpected_exception(
     tool = JupyterExecuteNotebookTool()
     result = tool("fake_notebook.ipynb")
 
-<<<<<<< HEAD
-    assert result == mock_notebook, (
-        "When an unexpected exception occurs, the tool should still return the notebook."
-    )
-=======
     assert (
         result == mock_notebook
     ), "When an unexpected exception occurs, the tool should still return the notebook."
->>>>>>> cb142145 (Fix: Failing errors in Jupyter notebook)

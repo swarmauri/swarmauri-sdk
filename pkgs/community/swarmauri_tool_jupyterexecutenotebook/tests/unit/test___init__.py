@@ -6,7 +6,6 @@ attribute.
 """
 
 
-
 def test_jupyter_execute_notebook_tool_exposed() -> None:
     """
     Test that JupyterExecuteNotebookTool is successfully exposed by the package.
@@ -71,18 +70,9 @@ def test_jupyter_execute_notebook_tool_methods() -> None:
 
     # Example of testing for a required method named 'execute_notebook'.
     # Replace with actual required methods in the real implementation.
-<<<<<<< HEAD
-    assert hasattr(tool_instance, "execute_notebook"), (
-        "JupyterExecuteNotebookTool must implement 'execute_notebook' method."
-    )
-    assert callable(tool_instance.execute_notebook), (
-        "The 'execute_notebook' attribute should be callable."
-    )
-=======
     assert hasattr(
         tool_instance, "execute_notebook"
     ), "JupyterExecuteNotebookTool must implement 'execute_notebook' method."
     assert callable(
         tool_instance.execute_notebook
     ), "The 'execute_notebook' attribute should be callable."
->>>>>>> cb142145 (Fix: Failing errors in Jupyter notebook)
