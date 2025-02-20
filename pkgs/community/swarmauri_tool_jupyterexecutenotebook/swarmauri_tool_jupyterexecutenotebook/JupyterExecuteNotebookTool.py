@@ -114,7 +114,7 @@ class JupyterExecuteNotebookTool(ToolBase):
                 notebook: NotebookNode = nbformat.read(f, nbformat.NO_CONVERT)
 
             # Create a client to execute the notebook
-            client = self.NotebookClient(
+            client = NotebookClient(
                 notebook,
                 timeout=timeout,
                 kernel_name="python3",
