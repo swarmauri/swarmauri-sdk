@@ -23,6 +23,8 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 nltk = "^3.9.1"
+transformers = "^4.45.0"
+
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

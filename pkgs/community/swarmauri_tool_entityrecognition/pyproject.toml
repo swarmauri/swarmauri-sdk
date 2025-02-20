@@ -22,8 +22,8 @@ swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branc
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
 # Dependencies
-transformers = ">=4.45.0"
-
+transformers = "^4.45.0"
+tensorflow = "^2.18.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
