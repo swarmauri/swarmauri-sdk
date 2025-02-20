@@ -1,9 +1,16 @@
 import pytest
-from unittest.mock import MagicMock
+import subprocess
+import atexit
+import time
 import swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool as ject
 from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import (
     JupyterExecuteCellTool,
 )
+
+
+class DummyGetIPython:
+    def __call__(self, *args, **kwargs):
+        return None
 
 
 def test_tool_initialization():
@@ -80,7 +87,7 @@ def test_tool_call_no_active_kernel(monkeypatch):
     Test that the tool reports an error when there is no active IPython kernel.
     """
     # Patch the module-level get_ipython in the JupyterExecuteCellTool module so that it returns None.
-    monkeypatch.setattr(ject, "get_ipython", lambda *args, **kwargs: None)
+    monkeypatch.setattr(JupyterExecuteCellTool, "get_ipython", DummyGetIPython())
 
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello')", timeout=1)
@@ -88,7 +95,7 @@ def test_tool_call_no_active_kernel(monkeypatch):
     # Expect the tool to signal that no kernel is active.
     assert (
         result["stderr"] == "No active IPython kernel found."
-    ), "Expected stderr to mention no active kernel."
+    ), "Expected stderr to indicate no active IPython kernel."
     assert (
         result["error"] == "KernelNotFoundError"
     ), "Expected error to be 'KernelNotFoundError'."
