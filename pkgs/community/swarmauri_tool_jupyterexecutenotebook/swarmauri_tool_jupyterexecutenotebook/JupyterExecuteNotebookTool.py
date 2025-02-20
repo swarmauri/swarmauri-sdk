@@ -49,13 +49,13 @@ class JupyterExecuteNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_path",
-                type="string",
+                input_type="string",
                 description="The path to the Jupyter notebook to be executed.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Maximum time (in seconds) for each cell to execute. Defaults to 30.",
                 required=False,
             ),
