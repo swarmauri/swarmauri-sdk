@@ -56,7 +56,7 @@ def test_call_method_with_messages() -> None:
 
     with patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
-        return_value="/path/to/fake/connection_file.json",
+        return_value="fake_connection_file",
     ), patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
     ) as MockClient:
@@ -86,7 +86,7 @@ def test_call_method_exception_handling() -> None:
     # Here we force find_connection_file to raise an exception.
     with patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
-        side_effect=RuntimeError("Test Error"),
+        return_value="fake_connection_file",
     ), patch(
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
         side_effect=RuntimeError("Test Error"),
