@@ -38,7 +38,7 @@ class JupyterExportLatexTool(ToolBase):
             ),
             Parameter(
                 name="use_custom_template",
-                type="boolean",
+                input_type="boolean",
                 description="Whether or not to use a custom LaTeX template.",
                 required=False,
             ),
