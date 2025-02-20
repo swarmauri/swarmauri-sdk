@@ -88,8 +88,8 @@ def test_call_method_exception_handling() -> None:
         "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
         side_effect=RuntimeError("Test Error"),
     ), patch(
-        "glob.glob",
-        return_value=["/path/to/fake/connection_file.json"],
+        "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+        side_effect=RuntimeError("Test Error"),
     ):
         tool = JupyterGetShellMessageTool()
         result = tool()
