@@ -41,7 +41,7 @@ class JupyterValidateNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook",
-                type="object",
+                input_type="object",
                 description="A Jupyter NotebookNode object to validate.",
                 required=True,
             ),
