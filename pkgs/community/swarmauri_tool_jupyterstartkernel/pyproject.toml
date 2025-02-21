@@ -24,6 +24,7 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 jupyter_client = "^8.6.3"
+ipykernel = "^6.29.5"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

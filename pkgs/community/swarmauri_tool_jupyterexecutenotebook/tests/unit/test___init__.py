@@ -18,9 +18,9 @@ def test_jupyter_execute_notebook_tool_exposed() -> None:
     from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
 
     # Check if the imported object is callable (i.e., a class).
-    assert callable(JupyterExecuteNotebookTool), (
-        "JupyterExecuteNotebookTool should be a callable class."
-    )
+    assert callable(
+        JupyterExecuteNotebookTool
+    ), "JupyterExecuteNotebookTool should be a callable class."
 
 
 def test_package_version_exposed() -> None:
@@ -47,13 +47,13 @@ def test_jupyter_execute_notebook_tool_inherits_base_class() -> None:
     """
     from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
     from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
-        BaseTool,
+        ToolBase,
     )
 
     # Check subclass relationship to the base class.
-    assert issubclass(JupyterExecuteNotebookTool, BaseTool), (
-        "JupyterExecuteNotebookTool must inherit from BaseTool."
-    )
+    assert issubclass(
+        JupyterExecuteNotebookTool, ToolBase
+    ), "JupyterExecuteNotebookTool must inherit from BaseTool."
 
 
 def test_jupyter_execute_notebook_tool_methods() -> None:
@@ -70,9 +70,9 @@ def test_jupyter_execute_notebook_tool_methods() -> None:
 
     # Example of testing for a required method named 'execute_notebook'.
     # Replace with actual required methods in the real implementation.
-    assert hasattr(tool_instance, "execute_notebook"), (
-        "JupyterExecuteNotebookTool must implement 'execute_notebook' method."
-    )
-    assert callable(tool_instance.execute_notebook), (
-        "The 'execute_notebook' attribute should be callable."
-    )
+    assert hasattr(
+        tool_instance, "execute_notebook"
+    ), "JupyterExecuteNotebookTool must implement 'execute_notebook' method."
+    assert callable(
+        tool_instance.execute_notebook
+    ), "The 'execute_notebook' attribute should be callable."
