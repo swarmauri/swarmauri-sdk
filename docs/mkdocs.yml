@@ -112,24 +112,58 @@ copyright: Copyright &copy; 2025 Swarmauri
 nav:
 - Home: 
   - index.md
-  - Concepts: home/concepts.md
+  - Why Use Swarmauri: home/why_use_swarmauri.md
   - Installation & Setup: home/installation.md
   - Contributing: home/contribute.md
   - Get Help: home/help.md
 
-- Announcements:
-  - news/index.md
 - Guide:
+  - guide/index.md
   - Installation: guide/installation.md
   - Usage: guide/usage.md
-- Foundation:
-  - foundation/index.md
-  - Core: api/module1.md
-  - Base: api/module2.md
-  - Standard: api/module2.md
-  - Swarmauri: api/module2.md
-- Standalone:
-  - standalone/index.md
-  - First Class: api/module2.md
-  - Second Class: api/module2.md
-  - Third Class: api/module2.md
+  - Courses:
+    - guide/intro.md
+    - Entry: guide/course/1.md
+    - Generative AI: guide/course/2.md
+    - Tool: guide/course/3.md
+  - FAQ: guide/faq.md
+
+- Concept:
+  - concept/index.md
+  - Core: concept/core.md
+  - Base: concept/base.md
+  - Standard: concept/standard.md
+  - Swarmauri: concept/swarmauri.md
+
+- API Documentation:
+  - api/index.md
+  - First Class:
+    - api/first_class/index.md
+    - Module 1: api/first_class.md/module1.md
+    - Module 2: api/first_class.md/module2.md
+  - Second Class:
+    - api/second_class/index.md
+    - Module 1: api/second_class.md/module1.md
+    - Module 2: api/second_class.md/module2.md
+  - Third Class:
+    - api/third_class/index.md
+    - Module 1: api/third_class.md/module1.md
+    - Module 2: api/third_class.md/module2.md
+  - Base:
+    - api/base/index.md
+    - Module 1: api/base/module1.md
+    - Module 2: api/base/module2.md
+  - Core:
+    - api/core/index.md
+    - Module 1: api/core/module1.md
+    - Module 2: api/core/module2.md
+  
+
+- Blog:
+  - blog/index.md
+  - News: blog/news.md
+  - Events: blog/events.md
+  - Releases: blog/releases.md
+  
+- Swarmauri People: people/index.md
+
