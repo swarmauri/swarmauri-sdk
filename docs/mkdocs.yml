@@ -95,11 +95,27 @@ extra:
     link: /en/
     lang: en
 
+  social:
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/swarmauri
+    - icon: fontawesome/brands/youtube
+      link: https://youtube.com/@swarmauri
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/swarmauri
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/swarmauri
+    - icon: fontawesome/brands/github
+      link: https://github.com/swarmauri/swarmauri-sdk
+
+copyright: Copyright &copy; 2025 Swarmauri
+
 nav:
 - Home: 
-  - home/index.md
+  - index.md
   - Concepts: home/concepts.md
   - Installation & Setup: home/installation.md
+  - Contributing: home/contribute.md
+  - Get Help: home/help.md
 
 - Announcements:
   - news/index.md
