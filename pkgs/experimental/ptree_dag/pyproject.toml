@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_ptree_dag"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"

@@ -72,7 +72,6 @@ class JupyterExecuteCellTool(ToolBase):
         Returns the active IPython kernel instance.
         This method is defined as a static method to facilitate patching during tests.
         """
-        from IPython import get_ipython
 
         return get_ipython()
 
