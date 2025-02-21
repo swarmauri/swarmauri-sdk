@@ -32,14 +32,14 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, ConfigD
 ###########################################
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.INFO)
-logger.propagate = False
-if not logger.handlers:
+glogger = logging.getLogger(__name__)
+glogger.setLevel(level=logging.INFO)
+glogger.propagate = False
+if not glogger.handlers:
     console_handler = logging.StreamHandler()
     formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
     console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    glogger.addHandler(console_handler)
 
 
 ###########################################
@@ -82,7 +82,7 @@ class SubclassUnion(type):
             ComponentBase._TYPE_REGISTRY.get(parent_class, {}).values()
         )
         if not registered_classes:
-            logger.debug(
+            glogger.debug(
                 f"No subclasses registered for parent class '{parent_class.__name__}'. Using 'Any' as a placeholder."
             )
             return Annotated[Any, Field(...), SubclassUnionMetadata(parent_class)]
@@ -323,7 +323,7 @@ class ComponentBase(BaseModel):
         Returns:
         - True if SubclassUnion or SubclassUnionMetadata is present, False otherwise.
         """
-        logger.debug(
+        glogger.debug(
             f"Checking if field annotation '{field_annotation}' contains a SubclassUnion or SubclassUnionMetadata"
         )
 
@@ -334,24 +334,24 @@ class ComponentBase(BaseModel):
         if origin is Annotated:
             for arg in args:
                 if isinstance(arg, SubclassUnionMetadata):
-                    logger.debug(
+                    glogger.debug(
                         f"Annotated field contains SubclassUnionMetadata metadata for resource '{arg.parent_class.__name__}'"
                     )
                     return True
                 if cls._field_contains_subclass_union(arg):
-                    logger.debug(f"Annotated field contains SubclassUnion in '{arg}'")
+                    glogger.debug(f"Annotated field contains SubclassUnion in '{arg}'")
                     return True
 
         # Check for container types (List, Union, Dict)
         if origin in {Union, List, Dict, Set, Tuple, Optional}:
             for arg in args:
                 if cls._field_contains_subclass_union(arg):
-                    logger.debug(
+                    glogger.debug(
                         f"Container field '{field_annotation}' contains SubclassUnion in its arguments"
                     )
                     return True
 
-        logger.debug(
+        glogger.debug(
             f"Field annotation '{field_annotation}' does not contain SubclassUnion or SubclassUnionMetadata"
         )
         return False
@@ -369,7 +369,7 @@ class ComponentBase(BaseModel):
         Returns:
         - A list of resource type classes.
         """
-        logger.debug(
+        glogger.debug(
             f"Extracting resource types from field annotation '{field_annotation}'"
         )
         parent_classes = []
@@ -381,7 +381,7 @@ class ComponentBase(BaseModel):
                 for arg in args[1:]:  # Skip the first argument which is the main type
                     if isinstance(arg, SubclassUnionMetadata):
                         parent_classes.append(arg.parent_class)
-                        logger.debug(
+                        glogger.debug(
                             f"Found SubclassUnionMetadata metadata with resource type '{arg.parent_class.__name__}'"
                         )
                     else:
@@ -395,7 +395,7 @@ class ComponentBase(BaseModel):
 
             return parent_classes
         except TypeError as e:
-            logger.error(
+            glogger.error(
                 f"TypeError while extracting resource types from field annotation '{field_annotation}': {e}"
             )
             return parent_classes
@@ -412,7 +412,7 @@ class ComponentBase(BaseModel):
         Returns:
         - The updated type annotation incorporating SubclassUnion.
         """
-        logger.debug(
+        glogger.debug(
             f"Determining new type for field annotation '{field_annotation}' with resource type '{parent_class.__name__}'"
         )
         try:
@@ -431,20 +431,20 @@ class ComponentBase(BaseModel):
                     is_optional = True
                 else:
                     # Multiple non-None types, complex Union
-                    logger.warning(
+                    glogger.warning(
                         f"Field annotation '{field_annotation}' has multiple non-None Union types; optionality may not be preserved correctly."
                     )
 
             # Handle Annotated
             if origin is Annotated:
                 base_type = args[0]
-                logger.debug(f"Base type for field: {base_type}")
+                glogger.debug(f"Base type for field: {base_type}")
                 metadata = [
                     arg for arg in args[1:] if not isinstance(arg, SubclassUnionMetadata)
                 ]
                 # Append the new SubclassUnionMetadata
                 metadata.append(SubclassUnionMetadata(parent_class))
-                logger.debug(
+                glogger.debug(
                     f"Preserving existing metadata and adding SubclassUnionMetadata for resource '{parent_class.__name__}'"
                 )
                 field_annotation = Annotated[tuple([base_type, *metadata])]
@@ -458,10 +458,10 @@ class ComponentBase(BaseModel):
             else:
                 new_type = subclass_union
 
-            logger.debug(f"New type for field: {new_type}")
+            glogger.debug(f"New type for field: {new_type}")
             return new_type
         except TypeError as e:
-            logger.error(
+            glogger.error(
                 f"TypeError while determining new type for field annotation '{field_annotation}': {e}"
             )
             return field_annotation  # Fallback to original type if error occurs
@@ -607,30 +607,30 @@ class ComponentBase(BaseModel):
                         original_type = model_class.model_fields[field_name].annotation
                         if original_type != new_type:
                             model_class.model_fields[field_name].annotation = new_type
-                            logger.debug(
+                            glogger.debug(
                                 f"Updated field '{field_name}' in model '{model_class.__name__}' from '{original_type}' to '{new_type}'"
                             )
                         else:
-                            logger.debug(
+                            glogger.debug(
                                 f"No change for field '{field_name}' in model '{model_class.__name__}'"
                             )
                     else:
-                        logger.error(
+                        glogger.error(
                             f"Field '{field_name}' does not exist in model '{model_class.__name__}'"
                         )
                         continue  # Skip to next field
 
                 try:
                     model_class.model_rebuild(force=True)
-                    logger.debug(
+                    glogger.debug(
                         f"'{model_class.__name__}' has been successfully recreated."
                     )
                 except ValidationError as ve:
-                    logger.error(
+                    glogger.error(
                         f"Validation error while rebuilding model '{model_class.__name__}': {ve}"
                     )
                 except Exception as e:
-                    logger.error(
+                    glogger.error(
                         f"Error while rebuilding model '{model_class.__name__}': {e}"
                     )
             logger.info("All models have been successfully recreated.")
@@ -725,14 +725,14 @@ class ComponentBase(BaseModel):
                 if canonical_resource_type not in cls._TYPE_REGISTRY:
                     cls._TYPE_REGISTRY[canonical_resource_type] = {}
                 if resolved_type_name in cls._TYPE_REGISTRY[canonical_resource_type]:
-                    logger.info(
+                    glogger.info(
                         f"Type '{resolved_type_name}' for resource '{canonical_resource_type.__name__}' is already registered; skipping duplicate registration."
                     )
                     continue  # Skip duplicate registration for this resource type.
                 cls._TYPE_REGISTRY[canonical_resource_type][resolved_type_name] = (
                     subclass
                 )
-                logger.info(
+                glogger.info(
                     f"Registered type '{resolved_type_name}' for resource '{canonical_resource_type.__name__}' with subclass '{subclass.__name__}'"
                 )
             cls._recreate_models()
@@ -751,7 +751,7 @@ class ComponentBase(BaseModel):
             # Check if any already-registered model has the same __name__.
             for registered_model in cls._MODEL_REGISTRY:
                 if registered_model.__name__ == model_cls.__name__:
-                    logger.info(
+                    glogger.info(
                         f"Model '{model_cls.__name__}' is already registered; skipping duplicate registration."
                     )
                     return model_cls
@@ -775,11 +775,11 @@ class ComponentBase(BaseModel):
                         # Add to the set (automatically avoids duplicates).
                         if resource_type not in cls._MODEL_REGISTRY[model_cls]:
                             cls._MODEL_REGISTRY[model_cls].add(resource_type)
-                            logger.info(
+                            glogger.info(
                                 f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'"
                             )
                         else:
-                            logger.debug(
+                            glogger.debug(
                                 f"Resource '{resource_type.__name__}' already registered for model '{model_cls.__name__}', skipping duplicate."
                             )
             # Convert the set back to a list if needed by downstream code.
