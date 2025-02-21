@@ -54,13 +54,13 @@ T = TypeVar("T", bound="ComponentBase")
 ###########################################
 
 
-class ResourceType:
+class SubclassUnionMetadata:
     """
     Metadata class to hold resource type information for Annotated fields.
     """
 
-    def __init__(self, resource_type: Type["ComponentBase"]):
-        self.resource_type = resource_type
+    def __init__(self, parent_class: Type["ComponentBase"]):
+        self.parent_class = parent_class
 
 
 class SubclassUnion(type):
@@ -68,28 +68,28 @@ class SubclassUnion(type):
     A generic class to create discriminated unions based on resource types.
     """
 
-    def __class_getitem__(cls, resource_type: Type[T]) -> type:
+    def __class_getitem__(cls, parent_class: Type[T]) -> type:
         """
-        Allows usage of SubclassUnion[ResourceType] to get the corresponding discriminated Union.
+        Allows usage of SubclassUnion[parent_class] to get the corresponding discriminated Union.
 
         Parameters:
-        - resource_type: The base class of the resource (e.g., Shape, Kind).
+        - parent_class: The parent class of the resource (e.g., Shape, Kind).
 
         Returns:
-        - An Annotated Union of all subclasses registered under the resource_type, with 'type' as the discriminator.
+        - An Annotated Union of all subclasses registered under the parent_class, with 'type' as the discriminator.
         """
         registered_classes = list(
-            ComponentBase._TYPE_REGISTRY.get(resource_type, {}).values()
+            ComponentBase._TYPE_REGISTRY.get(parent_class, {}).values()
         )
         if not registered_classes:
             logger.debug(
-                f"No subclasses registered for resource type '{resource_type.__name__}'. Using 'Any' as a placeholder."
+                f"No subclasses registered for parent class '{parent_class.__name__}'. Using 'Any' as a placeholder."
             )
-            return Annotated[Any, Field(...), ResourceType(resource_type)]
+            return Annotated[Any, Field(...), SubclassUnionMetadata(parent_class)]
         else:
             union_type = Union[tuple(registered_classes)]
         return Annotated[
-            union_type, Field(discriminator="type"), ResourceType(resource_type)
+            union_type, Field(discriminator="type"), SubclassUnionMetadata(parent_class)
         ]
 
 
@@ -298,33 +298,33 @@ class ComponentBase(BaseModel):
 
     @classmethod
     def _get_class_by_type(
-        cls, resource_type: Type[T], type_name: str
+        cls, parent_class: Type[T], type_name: str
     ) -> Type["ComponentBase"]:
         """
         Retrieve a component class based on its resource type and type name.
 
         Parameters:
-        - resource_type: The base class of the resource.
+        - parent_class: The base class of the resource.
         - type_name: The string identifier for the component type.
 
         Returns:
         - The corresponding component class.
         """
-        return cls._TYPE_REGISTRY.get(resource_type, {}).get(type_name)
+        return cls._TYPE_REGISTRY.get(parent_class, {}).get(type_name)
 
     @classmethod
     def _field_contains_subclass_union(cls, field_annotation) -> bool:
         """
-        Check if the field annotation contains a SubclassUnion or associated ResourceType metadata.
+        Check if the field annotation contains a SubclassUnion or associated SubclassUnionMetadata metadata.
 
         Parameters:
         - field_annotation: The type annotation of the field.
 
         Returns:
-        - True if SubclassUnion or ResourceType is present, False otherwise.
+        - True if SubclassUnion or SubclassUnionMetadata is present, False otherwise.
         """
         logger.debug(
-            f"Checking if field annotation '{field_annotation}' contains a SubclassUnion or ResourceType"
+            f"Checking if field annotation '{field_annotation}' contains a SubclassUnion or SubclassUnionMetadata"
         )
 
         origin = get_origin(field_annotation)
@@ -333,9 +333,9 @@ class ComponentBase(BaseModel):
         # Check for Annotated fields
         if origin is Annotated:
             for arg in args:
-                if isinstance(arg, ResourceType):
+                if isinstance(arg, SubclassUnionMetadata):
                     logger.debug(
-                        f"Annotated field contains ResourceType metadata for resource '{arg.resource_type.__name__}'"
+                        f"Annotated field contains SubclassUnionMetadata metadata for resource '{arg.parent_class.__name__}'"
                     )
                     return True
                 if cls._field_contains_subclass_union(arg):
@@ -352,7 +352,7 @@ class ComponentBase(BaseModel):
                     return True
 
         logger.debug(
-            f"Field annotation '{field_annotation}' does not contain SubclassUnion or ResourceType"
+            f"Field annotation '{field_annotation}' does not contain SubclassUnion or SubclassUnionMetadata"
         )
         return False
 
@@ -379,10 +379,10 @@ class ComponentBase(BaseModel):
 
             if origin is Annotated:
                 for arg in args[1:]:  # Skip the first argument which is the main type
-                    if isinstance(arg, ResourceType):
+                    if isinstance(arg, SubclassUnionMetadata):
                         resource_types.append(arg.resource_type)
                         logger.debug(
-                            f"Found ResourceType metadata with resource type '{arg.resource_type.__name__}'"
+                            f"Found SubclassUnionMetadata metadata with resource type '{arg.resource_type.__name__}'"
                         )
                     else:
                         resource_types.extend(
@@ -440,12 +440,12 @@ class ComponentBase(BaseModel):
                 base_type = args[0]
                 logger.debug(f"Base type for field: {base_type}")
                 metadata = [
-                    arg for arg in args[1:] if not isinstance(arg, ResourceType)
+                    arg for arg in args[1:] if not isinstance(arg, SubclassUnionMetadata)
                 ]
-                # Append the new ResourceType
-                metadata.append(ResourceType(resource_type))
+                # Append the new SubclassUnionMetadata
+                metadata.append(SubclassUnionMetadata(resource_type))
                 logger.debug(
-                    f"Preserving existing metadata and adding ResourceType for resource '{resource_type.__name__}'"
+                    f"Preserving existing metadata and adding SubclassUnionMetadata for resource '{resource_type.__name__}'"
                 )
                 field_annotation = Annotated[tuple([base_type, *metadata])]
 
