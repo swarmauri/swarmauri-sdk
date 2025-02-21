@@ -52,11 +52,26 @@ Swarmauri SDK consists of four main packages:
 Getting started with Swarmauri SDK is simple:
 
 ```console
-
 pip install swarmauri
 ```
 
-## Usage
+### Setting Up Environment Variables
+
+Before using Swarmauri SDK, you need to set up your environment variables for API keys. You can do this by adding the following lines to your `.env` file or exporting them directly in your terminal:
+
+```sh
+export GROQ_API_KEY=your_api_key_here
+```
+
+Or, if you are using a `.env` file, add:
+
+```env
+GROQ_API_KEY=your_api_key_here
+```
+
+Make sure to replace `your_api_key_here` with your actual API key.
+
+### Example Usage
 
 Here's a quick example of using Swarmauri SDK with a conversational agent:
 
@@ -114,7 +129,7 @@ Here are some recommended next steps to continue your journey with Swarmauri SDK
 1. **Explore the Tutorials**: Check out our [step-by-step tutorials](../tutorials/index.md)
 2. **Read the API Documentation**: Dive into our [detailed API reference](../api/index.md)
 3. **Join the Community**: Connect with other developers in our [Discord server](https://discord.gg/swarmauri)
-4. **Contribute**: Learn how to [contribute to the project](../contributing.md)
+4. **Contribute**: Learn how to [contribute to the project](./home/contribute.md)
 5. **Stay Updated**: Follow our [blog](../blog/index.md) for the latest updates
 
 For more detailed information, visit our [comprehensive documentation](https://docs.swarmauri.com).
