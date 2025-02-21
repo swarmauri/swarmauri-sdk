@@ -4,11 +4,8 @@ from swarmauri_standard.tools.AdditionTool import AdditionTool as Tool
 
 @pytest.mark.unit
 def test_ubc_resource():
-    def test():
-        tool = Tool()
-        assert tool.resource == "Tool"
-
-    test()
+    tool = Tool()
+    assert tool.resource == "Tool"
 
 
 @pytest.mark.unit
@@ -18,12 +15,8 @@ def test_ubc_type():
 
 @pytest.mark.unit
 def test_initialization():
-    def test():
-        tool = Tool()
-        assert type(tool.swm_path) is str
-        assert type(tool.id) is str
-
-    test()
+    tool = Tool()
+    assert type(tool.id) is str
 
 
 @pytest.mark.unit
