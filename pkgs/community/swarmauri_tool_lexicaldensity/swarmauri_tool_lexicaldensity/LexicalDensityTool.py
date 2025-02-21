@@ -18,7 +18,7 @@ class LexicalDensityTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for which to calculate the Lexical Density.",
                 required=True,
             )

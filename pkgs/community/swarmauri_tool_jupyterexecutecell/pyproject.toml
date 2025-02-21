@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterexecutecell"
-version = "0.6.1"
+version = "0.6.2.dev3"
 description = "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -25,6 +25,8 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 # Dependencies
 jupyter_client = "^8.6.3"
 IPython = "^8.32.0"
+ipykernel = "6.29.5"
+pydantic = "2.10.6"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

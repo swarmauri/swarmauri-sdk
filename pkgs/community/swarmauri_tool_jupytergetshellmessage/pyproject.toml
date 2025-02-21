@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupytergetshellmessage"
-version = "0.6.1"
+version = "0.6.2.dev3"
 description = "A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -24,6 +24,7 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 jupyter_client = "^8.6.3"
+ipykernel = "^6.29.5"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"
@@ -54,3 +55,6 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.plugins."swarmauri.tools"]
 jupytergetshellmessagetool = "swarmauri_tool_jupytergetshellmessage:JupyterGetShellMessageTool"
+
+[tool.poetry.scripts]
+install_kernel = "swarmauri_tool_jupytergetshellmessage.install_kernel:main"

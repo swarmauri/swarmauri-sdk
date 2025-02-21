@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_jupyterstartkernel"
-version = "0.6.1"
+version = "0.6.2.dev3"
 description = "A tool designed to start a new Jupyter kernel programmatically using jupyter_client, enabling execution of notebook cells."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -24,6 +24,7 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 jupyter_client = "^8.6.3"
+ipykernel = "^6.29.5"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

@@ -22,7 +22,7 @@ class EntityRecognitionTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for entity recognition",
                 required=True,
             )

@@ -14,13 +14,13 @@ class WebScrapingTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="url",
-                type="string",
+                input_type="string",
                 description="URL of the link, website, webpage, etc... to scrape",
                 required=True,
             ),
             Parameter(
                 name="selector",
-                type="string",
+                input_type="string",
                 description="CSS selector to target specific elements",
                 required=True,
             ),

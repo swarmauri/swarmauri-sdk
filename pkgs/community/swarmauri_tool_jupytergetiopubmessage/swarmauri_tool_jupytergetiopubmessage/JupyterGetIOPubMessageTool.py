@@ -28,13 +28,13 @@ class JupyterGetIOPubMessageTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="kernel_client",
-                type="object",
+                input_type="object",
                 description="A Jupyter kernel client instance used to retrieve IOPub messages.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Time (in seconds) to wait for incoming IOPub messages before timing out.",
                 required=False,
                 default=5.0,

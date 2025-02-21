@@ -15,7 +15,7 @@ class AnthropicSchemaConverter(SchemaConverterBase):
 
         for param in tool.parameters:
             properties[param.name] = {
-                "type": param.type,
+                "type": param.input_type,
                 "description": param.description,
             }
             if param.required:

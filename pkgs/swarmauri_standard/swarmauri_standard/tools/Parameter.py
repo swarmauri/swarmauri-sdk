@@ -5,7 +5,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ParameterBase, "Parameter")
 class Parameter(ParameterBase):
-    type: Union[
+    input_type: Union[
         Literal["string", "number", "boolean", "array", "object"],
         str,
         List[str],

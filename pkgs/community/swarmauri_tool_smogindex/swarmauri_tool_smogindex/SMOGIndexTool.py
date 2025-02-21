@@ -21,7 +21,7 @@ class SMOGIndexTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text to analyze for SMOG Index",
                 required=True,
             )

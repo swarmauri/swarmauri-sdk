@@ -47,17 +47,10 @@ def test_jupyter_execute_cell_tool_inherit_base_class() -> None:
     Note:
     Replace 'ExpectedBaseClass' with the actual base class name if different.
     """
+    from swarmauri_base.tools.ToolBase import ToolBase
 
-    # For demonstration only; adjust to match actual base class usage.
-    class ExpectedBaseClass:
-        """
-        A placeholder base class to demonstrate inheritance checking.
-        Replace this with the actual base class used by JupyterExecuteCellTool.
-        """
-
-    # Check whether JupyterExecuteCellTool is a subclass of the placeholder base class.
     # Adjust as appropriate to reflect the real inheritance hierarchy.
-    assert issubclass(JupyterExecuteCellTool, ExpectedBaseClass), (
+    assert issubclass(JupyterExecuteCellTool, ToolBase), (
         "JupyterExecuteCellTool should inherit from the expected base class."
     )
 

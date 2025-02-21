@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri_tool_smogindex"
-version = "0.6.1"
+version = "0.6.2.dev3"
 description = "Swarmauri Smog Index Tool."
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
@@ -23,6 +23,8 @@ swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", b
 
 # Dependencies
 nltk = "^3.9.1"
+transformers = "^4.45.0"
+
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0"

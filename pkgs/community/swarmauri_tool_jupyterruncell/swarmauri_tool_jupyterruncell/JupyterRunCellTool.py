@@ -52,13 +52,13 @@ class JupyterRunCellTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="code",
-                type="string",
+                input_type="string",
                 description="The Python code to run in the IPython cell.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Optional timeout (in seconds) for the code execution. Default is 0 (no timeout).",
                 required=False,
                 default=0,

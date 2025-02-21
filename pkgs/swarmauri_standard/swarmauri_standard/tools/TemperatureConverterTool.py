@@ -12,21 +12,21 @@ class TemperatureConverterTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="from_unit",
-                type="string",
+                input_type="string",
                 description="The unit of the input temperature ('celsius', 'fahrenheit', 'kelvin').",
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),
             Parameter(
                 name="to_unit",
-                type="string",
+                input_type="string",
                 description="The unit to convert the temperature to ('celsius', 'fahrenheit', 'kelvin').",
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),
             Parameter(
                 name="value",
-                type="number",
+                input_type="number",
                 description="The temperature value to convert.",
                 required=True,
             ),

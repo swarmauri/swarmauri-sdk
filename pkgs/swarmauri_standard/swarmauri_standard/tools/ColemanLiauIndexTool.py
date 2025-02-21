@@ -25,7 +25,7 @@ class ColemanLiauIndexTool(ToolBase):
     parameters: List[Parameter] = [
         Parameter(
             name="input_text",
-            type="string",
+            input_type="string",
             description="The input text for which to calculate the CLI.",
             required=True,
         )

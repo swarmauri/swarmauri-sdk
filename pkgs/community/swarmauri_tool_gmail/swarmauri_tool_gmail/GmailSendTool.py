@@ -19,19 +19,19 @@ class GmailSendTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="recipients",
-                type="string",
+                input_type="string",
                 description="The email addresses of the recipients, separated by commas",
                 required=True,
             ),
             Parameter(
                 name="subject",
-                type="string",
+                input_type="string",
                 description="The subject of the email",
                 required=True,
             ),
             Parameter(
                 name="htmlMsg",
-                type="string",
+                input_type="string",
                 description="The HTML message to be sent as the email body",
                 required=True,
             ),

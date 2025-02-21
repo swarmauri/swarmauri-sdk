@@ -24,25 +24,25 @@ class MatplotlibCsvTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="csv_file",
-                type="string",
+                input_type="string",
                 description="The path to the CSV file containing the data.",
                 required=True,
             ),
             Parameter(
                 name="x_column",
-                type="string",
+                input_type="string",
                 description="The name of the column to use for the x-axis.",
                 required=True,
             ),
             Parameter(
                 name="y_column",
-                type="string",
+                input_type="string",
                 description="The name of the column to use for the y-axis.",
                 required=True,
             ),
             Parameter(
                 name="output_file",
-                type="string",
+                input_type="string",
                 description="The filename where the plot will be saved.",
                 required=True,
             ),

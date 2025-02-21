@@ -21,7 +21,7 @@ class QrCodeGeneratorTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="data",
-                type="string",
+                input_type="string",
                 description="The data to encode in the QR code.",
                 required=True,
             ),

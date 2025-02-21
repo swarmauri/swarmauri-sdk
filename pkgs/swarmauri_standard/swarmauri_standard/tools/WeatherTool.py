@@ -12,13 +12,13 @@ class WeatherTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="location",
-                type="string",
+                input_type="string",
                 description="The location for which to fetch weather information",
                 required=True,
             ),
             Parameter(
                 name="unit",
-                type="string",
+                input_type="string",
                 description="The unit for temperature ('fahrenheit' or 'celsius')",
                 required=True,
                 enum=["fahrenheit", "celsius"],

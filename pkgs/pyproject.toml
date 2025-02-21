@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swarmauri-monorepo"
-version = "0.6.1"
+version = "0.6.2.dev3"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 # Disables packaging mode
@@ -106,12 +106,14 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-norecursedirs = ["tooling"]
+norecursedirs = ["experimental"]
 asyncio_mode = "auto"
 
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
     "integration: Integration tests",
     "acceptance: Acceptance tests",
     "experimental: Experimental tests",

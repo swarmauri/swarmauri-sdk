@@ -47,11 +47,11 @@ def test_jupyter_execute_notebook_tool_inherits_base_class() -> None:
     """
     from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
     from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
-        BaseTool,
+        ToolBase,
     )
 
     # Check subclass relationship to the base class.
-    assert issubclass(JupyterExecuteNotebookTool, BaseTool), (
+    assert issubclass(JupyterExecuteNotebookTool, ToolBase), (
         "JupyterExecuteNotebookTool must inherit from BaseTool."
     )
 

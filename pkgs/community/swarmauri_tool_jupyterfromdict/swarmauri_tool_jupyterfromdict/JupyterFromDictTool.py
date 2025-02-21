@@ -38,7 +38,7 @@ class JupyterFromDictTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_dict",
-                type="object",
+                input_type="object",
                 description="The dictionary representing the notebook structure.",
                 required=True,
             )

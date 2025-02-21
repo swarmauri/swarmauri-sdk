@@ -13,20 +13,20 @@ class CodeExtractorTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="file_name",
-                type="string",
+                input_type="string",
                 description="The name of the Python file to extract code from.",
                 required=True,
             ),
             Parameter(
                 name="extract_documentation",
-                type="bool",
+                input_type="bool",
                 description="Whether to start extracting code from the documentation string.",
                 required=False,
                 default=True,
             ),
             Parameter(
                 name="to_be_ignored",
-                type="list",
+                input_type="list",
                 description="A list of function or variable names to be ignored during code extraction.",
                 required=False,
                 default=[],

@@ -15,25 +15,25 @@ class GithubBranchTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="action",
-                type="string",
+                input_type="string",
                 description="The action to perform on the GitHub API, e.g., 'create_repo', 'delete_repo', 'create_issue', etc.",
                 required=True,
             ),
             Parameter(
                 name="repo_name",
-                type="string",
+                input_type="string",
                 description="The full name of the repository to interact with, e.g. 'owner/repository'.",
                 required=True,
             ),
             Parameter(
                 name="branch_name",
-                type="string",
+                input_type="string",
                 description="The name of the branch to interact with.",
                 required=False,
             ),
             Parameter(
                 name="source_branch",
-                type="string",
+                input_type="string",
                 description="The name of the source branch to create a branch from.",
                 required=False,
             ),

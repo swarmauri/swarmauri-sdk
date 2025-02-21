@@ -31,7 +31,7 @@ class GeminiSchemaConverter(SchemaConverterBase):
 
         for param in tool.parameters:
             properties[param.name] = {
-                "type": self.convert_type(param.type),
+                "type": self.convert_type(param.input_type),
                 "description": param.description,
             }
             if param.required:

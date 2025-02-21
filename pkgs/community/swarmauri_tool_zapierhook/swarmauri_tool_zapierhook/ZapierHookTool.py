@@ -30,7 +30,7 @@ class ZapierHookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="payload",
-                type="string",
+                input_type="string",
                 description="A Payload to send when triggering the Zapier webhook",
                 required=True,
             )

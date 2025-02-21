@@ -15,13 +15,13 @@ class GmailReadTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="query",
-                type="string",
+                input_type="string",
                 description="""The query to filter emails. For example, "is:unread" or "from:example@gmail.com".""",
                 required=True,
             ),
             Parameter(
                 name="max_results",
-                type="integer",
+                input_type="integer",
                 description="""The maximum number of emails to return. Defaults to 10.""",
             ),
         ]
