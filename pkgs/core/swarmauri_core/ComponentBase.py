@@ -357,7 +357,7 @@ class ComponentBase(BaseModel):
         return False
 
     @classmethod
-    def _extract_resource_types_from_field(
+    def _extract_parent_classes_from_field(
         cls, field_annotation
     ) -> List[Type["ComponentBase"]]:
         """
@@ -372,7 +372,7 @@ class ComponentBase(BaseModel):
         logger.debug(
             f"Extracting resource types from field annotation '{field_annotation}'"
         )
-        resource_types = []
+        parent_classes = []
         try:
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
@@ -380,40 +380,40 @@ class ComponentBase(BaseModel):
             if origin is Annotated:
                 for arg in args[1:]:  # Skip the first argument which is the main type
                     if isinstance(arg, SubclassUnionMetadata):
-                        resource_types.append(arg.resource_type)
+                        parent_classes.append(arg.parent_class)
                         logger.debug(
-                            f"Found SubclassUnionMetadata metadata with resource type '{arg.resource_type.__name__}'"
+                            f"Found SubclassUnionMetadata metadata with resource type '{arg.parent_class.__name__}'"
                         )
                     else:
-                        resource_types.extend(
-                            cls._extract_resource_types_from_field(arg)
+                        parent_classes.extend(
+                            cls._extract_parent_classes_from_field(arg)
                         )
 
             elif origin in {Union, List, Dict, Set, Tuple, Optional}:
                 for arg in args:
-                    resource_types.extend(cls._extract_resource_types_from_field(arg))
+                    parent_classes.extend(cls._extract_parent_classes_from_field(arg))
 
-            return resource_types
+            return parent_classes
         except TypeError as e:
             logger.error(
                 f"TypeError while extracting resource types from field annotation '{field_annotation}': {e}"
             )
-            return resource_types
+            return parent_classes
 
     @classmethod
-    def _determine_new_type(cls, field_annotation, resource_type):
+    def _determine_new_type(cls, field_annotation, parent_class):
         """
         Determine the new type for a field based on its annotation and resource type.
 
         Parameters:
         - field_annotation: The original type annotation.
-        - resource_type: The resource type associated with the field.
+        - parent_class: The resource type associated with the field.
 
         Returns:
         - The updated type annotation incorporating SubclassUnion.
         """
         logger.debug(
-            f"Determining new type for field annotation '{field_annotation}' with resource type '{resource_type.__name__}'"
+            f"Determining new type for field annotation '{field_annotation}' with resource type '{parent_class.__name__}'"
         )
         try:
             origin = get_origin(field_annotation)
@@ -443,14 +443,14 @@ class ComponentBase(BaseModel):
                     arg for arg in args[1:] if not isinstance(arg, SubclassUnionMetadata)
                 ]
                 # Append the new SubclassUnionMetadata
-                metadata.append(SubclassUnionMetadata(resource_type))
+                metadata.append(SubclassUnionMetadata(parent_class))
                 logger.debug(
-                    f"Preserving existing metadata and adding SubclassUnionMetadata for resource '{resource_type.__name__}'"
+                    f"Preserving existing metadata and adding SubclassUnionMetadata for resource '{parent_class.__name__}'"
                 )
                 field_annotation = Annotated[tuple([base_type, *metadata])]
 
             # Construct the new type with SubclassUnion and discriminated Union
-            subclass_union = SubclassUnion[resource_type]
+            subclass_union = SubclassUnion[parent_class]
 
             # Preserve Optionality if necessary
             if is_optional:
@@ -499,7 +499,7 @@ class ComponentBase(BaseModel):
                     continue  # Only process fields that use SubclassUnion
 
                 # Extract all resource types from the field
-                field_resource_types = cls._extract_resource_types_from_field(
+                field_resource_types = cls._extract_parent_classes_from_field(
                     field_annotation
                 )
                 logging.debug(
@@ -552,7 +552,7 @@ class ComponentBase(BaseModel):
                         continue  # Only process fields that use SubclassUnion
 
                     # Extract all resource types from the field
-                    field_resource_types = cls._extract_resource_types_from_field(
+                    field_resource_types = cls._extract_parent_classes_from_field(
                         field_annotation
                     )
                     if not field_resource_types:
@@ -768,7 +768,7 @@ class ComponentBase(BaseModel):
                 # Check if the field uses SubclassUnion.
                 if cls._field_contains_subclass_union(field_annotation):
                     # Extract resource types from the field's annotation.
-                    resource_types = cls._extract_resource_types_from_field(
+                    resource_types = cls._extract_parent_classes_from_field(
                         field_annotation
                     )
                     for resource_type in resource_types:
