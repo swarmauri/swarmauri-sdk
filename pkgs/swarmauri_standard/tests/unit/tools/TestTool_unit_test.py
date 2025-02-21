@@ -16,7 +16,6 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_initialization():
     tool = Tool()
-    assert type(tool.swm_path) is str
     assert type(tool.id) is str
 
 

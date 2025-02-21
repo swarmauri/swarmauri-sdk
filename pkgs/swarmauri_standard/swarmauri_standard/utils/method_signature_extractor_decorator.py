@@ -79,7 +79,7 @@ class MethodSignatureExtractor(BaseModel):
 
             detail = Parameter(
                 name=param_name,
-                type=param_type_json_schema["type"],
+                input_type=param_type_json_schema["type"],
                 description=description,
                 required=required,
                 enum=enum,
