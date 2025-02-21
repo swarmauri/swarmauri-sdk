@@ -633,7 +633,7 @@ class ComponentBase(BaseModel):
                     glogger.error(
                         f"Error while rebuilding model '{model_class.__name__}': {e}"
                     )
-            logger.info("All models have been successfully recreated.")
+            glogger.info("All models have been successfully recreated.")
 
     ###############################################################
     # Yaml Support
