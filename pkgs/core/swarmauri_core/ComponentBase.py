@@ -474,7 +474,7 @@ class ComponentBase(BaseModel):
         Returns:
         - A dictionary mapping model classes to their fields and corresponding resource types.
         """
-        logging.info("Starting generation of models_with_fields")
+        glogger.debug("Starting generation of models_with_fields")
 
         models_with_fields = {}
         for model_cls, resource_types in cls._MODEL_REGISTRY.items():
@@ -508,13 +508,13 @@ class ComponentBase(BaseModel):
 
                 for resource_type in field_resource_types:
                     new_type = cls._determine_new_type(field_annotation, resource_type)
-                    logging.debug(
+                    glogger.debug(
                         f"Determined new type for resource {resource_type}: {new_type}"
                     )
 
                     models_with_fields[model_cls][field_name] = new_type
 
-        logging.info("Completed generation of models_with_fields")
+        glogger.info("Completed generation of models_with_fields")
         return models_with_fields
 
     @classmethod
@@ -525,28 +525,28 @@ class ComponentBase(BaseModel):
         Returns:
         - A dictionary mapping component classes to their fields and corresponding new type annotations.
         """
-        logging.info("Starting generation of type models for _TYPE_REGISTRY")
+        glogger.debug("Starting generation of type models for _TYPE_REGISTRY")
 
         type_models_with_fields = {}
         for resource_type, type_dict in cls._TYPE_REGISTRY.items():
-            logging.debug(f"Processing resource type: {resource_type.__name__}")
+            glogger.debug(f"Processing resource type: {resource_type.__name__}")
             for type_name, component_cls in type_dict.items():
-                logging.debug(f"Processing component class: {component_cls.__name__}")
+                glogger.debug(f"Processing component class: {component_cls.__name__}")
                 type_models_with_fields[component_cls] = {}
 
                 for field_name, field in component_cls.model_fields.items():
-                    logging.debug(f"Processing field: {field_name}")
+                    glogger.debug(f"Processing field: {field_name}")
 
                     field_annotation = component_cls.__annotations__.get(field_name)
                     if not field_annotation:
-                        logging.debug(
+                        glogger.debug(
                             f"Field '{field_name}' in component '{component_cls.__name__}' has no annotation, skipping."
                         )
                         continue
 
                     # Check if SubclassUnion is used in the field type
                     if not cls._field_contains_subclass_union(field_annotation):
-                        logging.debug(
+                        glogger.debug(
                             f"Field '{field_name}' does not contain SubclassUnion, skipping."
                         )
                         continue  # Only process fields that use SubclassUnion
@@ -556,11 +556,11 @@ class ComponentBase(BaseModel):
                         field_annotation
                     )
                     if not field_resource_types:
-                        logging.warning(
+                        glogger.warning(
                             f"No resource types extracted for field '{field_name}' in component '{component_cls.__name__}'"
                         )
                         continue
-                    logging.debug(
+                    glogger.debug(
                         f"Extracted resource types for field '{field_name}': {[rt.__name__ for rt in field_resource_types]}"
                     )
 
@@ -569,19 +569,19 @@ class ComponentBase(BaseModel):
                             new_type = cls._determine_new_type(
                                 field_annotation, resource_type_in_field
                             )
-                            logging.debug(
+                            glogger.debug(
                                 f"Determined new type for resource '{resource_type_in_field.__name__}': {new_type}"
                             )
                             type_models_with_fields[component_cls][field_name] = (
                                 new_type
                             )
                         except Exception as e:
-                            logging.error(
+                            glogger.error(
                                 f"Error determining new type for field '{field_name}' in component '{component_cls.__name__}': {e}"
                             )
                             continue  # Proceed with other resource types and fields
 
-        logging.info("Completed generation of type models for _TYPE_REGISTRY")
+        glogger.info("Completed generation of type models for _TYPE_REGISTRY")
         return type_models_with_fields
 
     @classmethod
