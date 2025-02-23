@@ -20,7 +20,7 @@ def groq_model():
     return llm
 
 
-@pytest.mark.integration
+@pytest.mark.i9n
 def test_agent_exec(groq_model):
     system_context = SystemMessage(content="Your name is Jeff.")
     conversation = MaxSystemContextConversation(

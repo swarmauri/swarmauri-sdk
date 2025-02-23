@@ -4,7 +4,7 @@ import os
 
 from swarmauri_standard.tts.HyperbolicTTS import HyperbolicTTS
 from dotenv import load_dotenv
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 from pathlib import Path
 
 load_dotenv()
@@ -29,7 +29,7 @@ def hyperbolic_tts_model():
     return llm
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 def get_allowed_languages():
     if not API_KEY:
         return []
@@ -37,19 +37,19 @@ def get_allowed_languages():
     return llm.allowed_languages
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_tts_model):
     assert hyperbolic_tts_model.resource == "TTS"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_tts_model):
     assert hyperbolic_tts_model.type == "HyperbolicAudioTTS"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(hyperbolic_tts_model):
     assert (
@@ -58,13 +58,13 @@ def test_serialization(hyperbolic_tts_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_speed(hyperbolic_tts_model):
     assert hyperbolic_tts_model.speed == 1.0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("language", get_allowed_languages())
 @pytest.mark.unit
 def test_predict(hyperbolic_tts_model, language):
@@ -98,7 +98,7 @@ def test_predict(hyperbolic_tts_model, language):
     assert os.path.getsize(audio_file_path) > 0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(hyperbolic_tts_model):
     """
@@ -119,7 +119,7 @@ def test_batch(hyperbolic_tts_model):
         assert os.path.getsize(result) > 0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
 async def test_abatch(hyperbolic_tts_model):
