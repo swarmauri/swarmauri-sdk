@@ -151,23 +151,6 @@ class ComponentBase(BaseModel):
             return cls.__name__
         return v
 
-    # @classmethod
-    # def _get_class_by_type(
-    #     cls, parent_class: Type[T], type_name: str
-    # ) -> Type["ComponentBase"]:
-    #     """
-    #     Retrieve a component class based on its resource type and type name.
-
-    #     Parameters:
-    #     - parent_class: The base class of the resource.
-    #     - type_name: The string identifier for the component type.
-
-    #     Returns:
-    #     - The corresponding component class.
-    #     """
-    #     return cls._TYPE_REGISTRY.get(parent_class, {}).get(type_name)
-
-
     ###############################################################
     # SubclassUnion Support Methods
     ###############################################################
