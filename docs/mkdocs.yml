@@ -122,7 +122,7 @@ nav:
   - Installation: guide/installation.md
   - Usage: guide/usage.md
   - Courses:
-    - guide/intro.md
+    - guide/index.md
     - Entry: guide/course/1.md
     - Generative AI: guide/course/2.md
     - Tool: guide/course/3.md
@@ -139,16 +139,16 @@ nav:
   - api/index.md
   - First Class:
     - api/first_class/index.md
-    - Module 1: api/first_class.md/module1.md
-    - Module 2: api/first_class.md/module2.md
+    - Module 1: api/first_class/module1.md
+    - Module 2: api/first_class/module2.md
   - Second Class:
     - api/second_class/index.md
-    - Module 1: api/second_class.md/module1.md
-    - Module 2: api/second_class.md/module2.md
+    - Module 1: api/second_class/module1.md
+    - Module 2: api/second_class/module2.md
   - Third Class:
     - api/third_class/index.md
-    - Module 1: api/third_class.md/module1.md
-    - Module 2: api/third_class.md/module2.md
+    - Module 1: api/third_class/module1.md
+    - Module 2: api/third_class/module2.md
   - Base:
     - api/base/index.md
     - Module 1: api/base/module1.md
