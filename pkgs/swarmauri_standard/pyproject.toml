@@ -8,7 +8,6 @@ authors = [
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
-requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
