@@ -194,7 +194,7 @@ class DynamicBase(BaseModel):
         Returns:
             The updated type annotation incorporating the subclass union.
         """
-        glogger.debug("Determining new type for field %s with parent %s", field_annotation, parent_class.__name__)
+        glogger.debug("Determining new type for field %s with parent %s", field_annotation, parent_class)
         try:
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
@@ -263,7 +263,7 @@ class DynamicBase(BaseModel):
         Returns:
             The updated type annotation.
         """
-        glogger.debug("Recursively updating annotation %s with parent %s", annotation, parent_class.__name__)
+        glogger.debug("Recursively updating annotation %s with parent %s", annotation, parent_class)
         origin = get_origin(annotation)
         if origin is Annotated:
             return cls._determine_new_type(annotation, parent_class)

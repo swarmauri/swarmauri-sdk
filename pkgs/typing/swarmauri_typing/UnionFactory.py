@@ -56,7 +56,7 @@ class UnionFactory:
         old_metadata = args[1:]
         return Annotated[base_type, *old_metadata, new_metadata]
 
-    def __getitem__(self, input_data: Type[T]) -> type:
+    def __getitem__(self, input_data: Union[Type[T], str]) -> type:
         """
         Usage example:
           union_factory = UnionFactory(my_types_getter, [meta1, meta2])
@@ -67,17 +67,23 @@ class UnionFactory:
             • A UnionFactoryMetadata object referencing 'input_data'
             • Any additional metadata from 'annotation_extenders'
         """
-        union_members = self._union_types_getter(input_data)
+
+        if isinstance(input_data, str):
+            model_name = input_data
+        else:
+            model_name = input_data.__name__
+
+        union_members = self._union_types_getter(model_name)
 
         # If no types are returned, fall back to Annotated[Any, UnionFactoryMetadata]
         if not union_members:
-            final_annotated = Annotated[Any, UnionFactoryMetadata(input_data)]
+            final_annotated = Annotated[Any, UnionFactoryMetadata(model_name)]
         else:
             union_type = Union[tuple(union_members)]
-            final_annotated = Annotated[union_type, UnionFactoryMetadata(input_data)]
+            final_annotated = Annotated[union_type, UnionFactoryMetadata(model_name)]
 
-        # Add any additional metadata
-        for extension in self._annotation_extenders:
-            final_annotated = self.add_metadata(final_annotated, extension)
+            # Add any additional metadata
+            for extension in self._annotation_extenders:
+                final_annotated = self.add_metadata(final_annotated, extension)
 
         return final_annotated

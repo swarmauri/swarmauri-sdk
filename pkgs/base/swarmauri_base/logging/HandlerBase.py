@@ -1,11 +1,13 @@
 import logging
-from pydantic import BaseModel
 from typing import List, Optional
+from swarmauri_core.logging.IHandler import IHandler
+from pydantic import BaseModel
+from swarmauri_base.ObserveBase import ObserveBase
 
-class BaseLoggingHandler(BaseModel):
+@ObserveBase.register_model()
+class HandlerBase(IHandler, ObserveBase):
     level: int = logging.INFO
-    format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    resource: Optional[str] = Field(default=ResourceTypes.LOGGINGHANDLER, frozen=True)
+    format: str = '[%(name)s][%(levelname)s] %(message)s'
 
     def compile_handler(self) -> logging.Handler:
         """

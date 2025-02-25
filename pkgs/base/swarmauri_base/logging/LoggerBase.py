@@ -1,0 +1,158 @@
+import logging
+from typing import List, Optional, Any
+from pydantic import Field
+from swarmauri_core.logging.ILogger import ILogger
+from swarmauri_base.logging.HandlerBase import HandlerBase
+from swarmauri_base.ObserveBase import ObserveBase
+from swarmauri_base.SubclassUnion import SubclassUnion
+
+@ObserveBase.register_model()
+class LoggerBase(ILogger, ObserveBase):
+    """LoggerBase is an implementation of ILogger that wraps Python's built-in logging module.
+
+    It compiles a logger with a specified name and attaches either user-provided or default handlers.
+    """
+    name: str = __name__
+    handlers: List[SubclassUnion[HandlerBase]] = []
+    default_level: int = logging.INFO
+    default_format: str = '[%(name)s][%(levelname)s] %(message)s'
+    logger: Optional[Any] = Field(exclude=True, default=None)
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the LoggerBase instance.
+
+        This method initializes the logger by compiling a logging.Logger instance with the configured name and handlers.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments.
+        **kwargs : any
+            Keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+        self.logger = self.compile_logger(logger_name=self.name)
+
+    def compile_logger(self, logger_name: str = __name__) -> logging.Logger:
+        """Compile and return a logger instance.
+
+        Compiles and returns a `logging.Logger` object with the configured handlers.
+        If no handlers are provided, a default `StreamHandler` with a default formatter is attached.
+
+        Parameters
+        ----------
+        logger_name : str
+            The name of the logger.
+
+        Returns
+        -------
+        logging.Logger
+            The compiled logger.
+        """
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(self.default_level)
+
+        # Remove any existing handlers to avoid duplicates
+        logger.handlers = []
+
+        if self.handlers:
+            for handler_model in self.handlers:
+                handler = handler_model.compile_handler()
+                logger.addHandler(handler)
+        else:
+            # Fallback: add a default StreamHandler
+            default_handler = logging.StreamHandler()
+            default_handler.setLevel(self.default_level)
+            glogger.info(self.default_format)
+            default_formatter = logging.Formatter(self.default_format)
+            default_handler.setFormatter(default_formatter)
+            logger.addHandler(default_handler)
+
+        logger.propagate = False
+        return logger
+
+    def debug(self, *args, **kwargs) -> None:
+        """Log a debug message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.debug(*args, **kwargs)
+
+    def info(self, *args, **kwargs) -> None:
+        """Log an info message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.info(*args, **kwargs)
+
+    def warning(self, *args, **kwargs) -> None:
+        """Log a warning message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.warning(*args, **kwargs)
+
+    def error(self, *args, **kwargs) -> None:
+        """Log an error message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.error(*args, **kwargs)
+
+    def critical(self, *args, **kwargs) -> None:
+        """Log a critical message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.critical(*args, **kwargs)
+
+    def exception(self, *args, **kwargs) -> None:
+        """Log an exception traceback along with an error message.
+
+        Parameters
+        ----------
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.exception(*args, **kwargs)
+
+    def log(self, level: int, *args, **kwargs) -> None:
+        """Log a message with a custom numeric level.
+
+        Parameters
+        ----------
+        level : int
+            The numeric logging level.
+        *args : any
+            Positional arguments for the log message.
+        **kwargs : any
+            Keyword arguments for the log message.
+        """
+        self.logger.log(level, *args, **kwargs)
