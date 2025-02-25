@@ -19,7 +19,7 @@ class LoggerBase(ILogger, ObserveBase):
     default_format: str = '[%(name)s][%(levelname)s] %(message)s'
     logger: Optional[Any] = Field(exclude=True, default=None)
 
-    def __init__(self, *args, **kwargs):
+    def model_post_init(self, *args, **kwargs):
         """Initialize the LoggerBase instance.
 
         This method initializes the logger by compiling a logging.Logger instance with the configured name and handlers.
@@ -31,7 +31,6 @@ class LoggerBase(ILogger, ObserveBase):
         **kwargs : any
             Keyword arguments.
         """
-        super().__init__(*args, **kwargs)
         self.logger = self.compile_logger(logger_name=self.name)
 
     def compile_logger(self, logger_name: str = __name__) -> logging.Logger:
