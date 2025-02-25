@@ -90,10 +90,12 @@ def generate_id() -> str:
     return str(uuid4())
 
 from .YamlMixin import YamlMixin
-#from .LoggerMixin import LoggerMixin
+from .LoggerMixin import LoggerMixin
 from .DynamicBase import DynamicBase
+
+@DynamicBase.register_type()
 class ComponentBase(
-        #LoggerMixin, 
+        LoggerMixin, 
         YamlMixin, 
         DynamicBase, 
         BaseModel

@@ -111,6 +111,32 @@ class DynamicBase(BaseModel):
             annotation_extenders=[Field(discriminator="type")]
         )
 
+    ###############################################################
+    # Annotation Update Helpers
+    ###############################################################
+
+    @classmethod
+    def _collect_union_field_updates(cls, model_class: Type[BaseModel]) -> Dict[str, Any]:
+        """
+        Traverse the model's MRO to collect union-annotated field updates.
+        This ensures that inherited union fields are considered.
+        """
+        union_fields = {}
+        # Traverse the MRO from the base upward so that more derived classes override earlier ones.
+        for base in reversed(model_class.__mro__):
+            if base is object:
+                continue
+            annotations = getattr(base, '__annotations__', {})
+            for field_name, field_annotation in annotations.items():
+                if cls._field_contains_subclass_union(field_annotation):
+                    # Extract parent classes from the annotation.
+                    parent_classes = cls._extract_parent_classes_from_field(field_annotation)
+                    for parent in parent_classes:
+                        # Calculate the updated union type.
+                        new_type = cls._update_annotation_recursively(field_annotation, parent)
+                        union_fields[field_name] = new_type
+        return union_fields
+
     @classmethod
     def _field_contains_subclass_union(cls, field_annotation) -> bool:
         """
@@ -202,6 +228,7 @@ class DynamicBase(BaseModel):
 
             # Handle Optional[...] (i.e. Union[..., None])
             if origin is Union and type(None) in args:
+                glogger.debug(f"\n\norigin - {args}\n\n")
                 non_none_args = [arg for arg in args if arg is not type(None)]
                 if len(non_none_args) == 1:
                     field_annotation = non_none_args[0]
@@ -211,6 +238,7 @@ class DynamicBase(BaseModel):
 
             # If Annotated, preserve metadata while removing previous UnionFactoryMetadata.
             if origin is Annotated:
+                glogger.debug(f"\n\nAnnotated - {args}\n\n")
                 base_type = args[0]
                 metadata = [m for m in args[1:] if not isinstance(m, UnionFactoryMetadata)]
                 metadata.append(cls._union_factory[parent_class])
@@ -221,6 +249,8 @@ class DynamicBase(BaseModel):
 
             # Reapply Optional if needed.
             new_type = Union[subclass_union, type(None)] if is_optional else subclass_union
+            glogger.debug("Determined new type for:\n\t field %s \n\t with parent %s \n\t to be %s \n", 
+                field_annotation, parent_class, new_type)
             return new_type
         except TypeError as e:
             glogger.error("TypeError in _determine_new_type: %s", e)
@@ -328,37 +358,32 @@ class DynamicBase(BaseModel):
 
     @classmethod
     def _recreate_models(cls):
-        """
-        Rebuild all models by updating fields that use UnionFactory based on the unified registry.
-
-        This method iterates through each model in the registry, updates their field annotations,
-        and rebuilds the model schema.
-        """
         with cls._lock:
             models_with_fields = cls._generate_models_with_fields()
             glogger.debug("Recreating models with updated fields: %s", models_with_fields)
-            for model_class, fields in models_with_fields.items():
-                for field_name, new_type in fields.items():
-                    if field_name in model_class.model_fields:
-                        original_type = model_class.model_fields[field_name].annotation
-                        if original_type != new_type:
-                            model_class.model_fields[field_name].annotation = new_type
-                            glogger.debug(
-                                "Updated field '%s' in model '%s' from '%s' to '%s'",
-                                field_name, model_class.__name__, original_type, new_type
-                            )
-                        else:
-                            glogger.debug("No change for field '%s' in model '%s'", field_name, model_class.__name__)
-                    else:
-                        glogger.error("Field '%s' does not exist in model '%s'", field_name, model_class.__name__)
-                        continue
 
-                try:
-                    model_class.model_rebuild(force=True)
-                    glogger.debug("Rebuilt model '%s'.", model_class.__name__)
-                except Exception as e:
-                    glogger.error("Error rebuilding '%s': %s", model_class.__name__, e)
-            glogger.debug("All models have been successfully recreated from the unified registry.")
+            # Now, for every registered model (base or subtype), merge in union updates
+            for model_class in models_with_fields.keys():
+                if model_class.__name__ != "BaseModel":
+                    # Merge in any inherited union field updates:
+                    merged_union_fields = cls._collect_union_field_updates(model_class)
+                    for field_name, new_type in merged_union_fields.items():
+                        if field_name in model_class.model_fields:
+                            original_type = model_class.model_fields[field_name].annotation
+                            # Only update if there's a change.
+                            if original_type != new_type:
+                                model_class.model_fields[field_name].annotation = new_type
+                                glogger.debug(
+                                    "Merged union update for field '%s' in model '%s' from '%s' to '%s'",
+                                    field_name, model_class.__name__, original_type, new_type
+                                )
+                    try:
+                        model_class.model_rebuild(force=True)
+                        glogger.debug("Rebuilt model '%s'.", model_class.__name__)
+                    except Exception as e:
+                        glogger.error("Error rebuilding '%s': %s", model_class.__name__, e)
+
+            glogger.debug("All models have been successfully recreated following the dependency chain.")
 
     ###############################################################
     # Registration Decorators

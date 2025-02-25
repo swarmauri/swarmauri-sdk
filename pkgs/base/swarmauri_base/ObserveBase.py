@@ -38,9 +38,11 @@ T = TypeVar("T", bound="ObserveBase")
 
 def generate_id() -> str:
     return str(uuid4())
-    
+
 from .YamlMixin import YamlMixin
 from .DynamicBase import DynamicBase
+
+@DynamicBase.register_type()
 class ObserveBase(YamlMixin, DynamicBase, BaseModel):
     """
     Base class for all components.

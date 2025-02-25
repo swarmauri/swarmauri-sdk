@@ -6,6 +6,7 @@ from swarmauri_base.logging.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 from swarmauri_base.SubclassUnion import SubclassUnion
 
+
 @ObserveBase.register_model()
 class LoggerBase(ILogger, ObserveBase):
     """LoggerBase is an implementation of ILogger that wraps Python's built-in logging module.
@@ -63,7 +64,6 @@ class LoggerBase(ILogger, ObserveBase):
             # Fallback: add a default StreamHandler
             default_handler = logging.StreamHandler()
             default_handler.setLevel(self.default_level)
-            glogger.info(self.default_format)
             default_formatter = logging.Formatter(self.default_format)
             default_handler.setFormatter(default_formatter)
             logger.addHandler(default_handler)
