@@ -54,19 +54,15 @@ Discriminated unions provide a robust method for handling multiple possible obje
 
 Swarmauri SDK supports efficient encoding and decoding of data for transmission across different environments and system components. It supports both standard and custom serialization formats, ensuring compatibility with various data formats.
 
-### 8. Intensional and Extensional Programming
-
-The SDK leverages both rule-based (intensional) and set-based (extensional) approaches to building and manipulating complex data structures. This dual approach offers developers a wide range of tools for system design.
-
-### 9. Third-Party Plug-in Integration
+### 8. Third-Party Plug-in Integration
 
 Swarmauri SDK is designed to extend the framework’s capabilities by utilizing third-party libraries and plugins. This feature allows developers to incorporate the best tools available into their systems.
 
-### 10. Open Source Contributions
+### 9. Open Source Contributions
 
 The SDK provides a collaborative space for developers to contribute new components, plug-ins, and features. This open-source approach fosters innovation and community-driven development.
 
-### 11. In-Development Components
+### 10. In-Development Components
 
 Swarmauri SDK includes early-stage features and components that push the boundaries of the framework. These experimental components offer innovative solutions that are still in testing phases, allowing developers to prototype and experiment with cutting-edge ideas.
 
@@ -76,9 +72,9 @@ Swarmauri SDK includes early-stage features and components that push the boundar
 
 Develop scalable, pluggable systems that can evolve over time by adding or modifying components without disrupting the entire ecosystem.
 
-### 2. Distributed Architectures
+### 2. Distributed Packaging Architecture
 
-Build systems with distributed nodes that seamlessly communicate using the SDK’s standardized interfaces.
+Build systems with distributed packages that seamlessly communicate using the SDK’s standardized interfaces.
 
 ### 3. Third-Party Integrations
 
