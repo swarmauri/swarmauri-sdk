@@ -31,7 +31,7 @@ from pydantic import BaseModel, Field, ConfigDict
 ###########################################
 # Logging
 ###########################################
-from .glogging import glogger
+from swarmauri_base.glogging import glogger
 
 ###########################################
 # Typing
@@ -41,9 +41,9 @@ T = TypeVar("T", bound="DynamicBase")
 ###########################################
 # DynamicBase
 ###########################################
+import functools
 from swarmauri_typing import UnionFactory
 from swarmauri_typing import UnionFactoryMetadata
-
 
 class DynamicBase(BaseModel):
     """
@@ -59,7 +59,8 @@ class DynamicBase(BaseModel):
 
     # Unified registry mapping model names to a dict with "model_cls" and "subtypes"
     _registry: ClassVar[Dict[str, Dict[str, Any]]] = {}
-    _union_factory: ClassVar[Optional[UnionFactory]] = None
+    _subclass_union_factory: ClassVar[Optional[UnionFactory]] = None
+    _full_union_factory: ClassVar[Optional[UnionFactory]] = None
     _lock: ClassVar[Lock] = Lock()
     _type: ClassVar[str] = "DynamicBase"
 
@@ -82,38 +83,111 @@ class DynamicBase(BaseModel):
         cls._type = cls.__name__
         cls.__annotations__["type"] = Literal[cls.__name__]
         cls.type = cls.__name__
-        cls._set_union_factory()
+        cls._set_subclass_union_factory()
+        cls._set_full_union_factory()
 
     ###############################################################
-    # UnionFactory Support Methods
+    # _subclass_union_factory methods
     ###############################################################
 
     @classmethod
-    def _get_union_factory(cls) -> UnionFactory:
+    def _get_subclass_union_factory(cls) -> UnionFactory:
         """
         Retrieve the UnionFactory associated with this class.
 
         Returns:
             UnionFactory: The union factory for dynamic model resolution.
         """
-        return cls._union_factory
+        return cls._subclass_union_factory
 
     @classmethod
-    def _set_union_factory(cls) -> None:
+    def _set_subclass_union_factory(cls) -> None:
         """
         Set up the UnionFactory for the class.
 
         This method initializes the UnionFactory with a bound function to retrieve unified subclasses
         and applies an annotation extender to use a discriminator field 'type'.
         """
-        cls._union_factory = UnionFactory(
-            bound=cls.unified_subclass_getter,
+        cls._subclass_union_factory = UnionFactory(
+            bound=cls._subclass_union_getter,
+            name="subclass_union",
             annotation_extenders=[Field(discriminator="type")]
         )
 
+    @staticmethod
+    def _subclass_union_getter(parent_cls: Union[str, Type["DynamicBase"]]) -> List[Type["DynamicBase"]]:
+        """
+        Retrieve registered subclasses for a given parent class.
+
+        Parameters:
+            parent_cls (Union[str, Type[DynamicBase]]): The parent class or its name.
+
+        Returns:
+            List[Type[DynamicBase]]: A list of registered subclass types.
+        """
+        if isinstance(parent_cls, str):
+            model_name = parent_cls
+        else:
+            model_name = parent_cls.__name__
+        entry = DynamicBase._registry.get(model_name)
+        if not entry:
+            return []
+        return list(entry["subtypes"].values())
+
+    ###############################################################
+    # _full_union_factory methods
+    ###############################################################
+
+    @classmethod
+    def _get_full_union_factory(cls) -> UnionFactory:
+        """
+        Retrieve the UnionFactory associated with this class.
+
+        Returns:
+            UnionFactory: The union factory for dynamic model resolution.
+        """
+        return cls._full_union_factory
+
+    @classmethod
+    def _set_full_union_factory(cls) -> None:
+        """
+        Set up the UnionFactory for the class.
+
+        This method initializes the UnionFactory with a bound function to retrieve unified subclasses
+        and applies an annotation extender to use a discriminator field 'type'.
+        """
+        cls._full_union_factory = UnionFactory(
+            bound=cls._full_union_getter,
+            name="full_union",
+            annotation_extenders=[Field(discriminator="type")]
+        )
+
+    @staticmethod
+    def _full_union_getter(parent_cls: Union[str, Type["DynamicBase"]]) -> List[Type["DynamicBase"]]:
+        """
+        Retrieve registered subclasses for a given parent class.
+
+        Parameters:
+            parent_cls (Union[str, Type[DynamicBase]]): The parent class or its name.
+
+        Returns:
+            List[Type[DynamicBase]]: A list of registered subclass types.
+        """
+        if isinstance(parent_cls, str):
+            model_name = parent_cls
+        else:
+            model_name = parent_cls.__name__
+        entry = DynamicBase._registry.get(model_name)
+        if not entry:
+            # Fallback: if no registry entry exists, include the parent if possible.
+            return [parent_cls] if isinstance(parent_cls, type) else []
+        # Parent first, then its subtypes.
+        return [entry["model_cls"]] + list(entry["subtypes"].values())
+
     ###############################################################
     # Annotation Update Helpers
-    ###############################################################
+    ##############################################################
+
 
     @classmethod
     def _collect_union_field_updates(cls, model_class: Type[BaseModel]) -> Dict[str, Any]:
@@ -138,6 +212,7 @@ class DynamicBase(BaseModel):
         return union_fields
 
     @classmethod
+    @functools.lru_cache(maxsize=None)
     def _field_contains_subclass_union(cls, field_annotation) -> bool:
         """
         Determine if the field annotation contains a UnionFactory or UnionFactoryMetadata.
@@ -174,6 +249,7 @@ class DynamicBase(BaseModel):
         return False
 
     @classmethod
+    @functools.lru_cache(maxsize=None)
     def _extract_parent_classes_from_field(cls, field_annotation) -> List[Type["DynamicBase"]]:
         """
         Extract parent DynamicBase classes from a field annotation.
@@ -238,43 +314,28 @@ class DynamicBase(BaseModel):
 
             # If Annotated, preserve metadata while removing previous UnionFactoryMetadata.
             if origin is Annotated:
-                glogger.debug(f"\n\nAnnotated - {args}\n\n")
+                glogger.debug(f"\n\nAnnotated - {args}")
                 base_type = args[0]
+                union_factory_metadata = args[1]
+                glogger.debug(f"Annotated - {union_factory_metadata}\n\n")
                 metadata = [m for m in args[1:] if not isinstance(m, UnionFactoryMetadata)]
-                metadata.append(cls._union_factory[parent_class])
+                metadata.append(cls._subclass_union_factory[parent_class])
                 field_annotation = Annotated[tuple([base_type, *metadata])]
 
             # Generate the subclass union using the instance's UnionFactory.
-            subclass_union = cls._union_factory[parent_class]
+            if union_factory_metadata.name == "full_union":
+                union_type = cls._full_union_factory[parent_class]
+            else:
+                union_type = cls._subclass_union_factory[parent_class]
 
             # Reapply Optional if needed.
-            new_type = Union[subclass_union, type(None)] if is_optional else subclass_union
+            new_type = Union[union_type, type(None)] if is_optional else union_type
             glogger.debug("Determined new type for:\n\t field %s \n\t with parent %s \n\t to be %s \n", 
                 field_annotation, parent_class, new_type)
             return new_type
         except TypeError as e:
             glogger.error("TypeError in _determine_new_type: %s", e)
             return field_annotation
-
-    @staticmethod
-    def unified_subclass_getter(parent_cls: Union[str, Type["DynamicBase"]]) -> List[Type["DynamicBase"]]:
-        """
-        Retrieve registered subclasses for a given parent class.
-
-        Parameters:
-            parent_cls (Union[str, Type[DynamicBase]]): The parent class or its name.
-
-        Returns:
-            List[Type[DynamicBase]]: A list of registered subclass types.
-        """
-        if isinstance(parent_cls, str):
-            model_name = parent_cls
-        else:
-            model_name = parent_cls.__name__
-        entry = DynamicBase._registry.get(model_name)
-        if not entry:
-            return []
-        return list(entry["subtypes"].values())
 
     ###############################################################
     # Helpers to Generate Field Updates
@@ -459,5 +520,7 @@ class DynamicBase(BaseModel):
 ###########################################
 # Subclass Union
 ###########################################
-DynamicBase._set_union_factory()
-SubclassUnion = DynamicBase._get_union_factory()
+DynamicBase._set_subclass_union_factory()
+DynamicBase._set_full_union_factory()
+SubclassUnion = DynamicBase._get_subclass_union_factory()
+FullUnion = DynamicBase._get_full_union_factory()
