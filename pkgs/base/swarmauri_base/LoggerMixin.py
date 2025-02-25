@@ -1,6 +1,6 @@
 import logging
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, ClassVar, Union
+from typing import Optional, ClassVar
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logging.LoggerBase import LoggerBase
@@ -16,7 +16,6 @@ class LoggerMixin(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, *args, logger: Optional[FullUnion[LoggerBase]] = None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def model_post_init(self, logger: Optional[FullUnion[LoggerBase]] = None) -> None:
         # Directly assign the provided FullUnion[LoggerBase] or fallback to the class-level default.
         self.logger = logger or LoggerBase(name=self.__class__.__name__)
