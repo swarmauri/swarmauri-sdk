@@ -18,7 +18,7 @@ from typing import (
 )
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import Field, ConfigDict
 
 ###########################################
 # Logging
@@ -43,7 +43,7 @@ from swarmauri_base.YamlMixin import YamlMixin
 from swarmauri_base.DynamicBase import DynamicBase
 
 @DynamicBase.register_type()
-class ObserveBase(YamlMixin, DynamicBase, BaseModel):
+class ObserveBase(YamlMixin, DynamicBase):
     """
     Base class for all components.
     """

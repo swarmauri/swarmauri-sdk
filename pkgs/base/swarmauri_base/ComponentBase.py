@@ -20,7 +20,7 @@ from typing import (
 )
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import Field, ConfigDict
 
 ###########################################
 # Logging
@@ -97,8 +97,7 @@ from swarmauri_base.DynamicBase import DynamicBase
 class ComponentBase(
         LoggerMixin, 
         YamlMixin, 
-        DynamicBase, 
-        BaseModel
+        DynamicBase
     ):
     """
     Base class for all components.
@@ -116,6 +115,8 @@ class ComponentBase(
     version: str = "0.1.0"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
 
 ###########################################
 # Subclass Union
