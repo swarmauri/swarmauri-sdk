@@ -518,9 +518,15 @@ class DynamicBase(BaseModel):
 
 
 ###########################################
-# Subclass Union
+# Exports: Subclass Union
 ###########################################
 DynamicBase._set_subclass_union_factory()
 DynamicBase._set_full_union_factory()
 SubclassUnion = DynamicBase._get_subclass_union_factory()
 FullUnion = DynamicBase._get_full_union_factory()
+
+###########################################
+# Exports: Subclass Union
+###########################################
+register_type = DynamicBase.register_type
+register_model = DynamicBase.register_model
