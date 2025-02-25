@@ -4,7 +4,7 @@ from swarmauri_standard.vlms.HyperbolicVLM import HyperbolicVLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -26,19 +26,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_vision_model):
     assert hyperbolic_vision_model.resource == "VLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_vision_model):
     assert hyperbolic_vision_model.type == "HyperbolicVLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(hyperbolic_vision_model):
     assert (
@@ -49,7 +49,7 @@ def test_serialization(hyperbolic_vision_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_model_name(hyperbolic_vision_model):
     assert hyperbolic_vision_model.name == hyperbolic_vision_model.allowed_models[0]
@@ -69,7 +69,7 @@ def create_test_conversation(image_url, prompt):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_predict_vision(hyperbolic_vision_model, model_name):
     model = hyperbolic_vision_model
@@ -88,7 +88,7 @@ def test_predict_vision(hyperbolic_vision_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_apredict_vision(hyperbolic_vision_model, model_name):
     model = hyperbolic_vision_model
@@ -105,7 +105,7 @@ async def test_apredict_vision(hyperbolic_vision_model, model_name):
     assert len(result.history[-1].content) > 0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(hyperbolic_vision_model):
     image_urls = [
@@ -132,7 +132,7 @@ def test_batch(hyperbolic_vision_model):
 
 
 @pytest.mark.asyncio
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_abatch(hyperbolic_vision_model):
     image_urls = [
