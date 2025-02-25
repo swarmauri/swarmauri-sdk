@@ -9,7 +9,7 @@ from swarmauri_base.DynamicBase import DynamicBase
 @DynamicBase.register_model()
 class LoggerMixin(BaseModel):
     # Class-level default logger is now a FullUnion[LoggerBase] instance.
-    default_logger: ClassVar[Optional[FullUnion[LoggerBase]]] = None
+    default_logger: ClassVar[Optional[FullUnion[LoggerBase]]] = LoggerBase()
 
     # Instance-level logger: expected to be a FullUnion[LoggerBase].
     logger: Optional[FullUnion[LoggerBase]] = None
@@ -18,4 +18,4 @@ class LoggerMixin(BaseModel):
 
     def model_post_init(self, logger: Optional[FullUnion[LoggerBase]] = None) -> None:
         # Directly assign the provided FullUnion[LoggerBase] or fallback to the class-level default.
-        self.logger = logger or LoggerBase(name=self.__class__.__name__)
+        self.logger = logger or self.default_logger
