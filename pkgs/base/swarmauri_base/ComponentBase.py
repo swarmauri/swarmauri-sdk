@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 ###########################################
 # Logging
 ###########################################
-from .glogging import glogger
+from swarmauri_base.glogging import glogger
 
 
 ###########################################
@@ -89,9 +89,9 @@ class ResourceTypes(Enum):
 def generate_id() -> str:
     return str(uuid4())
 
-from .YamlMixin import YamlMixin
-from .LoggerMixin import LoggerMixin
-from .DynamicBase import DynamicBase
+from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.LoggerMixin import LoggerMixin
+from swarmauri_base.DynamicBase import DynamicBase
 
 @DynamicBase.register_type()
 class ComponentBase(
@@ -120,5 +120,5 @@ class ComponentBase(
 ###########################################
 # Subclass Union
 ###########################################
-from .DynamicBase import SubclassUnion as SubclassUnion
+from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
 

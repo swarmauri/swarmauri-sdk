@@ -4,7 +4,7 @@ from pydantic import Field
 from swarmauri_core.logging.ILogger import ILogger
 from swarmauri_base.logging.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
-from swarmauri_base.SubclassUnion import SubclassUnion
+from swarmauri_base import SubclassUnion
 
 
 @ObserveBase.register_model()
