@@ -287,18 +287,13 @@ def find_and_convert_pyproject_files(start_path: str, run_tests_after=False) -> 
 
 if __name__ == "__main__":
     # add the project root path
-    pkg_list = ["swarmauri_standard"]
+    pkg_list = ["swarmauri_standard", "standards", "community"]
     for pkg in pkg_list:
         project_dir = os.path.abspath(
             os.path.join(os.path.dirname(__file__), f"../pkgs/{pkg}")
         )
-        run_tests_option = input("Run tests after conversion? (y/n): ").strip().lower()
-        run_tests_flag = run_tests_option == "y"
         print(f"Converting pyproject.toml files in: {project_dir}")
-        find_and_convert_pyproject_files(project_dir, run_tests_flag)
-
-    # project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../pkgs/standard"))
-    # print(f"Converting pyproject.toml files in: {project_dir}")
+        find_and_convert_pyproject_files(project_dir)
 
     # # Ask if tests should be run after conversion
     # run_tests_option = input("Run tests after conversion? (y/n): ").strip().lower()
