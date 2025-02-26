@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13"
 ]
 authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
-ependencies = ["nbformat>=5.10.4", "pydantic>=2.10.6", "typing_extensions>=4.12.2", "swarmauri_core", "swarmauri_base", "swarmauri_standard"]
+dependencies = ["nbformat>=5.10.4", "pydantic>=2.10.6", "typing_extensions>=4.12.2", "swarmauri_core", "swarmauri_base", "swarmauri_standard"]
 
 [tool.uv.workspace]
 members = ["core", "base", "swarmauri_standard"]
