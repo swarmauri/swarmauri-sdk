@@ -2,25 +2,23 @@
 name = "swarmauri-monorepo"
 version = "0.6.2.dev3"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
-authors = [
-	{ name = "Jacob Stewart", email = "jacob@swarmauri.com" },
-	]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10,<3.13"
 
 [dependency-groups]
 dev = [
-"toml>=0.10.2",
-"pytest>=8.0.0",
-"pytest-xdist>=3.6.1",
-"pytest-asyncio>=0.24.0",
-"pytest-timeout>=2.3.1",
-"pytest-json-report>=1.5.0",
-"python-dotenv>=1.0.0",
-"pytest-mock>=3.14.0",
-"jsonschema>=4.18.5",
-"ruff"
+    "toml>=0.10.2",
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv>=1.0.0",
+    "pytest-mock>=3.14.0",
+    "jsonschema>=4.18.5",
+    "ruff",
 ]
 
 [tool.uv]
@@ -32,149 +30,76 @@ members = [
     "typing",
     "base",
     "swarmauri_standard",
-    "swarmauri_parser_beautifulsoupelement",
-    "swarmauri_distance_minkowski",
-    "swarmauri_vectorstore_tfidf",
-    "swarmauri_tool_matplotlib",
-    "swarmauri_embedding_nmf",
-    "swarmauri_parser_keywordextractor",
-    "swarmauri_embedding_tfidf",
-    "swarmauri_embedding_doc2vec",
-    "swarmauri_ptree_dag",
-    "swarmauri_tool_smogindex",
-    "swarmauri_tool_jupyterreadnotebook",
-    "swarmauri_tool_jupyterexecutenotebook",
-    "swarmauri_tool_jupyterclearoutput",
-    "swarmauri_tool_jupyterstartkernel",
-    "swarmauri_vectorstore_pinecone",
-    "swarmauri_parser_fitzpdf",
-    "swarmauri_tool_jupytergetshellmessage",
-    "swarmauri_llm_leptonai",
-    "swarmauri_parser_bertembedding",
-    "swm_example_community_package",
-    "swarmauri_tool_gmail",
-    "swarmauri_tool_jupyterexecutenotebookwithparameters",
-    "swarmauri_tool_sentencecomplexity",
-    "swarmauri_tool_jupyterexportlatex",
-    "swarmauri_tool_jupytervalidatenotebook",
-    "swarmauri_tool_webscraping",
-    "swarmauri_vectorstore_annoy",
-    "swarmauri_tool_jupyterexportmarkdown",
-    "swarmauri_tool_jupyterwritenotebook",
-    "swarmauri_vectorstore_mlm",
-    "swarmauri_tool_dalechallreadability",
-    "swarmauri_tool_captchagenerator",
-    "swarmauri_parser_textblob",
-    "swarmauri_documentstore_redis",
-    "swarmauri_state_clipboard",
-    "swarmauri_tool_sentimentanalysis",
-    "swarmauri_parser_pypdf2",
-    "swarmauri_tool_jupyterexecutecell",
-    "swarmauri_tool_textlength",
-    "swarmauri_tool_jupyterruncell",
-    "swarmauri_tool_jupytergetiopubmessage",
-    "swarmauri_vectorstore_duckdb",
-    "swarmauri_vectorstore_qdrant",
-    "swarmauri_measurement_tokencountestimator",
-    "swarmauri_tool_folium",
-    "swarmauri_tool_psutil",
-    "swarmauri_embedding_mlm",
-    "swarmauri_tool_jupyterdisplayhtml",
-    "swarmauri_tool_qrcodegenerator",
-    "swarmauri_ocr_pytesseract",
-    "swarmauri_vectorstore_redis",
-    "swarmauri_toolkit_jupytertoolkit",
-    "swarmauri_vectorstore_persistentchromadb",
-    "swarmauri_toolkit_github",
-    "swarmauri_vectorstore_cloudweaviate",
-    "swarmauri_tool_jupyterexecuteandconvert",
-    "swarmauri_tool_entityrecognition",
-    "swarmauri_tool_jupytershutdownkernel",
-    "swarmauri_tool_jupyterfromdict",
-    "swarmauri_vectorstore_neo4j",
-    "swarmauri_parser_entityrecognition",
-    "swarmauri_tool_jupyterexportpython",
-    "swarmauri_measurement_mutualinformation",
-    "swarmauri_tool_jupyterexporthtml",
-    "swarmauri_tool_lexicaldensity",
-    "swarmauri_tool_jupyterdisplay",
-    "swarmauri_tool_zapierhook",
-    "swarmauri_tool_downloadpdf",
+    "standards/swarmauri_parser_beautifulsoupelement",
+    "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_vectorstore_tfidf",
+    "standards/swarmauri_tool_matplotlib",
+    "standards/swarmauri_embedding_nmf",
+    "standards/swarmauri_parser_keywordextractor",
+    "standards/swarmauri_embedding_tfidf",
+    "standards/swarmauri_embedding_doc2vec",
+    "experimental/ptree_dag",
+    "community/swarmauri_tool_smogindex",
+    "community/swarmauri_tool_jupyterreadnotebook",
+    "community/swarmauri_tool_jupyterexecutenotebook",
+    "community/swarmauri_tool_jupyterclearoutput",
+    "community/swarmauri_tool_jupyterstartkernel",
+    "community/swarmauri_vectorstore_pinecone",
+    "community/swarmauri_parser_fitzpdf",
+    "community/swarmauri_tool_jupytergetshellmessage",
+    "community/swarmauri_llm_leptonai",
+    "community/swarmauri_parser_bertembedding",
+    "community/swm_example_community_package",
+    "community/swarmauri_tool_gmail",
+    "community/swarmauri_tool_jupyterexecutenotebookwithparameters",
+    "community/swarmauri_tool_sentencecomplexity",
+    "community/swarmauri_tool_jupyterexportlatex",
+    "community/swarmauri_tool_jupytervalidatenotebook",
+    "community/swarmauri_tool_webscraping",
+    "community/swarmauri_vectorstore_annoy",
+    "community/swarmauri_tool_jupyterexportmarkdown",
+    "community/swarmauri_tool_jupyterwritenotebook",
+    "community/swarmauri_vectorstore_mlm",
+    "community/swarmauri_tool_dalechallreadability",
+    "community/swarmauri_tool_captchagenerator",
+    "community/swarmauri_parser_textblob",
+    "community/swarmauri_documentstore_redis",
+    "community/swarmauri_state_clipboard",
+    "community/swarmauri_tool_sentimentanalysis",
+    "community/swarmauri_parser_pypdf2",
+    "community/swarmauri_tool_jupyterexecutecell",
+    "community/swarmauri_tool_textlength",
+    "community/swarmauri_tool_jupyterruncell",
+    "community/swarmauri_tool_jupytergetiopubmessage",
+    "community/swarmauri_vectorstore_duckdb",
+    "community/swarmauri_vectorstore_qdrant",
+    "community/swarmauri_measurement_tokencountestimator",
+    "community/swarmauri_tool_folium",
+    "community/swarmauri_tool_psutil",
+    "community/swarmauri_embedding_mlm",
+    "community/swarmauri_tool_jupyterdisplayhtml",
+    "community/swarmauri_tool_qrcodegenerator",
+    "community/swarmauri_ocr_pytesseract",
+    "community/swarmauri_vectorstore_redis",
+    "community/swarmauri_toolkit_jupytertoolkit",
+    "community/swarmauri_vectorstore_persistentchromadb",
+    "community/swarmauri_toolkit_github",
+    "community/swarmauri_vectorstore_cloudweaviate",
+    "community/swarmauri_tool_jupyterexecuteandconvert",
+    "community/swarmauri_tool_entityrecognition",
+    "community/swarmauri_tool_jupytershutdownkernel",
+    "community/swarmauri_tool_jupyterfromdict",
+    "community/swarmauri_vectorstore_neo4j",
+    "community/swarmauri_parser_entityrecognition",
+    "community/swarmauri_tool_jupyterexportpython",
+    "community/swarmauri_measurement_mutualinformation",
+    "community/swarmauri_tool_jupyterexporthtml",
+    "community/swarmauri_tool_lexicaldensity",
+    "community/swarmauri_tool_jupyterdisplay",
+    "community/swarmauri_tool_zapierhook",
+    "community/swarmauri_tool_downloadpdf",
+    "swarmauri",
 ]
-
-[tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_typing = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
-swarmauri_parser_beautifulsoupelement = { workspace = true }
-swarmauri_distance_minkowski = { workspace = true }
-swarmauri_vectorstore_tfidf = { workspace = true }
-swarmauri_tool_matplotlib = { workspace = true }
-swarmauri_embedding_nmf = { workspace = true }
-swarmauri_parser_keywordextractor = { workspace = true }
-swarmauri_embedding_tfidf = { workspace = true }
-swarmauri_embedding_doc2vec = { workspace = true }
-swarmauri_ptree_dag = { workspace = true }
-swarmauri_tool_smogindex = { workspace = true }
-swarmauri_tool_jupyterreadnotebook = { workspace = true }
-swarmauri_tool_jupyterexecutenotebook = { workspace = true }
-swarmauri_tool_jupyterclearoutput = { workspace = true }
-swarmauri_tool_jupyterstartkernel = { workspace = true }
-swarmauri_vectorstore_pinecone = { workspace = true }
-swarmauri_parser_fitzpdf = { workspace = true }
-swarmauri_tool_jupytergetshellmessage = { workspace = true }
-swarmauri_llm_leptonai = { workspace = true }
-swarmauri_parser_bertembedding = { workspace = true }
-swm_example_community_package = { workspace = true }
-swarmauri_tool_gmail = { workspace = true }
-swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
-swarmauri_tool_sentencecomplexity = { workspace = true }
-swarmauri_tool_jupyterexportlatex = { workspace = true }
-swarmauri_tool_jupytervalidatenotebook = { workspace = true }
-swarmauri_tool_webscraping = { workspace = true }
-swarmauri_vectorstore_annoy = { workspace = true }
-swarmauri_tool_jupyterexportmarkdown = { workspace = true }
-swarmauri_tool_jupyterwritenotebook = { workspace = true }
-swarmauri_vectorstore_mlm = { workspace = true }
-swarmauri_tool_dalechallreadability = { workspace = true }
-swarmauri_tool_captchagenerator = { workspace = true }
-swarmauri_parser_textblob = { workspace = true }
-swarmauri_documentstore_redis = { workspace = true }
-swarmauri_state_clipboard = { workspace = true }
-swarmauri_tool_sentimentanalysis = { workspace = true }
-swarmauri_parser_pypdf2 = { workspace = true }
-swarmauri_tool_jupyterexecutecell = { workspace = true }
-swarmauri_tool_textlength = { workspace = true }
-swarmauri_tool_jupyterruncell = { workspace = true }
-swarmauri_tool_jupytergetiopubmessage = { workspace = true }
-swarmauri_vectorstore_duckdb = { workspace = true }
-swarmauri_vectorstore_qdrant = { workspace = true }
-swarmauri_measurement_tokencountestimator = { workspace = true }
-swarmauri_tool_folium = { workspace = true }
-swarmauri_tool_psutil = { workspace = true }
-swarmauri_embedding_mlm = { workspace = true }
-swarmauri_tool_jupyterdisplayhtml = { workspace = true }
-swarmauri_tool_qrcodegenerator = { workspace = true }
-swarmauri_ocr_pytesseract = { workspace = true }
-swarmauri_vectorstore_redis = { workspace = true }
-swarmauri_toolkit_jupytertoolkit = { workspace = true }
-swarmauri_vectorstore_persistentchromadb = { workspace = true }
-swarmauri_toolkit_github = { workspace = true }
-swarmauri_vectorstore_cloudweaviate = { workspace = true }
-swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
-swarmauri_tool_entityrecognition = { workspace = true }
-swarmauri_tool_jupytershutdownkernel = { workspace = true }
-swarmauri_tool_jupyterfromdict = { workspace = true }
-swarmauri_vectorstore_neo4j = { workspace = true }
-swarmauri_parser_entityrecognition = { workspace = true }
-swarmauri_tool_jupyterexportpython = { workspace = true }
-swarmauri_measurement_mutualinformation = { workspace = true }
-swarmauri_tool_jupyterexporthtml = { workspace = true }
-swarmauri_tool_lexicaldensity = { workspace = true }
-swarmauri_tool_jupyterdisplay = { workspace = true }
-swarmauri_tool_zapierhook = { workspace = true }
-swarmauri_tool_downloadpdf = { workspace = true }
 
 
 [tool.pytest.ini_options]
@@ -190,7 +115,7 @@ markers = [
     "timeout: mark test to timeout after X seconds",
     "xfail: Expected failures",
     "xpass: Expected passes",
-    "acceptance: Acceptance tests"
+    "acceptance: Acceptance tests",
 ]
 
 
@@ -204,4 +129,3 @@ asyncio_default_fixture_loop_scope = "function"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

@@ -1,4 +1,4 @@
-[tool.uv]
+[project]
 name = "swarmauri"
 version = "0.6.2.dev3"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
@@ -10,16 +10,16 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12"
+  "Programming Language :: Python :: 3.12",
 ]
 
 [tool.uv.dependencies]
 python = ">=3.10,<3.13"
-swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
+swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core" }
+swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base" }
 swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
 
-toml = {version = "^0.10.2"}
+toml = { version = "^0.10.2" }
 httpx = "^0.27.0"
 pydantic = "^2.9.2"
 typing_extensions = "*"
@@ -36,7 +36,7 @@ swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sd
 swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
 
 
-[tool.setuptools]
+[tool.uv.packages]
 namespace_packages = ["swarmauri"]
 
 [tool.uv.extras]
@@ -64,7 +64,7 @@ full = [
   "swarmauri_embedding_tfidf",
   "swarmauri_embedding_nmf",
   "swarmauri_distance_minkowski",
-  "swarmauri_tool_matplotlib"
+  "swarmauri_tool_matplotlib",
 ]
 
 [tool.uv.group.dev.dependencies]
@@ -98,9 +98,8 @@ markers = [
 
 log_cli = true
 log_cli_level = "INFO"
-log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"  
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-p
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.uv.workspaces]
@@ -116,5 +115,5 @@ members = [
   "pkgs/standards/swarmauri_parser_keywordextractor",
   "pkgs/standards/swarmauri_parser_beautifulsoupelement",
   "pkgs/standards/swarmauri_vectorstore_tfidf",
-  "pkgs/standards/swarmauri_distance_minkowski"
+  "pkgs/standards/swarmauri_distance_minkowski",
 ]
