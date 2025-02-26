@@ -35,6 +35,10 @@ swarmauri_parser_beautifulsoupelement = { git = "https://github.com/swarmauri/sw
 swarmauri_vectorstore_tfidf = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_vectorstore_tfidf", optional = true }
 swarmauri_distance_minkowski = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/standards/swarmauri_distance_minkowski", optional = true }
 
+
+[tool.setuptools]
+namespace_packages = ["swarmauri"]
+
 [tool.uv.extras]
 # First Class Extras
 vectorstore_doc2vec = ["swarmauri_vectorstore_doc2vec"]
@@ -94,7 +98,7 @@ markers = [
 
 log_cli = true
 log_cli_level = "INFO"
-log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"  
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 p
 asyncio_default_fixture_loop_scope = "function"
