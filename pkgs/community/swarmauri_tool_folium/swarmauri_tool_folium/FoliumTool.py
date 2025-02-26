@@ -1,5 +1,4 @@
 # standard/tools/concrete/FoliumTool.py
-import warnings
 import folium
 from typing import List, Tuple, Literal, Dict
 from swarmauri_base.ComponentBase import ComponentBase
@@ -8,17 +7,6 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 import base64
 import io
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolBase, "FoliumTool")
 class FoliumTool(ToolBase):

@@ -9,16 +9,6 @@ from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 warnings.warn(
     "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will be "
     "removed in a future version. Please use 'from swarmauri_standard.tts import "
@@ -26,7 +16,6 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
 
 @ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")
 class HyperbolicAudioTTS(LLMBase):

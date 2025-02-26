@@ -4,7 +4,6 @@
 # shutting down a running Jupyter kernel. It integrates with the system's tool architecture
 # and handles kernel resource release, logging, error handling, and configurable timeouts.
 
-import warnings
 import logging
 import time
 from typing import List, Literal, Dict
@@ -16,17 +15,6 @@ from jupyter_client.kernelspec import NoSuchKernel
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolBase, "JupyterShutdownKernelTool")
 class JupyterShutdownKernelTool(ToolBase):

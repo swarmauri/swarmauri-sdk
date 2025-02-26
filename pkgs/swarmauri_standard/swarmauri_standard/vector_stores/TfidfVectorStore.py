@@ -1,5 +1,3 @@
-import warnings
-
 from typing import List, Union, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
@@ -13,17 +11,6 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(VectorStoreBase, "TfidfVectorStore")
 class TfidfVectorStore(

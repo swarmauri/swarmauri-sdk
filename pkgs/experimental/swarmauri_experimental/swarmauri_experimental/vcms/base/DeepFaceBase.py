@@ -1,18 +1,6 @@
-import warnings
-
 from typing import List, ClassVar, Literal
 from pydantic import BaseModel, Field, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 
 class DeepFaceBase(ComponentBase, BaseModel):
 

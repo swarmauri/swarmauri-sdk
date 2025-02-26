@@ -1,4 +1,3 @@
-import warnings
 import asyncio
 import json
 import logging
@@ -15,17 +14,6 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
 class GeminiToolModel(ToolLLMBase):

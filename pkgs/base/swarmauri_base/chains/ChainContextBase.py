@@ -1,21 +1,9 @@
 from typing import Any, Dict, List, Optional, Literal
 from pydantic import Field, ConfigDict
-import warnings
 import re
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.chains.IChainContext import IChainContext
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class ChainContextBase(IChainContext, ComponentBase):

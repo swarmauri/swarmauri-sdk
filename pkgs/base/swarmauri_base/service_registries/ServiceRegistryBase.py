@@ -1,21 +1,8 @@
-import warnings
-
 from typing import Dict, Any, List, Literal, Optional
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.service_registries.IServiceRegistry import IServiceRegistry
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class ServiceRegistryBase(IServiceRegistry, ComponentBase):

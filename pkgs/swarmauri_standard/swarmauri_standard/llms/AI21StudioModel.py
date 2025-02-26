@@ -1,4 +1,3 @@
-import warnings
 import asyncio
 import json
 from typing import AsyncIterator, Iterator, List, Literal, Type
@@ -13,17 +12,6 @@ from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(LLMBase, "AI21StudioModel")
 class AI21StudioModel(LLMBase):

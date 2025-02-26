@@ -1,4 +1,3 @@
-import warnings
 import os
 import asyncio
 from typing import List, Literal, Union
@@ -8,17 +7,6 @@ from PIL import Image
 import pytesseract
 from io import BytesIO
 from swarmauri_base.ocrs.OCRBase import OCRBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(OCRBase, "PytesseractOCR")
 class PytesseractOCR(OCRBase):

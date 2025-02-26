@@ -1,20 +1,7 @@
-import warnings
-
 from typing import Any, Callable, Dict, Literal
 from swarmauri_standard.utils._get_subclasses import get_classes_from_module
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(FactoryBase, "Factory")
 class Factory(FactoryBase):

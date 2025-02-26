@@ -1,4 +1,3 @@
-import warnings
 import asyncio
 import json
 import httpx
@@ -14,16 +13,6 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 @ComponentBase.register_type(LLMBase, 'O1Model')
 class O1Model(LLMBase):
     """
@@ -36,7 +25,6 @@ class O1Model(LLMBase):
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
         type (Literal["OpenAIModel"]): The type identifier for this class.
-
 
     Provider resources: https://platform.openai.com/docs/models
     """

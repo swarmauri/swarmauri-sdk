@@ -1,5 +1,3 @@
-import warnings
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from swarmauri_base.ComponentBase import ComponentBase
@@ -7,17 +5,6 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict, Optional
 from pydantic import Field
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolBase, "GmailReadTool")
 class GmailReadTool(ToolBase):

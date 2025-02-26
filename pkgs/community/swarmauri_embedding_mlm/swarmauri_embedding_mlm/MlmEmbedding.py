@@ -1,5 +1,4 @@
 from typing import List, Union, Any, Literal
-import warnings
 import logging
 from pydantic import PrivateAttr
 import torch
@@ -10,17 +9,6 @@ from transformers import AutoModelForMaskedLM, AutoTokenizer
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(EmbeddingBase, "MlmEmbedding")
 class MlmEmbedding(EmbeddingBase):

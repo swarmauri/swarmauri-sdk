@@ -1,5 +1,3 @@
-import warnings
-
 from abc import abstractmethod
 from typing import List, Optional, Literal
 from pydantic import Field
@@ -7,17 +5,6 @@ from pydantic import Field
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class DistanceBase(IDistanceSimilarity, ComponentBase):

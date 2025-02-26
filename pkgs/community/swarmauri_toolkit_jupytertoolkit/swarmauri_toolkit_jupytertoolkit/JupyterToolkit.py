@@ -1,5 +1,3 @@
-import warnings
-
 from typing import Dict, Literal
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
@@ -56,18 +54,8 @@ from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
 )
 from swarmauri_tool_jupyterwritenotebook.JupyterWriteNotebookTool import (
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
+JupyterWriteNotebookTool,
 )
-
-    JupyterWriteNotebookTool,
-)
-
 
 @ComponentBase.register_type(ToolkitBase, "JupyterToolkit")
 class JupyterToolkit(ToolkitBase):

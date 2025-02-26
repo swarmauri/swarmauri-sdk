@@ -1,5 +1,4 @@
 from typing import List, Literal, Dict, Any
-import warnings
 import logging
 import nbformat
 from pydantic import Field
@@ -9,26 +8,15 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
 """
 JupyterReadNotebookTool.py
 
 This module defines the JupyterReadNotebookTool, a component that reads a Jupyter notebook file
 from the filesystem, parses it into a NotebookNode object (using a specified nbformat version),
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 validates its integrity, and returns the resulting node for further processing. This component
 inherits from the ToolBase class to seamlessly integrate with the system's tool architecture.
 """
-
 
 @ComponentBase.register_type(ToolBase, "JupyterReadNotebookTool")
 class JupyterReadNotebookTool(ToolBase):

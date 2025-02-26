@@ -1,22 +1,11 @@
 from typing import Literal
 from swarmauri_base.ComponentBase import ComponentBase
-import warnings
 import tiktoken
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
+MeasurementCalculateMixin,
 )
-
-    MeasurementCalculateMixin,
-)
-
 
 @ComponentBase.register_type(MeasurementBase, "TokenCountEstimatorMeasurement")
 class TokenCountEstimatorMeasurement(MeasurementBase, MeasurementCalculateMixin):

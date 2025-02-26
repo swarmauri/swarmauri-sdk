@@ -6,17 +6,6 @@ import warnings
 from swarmauri_core.prompt_templates.IPromptTemplate import IPromptTemplate
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
-
 @ComponentBase.register_model()
 class PromptTemplateBase(IPromptTemplate, ComponentBase):
     """

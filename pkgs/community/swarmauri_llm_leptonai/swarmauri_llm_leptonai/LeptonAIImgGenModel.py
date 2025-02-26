@@ -1,4 +1,3 @@
-import warnings
 import asyncio
 import requests
 from io import BytesIO
@@ -7,17 +6,6 @@ from typing import List, Literal
 from pydantic import Field, ConfigDict, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ImageGenBase, "LeptonAIImgGenModel")
 class LeptonAIImgGenModel(ImageGenBase):

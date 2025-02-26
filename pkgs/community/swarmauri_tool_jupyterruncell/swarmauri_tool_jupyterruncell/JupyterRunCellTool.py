@@ -8,7 +8,6 @@ integrates seamlessly with the swarmauri tool architecture and supports automate
 testing workflows.
 """
 
-import warnings
 import logging
 import signal
 import io
@@ -20,27 +19,15 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 # Configure a logger for this module.
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
 
 def _timeout_handler(signum, frame):
     """
     Signal handler to raise a TimeoutError when the signal is emitted.
     """
     raise TimeoutError("Cell execution timed out.")
-
 
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
 class JupyterRunCellTool(ToolBase):

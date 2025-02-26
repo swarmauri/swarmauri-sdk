@@ -1,21 +1,9 @@
 from typing import List, Optional, Literal
-import warnings
 import numpy as np
 from pydantic import Field
 
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class VectorBase(IVector, ComponentBase):

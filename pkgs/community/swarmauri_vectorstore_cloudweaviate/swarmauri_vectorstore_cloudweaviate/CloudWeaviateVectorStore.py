@@ -1,7 +1,6 @@
 from typing import List, Union, Literal, Optional
 from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import PrivateAttr
-import warnings
 import uuid as ud
 import weaviate
 from weaviate.classes.init import Auth
@@ -20,17 +19,6 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 from swarmauri_base.vector_stores.VectorStoreCloudMixin import VectorStoreCloudMixin
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(VectorStoreBase, "CloudWeaviateVectorStore")
 class CloudWeaviateVectorStore(

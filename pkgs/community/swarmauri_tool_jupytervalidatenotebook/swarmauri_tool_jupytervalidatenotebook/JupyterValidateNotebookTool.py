@@ -6,7 +6,6 @@ notebook against its JSON schema using nbformat. It inherits from the swarmauri 
 classes to integrate seamlessly as a tool that can be invoked with a NotebookNode as input.
 """
 
-import warnings
 import logging
 from typing import List, Dict
 from pydantic import Field
@@ -16,21 +15,9 @@ import nbformat
 from nbformat import NotebookNode
 from nbformat.validator import NotebookValidationError
 
-
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolBase, "JupyterValidateNotebookTool")
 class JupyterValidateNotebookTool(ToolBase):

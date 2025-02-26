@@ -14,16 +14,6 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 warnings.warn(
     "Importing HyperbolicVisionModel from swarmauri.llms is deprecated and will be "
     "removed in a future version. Please use 'from swarmauri_standard.vlms import "
@@ -31,7 +21,6 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
 
 @ComponentBase.register_type(LLMBase, "HyperbolicVisionModel")
 class HyperbolicVisionModel(LLMBase):

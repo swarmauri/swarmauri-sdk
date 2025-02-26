@@ -2,7 +2,6 @@
 import os
 import re
 
-
 def update_component_base_imports(start_path):
     """
     Walk through all Python files in the given path, update ComponentBase imports,
@@ -12,13 +11,7 @@ def update_component_base_imports(start_path):
     replacement = "from swarmauri_base.ComponentBase import ComponentBase"
 
     deprecation_warning = """
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)"""
+"""
 
     # To ensure warnings import is present
     warning_import = "import warnings"
@@ -90,7 +83,6 @@ warnings.warn(
                     print(f"Error processing {file_path}: {e}")
 
     print(f"\nTotal files updated: {files_updated}")
-
 
 if __name__ == "__main__":
     sdk_path = "/Users/michaeldecent/Swarmauri/swarmauri-sdk"

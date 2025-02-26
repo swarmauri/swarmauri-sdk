@@ -1,19 +1,7 @@
 from typing import List, Union, Any, Literal
-import warnings
 import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ChunkerBase, "DelimiterBasedChunker")
 class DelimiterBasedChunker(ChunkerBase):

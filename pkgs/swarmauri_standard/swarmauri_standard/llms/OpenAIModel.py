@@ -14,16 +14,6 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 warnings.warn(
     "Importing OpenAIModel from swarmauri.llms is deprecated and will be "
     "removed in a future version. Please use 'from swarmauri_standard.stt import "
@@ -31,7 +21,6 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
 
 @ComponentBase.register_type(LLMBase, "OpenAIModel")
 class OpenAIModel(LLMBase):
@@ -45,7 +34,6 @@ class OpenAIModel(LLMBase):
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
         type (Literal["OpenAIModel"]): The type identifier for this class.
-
 
     Provider resources: https://platform.openai.com/docs/models
     """

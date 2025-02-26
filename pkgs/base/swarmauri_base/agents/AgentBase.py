@@ -1,22 +1,9 @@
-import warnings
-
 from typing import Any, Optional, Dict, Union, Literal
 from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent
 from swarmauri_base.llms.LLMBase import LLMBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class AgentBase(IAgent, ComponentBase):

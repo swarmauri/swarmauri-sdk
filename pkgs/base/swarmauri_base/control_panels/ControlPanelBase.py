@@ -1,4 +1,3 @@
-import warnings
 import logging
 from typing import Any, Callable, List, Literal
 from pydantic import Field, ConfigDict
@@ -11,17 +10,6 @@ from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
     TaskMgmtStrategyBase,
 )
 from swarmauri_base.transports.TransportBase import TransportBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class ControlPanelBase(IControlPlane, ComponentBase):

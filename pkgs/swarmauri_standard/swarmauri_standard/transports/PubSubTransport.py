@@ -1,22 +1,10 @@
 from typing import Dict, Any, List, Set, Literal
-import warnings
 import asyncio
 import uuid
 
 from pydantic import PrivateAttr
 from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(TransportBase, "PubSubTransport")
 class PubSubTransport(TransportBase):

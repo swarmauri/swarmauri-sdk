@@ -1,5 +1,3 @@
-import warnings
-
 from typing import Optional, Union, List, Literal
 from pydantic import Field, ConfigDict, field_validator
 from swarmauri_standard.messages.SystemMessage import SystemMessage
@@ -13,17 +11,6 @@ from swarmauri_base.conversations.ConversationSystemContextMixin import (
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ConversationBase, "MaxSystemContextConversation")
 class MaxSystemContextConversation(

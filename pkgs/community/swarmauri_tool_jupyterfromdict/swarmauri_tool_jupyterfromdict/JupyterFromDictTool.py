@@ -6,7 +6,6 @@ a Jupyter notebook structure and converts it into a validated NotebookNode. It p
 throughout the conversion process and gracefully handles errors.
 """
 
-import warnings
 import logging
 from typing import List, Dict, Union, Literal
 from pydantic import Field
@@ -16,18 +15,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(ToolBase, "JupyterFromDictTool")
 class JupyterFromDictTool(ToolBase):

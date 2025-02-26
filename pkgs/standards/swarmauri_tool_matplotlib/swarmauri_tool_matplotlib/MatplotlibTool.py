@@ -1,4 +1,3 @@
-import warnings
 import base64
 import matplotlib.pyplot as plt
 from typing import List, Literal
@@ -6,17 +5,6 @@ from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ToolBase, "MatplotlibTool")
 class MatplotlibTool(ToolBase):

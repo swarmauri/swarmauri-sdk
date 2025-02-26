@@ -1,21 +1,8 @@
-import warnings
-
 from typing import Optional, List
 from pydantic import Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.tools.IParameter import IParameter
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_model()
 class ParameterBase(IParameter, ComponentBase):

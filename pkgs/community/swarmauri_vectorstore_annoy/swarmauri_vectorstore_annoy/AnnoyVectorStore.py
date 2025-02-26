@@ -1,4 +1,3 @@
-import warnings
 import os
 from typing import List, Literal, Optional, Union
 
@@ -16,17 +15,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(VectorStoreBase, "AnnoyVectorStore")
 class AnnoyVectorStore(

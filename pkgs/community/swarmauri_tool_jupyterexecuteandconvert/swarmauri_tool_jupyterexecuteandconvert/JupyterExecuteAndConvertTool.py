@@ -11,7 +11,6 @@ information about the converted file. Errors are handled gracefully and surfaced
 the caller as needed.
 """
 
-import warnings
 import os
 import logging
 import subprocess
@@ -22,18 +21,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 logger = logging.getLogger(__name__)
-
 
 @ComponentBase.register_type(ToolBase, "JupyterExecuteAndConvertTool")
 class JupyterExecuteAndConvertTool(ToolBase):

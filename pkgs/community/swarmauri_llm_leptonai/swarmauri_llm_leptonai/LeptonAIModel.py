@@ -1,4 +1,3 @@
-import warnings
 import json
 from openai import OpenAI, AsyncOpenAI
 from typing import List, Dict, Literal, Optional, Iterator, AsyncIterator
@@ -10,17 +9,6 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(LLMBase, "LeptonAIModel")
 class LeptonAIModel(LLMBase):

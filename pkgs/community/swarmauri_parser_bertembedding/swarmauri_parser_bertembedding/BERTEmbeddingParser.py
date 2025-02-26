@@ -1,23 +1,11 @@
 from typing import List, Union, Any, Literal
 from swarmauri_base.ComponentBase import ComponentBase
 from transformers import BertTokenizer, BertModel
-import warnings
 import torch
 from pydantic import PrivateAttr
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ParserBase, "BERTEmbeddingParser")
 class BERTEmbeddingParser(ParserBase):

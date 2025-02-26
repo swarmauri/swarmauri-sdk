@@ -1,23 +1,12 @@
 from typing import Dict, List, Union, Optional, Literal
 from pydantic import Field, ConfigDict, FilePath
 from jinja2 import Environment, FileSystemLoader, Template
-import warnings
 import os
 
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 
 @ComponentBase.register_type(PromptTemplateBase, 'J2PromptTemplate')
 class J2PromptTemplate(PromptTemplateBase):

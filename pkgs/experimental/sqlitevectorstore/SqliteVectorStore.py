@@ -1,4 +1,3 @@
-import warnings
 import json
 import os
 import sqlite3
@@ -18,17 +17,6 @@ from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(VectorStoreBase, "SqliteVectorStore")
 class SqliteVectorStore(

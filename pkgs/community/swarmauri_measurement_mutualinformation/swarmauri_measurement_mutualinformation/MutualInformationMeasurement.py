@@ -1,23 +1,12 @@
 from typing import Literal
-import warnings
 import pandas as pd
 from sklearn.feature_selection import mutual_info_classif
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
+MeasurementCalculateMixin,
 )
-
-    MeasurementCalculateMixin,
-)
-
 
 @ComponentBase.register_type(MeasurementBase, "MutualInformationMeasurement")
 class MutualInformationMeasurement(MeasurementBase, MeasurementCalculateMixin):

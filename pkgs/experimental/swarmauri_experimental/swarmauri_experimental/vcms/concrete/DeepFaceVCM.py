@@ -1,21 +1,9 @@
 from typing import Any, Union, Optional, List, Literal, Tuple, Dict
 from pydantic import Field
-import warnings
 import numpy as np
 from deepface import DeepFace
 from swarmauri.vcms.base.VCMBase import VCMBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 class DeepFaceVCM(VCMBase, ComponentBase):
     type: Literal["DeepFaceVCM"] = "DeepFaceVCM" 
@@ -26,7 +14,6 @@ class DeepFaceVCM(VCMBase, ComponentBase):
     expand_percentage: float = Field(default=0, description="Percentage to expand bounding box")
     anti_spoofing: bool = Field(default=False, description="Enable anti-spoofing")
     actions: Tuple[str, ...] = Field(default=("emotion", "age", "gender", "race"), description="Actions to perform")
-
 
     def predict_vision(self, img_path: Union[str, np.ndarray], 
                        actions: Optional[Tuple[str, ...]] = None,

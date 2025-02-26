@@ -1,5 +1,3 @@
-import warnings
-
 from typing import List, Union, Literal
 
 from pydantic import PrivateAttr, Field, ConfigDict
@@ -26,17 +24,6 @@ from swarmauri_base.vector_stores.VectorStoreCloudMixin import (
     VectorStoreCloudMixin,
 )
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(VectorStoreBase, "CloudQdrantVectorStore")
 class CloudQdrantVectorStore(

@@ -1,22 +1,9 @@
-import warnings
-
 from typing import Dict, List, Generator, Any, Union, Optional, Literal
 from pydantic import Field
 
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """

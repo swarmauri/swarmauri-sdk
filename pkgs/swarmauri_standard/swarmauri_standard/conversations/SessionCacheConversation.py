@@ -1,5 +1,3 @@
-import warnings
-
 from typing import Optional, List, Literal
 from pydantic import Field, ConfigDict
 from swarmauri_core.messages.IMessage import IMessage
@@ -12,17 +10,6 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(ConversationBase, "SessionCacheConversation")
 class SessionCacheConversation(

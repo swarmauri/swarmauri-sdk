@@ -1,5 +1,4 @@
 from typing import Any, Dict, List, Literal, Optional, Union
-import warnings
 import asyncio
 from pydantic import ConfigDict, Field
 from enum import Enum
@@ -7,23 +6,11 @@ from enum import Enum
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.swarms.ISwarm import ISwarm
 
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
-
 class SwarmStatus(Enum):
     IDLE = "IDLE"
     WORKING = "WORKING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
-
 
 @ComponentBase.register_model()
 class SwarmBase(ISwarm, ComponentBase):

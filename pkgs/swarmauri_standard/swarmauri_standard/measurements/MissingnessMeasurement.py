@@ -1,22 +1,10 @@
 from typing import Dict, List, Literal, Union, Optional
-import warnings
 import pandas as pd
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-
 
 @ComponentBase.register_type(MeasurementBase, "MissingnessMeasurement")
 class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):

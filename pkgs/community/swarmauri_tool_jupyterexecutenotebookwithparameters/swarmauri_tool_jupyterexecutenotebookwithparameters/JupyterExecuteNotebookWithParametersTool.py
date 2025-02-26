@@ -1,21 +1,10 @@
 from typing import List, Literal, Dict, Any, Optional
-import warnings
 import logging
 import papermill as pm
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
-
-
-warnings.warn(
-    "Importing ComponentBase from swarmauri_core is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_base import "
-    "ComponentBase'",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +16,6 @@ notebooks using papermill, injecting custom parameters, capturing execution logs
 the path to the executed notebook output. It inherits from ToolBase and integrates seamlessly
 with the Swarmauri framework.
 """
-
 
 @ComponentBase.register_type(ToolBase, "JupyterExecuteNotebookWithParametersTool")
 class JupyterExecuteNotebookWithParametersTool(ToolBase):
