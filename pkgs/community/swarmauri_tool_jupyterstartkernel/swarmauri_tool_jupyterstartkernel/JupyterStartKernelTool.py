@@ -10,14 +10,25 @@ logging kernel start events, handling startup errors gracefully, and returning t
 reference. It can also integrate with further tools that execute cells within the started kernel.
 """
 
+import warnings
 import logging
 from typing import List, Literal, Dict, Optional, Any, ClassVar
 from pydantic import Field
 from jupyter_client import KernelManager
 
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,7 @@ and integrate with the swarmauri framework. The tool supports custom templates, 
 and logs export operations to help track usage and potential errors.
 """
 
+import warnings
 import logging
 from typing import List, Literal, Dict, Optional, Any
 from pydantic import Field
@@ -16,7 +17,17 @@ from nbconvert import MarkdownExporter
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 logger = logging.getLogger(__name__)
 

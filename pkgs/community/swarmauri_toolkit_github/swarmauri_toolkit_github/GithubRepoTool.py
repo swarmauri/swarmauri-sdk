@@ -1,9 +1,21 @@
+import warnings
+
 from github import Github, GithubException
 from typing import List, Dict, Literal, Any
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(ToolBase, "GithubRepoTool")

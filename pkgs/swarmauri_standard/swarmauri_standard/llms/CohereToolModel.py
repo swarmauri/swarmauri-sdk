@@ -7,7 +7,7 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
@@ -16,6 +16,16 @@ from swarmauri_standard.schema_converters.CohereSchemaConverter import (
 )
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 warnings.warn(
     "Importing CohereToolModel from swarmauri.llms is deprecated and will be "

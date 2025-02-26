@@ -1,4 +1,5 @@
 # plugin_manager.py
+import warnings
 import importlib
 import importlib.metadata
 import importlib.util
@@ -9,10 +10,20 @@ import sys
 from importlib.metadata import EntryPoint, entry_points
 from typing import Any, Dict, Optional
 
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 logger = logging.getLogger(__name__)
 

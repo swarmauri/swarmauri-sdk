@@ -1,5 +1,6 @@
 from queue import Queue
 from typing import Callable, Dict, Any, List, Literal
+import warnings
 import logging
 
 from pydantic import PrivateAttr
@@ -7,7 +8,17 @@ from pydantic import PrivateAttr
 from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
     TaskMgmtStrategyBase,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(TaskMgmtStrategyBase, "RoundRobinStrategy")

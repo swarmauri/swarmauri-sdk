@@ -1,3 +1,4 @@
+import warnings
 import asyncio
 import io
 import os
@@ -6,9 +7,19 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal
 import httpx
 from pydantic import PrivateAttr, SecretStr, model_validator
 from swarmauri_base.tts.TTSBase import TTSBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(TTSBase, "OpenaiTTS")

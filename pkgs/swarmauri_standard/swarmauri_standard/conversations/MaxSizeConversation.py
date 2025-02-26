@@ -1,9 +1,21 @@
+import warnings
+
 from typing import Literal
 from pydantic import Field
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.conversations.IMaxSize import IMaxSize
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(ConversationBase, "MaxSizeConversation")

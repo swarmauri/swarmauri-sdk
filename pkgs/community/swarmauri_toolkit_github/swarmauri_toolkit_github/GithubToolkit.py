@@ -1,6 +1,8 @@
+import warnings
+
 from typing import Literal, Optional
 
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_toolkit_github.GithubRepoTool import GithubRepoTool
@@ -10,6 +12,16 @@ from swarmauri_toolkit_github.GithubBranchTool import GithubBranchTool
 from swarmauri_toolkit_github.GithubCommitTool import GithubCommitTool
 
 from dotenv import load_dotenv
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 load_dotenv()
 

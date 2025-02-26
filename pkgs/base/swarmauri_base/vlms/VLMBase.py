@@ -1,9 +1,21 @@
+import warnings
+
 from abc import abstractmethod
 from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field, model_validator
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vlms.IPredictVision import IPredictVision
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_model()

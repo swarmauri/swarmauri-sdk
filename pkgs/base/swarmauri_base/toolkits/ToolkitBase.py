@@ -1,9 +1,21 @@
+import warnings
+
 from typing import Dict, Optional, List, Literal
 from pydantic import Field, ConfigDict
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_base.tools.ToolBase import ToolBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_model()

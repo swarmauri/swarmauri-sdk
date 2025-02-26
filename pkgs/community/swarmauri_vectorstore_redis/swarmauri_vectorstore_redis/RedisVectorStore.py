@@ -1,3 +1,4 @@
+import warnings
 import json
 from typing import List, Literal, Optional, Union
 
@@ -13,10 +14,20 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(VectorStoreBase, "RedisVectorStore")

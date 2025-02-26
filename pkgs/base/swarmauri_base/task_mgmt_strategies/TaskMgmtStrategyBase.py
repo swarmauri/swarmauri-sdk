@@ -1,9 +1,21 @@
+import warnings
+
 from abc import abstractmethod
 from typing import Any, Callable, Dict, Literal, Optional
 from pydantic import ConfigDict, Field
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import ITaskMgmtStrategy
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_model()

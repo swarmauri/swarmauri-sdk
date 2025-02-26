@@ -12,6 +12,7 @@ handles cell execution failures gracefully. The executed NotebookNode is
 updated with outputs produced during execution.
 """
 
+import warnings
 import logging
 from typing import List, Literal, ClassVar, Type
 from pydantic import Field
@@ -24,7 +25,17 @@ from nbformat.notebooknode import NotebookNode
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 logger = logging.getLogger(__name__)
 

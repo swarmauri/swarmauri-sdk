@@ -1,7 +1,18 @@
+import warnings
 import pyperclip
 from typing import Dict, Any, Literal
 from swarmauri_base.state.StateBase import StateBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(StateBase, "ClipboardState")

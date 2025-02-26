@@ -1,11 +1,22 @@
+import warnings
 import json
 from abc import abstractmethod
 from typing import List, Literal, Optional
 
 from pydantic import Field, PrivateAttr
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 from swarmauri_standard.documents.Document import Document
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_model()

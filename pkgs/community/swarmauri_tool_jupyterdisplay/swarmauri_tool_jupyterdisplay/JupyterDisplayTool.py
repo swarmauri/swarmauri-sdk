@@ -6,6 +6,7 @@ functionality to render data with a variety of rich representations. It inherits
 ToolBase and integrates with the swarmauri framework's tool architecture.
 """
 
+import warnings
 import logging
 from typing import List, Dict, Literal
 from pydantic import Field
@@ -13,7 +14,17 @@ import IPython.display as ipyd  # Updated import to use namespace
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(ToolBase, "JupyterDisplayTool")

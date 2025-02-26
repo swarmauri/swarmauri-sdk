@@ -7,6 +7,7 @@ optionally allows applying a custom HTML template, as well as embedding addition
 Logging is used to record export operations and errors.
 """
 
+import warnings
 import logging
 from typing import List, Literal, Dict, Optional
 
@@ -15,7 +16,17 @@ from nbconvert import HTMLExporter
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(ToolBase, "JupyterExportHTMLTool")

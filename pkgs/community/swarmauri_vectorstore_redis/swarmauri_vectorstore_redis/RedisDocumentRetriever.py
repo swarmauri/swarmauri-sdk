@@ -1,3 +1,5 @@
+import warnings
+
 from typing import List, Optional
 
 from pydantic import Field, PrivateAttr
@@ -5,8 +7,18 @@ from redisearch import Client, Query
 from swarmauri_base.document_stores.DocumentStoreRetrieveBase import (
     DocumentStoreRetrieveBase,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(DocumentStoreRetrieveBase, "RedisDocumentRetriever")

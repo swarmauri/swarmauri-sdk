@@ -1,7 +1,19 @@
+import warnings
+
 from typing import Any, Callable, List
 
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 @ComponentBase.register_type(PipelineBase, "Pipeline")

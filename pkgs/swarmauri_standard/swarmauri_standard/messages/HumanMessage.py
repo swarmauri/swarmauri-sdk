@@ -1,10 +1,22 @@
+import warnings
+
 from typing import Optional, Literal, List, Union, Dict
 from pydantic import Field, field_validator
 from typing_extensions import TypedDict
 
 from swarmauri_standard.utils.base64_encoder import is_url, encode_file
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 
 # Define specific content types
