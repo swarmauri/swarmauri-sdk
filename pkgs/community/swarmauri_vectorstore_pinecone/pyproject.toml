@@ -10,27 +10,35 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
 ]
-authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
-dependencies = ["pinecone-client{'version': '^5.0.1', 'extras': ['grpc']}"]
-
-[tool.uv.workspace]
-members = ["core", "base", "swarmauri_standard", "standards/swarmauri_embedding_doc2vec"]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "pinecone-client{'version': '^5.0.1', 'extras': ['grpc']}",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+    "swarmauri_embedding_doc2vec",
+]
 
 [tool.uv.sources]
-core = {workspace = true}
-base = {workspace = true}
-swarmauri_standard = {workspace = true}
-"standards/swarmauri_embedding_doc2vec" = {workspace = true}
-
-[tool.uv.dependency-groups]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3"]
-lint = ["flake8>=7.0"]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_embedding_doc2vec = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
-markers = ["test: standard test", "unit: Unit tests", "i9n: Integration tests", "r8n: Regression tests", "timeout: mark test to timeout after X seconds", "xpass: Expected passes", "xfail: Expected failures", "acceptance: Acceptance tests"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+]
 timeout = 300
 log_cli = true
 log_cli_level = "INFO"
@@ -43,3 +51,14 @@ PineconeVectorStore = "swarmauri_vectorstore_pinecone.PineconeVectorStore:Pineco
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+]
