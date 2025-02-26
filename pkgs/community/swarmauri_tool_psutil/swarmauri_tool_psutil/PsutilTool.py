@@ -1,11 +1,10 @@
 # standard/tools/concrete/PsutilTool.py
 import psutil
 from typing import Dict, Any, Literal, List, Callable
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-
 
 @ComponentBase.register_type(ToolBase, "PsutilTool")
 class PsutilTool(ToolBase):

@@ -2,8 +2,7 @@ import re
 from typing import Any, Dict, List, Literal
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ToolBase, "ColemanLiauIndexTool")
 class ColemanLiauIndexTool(ToolBase):

@@ -1,12 +1,12 @@
 from typing import Literal
 import pandas as pd
 from sklearn.feature_selection import mutual_info_classif
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
-    MeasurementCalculateMixin,
-)
 
+MeasurementCalculateMixin,
+)
 
 @ComponentBase.register_type(MeasurementBase, "MutualInformationMeasurement")
 class MutualInformationMeasurement(MeasurementBase, MeasurementCalculateMixin):

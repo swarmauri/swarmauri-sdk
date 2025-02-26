@@ -13,8 +13,7 @@ from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
 class GeminiToolModel(ToolLLMBase):

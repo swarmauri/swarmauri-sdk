@@ -1,5 +1,5 @@
 from typing import List, Union, Literal, Optional
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import PrivateAttr
 import uuid as ud
 import weaviate
@@ -19,7 +19,6 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 from swarmauri_base.vector_stores.VectorStoreCloudMixin import VectorStoreCloudMixin
-
 
 @ComponentBase.register_type(VectorStoreBase, "CloudWeaviateVectorStore")
 class CloudWeaviateVectorStore(

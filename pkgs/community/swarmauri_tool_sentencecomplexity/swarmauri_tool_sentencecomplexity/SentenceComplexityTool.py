@@ -5,10 +5,9 @@ from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 nltk.download("punkt_tab", quiet=True)
-
 
 @ComponentBase.register_type(ToolBase, "SentenceComplexityTool")
 class SentenceComplexityTool(ToolBase):

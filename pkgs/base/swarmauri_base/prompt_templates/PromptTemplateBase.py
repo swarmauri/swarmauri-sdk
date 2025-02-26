@@ -4,8 +4,7 @@ from pydantic import Field
 import warnings
 
 from swarmauri_core.prompt_templates.IPromptTemplate import IPromptTemplate
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class PromptTemplateBase(IPromptTemplate, ComponentBase):

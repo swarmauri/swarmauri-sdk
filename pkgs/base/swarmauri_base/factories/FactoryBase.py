@@ -2,8 +2,7 @@ from typing import Any, Callable, Literal, Optional
 from pydantic import ConfigDict, Field
 
 from swarmauri_core.factories.IFactory import IFactory
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class FactoryBase(IFactory, ComponentBase):

@@ -10,8 +10,7 @@ from swarmauri_base.conversations.ConversationSystemContextMixin import (
 )
 from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_core.messages.IMessage import IMessage
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ConversationBase, "MaxSystemContextConversation")
 class MaxSystemContextConversation(

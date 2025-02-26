@@ -2,9 +2,8 @@ from abc import abstractmethod
 from typing import Any, Callable, Dict, Literal, Optional
 from pydantic import ConfigDict, Field
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import ITaskMgmtStrategy
-
 
 @ComponentBase.register_model()
 class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):

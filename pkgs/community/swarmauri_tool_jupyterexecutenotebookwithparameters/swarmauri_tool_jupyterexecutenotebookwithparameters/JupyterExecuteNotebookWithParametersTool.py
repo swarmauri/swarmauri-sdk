@@ -4,7 +4,7 @@ import papermill as pm
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,6 @@ notebooks using papermill, injecting custom parameters, capturing execution logs
 the path to the executed notebook output. It inherits from ToolBase and integrates seamlessly
 with the Swarmauri framework.
 """
-
 
 @ComponentBase.register_type(ToolBase, "JupyterExecuteNotebookWithParametersTool")
 class JupyterExecuteNotebookWithParametersTool(ToolBase):

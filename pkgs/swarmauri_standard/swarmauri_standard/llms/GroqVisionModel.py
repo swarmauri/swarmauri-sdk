@@ -7,7 +7,7 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -21,7 +21,6 @@ warnings.warn(
     stacklevel=2,
 )
 
-
 @ComponentBase.register_type(LLMBase, "GroqVisionModel")
 class GroqVisionModel(LLMBase):
     """
@@ -34,7 +33,6 @@ class GroqVisionModel(LLMBase):
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
         type (Literal["GroqModel"]): The type identifier for this class.
-
 
     Allowed Models resources: https://console.groq.com/docs/models
     """

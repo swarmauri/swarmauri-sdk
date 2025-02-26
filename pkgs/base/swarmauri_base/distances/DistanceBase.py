@@ -4,8 +4,7 @@ from pydantic import Field
 
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class DistanceBase(IDistanceSimilarity, ComponentBase):
