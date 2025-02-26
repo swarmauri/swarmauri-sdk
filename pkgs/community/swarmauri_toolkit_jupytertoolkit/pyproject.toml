@@ -11,46 +11,73 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
 ]
-authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
-dependencies = ["pydantic*"]
-
-[tool.uv.workspace]
-members = ["core", "base", "standards/swarmauri_standard", "swarmauri_tool_jupyterclearoutput", "swarmauri_tool_jupyterdisplay", "swarmauri_tool_jupyterdisplayhtml", "swarmauri_tool_jupyterexecuteandconvert", "swarmauri_tool_jupyterexecutecell", "swarmauri_tool_jupyterexecutenotebook", "swarmauri_tool_jupyterexecutenotebookwithparameters", "swarmauri_tool_jupyterexporthtml", "swarmauri_tool_jupyterexportlatex", "swarmauri_tool_jupyterexportmarkdown", "swarmauri_tool_jupyterexportpython", "swarmauri_tool_jupyterfromdict", "swarmauri_tool_jupytergetiopubmessage", "swarmauri_tool_jupytergetshellmessage", "swarmauri_tool_jupyterreadnotebook", "swarmauri_tool_jupyterruncell", "swarmauri_tool_jupytershutdownkernel", "swarmauri_tool_jupyterstartkernel", "swarmauri_tool_jupytervalidatenotebook", "swarmauri_tool_jupyterwritenotebook"]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "pydantic*",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+    "swarmauri_tool_jupyterclearoutput",
+    "swarmauri_tool_jupyterdisplay",
+    "swarmauri_tool_jupyterdisplayhtml",
+    "swarmauri_tool_jupyterexecuteandconvert",
+    "swarmauri_tool_jupyterexecutecell",
+    "swarmauri_tool_jupyterexecutenotebook",
+    "swarmauri_tool_jupyterexecutenotebookwithparameters",
+    "swarmauri_tool_jupyterexporthtml",
+    "swarmauri_tool_jupyterexportlatex",
+    "swarmauri_tool_jupyterexportmarkdown",
+    "swarmauri_tool_jupyterexportpython",
+    "swarmauri_tool_jupyterfromdict",
+    "swarmauri_tool_jupytergetiopubmessage",
+    "swarmauri_tool_jupytergetshellmessage",
+    "swarmauri_tool_jupyterreadnotebook",
+    "swarmauri_tool_jupyterruncell",
+    "swarmauri_tool_jupytershutdownkernel",
+    "swarmauri_tool_jupyterstartkernel",
+    "swarmauri_tool_jupytervalidatenotebook",
+    "swarmauri_tool_jupyterwritenotebook",
+]
 
 [tool.uv.sources]
-core = {workspace = true}
-base = {workspace = true}
-"standards/swarmauri_standard" = {workspace = true}
-swarmauri_tool_jupyterclearoutput = {workspace = true}
-swarmauri_tool_jupyterdisplay = {workspace = true}
-swarmauri_tool_jupyterdisplayhtml = {workspace = true}
-swarmauri_tool_jupyterexecuteandconvert = {workspace = true}
-swarmauri_tool_jupyterexecutecell = {workspace = true}
-swarmauri_tool_jupyterexecutenotebook = {workspace = true}
-swarmauri_tool_jupyterexecutenotebookwithparameters = {workspace = true}
-swarmauri_tool_jupyterexporthtml = {workspace = true}
-swarmauri_tool_jupyterexportlatex = {workspace = true}
-swarmauri_tool_jupyterexportmarkdown = {workspace = true}
-swarmauri_tool_jupyterexportpython = {workspace = true}
-swarmauri_tool_jupyterfromdict = {workspace = true}
-swarmauri_tool_jupytergetiopubmessage = {workspace = true}
-swarmauri_tool_jupytergetshellmessage = {workspace = true}
-swarmauri_tool_jupyterreadnotebook = {workspace = true}
-swarmauri_tool_jupyterruncell = {workspace = true}
-swarmauri_tool_jupytershutdownkernel = {workspace = true}
-swarmauri_tool_jupyterstartkernel = {workspace = true}
-swarmauri_tool_jupytervalidatenotebook = {workspace = true}
-swarmauri_tool_jupyterwritenotebook = {workspace = true}
-
-[tool.uv.dependency-groups]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3"]
-lint = ["flake8>=7.0"]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_tool_jupyterclearoutput = { workspace = true }
+swarmauri_tool_jupyterdisplay = { workspace = true }
+swarmauri_tool_jupyterdisplayhtml = { workspace = true }
+swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
+swarmauri_tool_jupyterexecutecell = { workspace = true }
+swarmauri_tool_jupyterexecutenotebook = { workspace = true }
+swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
+swarmauri_tool_jupyterexporthtml = { workspace = true }
+swarmauri_tool_jupyterexportlatex = { workspace = true }
+swarmauri_tool_jupyterexportmarkdown = { workspace = true }
+swarmauri_tool_jupyterexportpython = { workspace = true }
+swarmauri_tool_jupyterfromdict = { workspace = true }
+swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_tool_jupytergetshellmessage = { workspace = true }
+swarmauri_tool_jupyterreadnotebook = { workspace = true }
+swarmauri_tool_jupyterruncell = { workspace = true }
+swarmauri_tool_jupytershutdownkernel = { workspace = true }
+swarmauri_tool_jupyterstartkernel = { workspace = true }
+swarmauri_tool_jupytervalidatenotebook = { workspace = true }
+swarmauri_tool_jupyterwritenotebook = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
-markers = ["test: standard test", "unit: Unit tests", "i9n: Integration tests", "r8n: Regression tests", "timeout: mark test to timeout after X seconds", "xpass: Expected passes", "xfail: Expected failures", "acceptance: Acceptance tests"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+]
 timeout = 300
 log_cli = true
 log_cli_level = "INFO"
@@ -63,3 +90,14 @@ jupytertoolkit = "swarmauri_toolkit_jupytertoolkit:JupyterToolkit"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+]

@@ -15,10 +15,6 @@ classifiers = [
 authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
 dependencies = ["swarmauri_core{'path': '../../core'}", "swarmauri_base{'path': '../../base'}"]
 
-[tool.uv.dependency-groups]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3"]
-lint = ["flake8>=7.0"]
-
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
 markers = ["test: standard test", "unit: Unit tests", "i9n: Integration tests", "r8n: Regression tests", "timeout: mark test to timeout after X seconds", "xpass: Expected passes", "xfail: Expected failures", "acceptance: Acceptance tests"]
@@ -35,3 +31,6 @@ example_agent = "swm_example_package:ExampleAgent"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3", "flake8>=7.0"]
