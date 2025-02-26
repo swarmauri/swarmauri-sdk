@@ -4,6 +4,11 @@ import hashlib
 import inspect
 import json
 
+###########################################
+# Logging
+###########################################
+import logging
+import warnings
 from enum import Enum
 from threading import Lock
 from typing import (
@@ -25,12 +30,7 @@ from typing import (
 from uuid import uuid4
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError, field_validator, ConfigDict
-
-###########################################
-# Logging
-###########################################
-import logging
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 glogger = logging.getLogger(__name__)
 glogger.setLevel(level=logging.INFO)
@@ -40,6 +40,14 @@ if not glogger.handlers:
     formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
     console_handler.setFormatter(formatter)
     glogger.addHandler(console_handler)
+
+warnings.warn(
+    "Importing ComponentBase from swarmauri_core is deprecated and will be "
+    "removed in v0.9.0. Please use 'from swarmauri_base import "
+    "ComponentBase'",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 ###########################################
@@ -143,6 +151,7 @@ class ResourceTypes(Enum):
 ###########################################
 # ComponentBase
 ###########################################
+
 
 def generate_id() -> str:
     return str(uuid4())
@@ -395,7 +404,9 @@ class ComponentBase(BaseModel):
                 base_type = args[0]
                 glogger.debug(f"Base type for field: {base_type}")
                 metadata = [
-                    arg for arg in args[1:] if not isinstance(arg, SubclassUnionMetadata)
+                    arg
+                    for arg in args[1:]
+                    if not isinstance(arg, SubclassUnionMetadata)
                 ]
                 # Append the new SubclassUnionMetadata
                 metadata.append(SubclassUnionMetadata(parent_class))

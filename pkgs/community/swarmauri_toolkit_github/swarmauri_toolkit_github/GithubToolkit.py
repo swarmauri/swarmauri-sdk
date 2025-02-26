@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_toolkit_github.GithubRepoTool import GithubRepoTool
@@ -12,7 +12,6 @@ from swarmauri_toolkit_github.GithubCommitTool import GithubCommitTool
 from dotenv import load_dotenv
 
 load_dotenv()
-
 
 @ComponentBase.register_type(ToolkitBase, "GithubToolkit")
 class GithubToolkit(ToolkitBase):

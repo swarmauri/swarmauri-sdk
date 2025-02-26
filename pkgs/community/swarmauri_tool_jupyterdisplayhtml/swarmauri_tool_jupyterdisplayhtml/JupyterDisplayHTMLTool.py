@@ -5,10 +5,9 @@ import logging
 from IPython.display import HTML, display
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
-
 
 """
 JupyterDisplayHTMLTool.py
@@ -18,7 +17,6 @@ a Jupyter Notebook cell. It inherits from the ToolBase class and supports dynami
 content updates, integrates with other visualization tools, handles malformed HTML gracefully,
 and returns a confirmation of the displayed output.
 """
-
 
 @ComponentBase.register_type(ToolBase, "JupyterDisplayHTMLTool")
 class JupyterDisplayHTMLTool(ToolBase):

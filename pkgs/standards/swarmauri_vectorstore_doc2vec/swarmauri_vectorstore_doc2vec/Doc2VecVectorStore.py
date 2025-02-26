@@ -12,8 +12,7 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import (
     Doc2VecEmbedding,
 )
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(VectorStoreBase, "Doc2VecVectorStore")
 class Doc2VecVectorStore(

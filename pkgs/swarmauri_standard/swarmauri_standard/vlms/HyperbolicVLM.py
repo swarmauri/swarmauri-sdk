@@ -6,13 +6,12 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.vlms.VLMBase import VLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-
 
 @ComponentBase.register_type(VLMBase, "HyperbolicVLM")
 class HyperbolicVLM(VLMBase):

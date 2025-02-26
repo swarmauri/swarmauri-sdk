@@ -17,19 +17,17 @@ from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 # Configure a logger for this module.
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
 
 def _timeout_handler(signum, frame):
     """
     Signal handler to raise a TimeoutError when the signal is emitted.
     """
     raise TimeoutError("Cell execution timed out.")
-
 
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
 class JupyterRunCellTool(ToolBase):

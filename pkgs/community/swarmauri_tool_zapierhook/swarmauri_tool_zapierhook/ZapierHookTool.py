@@ -1,11 +1,10 @@
 import json
 import requests
 from typing import Dict, List, Literal
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from pydantic import Field
-
 
 """
 - Zapier's webhooks do not require authentication for basic usage,
@@ -21,7 +20,6 @@ Reference
 - https://zapier.com/engineering/webhook-design/
 
 """
-
 
 @ComponentBase.register_type(ToolBase, "ZapierHookTool")
 class ZapierHookTool(ToolBase):

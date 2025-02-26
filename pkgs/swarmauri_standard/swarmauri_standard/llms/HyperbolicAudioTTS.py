@@ -7,7 +7,7 @@ from typing import Dict, List, Literal, Optional
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 warnings.warn(
     "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will be "
@@ -16,7 +16,6 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
 
 @ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")
 class HyperbolicAudioTTS(LLMBase):

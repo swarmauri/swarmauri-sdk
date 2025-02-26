@@ -9,8 +9,7 @@ from swarmauri_base.conversations.ConversationSystemContextMixin import (
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ConversationBase, "SessionCacheConversation")
 class SessionCacheConversation(

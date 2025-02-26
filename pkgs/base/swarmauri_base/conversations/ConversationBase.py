@@ -2,9 +2,8 @@ from typing import List, Union, Literal
 from pydantic import Field, PrivateAttr, ConfigDict
 
 from swarmauri_core.conversations.IConversation import IConversation
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-
 
 @ComponentBase.register_model()
 class ConversationBase(IConversation, ComponentBase):

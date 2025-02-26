@@ -5,7 +5,7 @@ import os
 
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
 @ComponentBase.register_type(PromptTemplateBase, 'Jinja2PromptTemplate')
@@ -173,6 +173,5 @@ class Jinja2PromptTemplate(PromptTemplateBase):
         p = inflect.engine()
         # Return the singular form of the verb
         return p.singular_noun(verb) if p.singular_noun(verb) else verb
-
 
 j2pt = Jinja2PromptTemplate()

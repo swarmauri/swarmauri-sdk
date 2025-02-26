@@ -1,5 +1,5 @@
 from typing import List, Literal, Dict
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -8,11 +8,9 @@ import math
 import nltk
 from nltk.tokenize import sent_tokenize
 
-
 # Download required NLTK data once during module load
 
 nltk.download("punkt_tab", quiet=True)
-
 
 @ComponentBase.register_type(ToolBase, "SMOGIndexTool")
 class SMOGIndexTool(ToolBase):

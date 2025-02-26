@@ -3,8 +3,7 @@ from pydantic import Field
 
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """

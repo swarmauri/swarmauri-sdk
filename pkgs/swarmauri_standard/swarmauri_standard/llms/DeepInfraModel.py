@@ -6,11 +6,10 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-
 
 @ComponentBase.register_type(LLMBase, "DeepInfraModel")
 class DeepInfraModel(LLMBase):

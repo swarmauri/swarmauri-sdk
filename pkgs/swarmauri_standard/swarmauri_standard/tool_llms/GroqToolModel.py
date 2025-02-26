@@ -13,8 +13,7 @@ from swarmauri_standard.schema_converters.GroqSchemaConverter import (
 )
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 @ComponentBase.register_type(ToolLLMBase, "GroqToolModel")
 class GroqToolModel(ToolLLMBase):

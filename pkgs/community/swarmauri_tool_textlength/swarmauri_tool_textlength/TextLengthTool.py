@@ -2,13 +2,12 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 # Download required NLTK data once during module load
 nltk.download("punkt_tab", quiet=True)
-
 
 @ComponentBase.register_type(ToolBase, "TextLengthTool")
 class TextLengthTool(ToolBase):

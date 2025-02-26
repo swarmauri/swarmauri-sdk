@@ -3,8 +3,7 @@ from pydantic import Field, BaseModel, ConfigDict
 
 from swarmauri_standard.messages.HumanMessage import contentItem
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 class UsageData(BaseModel):
     prompt_tokens: Optional[int] = None
@@ -14,7 +13,6 @@ class UsageData(BaseModel):
     completion_time: Optional[float] = None
     total_time: Optional[float] = None
     model_config = ConfigDict(extra="allow")
-
 
 @ComponentBase.register_type(MessageBase, "AgentMessage")
 class AgentMessage(MessageBase):

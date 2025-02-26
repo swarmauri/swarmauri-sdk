@@ -4,11 +4,9 @@ from typing import List, Literal, Dict, Optional, Callable
 from transformers import pipeline, logging as hf_logging
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 hf_logging.set_verbosity_error()
-
 
 @ComponentBase.register_type(ToolBase, "EntityRecognitionTool")
 class EntityRecognitionTool(ToolBase):

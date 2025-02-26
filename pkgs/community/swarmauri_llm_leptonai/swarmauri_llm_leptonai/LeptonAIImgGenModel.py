@@ -4,9 +4,8 @@ from io import BytesIO
 from PIL import Image
 from typing import List, Literal
 from pydantic import Field, ConfigDict, SecretStr
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-
 
 @ComponentBase.register_type(ImageGenBase, "LeptonAIImgGenModel")
 class LeptonAIImgGenModel(ImageGenBase):

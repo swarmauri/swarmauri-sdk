@@ -3,9 +3,8 @@ from typing import Optional, List, Literal
 from pydantic import Field
 
 from swarmauri_core.tools.ITool import ITool
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.tools.ParameterBase import ParameterBase
-
 
 @ComponentBase.register_model()
 class ToolBase(ITool, ComponentBase):

@@ -3,9 +3,8 @@ from typing import Any, List, Optional, Literal
 from enum import Enum, auto
 from pydantic import ConfigDict, Field
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.transports.ITransport import ITransport
-
 
 class TransportProtocol(Enum):
     """
@@ -16,7 +15,6 @@ class TransportProtocol(Enum):
     MULTICAST = auto()
     BROADCAST = auto()
     PUBSUB = auto()
-
 
 @ComponentBase.register_model()
 class TransportBase(ITransport, ComponentBase):

@@ -1,8 +1,7 @@
 from typing import Any, Optional, Literal
 from pydantic import Field
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.measurements.IMeasurement import IMeasurement
-
 
 @ComponentBase.register_model()
 class MeasurementBase(IMeasurement, ComponentBase):
