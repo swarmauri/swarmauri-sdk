@@ -176,7 +176,7 @@ swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 
 [tool.pytest.ini_options]
-norecursedirs = ["experimental", "standards/*", "community/*"]
+norecursedirs = ["experimental"]
 
 markers = [
     "test: standard test",
