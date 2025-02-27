@@ -38,7 +38,7 @@ jobs:
       - name: Run install phase
         run: |
           cd pkgs
-          uv sync --all-extras          
+          uv sync --all-extras
 
       - name: Pip freeze
         run: |
