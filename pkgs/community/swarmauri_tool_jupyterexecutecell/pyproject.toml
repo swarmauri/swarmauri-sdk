@@ -17,8 +17,8 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "jupyter_client>=8.6.3",
     "IPython>=8.32.0",
-    "ipykernel6.29.5",
-    "pydantic2.10.6",
+    "ipykernel==6.29.5",
+    "pydantic==2.10.6",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
