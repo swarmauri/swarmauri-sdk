@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import tomlkit
@@ -57,25 +59,48 @@ def convert_to_uv(pyproject_path: Path) -> None:
 
     # Convert regular dependencies
     dependencies = tomlkit.array()
+    optional_deps = {}  # Dictionary to store optional dependencies by group
     deps = poetry_data["dependencies"]
+
     for name, spec in deps.items():
         if name != "python":
             if isinstance(spec, dict):
+                # Check if this is an optional dependency
+                is_optional = spec.get("optional", False)
+                group = spec.get("group", "default")
+
+                # Process git dependencies separately
                 if "git" not in spec:
                     # Handle dictionary-style version requirements properly
                     if "version" in spec:
                         fixed_spec = clean_dependency_spec(spec["version"])
-                        dependencies.append(f"{name}{fixed_spec}")
+                        dep_str = f"{name}{fixed_spec}"
                     else:
                         fixed_spec = clean_dependency_spec(spec)
-                        dependencies.append(f"{name}{fixed_spec}")
+                        dep_str = f"{name}{fixed_spec}"
+
+                    # Add to optional dependencies or regular dependencies
+                    if is_optional:
+                        if group not in optional_deps:
+                            optional_deps[group] = tomlkit.array()
+                        optional_deps[group].append(dep_str)
+                    else:
+                        dependencies.append(dep_str)
             else:
                 # Replace ^ with >= for compatibility
                 fixed_spec = (
                     clean_dependency_spec(spec) if isinstance(spec, str) else spec
                 )
                 dependencies.append(f"{name}{fixed_spec}")
+
     project["dependencies"] = dependencies
+
+    # Add optional dependencies if any
+    if optional_deps:
+        project_optional = tomlkit.table()
+        for group, deps in optional_deps.items():
+            project_optional[group] = deps
+        project["optional-dependencies"] = project_optional
 
     # Add project table to document
     doc["project"] = project
@@ -94,6 +119,25 @@ def convert_to_uv(pyproject_path: Path) -> None:
                     pkg_name = pkg_path.replace("pkgs/", "")
                     members.append(pkg_name)
                     workspace_members.append(pkg_name)  # Save for sources section
+
+                    # Check if this is an optional dependency
+                    is_optional = spec.get("optional", False)
+                    group = spec.get("group", "default")
+
+                    if is_optional:
+                        if (
+                            "project" in doc
+                            and "optional-dependencies" not in doc["project"]
+                        ):
+                            doc["project"]["optional-dependencies"] = tomlkit.table()
+
+                        if group not in doc["project"]["optional-dependencies"]:
+                            doc["project"]["optional-dependencies"][group] = (
+                                tomlkit.array()
+                            )
+
+                        # Add the package name to the optional dependencies
+                        doc["project"]["optional-dependencies"][group].append(pkg_name)
 
     if members:
         workspace["members"] = members
@@ -273,27 +317,45 @@ def run_tests(package_path: Path) -> None:
 
 def find_and_convert_pyproject_files(start_path: str, run_tests_after=False) -> None:
     """Find all pyproject.toml files and convert them to uv format."""
-    for root, _, files in os.walk(start_path):
-        if "pyproject.toml" in files:
-            pyproject_path = Path(root) / "pyproject.toml"
-            package_path = Path(root)
+    if os.path.isfile(start_path) and start_path.endswith(".toml"):
+        # If the path is a file, process just that file
+        pyproject_path = Path(start_path)
+        package_path = pyproject_path.parent
 
-            print(f"Converting {pyproject_path}")
-            convert_to_uv(pyproject_path)
+        print(f"Converting {pyproject_path}")
+        convert_to_uv(pyproject_path)
 
-            if run_tests_after:
-                run_tests(package_path)
+        if run_tests_after:
+            run_tests(package_path)
+    else:
+        # If the path is a directory, find and process all pyproject.toml files
+        for root, _, files in os.walk(start_path):
+            if "pyproject.toml" in files:
+                pyproject_path = Path(root) / "pyproject.toml"
+                package_path = Path(root)
+
+                print(f"Converting {pyproject_path}")
+                convert_to_uv(pyproject_path)
+
+                if run_tests_after:
+                    run_tests(package_path)
 
 
 if __name__ == "__main__":
-    # add the project root path
-    pkg_list = ["swarmauri_standard", "standards", "community"]
-    for pkg in pkg_list:
-        project_dir = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), f"../pkgs/{pkg}")
-        )
-        print(f"Converting pyproject.toml files in: {project_dir}")
-        find_and_convert_pyproject_files(project_dir)
+    # Check if a path is provided as an argument
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+        run_tests = len(sys.argv) > 2 and sys.argv[2].lower() == "test"
+        find_and_convert_pyproject_files(path, run_tests)
+    else:
+        # Default to processing listed packages
+        pkg_list = ["swarmauri"]
+        for pkg in pkg_list:
+            project_dir = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), f"../pkgs/{pkg}")
+            )
+            print(f"Converting pyproject.toml files in: {project_dir}")
+            find_and_convert_pyproject_files(project_dir)
 
     # # Ask if tests should be run after conversion
     # run_tests_option = input("Run tests after conversion? (y/n): ").strip().lower()

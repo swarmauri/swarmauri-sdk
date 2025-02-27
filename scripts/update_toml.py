@@ -136,6 +136,7 @@ if __name__ == "__main__":
     # Get directory from command line or use current directory
     if len(sys.argv) > 1:
         directory = sys.argv[1]
+        update_pyproject_toml(directory)
     else:
         directory = "/Users/michaeldecent/Swarmauri/swarmauri-sdk/pkgs/standards/swarmauri_vectorstore_tfidf"
 
