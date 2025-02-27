@@ -1,16 +1,16 @@
 import pytest
 from unittest.mock import patch
 
-from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool import (
-    JupyterDisplayHTMLTool,
+from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool import (
+    JupyterDisplayHtmlTool,
 )
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
 """
-test_JupyterDisplayHTMLTool.py
+test_JupyterDisplayHtmlTool.py
 
-This module contains pytest-based test cases for the JupyterDisplayHTMLTool to verify
+This module contains pytest-based test cases for the JupyterDisplayHtmlTool to verify
 the functionality and correctness of the class. Each test focuses on different aspects
 of the tool's behavior, including instantiation, attribute values, and the handling of
 HTML display operations within a Jupyter notebook environment.
@@ -18,40 +18,40 @@ HTML display operations within a Jupyter notebook environment.
 
 
 @pytest.fixture
-def tool() -> JupyterDisplayHTMLTool:
+def tool() -> JupyterDisplayHtmlTool:
     """
-    Provides a fixture that returns a new instance of JupyterDisplayHTMLTool
+    Provides a fixture that returns a new instance of JupyterDisplayHtmlTool
     for use in multiple tests.
     """
-    return JupyterDisplayHTMLTool()
+    return JupyterDisplayHtmlTool()
 
 
-def test_tool_inheritance(tool: JupyterDisplayHTMLTool) -> None:
+def test_tool_inheritance(tool: JupyterDisplayHtmlTool) -> None:
     """
-    Tests that JupyterDisplayHTMLTool inherits from ToolBase, ensuring
+    Tests that JupyterDisplayHtmlTool inherits from ToolBase, ensuring
     the correct class hierarchy.
     """
     assert isinstance(tool, ToolBase), "Tool should inherit from ToolBase."
 
 
-def test_tool_attributes(tool: JupyterDisplayHTMLTool) -> None:
+def test_tool_attributes(tool: JupyterDisplayHtmlTool) -> None:
     """
-    Verifies that the default attributes of JupyterDisplayHTMLTool
+    Verifies that the default attributes of JupyterDisplayHtmlTool
     match the expected values.
     """
-    assert tool.name == "JupyterDisplayHTMLTool", "Tool name is incorrect."
+    assert tool.name == "JupyterDisplayHtmlTool", "Tool name is incorrect."
     assert tool.description == "Renders HTML content within a Jupyter environment.", (
         "Tool description is incorrect."
     )
     assert tool.version == "1.0.0", "Tool version is incorrect."
-    assert tool.type == "JupyterDisplayHTMLTool", "Tool type is incorrect."
+    assert tool.type == "JupyterDisplayHtmlTool", "Tool type is incorrect."
     assert len(tool.parameters) == 1, "Unexpected number of parameters."
     assert tool.parameters[0].name == "html_content", (
         "First parameter should be 'html_content'."
     )
 
 
-def test_tool_call_success(tool: JupyterDisplayHTMLTool) -> None:
+def test_tool_call_success(tool: JupyterDisplayHtmlTool) -> None:
     """
     Tests that calling the tool with valid HTML content succeeds and
     returns the expected response dictionary.
@@ -64,8 +64,8 @@ def test_tool_call_success(tool: JupyterDisplayHTMLTool) -> None:
     )
 
 
-@patch("swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool.display")
-def test_tool_call_error(mock_display, tool: JupyterDisplayHTMLTool) -> None:
+@patch("swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool.display")
+def test_tool_call_error(mock_display, tool: JupyterDisplayHtmlTool) -> None:
     """
     Tests that the tool handles exceptions during HTML display operations
     by returning an error status and message. The 'display' function is

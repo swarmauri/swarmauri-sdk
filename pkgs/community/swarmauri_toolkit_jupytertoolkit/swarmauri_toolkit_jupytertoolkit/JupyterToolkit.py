@@ -33,8 +33,8 @@ from swarmauri_tool_jupyterexportpython.JupyterExportPythonTool import (
     JupyterExportPythonTool,
 )
 from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
-from swarmauri_tool_jupytergetiopubmessage.JupyterGetIoPubMessageTool import (
-    JupyterGetIoPubMessageTool,
+from swarmauri_tool_jupytergetiopubmessage.JupyterGetIOPubMessageTool import (
+    JupyterGetIOPubMessageTool,
 )
 from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
     JupyterGetShellMessageTool,
@@ -73,7 +73,7 @@ class JupyterToolkit(ToolkitBase):
         "JupyterExportMarkdownTool": JupyterExportMarkdownTool(),
         "JupyterExportPythonTool": JupyterExportPythonTool(),
         "JupyterFromDictTool": JupyterFromDictTool(),
-        "JupyterGetIoPubMessageTool": JupyterGetIoPubMessageTool(),
+        "JupyterGetIOPubMessageTool": JupyterGetIOPubMessageTool(),
         "JupyterGetShellMessageTool": JupyterGetShellMessageTool(),
         "JupyterReadNotebookTool": JupyterReadNotebookTool(),
         "JupyterRunCellTool": JupyterRunCellTool(),

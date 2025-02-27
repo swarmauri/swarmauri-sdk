@@ -9,7 +9,7 @@ import pytest
 from swarmauri_tool_jupyterdisplayhtml import (
     __version__,
     __all__,
-    JupyterDisplayHTMLTool,
+    JupyterDisplayHtmlTool,
 )
 
 
@@ -21,13 +21,13 @@ class TestInit(object):
 
     def test_jupyterdisplayhtmltool_in_all(self) -> None:
         """
-        Ensures 'JupyterDisplayHTMLTool' is exposed in the package's __all__ list.
+        Ensures 'JupyterDisplayHtmlTool' is exposed in the package's __all__ list.
 
         This test checks if the package initialization correctly includes
-        JupyterDisplayHTMLTool in the __all__ attribute.
+        JupyterDisplayHtmlTool in the __all__ attribute.
         """
-        assert "JupyterDisplayHTMLTool" in __all__, (
-            "Expected 'JupyterDisplayHTMLTool' to be in __all__, but it was not found."
+        assert "JupyterDisplayHtmlTool" in __all__, (
+            "Expected 'JupyterDisplayHtmlTool' to be in __all__, but it was not found."
         )
 
     def test_version_is_string(self) -> None:
@@ -46,16 +46,16 @@ class TestInit(object):
 
     def test_jupyterdisplayhtmltool_instantiation(self) -> None:
         """
-        Verifies that an instance of JupyterDisplayHTMLTool can be created.
+        Verifies that an instance of JupyterDisplayHtmlTool can be created.
 
-        This test checks that the constructor for JupyterDisplayHTMLTool does
+        This test checks that the constructor for JupyterDisplayHtmlTool does
         not raise an exception, ensuring the tool is validly exposed.
         """
         tool = None
         try:
-            tool = JupyterDisplayHTMLTool()
+            tool = JupyterDisplayHtmlTool()
         except Exception as exc:
             pytest.fail(
-                f"Instantiating JupyterDisplayHTMLTool raised an exception: {exc}"
+                f"Instantiating JupyterDisplayHtmlTool raised an exception: {exc}"
             )
-        assert tool is not None, "Failed to instantiate JupyterDisplayHTMLTool."
+        assert tool is not None, "Failed to instantiate JupyterDisplayHtmlTool."

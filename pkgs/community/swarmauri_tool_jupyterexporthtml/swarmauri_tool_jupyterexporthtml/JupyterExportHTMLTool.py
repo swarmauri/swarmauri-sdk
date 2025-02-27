@@ -1,7 +1,7 @@
 """
-JupyterExportHTMLTool.py
+JupyterExportHtmlTool.py
 
-This module defines the JupyterExportHTMLTool, a component responsible for converting Jupyter
+This module defines the JupyterExportHtmlTool, a component responsible for converting Jupyter
 Notebook content into HTML format. The tool leverages nbconvert to generate HTML output and
 optionally allows applying a custom HTML template, as well as embedding additional CSS or JS.
 Logging is used to record export operations and errors.
@@ -17,20 +17,20 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-@ComponentBase.register_type(ToolBase, "JupyterExportHTMLTool")
-class JupyterExportHTMLTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "JupyterExportHtmlTool")
+class JupyterExportHtmlTool(ToolBase):
     """
-    JupyterExportHTMLTool is a tool that converts a Jupyter Notebook (provided as a JSON string)
+    JupyterExportHtmlTool is a tool that converts a Jupyter Notebook (provided as a JSON string)
     into an HTML document. It supports using a custom template file, as well as optionally
     embedding CSS and JS directly into the generated HTML output.
 
     Attributes:
-        version (str): The version of the JupyterExportHTMLTool.
+        version (str): The version of the JupyterExportHtmlTool.
         parameters (List[Parameter]): A list of parameters that specify the tool's expected inputs
                                       for the conversion process.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExportHTMLTool"]): The type identifier for the tool.
+        type (Literal["JupyterExportHtmlTool"]): The type identifier for the tool.
     """
 
     version: str = "1.0.0"
@@ -62,9 +62,9 @@ class JupyterExportHTMLTool(ToolBase):
             ),
         ]
     )
-    name: str = "JupyterExportHTMLTool"
+    name: str = "JupyterExportHtmlTool"
     description: str = "Converts Jupyter Notebooks into HTML format with optional custom template, CSS, and JS."
-    type: Literal["JupyterExportHTMLTool"] = "JupyterExportHTMLTool"
+    type: Literal["JupyterExportHtmlTool"] = "JupyterExportHtmlTool"
 
     def __call__(
         self,
@@ -88,7 +88,7 @@ class JupyterExportHTMLTool(ToolBase):
                 - "error": An error message describing any issues encountered during export.
 
         Example:
-            >>> exporter = JupyterExportHTMLTool()
+            >>> exporter = JupyterExportHtmlTool()
             >>> result = exporter(notebook_json='{"cells":[],"metadata":{}}', template_file=None)
             >>> html_output = result.get("exported_html", "")
         """

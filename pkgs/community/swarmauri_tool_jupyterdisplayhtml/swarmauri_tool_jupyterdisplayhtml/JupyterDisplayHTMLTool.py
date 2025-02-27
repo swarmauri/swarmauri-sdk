@@ -10,28 +10,28 @@ from swarmauri_base.ComponentBase import ComponentBase
 logger = logging.getLogger(__name__)
 
 """
-JupyterDisplayHTMLTool.py
+JupyterDisplayHtmlTool.py
 
-This module defines the JupyterDisplayHTMLTool, a tool that displays HTML content within
+This module defines the JupyterDisplayHtmlTool, a tool that displays HTML content within
 a Jupyter Notebook cell. It inherits from the ToolBase class and supports dynamic HTML
 content updates, integrates with other visualization tools, handles malformed HTML gracefully,
 and returns a confirmation of the displayed output.
 """
 
-@ComponentBase.register_type(ToolBase, "JupyterDisplayHTMLTool")
-class JupyterDisplayHTMLTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "JupyterDisplayHtmlTool")
+class JupyterDisplayHtmlTool(ToolBase):
     """
-    JupyterDisplayHTMLTool is responsible for rendering HTML within a Jupyter Notebook cell.
+    JupyterDisplayHtmlTool is responsible for rendering HTML within a Jupyter Notebook cell.
     It supports dynamic updates by allowing multiple calls with new HTML content, integrates
     easily with other visualization tools, and logs the display actions and any errors
     encountered.
 
     Attributes:
-        version (str): The version of the JupyterDisplayHTMLTool.
+        version (str): The version of the JupyterDisplayHtmlTool.
         parameters (List[Parameter]): A list of parameters required to render HTML content.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterDisplayHTMLTool"]): The type identifier for the tool.
+        type (Literal["JupyterDisplayHtmlTool"]): The type identifier for the tool.
     """
 
     version: str = "1.0.0"
@@ -45,9 +45,9 @@ class JupyterDisplayHTMLTool(ToolBase):
             ),
         ]
     )
-    name: str = "JupyterDisplayHTMLTool"
+    name: str = "JupyterDisplayHtmlTool"
     description: str = "Renders HTML content within a Jupyter environment."
-    type: Literal["JupyterDisplayHTMLTool"] = "JupyterDisplayHTMLTool"
+    type: Literal["JupyterDisplayHtmlTool"] = "JupyterDisplayHtmlTool"
 
     def __call__(self, html_content: str) -> Dict[str, str]:
         """
@@ -65,7 +65,7 @@ class JupyterDisplayHTMLTool(ToolBase):
                             the error description.
 
         Example:
-            >>> tool = JupyterDisplayHTMLTool()
+            >>> tool = JupyterDisplayHtmlTool()
             >>> result = tool("<h1>Hello, world!</h1>")
             >>> print(result)
             {'status': 'success', 'message': 'HTML displayed successfully.'}

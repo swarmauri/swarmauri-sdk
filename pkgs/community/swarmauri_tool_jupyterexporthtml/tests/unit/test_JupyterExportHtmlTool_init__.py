@@ -5,7 +5,7 @@ This module tests that the swarmauri_tool_jupyterexporthtml package
 exposes the necessary components through its __init__.py.
 """
 
-from swarmauri_tool_jupyterexporthtml import JupyterExportHTMLTool, __version__
+from swarmauri_tool_jupyterexporthtml import JupyterExportHtmlTool, __version__
 
 
 class TestPackageInit:
@@ -15,14 +15,14 @@ class TestPackageInit:
 
     def test_jupyter_export_html_tool_import(self) -> None:
         """
-        Test that the JupyterExportHTMLTool can be imported from the package.
+        Test that the JupyterExportHtmlTool can be imported from the package.
 
-        This test ensures that we're able to import the JupyterExportHTMLTool
+        This test ensures that we're able to import the JupyterExportHtmlTool
         class from the main package __init__.py, verifying that it is correctly
         exposed by the package initialization.
         """
-        assert JupyterExportHTMLTool is not None, (
-            "JupyterExportHTMLTool should be defined and imported from the "
+        assert JupyterExportHtmlTool is not None, (
+            "JupyterExportHtmlTool should be defined and imported from the "
             "swarmauri_tool_jupyterexporthtml package."
         )
 
