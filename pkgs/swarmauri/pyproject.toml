@@ -27,22 +27,22 @@ dependencies = [
 default = [
     "swarmauri_vectorstore_doc2vec",
     "swarmauri_embedding_doc2vec",
-    "swarmauri_embedding_tfidf",
+    #"swarmauri_embedding_tfidf",
     "swarmauri_embedding_nmf",
     "swarmauri_tool_matplotlib",
     "swarmauri_parser_keywordextractor",
     "swarmauri_parser_beautifulsoupelement",
-    "swarmauri_vectorstore_tfidf",
+    #"swarmauri_vectorstore_tfidf",
     "swarmauri_distance_minkowski",
 ]
 
 full = [
     "swarmauri_vectorstore_doc2vec",
-    "swarmauri_vectorstore_tfidf",
+    #"swarmauri_vectorstore_tfidf",
     "swarmauri_parser_keywordextractor",
     "swarmauri_parser_beautifulsoupelement",
     "swarmauri_embedding_doc2vec",
-    "swarmauri_embedding_tfidf",
+    #"swarmauri_embedding_tfidf",
     "swarmauri_embedding_nmf",
     "swarmauri_distance_minkowski",
     "swarmauri_tool_matplotlib",
@@ -54,12 +54,12 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
-swarmauri_embedding_tfidf = { workspace = true }
+#swarmauri_embedding_tfidf = { workspace = true }
 swarmauri_embedding_nmf = { workspace = true }
 swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
-swarmauri_vectorstore_tfidf = { workspace = true }
+#swarmauri_vectorstore_tfidf = { workspace = true }
 swarmauri_distance_minkowski = { workspace = true }
 
 [tool.pytest.ini_options]
