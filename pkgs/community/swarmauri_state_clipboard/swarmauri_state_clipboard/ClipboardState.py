@@ -6,7 +6,7 @@ commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux).
 
 import sys
 import subprocess
-from typing import Dict, Any, Literal
+from typing import Dict, Literal
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_base.ComponentBase import ComponentBase
 
@@ -73,15 +73,15 @@ class ClipboardState(StateBase):
                                        capture_output=True, text=True)
             return completed.stdout
 
-    def read(self) -> Dict[str, Any]:
+    def read(self) -> Dict[str, str]:
         """Read the current state from the system clipboard as a dictionary.
 
-        RETURNS (Dict[str, Any]): The clipboard data parsed as a dictionary. 
+        RETURNS (Dict[str, str]): The clipboard data parsed as a dictionary. 
             Returns an empty dictionary if clipboard content is empty.
         RAISES (ValueError): If there is an error reading or parsing the state.
         """
         try:
-            clipboard_content = self.clipboard_paste()
+            clipboard_content = self.clipboard_copy()
             # For safety, replace eval(...) with json.loads(...) if storing JSON.
             if clipboard_content.strip():
                 return eval(clipboard_content)
@@ -89,22 +89,24 @@ class ClipboardState(StateBase):
         except Exception as e:
             raise ValueError(f"Failed to read state from clipboard: {e}")
 
-    def write(self, data: Dict[str, Any]) -> None:
+    def write(self, data: Dict[str, str]) -> None:
         """Replace the current state with the given data by copying it to the clipboard.
 
-        data (Dict[str, Any]): The state data to write.
+        data (Dict[str, str]): The state data to write.
         RETURNS (None): This method does not return anything.
         RAISES (ValueError): If there is an error writing to the clipboard.
         """
+        if isinstance(data, str):
+            raise ValueError("Must be data must be type Dict.")
         try:
-            self.clipboard_copy(str(data))
+            self.clipboard_paste(str(data))
         except Exception as e:
             raise ValueError(f"Failed to write state to clipboard: {e}")
 
-    def update(self, data: Dict[str, Any]) -> None:
+    def update(self, data: Dict[str, str]) -> None:
         """Update the current clipboard state by merging existing state with new data.
 
-        data (Dict[str, Any]): The new state data to merge into the existing clipboard state.
+        data (Dict[str, str]): The new state data to merge into the existing clipboard state.
         RETURNS (None): This method does not return anything.
         RAISES (ValueError): If there is an error updating the clipboard state.
         """
