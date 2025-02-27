@@ -707,11 +707,15 @@ class ComponentBase(BaseModel):
         return decorator
 
     @classmethod
-    def register_model(cls):
+    def register_model(cls, model_cls: Union[List[Type[BaseModel]], Type[BaseModel]]):
         """
         Decorator to register a Pydantic model by automatically detecting resource types
         from fields that use SubclassUnion, ensuring no duplicate registrations occur.
         """
+        if not isinstance(model_cls, list):
+            model_classes = [model_cls]
+        else:
+            model_classes = model_cls
 
         def decorator(model_cls: Type[BaseModel]):
             # Check if any already-registered model has the same __name__.
@@ -753,7 +757,8 @@ class ComponentBase(BaseModel):
             cls._recreate_models()
             return model_cls
 
-        return decorator
+        for model_cls in model_classes:
+            decorator(model_cls)
 
 
 ###########################################
