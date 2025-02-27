@@ -2,25 +2,22 @@
 name = "swarmauri-monorepo"
 version = "0.6.2.dev3"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
-authors = [
-	{ name = "Jacob Stewart", email = "jacob@swarmauri.com" },
-	]
-license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 
 [dependency-groups]
 dev = [
-"toml>=0.10.2",
-"pytest>=8.0.0",
-"pytest-xdist>=3.6.1",
-"pytest-asyncio>=0.24.0",
-"pytest-timeout>=2.3.1",
-"pytest-json-report>=1.5.0",
-"python-dotenv>=1.0.0",
-"pytest-mock>=3.14.0",
-"jsonschema>=4.18.5",
-"ruff"
+    "toml>=0.10.2",
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv>=1.0.0",
+    "pytest-mock>=3.14.0",
+    "jsonschema>=4.18.5",
+    "ruff",
 ]
 
 [tool.uv]
@@ -28,35 +25,163 @@ package = false
 
 [tool.uv.workspace]
 members = [
-	"core",
-	"typing",
-	"base",
-	"swarmauri_standard"
+    "core",
+    "base",
+    "swarmauri_standard",
+    "swarmauri",
+    "typing",
+    "standards/swarmauri_vectorstore_doc2vec",
+    "standards/swarmauri_embedding_doc2vec",
+    "standards/swarmauri_embedding_tfidf",
+    "standards/swarmauri_embedding_nmf",
+    "standards/swarmauri_tool_matplotlib",
+    "standards/swarmauri_parser_keywordextractor",
+    "standards/swarmauri_parser_beautifulsoupelement",
+    "standards/swarmauri_vectorstore_tfidf",
+    "standards/swarmauri_distance_minkowski",
+    "community/swarmauri_vectorstore_redis",
+    "community/swarmauri_documentstore_redis",
+    "community/swarmauri_vectorstore_qdrant",
+    "community/swarmauri_vectorstore_pinecone",
+    "community/swarmauri_vectorstore_persistentchromadb",
+    "community/swarmauri_vectorstore_neo4j",
+    "community/swarmauri_vectorstore_mlm",
+    "community/swarmauri_vectorstore_duckdb",
+    "community/swarmauri_vectorstore_cloudweaviate",
+    "community/swarmauri_tool_zapierhook",
+    "community/swarmauri_tool_webscraping",
+    "community/swarmauri_tool_textlength",
+    "community/swarmauri_tool_smogindex",
+    "community/swarmauri_tool_sentimentanalysis",
+    "community/swarmauri_tool_sentencecomplexity",
+    "community/swarmauri_tool_qrcodegenerator",
+    "community/swarmauri_tool_lexicaldensity",
+    "community/swarmauri_tool_captchagenerator",
+    "community/swarmauri_tool_downloadpdf",
+    "community/swarmauri_tool_dalechallreadability",
+    "community/swarmauri_tool_gmail",
+    "community/swarmauri_tool_folium",
+    "community/swarmauri_tool_psutil",
+    "community/swarmauri_toolkit_github",
+    "community/swarmauri_state_clipboard",
+    "community/swarmauri_parser_textblob",
+    "community/swarmauri_parser_fitzpdf",
+    "community/swarmauri_parser_entityrecognition",
+    "community/swarmauri_parser_bertembedding",
+    "community/swarmauri_parser_pypdf2",
+    "community/swarmauri_measurement_mutualinformation",
+    "community/swarmauri_measurement_tokencountestimator",
+    "community/swarmauri_ocr_pytesseract",
+    "community/swarmauri_embedding_mlm",
+    "community/swarmauri_tool_entityrecognition",
+    "community/swarmauri_llm_leptonai",
+    "community/swarmauri_vectorstore_annoy",
+    "community/swarmauri_tool_jupyterwritenotebook",
+    "community/swarmauri_tool_jupytervalidatenotebook",
+    "community/swarmauri_tool_jupyterstartkernel",
+    "community/swarmauri_tool_jupytershutdownkernel",
+    "community/swarmauri_tool_jupyterruncell",
+    "community/swarmauri_tool_jupyterreadnotebook",
+    "community/swarmauri_tool_jupytergetshellmessage",
+    "community/swarmauri_tool_jupyterfromdict",
+    "community/swarmauri_tool_jupyterexportpython",
+    "community/swarmauri_tool_jupyterexportmarkdown",
+    "community/swarmauri_tool_jupyterexporthtml",
+    "community/swarmauri_tool_jupyterexecutenotebookwithparameters",
+    "community/swarmauri_tool_jupyterexecutenotebook",
+    "community/swarmauri_tool_jupyterexecutecell",
+    "community/swarmauri_tool_jupyterexecuteandconvert",
+    "community/swarmauri_tool_jupyterdisplayhtml",
+    "community/swarmauri_tool_jupyterdisplay",
+    "community/swarmauri_tool_jupyterclearoutput",
 ]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
-swarmauri_typing = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
-
+swarmauri = { workspace = true }
+typing = { workspace = true }
+swarmauri_vectorstore_doc2vec = { workspace = true }
+swarmauri_embedding_doc2vec = { workspace = true }
+swarmauri_embedding_tfidf = { workspace = true }
+swarmauri_embedding_nmf = { workspace = true }
+swarmauri_tool_matplotlib = { workspace = true }
+swarmauri_parser_keywordextractor = { workspace = true }
+swarmauri_parser_beautifulsoupelement = { workspace = true }
+swarmauri_vectorstore_tfidf = { workspace = true }
+swarmauri_distance_minkowski = { workspace = true }
+swarmauri_vectorstore_redis = { workspace = true }
+swarmauri_documentstore_redis = { workspace = true }
+swarmauri_vectorstore_qdrant = { workspace = true }
+swarmauri_vectorstore_pinecone = { workspace = true }
+swarmauri_vectorstore_persistentchromadb = { workspace = true }
+swarmauri_vectorstore_neo4j = { workspace = true }
+swarmauri_vectorstore_mlm = { workspace = true }
+swarmauri_vectorstore_duckdb = { workspace = true }
+swarmauri_vectorstore_cloudweaviate = { workspace = true }
+swarmauri_tool_zapierhook = { workspace = true }
+swarmauri_tool_webscraping = { workspace = true }
+swarmauri_tool_textlength = { workspace = true }
+swarmauri_tool_smogindex = { workspace = true }
+swarmauri_tool_sentimentanalysis = { workspace = true }
+swarmauri_tool_sentencecomplexity = { workspace = true }
+swarmauri_tool_qrcodegenerator = { workspace = true }
+swarmauri_tool_lexicaldensity = { workspace = true }
+swarmauri_tool_captchagenerator = { workspace = true }
+swarmauri_tool_downloadpdf = { workspace = true }
+swarmauri_tool_dalechallreadability = { workspace = true }
+swarmauri_tool_gmail = { workspace = true }
+swarmauri_tool_folium = { workspace = true }
+swarmauri_tool_psutil = { workspace = true }
+swarmauri_toolkit_github = { workspace = true }
+swarmauri_state_clipboard = { workspace = true }
+swarmauri_parser_textblob = { workspace = true }
+swarmauri_parser_fitzpdf = { workspace = true }
+swarmauri_parser_entityrecognition = { workspace = true }
+swarmauri_parser_bertembedding = { workspace = true }
+swarmauri_parser_pypdf2 = { workspace = true }
+swarmauri_measurement_mutualinformation = { workspace = true }
+swarmauri_measurement_tokencountestimator = { workspace = true }
+swarmauri_ocr_pytesseract = { workspace = true }
+swarmauri_embedding_mlm = { workspace = true }
+swarmauri_tool_entityrecognition = { workspace = true }
+swarmauri_llm_leptonai = { workspace = true }
+swarmauri_vectorstore_annoy = { workspace = true }
+swarmauri_tool_jupyterwritenotebook = { workspace = true }
+swarmauri_tool_jupytervalidatenotebook = { workspace = true }
+swarmauri_tool_jupyterstartkernel = { workspace = true }
+swarmauri_tool_jupytershutdownkernel = { workspace = true }
+swarmauri_tool_jupyterruncell = { workspace = true }
+swarmauri_tool_jupyterreadnotebook = { workspace = true }
+swarmauri_tool_jupytergetshellmessage = { workspace = true }
+swarmauri_tool_jupyterfromdict = { workspace = true }
+swarmauri_tool_jupyterexportpython = { workspace = true }
+swarmauri_tool_jupyterexportmarkdown = { workspace = true }
+swarmauri_tool_jupyterexporthtml = { workspace = true }
+swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
+swarmauri_tool_jupyterexecutenotebook = { workspace = true }
+swarmauri_tool_jupyterexecutecell = { workspace = true }
+swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
+swarmauri_tool_jupyterdisplayhtml = { workspace = true }
+swarmauri_tool_jupyterdisplay = { workspace = true }
+swarmauri_tool_jupyterclearoutput = { workspace = true }
 
 [tool.pytest.ini_options]
-timeout = 300
-
 norecursedirs = ["experimental", "standards/*", "community/*"]
 
 markers = [
     "test: standard test",
     "unit: Unit tests",
-    "i9n: Integration Tests",
-    "r8n: Regression Tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
-    "xfail: Expected failures",
     "xpass: Expected passes",
-    "acceptance: Acceptance tests"
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
 ]
 
+timeout = 300
 
 log_cli = true
 log_cli_level = "INFO"
@@ -65,7 +190,9 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 asyncio_default_fixture_loop_scope = "function"
 
+[tool.ruff]
+exclude = ["experimental"]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
