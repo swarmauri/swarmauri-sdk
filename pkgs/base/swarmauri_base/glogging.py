@@ -1,5 +1,5 @@
 from typing import Optional, Union, List
-from logging import Logger, Handler, Formatter, getLogger, INFO, DEBUG, StreamHandler
+from logging import Logger, Handler, Formatter, getLogger, INFO, StreamHandler
 
 glogger = getLogger("glogger")
 glogger.setLevel(level=INFO)
@@ -38,4 +38,4 @@ def set_default_formatter(formatter: Formatter) -> None:
     Update the class-level default formatter.
     """
     glogger.default_formatter = formatter
-    glogger.info(f"Default formatter updated.")
+    glogger.info("Default formatter updated.")

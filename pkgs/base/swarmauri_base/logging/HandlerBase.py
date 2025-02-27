@@ -1,7 +1,5 @@
 import logging
-from typing import List, Optional
 from swarmauri_core.logging.IHandler import IHandler
-from pydantic import BaseModel
 from swarmauri_base.ObserveBase import ObserveBase
 
 @ObserveBase.register_model()

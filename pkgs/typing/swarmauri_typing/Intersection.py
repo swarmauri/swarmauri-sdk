@@ -1,5 +1,5 @@
 from typing import (
-    Type, TypeVar, Callable, List, Union, Any, Annotated, get_args, Tuple
+    Type, TypeVar, Union, Any, Annotated, Tuple
 )
 
 T = TypeVar("T")
