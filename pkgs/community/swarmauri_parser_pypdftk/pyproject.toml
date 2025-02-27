@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_parser_fitzpdf"
+name = "swarmauri_parser_pypdftk"
 version = "0.6.2.dev3"
-description = "Fitz PDF Parser for Swarmauri."
+description = "A parser for extracting text from PDFs using PyPDFTK."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -45,7 +45,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.project.entry-points."swarmauri.parsers"]
-PyPDFTKParser = "swarmauri_parser_fitzpdf.PyPDFTKParser:PyPDFTKParser"
+PyPDFTKParser = "swarmauri_parser_pypdftk.PyPDFTKParser:PyPDFTKParser"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

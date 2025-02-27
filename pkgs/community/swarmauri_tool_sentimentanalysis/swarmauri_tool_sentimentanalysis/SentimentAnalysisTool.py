@@ -2,7 +2,7 @@ from transformers import pipeline
 from transformers import logging as hf_logging
 from typing import List, Literal, Dict
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri.tools.Parameter import Parameter
+from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 

@@ -69,6 +69,7 @@ members = [
     "community/swarmauri_parser_entityrecognition",
     "community/swarmauri_parser_bertembedding",
     "community/swarmauri_parser_pypdf2",
+    "community/swarmauri_parser_pypdftk",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
     "community/swarmauri_ocr_pytesseract",
@@ -94,6 +95,9 @@ members = [
     "community/swarmauri_tool_jupyterdisplayhtml",
     "community/swarmauri_tool_jupyterdisplay",
     "community/swarmauri_tool_jupyterclearoutput",
+    "community/swarmauri_toolkit_jupytertoolkit",
+    "community/swarmauri_tool_jupyterexportlatex",
+    "community/swarmauri_tool_jupytergetiopubmessage",
 ]
 
 [tool.uv.sources]
@@ -141,6 +145,7 @@ swarmauri_parser_fitzpdf = { workspace = true }
 swarmauri_parser_entityrecognition = { workspace = true }
 swarmauri_parser_bertembedding = { workspace = true }
 swarmauri_parser_pypdf2 = { workspace = true }
+swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
@@ -166,6 +171,9 @@ swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
 swarmauri_tool_jupyterdisplayhtml = { workspace = true }
 swarmauri_tool_jupyterdisplay = { workspace = true }
 swarmauri_tool_jupyterclearoutput = { workspace = true }
+swarmauri_tool_jupyterexportlatex = { workspace = true }
+swarmauri_toolkit_jupytertoolkit = { workspace = true }
+swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["experimental", "standards/*", "community/*"]

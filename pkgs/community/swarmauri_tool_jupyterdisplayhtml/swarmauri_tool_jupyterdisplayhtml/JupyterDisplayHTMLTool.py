@@ -39,7 +39,7 @@ class JupyterDisplayHTMLTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="html_content",
-                type="string",
+                input_type="string",
                 description="The HTML content to display within the Jupyter Notebook cell.",
                 required=True,
             ),

@@ -38,25 +38,25 @@ class JupyterExportHTMLTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_json",
-                type="string",
+                input_type="string",
                 description="A JSON string representation of the Jupyter Notebook to be exported.",
                 required=True,
             ),
             Parameter(
                 name="template_file",
-                type="string",
+                input_type="string",
                 description="Path to an optional nbconvert-compatible template file for custom HTML formatting.",
                 required=False,
             ),
             Parameter(
                 name="extra_css",
-                type="string",
+                input_type="string",
                 description="Inline CSS to embed into the generated HTML. Inserted within <style> tags in the document head.",
                 required=False,
             ),
             Parameter(
                 name="extra_js",
-                type="string",
+                input_type="string",
                 description="Inline JavaScript to embed into the generated HTML. Inserted within <script> tags in the document head.",
                 required=False,
             ),

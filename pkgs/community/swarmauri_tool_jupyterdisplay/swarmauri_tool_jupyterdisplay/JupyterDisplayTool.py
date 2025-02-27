@@ -35,13 +35,13 @@ class JupyterDisplayTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="data",
-                type="string",
+                input_type="string",
                 description="The data to be displayed. Accepts text, HTML, image paths, or LaTeX content.",
                 required=True,
             ),
             Parameter(
                 name="data_format",
-                type="string",
+                input_type="string",
                 description="The format of the data ('auto', 'text', 'html', 'image', or 'latex').",
                 required=False,
                 default="auto",

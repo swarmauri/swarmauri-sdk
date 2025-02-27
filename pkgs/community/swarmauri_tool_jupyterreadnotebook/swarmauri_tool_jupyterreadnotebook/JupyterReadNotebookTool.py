@@ -38,13 +38,13 @@ class JupyterReadNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_file_path",
-                type="string",
+                input_type="string",
                 description="The file path to the Jupyter notebook.",
                 required=True,
             ),
             Parameter(
                 name="as_version",
-                type="integer",
+                input_type="integer",
                 description="nbformat version to parse the notebook with (e.g., 4).",
                 required=False,
             ),
