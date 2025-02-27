@@ -461,7 +461,7 @@ class DynamicBase(BaseModel):
         def decorator(model_cls: Type[BaseModel]):
             model_name = model_cls.__name__
             if model_name in cls._registry:
-                glogger.warn("Model '%s' is already registered; skipping duplicate.", model_name)
+                glogger.warning("Model '%s' is already registered; skipping duplicate.", model_name)
                 return model_cls
 
             cls._registry[model_name] = {"model_cls": model_cls, "subtypes": {}}
@@ -505,7 +505,7 @@ class DynamicBase(BaseModel):
 
                 subtypes_dict = cls._registry[base_model_name]["subtypes"]
                 if final_type_name in subtypes_dict:
-                    glogger.warn("Type '%s' already exists under '%s'; skipping duplicate.", final_type_name, base_model_name)
+                    glogger.warning("Type '%s' already exists under '%s'; skipping duplicate.", final_type_name, base_model_name)
                     continue
 
                 subtypes_dict[final_type_name] = subclass
