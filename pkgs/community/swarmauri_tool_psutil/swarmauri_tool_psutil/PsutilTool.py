@@ -1,10 +1,13 @@
 # standard/tools/concrete/PsutilTool.py
+from typing import Any, Callable, Dict, List, Literal
+
 import psutil
-from typing import Dict, Any, Literal, List, Callable
-from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
+
 from swarmauri_standard.tools.Parameter import Parameter
+
 
 @ComponentBase.register_type(ToolBase, "PsutilTool")
 class PsutilTool(ToolBase):
@@ -59,33 +62,61 @@ class PsutilTool(ToolBase):
         }
 
     def get_all_network_values(self) -> Dict[str, Any]:
-        return {
+        result = {
             "network_io_counters": psutil.net_io_counters()._asdict(),
-            "network_connections": [
-                conn._asdict() for conn in psutil.net_connections()
-            ],
             "network_interfaces": {
                 iface: [addr._asdict() for addr in addrs]
                 for iface, addrs in psutil.net_if_addrs().items()
             },
         }
 
-    def get_all_sensors_values(self) -> Dict[str, Any]:
-        battery = psutil.sensors_battery()
-        temperatures = psutil.sensors_temperatures()
-        fans = psutil.sensors_fans()
+        # Handle permission errors when getting network connections
+        try:
+            result["network_connections"] = [
+                conn._asdict() for conn in psutil.net_connections()
+            ]
+        except (psutil.AccessDenied, PermissionError):
+            result["network_connections"] = (
+                "Permission denied - run with elevated privileges to access"
+            )
 
-        return {
-            "battery": battery._asdict() if battery else None,
-            "temperatures": {
-                name: [temp._asdict() for temp in temps]
-                for name, temps in (temperatures or {}).items()
-            },
-            "fan_speeds": {
-                name: [fan._asdict() for fan in fans]
-                for name, fans in (fans or {}).items()
-            },
-        }
+        return result
+
+    def get_all_sensors_values(self) -> Dict[str, Any]:
+        result = {}
+
+        # Handle battery information
+        battery = psutil.sensors_battery()
+        result["battery"] = battery._asdict() if battery else None
+
+        # Handle temperatures - may not be available on all platforms
+        try:
+            if hasattr(psutil, "sensors_temperatures"):
+                temperatures = psutil.sensors_temperatures()
+                result["temperatures"] = {
+                    name: [temp._asdict() for temp in temps]
+                    for name, temps in (temperatures or {}).items()
+                }
+            else:
+                result["temperatures"] = "Not available on this platform"
+        except (AttributeError, NotImplementedError):
+            result["temperatures"] = "Not available on this platform"
+
+        # Handle fans - may not be available on all platforms
+        try:
+            if hasattr(psutil, "sensors_fans"):
+                fans = psutil.sensors_fans()
+                result["fan_speeds"] = {
+                    name: [fan._asdict() for fan in fans]
+                    for name, fans in (fans or {}).items()
+                }
+            else:
+                result["fan_speeds"] = "Not available on this platform"
+        except (AttributeError, NotImplementedError):
+            result["fan_speeds"] = "Not available on this platform"
+
+        # Fix the indentation - this was inside the exception block before
+        return result
 
     def __call__(self, info_type: str) -> Dict[str, Any]:
         """

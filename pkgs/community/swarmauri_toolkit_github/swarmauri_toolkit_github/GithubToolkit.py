@@ -1,17 +1,17 @@
 from typing import Literal, Optional
 
+from dotenv import load_dotenv
 from swarmauri_base.ComponentBase import ComponentBase
-
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
-from swarmauri_toolkit_github.GithubRepoTool import GithubRepoTool
-from swarmauri_toolkit_github.GithubIssueTool import GithubIssueTool
-from swarmauri_toolkit_github.GithubPRTool import GithubPRTool
+
 from swarmauri_toolkit_github.GithubBranchTool import GithubBranchTool
 from swarmauri_toolkit_github.GithubCommitTool import GithubCommitTool
-
-from dotenv import load_dotenv
+from swarmauri_toolkit_github.GithubIssueTool import GithubIssueTool
+from swarmauri_toolkit_github.GithubPRTool import GithubPRTool
+from swarmauri_toolkit_github.GithubRepoTool import GithubRepoTool
 
 load_dotenv()
+
 
 @ComponentBase.register_type(ToolkitBase, "GithubToolkit")
 class GithubToolkit(ToolkitBase):
@@ -34,7 +34,7 @@ class GithubToolkit(ToolkitBase):
 
         self.github_repo_tool = GithubRepoTool(api_token=self.api_token)
         self.github_issue_tool = GithubIssueTool(api_token=self.api_token)
-        self.github_pr_tool = GithubPRTool(api_token=self.token)
+        self.github_pr_tool = GithubPRTool(api_token=self.api_token)
         self.github_branch_tool = GithubBranchTool(api_token=self.api_token)
         self.github_commit_tool = GithubCommitTool(api_token=self.api_token)
 

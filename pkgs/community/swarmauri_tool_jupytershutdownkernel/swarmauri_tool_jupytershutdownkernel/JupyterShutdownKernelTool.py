@@ -39,13 +39,13 @@ class JupyterShutdownKernelTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="kernel_id",
-                type="string",
+                input_type="string",
                 description="Unique identifier or name of the kernel to be shut down.",
                 required=True,
             ),
             Parameter(
                 name="shutdown_timeout",
-                type="integer",
+                input_type="integer",
                 description="Maximum time in seconds to wait for the kernel to shut down cleanly.",
                 required=False,
                 default=5,

@@ -41,19 +41,19 @@ class JupyterWriteNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_data",
-                type="object",
+                input_type="object",
                 description="The notebook content as a dictionary/NotebookNode structure.",
                 required=True,
             ),
             Parameter(
                 name="output_file",
-                type="string",
+                input_type="string",
                 description="Path to the output file where the notebook JSON will be written.",
                 required=True,
             ),
             Parameter(
                 name="encoding",
-                type="string",
+                input_type="string",
                 description="File encoding to use when writing the notebook JSON.",
                 required=False,
                 default="utf-8",

@@ -15,7 +15,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "pydantic*",
+    "pydantic",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",

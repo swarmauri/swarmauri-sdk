@@ -1,7 +1,7 @@
 from unittest import mock
 
 import pytest
-from swarmauri_parser_pdf.PyPDFTKParser import PyPDFTKParser as Parser
+from swarmauri_parser_pypdftk.PyPDFTKParser import PyPDFTKParser as Parser
 from swarmauri_core.documents.IDocument import IDocument
 
 

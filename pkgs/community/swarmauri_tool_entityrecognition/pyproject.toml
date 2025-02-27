@@ -15,7 +15,8 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "transformers>=4.45.0",
-    "tensorflow>=2.18.0",
+    "tensorflow>=2.16.1",
+    "tf-keras==2.16.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
