@@ -36,6 +36,18 @@ default = [
     "swarmauri_distance_minkowski",
 ]
 
+full = [
+    "swarmauri_vectorstore_doc2vec",
+    "swarmauri_vectorstore_tfidf",
+    "swarmauri_parser_keywordextractor",
+    "swarmauri_parser_beautifulsoupelement",
+    "swarmauri_embedding_doc2vec",
+    "swarmauri_embedding_tfidf",
+    "swarmauri_embedding_nmf",
+    "swarmauri_distance_minkowski",
+    "swarmauri_tool_matplotlib",
+]
+
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
