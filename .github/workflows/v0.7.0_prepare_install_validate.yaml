@@ -24,16 +24,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Create and Activate Virtual Environment
-        run: |
-          python -m venv $UNIQUE_VENV_PATH
-          source $UNIQUE_VENV_PATH/bin/activate
-
-
       # 3. Install project dependencies via Poetry
       - name: Install dependencies
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
           python -m pip install --upgrade pip
           pip install poetry
           pip install soliloquy=="0.1.4"
@@ -45,25 +38,21 @@ jobs:
       - name: Run install phase
         run: |
           cd pkgs
-          source $UNIQUE_VENV_PATH/bin/activate
-          uv sync --all-extras
-          
+          uv sync --all-extras          
 
       - name: Pip freeze
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
           uv pip freeze
 
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
           uv run ruff check . --fix
 
       # 6. Run the validate phase
       - name: Run validate phase
+        if: always()
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
           uv run pytest
