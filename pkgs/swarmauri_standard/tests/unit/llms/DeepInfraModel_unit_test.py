@@ -1,13 +1,12 @@
-import pytest
 import os
-from swarmauri_standard.llms.DeepInfraModel import DeepInfraModel as LLM
-from swarmauri_standard.conversations.Conversation import Conversation
 
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.SystemMessage import SystemMessage
+import pytest
 from dotenv import load_dotenv
 
-
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.llms.DeepInfraModel import DeepInfraModel as LLM
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 load_dotenv()
 

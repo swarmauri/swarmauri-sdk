@@ -373,4 +373,5 @@ class DeepInfraModel(LLMBase):
         response = self._client.get("/models")
         response.raise_for_status()
         models = response.json()
-        return [model["id"] for model in models]
+        print(models)
+        return [model["id"] for model in models["data"]]

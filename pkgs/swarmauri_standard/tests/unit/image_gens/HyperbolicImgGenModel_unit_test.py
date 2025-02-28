@@ -28,7 +28,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_imggen_model):
-    assert hyperbolic_imggen_model.resource == "LLM"
+    assert hyperbolic_imggen_model.resource == "ImageGen"
 
 
 @timeout(5)

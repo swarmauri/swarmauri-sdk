@@ -435,4 +435,4 @@ class AnthropicModel(LLMBase):
         response = self._client.get("/models")
         response.raise_for_status()
         models_data = response.json()
-        return [model["name"] for model in models_data["models"]]
+        return [model["id"] for model in models_data["data"]]

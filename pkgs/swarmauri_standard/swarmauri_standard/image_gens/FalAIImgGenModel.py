@@ -281,7 +281,7 @@ class FalAIImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch(self, prompts: List[str], **kwargs) -> List[str]:
+    def batch_generate(self, prompts: List[str], **kwargs) -> List[str]:
         """
         Generates images for a batch of prompts.
 
@@ -294,7 +294,7 @@ class FalAIImgGenModel(ImageGenBase):
         """
         return [self.generate_image(prompt, **kwargs) for prompt in prompts]
 
-    async def abatch(
+    async def abatch_generate(
         self, prompts: List[str], max_concurrent: int = 5, **kwargs
     ) -> List[str]:
         """

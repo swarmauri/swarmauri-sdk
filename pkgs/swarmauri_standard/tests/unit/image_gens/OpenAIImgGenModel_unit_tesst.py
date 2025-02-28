@@ -27,7 +27,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_image_model):
-    assert openai_image_model.resource == "LLM"
+    assert openai_image_model.resource == "ImageGen"
 
 
 @timeout(5)
