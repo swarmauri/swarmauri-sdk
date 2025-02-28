@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 from swarmauri_core.agents.IAgentToolkit import IAgentToolkit
-from swarmauri_core.ComponentBase import SubclassUnion
+from swarmauri_base.ComponentBase import SubclassUnion
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 
 

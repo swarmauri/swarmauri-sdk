@@ -1,4 +1,4 @@
-# swarmauri_core/ComponentBase.py
+# swarmauri_base.ComponentBase.py
 
 import hashlib
 import inspect

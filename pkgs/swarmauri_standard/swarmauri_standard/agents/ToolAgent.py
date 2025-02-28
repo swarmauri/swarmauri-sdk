@@ -12,7 +12,7 @@ from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 
 from swarmauri_core.messages import IMessage
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "ToolAgent")
