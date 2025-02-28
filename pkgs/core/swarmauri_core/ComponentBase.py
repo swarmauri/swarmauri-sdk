@@ -707,58 +707,62 @@ class ComponentBase(BaseModel):
         return decorator
 
     @classmethod
-    def register_model(cls, model_cls: Union[List[Type[BaseModel]], Type[BaseModel]]):
+    def register_model(cls):
         """
         Decorator to register a Pydantic model by automatically detecting resource types
         from fields that use SubclassUnion, ensuring no duplicate registrations occur.
         """
-        if not isinstance(model_cls, list):
-            model_classes = [model_cls]
-        else:
-            model_classes = model_cls
 
-        def decorator(model_cls: Type[BaseModel]):
-            # Check if any already-registered model has the same __name__.
-            for registered_model in cls._MODEL_REGISTRY:
-                if registered_model.__name__ == model_cls.__name__:
-                    glogger.info(
-                        f"Model '{model_cls.__name__}' is already registered; skipping duplicate registration."
-                    )
-                    return model_cls
+        def decorator(model_cls: Union[List[Type[BaseModel]], Type[BaseModel]]):
+            # Normalize model_cls to a list (if it isn’t already).
+            if not isinstance(model_cls, list):
+                model_classes = [model_cls]
+            else:
+                model_classes = model_cls
 
-            # Initialize a set for the model if not already present.
-            cls._MODEL_REGISTRY[model_cls] = set()
+            for model_class in model_classes:
+                # Check if any already-registered model has the same __name__.
+                for registered_model in cls._MODEL_REGISTRY:
+                    if registered_model.__name__ == model_class.__name__:
+                        glogger.info(
+                            f"Model '{model_class.__name__}' is already registered; skipping duplicate registration."
+                        )
+                        return model_class
 
-            # Inspect all fields to find SubclassUnion annotations.
-            for field_name, field in model_cls.model_fields.items():
-                field_annotation = model_cls.__annotations__.get(field_name)
-                if not field_annotation:
-                    continue
+                # Initialize a set for the model if not already present.
+                cls._MODEL_REGISTRY[model_class] = set()
 
-                # Check if the field uses SubclassUnion.
-                if cls._field_contains_subclass_union(field_annotation):
-                    # Extract resource types from the field's annotation.
-                    resource_types = cls._extract_parent_classes_from_field(
-                        field_annotation
-                    )
-                    for resource_type in resource_types:
-                        # Add to the set (automatically avoids duplicates).
-                        if resource_type not in cls._MODEL_REGISTRY[model_cls]:
-                            cls._MODEL_REGISTRY[model_cls].add(resource_type)
-                            glogger.info(
-                                f"Registered model '{model_cls.__name__}' for resource '{resource_type.__name__}'"
-                            )
-                        else:
-                            glogger.debug(
-                                f"Resource '{resource_type.__name__}' already registered for model '{model_cls.__name__}', skipping duplicate."
-                            )
-            # Convert the set back to a list if needed by downstream code.
-            cls._MODEL_REGISTRY[model_cls] = list(cls._MODEL_REGISTRY[model_cls])
-            cls._recreate_models()
-            return model_cls
+                # Inspect all fields to find SubclassUnion annotations.
+                for field_name, field in model_class.model_fields.items():
+                    field_annotation = model_class.__annotations__.get(field_name)
+                    if not field_annotation:
+                        continue
 
-        for model_cls in model_classes:
-            decorator(model_cls)
+                    # Check if the field uses SubclassUnion.
+                    if cls._field_contains_subclass_union(field_annotation):
+                        # Extract resource types from the field's annotation.
+                        resource_types = cls._extract_parent_classes_from_field(
+                            field_annotation
+                        )
+                        for resource_type in resource_types:
+                            # Add to the set (automatically avoids duplicates).
+                            if resource_type not in cls._MODEL_REGISTRY[model_class]:
+                                cls._MODEL_REGISTRY[model_class].add(resource_type)
+                                glogger.info(
+                                    f"Registered model '{model_class.__name__}' for resource '{resource_type.__name__}'"
+                                )
+                            else:
+                                glogger.debug(
+                                    f"Resource '{resource_type.__name__}' already registered for model '{model_class.__name__}', skipping duplicate."
+                                )
+                # Convert the set back to a list if needed by downstream code.
+                cls._MODEL_REGISTRY[model_class] = list(
+                    cls._MODEL_REGISTRY[model_class]
+                )
+                cls._recreate_models()
+                return model_cls
+
+        return decorator
 
 
 ###########################################
