@@ -759,7 +759,7 @@ class ComponentBase(BaseModel):
                 cls._MODEL_REGISTRY[model_class] = list(
                     cls._MODEL_REGISTRY[model_class]
                 )
-                cls._recreate_models()
+                cls._recreate_models(cls)
                 return model_cls
 
         return decorator
