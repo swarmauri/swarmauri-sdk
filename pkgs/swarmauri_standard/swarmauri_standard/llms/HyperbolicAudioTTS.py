@@ -6,8 +6,8 @@ from typing import Dict, List, Literal, Optional
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 warnings.warn(
     "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will be "
@@ -16,6 +16,7 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
+
 
 @ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")
 class HyperbolicAudioTTS(LLMBase):
@@ -69,8 +70,6 @@ class HyperbolicAudioTTS(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _prepare_payload(self, text: str) -> Dict:
         """
@@ -156,3 +155,23 @@ class HyperbolicAudioTTS(LLMBase):
             process_conversation(text, path) for text, path in text_path_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def stream(
+        self,
+        text: str,
+        audio_path: str = "output.mp3",
+    ) -> str:
+        """
+        Stream the text-to-speech output.
+        """
+        raise NotImplementedError("Stream method is not implemented for HyperbolicTTS")
+
+    async def astream(
+        self,
+        text: str,
+        audio_path: str = "output.mp3",
+    ) -> str:
+        """
+        Asynchronously stream the text-to-speech output.
+        """
+        raise NotImplementedError("AStream method is not implemented for HyperbolicTTS")
