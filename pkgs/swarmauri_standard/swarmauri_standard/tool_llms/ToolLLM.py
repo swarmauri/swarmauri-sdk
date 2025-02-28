@@ -6,6 +6,8 @@ from pydantic import ConfigDict, model_validator, Field, SecretStr, PrivateAttr
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter
 )
@@ -14,6 +16,7 @@ from swarmauri_core.llms.IPredict import IPredict
 from swarmauri_core.conversations.IConversation import IConversation
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
+
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
@@ -46,8 +49,8 @@ class ToolLLM(ToolLLMBase):
     ) -> List[Dict[str, str]]:
         message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
         return [
-            message.model_dump(include=message_properties, exclude_none=True)
-            for message in messages
+            m.model_dump(include=message_properties, exclude_none=True)
+            for m in messages if m.role != "tool"
         ]
 
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
@@ -88,6 +91,7 @@ class ToolLLM(ToolLLMBase):
         conversation: IConversation,
         toolkit=None,
         tool_choice=None,
+        multiturn: bool = True,
         temperature=0.7,
         max_tokens=1024,
     ) -> IConversation:
@@ -119,25 +123,32 @@ class ToolLLM(ToolLLMBase):
             response.raise_for_status()
             tool_response = response.json()
 
+
         messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
         tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        payload["messages"] = messages
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
+        # Add tool messages to Conversation to enable Conversation hooks
+        tool_messages = [FunctionMessage(tool_call_id=m['tool_call_id'], name=m['name'], content=m['content']) for m in 
+            messages if m['role'] == 'tool']
 
-        with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
-            response.raise_for_status()
+        conversation.add_messages(tool_messages)
 
-        agent_response = response.json()
+        if multiturn:
+            payload["messages"] = messages
+            payload.pop("tools", None)
+            payload.pop("tool_choice", None)
 
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
-        )
-        conversation.add_message(agent_message)
+            with httpx.Client(timeout=self.timeout) as client:
+                response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+                response.raise_for_status()
+
+            agent_response = response.json()
+
+            agent_message = AgentMessage(
+                content=agent_response["choices"][0]["message"]["content"]
+            )
+            conversation.add_message(agent_message)
         return conversation
 
 
@@ -146,6 +157,7 @@ class ToolLLM(ToolLLMBase):
         conversation: IConversation,
         toolkit=None,
         tool_choice=None,
+        multiturn: bool = True,
         temperature=0.7,
         max_tokens=1024,
     ) -> IConversation:
@@ -183,22 +195,29 @@ class ToolLLM(ToolLLMBase):
         tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        payload["messages"] = messages
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
+        # Add tool messages to Conversation to enable Conversation hooks
+        tool_messages = [FunctionMessage(tool_call_id=m['tool_call_id'], name=m['name'], content=m['content']) for m in 
+            messages if m['role'] == 'tool']
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                self.BASE_URL, headers=self._headers, json=payload
+        conversation.add_messages(tool_messages)
+
+        if multiturn:
+            payload["messages"] = messages
+            payload.pop("tools", None)
+            payload.pop("tool_choice", None)
+
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
+
+            agent_response = response.json()
+
+            agent_message = AgentMessage(
+                content=agent_response["choices"][0]["message"]["content"]
             )
-            response.raise_for_status()
-
-        agent_response = response.json()
-
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
-        )
-        conversation.add_message(agent_message)
+            conversation.add_message(agent_message)
         return conversation
 
 
