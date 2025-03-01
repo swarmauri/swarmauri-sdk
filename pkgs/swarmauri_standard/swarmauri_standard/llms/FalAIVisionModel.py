@@ -2,12 +2,12 @@ import asyncio
 import os
 import time
 import warnings
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -18,6 +18,7 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
+
 
 @ComponentBase.register_type(LLMBase, "FalAIVisionModel")
 class FalAIVisionModel(LLMBase):
@@ -54,7 +55,7 @@ class FalAIVisionModel(LLMBase):
 
     def __init__(self, **data):
         """
-        Initialize the FalAIVisionModel with API key, HTTP clients, and model name validation.
+        Initialize the FalOCR with API key, HTTP clients, and model name validation.
 
         Raises:
             ValueError: If the provided name is not in allowed_models.
@@ -64,8 +65,7 @@ class FalAIVisionModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
-
+        self._client = httpx.Client(headers=self._headers, timeout=30)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -109,10 +109,7 @@ class FalAIVisionModel(LLMBase):
         """
         url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
-
-        async with httpx.AsyncClient(
-            headers=self._headers, timeout=self.timeout
-        ) as client:
+        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
             response_data = response.json()
@@ -149,9 +146,7 @@ class FalAIVisionModel(LLMBase):
             Dict: The status response.
         """
         url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
-        async with httpx.AsyncClient(
-            headers=self._headers, timeout=self.timeout
-        ) as client:
+        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
             response = await client.get(url)
             response.raise_for_status()
             return response.json()
@@ -179,7 +174,7 @@ class FalAIVisionModel(LLMBase):
             status_data = await self._async_check_status(request_id)
             if status_data.get("status") == "COMPLETED":
                 async with httpx.AsyncClient(
-                    headers=self._headers, timeout=self.timeout
+                    headers=self._headers, timeout=30
                 ) as client:
                     response = await client.get(status_data.get("response_url"))
                     response.raise_for_status()
@@ -193,7 +188,7 @@ class FalAIVisionModel(LLMBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
-    def process_image(self, image_url: str, prompt: str, **kwargs) -> str:
+    def predict(self, image_url: str, prompt: str, **kwargs) -> str:
         """
         Process an image and answer a question based on the prompt.
 
@@ -208,7 +203,7 @@ class FalAIVisionModel(LLMBase):
         response_data = self._send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    async def aprocess_image(self, image_url: str, prompt: str, **kwargs) -> str:
+    async def apredict(self, image_url: str, prompt: str, **kwargs) -> str:
         """
         Asynchronously process an image and answer a question based on the prompt.
 
@@ -236,7 +231,7 @@ class FalAIVisionModel(LLMBase):
             List[str]: A list of answers or results for each image.
         """
         return [
-            self.process_image(image_url, prompt, **kwargs)
+            self.predict_vision(image_url, prompt, **kwargs)
             for image_url, prompt in zip(image_urls, prompts)
         ]
 
@@ -258,7 +253,7 @@ class FalAIVisionModel(LLMBase):
             TimeoutError: If one or more requests do not complete within the timeout period.
         """
         tasks = [
-            self.aprocess_image(image_url, prompt, **kwargs)
+            self.apredict_vision(image_url, prompt, **kwargs)
             for image_url, prompt in zip(image_urls, prompts)
         ]
         return await asyncio.gather(*tasks)
@@ -275,3 +270,29 @@ class FalAIVisionModel(LLMBase):
         response.raise_for_status()
         models_data = response.json()
         return models_data.get("models", [])
+
+    def stream(self, image_url: str, prompt: str, **kwargs) -> Any:
+        """_summary_
+
+        Args:
+            image_url (str): _description_
+            prompt (str): _description_
+
+        Returns:
+            Any: _description_
+        """
+        raise NotImplementedError("Stream is not supported for FalAIVisionModel")
+
+    async def astream(self, image_url: str, prompt: str, **kwargs) -> Any:
+        """_summary_
+
+        Args:
+            image_url (str): _description_
+            prompt (str): _description_
+
+        Returns:
+            Any: _description_
+        """
+        raise NotImplementedError(
+            "Asynchronous Stream is not supported for FalAIVisionModel"
+        )
