@@ -82,7 +82,7 @@ class GeminiToolModel(LLMBase):
             api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
             name (str): The name of the Gemini model in use.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
