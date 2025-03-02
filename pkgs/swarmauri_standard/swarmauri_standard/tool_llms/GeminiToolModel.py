@@ -63,7 +63,7 @@ class GeminiToolModel(ToolLLMBase):
         ]
     )
 
-    def __init__(self, **data):
+    def __init__(self, *args, **kwargs):
         """
         Initializes the GeminiToolModel instance with the provided API key and model name.
 
@@ -71,7 +71,7 @@ class GeminiToolModel(ToolLLMBase):
             api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
             name (str): The name of the Gemini model in use.
         """
-        super().__init__(**data)
+        super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
