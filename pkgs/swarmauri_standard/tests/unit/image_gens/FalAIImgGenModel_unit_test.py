@@ -27,7 +27,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(fluxpro_imggen_model):
-    assert fluxpro_imggen_model.resource == "LLM"
+    assert fluxpro_imggen_model.resource == "ImageGen"
 
 
 @timeout(5)
@@ -91,7 +91,7 @@ def test_batch(fluxpro_imggen_model):
         "A steaming cup of coffee on a wooden table",
     ]
 
-    image_urls = fluxpro_imggen_model.batch(prompts=prompts)
+    image_urls = fluxpro_imggen_model.batch_generate(prompts=prompts)
 
     assert len(image_urls) == len(prompts)
     for url in image_urls:
@@ -109,7 +109,7 @@ async def test_abatch(fluxpro_imggen_model):
         "A vintage car on a rural road",
     ]
 
-    image_urls = await fluxpro_imggen_model.abatch(prompts=prompts)
+    image_urls = await fluxpro_imggen_model.abatch_generate(prompts=prompts)
 
     assert len(image_urls) == len(prompts)
     for url in image_urls:

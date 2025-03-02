@@ -46,7 +46,7 @@ def test_ubc_resource(hyperbolic_tts_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_tts_model):
-    assert hyperbolic_tts_model.type == "HyperbolicAudioTTS"
+    assert hyperbolic_tts_model.type == "HyperbolicTTS"
 
 
 @pytest.mark.timeout(5)

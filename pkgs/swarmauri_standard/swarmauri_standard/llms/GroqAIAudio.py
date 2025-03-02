@@ -1,12 +1,12 @@
 import asyncio
-from typing import Dict, List, Literal
 import warnings
+from typing import Dict, List, Literal
 
 import aiofiles
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -17,6 +17,7 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
+
 
 @ComponentBase.register_type(LLMBase, "GroqAIAudio")
 class GroqAIAudio(LLMBase):
@@ -212,6 +213,20 @@ class GroqAIAudio(LLMBase):
             process_conversation(path, task) for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
+
+    def stream(
+        self,
+        audio_path: str,
+        task: Literal["transcription", "translation"] = "transcription",
+    ):
+        raise NotImplementedError("Stream method is not implemented for GroqAIAudio")
+
+    async def astream(
+        self,
+        audio_path: str,
+        task: Literal["transcription", "translation"] = "transcription",
+    ):
+        raise NotImplementedError("Astream method is not implemented for GroqAIAudio")
 
     def get_allowed_models(self) -> List[str]:
         """

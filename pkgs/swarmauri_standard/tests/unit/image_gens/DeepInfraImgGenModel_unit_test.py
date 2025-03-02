@@ -28,7 +28,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(deepinfra_imggen_model):
-    assert deepinfra_imggen_model.resource == "LLM"
+    assert deepinfra_imggen_model.resource == "ImageGen"
 
 
 @timeout(5)
@@ -63,7 +63,7 @@ def test_generate_image_base64(deepinfra_imggen_model, model_name):
 
     prompt = "A cute cat playing with a ball of yarn"
 
-    image_base64 = model.generate_image_base64(prompt=prompt)
+    image_base64 = model.generate_image(prompt=prompt)
 
     assert isinstance(image_base64, str)
     assert len(image_base64) > 0
@@ -79,7 +79,7 @@ async def test_agenerate_image_base64(deepinfra_imggen_model, model_name):
 
     prompt = "A serene landscape with mountains and a lake"
 
-    image_base64 = await model.agenerate_image_base64(prompt=prompt)
+    image_base64 = await model.agenerate_image(prompt=prompt)
 
     assert isinstance(image_base64, str)
     assert len(image_base64) > 0
@@ -94,7 +94,7 @@ def test_batch_base64(deepinfra_imggen_model):
         "A steaming cup of coffee on a wooden table",
     ]
 
-    result_base64_images = deepinfra_imggen_model.batch_base64(prompts=prompts)
+    result_base64_images = deepinfra_imggen_model.batch_generate(prompts=prompts)
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:
@@ -112,7 +112,7 @@ async def test_abatch_base64(deepinfra_imggen_model):
         "A vintage car on a rural road",
     ]
 
-    result_base64_images = await deepinfra_imggen_model.abatch_base64(prompts=prompts)
+    result_base64_images = await deepinfra_imggen_model.abatch_generate(prompts=prompts)
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:

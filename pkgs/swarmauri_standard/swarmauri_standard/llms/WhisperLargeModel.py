@@ -64,7 +64,7 @@ class WhisperLargeModel(LLMBase):
         """
         super().__init__(**data)
         self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
-        self._client = httpx.Client(header=self._header, timeout=self.timeout)
+        self._client = httpx.Client(headers=self._header, timeout=self.timeout)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -152,7 +152,7 @@ class WhisperLargeModel(LLMBase):
         if task == "translation":
             params["language"] = "en"
 
-        async with httpx.AsyncClient(header=self._header) as client:
+        async with httpx.AsyncClient(headers=self._header) as client:
             response = await client.post(self._BASE_URL, data=data, params=params)
             response.raise_for_status()
             result = response.json()
@@ -230,6 +230,22 @@ class WhisperLargeModel(LLMBase):
 
         tasks = [process_audio(path, task) for path, task in path_task_dict.items()]
         return await asyncio.gather(*tasks)
+    
+    def stream(
+        self,
+        audio_path: str,
+        task: Literal["transcription", "translation"] = "transcription",
+    ) -> str:
+        raise NotImplementedError("Stream method is not implemented for OpenAIAudio")
+
+    async def astream(
+        self,
+        audio_path: str,
+        task: Literal["transcription", "translation"] = "transcription",
+    ) -> str:
+        raise NotImplementedError(
+            "Asynchrous Stream method is not implemented for OpenAIAudio"
+        )
 
     def get_allowed_models(self) -> List[str]:
         """
