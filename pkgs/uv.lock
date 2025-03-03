@@ -6565,7 +6565,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
