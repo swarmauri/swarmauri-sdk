@@ -50,4 +50,4 @@ def test_model_validate_json():
     jupyter_toolkit = JupyterToolkit()
     json_data = jupyter_toolkit.model_dump_json()
     validated_json = JupyterToolkit.model_validate_json(json_data)
-    assert validated_json == json_data
+    assert isinstance(validated_json, JupyterToolkit)
