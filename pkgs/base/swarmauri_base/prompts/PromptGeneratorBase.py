@@ -5,6 +5,7 @@ from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """
     A class that generates prompts based on a template and a list of variable sets.

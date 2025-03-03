@@ -5,6 +5,7 @@ from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_standard.vectors.Vector import Vector
 
+
 @ComponentBase.register_model()
 class DocumentBase(IDocument, ComponentBase):
     content: str

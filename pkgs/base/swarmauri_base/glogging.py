@@ -11,6 +11,7 @@ if not glogger.handlers:
     console_handler.setFormatter(formatter)
     glogger.addHandler(console_handler)
 
+
 def set_default_log_level(log_level: int) -> None:
     """
     Update the class-level default log level.
@@ -26,12 +27,14 @@ def set_default_logger(logger: Optional[Logger]) -> None:
     glogger.default_logger = logger
     glogger.info(f"Default logger updated to: {logger}")
 
+
 def set_default_handlers(handlers: Union[Handler, List[Handler]]) -> None:
     """
     Update the class-level default handlers.
     """
     glogger.default_handlers = handlers
     glogger.info(f"Default handlers updated to: {handlers}")
+
 
 def set_default_formatter(formatter: Formatter) -> None:
     """

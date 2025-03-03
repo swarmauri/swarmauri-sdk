@@ -5,6 +5,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.parsers.IParser import IParser
 
+
 @ComponentBase.register_model()
 class ParserBase(IParser, ComponentBase):
     """

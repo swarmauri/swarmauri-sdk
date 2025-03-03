@@ -6,6 +6,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.transports.ITransport import ITransport
 
+
 class TransportProtocol(Enum):
     """
     Enumeration of transportation protocols supported by the transport layer
@@ -15,6 +16,7 @@ class TransportProtocol(Enum):
     MULTICAST = auto()
     BROADCAST = auto()
     PUBSUB = auto()
+
 
 @ComponentBase.register_model()
 class TransportBase(ITransport, ComponentBase):

@@ -4,6 +4,7 @@ from pydantic import Field
 from swarmauri_core.prompts.IPromptMatrix import IPromptMatrix
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 class PromptMatrixBase(IPromptMatrix, ComponentBase):
     matrix: List[List[str]] = []
     resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value)

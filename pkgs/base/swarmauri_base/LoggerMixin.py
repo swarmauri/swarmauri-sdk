@@ -5,6 +5,7 @@ from swarmauri_base import FullUnion
 from swarmauri_base.logging.LoggerBase import LoggerBase
 from swarmauri_base.DynamicBase import DynamicBase
 
+
 @DynamicBase.register_model()
 class LoggerMixin(BaseModel):
     # Class-level default logger is now a FullUnion[LoggerBase] instance.
