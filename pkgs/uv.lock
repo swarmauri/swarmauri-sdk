@@ -6982,7 +6982,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
