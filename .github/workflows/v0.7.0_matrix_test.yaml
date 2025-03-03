@@ -64,7 +64,7 @@ jobs:
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
           # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest --json-report --json-report-file=pytest_results.json -vvv
