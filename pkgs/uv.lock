@@ -5422,7 +5422,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },

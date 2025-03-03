@@ -1,7 +1,7 @@
 """
 This module provides a ClipboardState class that implements a system clipboard-based approach
 to storing and retrieving state data. It uses only built-in Python modules and platform-specific
-commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux). 
+commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux).
 """
 
 import sys
@@ -16,8 +16,8 @@ class ClipboardState(StateBase):
     """A concrete implementation of StateBase that uses the system clipboard
     to store and retrieve state data.
 
-    The class relies on the standard library for subprocess calls to external 
-    commands available on each platform. If these commands are missing, a 
+    The class relies on the standard library for subprocess calls to external
+    commands available on each platform. If these commands are missing, a
     FileNotFoundError or subprocess.CalledProcessError may be raised.
     """
 
@@ -29,7 +29,7 @@ class ClipboardState(StateBase):
 
         text (str): The text to copy to the clipboard.
         RETURNS (None): This method does not return anything.
-        RAISES (FileNotFoundError, subprocess.CalledProcessError): 
+        RAISES (FileNotFoundError, subprocess.CalledProcessError):
             If the underlying system command is unavailable or fails.
         """
         platform = sys.platform
@@ -43,8 +43,9 @@ class ClipboardState(StateBase):
                 proc.communicate(text)
         else:
             # Linux/Unix: uses 'xclip'
-            with subprocess.Popen(["xclip", "-selection", "clipboard"],
-                                  stdin=subprocess.PIPE, text=True) as proc:
+            with subprocess.Popen(
+                ["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE, text=True
+            ) as proc:
                 proc.communicate(text)
 
     @classmethod
@@ -60,7 +61,8 @@ class ClipboardState(StateBase):
             # Windows: No direct paste command, so we use PowerShell
             completed = subprocess.run(
                 ["powershell", "-command", "Get-Clipboard"],
-                capture_output=True, text=True
+                capture_output=True,
+                text=True,
             )
             return completed.stdout
         elif platform.startswith("darwin"):
@@ -69,14 +71,17 @@ class ClipboardState(StateBase):
             return completed.stdout
         else:
             # Linux/Unix: uses 'xclip'
-            completed = subprocess.run(["xclip", "-selection", "clipboard", "-o"],
-                                       capture_output=True, text=True)
+            completed = subprocess.run(
+                ["xclip", "-selection", "clipboard", "-o"],
+                capture_output=True,
+                text=True,
+            )
             return completed.stdout
 
     def read(self) -> Dict[str, str]:
         """Read the current state from the system clipboard as a dictionary.
 
-        RETURNS (Dict[str, str]): The clipboard data parsed as a dictionary. 
+        RETURNS (Dict[str, str]): The clipboard data parsed as a dictionary.
             Returns an empty dictionary if clipboard content is empty.
         RAISES (ValueError): If there is an error reading or parsing the state.
         """
@@ -140,4 +145,6 @@ class ClipboardState(StateBase):
             new_instance.write(current_state)
             return new_instance
         except Exception as e:
-            raise ValueError(f"Failed to create a deep copy of the clipboard state: {e}")
+            raise ValueError(
+                f"Failed to create a deep copy of the clipboard state: {e}"
+            )
