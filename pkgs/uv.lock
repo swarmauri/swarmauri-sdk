@@ -7609,7 +7609,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
