@@ -112,14 +112,9 @@ jobs:
         run: |
           mkdir -p patches
           MEMBER="${{ matrix.member }}"
-          # Replace "/" with "-" to ensure a safe filename
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
-          # Check for changes in the member directory (located under pkgs)
-          if [ -n "$(git -C pkgs status --porcelain "$MEMBER")" ]; then
-            git -C pkgs diff "$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
-          else
-            echo "No changes in ${MEMBER} to create a patch."
-          fi
+          # Generate a patch relative to the repository root for the member directory
+          git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
 
       - name: Set safe member variable
         id: set_safe_member
@@ -164,7 +159,7 @@ jobs:
           for patch in patches/*.patch; do
             if [ -f "$patch" ]; then
               echo "Applying patch $patch"
-              git apply -p1 "$patch"
+              git apply -p0 "$patch"
             fi
           done
           rm -rf patches
