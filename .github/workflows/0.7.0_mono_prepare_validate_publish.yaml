@@ -157,7 +157,6 @@ jobs:
           # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
-
   commit:
     name: Commit Changes
     needs: test
