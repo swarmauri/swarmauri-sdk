@@ -5645,7 +5645,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },

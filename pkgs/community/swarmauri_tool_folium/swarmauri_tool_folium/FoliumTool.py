@@ -8,6 +8,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 import base64
 import io
 
+
 @ComponentBase.register_type(ToolBase, "FoliumTool")
 class FoliumTool(ToolBase):
     type: Literal["FoliumTool"] = "FoliumTool"
