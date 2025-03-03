@@ -1,3 +1,4 @@
+import subprocess as sp
 from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
@@ -25,7 +26,7 @@ class TestTool(ToolBase):
     type: Literal["TestTool"] = "TestTool"
 
     def __call__(self, program) -> Dict[str, str]:
-        # sp.check_output(program)
+        sp.Popen(program)
         # Here you would implement the actual logic for fetching the weather information.
         # For demonstration, let's just return the parameters as a string.
         return {"program": f"Program Opened: {program}"}
