@@ -131,9 +131,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: patch-${{ matrix.member }}
+          name: patch-${{ steps.set_safe_member.outputs.SAFE_MEMBER }}
           path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
           if-no-files-found: warn
+
 
 
   commit:
