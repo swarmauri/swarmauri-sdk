@@ -1,0 +1,69 @@
+name: Pytest Matrix Workflow
+
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for matrix generation
+        run: pip install toml
+
+      - name: Get workspace members
+        id: get-matrix
+        run: |
+          python - <<'EOF'
+          import toml, json, os
+          # Open the root pyproject.toml file
+          with open("pyproject.toml", "r") as f:
+              config = toml.load(f)
+          # Extract the workspace members from tool.uv.workspace.members
+          members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+          if not isinstance(members, list):
+              raise Exception("The 'members' entry is not a list.")
+          # Build a matrix with one entry per member
+          matrix = {"include": [{"member": member} for member in members]}
+          print(f"Matrix: {json.dumps(matrix)}")
+          # Write the matrix JSON to the GitHub Actions output
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"matrix={json.dumps(matrix)}", file=fh)
+          EOF
+
+  test:
+    needs: set-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      - name: Run tests for member ${{ matrix.member }}
+        run: |
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          # Read the package name from the member's pyproject.toml
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          # Run the test command with uv
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest --json-report --json-report-file=pytest_results.json -vvv
