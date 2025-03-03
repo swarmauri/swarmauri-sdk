@@ -178,6 +178,7 @@ swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = [
+    "deprecated",
     "experimental", 
     #"community",
     "swarmauri_embedding_tfidf",
