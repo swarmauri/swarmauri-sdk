@@ -3,7 +3,7 @@ name: Pytest Matrix Workflow
 
 on:
   workflow_dispatch:
-    
+
 jobs:
   set-matrix:
     runs-on: ubuntu-latest
@@ -24,6 +24,7 @@ jobs:
       - name: Get workspace members
         id: get-matrix
         run: |
+          cd pkgs
           python - <<'EOF'
           import toml, json, os
           # Open the root pyproject.toml file
