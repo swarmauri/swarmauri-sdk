@@ -3,6 +3,7 @@ from pydantic import Field
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MessageBase, "ZeroMeasurement")
 class FunctionMessage(MessageBase):
     content: str

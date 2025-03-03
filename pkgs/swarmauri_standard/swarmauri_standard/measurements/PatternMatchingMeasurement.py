@@ -7,6 +7,7 @@ from swarmauri_base.measurements.MeasurementCalculateMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "PatternMatchingMeasurement")
 class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """

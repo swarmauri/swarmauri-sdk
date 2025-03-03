@@ -22,6 +22,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "HyperbolicVisionModel")
 class HyperbolicVisionModel(LLMBase):
     """

@@ -8,6 +8,7 @@ from swarmauri_base.measurements.MeasurementAggregateMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "MeanMeasurement")
 class MeanMeasurement(
     MeasurementAggregateMixin, MeasurementCalculateMixin, MeasurementBase

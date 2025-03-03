@@ -3,6 +3,7 @@ import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ChunkerBase, "SentenceChunker")
 class SentenceChunker(ChunkerBase):
     """

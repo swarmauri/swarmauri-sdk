@@ -22,6 +22,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "OpenAIModel")
 class OpenAIModel(LLMBase):
     """

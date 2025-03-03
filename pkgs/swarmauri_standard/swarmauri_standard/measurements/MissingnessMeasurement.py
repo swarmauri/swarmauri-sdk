@@ -6,6 +6,7 @@ from swarmauri_base.measurements.MeasurementCalculateMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "MissingnessMeasurement")
 class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
     """

@@ -4,6 +4,7 @@ from pydantic import Field
 from swarmauri_base.swarms.SwarmBase import SwarmBase, SwarmStatus
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(SwarmBase, "Swarm")
 class Swarm(SwarmBase):
     """Concrete implementation of SwarmBase for task processing"""

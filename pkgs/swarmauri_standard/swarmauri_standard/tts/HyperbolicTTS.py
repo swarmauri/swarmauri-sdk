@@ -7,6 +7,7 @@ from pydantic import PrivateAttr, Field, SecretStr
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(TTSBase, "HyperbolicTTS")
 class HyperbolicTTS(TTSBase):
     """
