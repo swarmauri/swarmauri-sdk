@@ -5266,7 +5266,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
