@@ -13,7 +13,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_standard"]
+dependencies = [
+    "swarmauri_core",
+ "swarmauri_base",
+ "swarmauri_standard",
+ "torch>=2.6.0",
+]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
