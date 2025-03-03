@@ -42,7 +42,7 @@ class EntityRecognitionParser(ParserBase):
                 print("Warning: Using blank English model with minimal NER capabilities.")
                 self._nlp = spacy.blank("en")
                 # Add a basic entity recognizer
-                ner = self._nlp.add_pipe("ner")
+                self._nlp.add_pipe("ner")
                 # Initialize the pipeline
                 self._nlp.initialize()
 
