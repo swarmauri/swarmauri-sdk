@@ -4,6 +4,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ToolBase, "WeatherTool")
 class WeatherTool(ToolBase):
     version: str = "0.1.dev1"

@@ -10,6 +10,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(TTSBase, "OpenaiTTS")
 class OpenaiTTS(TTSBase):
     """

@@ -110,7 +110,9 @@ async def test_abatch_base64(hyperbolic_imggen_model):
         "A snowy mountain peak",
     ]
 
-    result_base64_images = await hyperbolic_imggen_model.abatch_generate(prompts=prompts)
+    result_base64_images = await hyperbolic_imggen_model.abatch_generate(
+        prompts=prompts
+    )
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:

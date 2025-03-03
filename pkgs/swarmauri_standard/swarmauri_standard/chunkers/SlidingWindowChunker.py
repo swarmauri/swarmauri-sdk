@@ -2,6 +2,7 @@ from typing import List, Literal
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ChunkerBase, "SlidingWindowChunker")
 class SlidingWindowChunker(ChunkerBase):
     """

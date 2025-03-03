@@ -3,6 +3,7 @@ from swarmauri_standard.utils._get_subclasses import get_classes_from_module
 from swarmauri_base.factories.FactoryBase import FactoryBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(FactoryBase, "Factory")
 class Factory(FactoryBase):
     """

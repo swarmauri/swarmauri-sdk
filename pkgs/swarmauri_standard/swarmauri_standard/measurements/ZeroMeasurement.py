@@ -2,6 +2,7 @@ from typing import Literal
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "ZeroMeasurement")
 class ZeroMeasurement(MeasurementBase):
     """

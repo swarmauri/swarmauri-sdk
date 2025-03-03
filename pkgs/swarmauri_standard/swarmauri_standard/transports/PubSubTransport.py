@@ -6,6 +6,7 @@ from pydantic import PrivateAttr
 from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(TransportBase, "PubSubTransport")
 class PubSubTransport(TransportBase):
     _topics: Dict[str, Set[str]] = PrivateAttr(default_factory=dict)

@@ -21,6 +21,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "GroqVisionModel")
 class GroqVisionModel(LLMBase):
     """

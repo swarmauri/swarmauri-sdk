@@ -19,6 +19,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "PlayHTModel")
 class PlayHTModel(LLMBase):
     """
