@@ -7703,7 +7703,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },

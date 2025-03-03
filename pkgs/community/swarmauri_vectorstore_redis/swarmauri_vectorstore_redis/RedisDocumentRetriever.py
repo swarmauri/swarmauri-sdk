@@ -8,6 +8,7 @@ from swarmauri_base.document_stores.DocumentStoreRetrieveBase import (
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 
+
 @ComponentBase.register_type(DocumentStoreRetrieveBase, "RedisDocumentRetriever")
 class RedisDocumentRetriever(DocumentStoreRetrieveBase):
     """
