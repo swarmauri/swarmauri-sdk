@@ -111,24 +111,25 @@ jobs:
       - name: Create patch for changes
         if: always()
         run: |
-          cd pkgs
-          mkdir -p ../patches
+          mkdir -p patches
           MEMBER="${{ matrix.member }}"
-          # Replace "/" with "-" to create a safe filename
+          # Replace "/" with "-" to ensure a safe filename
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
-          # If there are any changes in the workspace member, create a patch in the patches directory
-          if [ -n "$(git status --porcelain $MEMBER)" ]; then
-            git diff $MEMBER > ../patches/${SAFE_MEMBER}.patch
+          # Check for changes in the member directory (located under pkgs)
+          if [ -n "$(git -C pkgs status --porcelain "$MEMBER")" ]; then
+            git -C pkgs diff "$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
           else
             echo "No changes in ${MEMBER} to create a patch."
           fi
+
 
       - name: Upload patch artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: patch-${{ matrix.member }}
-          path: ../patches/${{ matrix.member }}.patch
+          path: patches/patch_${{ replace(matrix.member, '/', '-') }}.patch
+          if-no-files-found: warn
 
   commit:
     name: Commit Changes
