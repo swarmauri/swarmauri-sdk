@@ -35,7 +35,7 @@ class DummyHandler(HandlerBase):
         Compiles a logging handler using the specified level and format.
         In this example, a StreamHandler is created.
         """
-        handler = logging.StreamHandler(stream)
+        handler = logging.StreamHandler(self.stream)
         handler.setLevel(self.level)
         formatter = logging.Formatter(self.format)
         handler.setFormatter(formatter)
