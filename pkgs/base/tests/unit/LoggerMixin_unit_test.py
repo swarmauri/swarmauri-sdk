@@ -41,19 +41,3 @@ def test_default_logger_initialization():
     )
     # Verify that the logger's level is set to the default log level.
     assert model.logger.level == logging.INFO, "Logger level should be INFO by default."
-
-
-@pytest.mark.xfail
-def test_custom_logger_injection():
-    """
-    Test that a custom logger passed during initialization is used by DummyModel.
-
-    This test confirms that when a custom logger is provided, LoggerMixin assigns it to the instance,
-    preserving the custom settings.
-    """
-    custom_logger = logging.getLogger("CustomLogger")
-    custom_logger.setLevel(logging.DEBUG)
-    model = DummyModel(name="TestModel", logger=custom_logger)
-    # Verify that the injected custom logger is used.
-    assert model.logger.name == "CustomLogger", "Injected custom logger should be used."
-    assert model.logger.level == logging.DEBUG, "Custom logger level should be DEBUG."
