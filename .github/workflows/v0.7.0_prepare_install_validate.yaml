@@ -64,4 +64,4 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          uv run --active pytest -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json -vvv
+          uv run --active pytest -n 4 -vvv
