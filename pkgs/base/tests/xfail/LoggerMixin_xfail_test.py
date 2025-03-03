@@ -23,6 +23,7 @@ class DummyModel(LoggerMixin):
 
     name: str
 
+
 @pytest.mark.xfail
 def test_custom_logger_injection():
     """

@@ -8,6 +8,7 @@ from swarmauri_base.logging.LoggerBase import LoggerBase
 from swarmauri_base.logging.HandlerBase import HandlerBase
 from swarmauri_base import register_type
 
+
 class DummyModel(LoggerMixin):
     """Dummy model for integration testing of LoggerMixin.
 
@@ -18,7 +19,9 @@ class DummyModel(LoggerMixin):
     name : str
         An example field.
     """
+
     name: str
+
 
 @register_type()
 class DummyHandler(HandlerBase):
@@ -26,6 +29,7 @@ class DummyHandler(HandlerBase):
 
     This dummy model implements the required compile_handler() method.
     """
+
     stream: Any = None
     level: int = logging.INFO
     format: str = "[%(name)s][%(levelname)s] %(message)s"
@@ -41,6 +45,7 @@ class DummyHandler(HandlerBase):
         handler.setFormatter(formatter)
         return handler
 
+
 @pytest.mark.i9n
 def test_logging_output():
     """Test logging output using a custom StreamHandler provided via LoggerBase.handlers.
@@ -52,22 +57,21 @@ def test_logging_output():
     # Create an in-memory stream
     log_stream = io.StringIO()
 
-
     # Provide the handler model in the LoggerBase constructor
     logger_base = LoggerBase(handlers=[DummyHandler(stream=log_stream)])
-    
+
     # Assign our custom logger to the DummyModel's default_logger.
     DummyModel.default_logger = logger_base
-    
+
     # Instantiate DummyModel which triggers logger initialization via model_post_init.
     model = DummyModel(name="IntegrationTest")
-    
+
     # Emit a test log message.
     model.logger.info("Integration test message")
-    
+
     # Get the stream's content.
     log_contents = log_stream.getvalue()
-    
+
     # Assert that the log output contains the expected message.
     assert "INFO" in log_contents
     assert "Integration test message" in log_contents
