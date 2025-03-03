@@ -6063,7 +6063,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
