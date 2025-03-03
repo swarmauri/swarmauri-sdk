@@ -7,8 +7,9 @@ class methods for copying and pasting text to/from the clipboard work as
 expected under mocked conditions.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 from swarmauri_state_clipboard.ClipboardState import ClipboardState
 
 
@@ -16,26 +17,20 @@ from swarmauri_state_clipboard.ClipboardState import ClipboardState
 def clipboard_state():
     """
     Create a ClipboardState instance with mocked clipboard methods.
-
-    Mocks the class methods `clipboard_copy` and `clipboard_paste` to store
-    clipboard data in an in-memory variable rather than using the actual system
-    clipboard.
-
-    RETURNS (ClipboardState): A new ClipboardState instance with mocked
-        clipboard copy/paste methods.
     """
     mock_clipboard_content = ""
 
-    def mock_copy(text: str) -> None:
+    # Fix: Updated mock functions to match the correct signatures
+    def mock_paste(text: str) -> None:  # Must accept a text parameter
         nonlocal mock_clipboard_content
         mock_clipboard_content = text
 
-    def mock_paste() -> str:
+    def mock_copy() -> str:  # No parameters, returns the content
         return mock_clipboard_content
 
     with (
-        patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
         patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste),
+        patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
     ):
         state = ClipboardState()
         yield state
