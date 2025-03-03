@@ -4996,7 +4996,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
