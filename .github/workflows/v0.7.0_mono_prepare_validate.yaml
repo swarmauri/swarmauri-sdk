@@ -162,6 +162,7 @@ jobs:
             echo "Applying patch $patch"
             git apply -p1 "$patch"
           done
+          rm -rf patches
 
       - name: Git Commit and Push
         run: |
