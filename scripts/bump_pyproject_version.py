@@ -1,6 +1,7 @@
 # /// script
 # dependencies = [
 #   "tomlkit>=0.13.2",
+#   "packaging>=24.2",
 # ]
 # ///
 
