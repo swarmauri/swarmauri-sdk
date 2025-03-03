@@ -36,7 +36,11 @@ jobs:
       - name: Create venv
         run: |
           cd pkgs
-          uv venv
+          uv venv -vvv
+
+      # Delay to allow the virtual environment time to fully create
+      - name: Wait for venv to be ready
+        run: sleep 10
 
       # 4. Run the install phase
       - name: Run install phase
