@@ -164,7 +164,7 @@ jobs:
           for patch in patches/*.patch; do
             if [ -f "$patch" ]; then
               echo "Applying patch $patch"
-              git apply --directory=pkgs -p1 "$patch"
+              git apply -p1 "$patch"
             fi
           done
           rm -rf patches
