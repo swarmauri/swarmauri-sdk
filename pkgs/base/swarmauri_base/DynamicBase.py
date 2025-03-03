@@ -306,7 +306,7 @@ class DynamicBase(BaseModel):
             # If Annotated, preserve metadata while removing previous UnionFactoryMetadata.
             if origin is Annotated:
                 glogger.debug(f"\n\nAnnotated - {args}")
-                base_type = args[0]
+                base_type = args[0] # noqa: F841
                 union_factory_metadata = args[1]
                 glogger.debug(f"Annotated - {union_factory_metadata}\n\n")
                 metadata = [m for m in args[1:] if not isinstance(m, UnionFactoryMetadata)]
