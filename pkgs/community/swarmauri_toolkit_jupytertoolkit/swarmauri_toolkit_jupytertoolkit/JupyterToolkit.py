@@ -59,7 +59,6 @@ JupyterWriteNotebookTool,
 
 @ComponentBase.register_type(ToolkitBase, "JupyterToolkit")
 class JupyterToolkit(ToolkitBase):
-    type: Literal["JupyterToolkit"] = "JupyterToolkit"
     tools: Dict[str, SubclassUnion[ToolBase]] = {
         "JupyterClearOutputTool": JupyterClearOutputTool(),
         "JupyterDisplayTool": JupyterDisplayTool(),
