@@ -15,6 +15,15 @@ from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.DynamicBase import DynamicBase
 
+###########################################
+# Export Subclass Union for Legacy Support
+###########################################
+from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
+
+
+###########################################
+# ComponentBase
+###########################################
 
 T = TypeVar("T", bound="ComponentBase")
 
@@ -39,7 +48,7 @@ class ComponentBase(
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 ###########################################
-# Resource Kinds
+# Resource Types Enum (This should become ResourceKinds)
 ###########################################
 class ResourceTypes(Enum):
     UNIVERSAL_BASE = "ComponentBase"
@@ -83,9 +92,3 @@ class ResourceTypes(Enum):
     TTS = "TTS"
     STT = "STT"
     OCR = "OCR"
-
-###########################################
-# Export Subclass Union for Legacy Support
-###########################################
-from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
-
