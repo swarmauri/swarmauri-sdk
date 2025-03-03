@@ -4783,7 +4783,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
