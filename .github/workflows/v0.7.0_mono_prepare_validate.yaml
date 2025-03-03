@@ -106,6 +106,7 @@ jobs:
           git add .
           # Only commit if there are changes
           if ! git diff-index --quiet HEAD; then
+            git pull
             git commit -m "chore: apply automatic formatting and lint fixes"
             git push origin HEAD:${{ github.ref }}
           else
