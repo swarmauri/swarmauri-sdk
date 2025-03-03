@@ -24,7 +24,20 @@ class DummyHandler(HandlerBase):
 
     This dummy model implements the required compile_handler() method.
     """
-    pass
+    stream: Any = None
+    level: int = logging.INFO
+    format: str = "[%(name)s][%(levelname)s] %(message)s"
+
+    def compile_handler(self) -> logging.Handler:
+        """
+        Compiles a logging handler using the specified level and format.
+        In this example, a StreamHandler is created.
+        """
+        handler = logging.StreamHandler(stream)
+        handler.setLevel(self.level)
+        formatter = logging.Formatter(self.format)
+        handler.setFormatter(formatter)
+        return handler
 
 @pytest.mark.i9n
 def test_logging_output():
@@ -39,7 +52,7 @@ def test_logging_output():
 
 
     # Provide the handler model in the LoggerBase constructor
-    logger_base = LoggerBase(handlers=[DummyHandler()])
+    logger_base = LoggerBase(handlers=[DummyHandler(stream=log_stream)])
     
     # Assign our custom logger to the DummyModel's default_logger.
     DummyModel.default_logger = logger_base
