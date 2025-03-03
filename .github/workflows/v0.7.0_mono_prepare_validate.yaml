@@ -122,14 +122,19 @@ jobs:
             echo "No changes in ${MEMBER} to create a patch."
           fi
 
+      - name: Set safe member variable
+        id: set_safe_member
+        run: |
+          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
 
       - name: Upload patch artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: patch-${{ matrix.member }}
-          path: patches/patch_${{ replace(matrix.member, '/', '-') }}.patch
+          path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
           if-no-files-found: warn
+
 
   commit:
     name: Commit Changes
