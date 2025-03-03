@@ -1,11 +1,15 @@
 import pytest
 from swarmauri_toolkit_jupytertoolkit.JupyterToolkit import JupyterToolkit
 
+@pytest.mark.unit
+def test_class_type():
+    """Test the type of JupyterToolkit"""
+    assert JupyterToolkit._type == "JupyterToolkit"
 
 @pytest.mark.unit
-def test_type():
+def test_instance_type():
     """Test the type of JupyterToolkit"""
-    assert JupyterToolkit.type == "JupyterToolkit"
+    assert JupyterToolkit().type == "JupyterToolkit"
 
 
 @pytest.mark.unit
