@@ -59,7 +59,10 @@ def test_logging_output():
     """
     # Create an instance of the custom list handler.
     list_handler = ListHandler()
-    list_handler.setFormatter(LoggerMixin.default_formatter)
+    # Use logging's Formatter for the test instead of LoggerMixin.default_formatter.
+    list_handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
 
     # Override the default handlers for DummyModel with the custom list handler.
     DummyModel.default_handlers = list_handler
