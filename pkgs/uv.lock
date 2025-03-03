@@ -4738,7 +4738,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
