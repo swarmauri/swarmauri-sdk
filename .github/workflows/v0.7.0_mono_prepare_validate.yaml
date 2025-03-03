@@ -14,7 +14,7 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -54,7 +54,7 @@ jobs:
       max-parallel: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -96,22 +96,6 @@ jobs:
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
-      - name: Github Commit and Push
-        run: |
-          cd pkgs
-          # Configure Git with a bot identity
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Stage all changes
-          git add .
-          # Only commit if there are changes
-          if ! git diff-index --quiet HEAD; then
-            git commit -m "chore: apply automatic formatting and lint fixes"
-            git pull --rebase origin "${{ github.ref }}"
-            git push origin HEAD:${{ github.ref }}
-          else
-            echo "No changes to commit."
-          fi
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -123,3 +107,67 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+
+      - name: Create patch for changes
+        if: always()
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          # If there are any changes in the workspace member, create a patch
+          if [ -n "$(git status --porcelain $MEMBER)" ]; then
+            git diff $MEMBER > ../${MEMBER}.patch
+          else
+            echo "No changes in ${MEMBER} to create a patch."
+          fi
+
+      - name: Upload patch artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: patch-${{ matrix.member }}
+          path: ${{ matrix.member }}.patch
+
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v3
+        with:
+          # This will download all artifacts that start with "patch-"
+          name: patch
+          path: patches
+
+      - name: Apply patches
+        run: |
+          for patch in patches/*.patch; do
+            if [ -f "$patch" ]; then
+              echo "Applying patch $patch"
+              git apply "$patch" || true
+            fi
+          done
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}"
+          else
+            echo "No changes to commit."
+          fi
