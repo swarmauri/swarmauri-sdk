@@ -13,7 +13,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_standard", "transformers>=4.49.0"]
+dependencies = [
+    "swarmauri_core",
+ "swarmauri_base",
+ "swarmauri_standard",
+ "transformers>=4.49.0",
+ "tensorflow>=2.16.2",
+]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
