@@ -5221,7 +5221,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },

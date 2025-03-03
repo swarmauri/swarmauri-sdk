@@ -5,6 +5,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 
+
 @ComponentBase.register_type(ParserBase, "PyPDF2Parser")
 class PyPDF2Parser(ParserBase):
     """
