@@ -4566,7 +4566,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.2.dev4"
+version = "0.6.2.dev5"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
