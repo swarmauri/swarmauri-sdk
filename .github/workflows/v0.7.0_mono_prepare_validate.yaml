@@ -156,8 +156,7 @@ jobs:
       - name: Download patch artifacts
         uses: actions/download-artifact@v4
         with:
-          # This will download all artifacts that start with "patch-"
-          name: patch
+          # This will download all artifacts that start with "patch
           path: patches
 
       - name: Apply patches
