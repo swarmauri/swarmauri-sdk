@@ -59,4 +59,4 @@ jobs:
         if: always()
         run: |
           cd pkgs
-          uv run pytest
+          uv run pytest -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json
