@@ -2,7 +2,7 @@ import pymupdf  # PyMuPDF
 from typing import List, Union, Any, Literal
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_standard.documents.Document import Document
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "FitzPdfParser")

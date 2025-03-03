@@ -19,7 +19,7 @@ from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -46,20 +46,20 @@ class JupyterExecuteAndConvertTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_path",
-                type="string",
+                input_type="string",
                 description="Path of the Jupyter notebook file to execute.",
                 required=True,
             ),
             Parameter(
                 name="output_format",
-                type="string",
+                input_type="string",
                 description="The format to which the executed notebook should be converted (e.g., 'html', 'pdf').",
                 required=True,
                 enum=["html", "pdf"],
             ),
             Parameter(
                 name="execution_timeout",
-                type="number",
+                input_type="number",
                 description="Timeout (in seconds) for notebook execution.",
                 required=False,
             ),

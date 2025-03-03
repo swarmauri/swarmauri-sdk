@@ -10,7 +10,7 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 from swarmauri_standard.messages.AgentMessage import UsageData
 
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 from dotenv import load_dotenv
 
@@ -34,19 +34,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_reason_model):
     assert openai_reason_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_reason_model):
     assert openai_reason_model.type == "OpenAIReasonModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_reason_model):
     assert (
@@ -55,13 +55,13 @@ def test_serialization(openai_reason_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_reason_model):
     assert openai_reason_model.name == openai_reason_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(openai_reason_model, model_name):
@@ -83,7 +83,7 @@ def test_no_system_context(openai_reason_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(openai_reason_model):
     model = openai_reason_model
@@ -115,7 +115,7 @@ def test_preamble_system_context(openai_reason_model):
         assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

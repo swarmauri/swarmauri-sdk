@@ -7,7 +7,7 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
@@ -24,7 +24,6 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
 
 @ComponentBase.register_type(LLMBase, "CohereToolModel")
 class CohereToolModel(LLMBase):

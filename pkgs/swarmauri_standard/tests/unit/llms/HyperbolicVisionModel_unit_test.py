@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -44,19 +44,19 @@ def conversation():
     return conversation
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_vision_model):
     assert hyperbolic_vision_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_vision_model):
     assert hyperbolic_vision_model.type == "HyperbolicVisionModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(hyperbolic_vision_model):
     assert (
@@ -67,14 +67,14 @@ def test_serialization(hyperbolic_vision_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_model_name(hyperbolic_vision_model):
     assert hyperbolic_vision_model.name == hyperbolic_vision_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_predict(hyperbolic_vision_model, model_name, conversation):
     model = hyperbolic_vision_model
@@ -89,7 +89,7 @@ def test_predict(hyperbolic_vision_model, model_name, conversation):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_apredict(hyperbolic_vision_model, model_name, conversation):
     model = hyperbolic_vision_model
@@ -102,7 +102,7 @@ async def test_apredict(hyperbolic_vision_model, model_name, conversation):
     assert len(result.history[-1].content) > 0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(hyperbolic_vision_model):
     image_prompt = {
@@ -132,7 +132,7 @@ def test_batch(hyperbolic_vision_model):
 
 
 @pytest.mark.asyncio
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_abatch(hyperbolic_vision_model):
     image_prompt = {

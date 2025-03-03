@@ -4,7 +4,6 @@ from uuid import UUID
 from swarmauri_standard.transports.PubSubTransport import (
     PubSubTransport,
 )
-from swarmauri_standard.utils.timeout_wrapper import timeout
 
 
 @pytest.fixture
@@ -13,19 +12,19 @@ def pubsub_transport():
     return transport
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(pubsub_transport):
     assert pubsub_transport.resource == "Transport"
 
 
-@timeout(5)
+@pytest.mark.timeout(5) 
 @pytest.mark.unit
 def test_ubc_type(pubsub_transport):
     assert pubsub_transport.type == "PubSubTransport"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(pubsub_transport):
     assert (
@@ -34,7 +33,7 @@ def test_serialization(pubsub_transport):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_subscribe(pubsub_transport):
@@ -48,7 +47,7 @@ async def test_subscribe(pubsub_transport):
     assert subscriber_id in pubsub_transport._topics[topic]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_unsubscribe(pubsub_transport):
@@ -61,7 +60,7 @@ async def test_unsubscribe(pubsub_transport):
     assert subscriber_id not in pubsub_transport._topics.get(topic, set())
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_publish_and_receive(pubsub_transport):
@@ -76,7 +75,7 @@ async def test_publish_and_receive(pubsub_transport):
     assert received_message == message
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_broadcast(pubsub_transport):
@@ -94,7 +93,7 @@ async def test_broadcast(pubsub_transport):
     assert received_message2 == message
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_multicast(pubsub_transport):
@@ -121,7 +120,7 @@ async def test_multicast(pubsub_transport):
         pass
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_receive_no_messages(pubsub_transport):

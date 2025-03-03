@@ -3,8 +3,7 @@ from pydantic import Field
 import numpy as np
 from deepface import DeepFace
 from swarmauri.vcms.base.VCMBase import VCMBase
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
-
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 class DeepFaceVCM(VCMBase, ComponentBase):
     type: Literal["DeepFaceVCM"] = "DeepFaceVCM" 
@@ -15,7 +14,6 @@ class DeepFaceVCM(VCMBase, ComponentBase):
     expand_percentage: float = Field(default=0, description="Percentage to expand bounding box")
     anti_spoofing: bool = Field(default=False, description="Enable anti-spoofing")
     actions: Tuple[str, ...] = Field(default=("emotion", "age", "gender", "race"), description="Actions to perform")
-
 
     def predict_vision(self, img_path: Union[str, np.ndarray], 
                        actions: Optional[Tuple[str, ...]] = None,

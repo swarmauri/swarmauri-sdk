@@ -13,16 +13,18 @@ updated with outputs produced during execution.
 """
 
 import logging
-from typing import List, Literal
+from typing import List, Literal, ClassVar, Type
 from pydantic import Field
-from nbformat import read, NO_CONVERT
-from nbformat.notebooknode import NotebookNode
+
+from nbclient.exceptions import CellExecutionError, CellTimeoutError
 from nbclient import NotebookClient
-from nbclient.exceptions import CellExecutionError
+
+import nbformat
+from nbformat.notebooknode import NotebookNode
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +49,13 @@ class JupyterExecuteNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_path",
-                type="string",
+                input_type="string",
                 description="The path to the Jupyter notebook to be executed.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Maximum time (in seconds) for each cell to execute. Defaults to 30.",
                 required=False,
             ),
@@ -62,6 +64,9 @@ class JupyterExecuteNotebookTool(ToolBase):
     name: str = "JupyterExecuteNotebookTool"
     description: str = "Executes a Jupyter notebook and captures outputs."
     type: Literal["JupyterExecuteNotebookTool"] = "JupyterExecuteNotebookTool"
+
+    # Expose NotebookClient as a class attribute for easier patching.
+    NotebookClient: ClassVar[Type[NotebookClient]] = NotebookClient
 
     def __call__(self, notebook_path: str, timeout: int = 30) -> NotebookNode:
         """
@@ -83,13 +88,30 @@ class JupyterExecuteNotebookTool(ToolBase):
             >>> executed_notebook = tool("example_notebook.ipynb", 60)
             >>> # The returned NotebookNode now contains the executed cells and outputs.
         """
+        return self.execute_notebook(notebook_path, timeout)
+
+    def execute_notebook(self, notebook_path: str, timeout: int = 30) -> NotebookNode:
+        """
+        Executes the given Jupyter notebook by running all cells sequentially. Captures
+        all outputs and errors, updating the NotebookNode object with the results.
+
+        Args:
+            notebook_path (str): The file path to the Jupyter notebook to execute.
+            timeout (int, optional): The maximum time (in seconds) allowed for each
+                                     cell to execute. Defaults to 30.
+
+        Returns:
+            NotebookNode: The notebook object after execution, containing updated
+                          outputs. If cell execution fails, the error is recorded
+                          in the notebook outputs.
+        """
         logger.info("Starting notebook execution with JupyterExecuteNotebookTool.")
         logger.debug(f"Notebook path: {notebook_path}")
         logger.debug(f"Execution timeout: {timeout} seconds")
 
         try:
             with open(notebook_path, "r", encoding="utf-8") as f:
-                notebook: NotebookNode = read(f, NO_CONVERT)
+                notebook: NotebookNode = nbformat.read(f, nbformat.NO_CONVERT)
 
             # Create a client to execute the notebook
             client = NotebookClient(
@@ -104,7 +126,7 @@ class JupyterExecuteNotebookTool(ToolBase):
             logger.info("Notebook execution completed successfully.")
             return notebook
 
-        except CellExecutionError as e:
+        except (CellExecutionError, CellTimeoutError) as e:
             logger.error("A cell execution error occurred.")
             logger.exception(e)
             # The executed notebook still contains partial output and the error details.

@@ -3,7 +3,7 @@ import pytest
 import os
 from swarmauri_standard.llms.OpenAIAudio import OpenAIAudio as LLM
 from dotenv import load_dotenv
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 from pathlib import Path
 
 # Load environment variables
@@ -35,31 +35,31 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_model):
     assert openai_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_model):
     assert openai_model.type == "OpenAIAudio"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_model):
     assert openai_model.id == LLM.model_validate_json(openai_model.model_dump_json()).id
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_model):
     assert openai_model.name == openai_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_transcription(openai_model, model_name):
@@ -73,7 +73,7 @@ def test_audio_transcription(openai_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_translation(openai_model, model_name):
@@ -90,7 +90,7 @@ def test_audio_translation(openai_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -106,7 +106,7 @@ async def test_apredict(openai_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(openai_model, model_name):
@@ -124,7 +124,7 @@ def test_batch(openai_model, model_name):
         assert isinstance(result, str)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

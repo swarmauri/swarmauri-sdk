@@ -35,4 +35,20 @@ The Swarmauri SDK offers a comprehensive suite of tools designed for building di
 
 The Swarmauri SDK is an evolving platform, and the community is encouraged to contribute to its growth. Upcoming releases will focus on enhancing the framework's modularity, providing more advanced serialization methods, and expanding the community-driven component library.
 
+## Modules Overview
 
+### Importer
+- [importer.py](swarmauri/importer.py): Handles the dynamic importing of modules and components within the Swarmauri framework.
+
+### Interface Registry
+- [interface_registry.py](swarmauri/interface_registry.py): Manages the registration and lookup of interfaces used for communication between different components.
+
+### Plugin Citizenship Registry
+- [plugin_citizenship_registry.py](swarmauri/plugin_citizenship_registry.py): Maintains a registry of plugins and their citizenship status within the Swarmauri ecosystem.
+
+### Plugin Manager
+- [plugin_manager.py](swarmauri/plugin_manager.py): Oversees the loading, initialization, and management of plugins to extend the functionality of the Swarmauri framework.
+
+## Contributing
+
+Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.

@@ -6,7 +6,22 @@ the tool's functionality under various scenarios, including normal execution, er
 handling, and timeout handling.
 """
 
+import pytest
 from swarmauri_tool_jupyterruncell.JupyterRunCellTool import JupyterRunCellTool
+
+
+# Define a dummy IPython shell that mimics a real shell's run_cell behavior.
+class DummyIPythonShell:
+    def run_cell(self, code):
+        # Execute the code. Exceptions (including SyntaxError and custom exceptions)
+        # will propagate, allowing the tool to capture them.
+        exec(code, {})
+
+
+# Automatically patch IPython.get_ipython so that it returns our dummy shell instance.
+@pytest.fixture(autouse=True)
+def patch_get_ipython(monkeypatch):
+    monkeypatch.setattr("IPython.get_ipython", lambda: DummyIPythonShell())
 
 
 def test_jupyter_run_cell_tool_basic() -> None:

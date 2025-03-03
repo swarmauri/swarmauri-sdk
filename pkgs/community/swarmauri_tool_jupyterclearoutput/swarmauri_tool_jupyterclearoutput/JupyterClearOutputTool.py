@@ -8,11 +8,13 @@ NotebookNode for further use.
 """
 
 import logging
-from typing import List, Dict, Any, Literal
+from typing import Any, Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class JupyterClearOutputTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_data",
-                type="object",
+                input_type="object",
                 description="A dictionary that represents the Jupyter Notebook to clear outputs from.",
                 required=True,
             ),

@@ -3,10 +3,9 @@ from typing import List, Literal, Optional
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.vectors.Vector import Vector
-
 
 @ComponentBase.register_type(EmbeddingBase, "OpenAIEmbedding")
 class OpenAIEmbedding(EmbeddingBase):

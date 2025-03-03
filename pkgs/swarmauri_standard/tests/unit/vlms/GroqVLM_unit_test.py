@@ -7,7 +7,7 @@ from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv
 
 from swarmauri_standard.messages.AgentMessage import UsageData
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 
 load_dotenv()
@@ -37,7 +37,7 @@ def input_data():
     ]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -48,31 +48,31 @@ def get_allowed_models():
     return allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_model):
     assert groq_model.resource == "VLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(groq_model):
     assert groq_model.type == "GroqVLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_model):
     assert groq_model.id == GroqVLM.model_validate_json(groq_model.model_dump_json()).id
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_model):
     assert groq_model.name == groq_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_predict_vision(groq_model, model_name, input_data):
@@ -90,7 +90,7 @@ def test_predict_vision(groq_model, model_name, input_data):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(groq_model, model_name, input_data):
@@ -111,7 +111,7 @@ def test_stream(groq_model, model_name, input_data):
     assert conversation.get_last().content == full_response
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(groq_model, model_name, input_data):
@@ -130,7 +130,7 @@ def test_batch(groq_model, model_name, input_data):
         assert isinstance(result.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -147,7 +147,7 @@ async def test_apredict_vision(groq_model, model_name, input_data):
     assert isinstance(prediction, str)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -170,7 +170,7 @@ async def test_astream(groq_model, model_name, input_data):
     # assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit

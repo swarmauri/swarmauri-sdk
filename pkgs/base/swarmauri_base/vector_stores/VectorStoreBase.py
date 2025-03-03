@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import List, Literal, Optional
 
 from pydantic import Field, PrivateAttr
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 from swarmauri_standard.documents.Document import Document
 

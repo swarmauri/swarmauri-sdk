@@ -159,7 +159,7 @@ def test_parameters_structure() -> None:
     assert param.name == "notebook_data", (
         "Parameter name does not match expected value."
     )
-    assert param.type == "object", "Parameter type does not match expected value."
+    assert param.input_type == "object", "Parameter type does not match expected value."
     assert param.required, "Parameter should be required."
     assert "A dictionary that represents" in param.description, (
         "Parameter description is missing or incomplete."

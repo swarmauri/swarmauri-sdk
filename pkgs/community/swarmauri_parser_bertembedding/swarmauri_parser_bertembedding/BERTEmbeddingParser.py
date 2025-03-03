@@ -1,11 +1,13 @@
-from typing import List, Union, Any, Literal
-from swarmauri_core.ComponentBase import ComponentBase
-from transformers import BertTokenizer, BertModel
+from typing import Any, List, Literal, Union
+
 import torch
 from pydantic import PrivateAttr
-from swarmauri_core.documents.IDocument import IDocument
-from swarmauri_standard.documents.Document import Document
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.documents.IDocument import IDocument
+from transformers import BertModel, BertTokenizer
+
+from swarmauri_standard.documents.Document import Document
 
 
 @ComponentBase.register_type(ParserBase, "BERTEmbeddingParser")
@@ -20,6 +22,7 @@ class BERTEmbeddingParser(ParserBase):
     parser_model_name: str = "bert-base-uncased"
     _model: Any = PrivateAttr()
     type: Literal["BERTEmbeddingParser"] = "BERTEmbeddingParser"
+    _tokenizer: Any = PrivateAttr()
 
     def __init__(self, **kwargs):
         """
@@ -29,7 +32,7 @@ class BERTEmbeddingParser(ParserBase):
         - model_name (str): The name of the pre-trained BERT model to use.
         """
         super().__init__(**kwargs)
-        self.tokenizer = BertTokenizer.from_pretrained(self.parser_model_name)
+        self._tokenizer = BertTokenizer.from_pretrained(self.parser_model_name)
         self._model = BertModel.from_pretrained(self.parser_model_name)
         self._model.eval()  # Set model to evaluation mode
 
@@ -45,7 +48,7 @@ class BERTEmbeddingParser(ParserBase):
         """
 
         # Tokenization
-        inputs = self.tokenizer(
+        inputs = self._tokenizer(
             data, return_tensors="pt", padding=True, truncation=True, max_length=512
         )
 
@@ -63,11 +66,15 @@ class BERTEmbeddingParser(ParserBase):
         doc_embeddings = embeddings.mean(axis=1)
 
         # Creating document object(s)
-        documents = [
-            Document(
-                doc_id=str(i), content=emb, metadata={"source": "BERTEmbeddingParser"}
-            )
-            for i, emb in enumerate(doc_embeddings)
-        ]
+        documents = []
+        for i, emb in enumerate(doc_embeddings):
+            # Store the original input text as content and embeddings in metadata
+            input_text = data[i] if isinstance(data, list) else data
+            doc = Document(content=input_text)
+            # Add the embedding and source to metadata
+            doc.metadata = {"source": "BERTEmbeddingParser", "embedding": emb}
+            # Set an ID if needed in your application
+            doc.id = str(i)
+            documents.append(doc)
 
         return documents

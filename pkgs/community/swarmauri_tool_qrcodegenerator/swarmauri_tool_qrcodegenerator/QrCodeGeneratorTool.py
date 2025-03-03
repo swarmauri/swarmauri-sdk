@@ -1,7 +1,7 @@
 # standard/tools/concrete/QrCodeGeneratorTool.py
 import qrcode
 from typing import List, Literal
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -21,7 +21,7 @@ class QrCodeGeneratorTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="data",
-                type="string",
+                input_type="string",
                 description="The data to encode in the QR code.",
                 required=True,
             ),

@@ -10,7 +10,7 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 from swarmauri_standard.messages.AgentMessage import UsageData
 
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 from dotenv import load_dotenv
 
@@ -34,31 +34,31 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_model):
     assert openai_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(openai_model):
     assert openai_model.type == "OpenAIModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_model):
     assert openai_model.id == LLM.model_validate_json(openai_model.model_dump_json()).id
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(openai_model):
     assert openai_model.name == openai_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(openai_model, model_name):
@@ -80,7 +80,7 @@ def test_no_system_context(openai_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openai_model, model_name):
@@ -107,7 +107,7 @@ def test_preamble_system_context(openai_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(openai_model, model_name):
@@ -131,7 +131,7 @@ def test_stream(openai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -150,7 +150,7 @@ async def test_apredict(openai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(10)
+@pytest.mark.timeout(10)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -174,7 +174,7 @@ async def test_astream(openai_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(openai_model, model_name):
@@ -194,7 +194,7 @@ def test_batch(openai_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

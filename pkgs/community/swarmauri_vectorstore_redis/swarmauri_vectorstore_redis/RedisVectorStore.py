@@ -13,7 +13,7 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector

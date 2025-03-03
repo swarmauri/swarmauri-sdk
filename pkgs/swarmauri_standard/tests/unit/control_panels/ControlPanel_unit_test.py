@@ -8,7 +8,7 @@ from swarmauri_standard.transports.PubSubTransport import PubSubTransport
 from swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy import (
     RoundRobinStrategy,
 )
-from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
+from swarmauri_standard.service_registries.ServiceRegistry import ServiceRegistry
 from swarmauri_standard.agents.QAAgent import QAAgent
 from dotenv import load_dotenv
 
@@ -29,7 +29,7 @@ def control_panel():
     """Create a control panel with real components."""
     panel = ControlPanel(
         agent_factory=AgentFactory(),
-        service_registry=ServiceRegistryBase(),
+        service_registry=ServiceRegistry(),
         task_mgmt_strategy=RoundRobinStrategy(),
         transport=PubSubTransport(),
     )
@@ -52,7 +52,7 @@ def test_ubc_type(control_panel):
 def test_initialization(control_panel):
     """Test initialization with components."""
     assert isinstance(control_panel.agent_factory, AgentFactory)
-    assert isinstance(control_panel.service_registry, ServiceRegistryBase)
+    assert isinstance(control_panel.service_registry, ServiceRegistry)
     assert isinstance(control_panel.task_mgmt_strategy, RoundRobinStrategy)
     assert isinstance(control_panel.transport, PubSubTransport)
 

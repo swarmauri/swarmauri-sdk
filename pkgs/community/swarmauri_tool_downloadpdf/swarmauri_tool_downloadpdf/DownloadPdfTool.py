@@ -2,7 +2,7 @@ import base64
 from io import BytesIO
 import requests
 from typing import Dict, Literal, List
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
@@ -20,13 +20,13 @@ class DownloadPDFTool(ToolBase):
     parameters: List[Parameter] = [
         Parameter(
             name="url",
-            type="string",
+            input_type="string",
             description="The URL of the PDF file to download",
             required=True,
         ),
         Parameter(
             name="destination",
-            type="string",
+            input_type="string",
             description="The path where the PDF file will be saved",
             required=True,
         ),

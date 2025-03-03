@@ -5,7 +5,7 @@ from redisearch import Client, Query
 from swarmauri_base.document_stores.DocumentStoreRetrieveBase import (
     DocumentStoreRetrieveBase,
 )
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 
 

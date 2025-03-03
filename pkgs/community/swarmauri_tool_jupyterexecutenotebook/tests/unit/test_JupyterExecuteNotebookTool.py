@@ -43,7 +43,9 @@ def test_default_attributes() -> None:
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 @patch("nbformat.read")
-@patch("nbclient.NotebookClient")
+@patch(
+    "swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool.NotebookClient"
+)
 def test_call_executes_notebook(
     mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
 ) -> None:
@@ -84,7 +86,9 @@ def test_call_cell_execution_error(
     mock_notebook_client.return_value = client_instance
 
     # Configure the client to raise CellExecutionError
-    client_instance.execute.side_effect = CellExecutionError("Error in cell execution.")
+    client_instance.execute.side_effect = CellExecutionError(
+        "ErrorName", "ErrorValue", "Traceback"
+    )
 
     tool = JupyterExecuteNotebookTool()
     result = tool("fake_notebook.ipynb")
