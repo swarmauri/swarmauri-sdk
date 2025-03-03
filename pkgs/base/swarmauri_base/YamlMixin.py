@@ -2,8 +2,8 @@ import json
 import yaml
 from pydantic import BaseModel, ValidationError
 
-class YamlMixin(BaseModel):
 
+class YamlMixin(BaseModel):
     @classmethod
     def model_validate_yaml(cls, yaml_data: str):
         try:

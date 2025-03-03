@@ -4,6 +4,7 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(DistanceBase, "MinkowskiDistance")
 class MinkowskiDistance(DistanceBase):
     """

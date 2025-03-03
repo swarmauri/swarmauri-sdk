@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutenotebookwithparameters"
-version = "1.0.2.dev3"
+version = "1.0.2.dev5"
 description = "A tool designed to execute parameterized notebooks using papermill, allowing dynamic input and output capture for automated workflows."
 license = "Apache-2.0"
 readme = "README.md"
@@ -63,4 +63,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

@@ -4,6 +4,7 @@ from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(EmbeddingBase, "Doc2VecEmbedding")
 class Doc2VecEmbedding(EmbeddingBase):
     _model: Doc2Vec

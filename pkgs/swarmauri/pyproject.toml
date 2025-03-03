@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
 license = "Apache-2.0"
 readme = "README.md"
@@ -101,4 +101,5 @@ dev = [
     "ipython>=8.28.0",
     "requests>=2.32.3",
     "flake8>=7.0",
+    "ruff>=0.9.9",
 ]

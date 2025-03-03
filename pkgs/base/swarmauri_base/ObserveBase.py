@@ -16,14 +16,11 @@ T = TypeVar("T", bound="ObserveBase")
 
 
 @DynamicBase.register_type()
-class ObserveBase(
-        YamlMixin, 
-        ServiceMixin,
-        DynamicBase
-    ):
+class ObserveBase(YamlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.
     """
+
     _type: ClassVar[str] = "ObserveBase"
 
     # Instance-attribute type (to support deserialization)
@@ -32,6 +29,3 @@ class ObserveBase(
     version: str = "0.1.0"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-
-    

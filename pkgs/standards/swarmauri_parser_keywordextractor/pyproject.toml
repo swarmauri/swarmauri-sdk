@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_keywordextractor"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 description = "Keyword Extractor Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -61,4 +61,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

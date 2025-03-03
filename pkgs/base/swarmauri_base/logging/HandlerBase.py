@@ -2,10 +2,11 @@ import logging
 from swarmauri_core.logging.IHandler import IHandler
 from swarmauri_base.ObserveBase import ObserveBase
 
+
 @ObserveBase.register_model()
 class HandlerBase(IHandler, ObserveBase):
     level: int = logging.INFO
-    format: str = '[%(name)s][%(levelname)s] %(message)s'
+    format: str = "[%(name)s][%(levelname)s] %(message)s"
 
     def compile_handler(self) -> logging.Handler:
         """

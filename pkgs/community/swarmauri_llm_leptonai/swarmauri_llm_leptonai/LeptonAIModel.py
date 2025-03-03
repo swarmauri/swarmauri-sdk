@@ -10,6 +10,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
+
 @ComponentBase.register_type(LLMBase, "LeptonAIModel")
 class LeptonAIModel(LLMBase):
     """

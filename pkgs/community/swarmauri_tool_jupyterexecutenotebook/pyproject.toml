@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 description = "A tool designed to execute all cells in a Jupyter Notebook using nbconvert’s ExecutePreprocessor, capturing outputs for testing and reporting."
 license = "Apache-2.0"
 readme = "README.md"
@@ -63,4 +63,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

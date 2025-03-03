@@ -15,10 +15,11 @@ class DummyModel(LoggerMixin):
     Dummy model for integration testing of LoggerMixin.
 
     This model demonstrates logging behavior in a simulated real-world scenario.
-    
+
     Attributes:
         name (str): An example field.
     """
+
     name: str
 
 
@@ -27,7 +28,7 @@ class ListHandler(logging.Handler):
     Custom logging handler that collects log messages in a list.
 
     This handler is used to capture log output during integration testing.
-    
+
     Attributes:
         logs (list): A list storing formatted log messages.
     """
@@ -46,6 +47,7 @@ class ListHandler(logging.Handler):
         """
         msg = self.format(record)
         self.logs.append(msg)
+
 
 @pytest.mark.i9n
 def test_logging_output():

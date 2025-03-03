@@ -2,13 +2,16 @@ import pytest
 import yaml
 from swarmauri_base.YamlMixin import YamlMixin
 
+
 # --- Dummy model for testing ---
 class DummyModel(YamlMixin):
     name: str
     age: int
     api_key: str = None
 
+
 # --- Unit Tests ---
+
 
 @pytest.mark.unit
 def test_model_validate_yaml_success():
@@ -22,6 +25,7 @@ def test_model_validate_yaml_success():
     assert model.age == 25
     assert model.api_key == "secret_key"
 
+
 @pytest.mark.unit
 def test_model_validate_yaml_invalid_yaml():
     # Introduce a YAML formatting error (bad indentation)
@@ -32,6 +36,7 @@ def test_model_validate_yaml_invalid_yaml():
     """
     with pytest.raises(ValueError, match="Invalid YAML data"):
         DummyModel.model_validate_yaml(invalid_yaml)
+
 
 @pytest.mark.unit
 def test_model_validate_yaml_validation_error():
@@ -44,6 +49,7 @@ def test_model_validate_yaml_validation_error():
     with pytest.raises(ValueError, match="Validation failed"):
         DummyModel.model_validate_yaml(yaml_data)
 
+
 @pytest.mark.unit
 def test_model_dump_yaml_without_exclusions():
     model = DummyModel(name="Alice", age=25, api_key="secret_key")
@@ -52,6 +58,7 @@ def test_model_dump_yaml_without_exclusions():
     assert output_data["name"] == "Alice"
     assert output_data["age"] == 25
     assert output_data["api_key"] == "secret_key"
+
 
 @pytest.mark.unit
 def test_model_dump_yaml_with_field_exclusion():
@@ -62,6 +69,7 @@ def test_model_dump_yaml_with_field_exclusion():
     assert output_data["name"] == "Alice"
     assert output_data["api_key"] == "secret_key"
 
+
 @pytest.mark.unit
 def test_model_dump_yaml_with_api_key_placeholder():
     model = DummyModel(name="Alice", age=25, api_key="secret_key")
@@ -71,6 +79,7 @@ def test_model_dump_yaml_with_api_key_placeholder():
     assert output_data["api_key"] == placeholder
     assert output_data["name"] == "Alice"
     assert output_data["age"] == 25
+
 
 @pytest.mark.unit
 def test_model_dump_yaml_with_nested_data():

@@ -6,11 +6,13 @@ from enum import Enum
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.swarms.ISwarm import ISwarm
 
+
 class SwarmStatus(Enum):
     IDLE = "IDLE"
     WORKING = "WORKING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+
 
 @ComponentBase.register_model()
 class SwarmBase(ISwarm, ComponentBase):

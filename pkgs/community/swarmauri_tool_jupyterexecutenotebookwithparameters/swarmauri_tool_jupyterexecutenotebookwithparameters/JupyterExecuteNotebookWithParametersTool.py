@@ -17,6 +17,7 @@ the path to the executed notebook output. It inherits from ToolBase and integrat
 with the Swarmauri framework.
 """
 
+
 @ComponentBase.register_type(ToolBase, "JupyterExecuteNotebookWithParametersTool")
 class JupyterExecuteNotebookWithParametersTool(ToolBase):
     """

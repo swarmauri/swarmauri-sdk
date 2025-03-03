@@ -3,6 +3,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 @ComponentBase.register_model()
 class MessageBase(IMessage, ComponentBase):
     content: Union[str, List[Dict]]

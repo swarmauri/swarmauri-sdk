@@ -16,11 +16,13 @@ class DummyModel(LoggerMixin):
 
     This model is used to verify that LoggerMixin correctly initializes a logger,
     using either the class-level default or a provided custom logger.
-    
+
     Attributes:
         name (str): An example field.
     """
+
     name: str
+
 
 @pytest.mark.unit
 def test_default_logger_initialization():
@@ -34,9 +36,12 @@ def test_default_logger_initialization():
     # Assert that a logger instance exists.
     assert model.logger is not None, "Logger should be initialized by default."
     # Verify that the logger name is set to the model's class name.
-    assert model.logger.name == "DummyModel", "Logger name should match the model class name."
+    assert model.logger.name == "DummyModel", (
+        "Logger name should match the model class name."
+    )
     # Verify that the logger's level is set to the default log level.
     assert model.logger.level == logging.INFO, "Logger level should be INFO by default."
+
 
 @pytest.mark.unit
 def test_custom_logger_injection():

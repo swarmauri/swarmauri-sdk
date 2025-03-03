@@ -18,6 +18,7 @@ content updates, integrates with other visualization tools, handles malformed HT
 and returns a confirmation of the displayed output.
 """
 
+
 @ComponentBase.register_type(ToolBase, "JupyterDisplayHtmlTool")
 class JupyterDisplayHtmlTool(ToolBase):
     """

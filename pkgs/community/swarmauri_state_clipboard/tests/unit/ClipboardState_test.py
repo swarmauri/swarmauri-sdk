@@ -33,8 +33,10 @@ def clipboard_state():
     def mock_paste() -> str:
         return mock_clipboard_content
 
-    with patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy), \
-         patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste):
+    with (
+        patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
+        patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste),
+    ):
         state = ClipboardState()
         yield state
 
@@ -180,9 +182,10 @@ def test_classmethod_copy_and_paste():
     def mock_paste() -> str:
         return mock_clipboard_content
 
-    with patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy), \
-         patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste):
-
+    with (
+        patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
+        patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste),
+    ):
         test_string = "Hello, classmethod!"
         ClipboardState.clipboard_copy(test_string)
         assert mock_clipboard_content == test_string

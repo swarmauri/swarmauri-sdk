@@ -4430,7 +4430,7 @@ wheels = [
 
 [[package]]
 name = "swarmauri"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "swarmauri" }
 dependencies = [
     { name = "httpx" },
@@ -4475,6 +4475,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4515,11 +4516,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-base"
-version = "0.6.2.dev4"
+version = "0.6.2.dev5"
 source = { editable = "base" }
 dependencies = [
     { name = "numpy" },
@@ -4541,6 +4543,7 @@ dev = [
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
+    { name = "ruff" },
     { name = "toml" },
 ]
 
@@ -4565,12 +4568,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.2.dev4"
+version = "0.6.2.dev7"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
@@ -4584,6 +4588,7 @@ dev = [
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4599,11 +4604,12 @@ dev = [
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
@@ -4622,6 +4628,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4642,11 +4649,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_embedding_doc2vec" }
 dependencies = [
     { name = "gensim" },
@@ -4665,6 +4673,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4685,11 +4694,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4709,6 +4719,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4730,11 +4741,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
@@ -4753,6 +4765,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4773,11 +4786,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
@@ -4796,6 +4810,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4816,11 +4831,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_measurement_mutualinformation" }
 dependencies = [
     { name = "pandas" },
@@ -4839,6 +4855,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4859,11 +4876,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4881,6 +4899,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4900,6 +4919,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -4933,13 +4953,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "ruff" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-ocr-pytesseract"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_ocr_pytesseract" }
 dependencies = [
     { name = "pytesseract" },
@@ -4958,6 +4978,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4978,11 +4999,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -5001,6 +5023,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5021,6 +5044,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5045,6 +5069,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5066,11 +5091,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-entityrecognition"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_entityrecognition" }
 dependencies = [
     { name = "en-core-web-sm" },
@@ -5090,6 +5116,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5111,11 +5138,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
@@ -5134,6 +5162,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5154,6 +5183,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5177,6 +5207,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5197,11 +5228,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },
@@ -5220,6 +5252,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5240,11 +5273,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
@@ -5263,6 +5297,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5283,11 +5318,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-textblob"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_textblob" }
 dependencies = [
     { name = "nltk" },
@@ -5307,6 +5343,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5328,6 +5365,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5361,6 +5399,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5390,11 +5429,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5411,6 +5451,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5429,6 +5470,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5452,6 +5494,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5472,11 +5515,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_dalechallreadability" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5495,6 +5539,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5515,11 +5560,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_downloadpdf" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5537,6 +5583,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5556,11 +5603,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_entityrecognition" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5581,6 +5629,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5603,11 +5652,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },
@@ -5626,6 +5676,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5646,11 +5697,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_gmail" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -5669,6 +5721,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5689,6 +5742,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5712,6 +5766,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5732,6 +5787,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5756,6 +5812,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5776,6 +5833,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5800,6 +5858,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5820,6 +5879,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5843,6 +5903,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5863,6 +5924,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5890,6 +5952,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5913,6 +5976,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5938,6 +6002,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5960,6 +6025,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5983,6 +6049,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6003,11 +6070,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6026,6 +6094,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6046,6 +6115,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6069,6 +6139,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6089,11 +6160,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.0.2.dev3"
+version = "1.0.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6113,6 +6185,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6134,11 +6207,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6157,6 +6231,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6177,11 +6252,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
@@ -6200,6 +6276,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6220,6 +6297,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6243,6 +6321,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6263,11 +6342,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
@@ -6287,6 +6367,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6308,11 +6389,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterreadnotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterreadnotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6331,6 +6413,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6351,6 +6434,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6375,6 +6459,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6395,6 +6480,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6418,6 +6504,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6438,6 +6525,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6462,6 +6550,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6483,11 +6572,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6508,6 +6598,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6530,11 +6621,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterwritenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterwritenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6553,6 +6645,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6573,6 +6666,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -6597,6 +6691,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6618,11 +6713,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_tool_matplotlib" }
 dependencies = [
     { name = "matplotlib" },
@@ -6641,6 +6737,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6661,11 +6758,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_psutil" }
 dependencies = [
     { name = "psutil" },
@@ -6684,6 +6782,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6704,11 +6803,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_qrcodegenerator" }
 dependencies = [
     { name = "qrcode" },
@@ -6727,6 +6827,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6747,11 +6848,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_sentencecomplexity" }
 dependencies = [
     { name = "nltk" },
@@ -6770,6 +6872,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6790,11 +6893,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_sentimentanalysis" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -6815,6 +6919,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6837,11 +6942,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_smogindex" }
 dependencies = [
     { name = "nltk" },
@@ -6861,6 +6967,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6882,11 +6989,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
@@ -6905,6 +7013,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6925,11 +7034,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -6948,6 +7058,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6968,11 +7079,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_zapierhook" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -6990,6 +7102,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7009,11 +7122,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-toolkit-github"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_toolkit_github" }
 dependencies = [
     { name = "pygithub" },
@@ -7032,6 +7146,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7052,6 +7167,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7095,6 +7211,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7135,6 +7252,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7152,6 +7270,7 @@ dev = [
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
+    { name = "ruff" },
     { name = "toml" },
 ]
 
@@ -7167,12 +7286,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
@@ -7192,6 +7312,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7213,11 +7334,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_cloudweaviate" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7237,6 +7359,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7258,11 +7381,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7281,6 +7405,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7301,11 +7426,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_duckdb" }
 dependencies = [
     { name = "duckdb" },
@@ -7325,6 +7451,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7346,6 +7473,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7371,6 +7499,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7393,11 +7522,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_neo4j" }
 dependencies = [
     { name = "neo4j" },
@@ -7417,6 +7547,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7438,6 +7569,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7462,6 +7594,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7483,11 +7616,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
@@ -7507,6 +7641,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7528,6 +7663,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7552,6 +7688,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7573,11 +7710,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },
@@ -7598,6 +7736,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7620,6 +7759,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]

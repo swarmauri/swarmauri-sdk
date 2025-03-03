@@ -3,9 +3,9 @@ from swarmauri_base.ComponentBase import ComponentBase
 import tiktoken
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
-
-MeasurementCalculateMixin,
+    MeasurementCalculateMixin,
 )
+
 
 @ComponentBase.register_type(MeasurementBase, "TokenCountEstimatorMeasurement")
 class TokenCountEstimatorMeasurement(MeasurementBase, MeasurementCalculateMixin):

@@ -1,8 +1,7 @@
-from typing import (
-    Type, TypeVar, Union, Any, Annotated, Tuple
-)
+from typing import Type, TypeVar, Union, Any, Annotated, Tuple
 
 T = TypeVar("T")
+
 
 class IntersectionMetadata:
     def __init__(self, classes: Tuple[Type[T]]):
@@ -11,6 +10,7 @@ class IntersectionMetadata:
     def __repr__(self):
         # Return a more 'developer-focused' string, e.g.:
         return f"IntersectionMetadata(classes={self.classes!r})"
+
 
 # The Intersection metaclass as provided.
 class Intersection(type):

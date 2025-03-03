@@ -9,6 +9,7 @@ from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_standard.documents.Document import Document
 
 
+
 @ComponentBase.register_type(ParserBase, "EntityRecognitionParser")
 class EntityRecognitionParser(ParserBase):
     """

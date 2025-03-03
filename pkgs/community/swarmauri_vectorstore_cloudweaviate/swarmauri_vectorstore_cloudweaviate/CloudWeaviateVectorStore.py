@@ -20,6 +20,7 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 )
 from swarmauri_base.vector_stores.VectorStoreCloudMixin import VectorStoreCloudMixin
 
+
 @ComponentBase.register_type(VectorStoreBase, "CloudWeaviateVectorStore")
 class CloudWeaviateVectorStore(
     VectorStoreSaveLoadMixin,

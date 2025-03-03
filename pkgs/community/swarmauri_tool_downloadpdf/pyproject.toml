@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_downloadpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 description = "Swarmauri Community Download PDF Tool"
 license = "Apache-2.0"
 readme = "README.md"
@@ -55,4 +55,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

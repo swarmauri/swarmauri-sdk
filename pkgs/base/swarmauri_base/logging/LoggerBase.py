@@ -13,10 +13,11 @@ class LoggerBase(ILogger, ObserveBase):
 
     It compiles a logger with a specified name and attaches either user-provided or default handlers.
     """
+
     name: str = __name__
     handlers: List[SubclassUnion[HandlerBase]] = []
     default_level: int = logging.INFO
-    default_format: str = '[%(name)s][%(levelname)s] %(message)s'
+    default_format: str = "[%(name)s][%(levelname)s] %(message)s"
     logger: Optional[Any] = Field(exclude=True, default=None)
 
     def model_post_init(self, *args, **kwargs):

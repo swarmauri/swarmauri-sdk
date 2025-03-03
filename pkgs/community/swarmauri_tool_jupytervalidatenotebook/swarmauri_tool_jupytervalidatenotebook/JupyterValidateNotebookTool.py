@@ -19,6 +19,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 
+
 @ComponentBase.register_type(ToolBase, "JupyterValidateNotebookTool")
 class JupyterValidateNotebookTool(ToolBase):
     """

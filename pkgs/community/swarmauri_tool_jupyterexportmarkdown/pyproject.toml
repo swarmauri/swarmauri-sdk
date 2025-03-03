@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexportmarkdown"
-version = "1.0.2.dev3"
+version = "1.0.2.dev6"
 description = "A Swarmauri tool designed to export Jupyter Notebooks to Markdown."
 license = "Apache-2.0"
 readme = "README.md"
@@ -62,4 +62,5 @@ dev = [
     "nbconvert>=7.16.6",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import logging
 
-class IHandler(ABC):
 
+class IHandler(ABC):
     @abstractmethod
     def compile_handler(self) -> logging.Handler:
         """

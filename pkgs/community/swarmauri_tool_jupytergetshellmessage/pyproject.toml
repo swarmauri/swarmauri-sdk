@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetshellmessage"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 description = "A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses."
 license = "Apache-2.0"
 readme = "README.md"
@@ -64,4 +64,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

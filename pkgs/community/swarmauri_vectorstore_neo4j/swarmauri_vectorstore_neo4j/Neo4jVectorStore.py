@@ -13,6 +13,7 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(VectorStoreBase, "Neo4jVectorStore")
 class Neo4jVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase

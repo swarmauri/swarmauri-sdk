@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_qdrant"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 description = "Swarmauri Persistent Qdrant Vector Store"
 license = "Apache-2.0"
 readme = "README.md"
@@ -63,4 +63,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]
