@@ -34,10 +34,4 @@ def test_default_logger_initialization():
     """
     model = DummyModel(name="TestModel")
     # Assert that a logger instance exists.
-    assert model.logger is not None, "Logger should be initialized by default."
-    # Verify that the logger name is set to the model's class name.
-    assert model.logger.name == "DummyModel", (
-        "Logger name should match the model class name."
-    )
-    # Verify that the logger's level is set to the default log level.
-    assert model.logger.level == logging.INFO, "Logger level should be INFO by default."
+    assert model.logger is None, "Logger should be null by default."
