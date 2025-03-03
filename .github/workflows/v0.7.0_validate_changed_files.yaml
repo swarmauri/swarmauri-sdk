@@ -1,4 +1,4 @@
-name: v0.7.0 - Validate Changed Files
+name: v0.7.0 - Changes (Validate)
 
 on:
   pull_request:
