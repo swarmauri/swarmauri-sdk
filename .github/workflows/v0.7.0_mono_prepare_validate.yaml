@@ -112,10 +112,13 @@ jobs:
         if: always()
         run: |
           cd pkgs
+          mkdir -p ../patches
           MEMBER="${{ matrix.member }}"
-          # If there are any changes in the workspace member, create a patch
+          # Replace "/" with "-" to create a safe filename
+          SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          # If there are any changes in the workspace member, create a patch in the patches directory
           if [ -n "$(git status --porcelain $MEMBER)" ]; then
-            git diff $MEMBER > ../${MEMBER}.patch
+            git diff $MEMBER > ../patches/${SAFE_MEMBER}.patch
           else
             echo "No changes in ${MEMBER} to create a patch."
           fi
@@ -125,7 +128,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: patch-${{ matrix.member }}
-          path: ${{ matrix.member }}.patch
+          path: ../patches/${{ matrix.member }}.patch
 
   commit:
     name: Commit Changes
