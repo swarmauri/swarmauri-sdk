@@ -4691,7 +4691,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
