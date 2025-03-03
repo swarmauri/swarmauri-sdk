@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterclearoutput/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterclearoutput/pyproject.toml
+index 3c84d8b..7213f15 100644
+--- a/pkgs/community/swarmauri_tool_jupyterclearoutput/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterclearoutput/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterclearoutput"
+-version = "0.6.2.dev3"
++version = "0.6.2.dev4"
+ description = "A tool designed to clear all outputs from a Jupyter Notebook using nbconvert’s ClearOutputPreprocessor, preparing the notebook for sharing or version control."
+ license = "Apache-2.0"
+ readme = "README.md"

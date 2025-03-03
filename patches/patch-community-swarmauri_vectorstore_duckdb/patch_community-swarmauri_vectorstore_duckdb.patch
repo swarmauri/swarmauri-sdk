@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_vectorstore_duckdb/pyproject.toml b/pkgs/community/swarmauri_vectorstore_duckdb/pyproject.toml
+index 8b82e23..9881b51 100644
+--- a/pkgs/community/swarmauri_vectorstore_duckdb/pyproject.toml
++++ b/pkgs/community/swarmauri_vectorstore_duckdb/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_vectorstore_duckdb"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "A DuckDB based Vector Store"
+ license = "Apache-2.0"
+ readme = "README.md"

@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_sentencecomplexity/pyproject.toml b/pkgs/community/swarmauri_tool_sentencecomplexity/pyproject.toml
+index c6177bf..bd76ea6 100644
+--- a/pkgs/community/swarmauri_tool_sentencecomplexity/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_sentencecomplexity/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_sentencecomplexity"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "This repository includes an example of a First Class Swarmauri Example."
+ license = "Apache-2.0"
+ readme = "README.md"

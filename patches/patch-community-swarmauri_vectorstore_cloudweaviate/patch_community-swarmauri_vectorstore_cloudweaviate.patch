@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_vectorstore_cloudweaviate/pyproject.toml b/pkgs/community/swarmauri_vectorstore_cloudweaviate/pyproject.toml
+index ee0ca23..7c78a89 100644
+--- a/pkgs/community/swarmauri_vectorstore_cloudweaviate/pyproject.toml
++++ b/pkgs/community/swarmauri_vectorstore_cloudweaviate/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_vectorstore_cloudweaviate"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "Swarmauri Weaviate Vector Store"
+ license = "Apache-2.0"
+ readme = "README.md"

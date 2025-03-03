@@ -1,0 +1,31 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterruncell/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterruncell/pyproject.toml
+index fc8fc90..a778ca0 100644
+--- a/pkgs/community/swarmauri_tool_jupyterruncell/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterruncell/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterruncell"
+-version = "0.6.2.dev3"
++version = "0.6.2.dev4"
+ description = "A tool designed to execute a single code cell in an IPython interactive shell, mimicking notebook cell execution."
+ license = "Apache-2.0"
+ readme = "README.md"
+diff --git a/pkgs/community/swarmauri_tool_jupyterruncell/swarmauri_tool_jupyterruncell/JupyterRunCellTool.py b/pkgs/community/swarmauri_tool_jupyterruncell/swarmauri_tool_jupyterruncell/JupyterRunCellTool.py
+index 7e5d95a..5b5313c 100644
+--- a/pkgs/community/swarmauri_tool_jupyterruncell/swarmauri_tool_jupyterruncell/JupyterRunCellTool.py
++++ b/pkgs/community/swarmauri_tool_jupyterruncell/swarmauri_tool_jupyterruncell/JupyterRunCellTool.py
+@@ -23,12 +23,14 @@ from swarmauri_base.ComponentBase import ComponentBase
+ logger = logging.getLogger(__name__)
+ logger.setLevel(logging.INFO)
+ 
++
+ def _timeout_handler(signum, frame):
+     """
+     Signal handler to raise a TimeoutError when the signal is emitted.
+     """
+     raise TimeoutError("Cell execution timed out.")
+ 
++
+ @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
+ class JupyterRunCellTool(ToolBase):
+     """

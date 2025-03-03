@@ -1,0 +1,24 @@
+diff --git a/pkgs/community/swarmauri_tool_lexicaldensity/pyproject.toml b/pkgs/community/swarmauri_tool_lexicaldensity/pyproject.toml
+index 737a673..265a5f1 100644
+--- a/pkgs/community/swarmauri_tool_lexicaldensity/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_lexicaldensity/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_lexicaldensity"
+-version = "0.6.2.dev3"
++version = "0.6.2.dev4"
+ description = "Lexical Density Tool for Swarmauri."
+ license = "Apache-2.0"
+ readme = "README.md"
+diff --git a/pkgs/community/swarmauri_tool_lexicaldensity/swarmauri_tool_lexicaldensity/LexicalDensityTool.py b/pkgs/community/swarmauri_tool_lexicaldensity/swarmauri_tool_lexicaldensity/LexicalDensityTool.py
+index 1d9db20..0d415de 100644
+--- a/pkgs/community/swarmauri_tool_lexicaldensity/swarmauri_tool_lexicaldensity/LexicalDensityTool.py
++++ b/pkgs/community/swarmauri_tool_lexicaldensity/swarmauri_tool_lexicaldensity/LexicalDensityTool.py
+@@ -10,6 +10,7 @@ from swarmauri_standard.tools.Parameter import Parameter
+ nltk.download("punkt_tab")
+ nltk.download("averaged_perceptron_tagger_eng")
+ 
++
+ @ComponentBase.register_type(ToolBase, "LexicalDensityTool")
+ class LexicalDensityTool(ToolBase):
+     version: str = "0.1.dev2"

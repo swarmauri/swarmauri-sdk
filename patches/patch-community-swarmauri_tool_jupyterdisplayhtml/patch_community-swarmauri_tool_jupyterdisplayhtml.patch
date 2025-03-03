@@ -1,0 +1,24 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterdisplayhtml/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterdisplayhtml/pyproject.toml
+index bfd3d9c..5b65045 100644
+--- a/pkgs/community/swarmauri_tool_jupyterdisplayhtml/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterdisplayhtml/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterdisplayhtml"
+-version = "0.6.2.dev3"
++version = "0.6.2.dev4"
+ description = "A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method."
+ license = "Apache-2.0"
+ readme = "README.md"
+diff --git a/pkgs/community/swarmauri_tool_jupyterdisplayhtml/swarmauri_tool_jupyterdisplayhtml/JupyterDisplayHtmlTool.py b/pkgs/community/swarmauri_tool_jupyterdisplayhtml/swarmauri_tool_jupyterdisplayhtml/JupyterDisplayHtmlTool.py
+index 92fb8bf..b0ba2c3 100644
+--- a/pkgs/community/swarmauri_tool_jupyterdisplayhtml/swarmauri_tool_jupyterdisplayhtml/JupyterDisplayHtmlTool.py
++++ b/pkgs/community/swarmauri_tool_jupyterdisplayhtml/swarmauri_tool_jupyterdisplayhtml/JupyterDisplayHtmlTool.py
+@@ -18,6 +18,7 @@ content updates, integrates with other visualization tools, handles malformed HT
+ and returns a confirmation of the displayed output.
+ """
+ 
++
+ @ComponentBase.register_type(ToolBase, "JupyterDisplayHtmlTool")
+ class JupyterDisplayHtmlTool(ToolBase):
+     """

@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_embedding_mlm/pyproject.toml b/pkgs/community/swarmauri_embedding_mlm/pyproject.toml
+index 369fdf8..7e4e742 100644
+--- a/pkgs/community/swarmauri_embedding_mlm/pyproject.toml
++++ b/pkgs/community/swarmauri_embedding_mlm/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_embedding_mlm"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "example community package"
+ license = "Apache-2.0"
+ readme = "README.md"

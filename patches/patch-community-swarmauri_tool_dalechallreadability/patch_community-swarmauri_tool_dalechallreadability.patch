@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_dalechallreadability/pyproject.toml b/pkgs/community/swarmauri_tool_dalechallreadability/pyproject.toml
+index fb6659f..fbfd848 100644
+--- a/pkgs/community/swarmauri_tool_dalechallreadability/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_dalechallreadability/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_dalechallreadability"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "Swarmauri Community Dale-Chall Readability Tool"
+ license = "Apache-2.0"
+ readme = "README.md"
