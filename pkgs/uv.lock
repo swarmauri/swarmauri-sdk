@@ -7027,7 +7027,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },

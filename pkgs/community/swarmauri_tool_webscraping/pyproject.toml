@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_webscraping"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 description = "Web Scraping Tool for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
