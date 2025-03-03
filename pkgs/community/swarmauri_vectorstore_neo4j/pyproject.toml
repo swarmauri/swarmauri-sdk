@@ -62,4 +62,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "pytest-mock>=3.14.0",
+    "ruff>=0.9.9",
 ]

@@ -101,4 +101,5 @@ dev = [
     "ipython>=8.28.0",
     "requests>=2.32.3",
     "flake8>=7.0",
+    "ruff>=0.9.9",
 ]
