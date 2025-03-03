@@ -5131,7 +5131,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
