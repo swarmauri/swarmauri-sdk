@@ -1,8 +1,11 @@
 name: 0.7.0 - Mono (Prepare, Validate)
 
-
 on:
   workflow_dispatch:
+
+concurrency:
+  group: dev-branch-prepare-workflow
+  cancel-in-progress: false
 
 jobs:
   set-matrix:
