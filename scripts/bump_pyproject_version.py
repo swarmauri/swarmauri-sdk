@@ -1,7 +1,14 @@
+# /// script
+# dependencies = [
+#   "tomlkit>=0.13.2",
+# ]
+# ///
+
 import sys
 import argparse
 from packaging.version import Version, InvalidVersion
 from tomlkit import parse, dumps
+
 
 def read_pyproject_version(file_path):
     """
@@ -18,9 +25,9 @@ def read_pyproject_version(file_path):
         content = f.read()
     doc = parse(content)
     try:
-        version = doc["tool"]["poetry"]["version"]
+        version = doc["project"]["version"]
     except KeyError:
-        raise KeyError("No version found under [tool.poetry] in the given pyproject.toml")
+        raise KeyError("No version found under [\"project\"][version] in the given pyproject.toml")
     return version, doc
 
 def bump_version(current_version, bump_type):
@@ -116,7 +123,7 @@ def update_pyproject_version(file_path, new_version):
         None
     """
     current_version, doc = read_pyproject_version(file_path)
-    doc["tool"]["poetry"]["version"] = new_version
+    doc["project"]["version"] = new_version
     with open(file_path, "w") as f:
         f.write(dumps(doc))
     print(f"Bumped version from {current_version} to {new_version} in {file_path}.")
