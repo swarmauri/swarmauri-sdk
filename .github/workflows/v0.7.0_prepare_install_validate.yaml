@@ -36,7 +36,7 @@ jobs:
       - name: Create venv
         run: |
           cd pkgs
-          uv venv -vvv
+          uv venv gh_venv
 
       # Delay to allow the virtual environment time to fully create
       - name: Wait for venv to be ready
@@ -45,19 +45,19 @@ jobs:
       # 4. Run the install phase
       - name: Run install phase
         run: |
-          source .venv
+          source gh_venv/bin/activate
           cd pkgs
           uv sync --all-extras --all-packages --reinstall --active
 
       - name: Pip freeze
         run: |
-          source .venv
+          source gh_venv/bin/activate
           uv pip freeze
 
       # 5. Run the prepare phase
       - name: Run prepare phase
         run: |
-          source .venv
+          source gh_venv/bin/activate
           cd pkgs
           uv run ruff check . --fix
 
@@ -65,6 +65,6 @@ jobs:
       - name: Run validate phase
         if: always()
         run: |
-          source .venv
+          source gh_venv/bin/activate
           cd pkgs
           uv run pytest -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json -vvv
