@@ -23,6 +23,7 @@ class EntityRecognitionParser(ParserBase):
 
         try:
             self._nlp = spacy.load("en_core_web_sm")
+            self._nlp.initialize()
         except OSError:
             # First fallback: Try using blank English model
             print(
@@ -37,13 +38,13 @@ class EntityRecognitionParser(ParserBase):
                 )
                 self._nlp = spacy.load("en_core_web_sm")
             except Exception:
-                # Final fallback: Use a blank model with minimal NER
-                print(
-                    "Warning: Using blank English model with minimal NER capabilities."
-                )
+                # Final fallback: Use a blank model with minimal NER capabilities.
+                print("Warning: Using blank English model with minimal NER capabilities.")
                 self._nlp = spacy.blank("en")
                 # Add a basic entity recognizer
-                self._nlp.add_pipe("ner")
+                ner = self._nlp.add_pipe("ner")
+                # Initialize the pipeline
+                self._nlp.initialize()
 
     def parse(self, text: Union[str, Any]) -> List[Document]:
         """
