@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_redis"
-version = "0.6.2.dev8"
+version = "0.6.2.dev9"
 description = "Swarmauri Redis Vector Store"
 license = "Apache-2.0"
 readme = "README.md"
