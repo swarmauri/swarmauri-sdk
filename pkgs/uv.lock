@@ -6063,7 +6063,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6153,7 +6153,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.0.2.dev3"
+version = "1.0.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6200,7 +6200,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6245,7 +6245,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
