@@ -34,10 +34,10 @@ jobs:
           pip install poetry
           pip install soliloquy=="0.1.4"
 
-      - name: Create and Activate Virtual Environment
-        run: |
-          python -m venv $UNIQUE_VENV_PATH
-          source $UNIQUE_VENV_PATH/bin/activate
+      # - name: Create and Activate Virtual Environment
+      #   run: |
+      #     python -m venv $UNIQUE_VENV_PATH
+      #     source $UNIQUE_VENV_PATH/bin/activate
 
       # 4. Run the install phase
       - name: Run install phase
@@ -56,7 +56,7 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          uv run ruff check . --fix
+          uv run --active ruff check . --fix
 
       # 6. Run the validate phase
       - name: Run validate phase
@@ -64,4 +64,4 @@ jobs:
         run: |
           source $UNIQUE_VENV_PATH/bin/activate
           cd pkgs
-          uv run pytest -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json -vvv
+          uv run --active pytest -n 4 --dist=loadfile --tb=short --json-report --json-report-file=pytest_results.json -vvv
