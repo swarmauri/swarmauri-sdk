@@ -153,16 +153,15 @@ jobs:
           # This will download all artifacts that start with "patch
           path: patches
 
+      - name: List downloaded artifacts
+        run: ls -R patches
+
       - name: Apply patches
         run: |
-          set -e
-          for patch in patches/*.patch; do
-            if [ -f "$patch" ]; then
-              echo "Applying patch $patch"
-              git apply -p0 "$patch"
-            fi
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch"
           done
-          rm -rf patches
 
       - name: Git Commit and Push
         run: |
