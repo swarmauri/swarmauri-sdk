@@ -19,6 +19,7 @@ from swarmauri_base.vector_stores.VectorStorePersistentMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(VectorStoreBase, "PersistentChromaDBVectorStore")
 class PersistentChromaDBVectorStore(
     VectorStoreSaveLoadMixin,

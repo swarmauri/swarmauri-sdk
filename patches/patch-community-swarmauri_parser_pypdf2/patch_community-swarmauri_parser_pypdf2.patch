@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_parser_pypdf2/pyproject.toml b/pkgs/community/swarmauri_parser_pypdf2/pyproject.toml
+index 97bf369..c020186 100644
+--- a/pkgs/community/swarmauri_parser_pypdf2/pyproject.toml
++++ b/pkgs/community/swarmauri_parser_pypdf2/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_parser_pypdf2"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "PyPDF2 Parser for Swarmauri."
+ license = "Apache-2.0"
+ readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_annoy"
-version = "0.6.2.dev4"
+version = "0.6.2.dev5"
 description = "Swarmauri Annoy Vector Store"
 license = "Apache-2.0"
 readme = "README.md"

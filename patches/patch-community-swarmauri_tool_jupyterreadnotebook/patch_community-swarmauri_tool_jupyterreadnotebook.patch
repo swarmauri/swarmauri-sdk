@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterreadnotebook/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterreadnotebook/pyproject.toml
+index 2242c78..20d5512 100644
+--- a/pkgs/community/swarmauri_tool_jupyterreadnotebook/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterreadnotebook/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterreadnotebook"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "A tool that reads a Jupyter Notebook file using nbformat, converting the JSON file into a NotebookNode object."
+ license = "Apache-2.0"
+ readme = "README.md"

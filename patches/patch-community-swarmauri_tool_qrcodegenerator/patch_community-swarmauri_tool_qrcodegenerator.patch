@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_qrcodegenerator/pyproject.toml b/pkgs/community/swarmauri_tool_qrcodegenerator/pyproject.toml
+index 64e16d8..b37b8a5 100644
+--- a/pkgs/community/swarmauri_tool_qrcodegenerator/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_qrcodegenerator/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_qrcodegenerator"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "Swarmauri QR Code Generator Tool."
+ license = "Apache-2.0"
+ readme = "README.md"

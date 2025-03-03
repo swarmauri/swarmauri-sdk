@@ -1,0 +1,24 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterexportlatex/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterexportlatex/pyproject.toml
+index 2cb75fe..61de8a7 100644
+--- a/pkgs/community/swarmauri_tool_jupyterexportlatex/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterexportlatex/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterexportlatex"
+-version = "0.6.2.dev3"
++version = "0.6.2.dev4"
+ description = "A tool that exports a Jupyter Notebook to LaTeX format using nbconvert’s LatexExporter, enabling further conversion to PDF."
+ license = "Apache-2.0"
+ readme = "README.md"
+diff --git a/pkgs/community/swarmauri_tool_jupyterexportlatex/swarmauri_tool_jupyterexportlatex/JupyterExportLatexTool.py b/pkgs/community/swarmauri_tool_jupyterexportlatex/swarmauri_tool_jupyterexportlatex/JupyterExportLatexTool.py
+index 931b539..bf97514 100644
+--- a/pkgs/community/swarmauri_tool_jupyterexportlatex/swarmauri_tool_jupyterexportlatex/JupyterExportLatexTool.py
++++ b/pkgs/community/swarmauri_tool_jupyterexportlatex/swarmauri_tool_jupyterexportlatex/JupyterExportLatexTool.py
+@@ -20,6 +20,7 @@ from swarmauri_standard.tools.Parameter import Parameter
+ from swarmauri_base.tools.ToolBase import ToolBase
+ from swarmauri_base.ComponentBase import ComponentBase
+ 
++
+ @ComponentBase.register_type(ToolBase, "JupyterExportLatexTool")
+ class JupyterExportLatexTool(ToolBase):
+     """

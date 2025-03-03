@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_ocr_pytesseract/pyproject.toml b/pkgs/community/swarmauri_ocr_pytesseract/pyproject.toml
+index f58b3d6..5f62986 100644
+--- a/pkgs/community/swarmauri_ocr_pytesseract/pyproject.toml
++++ b/pkgs/community/swarmauri_ocr_pytesseract/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_ocr_pytesseract"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "Swarmauri Tesseract Image to Text Model"
+ license = "Apache-2.0"
+ readme = "README.md"

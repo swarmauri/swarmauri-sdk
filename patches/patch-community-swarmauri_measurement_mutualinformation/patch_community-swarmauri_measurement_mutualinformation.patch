@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_measurement_mutualinformation/pyproject.toml b/pkgs/community/swarmauri_measurement_mutualinformation/pyproject.toml
+index bf00f0d..f122b8b 100644
+--- a/pkgs/community/swarmauri_measurement_mutualinformation/pyproject.toml
++++ b/pkgs/community/swarmauri_measurement_mutualinformation/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_measurement_mutualinformation"
+-version = "0.6.2.dev4"
++version = "0.6.2.dev5"
+ description = "Swarmauri Mutual Information Measurement Community Package."
+ license = "Apache-2.0"
+ readme = "README.md"

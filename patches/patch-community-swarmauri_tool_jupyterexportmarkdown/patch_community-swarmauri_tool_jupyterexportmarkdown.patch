@@ -1,0 +1,12 @@
+diff --git a/pkgs/community/swarmauri_tool_jupyterexportmarkdown/pyproject.toml b/pkgs/community/swarmauri_tool_jupyterexportmarkdown/pyproject.toml
+index 2a9f2d6..dbbde54 100644
+--- a/pkgs/community/swarmauri_tool_jupyterexportmarkdown/pyproject.toml
++++ b/pkgs/community/swarmauri_tool_jupyterexportmarkdown/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "swarmauri_tool_jupyterexportmarkdown"
+-version = "1.0.2.dev4"
++version = "1.0.2.dev5"
+ description = "A Swarmauri tool designed to export Jupyter Notebooks to Markdown."
+ license = "Apache-2.0"
+ readme = "README.md"
