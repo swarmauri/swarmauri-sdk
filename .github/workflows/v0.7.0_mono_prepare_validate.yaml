@@ -87,9 +87,21 @@ jobs:
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
-      - name: Github Commit and Push Placeholder
+      - name: Github Commit and Push
         run: |
           cd pkgs
+          # Configure Git with a bot identity
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Stage all changes
+          git add .
+          # Only commit if there are changes
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git push origin HEAD:${{ github.ref }}
+          else
+            echo "No changes to commit."
+          fi
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
