@@ -53,9 +53,9 @@ from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
     JupyterValidateNotebookTool,
 )
 from swarmauri_tool_jupyterwritenotebook.JupyterWriteNotebookTool import (
-
-JupyterWriteNotebookTool,
+    JupyterWriteNotebookTool,
 )
+
 
 @ComponentBase.register_type(ToolkitBase, "JupyterToolkit")
 class JupyterToolkit(ToolkitBase):

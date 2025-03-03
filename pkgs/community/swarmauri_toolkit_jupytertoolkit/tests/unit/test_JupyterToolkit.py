@@ -1,10 +1,12 @@
 import pytest
 from swarmauri_toolkit_jupytertoolkit.JupyterToolkit import JupyterToolkit
 
+
 @pytest.mark.unit
 def test_class_type():
     """Test the type of JupyterToolkit"""
     assert JupyterToolkit._type == "JupyterToolkit"
+
 
 @pytest.mark.unit
 def test_instance_type():
@@ -39,7 +41,7 @@ def test_model_dump_json():
     """Test the model_dump_json method of JupyterToolkit"""
     jupyter_toolkit = JupyterToolkit()
     json_data = jupyter_toolkit.model_dump_json()
-    assert isinstance(json_data, dict)
+    assert isinstance(json_data, str)
 
 
 @pytest.mark.unit
