@@ -4873,7 +4873,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
