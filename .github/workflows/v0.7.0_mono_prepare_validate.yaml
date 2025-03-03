@@ -122,7 +122,7 @@ jobs:
 
       - name: Upload patch artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: patch-${{ matrix.member }}
           path: ${{ matrix.member }}.patch
@@ -144,7 +144,7 @@ jobs:
           python-version: '3.x'
 
       - name: Download patch artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           # This will download all artifacts that start with "patch-"
           name: patch
