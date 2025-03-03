@@ -7374,7 +7374,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
