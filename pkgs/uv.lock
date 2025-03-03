@@ -7280,7 +7280,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
