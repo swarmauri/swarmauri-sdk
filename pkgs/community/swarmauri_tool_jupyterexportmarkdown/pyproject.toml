@@ -62,4 +62,5 @@ dev = [
     "nbconvert>=7.16.6",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]
