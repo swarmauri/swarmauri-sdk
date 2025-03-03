@@ -166,12 +166,12 @@ jobs:
               git apply --directory=pkgs "$patch" || true
             fi
           done
+          rm -rf patches
 
       - name: Git Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          rm -rf patches
           git add .
           if ! git diff-index --quiet HEAD; then
             git commit -m "chore: apply automatic formatting and lint fixes"
