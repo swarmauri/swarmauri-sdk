@@ -6335,7 +6335,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
