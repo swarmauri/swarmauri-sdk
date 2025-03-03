@@ -6,7 +6,7 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.conversations.SessionCacheConversation import (
     SessionCacheConversation,
 )
-from swarmauri_core.ComponentBase import ResourceTypes
+from swarmauri_base.ComponentBase import ResourceTypes
 
 
 @pytest.mark.unit
