@@ -1,4 +1,3 @@
-import logging
 from typing import Any, List, Literal, Union
 
 import spacy
@@ -7,7 +6,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.parsers.ParserBase import ParserBase
 
 from swarmauri_standard.documents.Document import Document
-
 
 
 @ComponentBase.register_type(ParserBase, "EntityRecognitionParser")
