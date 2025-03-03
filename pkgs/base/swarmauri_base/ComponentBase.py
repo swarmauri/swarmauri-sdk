@@ -9,7 +9,6 @@ from typing import (
     Optional,
     TypeVar,
 )
-from uuid import uuid4
 
 from pydantic import Field, ConfigDict
 
@@ -76,17 +75,16 @@ class ResourceTypes(Enum):
 # ComponentBase
 ###########################################
 
-def generate_id() -> str:
-    return str(uuid4())
 
 from swarmauri_base.YamlMixin import YamlMixin
 from swarmauri_base.LoggerMixin import LoggerMixin
+from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.DynamicBase import DynamicBase
-
 @DynamicBase.register_type()
 class ComponentBase(
         LoggerMixin, 
         YamlMixin, 
+        ServiceMixin,
         DynamicBase
     ):
     """
@@ -97,10 +95,6 @@ class ComponentBase(
     # Instance-attribute type (to support deserialization)
     type: Literal["ComponentBase"] = "ComponentBase"
     name: Optional[str] = None
-    id: str = Field(default_factory=generate_id)
-    members: List[str] = Field(default_factory=list)
-    owner: Optional[str] = None
-    host: Optional[str] = None
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
 

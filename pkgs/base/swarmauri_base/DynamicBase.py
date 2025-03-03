@@ -9,6 +9,7 @@ based on the unified registry.
 All classes and methods in this module use Spacy-style docstrings.
 """
 
+import functools
 from threading import Lock
 from typing import (
     Annotated,
@@ -28,22 +29,12 @@ from typing import (
 )
 from pydantic import BaseModel, Field, ConfigDict
 
-###########################################
-# Logging
-###########################################
 from swarmauri_base.glogging import glogger
-
-###########################################
-# Typing
-###########################################
-T = TypeVar("T", bound="DynamicBase")
-
-###########################################
-# DynamicBase
-###########################################
-import functools
 from swarmauri_typing import UnionFactory
 from swarmauri_typing import UnionFactoryMetadata
+
+
+T = TypeVar("T", bound="DynamicBase")
 
 class DynamicBase(BaseModel):
     """

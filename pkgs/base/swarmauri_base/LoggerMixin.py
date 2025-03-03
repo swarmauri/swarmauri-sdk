@@ -8,7 +8,7 @@ from swarmauri_base.DynamicBase import DynamicBase
 @DynamicBase.register_model()
 class LoggerMixin(BaseModel):
     # Class-level default logger is now a FullUnion[LoggerBase] instance.
-    default_logger: ClassVar[Optional[FullUnion[LoggerBase]]] = LoggerBase()
+    default_logger: ClassVar[Optional[FullUnion[LoggerBase]]] = None
 
     # Instance-level logger: expected to be a FullUnion[LoggerBase].
     logger: Optional[FullUnion[LoggerBase]] = None
