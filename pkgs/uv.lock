@@ -4601,7 +4601,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
