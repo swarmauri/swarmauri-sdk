@@ -88,7 +88,6 @@ jobs:
 
           uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
 
-
       - name: Ruff format
         run: |
           cd pkgs
@@ -110,7 +109,6 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
-
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -171,6 +169,77 @@ jobs:
           # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
+      ## --- Release Steps: Auto-tag, generate release notes, zip artifacts, create release ---
+      - name: Prepare release variables
+        id: prepare_release
+        run: |
+          cd pkgs/${{ matrix.member }}
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['name'])")
+          VERSION=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['version'])")
+          TAG="${PACKAGE_NAME}==${VERSION}"
+          # If bump_type is 'finalize' OR the version does not contain ".dev", create a normal release.
+          if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
+            PRERELEASE_FLAG=false
+          else
+            PRERELEASE_FLAG=true
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE_FLAG" >> $GITHUB_OUTPUT
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Computed tag: $TAG, prerelease: $PRERELEASE_FLAG"
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        run: |
+          cd pkgs/${{ matrix.member }}
+          CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
+          # Find the most recent tag for this package excluding the current tag
+          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
+          echo "Previous tag: $PREVIOUS_TAG"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RELEASE_NOTES=$(git log "$PREVIOUS_TAG".."$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+          else
+            RELEASE_NOTES="Initial release."
+          fi
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag
+        run: |
+          cd pkgs/${{ matrix.member }}
+          git tag "${{ steps.prepare_release.outputs.tag }}"
+          git push origin "${{ steps.prepare_release.outputs.tag }}"
+
+      - name: Zip distribution artifacts
+        run: |
+          cd pkgs/${{ matrix.member }}
+          mkdir -p release_artifacts
+          ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
+          echo "Artifacts zipped to: $ZIP_PATH"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.prepare_release.outputs.tag }}
+          release_name: ${{ steps.prepare_release.outputs.tag }}
+          body: ${{ steps.generate_release_notes.outputs.release_notes }}
+          prerelease: ${{ steps.prepare_release.outputs.prerelease }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          asset_name: ${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          asset_content_type: application/zip
 
   commit:
     name: Commit Changes
@@ -191,7 +260,6 @@ jobs:
       - name: Download patch artifacts
         uses: actions/download-artifact@v4
         with:
-          # This will download all artifacts that start with "patch
           path: patches
 
       - name: List downloaded artifacts
