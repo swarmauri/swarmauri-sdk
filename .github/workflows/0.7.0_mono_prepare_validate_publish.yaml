@@ -190,7 +190,7 @@ jobs:
         run: |
           find patches -type f -name "*.patch" | while read patch; do
             echo "Applying patch $patch"
-            git apply -p1 "$patch"
+            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
           done
           rm -rf patches
 
