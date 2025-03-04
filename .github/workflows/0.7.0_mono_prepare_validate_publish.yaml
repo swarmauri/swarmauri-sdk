@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       bump_type:
-        description: "Bump type (patch or finalize) for the prepare phase"
+        description: "Bump type {major,minor,patch,finalize}"
         required: false
         default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
 concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
@@ -68,15 +71,23 @@ jobs:
       - name: Install dependencies for testing
         run: pip install uv pytest toml
 
-      - name: Bump Version Placeholder
-        run: |
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
+    - name: Bump Version Placeholder
+      run: |
+        MEMBER="${{ matrix.member }}"
+        echo "Running tests for workspace member: $MEMBER"
+        # Read the package name from the member's pyproject.toml
+        PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+        echo "Package name: $PACKAGE_NAME"
+        
+        # Determine whether to use bump or set based on inputs
+        if [ -n "${{ github.event.inputs.set_version }}" ]; then
+          VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
+        else
+          VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
+        fi
 
-          uv run --active scripts/bump_pyproject_version.py --bump "${{ github.event.inputs.bump_type }}" ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml  
+        uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+
 
       - name: Ruff format
         run: |
