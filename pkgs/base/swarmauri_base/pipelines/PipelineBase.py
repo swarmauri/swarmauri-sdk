@@ -3,6 +3,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
 
+
 @ComponentBase.register_model()
 class PipelineBase(IPipeline, ComponentBase):
     """

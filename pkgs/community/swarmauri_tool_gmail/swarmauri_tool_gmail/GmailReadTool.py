@@ -6,6 +6,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict, Optional
 from pydantic import Field
 
+
 @ComponentBase.register_type(ToolBase, "GmailReadTool")
 class GmailReadTool(ToolBase):
     SCOPES: List[str] = ["https://www.googleapis.com/auth/gmail.readonly"]

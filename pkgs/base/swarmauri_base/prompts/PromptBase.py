@@ -3,6 +3,7 @@ from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.prompts.IPrompt import IPrompt
 
+
 @ComponentBase.register_model()
 class PromptBase(IPrompt, ComponentBase):
     """

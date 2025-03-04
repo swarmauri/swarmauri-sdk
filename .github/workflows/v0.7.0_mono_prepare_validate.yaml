@@ -51,7 +51,6 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
-      max-parallel: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -66,7 +65,13 @@ jobs:
 
       - name: Bump Version Placeholder
         run: |
-          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          # Read the package name from the member's pyproject.toml
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+
+          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
           
       - name: Ruff format
         run: |
@@ -90,21 +95,6 @@ jobs:
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
-      - name: Github Commit and Push
-        run: |
-          cd pkgs
-          # Configure Git with a bot identity
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Stage all changes
-          git add .
-          # Only commit if there are changes
-          if ! git diff-index --quiet HEAD; then
-            git commit -m "chore: apply automatic formatting and lint fixes"
-            git push origin HEAD:${{ github.ref }}
-          else
-            echo "No changes to commit."
-          fi
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -116,3 +106,73 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+
+      - name: Create patch for changes
+        if: always()
+        run: |
+          mkdir -p patches
+          MEMBER="${{ matrix.member }}"
+          SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          # Generate a patch relative to the repository root for the member directory
+          git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+      - name: Set safe member variable
+        id: set_safe_member
+        run: |
+          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Upload patch artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-${{ steps.set_safe_member.outputs.SAFE_MEMBER }}
+          path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
+          if-no-files-found: warn
+
+
+
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # This will download all artifacts that start with "patch
+          path: patches
+
+      - name: List downloaded artifacts
+        run: ls -R patches
+
+      - name: Apply patches
+        run: |
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch"
+          done
+          rm -rf patches
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}"
+          else
+            echo "No changes to commit."
+          fi

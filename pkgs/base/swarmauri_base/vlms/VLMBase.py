@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, model_validator
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vlms.IPredictVision import IPredictVision
 
+
 @ComponentBase.register_model()
 class VLMBase(IPredictVision, ComponentBase):
     allowed_models: List[str] = []

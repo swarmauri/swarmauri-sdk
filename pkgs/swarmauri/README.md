@@ -1,4 +1,3 @@
-
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
@@ -17,6 +16,7 @@
 ---
 
 # Swarmauri
+
 # Swarmauri SDK
 
 The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework. 

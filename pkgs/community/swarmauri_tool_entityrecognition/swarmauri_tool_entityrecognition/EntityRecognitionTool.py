@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 hf_logging.set_verbosity_error()
 
+
 @ComponentBase.register_type(ToolBase, "EntityRecognitionTool")
 class EntityRecognitionTool(ToolBase):
     """

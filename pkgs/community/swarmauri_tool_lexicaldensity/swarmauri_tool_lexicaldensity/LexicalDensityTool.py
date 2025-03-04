@@ -10,6 +10,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 nltk.download("punkt_tab")
 nltk.download("averaged_perceptron_tagger_eng")
 
+
 @ComponentBase.register_type(ToolBase, "LexicalDensityTool")
 class LexicalDensityTool(ToolBase):
     version: str = "0.1.dev2"

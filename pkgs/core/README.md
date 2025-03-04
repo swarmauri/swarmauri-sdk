@@ -2,6 +2,7 @@
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
+
     <a href="https://pypi.org/project/swarmauri-core/">
         <img src="https://img.shields.io/pypi/dm/swarmauri-core" alt="PyPI - Downloads"/></a>
     <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/core/README.md">
@@ -12,6 +13,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri-core" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri-core/">
         <img src="https://img.shields.io/pypi/v/swarmauri-core?label=swarmauri-core&color=green" alt="PyPI - swarmauri-core"/></a>
+
 </p>
 
 ---

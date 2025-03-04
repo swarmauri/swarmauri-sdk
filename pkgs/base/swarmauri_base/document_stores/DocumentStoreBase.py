@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.documents.IDocument import IDocument
 
+
 @ComponentBase.register_model()
 class DocumentStoreBase(IDocumentStore, ComponentBase):
     """

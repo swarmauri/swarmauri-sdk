@@ -9,6 +9,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Dict, Literal
 from pydantic import Field
 
+
 @ComponentBase.register_type(ToolBase, "GmailSendTool")
 class GmailSendTool(ToolBase):
     SCOPES: List[str] = ["https://www.googleapis.com/auth/gmail.send"]

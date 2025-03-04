@@ -9,6 +9,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # Download required NLTK data once during module load
 nltk.download("punkt_tab", quiet=True)
 
+
 @ComponentBase.register_type(ToolBase, "TextLengthTool")
 class TextLengthTool(ToolBase):
     version: str = "0.1.dev1"

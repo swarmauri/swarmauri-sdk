@@ -23,11 +23,13 @@ from swarmauri_base.ComponentBase import ComponentBase
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 def _timeout_handler(signum, frame):
     """
     Signal handler to raise a TimeoutError when the signal is emitted.
     """
     raise TimeoutError("Cell execution timed out.")
+
 
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
 class JupyterRunCellTool(ToolBase):

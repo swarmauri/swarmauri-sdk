@@ -9,6 +9,7 @@ from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(TaskMgmtStrategyBase, "RoundRobinStrategy")
 class RoundRobinStrategy(TaskMgmtStrategyBase):
     """Round-robin task assignment strategy."""

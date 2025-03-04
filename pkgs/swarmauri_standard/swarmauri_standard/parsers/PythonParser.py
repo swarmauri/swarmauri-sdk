@@ -5,6 +5,7 @@ from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ParserBase, "PythonParser")
 class PythonParser(ParserBase):
     """

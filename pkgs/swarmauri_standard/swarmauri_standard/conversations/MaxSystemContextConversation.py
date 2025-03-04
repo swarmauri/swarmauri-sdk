@@ -12,6 +12,7 @@ from swarmauri_core.conversations.IMaxSize import IMaxSize
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ConversationBase, "MaxSystemContextConversation")
 class MaxSystemContextConversation(
     IMaxSize, ConversationSystemContextMixin, ConversationBase

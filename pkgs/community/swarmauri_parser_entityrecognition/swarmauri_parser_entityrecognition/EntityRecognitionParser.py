@@ -1,9 +1,12 @@
+from typing import Any, List, Literal, Union
+
 import spacy
-from typing import List, Union, Any, Literal
 from pydantic import PrivateAttr
-from swarmauri_standard.documents.Document import Document
-from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.parsers.ParserBase import ParserBase
+
+from swarmauri_standard.documents.Document import Document
+
 
 @ComponentBase.register_type(ParserBase, "EntityRecognitionParser")
 class EntityRecognitionParser(ParserBase):
@@ -17,8 +20,33 @@ class EntityRecognitionParser(ParserBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Load a SpaCy model. The small model is used for demonstration; larger models provide improved accuracy.
-        self._nlp = spacy.load("en_core_web_sm")
+
+        try:
+            self._nlp = spacy.load("en_core_web_sm")
+            self._nlp.initialize()
+        except OSError:
+            # First fallback: Try using blank English model
+            print(
+                "Warning: Could not load en_core_web_sm model. Using fallback options."
+            )
+            try:
+                # Install the model if not found
+                import subprocess
+
+                subprocess.check_call(
+                    ["python", "-m", "spacy", "download", "en_core_web_sm"]
+                )
+                self._nlp = spacy.load("en_core_web_sm")
+            except Exception:
+                # Final fallback: Use a blank model with minimal NER capabilities.
+                print(
+                    "Warning: Using blank English model with minimal NER capabilities."
+                )
+                self._nlp = spacy.blank("en")
+                # Add a basic entity recognizer
+                self._nlp.add_pipe("ner")
+                # Initialize the pipeline
+                self._nlp.initialize()
 
     def parse(self, text: Union[str, Any]) -> List[Document]:
         """
@@ -39,10 +67,16 @@ class EntityRecognitionParser(ParserBase):
 
         # Compile identified entities into documents
         entities_docs = []
-        for ent in doc.ents:
+        for i, ent in enumerate(doc.ents):
             # Create a document for each entity with metadata carrying entity type
+            # Remove doc_id from the constructor parameters
             entity_doc = Document(
-                doc_id=ent.text, content=ent.text, metadata={"entity_type": ent.label_}
+                content=ent.text,
+                metadata={
+                    "entity_type": ent.label_,
+                    "entity_id": str(i),  # Add an identifier in metadata if needed
+                    "text": ent.text,  # Store the entity text in metadata too
+                },
             )
             entities_docs.append(entity_doc)
 

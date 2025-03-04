@@ -386,34 +386,28 @@ css = [
 
 [[package]]
 name = "blis"
-version = "1.2.0"
+version = "0.7.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e5/69/d4829c5b5cd244e6140a0754a0f73cc725c6e138f609b4c5d1982e699906/blis-1.2.0.tar.gz", hash = "sha256:f25f99d7f3cad72c86a7499212ee833fb5062d80ad1763a935e0e498bc147c69", size = 2375955 }
+sdist = { url = "https://files.pythonhosted.org/packages/51/8c/60c85350f2e1c9647df580083a0f6acc686ef32d1a91f4ab0c624b3ff867/blis-0.7.11.tar.gz", hash = "sha256:cec6d48f75f7ac328ae1b6fbb372dde8c8a57c89559172277f66e01ff08d4d42", size = 2897107 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/ff/c55d9d42a622b95fca27f82d4674cd19ad86941dc893f0898ebcccdab105/blis-1.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:76998702acbb782e9bb298a5c446aaa1ed4652dbade853baa6a7a26f7b98105b", size = 6973751 },
-    { url = "https://files.pythonhosted.org/packages/fd/bc/5993eb63fc8a2784fb3a82320bd65df958d7250047f77f467508da896296/blis-1.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1c290c1ba6cb5b633abe59b2fb9ae2ea5dcd7508202f65658fe816bb7e129485", size = 1280762 },
-    { url = "https://files.pythonhosted.org/packages/ff/65/3dae66f7aec4fe92726f33180cb8780d6a9bc49de25b3ee413275ff1aaf3/blis-1.2.0-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:cd81489e4b1a4a6bc51f5578795bc9150a2e8b9babead1074ca51398aff51852", size = 3186927 },
-    { url = "https://files.pythonhosted.org/packages/4c/96/a420114cb430a790a038ca5a67171b5b124b2b1b0463be2e93bfa8c3378d/blis-1.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4896cc4c10c9856c9faaf89401dcb87894da06a18b4b986064acd737a6ed3e60", size = 11526130 },
-    { url = "https://files.pythonhosted.org/packages/a1/a3/a626f0e90683667a83cb735fe9638e4ffd0004a188287868a79771fb257f/blis-1.2.0-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:60a29dcb1bba49cae70088d480b95042d4fbbe6b380f2f7c9e70b2781dc126dd", size = 4225925 },
-    { url = "https://files.pythonhosted.org/packages/c9/70/655b6017396074b1c05010d9127c18eb5f404b22e2b819f1e6da50f202fe/blis-1.2.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:fc1de26073302a3713e487ea85d1ecd0bce204f6b102da498c3cd08528a1d69e", size = 14694282 },
-    { url = "https://files.pythonhosted.org/packages/af/e0/4ac06562b5dce221fbe20a1f0acd47f67454c377d00b1de0dd44de67116d/blis-1.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:cc2aa5ce96f33162779e88add93b5051437f9c2701d24ee0d2dd89da9a9c23b1", size = 6247380 },
-    { url = "https://files.pythonhosted.org/packages/3c/3f/62bc963d7cad6d5d4038ca0fed236559abd67c1afca33a2d5644412470f7/blis-1.2.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:debafb46ad8b5e2d18932770639aa1d22b61580a07ec718e9efcf50c76e180d6", size = 6976662 },
-    { url = "https://files.pythonhosted.org/packages/70/4e/4d030d66d3de8dbe12217b4bb0fc67264df9befea07f6c164d33a23b0b09/blis-1.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:eb27e94b9dbd9c23595b95155607a57ad814bebd3cc1bf8551bee4af60e1b5d7", size = 1281766 },
-    { url = "https://files.pythonhosted.org/packages/c8/32/9994aa6a2cc00f97a71cb6079364c3108da35e19203affcd9c541309728a/blis-1.2.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f8ed98669144fb8ee30052f7259d0cb78b7b3755d9589d98cbb7986d22473ab7", size = 3304018 },
-    { url = "https://files.pythonhosted.org/packages/73/e7/95ae571ccfe5c43fb65fce5921e8a6213c4443a2e18a9ca5b6bad2fc8aab/blis-1.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:08f62b6f114370d8449b4836ebd157980a5718a5c39266af9cdff67a9602a421", size = 11659934 },
-    { url = "https://files.pythonhosted.org/packages/21/09/e99e3575eb3609db01948a4bbc3abce03e47be53c18338aa7a657bc92f1b/blis-1.2.0-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:cc5c25fb12fd134812ea47e3fcbbd64d46d0717d307c5c2fb32a45ac8daf3226", size = 4360532 },
-    { url = "https://files.pythonhosted.org/packages/fc/94/2575e8e7716f25265ea17a7272c4dc5b0d32b4d2c52aafbf5425cfbf998c/blis-1.2.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:78a6498c748a42494a2cf58be489616a42ba0b925bc92ab23c3721dc779a4739", size = 14827891 },
-    { url = "https://files.pythonhosted.org/packages/c4/d9/b647ef53c33c82c1fa2ed217c5793de551a38fb1e5b2430f59c3ecba4c86/blis-1.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:5ad68bc972f210a0227d9742bf6325600bb95c8188f97850634f6d97c3a08107", size = 6230482 },
-    { url = "https://files.pythonhosted.org/packages/fb/98/79df1711d96b38a3cf72b2abad412191fe2ada986b6203a1237dcd7aac9a/blis-1.2.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:99df869b8998303cf78e9f408f0350b0c5cd12d733caa8df99682f046b83ea35", size = 6989668 },
-    { url = "https://files.pythonhosted.org/packages/1e/bb/3f84de3303873783f6c2dee121d0a36fae641332db73b046cc93cb7b717e/blis-1.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4001df564c43c8f2260b13c4f06327dee23831b178f65884c22b879062ebca14", size = 1282523 },
-    { url = "https://files.pythonhosted.org/packages/91/4d/d0a599555fd97d3229d3c3fd8c7e5b531ca5863421370e99b46d70bce883/blis-1.2.0-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6af5dec35acfc044e29b89bb9202e74edc747344f5a46fc27e8a8998f8229610", size = 3260765 },
-    { url = "https://files.pythonhosted.org/packages/4d/59/b7571c5fa57b2198b5240f8cd790daf5749491cc17706e3a4b1528a75185/blis-1.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:986f125ad0215e975a0895505728644dff2669a739f6c2faf89436e3fcae21ac", size = 11616436 },
-    { url = "https://files.pythonhosted.org/packages/fe/50/9c1311aa73d9812e3c78ebeec7c4fb0b15fdecfcc9a4866f1e3c06d0f331/blis-1.2.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:ea1f4ce1541cddbc9b0574a5969df2a518c5a6d4aa8787782dab5d82233a1458", size = 4309834 },
-    { url = "https://files.pythonhosted.org/packages/d1/12/02f3afacf790a93e4d9f367cc5cdd95ed0348e5d2927bc4d9c7d1d70d1ae/blis-1.2.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:6358168c4218a36e49c244c714f50248a1ef981874ae7bc785d68e76d55c57b5", size = 14789989 },
-    { url = "https://files.pythonhosted.org/packages/c0/3a/ce0a98664d6283276fa986685e308c1dc1feb634241b2d3828ceaaa5a128/blis-1.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:067f4f99fb3dc0cf50bbbf0ee4b850f13e64fbb84fdaab0864fd97af0bee0ced", size = 6258036 },
+    { url = "https://files.pythonhosted.org/packages/41/8b/b61978aa36de134d1056c55c2efe818042df68aff211b91fa5b1b9ae3f85/blis-0.7.11-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cd5fba34c5775e4c440d80e4dea8acb40e2d3855b546e07c4e21fad8f972404c", size = 6127109 },
+    { url = "https://files.pythonhosted.org/packages/3d/95/f23fbbf3010bf057302ebbb8ad697fb9a0f8624e833025c4a58bfb8d3389/blis-0.7.11-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:31273d9086cab9c56986d478e3ed6da6752fa4cdd0f7b5e8e5db30827912d90d", size = 1110252 },
+    { url = "https://files.pythonhosted.org/packages/fd/82/8d9576904833a8575ae6758dd8c1a2152fdec1705dd3ae65a10e99d8896a/blis-0.7.11-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d06883f83d4c8de8264154f7c4a420b4af323050ed07398c1ff201c34c25c0d2", size = 1711161 },
+    { url = "https://files.pythonhosted.org/packages/9b/81/55092e1c016fe05ef7a57623920209012f05e8b897acbad355c9bf854181/blis-0.7.11-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ee493683e3043650d4413d531e79e580d28a3c7bdd184f1b9cfa565497bda1e7", size = 10171589 },
+    { url = "https://files.pythonhosted.org/packages/ad/65/d9fd07e11499e0a3162c6d61ae430172125e5c340c89c40504189d5299b9/blis-0.7.11-cp310-cp310-win_amd64.whl", hash = "sha256:a73945a9d635eea528bccfdfcaa59dd35bd5f82a4a40d5ca31f08f507f3a6f81", size = 6620069 },
+    { url = "https://files.pythonhosted.org/packages/c7/59/c8010f380a16709e6d3ef5534845d1ca1e689079914ec67ab60f57edfc37/blis-0.7.11-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:1b68df4d01d62f9adaef3dad6f96418787265a6878891fc4e0fabafd6d02afba", size = 6123547 },
+    { url = "https://files.pythonhosted.org/packages/a8/73/0a9d4e7f6e78ef270e3a4532b17e060a02087590cf615ba9943fd1a283e9/blis-0.7.11-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:162e60d941a8151418d558a94ee5547cb1bbeed9f26b3b6f89ec9243f111a201", size = 1106895 },
+    { url = "https://files.pythonhosted.org/packages/51/f7/a5d9a0be0729f4172248dbae74d7e02b139b3a32cc29650d3ade7ab91fea/blis-0.7.11-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:686a7d0111d5ba727cd62f374748952fd6eb74701b18177f525b16209a253c01", size = 1707389 },
+    { url = "https://files.pythonhosted.org/packages/dc/23/eb01450dc284a7ea8ebc0e5296f1f8fdbe5299169f4c318f836b4284a119/blis-0.7.11-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0421d6e44cda202b113a34761f9a062b53f8c2ae8e4ec8325a76e709fca93b6e", size = 10172888 },
+    { url = "https://files.pythonhosted.org/packages/2f/09/da0592c74560cc33396504698122f7a56747c82a5e072ca7d2c3397898e1/blis-0.7.11-cp311-cp311-win_amd64.whl", hash = "sha256:0dc9dcb3843045b6b8b00432409fd5ee96b8344a324e031bfec7303838c41a1a", size = 6602835 },
+    { url = "https://files.pythonhosted.org/packages/e2/12/90897bc489626cb71e51ce8bb89e492fabe96a57811e53159c0f74ae90ec/blis-0.7.11-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:dadf8713ea51d91444d14ad4104a5493fa7ecc401bbb5f4a203ff6448fadb113", size = 6121528 },
+    { url = "https://files.pythonhosted.org/packages/e2/5d/67a3f6b6108c39d3fd1cf55a7dca9267152190dad419c9de6d764b3708ca/blis-0.7.11-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:5bcdaf370f03adaf4171d6405a89fa66cb3c09399d75fc02e1230a78cd2759e4", size = 1105039 },
+    { url = "https://files.pythonhosted.org/packages/03/62/0d214dde0703863ed2d3dabb3f10606f7f55ac4eb07a52c3906601331b63/blis-0.7.11-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7de19264b1d49a178bf8035406d0ae77831f3bfaa3ce02942964a81a202abb03", size = 1701009 },
+    { url = "https://files.pythonhosted.org/packages/66/aa/bcbd1c6b1c7dfd717ff5c899a1c8adcc6b3e391fb7a0b00fdc64e4e54235/blis-0.7.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8ea55c6a4a60fcbf6a0fdce40df6e254451ce636988323a34b9c94b583fc11e5", size = 10161187 },
+    { url = "https://files.pythonhosted.org/packages/9a/91/4aea63dccee6491a54c630d9817656a886e086ab97222e2d8101d8cdf894/blis-0.7.11-cp312-cp312-win_amd64.whl", hash = "sha256:5a305dbfc96d202a20d0edd6edf74a406b7e1404f4fa4397d24c68454e60b1b4", size = 6624079 },
 ]
 
 [[package]]
@@ -947,6 +941,20 @@ sdist = { url = "https://files.pythonhosted.org/packages/31/e9/f49c4e7fccb77fa5c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/a3/ac312faeceffd2d8f86bc6dcb5c401188ba5a01bc88e69bed97578a0dfcd/durationpy-0.9-py3-none-any.whl", hash = "sha256:e65359a7af5cedad07fb77a2dd3f390f8eb0b74cb845589fa6c057086834dd38", size = 3461 },
 ]
+
+[[package]]
+name = "en-core-web-sm"
+version = "3.7.1"
+source = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" }
+dependencies = [
+    { name = "spacy" },
+]
+wheels = [
+    { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl", hash = "sha256:86cc141f63942d4b2c5fcee06630fd6f904788d2f0ab005cce45aadb8fb73889" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "spacy", specifier = ">=3.7.2,<3.8.0" }]
 
 [[package]]
 name = "entrypoints"
@@ -4302,7 +4310,7 @@ wheels = [
 
 [[package]]
 name = "spacy"
-version = "3.8.2"
+version = "3.7.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "catalogue" },
@@ -4325,23 +4333,23 @@ dependencies = [
     { name = "wasabi" },
     { name = "weasel" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/53/536941af8fbb5cb10a778f0dbd2a17b0f13e7ebfc11e67b154be60508fdf/spacy-3.8.2.tar.gz", hash = "sha256:4b37ebd25ada4059b0dc9e0893e70dde5df83485329a068ef04580e70892a65d", size = 1291174 }
+sdist = { url = "https://files.pythonhosted.org/packages/21/1e/94e3981516db6fcd6685f058c43c3fa81805c120b04829596367dad1aa4e/spacy-3.7.5.tar.gz", hash = "sha256:a648c6cbf2acc7a55a69ee9e7fa4f22bdf69aa828a587a1bc5cfff08cf3c2dd3", size = 1274806 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/cb/85fb9ce87e0d37a7f532dc60c1be98ce320326bdd4a0222756b4262d2bb0/spacy-3.8.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:795e74493036dda0a576093b797a4fdc1aaa83d66f6c9af0e5b6b1c640dc2222", size = 6610807 },
-    { url = "https://files.pythonhosted.org/packages/7b/10/63bcc4a9d3d902a66d7d6bd410fc9596403780de769973ea450e62606c67/spacy-3.8.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d432e78fe2a7424aba9a741db07ce58487d3b74fae4e20a779142828e61bc402", size = 6305899 },
-    { url = "https://files.pythonhosted.org/packages/8e/13/143fce10ae7a8c4d083f00d7a69b46057db47d252072359ecfc2c458f71b/spacy-3.8.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:536a8ba17359540de502285934bf357805d978128d7bd5e84ba53d28b32a0ffb", size = 29148862 },
-    { url = "https://files.pythonhosted.org/packages/2b/c4/890f8ebf861878fdb8bf08998e0e30bf30c32e9daa4f3b7062f4117c9efc/spacy-3.8.2-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:6a0d0d39baa1cb9f5bb82874cbe1067bf494f76277a383f1f7b29f7a855d41a9", size = 29911788 },
-    { url = "https://files.pythonhosted.org/packages/65/a0/f06628e75fa12873fb7a0aeeae44f3a44060e7901a9cf9eeebff04b20bd1/spacy-3.8.2-cp310-cp310-win_amd64.whl", hash = "sha256:9dcfcfda558b3e47946b2041c7a4203b78e542d0de20997a7c0a6d11b58b2522", size = 12205288 },
-    { url = "https://files.pythonhosted.org/packages/d0/bb/132811a8d7fb814ce693bb6317650d2c25b57bb1789d151f330207c5213f/spacy-3.8.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:7e5d48918028cff6d69d9915dad64f0e32ebd5f1e4f1fa81a2e17e56a6f61e05", size = 6574075 },
-    { url = "https://files.pythonhosted.org/packages/e4/18/c72f0aed98b99219556c13b2a7b8f013a8e992699845076fd89a82a5808f/spacy-3.8.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:455f845b88ed795d7e595070ee84b65b3ea382357811e09fc744789a20b7b5f7", size = 6264480 },
-    { url = "https://files.pythonhosted.org/packages/ee/4a/9d5b4e982ace094a44bc53bde40af525d3ad1d61f2fc631690d7a011963b/spacy-3.8.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:05d8a4cbfdb90049053564790a0d12fa790c9471580cb6a1f8bdc2b6e74703dd", size = 30567923 },
-    { url = "https://files.pythonhosted.org/packages/c3/42/c5601c31cdf64e2c09d56210c4b97325fdc890acd17094444f082b042ddc/spacy-3.8.2-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:e3c3e67f786f1410d08420ffcaba0f80dc58387ab6172dcdac1a73353d3a85c7", size = 31110934 },
-    { url = "https://files.pythonhosted.org/packages/03/56/dce58155b3bce42f987dbf6cc23e820e037bc02abc99ade6ae3ad8d619a9/spacy-3.8.2-cp311-cp311-win_amd64.whl", hash = "sha256:cfe0c4558f635c67677e36d9a315f51d51f824870589c4846c95e880042a2ceb", size = 12200693 },
-    { url = "https://files.pythonhosted.org/packages/36/6e/3eb3d39029571ed096fcf95f097be496670dad2b457ae0e1bbc1ee0c49d0/spacy-3.8.2-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:0ce56f3c46dd4cebb5aaa3a40966e813b7fc6a540d547788a7d00cca10cd60a9", size = 6293337 },
-    { url = "https://files.pythonhosted.org/packages/19/e6/ae2c4b1b898dc48fd9c221a0d2458e4fc3d337f3ece183e4ebe945dd1c1f/spacy-3.8.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:09faa873cf23d5136b1c1ce6378054a885f650fda96e1655a3ab49e2e7fdd15b", size = 5977424 },
-    { url = "https://files.pythonhosted.org/packages/98/b8/12abefe9d8830797dcea4c822e503eede1128e44ef0fef6fdd80a8a1eb47/spacy-3.8.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:33e992a11de9b727c61288541945c0ffc37ed998aca76bfd557937c2c195d7d4", size = 31813151 },
-    { url = "https://files.pythonhosted.org/packages/ce/b4/2abb75e44b92950789b51493b605bf5822a57d6b21991d9ba4cbf48ba2d7/spacy-3.8.2-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:be962a8188fb20d6c2065e1e865d1799ebbf544c1af67ab8c75cb279bf5448c7", size = 32103979 },
-    { url = "https://files.pythonhosted.org/packages/aa/ad/833e22a92c221e0871509b7c1463efbc6f33a93a0c396744f217e5c0b265/spacy-3.8.2-cp312-cp312-win_amd64.whl", hash = "sha256:04546c5f5ed607387d4e9ecf57614e90c5784866a10a3c6dbe5b06e9b18a2f29", size = 11786464 },
+    { url = "https://files.pythonhosted.org/packages/c2/5e/f3a851f4c90e61c64956c952387db9b6557863a15050616929886cdcab45/spacy-3.7.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8002897701429ee2ab5ff6921ae43560f4cd17184cb1e10dad761901c12dcb85", size = 6847778 },
+    { url = "https://files.pythonhosted.org/packages/c6/3a/8c5446c40306f876f12c2f9c814c731913f775c9342348333342312bf202/spacy-3.7.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:43acd19efc845e9126b61a05ed7508a0aff509e96e15563f30f810c19e636b7c", size = 6609906 },
+    { url = "https://files.pythonhosted.org/packages/18/91/2fbd1c23467cbad666dbcdb9cf7d3c04d620a2f470281a9d341acccad9b2/spacy-3.7.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f044522b1271ea54718dc43b6f593b5dad349cd31b3827764c501529b599e09a", size = 6250741 },
+    { url = "https://files.pythonhosted.org/packages/07/52/117eae6b96e79207234bf546271bc4d8bb1ec5bf5dd1d8ddf15f12cdbf2e/spacy-3.7.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6a7dbfbca42c1c128fefa6832631fe49e11c850e963af99229f14e2d0ae94f34", size = 6606864 },
+    { url = "https://files.pythonhosted.org/packages/df/9d/b46b6f0a4ad66498c388a94e7efbff51044be92ecc1d0f5ea02dc45ef2d1/spacy-3.7.5-cp310-cp310-win_amd64.whl", hash = "sha256:2a21b2a1e1e5d10d15c6f75990b7341d0fc9b454083dfd4222fdd75b9164831c", size = 12081318 },
+    { url = "https://files.pythonhosted.org/packages/80/36/53a831d2e82a432d785823cdff56f84737aed26e8f7667d423ee32c3983d/spacy-3.7.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:cd93c34bf2a02bbed7df73d42aed8df5e3eb9688c4ea84ec576f740ba939cce5", size = 6750524 },
+    { url = "https://files.pythonhosted.org/packages/72/49/bd65abe76607c86dc1f104ad545eeb3e771f474b7e259e64e5a16614615b/spacy-3.7.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:190ba0032a5efdb138487c587c0ebb7a98f86adb917f464b252ee8766b8eec4a", size = 6517941 },
+    { url = "https://files.pythonhosted.org/packages/51/83/ec38e9bddb17b8f07539a49a19f2b30ce8e7d7a3d4f94dda31ea9bd043f7/spacy-3.7.5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:38de1c9bbb73b8cdfea2dd6e57450f093c1a1af47515870c1c8640b85b35ab16", size = 6236788 },
+    { url = "https://files.pythonhosted.org/packages/e0/ce/b5e6b02165881547ad251b0b172ebf496b9181a95833f94012af82d044df/spacy-3.7.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3dad4853950a2fe6c7a0bdfd791a762d1f8cedd2915c4ae41b2e0ca3a850eefc", size = 6585757 },
+    { url = "https://files.pythonhosted.org/packages/39/e1/08681583569f435347ced0535b27c073fcc9a927d9b4293c963092f2d01c/spacy-3.7.5-cp311-cp311-win_amd64.whl", hash = "sha256:4e00d076871af784c2e43185a71ee676b58893853a05c5b81717b8af2b666c07", size = 12078792 },
+    { url = "https://files.pythonhosted.org/packages/3d/c8/413225de79e71dd9ca353d597ea4890a43fa60ff98cf9615b1606680ab95/spacy-3.7.5-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:bf54c3c2425428b328b53a65913d47eb4cb27a1429aa4e8ed979ffc97d4663e0", size = 6324302 },
+    { url = "https://files.pythonhosted.org/packages/60/f9/726e977c5430c44912ed97d7d965ef35d2563978b38076b254379652a522/spacy-3.7.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4145cea7f9814fa7d86b2028c2dd83e02f13f80d5ac604a400b2f7d7b26a0e8c", size = 6112434 },
+    { url = "https://files.pythonhosted.org/packages/53/ff/4b3a9d3063ba98d3ce27a0c2a60e3c25e4650b7c3c7555a47179dac5c282/spacy-3.7.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:262f8ebb71f7ed5ffe8e4f384b2594b7a296be50241ce9fbd9277b5da2f46f38", size = 6065925 },
+    { url = "https://files.pythonhosted.org/packages/ef/9f/70bed4cb66629ad1fa5f45220d47bbbf6c858e70e5d69f7ca1de95dd2b92/spacy-3.7.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:faa1e2b6234ae33c0b1f8dfa5a8dcb66fb891f19231725dfcff4b2666125c250", size = 6455942 },
+    { url = "https://files.pythonhosted.org/packages/58/42/b6bb76b08f4a0ccb0e2d0e4f3524acadf1ba929e2b93f90e4652d1c3cbd3/spacy-3.7.5-cp312-cp312-win_amd64.whl", hash = "sha256:07677e270a6d729453cc04b5e2247a96a86320b8845e6428d9f90f217eff0f56", size = 11673681 },
 ]
 
 [[package]]
@@ -4422,7 +4430,7 @@ wheels = [
 
 [[package]]
 name = "swarmauri"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "swarmauri" }
 dependencies = [
     { name = "httpx" },
@@ -4467,6 +4475,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4507,11 +4516,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-base"
-version = "0.6.2.dev4"
+version = "0.6.2.dev5"
 source = { editable = "base" }
 dependencies = [
     { name = "numpy" },
@@ -4533,6 +4543,7 @@ dev = [
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
+    { name = "ruff" },
     { name = "toml" },
 ]
 
@@ -4557,12 +4568,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.2.dev4"
+version = "0.6.2.dev9"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
@@ -4597,7 +4609,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
@@ -4616,6 +4628,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4636,11 +4649,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_embedding_doc2vec" }
 dependencies = [
     { name = "gensim" },
@@ -4659,6 +4673,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4679,11 +4694,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4703,6 +4719,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4724,11 +4741,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
@@ -4747,6 +4765,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4767,11 +4786,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
@@ -4790,6 +4810,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4810,11 +4831,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_measurement_mutualinformation" }
 dependencies = [
     { name = "pandas" },
@@ -4833,6 +4855,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4853,11 +4876,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4875,6 +4899,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4894,6 +4919,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -4927,13 +4953,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "ruff" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-ocr-pytesseract"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_ocr_pytesseract" }
 dependencies = [
     { name = "pytesseract" },
@@ -4952,6 +4978,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -4972,11 +4999,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -4995,6 +5023,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5015,6 +5044,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5025,6 +5055,7 @@ dependencies = [
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
+    { name = "torch" },
     { name = "transformers" },
 ]
 
@@ -5038,6 +5069,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5045,6 +5077,7 @@ requires-dist = [
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
+    { name = "torch" },
     { name = "transformers", specifier = ">=4.45.0" },
 ]
 
@@ -5058,13 +5091,15 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-entityrecognition"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_parser_entityrecognition" }
 dependencies = [
+    { name = "en-core-web-sm" },
     { name = "spacy" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
@@ -5081,11 +5116,13 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "spacy", specifier = ">=3.0.0,<=3.8.2" },
+    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" },
+    { name = "spacy", specifier = ">=3.7.0,<3.8.0" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
@@ -5101,11 +5138,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
@@ -5124,6 +5162,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5144,11 +5183,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-keywordextractor"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "standards/swarmauri_parser_keywordextractor" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5167,6 +5207,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5187,11 +5228,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },
@@ -5210,6 +5252,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5230,11 +5273,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
@@ -5253,6 +5297,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5273,11 +5318,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-parser-textblob"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_parser_textblob" }
 dependencies = [
     { name = "nltk" },
@@ -5297,6 +5343,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5318,6 +5365,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -5351,6 +5399,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5380,11 +5429,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5401,6 +5451,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5419,11 +5470,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-captchagenerator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_captchagenerator" }
 dependencies = [
     { name = "captcha" },
@@ -5442,6 +5494,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5462,11 +5515,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_dalechallreadability" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5485,6 +5539,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5505,11 +5560,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_downloadpdf" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5527,6 +5583,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5546,11 +5603,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_entityrecognition" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5571,6 +5629,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5593,11 +5652,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },
@@ -5616,6 +5676,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5636,11 +5697,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_gmail" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -5659,6 +5721,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5679,11 +5742,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterclearoutput"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterclearoutput" }
 dependencies = [
     { name = "nbconvert" },
@@ -5702,6 +5766,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5722,11 +5787,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplay"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterdisplay" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5746,6 +5812,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5766,11 +5833,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplayhtml"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterdisplayhtml" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5790,6 +5858,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5810,11 +5879,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexecuteandconvert"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterexecuteandconvert" }
 dependencies = [
     { name = "nbconvert" },
@@ -5833,6 +5903,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5853,11 +5924,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutecell"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterexecutecell" }
 dependencies = [
     { name = "ipykernel" },
@@ -5880,6 +5952,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5903,11 +5976,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebook" }
 dependencies = [
     { name = "ipykernel" },
@@ -5928,6 +6002,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5950,11 +6025,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebookwithparameters"
-version = "1.0.2.dev3"
+version = "1.0.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebookwithparameters" }
 dependencies = [
     { name = "papermill" },
@@ -5973,6 +6049,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -5993,11 +6070,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6016,6 +6094,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6036,11 +6115,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexportlatex"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterexportlatex" }
 dependencies = [
     { name = "nbconvert" },
@@ -6059,6 +6139,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6079,11 +6160,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.0.2.dev3"
+version = "1.0.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6103,6 +6185,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6124,11 +6207,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6147,6 +6231,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6167,11 +6252,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
@@ -6190,6 +6276,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6210,11 +6297,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytergetiopubmessage"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupytergetiopubmessage" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6233,6 +6321,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6253,11 +6342,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
@@ -6277,6 +6367,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6298,11 +6389,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterreadnotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterreadnotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6321,6 +6413,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6341,11 +6434,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterruncell"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterruncell" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6365,6 +6459,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6385,11 +6480,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytershutdownkernel"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupytershutdownkernel" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6408,6 +6504,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6428,11 +6525,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterstartkernel"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_jupyterstartkernel" }
 dependencies = [
     { name = "ipykernel" },
@@ -6452,6 +6550,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6473,11 +6572,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6498,6 +6598,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6520,11 +6621,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-jupyterwritenotebook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_jupyterwritenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6543,6 +6645,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6563,11 +6666,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-lexicaldensity"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_tool_lexicaldensity" }
 dependencies = [
     { name = "nltk" },
@@ -6587,6 +6691,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6608,11 +6713,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_tool_matplotlib" }
 dependencies = [
     { name = "matplotlib" },
@@ -6631,6 +6737,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6651,11 +6758,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_psutil" }
 dependencies = [
     { name = "psutil" },
@@ -6674,6 +6782,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6694,11 +6803,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_qrcodegenerator" }
 dependencies = [
     { name = "qrcode" },
@@ -6717,6 +6827,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6737,11 +6848,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_sentencecomplexity" }
 dependencies = [
     { name = "nltk" },
@@ -6760,6 +6872,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6780,17 +6893,19 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_sentimentanalysis" }
 dependencies = [
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
     { name = "tensorflow" },
+    { name = "tf-keras" },
     { name = "transformers" },
 ]
 
@@ -6804,6 +6919,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6812,6 +6928,7 @@ requires-dist = [
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
     { name = "tensorflow", specifier = ">=2.16.2" },
+    { name = "tf-keras" },
     { name = "transformers", specifier = ">=4.49.0" },
 ]
 
@@ -6825,11 +6942,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_smogindex" }
 dependencies = [
     { name = "nltk" },
@@ -6849,6 +6967,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6870,11 +6989,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
@@ -6893,6 +7013,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6913,11 +7034,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -6936,6 +7058,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6956,11 +7079,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_tool_zapierhook" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -6978,6 +7102,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -6997,11 +7122,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-toolkit-github"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_toolkit_github" }
 dependencies = [
     { name = "pygithub" },
@@ -7020,6 +7146,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7040,6 +7167,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7083,6 +7211,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7123,11 +7252,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-typing"
-version = "0.6.2.dev4"
+version = "0.6.2.dev6"
 source = { editable = "typing" }
 
 [package.dev-dependencies]
@@ -7140,6 +7270,7 @@ dev = [
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
+    { name = "ruff" },
     { name = "toml" },
 ]
 
@@ -7155,12 +7286,13 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "ruff", specifier = ">=0.9.9" },
     { name = "toml", specifier = ">=0.10.2" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
@@ -7180,6 +7312,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7201,11 +7334,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_cloudweaviate" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7225,6 +7359,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7246,11 +7381,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7269,6 +7405,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7289,11 +7426,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_duckdb" }
 dependencies = [
     { name = "duckdb" },
@@ -7313,6 +7451,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7334,11 +7473,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-mlm"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_vectorstore_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7359,6 +7499,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7381,11 +7522,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_neo4j" }
 dependencies = [
     { name = "neo4j" },
@@ -7405,6 +7547,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7426,11 +7569,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-persistentchromadb"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_vectorstore_persistentchromadb" }
 dependencies = [
     { name = "chromadb" },
@@ -7450,6 +7594,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7471,11 +7616,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
@@ -7495,6 +7641,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7516,11 +7663,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-qdrant"
-version = "0.6.2.dev3"
+version = "0.6.2.dev5"
 source = { editable = "community/swarmauri_vectorstore_qdrant" }
 dependencies = [
     { name = "qdrant-client" },
@@ -7540,6 +7688,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7561,11 +7710,12 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.6.2.dev3"
+version = "0.6.2.dev6"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },
@@ -7586,6 +7736,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -7608,6 +7759,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "python-dotenv" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -7783,7 +7935,7 @@ wheels = [
 
 [[package]]
 name = "thinc"
-version = "8.3.4"
+version = "8.2.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "blis" },
@@ -7799,23 +7951,23 @@ dependencies = [
     { name = "srsly" },
     { name = "wasabi" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b5/ff/60c9bcfe28e56c905aac8e61a838c7afe5dc3073c9beed0b63a26ace0bb7/thinc-8.3.4.tar.gz", hash = "sha256:b5925482498bbb6dca0771e375b35c915818f735891e93d93a662dab15f6ffd8", size = 193903 }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/2a/0e2e961e6152bedecca70e6833f6e827ee621efcee7496643242b506d54f/thinc-8.2.5.tar.gz", hash = "sha256:c2963791c934cc7fbd8f9b942d571cac79892ad11630bfca690a868c32752b75", size = 193031 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/c8/13db2e346d2e199f679fc3f620da53af561ea74b43b38e5b4a0a79a12860/thinc-8.3.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:916ea79a7c7462664be9435679b7769b4fc1ecea3886db6da6118e4eb5cc8c8b", size = 843884 },
-    { url = "https://files.pythonhosted.org/packages/ff/32/c25d68b5030f91c8506dfbba706f24b1cd1d0d4950cb0e3de17d176a5411/thinc-8.3.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6c985ce9cf82a611f4f348c721372d073537ca0e8b7bbb8bd865c1598ddd79d1", size = 779384 },
-    { url = "https://files.pythonhosted.org/packages/5d/5f/8a88959191f8c9f7eed61a7efec45f0222720c6318c09f9a058609810128/thinc-8.3.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2fff4b30f8513832d13a31486e9074a7020de3d48f8a3d1527e369c242d6ebe9", size = 3673814 },
-    { url = "https://files.pythonhosted.org/packages/6f/4f/ea998b85cece6c2441a2416c795476776a5c11f7f2c7fb478a00d407d7f6/thinc-8.3.4-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:a9ee46d19b9f4cac13a5539f97978c857338a31e4bf8d9b3a7741dcbc792220f", size = 4685083 },
-    { url = "https://files.pythonhosted.org/packages/0b/d0/295add6fcac8b633877a3a8d4b323e8cac4f4078f4f48910deb8c29666cb/thinc-8.3.4-cp310-cp310-win_amd64.whl", hash = "sha256:d08529d53f8652e15e4f3c0f6953e73f85cc71d3b6e4750d2d9ace23616dbe8f", size = 1492082 },
-    { url = "https://files.pythonhosted.org/packages/85/47/68187c78a04cdc31cbd3ae393068f994b60476b5ecac6dfe7d04b124aacf/thinc-8.3.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:a8bb4b47358a1855803b375f4432cefdf373f46ef249b554418d2e77c7323040", size = 839320 },
-    { url = "https://files.pythonhosted.org/packages/49/ea/066dd415e61fcef20083bbca41c2c02e640fea71326531f2619708efee1e/thinc-8.3.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:00ed92f9a34b9794f51fcd48467c863f4eb7c5b41559aef6ef3c980c21378fec", size = 774196 },
-    { url = "https://files.pythonhosted.org/packages/8c/68/36c1a92a374891e0d496677c59f5f9fdc1e57bbb214c487bb8bb3e9290c2/thinc-8.3.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:85691fca84a6a1506f7ddbd2c1706a5524d56f65582e76b2e260a06d9e83e86d", size = 3922504 },
-    { url = "https://files.pythonhosted.org/packages/ec/8a/48e463240a586e91f83c87660986e520aa91fbd839f6631ee9bc0fbb3cbd/thinc-8.3.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:eae1573fc19e514defc1bfd4f93f0b4bfc1dcefdb6d70bad1863825747f24800", size = 4932946 },
-    { url = "https://files.pythonhosted.org/packages/d9/98/f910b8d8113ab9b955a68e9bbf0d5bd0e828f22dd6d3c226af6ec3970817/thinc-8.3.4-cp311-cp311-win_amd64.whl", hash = "sha256:81e8638f9bdc38e366674acc4b63cf7c6267266a15477963a5db21b3d9f1aa36", size = 1490133 },
-    { url = "https://files.pythonhosted.org/packages/90/ff/d1b5d7e1a7f95581e9a736f50a5a9aff72327ddbbc629a68070c36acefd9/thinc-8.3.4-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:c9da6375b106df5186bd2bfd1273bc923c01ab7d482f8942e4ee528a28965c3a", size = 825099 },
-    { url = "https://files.pythonhosted.org/packages/ce/0b/d207c917886dc40671361de0880ec3ea0443a718aae9dbb0a50ac0849f92/thinc-8.3.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:07091c6b5faace50857c4cf0982204969d77388d0a6f156dd2442297dceeb838", size = 761024 },
-    { url = "https://files.pythonhosted.org/packages/4b/a3/3ec5e9d7cbebc3257b8223a3d188216b91ab6ec1e66b6fdd99d22394bc62/thinc-8.3.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fd40ad71bcd8b1b9daa0462e1255b1c1e86e901c2fd773966601f44a95878032", size = 3710390 },
-    { url = "https://files.pythonhosted.org/packages/40/ee/955c74e4e6ff2f694c99dcbbf7be8d478a8868503aeb3474517277c07667/thinc-8.3.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:eb10823b3a3f1c6440998b11bf9a3571dd859feaed0fdb510a1c1097d9dc6a86", size = 4731524 },
-    { url = "https://files.pythonhosted.org/packages/a4/44/3786431e5c1eeebed3d7a4c97122896ca6d4a502b03d02c2171c417052fd/thinc-8.3.4-cp312-cp312-win_amd64.whl", hash = "sha256:b5e5e7bf5dae142fd50ed9785971292c4aab4d9ed18e4947653b6a0584d5227c", size = 1455883 },
+    { url = "https://files.pythonhosted.org/packages/a2/76/1994abe2bf5cbe5f68231fd2c177e384b19bed86268d56c1b6b2dc19e203/thinc-8.2.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:dc267f6aad80a681a85f50383afe91da9e2bec56fefdda86bfa2e4f529bef191", size = 843631 },
+    { url = "https://files.pythonhosted.org/packages/e5/76/47e94af32943bd92d7cda4e92d185331a89116a0bf87123cc71796f21a00/thinc-8.2.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d80f1e497971c9fa0938f5cc8fe607bbe87356b405fb7bbc3ff9f32fb4eed3bb", size = 779045 },
+    { url = "https://files.pythonhosted.org/packages/c0/76/7dcce5cd2b5a9fe92b76767d688f17fe459543c13893e588545db3c0dc85/thinc-8.2.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0933adbd3e65e30d3bef903e77a368bc8a41bed34b0d18df6d4fc0536908e21f", size = 868726 },
+    { url = "https://files.pythonhosted.org/packages/d7/b5/ad029dc7346381922b7fd655b3fc39009cf675766345d8e13f9f8282bde8/thinc-8.2.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:54bac2ba23b208fdaf267cd6113d26a5ecbb3b0e0c6015dff784ae6a9c5e78ca", size = 922374 },
+    { url = "https://files.pythonhosted.org/packages/f6/3e/fb96407db92a15b5c0feb0deb930c4c223bdb772e04b51b9798a86059a26/thinc-8.2.5-cp310-cp310-win_amd64.whl", hash = "sha256:399260197ef3f8d9600315fc5b5a1d5940400fceb0361de642e9fe3506d82385", size = 1482115 },
+    { url = "https://files.pythonhosted.org/packages/76/37/8acfeba6bb25b08c2a33bfae5301a5df4dc164d2d17040bebbcf66d783a1/thinc-8.2.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:a75c0de3340afed594beda293661de145f3842873df56d9989bc338148f13fab", size = 839072 },
+    { url = "https://files.pythonhosted.org/packages/e9/eb/753a85875fb0261c83ca87a1a36d41346bde662c3a029ace9d68fe32bc5b/thinc-8.2.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:6b166d1a22003ee03bc236370fff2884744c1fb758a6209a2512d305773d07d7", size = 773885 },
+    { url = "https://files.pythonhosted.org/packages/34/47/06810a1bd9d3287076ba17299abec82c8c643563661b1af9b1d5d9aeab38/thinc-8.2.5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:34db8a023b9f70645fdf06c510584ba6d8b97ec53c1e094f42d95652bf8c875f", size = 868332 },
+    { url = "https://files.pythonhosted.org/packages/1a/19/cd73e3b5f22d5d9399f6f2931ab0fb985415f34030dcfead070181866761/thinc-8.2.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8901b30db1071ea8d5e4437429c8632535bf5ed87938ce3bb5057bed9f15aed8", size = 920152 },
+    { url = "https://files.pythonhosted.org/packages/5e/0e/5e7b24e046e0725eafc37ded0cd9bfaf789efb894101a7aca8a73dba81de/thinc-8.2.5-cp311-cp311-win_amd64.whl", hash = "sha256:8ef5d46d62e31f2450224ab22391a606cf427b13e20cfc570f70422e2f333872", size = 1480120 },
+    { url = "https://files.pythonhosted.org/packages/a4/9d/d2ed3aef9bb75ab86c521bde58f897db6a572c9fd639448173b516269a69/thinc-8.2.5-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:9fc26697e2358c71a5fe243d52e98ae67ee1a3b314eead5031845b6d1c0d121c", size = 824150 },
+    { url = "https://files.pythonhosted.org/packages/66/a6/30ed1edb2adab585b5f7d5d99e89b5be3014dcbf3f4e263997b2c2426681/thinc-8.2.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:8e299d4dc41107385d6d14d8604a060825798a031cabe2b894b22f9d75d9eaad", size = 760640 },
+    { url = "https://files.pythonhosted.org/packages/82/ce/aaff1f39bcc1e9a97bec5f3d20aa771c005a9faff3944fc56c7492c24466/thinc-8.2.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e8a8f2f249f2be9a5ce2a81a6efe7503b68be7b57e47ad54ab28204e1f0c723b", size = 818820 },
+    { url = "https://files.pythonhosted.org/packages/d7/fa/c96b01e46e5962d02de1206e497fda2902aef2b8ffb2926d66d5f0159040/thinc-8.2.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:87e729f33c76ec6df9b375989743252ab880d79f3a2b4175169b21dece90f102", size = 865047 },
+    { url = "https://files.pythonhosted.org/packages/cd/26/306b8bedb678c52464ed00e576edf9d365fce0bcae597a333bdad9fb5d67/thinc-8.2.5-cp312-cp312-win_amd64.whl", hash = "sha256:c5f750ea2dd32ca6d46947025dacfc0f6037340c4e5f7adb9af84c75f65aa7d8", size = 1447893 },
 ]
 
 [[package]]

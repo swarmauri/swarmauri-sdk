@@ -18,7 +18,7 @@ def test_ubc_resource(pubsub_transport):
     assert pubsub_transport.resource == "Transport"
 
 
-@pytest.mark.timeout(5) 
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(pubsub_transport):
     assert pubsub_transport.type == "PubSubTransport"

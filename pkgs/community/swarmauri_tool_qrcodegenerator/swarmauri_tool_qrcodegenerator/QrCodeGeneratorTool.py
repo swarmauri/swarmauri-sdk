@@ -7,6 +7,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 import base64
 
+
 @ComponentBase.register_type(ToolBase, "QrCodeGeneratorTool")
 class QrCodeGeneratorTool(ToolBase):
     type: Literal["QrCodeGeneratorTool"] = "QrCodeGeneratorTool"

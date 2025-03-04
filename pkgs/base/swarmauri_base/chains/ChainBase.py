@@ -5,6 +5,7 @@ from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_core.chains.IChain import IChain
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 @ComponentBase.register_model()
 class ChainBase(IChain, ComponentBase):
     """

@@ -12,6 +12,7 @@ from nltk.tokenize import sent_tokenize
 
 nltk.download("punkt_tab", quiet=True)
 
+
 @ComponentBase.register_type(ToolBase, "SMOGIndexTool")
 class SMOGIndexTool(ToolBase):
     version: str = "0.1.dev2"

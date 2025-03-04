@@ -17,6 +17,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "WhisperLargeModel")
 class WhisperLargeModel(LLMBase):
     """
@@ -230,7 +231,7 @@ class WhisperLargeModel(LLMBase):
 
         tasks = [process_audio(path, task) for path, task in path_task_dict.items()]
         return await asyncio.gather(*tasks)
-    
+
     def stream(
         self,
         audio_path: str,

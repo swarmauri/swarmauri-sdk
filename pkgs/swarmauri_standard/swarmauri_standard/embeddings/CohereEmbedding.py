@@ -7,6 +7,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.vectors.Vector import Vector
 
+
 @ComponentBase.register_type(EmbeddingBase, "CohereEmbedding")
 class CohereEmbedding(EmbeddingBase):
     """

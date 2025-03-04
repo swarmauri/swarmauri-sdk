@@ -4,6 +4,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.service_registries.IServiceRegistry import IServiceRegistry
 
+
 @ComponentBase.register_model()
 class ServiceRegistryBase(IServiceRegistry, ComponentBase):
     """

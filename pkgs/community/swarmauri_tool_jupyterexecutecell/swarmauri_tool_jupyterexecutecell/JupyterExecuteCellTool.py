@@ -28,6 +28,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
+
 @ComponentBase.register_type(ToolBase, "JupyterExecuteCellTool")
 class JupyterExecuteCellTool(ToolBase):
     """

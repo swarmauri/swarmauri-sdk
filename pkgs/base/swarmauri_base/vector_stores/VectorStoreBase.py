@@ -7,6 +7,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 from swarmauri_standard.documents.Document import Document
 
+
 @ComponentBase.register_model()
 class VectorStoreBase(IVectorStore, ComponentBase):
     """

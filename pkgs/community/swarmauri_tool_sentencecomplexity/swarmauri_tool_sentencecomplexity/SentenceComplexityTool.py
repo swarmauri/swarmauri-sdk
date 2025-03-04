@@ -9,6 +9,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 nltk.download("punkt_tab", quiet=True)
 
+
 @ComponentBase.register_type(ToolBase, "SentenceComplexityTool")
 class SentenceComplexityTool(ToolBase):
     version: str = "0.1.dev2"

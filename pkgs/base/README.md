@@ -12,6 +12,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri-base" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri-base/">
         <img src="https://img.shields.io/pypi/v/swarmauri-base?label=swarmauri-base&color=green" alt="PyPI - swarmauri-base"/></a>
+
 </p>
 
 ---

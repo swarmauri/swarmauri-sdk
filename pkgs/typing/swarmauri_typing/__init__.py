@@ -2,10 +2,10 @@ from .UnionFactory import UnionFactory, UnionFactoryMetadata
 from .Intersection import Intersection, IntersectionMetadata
 
 __all__ = [
-    "UnionFactory", 
+    "UnionFactory",
     "UnionFactoryMetadata",
     "Intersection",
-    "IntersectionMetadata"
+    "IntersectionMetadata",
 ]
 
 try:

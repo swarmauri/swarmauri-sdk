@@ -25,6 +25,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "MistralToolModel")
 class MistralToolModel(LLMBase):
     """
