@@ -222,7 +222,7 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -232,7 +232,7 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: ncipollo/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
