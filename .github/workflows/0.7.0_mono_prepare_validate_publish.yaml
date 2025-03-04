@@ -114,6 +114,7 @@ jobs:
 
       ## Patches 
       - name: Create patch for changes
+        if: always()
         run: |
           mkdir -p patches
           MEMBER="${{ matrix.member }}"
@@ -122,6 +123,7 @@ jobs:
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
 
       - name: Set safe member variable
+        if: always()
         id: set_safe_member
         run: |
           echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
