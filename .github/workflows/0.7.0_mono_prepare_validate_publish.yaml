@@ -300,21 +300,13 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: ncipollo/create-release@v1
+        uses: softprops/action-gh-release@v2.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.prepare_release.outputs.tag }}
-          release_name: ${{ steps.prepare_release.outputs.tag }}
+          name: ${{ steps.prepare_release.outputs.tag }}
           body: ${{ steps.generate_release_notes.outputs.release_notes }}
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
-
-      - name: Upload Release Asset
-        uses: ncipollo/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          asset_name: ${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          asset_content_type: application/zip
+          files: |
+            pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
