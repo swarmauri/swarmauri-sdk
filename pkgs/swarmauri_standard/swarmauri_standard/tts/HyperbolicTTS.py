@@ -5,7 +5,7 @@ import asyncio
 from typing import List, Literal, Dict, Optional
 from pydantic import PrivateAttr, Field, SecretStr
 from swarmauri_base.tts.TTSBase import TTSBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(TTSBase, "HyperbolicTTS")

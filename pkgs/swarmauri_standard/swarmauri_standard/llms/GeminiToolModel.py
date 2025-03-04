@@ -8,7 +8,7 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -75,7 +75,7 @@ class GeminiToolModel(LLMBase):
         ]
     )
 
-    def __init__(self, api_key: SecretStr, name: str):
+    def __init__(self, *args, **kwargs):
         """
         Initializes the GeminiToolModel instance with the provided API key and model name.
 
@@ -83,7 +83,7 @@ class GeminiToolModel(LLMBase):
             api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
             name (str): The name of the Gemini model in use.
         """
-        self.api_key = api_key
+        super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 

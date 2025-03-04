@@ -1,7 +1,12 @@
-from unittest.mock import patch, MagicMock
+import swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool as ject
 from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import (
     JupyterExecuteCellTool,
 )
+
+
+class DummyGetIPython:
+    def __call__(self, *args, **kwargs):
+        return None
 
 
 def test_tool_initialization():
@@ -14,6 +19,7 @@ def test_tool_initialization():
     assert (
         tool.description == "Executes code cells within a Jupyter kernel environment."
     )
+
     assert tool.type == "JupyterExecuteCellTool", (
         "Tool type should be 'JupyterExecuteCellTool'."
     )
@@ -67,22 +73,24 @@ def test_tool_call_timeout():
     assert "Execution timed out after 1 seconds." in result["error"], (
         "Expected timeout error message."
     )
+
     assert result["stdout"] == "", "stdout should be empty on timeout."
     assert result["stderr"] == "", "stderr should be empty on timeout."
 
 
-@patch(
-    "swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool.get_ipython",
-    return_value=None,
-)
-def test_tool_call_no_active_kernel(mock_ipython):
+def test_tool_call_no_active_kernel(monkeypatch):
     """
     Test that the tool reports an error when there is no active IPython kernel.
     """
+    # Patch the module-level get_ipython in the JupyterExecuteCellTool module so that it returns None.
+    monkeypatch.setattr(JupyterExecuteCellTool, "get_ipython", DummyGetIPython())
+
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello')", timeout=1)
+
+    # Expect the tool to signal that no kernel is active.
     assert result["stderr"] == "No active IPython kernel found.", (
-        "Expected stderr to mention no active kernel."
+        "Expected stderr to indicate no active IPython kernel."
     )
     assert result["error"] == "KernelNotFoundError", (
         "Expected error to be 'KernelNotFoundError'."
@@ -90,15 +98,20 @@ def test_tool_call_no_active_kernel(mock_ipython):
     assert result["stdout"] == "", "stdout should be empty when no kernel is found."
 
 
-@patch("swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool.get_ipython")
-def test_tool_call_exception_during_execution(mock_ipython):
+def test_tool_call_exception_during_execution(monkeypatch):
     """
     Test that the tool captures and logs exceptions raised during code execution.
     """
-    # Mock a scenario where run_cell raises an exception.
-    mock_shell = MagicMock()
-    mock_shell.run_cell.side_effect = RuntimeError("Mocked runtime error")
-    mock_ipython.return_value = mock_shell
+
+    # Define a dummy shell whose run_cell method always raises an exception.
+    class DummyShellThatRaises:
+        def run_cell(self, code, **kwargs):
+            raise RuntimeError("Mocked runtime error")
+
+    # Patch the module-level get_ipython in the JupyterExecuteCellTool module to return our dummy shell.
+    monkeypatch.setattr(
+        ject, "get_ipython", lambda *args, **kwargs: DummyShellThatRaises()
+    )
 
     tool = JupyterExecuteCellTool()
     result = tool("print('Testing exception')")

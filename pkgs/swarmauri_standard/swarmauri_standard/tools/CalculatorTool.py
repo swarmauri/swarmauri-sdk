@@ -13,7 +13,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "CalculatorTool")
@@ -35,20 +35,20 @@ class CalculatorTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="operation",
-                type="string",
+                input_type="string",
                 description="The arithmetic operation to perform ('add', 'subtract', 'multiply', 'divide').",
                 required=True,
                 enum=["add", "subtract", "multiply", "divide"],
             ),
             Parameter(
                 name="x",
-                type="number",
+                input_type="number",
                 description="The left operand for the operation.",
                 required=True,
             ),
             Parameter(
                 name="y",
-                type="number",
+                input_type="number",
                 description="The right operand for the operation.",
                 required=True,
             ),

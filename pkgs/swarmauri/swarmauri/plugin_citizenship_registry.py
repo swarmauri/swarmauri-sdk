@@ -145,6 +145,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.tool_llms.GeminiToolModel": "swarmauri_standard.tool_llms.GeminiToolModel",
         "swarmauri.tool_llms.GroqToolModel": "swarmauri_standard.tool_llms.GroqToolModel",
         "swarmauri.tool_llms.MistralToolModel": "swarmauri_standard.tool_llms.MistralToolModel",
+        "swarmauri.tool_llms.ToolLLM": "swarmauri_standard.tool_llms.ToolLLM",
         "swarmauri.stt.WhisperLargeSTT": "swarmauri_standard.stt.WhisperLargeSTT",
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",

@@ -1,7 +1,7 @@
 from typing import List, Literal, Union
 
 import PyPDF2
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 

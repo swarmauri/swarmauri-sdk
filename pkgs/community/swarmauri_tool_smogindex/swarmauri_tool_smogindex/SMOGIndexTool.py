@@ -1,5 +1,5 @@
 from typing import List, Literal, Dict
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -7,7 +7,6 @@ import re
 import math
 import nltk
 from nltk.tokenize import sent_tokenize
-
 
 # Download required NLTK data once during module load
 
@@ -21,7 +20,7 @@ class SMOGIndexTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text to analyze for SMOG Index",
                 required=True,
             )

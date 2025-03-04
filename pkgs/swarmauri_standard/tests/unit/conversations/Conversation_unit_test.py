@@ -1,7 +1,7 @@
 import pytest
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_core.ComponentBase import ResourceTypes
+from swarmauri_base.ComponentBase import ResourceTypes
 
 
 @pytest.mark.unit

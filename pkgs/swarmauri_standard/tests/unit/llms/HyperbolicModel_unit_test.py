@@ -8,7 +8,7 @@ from swarmauri_standard.llms.HyperbolicModel import HyperbolicModel as LLM
 from swarmauri_standard.messages.AgentMessage import UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -30,19 +30,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_model):
     assert hyperbolic_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(hyperbolic_model):
     assert hyperbolic_model.type == "HyperbolicModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(hyperbolic_model):
     assert (
@@ -51,13 +51,13 @@ def test_serialization(hyperbolic_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(hyperbolic_model):
     assert hyperbolic_model.name == hyperbolic_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(hyperbolic_model, model_name):
@@ -79,7 +79,7 @@ def test_no_system_context(hyperbolic_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(hyperbolic_model, model_name):
@@ -106,7 +106,7 @@ def test_preamble_system_context(hyperbolic_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(hyperbolic_model, model_name):
@@ -130,7 +130,7 @@ def test_stream(hyperbolic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -149,7 +149,7 @@ async def test_apredict(hyperbolic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -173,7 +173,7 @@ async def test_astream(hyperbolic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(hyperbolic_model, model_name):
@@ -193,7 +193,7 @@ def test_batch(hyperbolic_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict
@@ -14,13 +14,13 @@ class WebScrapingTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="url",
-                type="string",
+                input_type="string",
                 description="URL of the link, website, webpage, etc... to scrape",
                 required=True,
             ),
             Parameter(
                 name="selector",
-                type="string",
+                input_type="string",
                 description="CSS selector to target specific elements",
                 required=True,
             ),

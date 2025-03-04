@@ -2,7 +2,7 @@ import pytest
 import os
 from swarmauri_standard.llms.FalAIVisionModel import FalAIVisionModel
 from dotenv import load_dotenv
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -24,19 +24,19 @@ def get_allowed_models():
     return model.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(falai_vision_model):
     assert falai_vision_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(falai_vision_model):
     assert falai_vision_model.type == "FalAIVisionModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(falai_vision_model):
     assert (
@@ -45,22 +45,22 @@ def test_serialization(falai_vision_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_model_name(falai_vision_model):
     assert falai_vision_model.name == falai_vision_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
-def test_process_image(falai_vision_model, model_name):
+def test_predict(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Who painted this artwork?"
-    result = model.process_image(image_url=image_url, prompt=prompt)
+    result = model.predict(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0
@@ -68,21 +68,21 @@ def test_process_image(falai_vision_model, model_name):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
-async def test_aprocess_image(falai_vision_model, model_name):
+async def test_apredict(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Describe the woman in the painting."
-    result = await model.aprocess_image(image_url=image_url, prompt=prompt)
+    result = await model.apredict(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(falai_vision_model):
     image_urls = [
@@ -103,7 +103,7 @@ def test_batch(falai_vision_model):
 
 
 @pytest.mark.asyncio
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_abatch(falai_vision_model):
     image_urls = [

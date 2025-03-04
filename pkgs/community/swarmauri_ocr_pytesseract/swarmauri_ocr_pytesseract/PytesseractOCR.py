@@ -1,7 +1,7 @@
 import os
 import asyncio
 from typing import List, Literal, Union
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from PIL import Image
 import pytesseract

@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any, Literal, List
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "JSONRequestsTool")
@@ -18,7 +18,7 @@ class JSONRequestsTool(ToolBase):
     """
 
     name: str = "JSONRequestsTool"
-    type: Literal["JSONRequestsTool"] = "JSONRequestsTool"
+    input_type: Literal["JSONRequestsTool"] = "JSONRequestsTool"
     description: Optional[str] = (
         "A tool for making HTTP requests using the `requests` library."
     )
@@ -26,38 +26,38 @@ class JSONRequestsTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="method",
-                type="string",
+                input_type="string",
                 description="The HTTP method to use ('get', 'post', 'put', 'delete').",
                 required=True,
                 enum=["get", "post", "put", "delete"],
             ),
             Parameter(
                 name="url",
-                type="string",
+                input_type="string",
                 description="The URL for the request.",
                 required=True,
             ),
             Parameter(
                 name="params",
-                type="object",
+                input_type="object",
                 description="The query parameters to include in the request.",
                 required=False,
             ),
             Parameter(
                 name="data",
-                type="object",
+                input_type="object",
                 description="The form data to include in the request (used in POST and PUT).",
                 required=False,
             ),
             Parameter(
                 name="json",
-                type="object",
+                input_type="object",
                 description="The JSON data to include in the request (used in POST and PUT).",
                 required=False,
             ),
             Parameter(
                 name="headers",
-                type="object",
+                input_type="object",
                 description="Additional headers to include in the request.",
                 required=False,
             ),

@@ -5,7 +5,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri_core.ComponentBase import ResourceTypes
+from swarmauri_base.ComponentBase import ResourceTypes
 
 
 @pytest.mark.unit

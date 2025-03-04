@@ -4,7 +4,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "CodeInterpreterTool")
@@ -14,7 +14,7 @@ class CodeInterpreterTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="user_code",
-                type="string",
+                input_type="string",
                 description=(
                     "Executes the provided Python code snippet in a secure sandbox environment. "
                     "This tool is designed to interpret the execution of the python code snippet."

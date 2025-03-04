@@ -2,7 +2,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "TestTool")
@@ -14,7 +14,7 @@ class TestTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="program",
-                type="string",
+                input_type="string",
                 description="The program that the user wants to open ('notepad' or 'calc' or 'mspaint')",
                 required=True,
                 enum=["notepad", "calc", "mspaint"],

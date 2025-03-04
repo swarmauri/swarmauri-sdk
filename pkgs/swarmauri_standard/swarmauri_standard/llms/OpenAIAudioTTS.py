@@ -7,7 +7,7 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal
 import httpx
 from pydantic import PrivateAttr, SecretStr, model_validator
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 

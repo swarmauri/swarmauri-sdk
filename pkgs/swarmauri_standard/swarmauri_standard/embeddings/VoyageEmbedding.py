@@ -3,7 +3,7 @@ from typing import Any, List, Literal
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.vectors.Vector import Vector
 

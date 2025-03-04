@@ -1,9 +1,9 @@
-from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHTMLTool import (
-    JupyterDisplayHTMLTool,
+from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool import (
+    JupyterDisplayHtmlTool,
 )
 
 
-__all__ = ["JupyterDisplayHTMLTool"]
+__all__ = ["JupyterDisplayHtmlTool"]
 
 try:
     # For Python 3.8 and newer

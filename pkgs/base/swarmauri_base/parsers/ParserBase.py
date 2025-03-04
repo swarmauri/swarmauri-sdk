@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Optional, Union, List, Any, Literal
 from pydantic import Field
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.parsers.IParser import IParser
 

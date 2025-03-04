@@ -75,7 +75,7 @@ def test_serialization(github_commit_tool):
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri_community.tools.concrete.GithubCommitTool.Github")
+@patch("swarmauri_toolkit_github.GithubCommitTool.Github")
 def test_call(mock_github, github_commit_tool, action, kwargs, method_called):
     expected_keys = {action}
 

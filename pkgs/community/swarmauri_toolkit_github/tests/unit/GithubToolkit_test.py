@@ -24,7 +24,7 @@ def github_toolkit(github_api_token):
 
 @pytest.mark.unit
 def test_ubc_resource(github_toolkit):
-    assert github_toolkit.resource == "GithubToolkit"
+    assert github_toolkit.resource == "Toolkit"
 
 
 @pytest.mark.unit
@@ -63,7 +63,7 @@ def test_add_tool(github_toolkit):
     ],
 )
 @pytest.mark.unit
-@patch("swarmauri_tool_github.GithubRepoTool.Github")
+@patch("swarmauri_toolkit_github.GithubRepoTool.Github")
 def test_call_github_repo_tool(
     mock_github, github_toolkit, action, kwargs, method_called
 ):

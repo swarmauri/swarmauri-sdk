@@ -8,7 +8,7 @@ from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
-from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
 
 @ComponentBase.register_type(LLMBase, "LeptonAIModel")

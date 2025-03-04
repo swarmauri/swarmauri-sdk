@@ -2,7 +2,7 @@ import logging
 import pytest
 import os
 from swarmauri_standard.llms.GroqAIAudio import GroqAIAudio as LLM
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 from pathlib import Path
 
 # Retrieve API key from environment variable
@@ -31,32 +31,32 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_groqai_resource(groqai_model):
     assert groqai_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_groqai_type(groqai_model):
     assert groqai_model.type == "GroqAIAudio"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(groqai_model):
     assert groqai_model.id == LLM.model_validate_json(groqai_model.model_dump_json()).id
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(groqai_model):
     assert groqai_model.name == groqai_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_audio_transcription(groqai_model, model_name):
     model = groqai_model
@@ -70,7 +70,7 @@ def test_audio_transcription(groqai_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_audio_translation(groqai_model):
     model = groqai_model
@@ -85,7 +85,7 @@ def test_audio_translation(groqai_model):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -101,7 +101,7 @@ async def test_apredict(groqai_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(groqai_model, model_name):
@@ -119,7 +119,7 @@ def test_batch(groqai_model, model_name):
         assert isinstance(result, str)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

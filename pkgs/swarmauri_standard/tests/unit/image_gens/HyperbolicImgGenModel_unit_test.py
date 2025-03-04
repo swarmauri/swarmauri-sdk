@@ -28,7 +28,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(hyperbolic_imggen_model):
-    assert hyperbolic_imggen_model.resource == "LLM"
+    assert hyperbolic_imggen_model.resource == "ImageGen"
 
 
 @timeout(5)
@@ -57,13 +57,13 @@ def test_default_name(hyperbolic_imggen_model):
 @timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-def test_generate_image_base64(hyperbolic_imggen_model, model_name):
+def test_generate_image(hyperbolic_imggen_model, model_name):
     model = hyperbolic_imggen_model
     model.name = model_name
 
     prompt = "A cute cat playing with a ball of yarn"
 
-    image_base64 = model.generate_image_base64(prompt=prompt)
+    image_base64 = model.generate_image(prompt=prompt)
 
     assert isinstance(image_base64, str)
     assert len(image_base64) > 0
@@ -73,13 +73,13 @@ def test_generate_image_base64(hyperbolic_imggen_model, model_name):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
-async def test_agenerate_image_base64(hyperbolic_imggen_model, model_name):
+async def test_agenerate_image(hyperbolic_imggen_model, model_name):
     model = hyperbolic_imggen_model
     model.name = model_name
 
     prompt = "A serene landscape with mountains and a lake"
 
-    image_base64 = await model.agenerate_image_base64(prompt=prompt)
+    image_base64 = await model.agenerate_image(prompt=prompt)
 
     assert isinstance(image_base64, str)
     assert len(image_base64) > 0
@@ -87,13 +87,13 @@ async def test_agenerate_image_base64(hyperbolic_imggen_model, model_name):
 
 @timeout(5)
 @pytest.mark.unit
-def test_batch_base64(hyperbolic_imggen_model):
+def test_batch(hyperbolic_imggen_model):
     prompts = [
         "A futuristic city skyline",
         "A tropical beach at sunset",
     ]
 
-    result_base64_images = hyperbolic_imggen_model.batch_base64(prompts=prompts)
+    result_base64_images = hyperbolic_imggen_model.batch_generate(prompts=prompts)
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:
@@ -110,7 +110,9 @@ async def test_abatch_base64(hyperbolic_imggen_model):
         "A snowy mountain peak",
     ]
 
-    result_base64_images = await hyperbolic_imggen_model.abatch_base64(prompts=prompts)
+    result_base64_images = await hyperbolic_imggen_model.abatch_generate(
+        prompts=prompts
+    )
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:

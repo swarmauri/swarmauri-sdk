@@ -16,7 +16,7 @@ from nbconvert import PythonExporter
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,13 @@ class JupyterExportPythonTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook",
-                type="object",
+                input_type="object",
                 description="The NotebookNode object representing the Jupyter Notebook to export.",
                 required=True,
             ),
             Parameter(
                 name="template_file",
-                type="string",
+                input_type="string",
                 description="Optional custom template path for exporting the notebook to a Python script.",
                 required=False,
             ),

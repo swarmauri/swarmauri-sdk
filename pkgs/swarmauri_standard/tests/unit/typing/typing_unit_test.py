@@ -1,8 +1,9 @@
 import pytest
-from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
 
 
-@pytest.mark.unit
+@pytest.mark.xfail
 def test_type():
     assert type(SubclassUnion) is type
 

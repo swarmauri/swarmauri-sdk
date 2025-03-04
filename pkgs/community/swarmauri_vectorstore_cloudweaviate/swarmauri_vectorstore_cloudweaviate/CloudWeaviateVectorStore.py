@@ -1,5 +1,5 @@
 from typing import List, Union, Literal, Optional
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import PrivateAttr
 import uuid as ud
 import weaviate
