@@ -6,7 +6,7 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -122,10 +122,12 @@ class MistralModel(LLMBase):
         response.raise_for_status()
         response_data = response.json()
 
+        print(response_data)
+
         chat_models = [
             model["id"]
             for model in response_data["data"]
-            if model["supports_chat"]["completion_chat"]
+            if model["capabilities"]["completion_chat"]
         ]
 
         return chat_models

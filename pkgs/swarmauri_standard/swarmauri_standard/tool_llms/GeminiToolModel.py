@@ -13,7 +13,7 @@ from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
@@ -64,7 +64,7 @@ class GeminiToolModel(ToolLLMBase):
         ]
     )
 
-    def __init__(self, api_key: SecretStr, name: str):
+    def __init__(self, *args, **kwargs):
         """
         Initializes the GeminiToolModel instance with the provided API key and model name.
 
@@ -72,7 +72,7 @@ class GeminiToolModel(ToolLLMBase):
             api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
             name (str): The name of the Gemini model in use.
         """
-        self.api_key = api_key
+        super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 

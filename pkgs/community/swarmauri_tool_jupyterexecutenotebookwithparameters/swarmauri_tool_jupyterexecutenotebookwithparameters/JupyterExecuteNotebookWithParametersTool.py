@@ -4,7 +4,7 @@ import papermill as pm
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -40,19 +40,19 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_path",
-                type="string",
+                input_type="string",
                 description="The path to the Jupyter Notebook file to execute.",
                 required=True,
             ),
             Parameter(
                 name="output_notebook_path",
-                type="string",
+                input_type="string",
                 description="The path where the output notebook will be saved.",
                 required=True,
             ),
             Parameter(
                 name="params",
-                type="object",
+                input_type="object",
                 description="A dictionary of parameters to inject into the notebook.",
                 required=False,
             ),

@@ -3,7 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google.oauth2 import service_account
 from googleapiclient.discovery import build, Resource
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Dict, Literal
@@ -19,19 +19,19 @@ class GmailSendTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="recipients",
-                type="string",
+                input_type="string",
                 description="The email addresses of the recipients, separated by commas",
                 required=True,
             ),
             Parameter(
                 name="subject",
-                type="string",
+                input_type="string",
                 description="The subject of the email",
                 required=True,
             ),
             Parameter(
                 name="htmlMsg",
-                type="string",
+                input_type="string",
                 description="The HTML message to be sent as the email body",
                 required=True,
             ),

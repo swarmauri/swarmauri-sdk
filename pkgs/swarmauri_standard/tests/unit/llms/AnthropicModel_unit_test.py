@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from swarmauri_standard.messages.AgentMessage import UsageData
 
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 load_dotenv()
@@ -33,19 +33,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(anthropic_model):
     assert anthropic_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(anthropic_model):
     assert anthropic_model.type == "AnthropicModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(anthropic_model):
     assert (
@@ -54,13 +54,13 @@ def test_serialization(anthropic_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(anthropic_model):
-    assert anthropic_model.name == anthropic_model.allowed_models
+    assert anthropic_model.name == anthropic_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(anthropic_model, model_name):
@@ -80,7 +80,7 @@ def test_no_system_context(anthropic_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(anthropic_model, model_name):
@@ -103,7 +103,7 @@ def test_preamble_system_context(anthropic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(anthropic_model, model_name):
@@ -127,7 +127,7 @@ def test_stream(anthropic_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(anthropic_model, model_name):
@@ -147,7 +147,7 @@ def test_batch(anthropic_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -167,7 +167,7 @@ async def test_apredict(anthropic_model, model_name):
     assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -192,7 +192,7 @@ async def test_astream(anthropic_model, model_name):
     logging.info(conversation.get_last().usage)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit

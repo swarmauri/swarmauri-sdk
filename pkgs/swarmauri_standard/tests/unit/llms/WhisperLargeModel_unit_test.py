@@ -2,7 +2,6 @@ import logging
 import pytest
 import os
 from swarmauri_standard.llms.WhisperLargeModel import WhisperLargeModel as LLM
-from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -33,19 +32,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(whisperlarge_model):
     assert whisperlarge_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(whisperlarge_model):
     assert whisperlarge_model.type == "WhisperLargeModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(whisperlarge_model):
     assert (
@@ -54,13 +53,13 @@ def test_serialization(whisperlarge_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(whisperlarge_model):
     assert whisperlarge_model.name == whisperlarge_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_transcription(whisperlarge_model, model_name):
@@ -74,7 +73,7 @@ def test_audio_transcription(whisperlarge_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_audio_translation(whisperlarge_model, model_name):
@@ -91,7 +90,7 @@ def test_audio_translation(whisperlarge_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
@@ -107,7 +106,7 @@ async def test_apredict(whisperlarge_model, model_name):
     assert type(prediction) is str
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(whisperlarge_model, model_name):
@@ -125,7 +124,7 @@ def test_batch(whisperlarge_model, model_name):
         assert isinstance(result, str)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit

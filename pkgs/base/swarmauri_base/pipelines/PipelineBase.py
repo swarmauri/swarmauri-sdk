@@ -1,6 +1,6 @@
 from typing import Any, Callable, List, Optional, Dict
 from pydantic import ConfigDict, Field
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
 
 

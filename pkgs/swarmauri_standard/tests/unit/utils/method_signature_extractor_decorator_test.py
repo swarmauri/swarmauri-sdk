@@ -37,12 +37,12 @@ class TestMethodSignatureExtractor:
 
         # Check first parameter
         assert extractor.parameters[0].name == "x"
-        assert extractor.parameters[0].type == "integer"
+        assert extractor.parameters[0].input_type == "integer"
         assert extractor.parameters[0].required is True
 
         # Check second parameter
         assert extractor.parameters[1].name == "y"
-        assert extractor.parameters[1].type == "string"
+        assert extractor.parameters[1].input_type == "string"
         assert extractor.parameters[1].required is True
 
     def test_optional_function_extraction(self):
@@ -53,12 +53,12 @@ class TestMethodSignatureExtractor:
 
         # Check first parameter (optional)
         assert extractor.parameters[0].name == "a"
-        assert extractor.parameters[0].type == "integer"
+        assert extractor.parameters[0].input_type == "integer"
         assert extractor.parameters[0].required is False
 
         # Check second parameter (with default)
         assert extractor.parameters[1].name == "b"
-        assert extractor.parameters[1].type == "string"
+        assert extractor.parameters[1].input_type == "string"
         assert extractor.parameters[1].required is False
 
     def test_list_function_extraction(self):
@@ -69,12 +69,12 @@ class TestMethodSignatureExtractor:
 
         # Check first parameter (list)
         assert extractor.parameters[0].name == "items"
-        assert extractor.parameters[0].type == "array"
+        assert extractor.parameters[0].input_type == "array"
         assert extractor.parameters[0].required is True
 
         # Check second parameter (with default)
         assert extractor.parameters[1].name == "count"
-        assert extractor.parameters[1].type == "integer"
+        assert extractor.parameters[1].input_type == "integer"
         assert extractor.parameters[1].required is False
 
     def test_union_function_extraction(self):
@@ -85,8 +85,8 @@ class TestMethodSignatureExtractor:
 
         # Check union parameter
         assert extractor.parameters[0].name == "value"
-        assert extractor.parameters[0].type is not None
-        assert len(extractor.parameters[0].type) == 2
+        assert extractor.parameters[0].input_type is not None
+        assert len(extractor.parameters[0].input_type) == 2
 
     def test_complex_function_extraction(self):
         """Test extraction of a function with multiple complex types"""
@@ -96,17 +96,17 @@ class TestMethodSignatureExtractor:
 
         # Check first parameter
         assert extractor.parameters[0].name == "x"
-        assert extractor.parameters[0].type == "integer"
+        assert extractor.parameters[0].input_type == "integer"
         assert extractor.parameters[0].required is True
 
         # Check second parameter (optional list)
         assert extractor.parameters[1].name == "y"
-        assert extractor.parameters[1].type == "array"
+        assert extractor.parameters[1].input_type == "array"
         assert extractor.parameters[1].required is False
 
         # Check third parameter (union type with default)
         assert extractor.parameters[2].name == "z"
-        assert extractor.parameters[2].type is not None
+        assert extractor.parameters[2].input_type is not None
         assert extractor.parameters[2].required is False
 
     def test_decorator_signature_extraction(self):
@@ -125,12 +125,12 @@ class TestMethodSignatureExtractor:
 
         # First parameter
         assert details[0].name == "a"
-        assert details[0].type == "integer"
+        assert details[0].input_type == "integer"
         assert details[0].required is True
 
         # Second parameter
         assert details[1].name == "b"
-        assert details[1].type == "string"
+        assert details[1].input_type == "string"
         assert details[1].required is False
 
     def test_type_mapping(self):
@@ -169,4 +169,4 @@ def test_method_with_self():
     extractor = MethodSignatureExtractor(method=TestClass.method)
     assert len(extractor.parameters) == 1
     assert extractor.parameters[0].name == "x"
-    assert extractor.parameters[0].type == "integer"
+    assert extractor.parameters[0].input_type == "integer"

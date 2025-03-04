@@ -4,9 +4,9 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -35,6 +35,8 @@ class GeminiProModel(LLMBase):
     timeout: float = 600.0
 
     type: Literal["GeminiProModel"] = "GeminiProModel"
+    _client: httpx.Client = PrivateAttr(default=None)
+    _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
@@ -66,19 +68,16 @@ class GeminiProModel(LLMBase):
         """
         super().__init__(api_key=api_key, **kwargs)
 
-        self._client: httpx.Client = PrivateAttr(
-            default_factory=lambda: httpx.Client(
-                base_url="https://generativelanguage.googleapis.com/v1beta/models",
-                headers={"Content-Type": "application/json"},
-                timeout=self.timeout,
-            )
+        self._client = httpx.Client(
+            base_url="https://generativelanguage.googleapis.com/v1beta",
+            headers={"Content-Type": "application/json"},
+            timeout=self.timeout,
         )
-        self._async_client: httpx.AsyncClient = PrivateAttr(
-            default_factory=lambda: httpx.AsyncClient(
-                base_url="https://generativelanguage.googleapis.com/v1beta/models",
-                headers={"Content-Type": "application/json"},
-                timeout=self.timeout,
-            )
+
+        self._async_client = httpx.AsyncClient(
+            base_url="https://generativelanguage.googleapis.com/v1beta",
+            headers={"Content-Type": "application/json"},
+            timeout=self.timeout,
         )
 
         self.allowed_models = self.allowed_models or self.get_allowed_models()
@@ -479,5 +478,4 @@ class GeminiProModel(LLMBase):
             f"https://generativelanguage.googleapis.com/v1beta/models?key={self.api_key.get_secret_value()}"
         )
         response.raise_for_status()
-        data = response.json()
-        return data.get("allowedModels", [])
+        return [model["name"] for model in response.json()["models"]]

@@ -6,14 +6,14 @@ from nbformat.validator import NotebookValidationError
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 """
 JupyterReadNotebookTool.py
 
 This module defines the JupyterReadNotebookTool, a component that reads a Jupyter notebook file
 from the filesystem, parses it into a NotebookNode object (using a specified nbformat version),
+
 validates its integrity, and returns the resulting node for further processing. This component
 inherits from the ToolBase class to seamlessly integrate with the system's tool architecture.
 """
@@ -39,13 +39,13 @@ class JupyterReadNotebookTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_file_path",
-                type="string",
+                input_type="string",
                 description="The file path to the Jupyter notebook.",
                 required=True,
             ),
             Parameter(
                 name="as_version",
-                type="integer",
+                input_type="integer",
                 description="nbformat version to parse the notebook with (e.g., 4).",
                 required=False,
             ),

@@ -2,7 +2,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "WeatherTool")
@@ -12,13 +12,13 @@ class WeatherTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="location",
-                type="string",
+                input_type="string",
                 description="The location for which to fetch weather information",
                 required=True,
             ),
             Parameter(
                 name="unit",
-                type="string",
+                input_type="string",
                 description="The unit for temperature ('fahrenheit' or 'celsius')",
                 required=True,
                 enum=["fahrenheit", "celsius"],

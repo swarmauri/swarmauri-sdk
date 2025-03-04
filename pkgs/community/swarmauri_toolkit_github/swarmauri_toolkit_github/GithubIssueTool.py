@@ -1,6 +1,6 @@
 from github import Github, GithubException
 from typing import List, Dict, Literal, Any
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field, ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -13,31 +13,31 @@ class GithubIssueTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="action",
-                type="string",
+                input_type="string",
                 description="The action to perform on the GitHub API, e.g., 'create_issue', 'delete_issue', 'close_issue', 'list_issues', 'get_issue'",
                 required=True,
             ),
             Parameter(
                 name="repo_name",
-                type="string",
+                input_type="string",
                 description="The full name of the repository to interact with, e.g. 'owner/repository'.",
                 required=False,
             ),
             Parameter(
                 name="title",
-                type="string",
+                input_type="string",
                 description="Title of the issue to create",
                 required=False,
             ),
             Parameter(
                 name="body",
-                type="string",
+                input_type="string",
                 description="Body of the issue to create",
                 required=False,
             ),
             Parameter(
                 name="issue_number",
-                type="integer",
+                input_type="integer",
                 description="The number of the issue to interact with.",
                 required=False,
             ),

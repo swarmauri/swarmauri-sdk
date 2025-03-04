@@ -6,7 +6,6 @@ the class correctly converts dictionary data into a validated Jupyter NotebookNo
 errors appropriately.
 """
 
-import pytest
 from nbformat import NotebookNode
 from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
 
@@ -73,23 +72,17 @@ def test_call_with_invalid_notebook_dict() -> None:
         "Error message should indicate a validation error for an invalid notebook."
     )
 
+    def test_call_with_exception_handling(mocker) -> None:
+        """
+        Ensures a generic exception is also handled and returned as an error if something unexpected occurs.
+        """
+        tool = JupyterFromDictTool()
 
-def test_call_with_exception_handling(mocker) -> None:
-    """
-    Ensures a generic exception is also handled and returned as an error if something unexpected occurs.
-    """
-    tool = JupyterFromDictTool()
+        # Mock from_dict to raise a generic exception when called
+        mocker.patch("nbformat.from_dict", side_effect=Exception("Mock failure"))
 
-    # Mock from_dict to raise a generic exception when called
-    mocker.patch(
-        "swarmauri_tool_jupyterfromdict.JupyterFromDictTool.from_dict",
-        side_effect=Exception("Mock failure"),
-    )
+        result = tool({})
 
-    with pytest.raises(TypeError):
-        # Attempt to call should raise a TypeError because the mock isn't actually used by tool.__call__
-        # but this demonstrates how we would test an unexpected exception. We'll verify the tool
-        # handles exceptions gracefully in a real environment.
-        tool({})
-        # In a real scenario, you'd assert "error" in result, but with the direct call to from_dict
-        # we wouldn't reach that code path using our mock, so this test ensures the structure is correct.
+        # Assert that the result contains the error message
+        assert "error" in result
+        assert result["error"] == "An error occurred: Mock failure"

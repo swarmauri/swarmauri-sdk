@@ -1,5 +1,5 @@
 import nltk
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 import textstat
 from typing import List, Literal, Dict
 from pydantic import Field
@@ -18,7 +18,7 @@ class LexicalDensityTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for which to calculate the Lexical Density.",
                 required=True,
             )

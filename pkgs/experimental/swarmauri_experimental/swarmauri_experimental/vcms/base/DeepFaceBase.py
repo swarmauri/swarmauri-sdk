@@ -1,6 +1,6 @@
 from typing import List, ClassVar, Literal
 from pydantic import BaseModel, Field, model_validator
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 class DeepFaceBase(ComponentBase, BaseModel):
 

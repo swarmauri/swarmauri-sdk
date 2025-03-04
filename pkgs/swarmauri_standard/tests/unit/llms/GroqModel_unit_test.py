@@ -11,7 +11,6 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
 from swarmauri_standard.messages.AgentMessage import UsageData
-from swarmauri_standard.utils.timeout_wrapper import timeout
 
 
 load_dotenv()
@@ -21,7 +20,6 @@ API_KEY = os.getenv("GROQ_API_KEY")
 image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
 
 
-@timeout(5)
 @pytest.fixture(scope="module")
 def groq_model():
     if not API_KEY:
@@ -30,7 +28,6 @@ def groq_model():
     return llm
 
 
-@timeout(5)
 @pytest.fixture(scope="module")
 def llama_guard_model():
     if not API_KEY:
@@ -40,7 +37,7 @@ def llama_guard_model():
     return llm
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 def get_allowed_models():
     if not API_KEY:
         return []
@@ -63,31 +60,31 @@ def get_allowed_models():
     return allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_model):
     assert groq_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(groq_model):
     assert groq_model.type == "GroqModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(groq_model):
     assert groq_model.id == LLM.model_validate_json(groq_model.model_dump_json()).id
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(groq_model):
     assert groq_model.name == groq_model.allowed_models[0]
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(groq_model, model_name):
@@ -108,7 +105,7 @@ def test_no_system_context(groq_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(groq_model, model_name):
@@ -133,7 +130,7 @@ def test_preamble_system_context(groq_model, model_name):
     assert isinstance(usage_data, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     """
@@ -156,7 +153,7 @@ def test_llama_guard_3_8b_no_system_context(llama_guard_model):
     assert "safe" in prediction.lower()
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(groq_model, model_name):
@@ -180,7 +177,7 @@ def test_stream(groq_model, model_name):
     # assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(groq_model, model_name):
@@ -200,7 +197,7 @@ def test_batch(groq_model, model_name):
         assert isinstance(result.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -218,7 +215,7 @@ async def test_apredict(groq_model, model_name):
     assert isinstance(prediction, str)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit
@@ -242,7 +239,7 @@ async def test_astream(groq_model, model_name):
     # assert isinstance(conversation.get_last().usage, UsageData)
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.unit

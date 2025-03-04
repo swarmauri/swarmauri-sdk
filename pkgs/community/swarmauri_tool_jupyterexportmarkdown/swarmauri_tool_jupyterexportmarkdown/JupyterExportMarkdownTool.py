@@ -16,7 +16,7 @@ from nbconvert import MarkdownExporter
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class JupyterExportMarkdownTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="notebook_json",
-                type="object",
+                input_type="object",
                 description=(
                     "A JSON-like dictionary representing the Jupyter Notebook to export. "
                     "It should conform to the NotebookNode structure."
@@ -50,7 +50,7 @@ class JupyterExportMarkdownTool(ToolBase):
             ),
             Parameter(
                 name="template",
-                type="string",
+                input_type="string",
                 description=(
                     "An optional nbconvert-compatible template name or path to "
                     "customize the Markdown output."
@@ -59,7 +59,7 @@ class JupyterExportMarkdownTool(ToolBase):
             ),
             Parameter(
                 name="styles",
-                type="string",
+                input_type="string",
                 description=(
                     "Optional custom CSS style definitions as a string. "
                     "These styles will be embedded into the exported Markdown."
@@ -93,7 +93,7 @@ class JupyterExportMarkdownTool(ToolBase):
             Dict[str, str]: A dictionary containing either the exported Markdown content or
             an error message if the conversion fails.
 
-        Example:
+         Example:
             >>> tool = JupyterExportMarkdownTool()
             >>> notebook_dict = {
             ...     "cells": [
@@ -112,12 +112,18 @@ class JupyterExportMarkdownTool(ToolBase):
             # Sample Notebook
             Some introductory text.
         """
+
         logger.info("Starting export of notebook to Markdown.")
 
         try:
             # Convert the incoming JSON to a NotebookNode
             nb_node = nbformat.from_dict(notebook_json)
             logger.info("Notebook JSON successfully parsed into a NotebookNode.")
+
+            # Convert each cell's source to a string if it is a list
+            for cell in nb_node.cells:
+                if isinstance(cell.get("source", ""), list):
+                    cell["source"] = "".join(cell["source"])
 
             # Create an nbconvert MarkdownExporter
             exporter = MarkdownExporter()

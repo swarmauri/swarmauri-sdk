@@ -5,7 +5,7 @@ from captcha.image import ImageCaptcha
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "CaptchaGeneratorTool")
@@ -23,7 +23,7 @@ class CaptchaGeneratorTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text to encode in the CAPTCHA.",
                 required=True,
             ),

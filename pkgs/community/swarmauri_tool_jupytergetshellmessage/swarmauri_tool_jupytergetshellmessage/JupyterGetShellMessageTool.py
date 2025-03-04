@@ -1,25 +1,24 @@
-from typing import List, Literal, Dict, Any
+"""
+JupyterGetShellMessageTool.py
+This module defines the JupyterGetShellMessageTool, a component that retrieves messages
+from the Jupyter kernel's shell channel. It leverages the ToolBase and ComponentBase
+classes from the swarmauri framework to integrate with the system's tool architecture.
+The JupyterGetShellMessageTool supports retrieving and parsing messages for diagnostic
+purposes. It includes timeout-based handling to avoid hanging during message retrieval.
+"""
+
+from typing import ClassVar, Callable, Any, Dict, List, Literal
 import logging
 import time
 
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from jupyter_client import find_connection_file, BlockingKernelClient
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
-
-"""
-JupyterGetShellMessageTool.py
-
-This module defines the JupyterGetShellMessageTool, a component that retrieves messages
-from the Jupyter kernel's shell channel. It leverages the ToolBase and ComponentBase
-classes from the swarmauri framework to integrate with the system's tool architecture.
-
-The JupyterGetShellMessageTool supports retrieving and parsing messages for diagnostic
-purposes. It includes timeout-based handling to avoid hanging during message retrieval.
-"""
+logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(ToolBase, "JupyterGetShellMessageTool")
@@ -42,7 +41,7 @@ class JupyterGetShellMessageTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="The time in seconds to wait for shell messages before giving up.",
                 required=False,
             ),
@@ -52,13 +51,26 @@ class JupyterGetShellMessageTool(ToolBase):
     description: str = "Retrieves messages from the Jupyter kernel's shell channel."
     type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
 
+    # Public class attributes for patching.
+    find_connection_file: ClassVar[Callable[[], str]] = staticmethod(
+        find_connection_file
+    )
+    BlockingKernelClient: ClassVar[Callable[..., Any]] = BlockingKernelClient
+
+    # Private attributes to hold the patched functions.
+    _find_connection_file: Callable[[], str] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.find_connection_file
+    )
+    _BlockingKernelClient: Callable[..., Any] = PrivateAttr(
+        default_factory=lambda: JupyterGetShellMessageTool.BlockingKernelClient
+    )
+
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
         """
         Retrieves messages from the Jupyter kernel's shell channel within the specified timeout.
-
         Args:
             timeout (float, optional): The number of seconds to wait for shell messages
-                                       before timing out. Defaults to 5.0.
+                                    before timing out. Defaults to 5.0.
 
         Returns:
             Dict[str, Any]: A dictionary containing all retrieved shell messages or an error message.
@@ -76,7 +88,8 @@ class JupyterGetShellMessageTool(ToolBase):
         """
         messages = []
         try:
-            connection_file = find_connection_file()  # Find the kernel connection file
+            # Use the private attribute that now holds the patched find_connection_file.
+            connection_file = find_connection_file()
             client = BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
             client.start_channels()
@@ -103,5 +116,5 @@ class JupyterGetShellMessageTool(ToolBase):
             return {"messages": messages}
 
         except Exception as e:
-            logging.exception("Error retrieving shell messages")
+            logger.exception("Error retrieving shell messages")
             return {"error": str(e)}

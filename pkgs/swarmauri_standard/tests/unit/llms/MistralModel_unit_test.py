@@ -10,7 +10,7 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
 from swarmauri_standard.messages.AgentMessage import UsageData
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -32,19 +32,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(mistral_model):
     assert mistral_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(mistral_model):
     assert mistral_model.type == "MistralModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(mistral_model):
     assert (
@@ -52,14 +52,14 @@ def test_serialization(mistral_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(mistral_model):
     assert mistral_model.name == mistral_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_no_system_context(mistral_model, model_name):
     model = mistral_model
@@ -78,7 +78,7 @@ def test_no_system_context(mistral_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(mistral_model, model_name):
     model = mistral_model
@@ -103,7 +103,7 @@ def test_preamble_system_context(mistral_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_stream(mistral_model, model_name):
     model = mistral_model
@@ -127,7 +127,7 @@ def test_stream(mistral_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(mistral_model, model_name):
     model = mistral_model
@@ -148,7 +148,7 @@ def test_batch(mistral_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_apredict(mistral_model, model_name):
     model = mistral_model
@@ -167,7 +167,7 @@ async def test_apredict(mistral_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_astream(mistral_model, model_name):
     model = mistral_model
@@ -192,7 +192,7 @@ async def test_astream(mistral_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_abatch(mistral_model, model_name):
     model = mistral_model

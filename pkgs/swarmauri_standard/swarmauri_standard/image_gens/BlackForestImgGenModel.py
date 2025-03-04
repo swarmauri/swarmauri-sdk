@@ -6,7 +6,7 @@ from typing import Dict, List, Literal, Optional
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 

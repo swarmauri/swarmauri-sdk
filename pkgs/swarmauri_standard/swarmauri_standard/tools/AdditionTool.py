@@ -2,7 +2,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "AdditionTool")
@@ -11,10 +11,16 @@ class AdditionTool(ToolBase):
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
-                name="x", type="integer", description="The left operand", required=True
+                name="x",
+                input_type="integer",
+                description="The left operand",
+                required=True,
             ),
             Parameter(
-                name="y", type="integer", description="The right operand", required=True
+                name="y",
+                input_type="integer",
+                description="The right operand",
+                required=True,
             ),
         ]
     )

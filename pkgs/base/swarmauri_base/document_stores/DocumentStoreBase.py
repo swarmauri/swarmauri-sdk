@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.documents.IDocument import IDocument
 

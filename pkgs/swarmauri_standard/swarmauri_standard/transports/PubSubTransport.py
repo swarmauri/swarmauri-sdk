@@ -4,7 +4,7 @@ import uuid
 
 from pydantic import PrivateAttr
 from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(TransportBase, "PubSubTransport")

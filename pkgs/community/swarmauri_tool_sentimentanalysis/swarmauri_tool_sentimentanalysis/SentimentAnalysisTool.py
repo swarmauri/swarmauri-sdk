@@ -2,8 +2,8 @@ from transformers import pipeline
 from transformers import logging as hf_logging
 from typing import List, Literal, Dict
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_standard.tools.Parameter import Parameter
+from swarmauri_base.ComponentBase import ComponentBase
 from pydantic import Field
 
 hf_logging.set_verbosity_error()
@@ -20,7 +20,7 @@ class SentimentAnalysisTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text for sentiment analysis",
                 required=True,
             )

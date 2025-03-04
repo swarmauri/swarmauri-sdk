@@ -1,7 +1,7 @@
 from typing import Any, Callable, List
 
 from swarmauri_base.pipelines.PipelineBase import PipelineBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(PipelineBase, "Pipeline")

@@ -3,7 +3,7 @@ from pydantic import Field, BaseModel, ConfigDict
 
 from swarmauri_standard.messages.HumanMessage import contentItem
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 class UsageData(BaseModel):

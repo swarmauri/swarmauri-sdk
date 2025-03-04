@@ -5,8 +5,7 @@ import logging
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
-
+from swarmauri_base.ComponentBase import ComponentBase
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +27,13 @@ class JupyterGetIOPubMessageTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="kernel_client",
-                type="object",
+                input_type="object",
                 description="A Jupyter kernel client instance used to retrieve IOPub messages.",
                 required=True,
             ),
             Parameter(
                 name="timeout",
-                type="number",
+                input_type="number",
                 description="Time (in seconds) to wait for incoming IOPub messages before timing out.",
                 required=False,
                 default=5.0,

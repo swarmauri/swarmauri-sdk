@@ -14,7 +14,7 @@ from jupyter_client.kernelspec import NoSuchKernel
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "JupyterShutdownKernelTool")
@@ -40,13 +40,13 @@ class JupyterShutdownKernelTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="kernel_id",
-                type="string",
+                input_type="string",
                 description="Unique identifier or name of the kernel to be shut down.",
                 required=True,
             ),
             Parameter(
                 name="shutdown_timeout",
-                type="integer",
+                input_type="integer",
                 description="Maximum time in seconds to wait for the kernel to shut down cleanly.",
                 required=False,
                 default=5,

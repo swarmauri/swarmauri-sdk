@@ -10,7 +10,7 @@ from swarmauri_standard.messages.SystemMessage import SystemMessage
 from dotenv import load_dotenv
 
 from swarmauri_standard.messages.AgentMessage import UsageData
-from swarmauri_standard.utils.timeout_wrapper import timeout
+
 
 load_dotenv()
 
@@ -32,19 +32,19 @@ def get_allowed_models():
     return llm.allowed_models
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(perplexity_model):
     assert perplexity_model.resource == "LLM"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_ubc_type(perplexity_model):
     assert perplexity_model.type == "PerplexityModel"
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(perplexity_model):
     assert (
@@ -53,14 +53,14 @@ def test_serialization(perplexity_model):
     )
 
 
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_name(perplexity_model):
     assert perplexity_model.name == perplexity_model.allowed_models[0]
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_no_system_context(perplexity_model, model_name):
     model = perplexity_model
@@ -77,7 +77,7 @@ def test_no_system_context(perplexity_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_preamble_system_context(perplexity_model, model_name):
     model = perplexity_model
@@ -100,7 +100,7 @@ def test_preamble_system_context(perplexity_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_stream(perplexity_model, model_name):
     model = perplexity_model
@@ -123,7 +123,7 @@ def test_stream(perplexity_model, model_name):
 
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_batch(perplexity_model, model_name):
     model = perplexity_model
@@ -144,7 +144,7 @@ def test_batch(perplexity_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_apredict(perplexity_model, model_name):
     model = perplexity_model
@@ -163,7 +163,7 @@ async def test_apredict(perplexity_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_astream(perplexity_model, model_name):
     model = perplexity_model
@@ -188,7 +188,7 @@ async def test_astream(perplexity_model, model_name):
 
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.asyncio(loop_scope="session")
-@timeout(5)
+@pytest.mark.timeout(5)
 @pytest.mark.unit
 async def test_abatch(perplexity_model, model_name):
     model = perplexity_model

@@ -5,7 +5,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "ImportMemoryModuleTool")
@@ -15,19 +15,19 @@ class ImportMemoryModuleTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="name",
-                type="string",
+                input_type="string",
                 description="Name of the new module.",
                 required=True,
             ),
             Parameter(
                 name="code",
-                type="string",
+                input_type="string",
                 description="Python code snippet to include in the module.",
                 required=True,
             ),
             Parameter(
                 name="package_path",
-                type="string",
+                input_type="string",
                 description="Dot-separated package path where the new module should be inserted.",
                 required=True,
             ),

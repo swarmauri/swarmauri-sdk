@@ -4,7 +4,7 @@ from typing_extensions import TypedDict
 
 from swarmauri_standard.utils.base64_encoder import is_url, encode_file
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 # Define specific content types

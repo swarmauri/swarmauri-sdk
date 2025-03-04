@@ -5,7 +5,7 @@ from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 nltk.download("punkt_tab", quiet=True)
 
@@ -17,7 +17,7 @@ class SentenceComplexityTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="text",
-                type="string",
+                input_type="string",
                 description="The text to analyze for sentence complexity.",
                 required=True,
             )

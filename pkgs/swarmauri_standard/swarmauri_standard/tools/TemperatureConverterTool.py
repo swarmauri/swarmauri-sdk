@@ -2,7 +2,7 @@ from typing import List, Literal, Dict
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "TemperatureConverterTool")
@@ -12,21 +12,21 @@ class TemperatureConverterTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="from_unit",
-                type="string",
+                input_type="string",
                 description="The unit of the input temperature ('celsius', 'fahrenheit', 'kelvin').",
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),
             Parameter(
                 name="to_unit",
-                type="string",
+                input_type="string",
                 description="The unit to convert the temperature to ('celsius', 'fahrenheit', 'kelvin').",
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),
             Parameter(
                 name="value",
-                type="number",
+                input_type="number",
                 description="The temperature value to convert.",
                 required=True,
             ),

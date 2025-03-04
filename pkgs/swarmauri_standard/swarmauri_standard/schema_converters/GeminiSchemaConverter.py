@@ -1,7 +1,7 @@
 from typing import Dict, Any, Literal, List
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
-from swarmauri_core.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
 
 @ComponentBase.register_type(SchemaConverterBase, "GeminiSchemaConverter")
@@ -31,7 +31,7 @@ class GeminiSchemaConverter(SchemaConverterBase):
 
         for param in tool.parameters:
             properties[param.name] = {
-                "type": self.convert_type(param.type),
+                "type": self.convert_type(param.input_type),
                 "description": param.description,
             }
             if param.required:

@@ -3,7 +3,7 @@ import asyncio
 from pydantic import ConfigDict, Field
 from enum import Enum
 
-from swarmauri_core.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.swarms.ISwarm import ISwarm
 
 

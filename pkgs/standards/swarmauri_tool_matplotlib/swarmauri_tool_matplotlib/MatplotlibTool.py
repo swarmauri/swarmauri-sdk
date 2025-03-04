@@ -4,7 +4,7 @@ from typing import List, Literal
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_core.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "MatplotlibTool")
@@ -20,47 +20,47 @@ class MatplotlibTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="plot_type",
-                type="string",
+                input_type="string",
                 description="Type of plot to generate (e.g., 'line', 'bar', 'scatter').",
                 required=True,
                 enum=["line", "bar", "scatter"],
             ),
             Parameter(
                 name="x_data",
-                type="list<float>",
+                input_type="list<float>",
                 description="X-axis data for the plot.",
                 required=True,
             ),
             Parameter(
                 name="y_data",
-                type="list<float>",
+                input_type="list<float>",
                 description="Y-axis data for the plot.",
                 required=True,
             ),
             Parameter(
                 name="title",
-                type="string",
+                input_type="string",
                 description="Title of the plot.",
                 required=False,
                 default="",
             ),
             Parameter(
                 name="x_label",
-                type="string",
+                input_type="string",
                 description="Label for the X-axis.",
                 required=False,
                 default="",
             ),
             Parameter(
                 name="y_label",
-                type="string",
+                input_type="string",
                 description="Label for the Y-axis.",
                 required=False,
                 default="",
             ),
             Parameter(
                 name="save_path",
-                type="string",
+                input_type="string",
                 description="Path to save the generated plot image.",
                 required=False,
                 default="plot.png",

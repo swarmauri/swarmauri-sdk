@@ -27,7 +27,7 @@ def get_allowed_models():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(openai_image_model):
-    assert openai_image_model.resource == "LLM"
+    assert openai_image_model.resource == "ImageGen"
 
 
 @timeout(5)
@@ -86,7 +86,7 @@ def test_batch(openai_image_model):
         "An underwater scene with colorful fish",
     ]
 
-    batch_results = openai_image_model.batch(prompts=prompts)
+    batch_results = openai_image_model.batch_generate(prompts=prompts)
 
     assert len(batch_results) == len(prompts)
     for result in batch_results:
@@ -104,7 +104,7 @@ async def test_abatch(openai_image_model):
         "A cozy cabin in the snow",
     ]
 
-    batch_results = await openai_image_model.abatch(prompts=prompts)
+    batch_results = await openai_image_model.abatch_generate(prompts=prompts)
 
     assert len(batch_results) == len(prompts)
     for result in batch_results:
