@@ -1,21 +1,22 @@
+
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterclearoutput" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterclearoutput">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterclearoutput&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterclearoutput">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterclearoutput/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterclearoutput/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterclearoutput" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterclearoutput" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterclearoutput?label=swarmauri_tool_jupyterclearoutput&color=green" alt="PyPI - swarmauri_tool_jupyterclearoutput"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterclearoutput
 # swarmauri_tool_jupyterclearoutput
 
 JupyterClearOutputTool is a component designed for removing outputs from cells in a Jupyter Notebook. This ensures the notebook remains uncluttered, making it ideal for sharing and version control. It preserves the cell code and metadata, resets the execution counts, and logs the operation for auditing purposes, returning a cleaned notebook data structure.

@@ -1,21 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterruncell/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterruncell" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterruncell">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterruncell&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterruncell">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterruncell/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterruncell/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterruncell/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterruncell" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterruncell">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterruncell/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterruncell" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterruncell">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterruncell/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterruncell?label=swarmauri_tool_jupyterruncell&color=green" alt="PyPI - swarmauri_tool_jupyterruncell"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterruncell
 # swarmauri_tool_jupyterruncell
 
 This package provides a specialized tool for executing Python code cells interactively, capturing output and errors, and optionally applying timeouts. It is designed to integrate seamlessly with the broader Swarmauri tool ecosystem.

@@ -1,21 +1,22 @@
+
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_toolkit_jupytertoolkit" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs//swarmauri_toolkit_jupytertoolkit">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs//swarmauri_toolkit_jupytertoolkit&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_toolkit_jupytertoolkit">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_toolkit_jupytertoolkit/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_toolkit_jupytertoolkit/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_toolkit_jupytertoolkit" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_toolkit_jupytertoolkit">
+    <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/l/swarmauri_toolkit_jupytertoolkit" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_toolkit_jupytertoolkit">
+    <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_jupytertoolkit?label=swarmauri_toolkit_jupytertoolkit&color=green" alt="PyPI - swarmauri_toolkit_jupytertoolkit"/></a>
 </p>
 
 ---
 
+# Swarmauri Toolkit Jupytertoolkit
 # `swarmauri_toolkit_jupytertoolkit`
 
 A unified toolkit for aggregating standalone jupyter notebook tools.

@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_gmail)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_gmail)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_gmail)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_gmail?label=swarmauri_tool_gmail&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_gmail/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_gmail" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_gmail/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_gmail/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_gmail/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_gmail" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_gmail/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_gmail" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_gmail/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_gmail?label=swarmauri_tool_gmail&color=green" alt="PyPI - swarmauri_tool_gmail"/></a>
+</p>
 
 ---
 
+# Swarmauri Tool Gmail
 # Gmail Tool Package
 
 A Swarmauri tool package for interacting with Gmail API, providing functionality to send and read emails.

@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_neo4j)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_neo4j)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_neo4j)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_neo4j?label=swarmauri_vectorstore_neo4j&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_neo4j" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_vectorstore_neo4j/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_vectorstore_neo4j/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_neo4j" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_neo4j" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_neo4j?label=swarmauri_vectorstore_neo4j&color=green" alt="PyPI - swarmauri_vectorstore_neo4j"/></a>
+</p>
 
 ---
 
+# Swarmauri Vectorstore Neo4j
 # Neo4j Vector Store
 
 A Neo4j-based vector store implementation for Swarmauri SDK, providing document storage and retrieval functionality using Neo4j graph database.

@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_measurement_mutualinformation)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_measurement_mutualinformation)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_measurement_mutualinformation)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_measurement_mutualinformation?label=swarmauri_measurement_mutualinformation&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_measurement_mutualinformation/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_measurement_mutualinformation" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_measurement_mutualinformation/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_measurement_mutualinformation/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_mutualinformation/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_measurement_mutualinformation" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_mutualinformation/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_measurement_mutualinformation" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_mutualinformation/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_measurement_mutualinformation?label=swarmauri_measurement_mutualinformation&color=green" alt="PyPI - swarmauri_measurement_mutualinformation"/></a>
+</p>
 
 ---
 
+# Swarmauri Measurement Mutualinformation
 # Swarmauri Measurement Mutual Information
 
 A package to calculate mutual information between features and a target column in a given dataset.

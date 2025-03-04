@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_qrcodegenerator)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_qrcodegenerator)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_qrcodegenerator)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_qrcodegenerator?label=swarmauri_tool_qrcodegenerator&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_qrcodegenerator/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_qrcodegenerator" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_qrcodegenerator/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_qrcodegenerator/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_qrcodegenerator/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_qrcodegenerator" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_qrcodegenerator/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_qrcodegenerator" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_qrcodegenerator/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_qrcodegenerator?label=swarmauri_tool_qrcodegenerator&color=green" alt="PyPI - swarmauri_tool_qrcodegenerator"/></a>
+</p>
 
 ---
 
+# Swarmauri Tool Qrcodegenerator
 # QR Code Generator Tool
 
 A tool component for generating QR codes from input data. The tool creates QR codes and returns them as base64-encoded images.

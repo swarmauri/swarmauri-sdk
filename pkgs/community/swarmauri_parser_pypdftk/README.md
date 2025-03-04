@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_pypdftk)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_pypdftk)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_pypdftk)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_pypdftk?label=swarmauri_parser_pypdftk&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_parser_pypdftk/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_parser_pypdftk" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_parser_pypdftk/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_parser_pypdftk/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdftk/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_pypdftk" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdftk/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_pypdftk" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdftk/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_pypdftk?label=swarmauri_parser_pypdftk&color=green" alt="PyPI - swarmauri_parser_pypdftk"/></a>
+</p>
 
 ---
 
+# Swarmauri Parser Pypdftk
 # Swarmauri PyPDFTKParser
 
 A parser for reading and extracting data fields from PDF files using PyPDFTK.

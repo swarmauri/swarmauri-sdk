@@ -1,27 +1,22 @@
-<!--
-   Swarmauri Tools: JupyterExecuteNotebookTool
-   README.md
-   Provides usage details for the swarmauri_tool_jupyterexecutenotebook package.
--->
 
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterexecutenotebook" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutenotebook">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutenotebook&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecutenotebook">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutenotebook/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutenotebook/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterexecutenotebook" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecutenotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterexecutenotebook" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecutenotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexecutenotebook?label=swarmauri_tool_jupyterexecutenotebook&color=green" alt="PyPI - swarmauri_tool_jupyterexecutenotebook"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterexecutenotebook
 # swarmauri_tool_jupyterexecutenotebook
 
 The swarmauri_tool_jupyterexecutenotebook package provides a tool for executing all cells in a Jupyter notebook in sequence, capturing outputs and returning the fully updated NotebookNode object. It leverages the Swarmauri framework's base and core components.

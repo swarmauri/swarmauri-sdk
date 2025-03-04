@@ -1,21 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterfromdict" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterfromdict">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterfromdict&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterfromdict">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterfromdict/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterfromdict/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterfromdict" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterfromdict">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterfromdict" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterfromdict?label=swarmauri_tool_jupyterfromdict&color=green" alt="PyPI - swarmauri_tool_jupyterfromdict"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterfromdict
 # swarmauri_tool_jupyterfromdict
 
 swarmauri_tool_jupyterfromdict provides a straightforward way to convert a Python dictionary into a validated Jupyter NotebookNode using nbformat. This allows programmatic creation and manipulation of notebook structures within the Swarmauri framework or your own applications.

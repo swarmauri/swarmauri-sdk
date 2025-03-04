@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_downloadpdf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_downloadpdf)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_downloadpdf)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_downloadpdf?label=swarmauri_tool_downloadpdf&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_downloadpdf/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_downloadpdf" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_downloadpdf/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_downloadpdf/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_downloadpdf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_downloadpdf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_downloadpdf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_downloadpdf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_downloadpdf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_downloadpdf?label=swarmauri_tool_downloadpdf&color=green" alt="PyPI - swarmauri_tool_downloadpdf"/></a>
+</p>
 
 ---
 
+# Swarmauri Tool Downloadpdf
 # Swarmauri Tool DownloadPDF
 
 A tool to download a PDF from a specified URL and save it to a specified path.

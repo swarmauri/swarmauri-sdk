@@ -1,21 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupytergetshellmessage" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetshellmessage">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetshellmessage&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytergetshellmessage">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetshellmessage/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetshellmessage/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupytergetshellmessage" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytergetshellmessage">
+    <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytergetshellmessage" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytergetshellmessage">
+    <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetshellmessage?label=swarmauri_tool_jupytergetshellmessage&color=green" alt="PyPI - swarmauri_tool_jupytergetshellmessage"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupytergetshellmessage
 # swarmauri_tool_jupytergetshellmessage
 
 A dedicated Python package providing a tool to retrieve shell messages from a running Jupyter kernel using jupyter_client. Built on the swarmauri framework, JupyterGetShellMessageTool is suitable for debugging, logging, and diagnostic purposes.

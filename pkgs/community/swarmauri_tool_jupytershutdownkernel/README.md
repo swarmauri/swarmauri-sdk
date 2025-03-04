@@ -1,22 +1,22 @@
-<!-- Swarmauri Branding & Badges -->
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupytershutdownkernel" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupytershutdownkernel" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytershutdownkernel" alt="PyPI - License"/></a>
-    <br />
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytershutdownkernel?label=swarmauri_tool_jupytershutdownkernel&color=green" alt="PyPI - swarmauri_tool_jupytershutdownkernel"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupytershutdownkernel
 # swarmauri_tool_jupytershutdownkernel
 
 The swarmauri_tool_jupytershutdownkernel package provides a straightforward solution to shut down a running Jupyter kernel programmatically. It uses jupyter_client under the hood and is integrated into the Swarmauri framework ecosystem. This tool can be useful for automated resource management, testing scenarios that require repeated kernel restarts, or any workflow that programmatically terminates Jupyter kernels.

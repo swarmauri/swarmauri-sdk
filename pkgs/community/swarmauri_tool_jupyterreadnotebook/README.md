@@ -1,32 +1,22 @@
-<!-- 
- _______  _     _  _______  ______    __   __  _______  __   __  ______    ___  
-|       || | _ | ||   _   ||    _ |  |  |_|  ||   _   ||  | |  ||    _ |  |   | 
-|  _____|| || || ||  |_|  ||   | ||  |       ||  |_|  ||  | |  ||   | ||  |   | 
-| |_____ |       ||       ||   |_||_ |       ||       ||  |_|  ||   |_||_ |   | 
-|_____  ||       ||       ||    __  ||       ||       ||       ||    __  ||   | 
- _____| ||   _   ||   _   ||   |  | || ||_|| ||   _   ||       ||   |  | ||   | 
-|_______||__| |__||__| |__||___|  |_||_|   |_||__| |__||_______||___|  |_||___| 
 
-                                                   
-Swarmauri Tools for reading Jupyter Notebook files using nbformat
--->
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterreadnotebook" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterreadnotebook">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterreadnotebook&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterreadnotebook">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterreadnotebook/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterreadnotebook/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterreadnotebook" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterreadnotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterreadnotebook" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterreadnotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterreadnotebook?label=swarmauri_tool_jupyterreadnotebook&color=green" alt="PyPI - swarmauri_tool_jupyterreadnotebook"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterreadnotebook
 # swarmauri_tool_jupyterreadnotebook
 
 The swarmauri_tool_jupyterreadnotebook package provides a tool (`JupyterReadNotebookTool`) that reads a Jupyter Notebook file from the local filesystem, validates it using nbformat, and returns it for further processing. This is especially useful in scenarios where you need to programmatically read and inspect notebooks, or integrate them into automated workflows.

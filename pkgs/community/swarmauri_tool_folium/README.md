@@ -1,16 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_folium)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_folium)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_folium)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_folium?label=swarmauri_tool_folium&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_folium/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_folium" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_folium/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_folium/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_folium/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_folium" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_folium/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_folium" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_folium/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_folium?label=swarmauri_tool_folium&color=green" alt="PyPI - swarmauri_tool_folium"/></a>
+</p>
 
 ---
 
+# Swarmauri Tool Folium
 # Swarmauri Tool Folium
 
 A tool to generate maps with markers using Folium.

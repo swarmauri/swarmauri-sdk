@@ -1,21 +1,22 @@
+
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterstartkernel" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterstartkernel">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterstartkernel" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterstartkernel">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterstartkernel" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterstartkernel">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterstartkernel?label=swarmauri_tool_jupyterstartkernel&color=green" alt="PyPI - swarmauri_tool_jupyterstartkernel"/></a>
 </p>
 
 ---
 
+# Swarmauri Tool Jupyterstartkernel
 # swarmauri_tool_jupyterstartkernel
 
 ## Overview
