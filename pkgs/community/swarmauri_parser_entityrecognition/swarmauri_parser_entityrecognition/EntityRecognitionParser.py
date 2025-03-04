@@ -39,7 +39,9 @@ class EntityRecognitionParser(ParserBase):
                 self._nlp = spacy.load("en_core_web_sm")
             except Exception:
                 # Final fallback: Use a blank model with minimal NER capabilities.
-                print("Warning: Using blank English model with minimal NER capabilities.")
+                print(
+                    "Warning: Using blank English model with minimal NER capabilities."
+                )
                 self._nlp = spacy.blank("en")
                 # Add a basic entity recognizer
                 self._nlp.add_pipe("ner")
