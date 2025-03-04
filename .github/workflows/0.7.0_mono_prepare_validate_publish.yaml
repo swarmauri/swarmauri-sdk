@@ -216,7 +216,7 @@ jobs:
 
 
   release:
-    needs: set-matrix
+    needs: [commit, set-matrix]
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
