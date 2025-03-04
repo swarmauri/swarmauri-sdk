@@ -216,8 +216,9 @@ jobs:
 
 
   release:
-    needs: [commit, set-matrix]
+    needs: commit
     runs-on: ubuntu-latest
+    if: always()
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
