@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       bump_type:
-        description: "Bump type (patch or finalize) for the prepare phase"
+        description: "Bump type {major,minor,patch,finalize}"
         required: false
         default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
 concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
@@ -55,6 +58,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
+      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -74,8 +78,16 @@ jobs:
           # Read the package name from the member's pyproject.toml
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           echo "Package name: $PACKAGE_NAME"
+          
+          # Determine whether to use bump or set based on inputs
+          if [ -n "${{ github.event.inputs.set_version }}" ]; then
+            VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
+          else
+            VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
+          fi
 
-          uv run --active scripts/bump_pyproject_version.py --bump "${{ github.event.inputs.bump_type }}" ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml  
+          uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+
 
       - name: Ruff format
         run: |
@@ -113,6 +125,7 @@ jobs:
 
       ## Patches 
       - name: Create patch for changes
+        if: always()
         run: |
           mkdir -p patches
           MEMBER="${{ matrix.member }}"
@@ -121,6 +134,7 @@ jobs:
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
 
       - name: Set safe member variable
+        if: always()
         id: set_safe_member
         run: |
           echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
@@ -133,7 +147,7 @@ jobs:
           path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
           if-no-files-found: warn
 
-      ## Build & Release Assets
+      ## Build
       - name: Build
         run: |
           cd pkgs
@@ -143,7 +157,7 @@ jobs:
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           echo "Package name: $PACKAGE_NAME"
           # Command
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated -o distout/*
+          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
       ## Publish
       - name: Publish
@@ -156,6 +170,7 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+
 
   commit:
     name: Commit Changes
@@ -186,7 +201,7 @@ jobs:
         run: |
           find patches -type f -name "*.patch" | while read patch; do
             echo "Applying patch $patch"
-            git apply -p1 "$patch"
+            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
           done
           rm -rf patches
 
@@ -202,4 +217,3 @@ jobs:
           else
             echo "No changes to commit."
           fi
-u
