@@ -169,6 +169,83 @@ jobs:
           # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: patches
+
+      - name: List downloaded artifacts
+        run: ls -R patches
+
+      - name: Apply patches
+        run: |
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
+          done
+          rm -rf patches
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}"
+          else
+            echo "No changes to commit."
+          fi
+
+
+  release:
+    needs: set-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      ## Build
+      - name: Build
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          # Read the package name from the member's pyproject.toml
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          # Command
+          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+
       ## --- Release Steps: Auto-tag, generate release notes, zip artifacts, create release ---
       - name: Prepare release variables
         id: prepare_release
@@ -240,48 +317,3 @@ jobs:
           asset_path: pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
           asset_name: ${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
           asset_content_type: application/zip
-
-  commit:
-    name: Commit Changes
-    needs: test
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Download patch artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: patches
-
-      - name: List downloaded artifacts
-        run: ls -R patches
-
-      - name: Apply patches
-        run: |
-          find patches -type f -name "*.patch" | while read patch; do
-            echo "Applying patch $patch"
-            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
-          done
-          rm -rf patches
-
-      - name: Git Commit and Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          if ! git diff-index --quiet HEAD; then
-            git commit -m "chore: apply automatic formatting and lint fixes"
-            git pull --rebase origin "${{ github.ref }}"
-            git push origin HEAD:"${{ github.ref }}"
-          else
-            echo "No changes to commit."
-          fi
