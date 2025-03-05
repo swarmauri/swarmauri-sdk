@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_tfidf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_tfidf)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_tfidf)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_tfidf" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_vectorstore_tfidf/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/swarmauri_vectorstore_tfidf/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_tfidf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_tfidf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green" alt="PyPI - swarmauri_vectorstore_tfidf"/></a>
+</p>
 
 ---
 
-# TF-IDF Vector Store
+# Swarmauri Vectorstore Tfidf
 
 A vector store implementation using TF-IDF (Term Frequency-Inverse Document Frequency) for document embedding and retrieval. This package provides efficient document storage and similarity-based retrieval using the TF-IDF algorithm.
 

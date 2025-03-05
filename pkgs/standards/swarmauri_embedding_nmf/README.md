@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_embedding_nmf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_embedding_nmf)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_embedding_nmf)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_embedding_nmf?label=swarmauri_embedding_nmf&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_embedding_nmf/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_embedding_nmf" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_embedding_nmf/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/swarmauri_embedding_nmf/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_nmf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_embedding_nmf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_nmf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_embedding_nmf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_nmf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_embedding_nmf?label=swarmauri_embedding_nmf&color=green" alt="PyPI - swarmauri_embedding_nmf"/></a>
+</p>
 
 ---
 
-# NMF Embedding Package
+# Swarmauri Embedding Nmf
 
 A Non-negative Matrix Factorization (NMF) based embedding implementation for text data processing in the Swarmauri ecosystem.
 
