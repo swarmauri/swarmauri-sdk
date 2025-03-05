@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Pinecone
-# Swarmauri Pinecone Vector Store
 
 A vector store implementation using Pinecone as the backend for efficient similarity search and document storage.
 

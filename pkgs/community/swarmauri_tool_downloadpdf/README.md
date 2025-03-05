@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Downloadpdf
-# Swarmauri Tool DownloadPDF
 
 A tool to download a PDF from a specified URL and save it to a specified path.
 

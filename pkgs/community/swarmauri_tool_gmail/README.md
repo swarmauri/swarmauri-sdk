@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Gmail
-# Gmail Tool Package
 
 A Swarmauri tool package for interacting with Gmail API, providing functionality to send and read emails.
 

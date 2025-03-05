@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Parser Pypdftk
-# Swarmauri PyPDFTKParser
 
 A parser for reading and extracting data fields from PDF files using PyPDFTK.
 

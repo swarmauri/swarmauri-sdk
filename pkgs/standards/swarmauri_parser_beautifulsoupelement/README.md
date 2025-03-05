@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Parser Beautifulsoupelement
-# BeautifulSoup Element Parser
 
 A specialized parser that utilizes BeautifulSoup to extract specific HTML elements and their content from HTML documents.
 

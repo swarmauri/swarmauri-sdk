@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Zapierhook
-# Swarmauri Zapier Hook Tool
 
 A tool for integrating Zapier webhooks with Swarmauri, enabling automated workflows through Zapier's API.
 

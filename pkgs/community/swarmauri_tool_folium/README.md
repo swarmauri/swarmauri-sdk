@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Folium
-# Swarmauri Tool Folium
 
 A tool to generate maps with markers using Folium.
 

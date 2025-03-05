@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Parser Keywordextractor
-# Keyword Extractor Parser
 
 A parser component that extracts keywords from text using the YAKE keyword extraction library.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Sentencecomplexity
-# Sentence Complexity Tool
 
 A tool for evaluating sentence complexity based on average sentence length and the number of clauses.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexportlatex
-# swarmauri_tool_jupyterexportlatex
 
 A tool that exports a Jupyter Notebook to LaTeX format using nbconvert’s LatexExporter. This tool can optionally convert the produced LaTeX into PDF form, making it easy to prepare high-quality, publication-ready documents.
 

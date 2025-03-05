@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Ocr Pytesseract
-# Swarmauri OCR PytesseractImg2Text
 
 A model for performing OCR (Optical Character Recognition) using Pytesseract. It can process both local images and image bytes, returning extracted text. Requires Tesseract-OCR to be installed on the system.
 

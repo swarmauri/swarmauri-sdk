@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Tfidf
-# TF-IDF Vector Store
 
 A vector store implementation using TF-IDF (Term Frequency-Inverse Document Frequency) for document embedding and retrieval. This package provides efficient document storage and similarity-based retrieval using the TF-IDF algorithm.
 

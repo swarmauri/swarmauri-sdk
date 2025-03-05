@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterstartkernel
-# swarmauri_tool_jupyterstartkernel
 
 ## Overview
 The swarmauri_tool_jupyterstartkernel package provides a tool that programmatically starts a Jupyter kernel using jupyter_client. It integrates seamlessly with the Swarmauri framework to offer flexible kernel initialization, monitoring, and error handling.

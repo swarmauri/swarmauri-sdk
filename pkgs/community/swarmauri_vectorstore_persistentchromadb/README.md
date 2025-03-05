@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Persistentchromadb
-# Persistent ChromaDB Vector Store
 
 A persistent vector store implementation using ChromaDB for document storage and retrieval with embeddings.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Distance Minkowski
-# Minkowski Distance Package
 
 A Python package implementing Minkowski distance metric for vector comparison. This distance metric is a generalization that includes both Euclidean and Manhattan distances.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Qdrant
-# Swarmauri Qdrant Vector Store
 
 A vector store implementation using Qdrant as the backend, supporting both persistent local storage and cloud-based operations for document storage and retrieval.
 

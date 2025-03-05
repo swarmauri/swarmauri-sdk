@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Matplotlib
-# Matplotlib Tool Package
 
 A Swarmauri package that provides tools for generating plots using Matplotlib. Includes support for basic plots and CSV data visualization.
 

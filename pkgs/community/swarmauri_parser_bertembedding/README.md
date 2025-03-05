@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Parser Bertembedding
-# Swarmauri BERT Embedding Parser
 
 A parser that transforms input text into document embeddings using BERT.
 

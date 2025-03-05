@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Neo4j
-# Neo4j Vector Store
 
 A Neo4j-based vector store implementation for Swarmauri SDK, providing document storage and retrieval functionality using Neo4j graph database.
 

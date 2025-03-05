@@ -15,8 +15,6 @@
 
 ---
 
-# Swarmauri
-
 # Swarmauri SDK
 
 The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework. 

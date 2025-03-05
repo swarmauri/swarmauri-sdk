@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexportpython
-# swarmauri_tool_jupyterexportpython
 
 A Python package that provides an easy way to export Jupyter Notebook files to Python scripts using the nbconvert library. This tool smoothly integrates with the Swarmauri tool architecture, enabling consistent logging, error handling, and flexible usage options.
 
@@ -49,7 +48,6 @@ from nbformat import read, NO_CONVERT
 from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool
 
 # Suppose you've loaded a Jupyter notebook file.
-# We'll create a NotebookNode from a .ipynb file, then export it.
 
 def load_notebook(file_path: str):
     """

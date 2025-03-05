@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Redis
-# Redis Vector Store for Swarmauri
 
 A Redis-based vector store implementation for the Swarmauri SDK that enables efficient storage and retrieval of document embeddings.
 

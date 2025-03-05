@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Documentstore Redis
-# Swarmauri DocumentStore Redis
 
 A Redis-based document store for Swarmauri SDK.
 

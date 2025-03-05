@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Smogindex
-# SMOG Index Tool
 
 A tool for calculating the SMOG (Simple Measure of Gobbledygook) Index of text, which estimates the years of education needed to understand a piece of written material.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri State Clipboard
-# Swarmauri State Clipboard
 
 A concrete implementation of StateBase that uses the system clipboard to store and retrieve state data.
 

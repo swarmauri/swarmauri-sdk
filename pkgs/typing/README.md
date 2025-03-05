@@ -16,7 +16,6 @@
 ---
 
 # Swarmauri Typing
-# Swarmauri Typing Library
 
 The Swarmauri Typing Library provides advanced type utilities for Python, enabling more expressive and flexible type annotations. It includes tools for creating intersection and union types dynamically.
 

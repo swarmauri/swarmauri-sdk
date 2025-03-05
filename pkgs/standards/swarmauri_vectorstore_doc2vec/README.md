@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Doc2vec
-# Doc2Vec Vector Store
 
 A vector store implementation using Doc2Vec for document embedding and similarity search.
 

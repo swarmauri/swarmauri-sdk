@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Toolkit Jupytertoolkit
-# `swarmauri_toolkit_jupytertoolkit`
 
 A unified toolkit for aggregating standalone jupyter notebook tools.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterreadnotebook
-# swarmauri_tool_jupyterreadnotebook
 
 The swarmauri_tool_jupyterreadnotebook package provides a tool (`JupyterReadNotebookTool`) that reads a Jupyter Notebook file from the local filesystem, validates it using nbformat, and returns it for further processing. This is especially useful in scenarios where you need to programmatically read and inspect notebooks, or integrate them into automated workflows.
 

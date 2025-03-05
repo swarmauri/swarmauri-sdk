@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Embedding Doc2vec
-# Doc2Vec Embedding
 
 A Gensim-based Doc2Vec implementation for document embedding in the Swarmauri ecosystem. This package provides document vectorization capabilities using the Doc2Vec algorithm.
 

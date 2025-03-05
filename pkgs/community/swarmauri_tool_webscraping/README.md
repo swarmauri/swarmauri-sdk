@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Webscraping
-# Web Scraping Tool
 
 A web scraping tool that uses Python's requests and BeautifulSoup libraries to parse web content using CSS selectors.
 

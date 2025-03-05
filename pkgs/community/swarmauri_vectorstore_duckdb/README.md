@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Duckdb
-# DuckDB Vector Store
 
 A vector store implementation using DuckDB as the backend for efficient document storage and similarity search.
 

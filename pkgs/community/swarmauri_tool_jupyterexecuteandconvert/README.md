@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexecuteandconvert
-# swarmauri_tool_jupyterexecuteandconvert
 
 This package provides functionality to programmatically execute a Jupyter Notebook and convert it to a variety of output formats using nbconvert, enabling automated workflows within the Swarmauri framework.
 

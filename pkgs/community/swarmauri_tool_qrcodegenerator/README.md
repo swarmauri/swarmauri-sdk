@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Qrcodegenerator
-# QR Code Generator Tool
 
 A tool component for generating QR codes from input data. The tool creates QR codes and returns them as base64-encoded images.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexecutenotebookwithparameters
-# `swarmauri_tool_jupyterexecutenotebookwithparameters`
 
 ## Overview
 

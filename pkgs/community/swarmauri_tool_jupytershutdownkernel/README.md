@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupytershutdownkernel
-# swarmauri_tool_jupytershutdownkernel
 
 The swarmauri_tool_jupytershutdownkernel package provides a straightforward solution to shut down a running Jupyter kernel programmatically. It uses jupyter_client under the hood and is integrated into the Swarmauri framework ecosystem. This tool can be useful for automated resource management, testing scenarios that require repeated kernel restarts, or any workflow that programmatically terminates Jupyter kernels.
 

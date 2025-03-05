@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupytergetshellmessage
-# swarmauri_tool_jupytergetshellmessage
 
 A dedicated Python package providing a tool to retrieve shell messages from a running Jupyter kernel using jupyter_client. Built on the swarmauri framework, JupyterGetShellMessageTool is suitable for debugging, logging, and diagnostic purposes.
 

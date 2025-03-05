@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexecutecell
-# swarmauri_tool_jupyterexecutecell
 
 The "swarmauri_tool_jupyterexecutecell" package provides a tool that allows you to execute code cells in an active Jupyter kernel, capturing all standard output, errors, and any exceptions that may occur. This makes it useful for programmatically running snippets of Python code within Jupyter environments, such as notebooks or other interactive contexts.
 

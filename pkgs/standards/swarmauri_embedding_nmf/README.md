@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Embedding Nmf
-# NMF Embedding Package
 
 A Non-negative Matrix Factorization (NMF) based embedding implementation for text data processing in the Swarmauri ecosystem.
 

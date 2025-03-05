@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Sentimentanalysis
-# Sentiment Analysis Tool
 
 A tool for analyzing the sentiment of text using Hugging Face's transformers library. This tool provides simple sentiment analysis capabilities, classifying text as POSITIVE, NEGATIVE, or NEUTRAL.
 

@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupytervalidatenotebook
-# swarmauri_tool_jupytervalidatenotebook
 
 ## Overview
 This package provides a tool that validates a Jupyter notebook (NotebookNode) against its JSON schema using nbformat. It is useful for ensuring that your notebooks follow the correct structural and metadata standards required for processing or distribution. The tool can easily be integrated into automated workflows for CI/CD or general code validation processes.

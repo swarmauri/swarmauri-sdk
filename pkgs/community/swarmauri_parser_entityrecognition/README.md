@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Parser Entityrecognition
-# Swarmauri Entity Recognition Parser
 
 EntityRecognitionParser leverages NER capabilities to parse text and extract entities with their respective tags such as PERSON, LOCATION, ORGANIZATION, etc.
 

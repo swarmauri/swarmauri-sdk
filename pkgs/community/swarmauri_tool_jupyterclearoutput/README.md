@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterclearoutput
-# swarmauri_tool_jupyterclearoutput
 
 JupyterClearOutputTool is a component designed for removing outputs from cells in a Jupyter Notebook. This ensures the notebook remains uncluttered, making it ideal for sharing and version control. It preserves the cell code and metadata, resets the execution counts, and logs the operation for auditing purposes, returning a cleaned notebook data structure.
 
@@ -66,7 +65,6 @@ tool = JupyterClearOutputTool()
 clean_notebook = tool(notebook_data)
 ```
 # At this point, 'clean_notebook' contains the same notebook but with outputs cleared.
-# Each code cell's 'outputs' list is empty and the 'execution_count' is reset to None.
 
 --------------------------------------------------------------------------------
 

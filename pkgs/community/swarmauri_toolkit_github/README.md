@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Toolkit Github
-# GitHub Tools Package
 
 A collection of GitHub tools for repository, issue, pull request, branch, and commit management using PyGithub.
 

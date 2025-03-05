@@ -17,7 +17,6 @@
 ---
 
 # Swm Example Package
-# {Package Title}
 
 {Brief package description}
 

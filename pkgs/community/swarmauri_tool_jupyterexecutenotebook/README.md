@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterexecutenotebook
-# swarmauri_tool_jupyterexecutenotebook
 
 The swarmauri_tool_jupyterexecutenotebook package provides a tool for executing all cells in a Jupyter notebook in sequence, capturing outputs and returning the fully updated NotebookNode object. It leverages the Swarmauri framework's base and core components.
 

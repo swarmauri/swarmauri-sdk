@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Vectorstore Mlm
-# MLM Vector Store
 
 A vector store implementation using MLM (Masked Language Model) embeddings for document storage and retrieval.
 

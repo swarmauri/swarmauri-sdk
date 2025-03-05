@@ -18,7 +18,6 @@
 ---
 
 # Swarmauri Base
-# Swarmauri Base Classes
 
 ## Getting Started
 

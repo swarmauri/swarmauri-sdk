@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Textlength
-# Text Length Tool
 
 A Swarmauri tool that calculates the length of text in terms of characters, words, and sentences using NLTK tokenization.
 

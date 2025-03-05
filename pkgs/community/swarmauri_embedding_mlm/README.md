@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Embedding Mlm
-# Swarmauri Embedding MLM
 
 This package provides an implementation of an embedding model that fine-tunes a Masked Language Model (MLM) for generating embeddings.
 

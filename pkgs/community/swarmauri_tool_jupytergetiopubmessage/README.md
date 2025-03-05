@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupytergetiopubmessage
-# swarmauri_tool_jupytergetiopubmessage
 
 A Python tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs, logging information, and errors.
 

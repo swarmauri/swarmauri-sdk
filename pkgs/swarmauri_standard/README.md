@@ -18,7 +18,6 @@
 ---
 
 # Swarmauri Standard
-# Swarmauri Standard
 
 The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework. 
 

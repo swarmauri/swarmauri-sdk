@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Entityrecognition
-# Entity Recognition Tool
 
 A Swarmauri tool that extracts named entities from text using a pre-trained NLP model.
 
@@ -44,7 +43,6 @@ text = "Apple Inc. is an American multinational technology company."
 result = tool(text=text)
 
 # The result will contain entities in JSON format
-# Example output: {"I-ORG": ["Apple", "Inc"], "I-MISC": ["American"]}
 print(result["entities"])
 ```
 

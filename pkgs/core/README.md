@@ -19,7 +19,6 @@
 ---
 
 # Swarmauri Core
-# Swarmauri Core Library
 
 The Core Library provides the foundational interfaces and abstract base classes necessary for developing scalable and flexible machine learning agents, models, and tools. It is designed to offer a standardized approach to implementing various components of machine learning systems, such as models, parsers, conversations, and vector stores.
 

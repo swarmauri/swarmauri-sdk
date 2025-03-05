@@ -17,7 +17,6 @@
 ---
 
 # Swarmauri Tool Jupyterwritenotebook
-# swarmauri_tool_jupyterwritenotebook
 
 The "swarmauri_tool_jupyterwritenotebook" package provides a tool that writes a Jupyter NotebookNode (or a dictionary structured like a NotebookNode) to a file in JSON format, preserving notebook structure. It comes as a fully functional component ready for integration in Python projects requiring automated notebook generation or manipulation.
 

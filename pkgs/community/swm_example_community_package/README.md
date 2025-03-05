@@ -17,4 +17,3 @@
 ---
 
 # Swm Example Community Package
-# Swarmauri Example Community Package
