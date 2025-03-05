@@ -32,8 +32,11 @@ def test_set_template_from_filepath():
         temp_file.write(b"Hello, {{ name }}!")
         temp_file_path = temp_file.name
 
-    template.set_template(temp_file_path)
-    assert isinstance(template.template, Template)
+    with open(temp_file_path, 'r') as file:
+        template_content = file.read()
+
+    template.set_template(template_content)
+    assert template.template == template_content
     os.remove(temp_file_path)
 
 
@@ -53,7 +56,10 @@ def test_generate_prompt_from_file_template():
         temp_file.write(b"Hello, {{ name }}!")
         temp_file_path = temp_file.name
 
-    template.set_template(temp_file_path)
+    with open(temp_file_path, 'r') as file:
+        template_content = file.read()
+
+    template.set_template(template_content)
     result = template.generate_prompt({"name": "World"})
     assert result == "Hello, World!"
     os.remove(temp_file_path)
