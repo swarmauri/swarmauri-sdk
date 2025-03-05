@@ -67,7 +67,6 @@ class ToolLLMBase(IToolPredict, ComponentBase):
     ) -> List[Dict[str, str]]:
         raise NotImplementedError("_format_messages() not implemented in subclass yet.")
 
-    @abstractmethod
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
         """
         Processes a list of tool calls and appends the results to the messages list.
