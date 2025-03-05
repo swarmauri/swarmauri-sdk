@@ -44,10 +44,10 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.llms"]
+[project.entry-points.'swarmauri.llms']
 LeptonAIModel = "swarmauri_llm_leptonai.LeptonAIImgGenModel:LeptonAIModel"
 
-[tool.project.entry-points."swarmauri.image_gens"]
+[project.entry-points.'swarmauri.image_gens']
 LeptonAIImgGenModel = "swarmauri_llm_leptonai.LeptonAIImgGenModel:LeptonAIImgGenModel"
 
 [build-system]

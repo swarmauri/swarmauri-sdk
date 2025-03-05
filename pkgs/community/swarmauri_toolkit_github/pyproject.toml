@@ -44,14 +44,14 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.tools"]
+[project.entry-points.'swarmauri.tools']
 GithubBranchTool = "swarmauri_toolkit_github.GithubBranchTool:GithubBranchTool"
 GithubCommitTool = "swarmauri_toolkit_github.GithubCommitTool:GithubCommitTool"
 GithubIssueTool = "swarmauri_toolkit_github.GithubIssueTool:GithubIssueTool"
 GithubPRTool = "swarmauri_toolkit_github.GithubPRTool:GithubPRTool"
 GithubRepoTool = "swarmauri_toolkit_github.GithubRepoTool:GithubRepoTool"
 
-[tool.project.entry-points."swarmauri.toolkits"]
+[project.entry-points.'swarmauri.toolkits']
 GithubToolkit = "swarmauri_toolkit_github.GithubToolkit:GithubToolkit"
 
 
