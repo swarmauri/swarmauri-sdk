@@ -2,12 +2,12 @@ from abc import abstractmethod
 from typing import Optional, List, Literal, Type, Any, Dict
 from pydantic import ConfigDict, model_validator, Field, PrivateAttr, SecretStr
 
-from swarmauri_core.llms.IPredict import IPredict
+from swarmauri_core.tool_llms.IToolPredict import IToolPredict
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
 
 @ComponentBase.register_model()
-class ToolLLMBase(IPredict, ComponentBase):
+class ToolLLMBase(IToolPredict, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.TOOL_LLM.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
