@@ -4,7 +4,7 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_documentstore_redis" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/deprecated/swarmauri_documentstore_redis/README.md">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/deprecated/swarmauri_documentstore_redis/README.md">
         <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/deprecated/swarmauri_documentstore_redis/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
     <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_documentstore_redis" alt="PyPI - Python Version"/></a>
