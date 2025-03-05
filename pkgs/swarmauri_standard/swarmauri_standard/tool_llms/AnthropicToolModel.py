@@ -106,7 +106,7 @@ class AnthropicToolModel(ToolLLMBase):
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
-            if message.role != "assistant"
+            if message.role != "assistant" and message.role != "tool"
         ]
         return formatted_messages
 
@@ -139,19 +139,24 @@ class AnthropicToolModel(ToolLLMBase):
                     name=func_name,
                     tool_call_id=tool_call["id"],
                 )
+
                 tool_messages.append(tool_message)
 
                 # Also add to the messages list for API calls
                 messages.append(
                     {
-                        "role": "tool",
-                        "name": func_name,
-                        "content": json.dumps(func_result),
-                        "tool_call_id": tool_call["id"],
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "content": json.dumps(func_result),
+                                "tool_use_id": tool_call["id"],
+                            }
+                        ],
                     }
                 )
 
-        return messages
+        return messages, tool_messages
 
     def predict(
         self,
@@ -178,6 +183,8 @@ class AnthropicToolModel(ToolLLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
+        logging.info(f"formatted_messages: {formatted_messages}")
+
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -191,29 +198,29 @@ class AnthropicToolModel(ToolLLMBase):
         response.raise_for_status()
         response_data = response.json()
 
-        logging.info(f"tool_response: {response_data}")
+        # logging.info(f"tool_response: {response_data}")
 
         # Extract text content if available
         tool_text_response = None
         if response_data["content"] and response_data["content"][0]["type"] == "text":
             tool_text_response = response_data["content"][0]["text"]
-            logging.info(f"tool_text_response: {tool_text_response}")
+            # logging.info(f"tool_text_response: {tool_text_response}")
 
         # Process tool calls
         tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
         messages = formatted_messages.copy()
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
-        # Extract tool messages for the conversation
-        tool_messages = [
-            FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
-            )
-            for m in messages
-            if m.get("role") == "tool"
-        ]
+        messages.append(
+            {
+                "role": "assistant",
+                "content": response_data["content"],
+            }
+        )
 
-        # Add tool messages to conversation
+        messages, tool_messages = self._process_tool_calls(
+            tool_calls, toolkit, messages
+        )
+
         conversation.add_messages(tool_messages)
 
         # For multiturn, we need to make a follow-up request with the tool results
@@ -226,7 +233,11 @@ class AnthropicToolModel(ToolLLMBase):
                 "max_tokens": max_tokens,
             }
 
+            logging.info(f"messages: {messages}")
+
             followup_response = self._client.post("/messages", json=followup_payload)
+            logging.info(f"response: {followup_response.json()}")
+
             followup_response.raise_for_status()
             followup_data = followup_response.json()
 
@@ -294,18 +305,17 @@ class AnthropicToolModel(ToolLLMBase):
         # Process tool calls
         tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
         messages = formatted_messages.copy()
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
+        messages.append(
+            {
+                "role": "assistant",
+                "content": response_data["content"],
+            }
+        )
 
-        # Extract tool messages for the conversation
-        tool_messages = [
-            FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
-            )
-            for m in messages
-            if m.get("role") == "tool"
-        ]
+        messages, tool_messages = self._process_tool_calls(
+            tool_calls, toolkit, messages
+        )
 
-        # Add tool messages to conversation
         conversation.add_messages(tool_messages)
 
         # For multiturn, we need to make a follow-up request with the tool results
