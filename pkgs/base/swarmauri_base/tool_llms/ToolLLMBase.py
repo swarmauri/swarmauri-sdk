@@ -1,10 +1,13 @@
 from abc import abstractmethod
-from typing import Optional, List, Literal, Type, Any, Dict
-from pydantic import ConfigDict, model_validator, Field, PrivateAttr, SecretStr
+from typing import Any, Dict, List, Literal, Optional, Type
 
+from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_core.llms.IPredict import IPredict
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
+
 
 @ComponentBase.register_model()
 class ToolLLMBase(IPredict, ComponentBase):
@@ -51,14 +54,17 @@ class ToolLLMBase(IPredict, ComponentBase):
             raise ValueError(f"Model '{model}' is not in the allowed models list.")
         self.allowed_models.remove(model)
 
-
-    #@abstractmethod #Enforce soon
+    # @abstractmethod #Enforce soon
     def get_schema_converter(self) -> Type["SchemaConverterBase"]:
-        raise NotImplementedError("get_schema_converter() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "get_schema_converter() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        raise NotImplementedError("_schema_convert_tools() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "_schema_convert_tools() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def _format_messages(
@@ -68,7 +74,9 @@ class ToolLLMBase(IPredict, ComponentBase):
 
     @abstractmethod
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
-        raise NotImplementedError("_process_tool_calls() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "_process_tool_calls() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def predict(self, *args, **kwargs):

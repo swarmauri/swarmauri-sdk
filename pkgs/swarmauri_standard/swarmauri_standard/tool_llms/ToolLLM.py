@@ -1,28 +1,22 @@
-import httpx
 import json
-from abc import abstractmethod
-from typing import Optional, List, Literal, Type, Dict, Any, Iterator, AsyncIterator
-from pydantic import ConfigDict, model_validator, Field, SecretStr, PrivateAttr
+from typing import Any, AsyncIterator, Dict, Iterator, List, Type
+
+import httpx
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.conversations.IConversation import IConversation
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
-
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
-    OpenAISchemaConverter
+    OpenAISchemaConverter,
 )
 
-from swarmauri_core.llms.IPredict import IPredict
-from swarmauri_core.conversations.IConversation import IConversation
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.messages.MessageBase import MessageBase
-
-from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 @ComponentBase.register_type()
 class ToolLLM(ToolLLMBase):
-
     def __init__(self, **data):
         """
         Initialize the OpenAIToolModel class with the provided data.
@@ -38,7 +32,7 @@ class ToolLLM(ToolLLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
 
     def get_schema_converter(self) -> Type["SchemaConverterBase"]:
-        return OpenAISchemaConverter()    
+        return OpenAISchemaConverter()
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         converter = self.get_schema_converter()
@@ -50,7 +44,8 @@ class ToolLLM(ToolLLMBase):
         message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
         return [
             m.model_dump(include=message_properties, exclude_none=True)
-            for m in messages if m.role != "tool"
+            for m in messages
+            if m.role != "tool"
         ]
 
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
@@ -84,7 +79,6 @@ class ToolLLM(ToolLLMBase):
                     }
                 )
         return messages
-
 
     def predict(
         self,
@@ -123,14 +117,18 @@ class ToolLLM(ToolLLMBase):
             response.raise_for_status()
             tool_response = response.json()
 
-
         messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
         tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
-        tool_messages = [FunctionMessage(tool_call_id=m['tool_call_id'], name=m['name'], content=m['content']) for m in 
-            messages if m['role'] == 'tool']
+        tool_messages = [
+            FunctionMessage(
+                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+            )
+            for m in messages
+            if m["role"] == "tool"
+        ]
 
         conversation.add_messages(tool_messages)
 
@@ -140,7 +138,9 @@ class ToolLLM(ToolLLMBase):
             payload.pop("tool_choice", None)
 
             with httpx.Client(timeout=self.timeout) as client:
-                response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+                response = client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
                 response.raise_for_status()
 
             agent_response = response.json()
@@ -150,7 +150,6 @@ class ToolLLM(ToolLLMBase):
             )
             conversation.add_message(agent_message)
         return conversation
-
 
     async def apredict(
         self,
@@ -196,8 +195,13 @@ class ToolLLM(ToolLLMBase):
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
-        tool_messages = [FunctionMessage(tool_call_id=m['tool_call_id'], name=m['name'], content=m['content']) for m in 
-            messages if m['role'] == 'tool']
+        tool_messages = [
+            FunctionMessage(
+                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+            )
+            for m in messages
+            if m["role"] == "tool"
+        ]
 
         conversation.add_messages(tool_messages)
 
@@ -219,7 +223,6 @@ class ToolLLM(ToolLLMBase):
             )
             conversation.add_message(agent_message)
         return conversation
-
 
     def stream(
         self,
@@ -289,7 +292,6 @@ class ToolLLM(ToolLLMBase):
                 pass
 
         conversation.add_message(AgentMessage(content=message_content))
-
 
     async def astream(
         self,
@@ -432,5 +434,3 @@ class ToolLLM(ToolLLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
-
-
