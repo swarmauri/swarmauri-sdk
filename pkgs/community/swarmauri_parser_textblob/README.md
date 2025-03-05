@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Parser Textblob
+# Swarmauri Parser TextBlob
 
 A parser package that leverages TextBlob for natural language processing tasks such as sentence parsing and noun phrase extraction.
 

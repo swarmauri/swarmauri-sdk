@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Captchagenerator
+# Swarmauri Tool Captcha Generator
 
 This tool generates CAPTCHA images from input text and saves them to a specified file.
 

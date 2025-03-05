@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterfromdict
+# Swarmauri Tool Jupyter From Dict
 
 swarmauri_tool_jupyterfromdict provides a straightforward way to convert a Python dictionary into a validated Jupyter NotebookNode using nbformat. This allows programmatic creation and manipulation of notebook structures within the Swarmauri framework or your own applications.
 

@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Lexicaldensity
+# Swarmauri Tool Lexical Density
 
 A tool for calculating the lexical density of text, indicating the proportion of content words (nouns, verbs, adjectives, and adverbs) relative to the total number of words.
 

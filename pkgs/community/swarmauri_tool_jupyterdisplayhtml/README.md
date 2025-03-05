@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterdisplayhtml
+# Swarmauri Tool Jupyter Display Html
 
 A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method.
 

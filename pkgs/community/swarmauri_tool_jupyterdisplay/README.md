@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterdisplay
+# Swarmauri Tool Jupyter Display
 
 The `JupyterDisplayTool` is a component that leverages IPython display functionality to render data with a variety of rich representations. It inherits from `ToolBase` and integrates with the Swarmauri framework's tool architecture.
 

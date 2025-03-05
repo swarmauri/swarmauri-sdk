@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Measurement Mutualinformation
+# Swarmauri Measurement Mutual Information
 
 A package to calculate mutual information between features and a target column in a given dataset.
 

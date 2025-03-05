@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Dalechallreadability
+# Swarmauri Tool Dale-Chall Readability
 
 A tool for calculating the Dale-Chall Readability Score using the textstat library.
 

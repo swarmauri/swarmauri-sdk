@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Embedding Tfidf
+# Swarmauri Embedding TFIDF
 
 A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
 

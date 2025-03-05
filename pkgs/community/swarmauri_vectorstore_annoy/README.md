@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Vectorstore Annoy
+# Swarmauri VectorStore Annoy
 
 A vector store implementation using Annoy as the backend for efficient similarity search and nearest neighbor queries.
 

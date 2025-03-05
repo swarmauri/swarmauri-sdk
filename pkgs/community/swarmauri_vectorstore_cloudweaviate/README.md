@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Vectorstore Cloudweaviate
+# Swarmauri Vectorstore CloudWeaviate
 
 A Weaviate-based vector store implementation for Swarmauri, providing cloud-based document storage and retrieval with vector similarity search capabilities.
 

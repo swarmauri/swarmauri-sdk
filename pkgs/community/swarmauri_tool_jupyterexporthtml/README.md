@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterexporthtml
+# Swarmauri Tool Jupyter Export Html
 
 The purpose of this package is to provide a flexible tool for converting Jupyter Notebook content into HTML format using nbconvert’s HTMLExporter. This enables easy presentation, sharing, or embedding of Jupyter Notebook content into various workflows or web applications.
 

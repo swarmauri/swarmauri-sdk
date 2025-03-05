@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterruncell
+# Swarmauri Tool Jupyter Run Cell
 
 This package provides a specialized tool for executing Python code cells interactively, capturing output and errors, and optionally applying timeouts. It is designed to integrate seamlessly with the broader Swarmauri tool ecosystem.
 

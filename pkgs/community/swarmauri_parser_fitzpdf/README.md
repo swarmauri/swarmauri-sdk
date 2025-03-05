@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Parser Fitzpdf
+# Swarmauri Parser Fitz PDF
 
 A parser to extract text from PDF files using PyMuPDF.
 

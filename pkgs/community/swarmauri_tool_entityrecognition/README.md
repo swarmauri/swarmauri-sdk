@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Entityrecognition
+# Swarmauri Tool Entity Recognition
 
 A Swarmauri tool that extracts named entities from text using a pre-trained NLP model.
 

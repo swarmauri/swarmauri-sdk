@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Measurement Tokencountestimator
+# Swarmauri Measurement Token Count Estimator
 
 A measurement class to estimate the number of tokens in a given text.
 

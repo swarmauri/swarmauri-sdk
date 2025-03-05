@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Llm Leptonai
+# Swarmauri LLM LeptonAI
 
 This package provides integration with Lepton AI's text and image generation models.
 

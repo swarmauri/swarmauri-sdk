@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Tool Jupyterexportpython
+# Swarmauri Tool Jupyter Export Python
 
 A Python package that provides an easy way to export Jupyter Notebook files to Python scripts using the nbconvert library. This tool smoothly integrates with the Swarmauri tool architecture, enabling consistent logging, error handling, and flexible usage options.
 

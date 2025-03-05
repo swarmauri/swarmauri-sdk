@@ -16,7 +16,7 @@
 
 ---
 
-# Swarmauri Parser Pypdf2
+# Swarmauri Parser PyPDF2
 
 A parser for reading and extracting text from PDF files using PyPDF2.
 
