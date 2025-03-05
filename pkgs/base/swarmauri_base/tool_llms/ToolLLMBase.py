@@ -52,16 +52,16 @@ class ToolLLMBase(IToolPredict, ComponentBase):
         self.allowed_models.remove(model)
 
 
-    #@abstractmethod #Enforce soon
+    @abstractmethod
     def get_schema_converter(self) -> Type["SchemaConverterBase"]:
         raise NotImplementedError("get_schema_converter() not implemented in subclass yet.")
 
-    @abstractmethod
+
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         converter = self.get_schema_converter()
         return [converter.convert(tools[tool]) for tool in tools]
 
-    @abstractmethod
+
     def _format_messages(
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
