@@ -39,7 +39,7 @@ class J2PromptTemplate(PromptTemplateBase):
         if self.templates_dir:
             if isinstance(self.templates_dir, str):
                 loader = FileSystemLoader([self.templates_dir])
-            else:
+            elif isinstance(template, FilePath):
                 loader = FileSystemLoader(self.templates_dir)
         else:
             loader = None
@@ -54,7 +54,7 @@ class J2PromptTemplate(PromptTemplateBase):
         - If the provided `template` is a literal string, it is stored as-is.
         - If it is a FilePath, the template is loaded via an environment using `get_template()`.
         """
-        if type(template) is str:
+        if isinstance(template, str):
             self._set_template_from_str(template)
         else:
             self._set_template_from_filepath(template)
