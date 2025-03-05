@@ -58,7 +58,8 @@ class ToolLLMBase(IToolPredict, ComponentBase):
 
     @abstractmethod
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
-        raise NotImplementedError("_schema_convert_tools() not implemented in subclass yet.")
+        converter = self.get_schema_converter()
+        return [converter.convert(tools[tool]) for tool in tools]
 
     @abstractmethod
     def _format_messages(
@@ -68,7 +69,36 @@ class ToolLLMBase(IToolPredict, ComponentBase):
 
     @abstractmethod
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
-        raise NotImplementedError("_process_tool_calls() not implemented in subclass yet.")
+        """
+        Processes a list of tool calls and appends the results to the messages list.
+
+        Args:
+            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
+                               a "function" key with a nested dictionary that includes the "name" and "arguments"
+                               of the function to be called, and an "id" key for the tool call identifier.
+            toolkit (object): An object that provides access to tools via the `get_tool_by_name` method.
+            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+
+        Returns:
+            List[MessageBase]: The updated list of messages with the results of the tool calls appended.
+        """
+        if tool_calls:
+            for tool_call in tool_calls:
+                func_name = tool_call["function"]["name"]
+
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = json.loads(tool_call["function"]["arguments"])
+                func_result = func_call(**func_args)
+
+                messages.append(
+                    {
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": func_name,
+                        "content": json.dumps(func_result),
+                    }
+                )
+        return messages
 
     @abstractmethod
     def predict(self, *args, **kwargs):
