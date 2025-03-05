@@ -3,9 +3,7 @@ from pydantic import ConfigDict, FilePath
 from jinja2 import Environment, FileSystemLoader, Template
 import os
 
-from swarmauri_core.prompts.IPrompt import IPrompt
-from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
 
