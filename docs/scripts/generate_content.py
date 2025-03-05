@@ -204,3 +204,16 @@ def generate(
 
     # Step 4: Write to mkdocs.yml
     write_nav_to_mkdocs_yml(mkdocs_yml_path, new_nav_structure, replace_nav=replace_nav)
+
+
+if __name__ == "__main__":
+    # Example usage
+    generate(
+        package_name="swarmauri_core",
+        docs_dir="docs",
+        local_output_dir="src",
+        mkdocs_yml_path="mkdocs.yml",
+        top_label="Core",
+        home_page="index.md",
+        replace_nav=True,
+    )
