@@ -39,7 +39,7 @@ class J2PromptTemplate(PromptTemplateBase):
         if self.templates_dir:
             if isinstance(self.templates_dir, str):
                 loader = FileSystemLoader([self.templates_dir])
-            elif isinstance(template, FilePath):
+            elif isinstance(self.templates_dir, list):
                 loader = FileSystemLoader(self.templates_dir)
         else:
             loader = None
@@ -76,62 +76,43 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         env = self.get_env()
         template_path_str = str(template_path)
-        abs_template = os.path.abspath(template_path_str)
 
-        # If templates_dir is provided, try to compute a relative path from each candidate directory.
         if self.templates_dir:
-            dirs = (
-                [self.templates_dir]
-                if isinstance(self.templates_dir, str)
-                else self.templates_dir
-            )
+            self.template = self._load_template_from_dirs(env, template_path_str)
+        else:
+            self.template = self._load_template_from_file(env, template_path_str)
+
+        def _load_template_from_dirs(self, env: Environment, template_path_str: str) -> Template:
+            abs_template = os.path.abspath(template_path_str)
+            dirs = [self.templates_dir] if isinstance(self.templates_dir, str) else self.templates_dir
+    
             for d in dirs:
                 abs_dir = os.path.abspath(d)
                 if abs_template.startswith(abs_dir):
-                    # Compute the relative path and normalize to forward slashes.
-                    rel_template = os.path.relpath(abs_template, abs_dir).replace(
-                        os.sep, "/"
-                    )
+                    rel_template = os.path.relpath(abs_template, abs_dir).replace(os.sep, "/")
                     try:
-                        self.template = env.get_template(rel_template)
-                        return
+                        return env.get_template(rel_template)
                     except Exception:
-                        # If direct lookup fails for this directory, try the next one.
                         continue
-
-            # If direct lookup did not succeed, perform a recursive search in all candidate directories.
+    
             for d in dirs:
                 abs_dir = os.path.abspath(d)
                 for root, _, files in os.walk(abs_dir):
                     if os.path.basename(template_path_str) in files:
-                        rel_template = os.path.relpath(
-                            os.path.join(root, os.path.basename(template_path_str)),
-                            abs_dir,
-                        ).replace(os.sep, "/")
+                        rel_template = os.path.relpath(os.path.join(root, os.path.basename(template_path_str)), abs_dir).replace(os.sep, "/")
                         try:
-                            self.template = env.get_template(rel_template)
-                            return
+                            return env.get_template(rel_template)
                         except Exception:
                             continue
-
-        # Fallback: use the file's own directory.
-        directory = os.path.dirname(template_path_str)
-        if not directory:
-            # If no directory component is provided, use the first entry of templates_dir (if available) or CWD.
-            if self.templates_dir:
-                directory = os.path.abspath(
-                    self.templates_dir[0]
-                    if isinstance(self.templates_dir, list)
-                    else self.templates_dir
-                )
-            else:
-                directory = os.getcwd()
-        template_name = os.path.basename(template_path_str)
-        fallback_env = Environment(
-            loader=FileSystemLoader([directory]), autoescape=False
-        )
-        fallback_env.filters["split"] = self.split_whitespace
-        self.template = fallback_env.get_template(template_name)
+    
+            return self._load_template_from_file(env, template_path_str)
+    
+        def _load_template_from_file(self, env: Environment, template_path_str: str) -> Template:
+            directory = os.path.dirname(template_path_str) or (os.path.abspath(self.templates_dir[0]) if self.templates_dir else os.getcwd())
+            template_name = os.path.basename(template_path_str)
+            fallback_env = Environment(loader=FileSystemLoader([directory]), autoescape=False)
+            fallback_env.filters["split"] = self.split_whitespace
+            return fallback_env.get_template(template_name)
 
     def generate_prompt(self, variables: Dict[str, str] = None) -> str:
         """
