@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_prompt_j2prompttemplate"
-version = "0.1.0"
+version = "0.7.0"
 description = "Jinja2 Prompt Template for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,8 +16,8 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "jinja2>=3.0",
     "pydantic>=1.8.2",
-    "swarmauri-core",
-    "swarmauri-base",
+    "swarmauri_core",
+    "swarmauri_base",
 ]
 
 [tool.uv.sources]
