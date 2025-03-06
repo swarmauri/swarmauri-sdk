@@ -245,9 +245,9 @@ def _register_lazy_plugin_from_metadata(
         resource_path = f"swarmauri.{resource_kind}.{type_name}"
 
         # Retrieve the required interface class, if applicable
-        interface_class = InterfaceRegistry.get_interface_for_resource(
-            f"swarmauri.{resource_kind}"
-        )
+        # interface_class = InterfaceRegistry.get_interface_for_resource(
+        #     f"swarmauri.{resource_kind}"
+        # )
 
         # Determine classification: first or second class
         if PluginCitizenshipRegistry.is_first_class(entry_point):
