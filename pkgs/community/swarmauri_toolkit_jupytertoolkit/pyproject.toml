@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_jupytertoolkit"
-version = "0.2.0"
+version = "0.2.2"
 description = "A unified toolkit for aggregating standalone jupyter notebook tools."
 license = "Apache-2.0"
 readme = "README.md"
@@ -85,8 +85,9 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.toolkits"]
-jupytertoolkit = "swarmauri_toolkit_jupytertoolkit:JupyterToolkit"
+[project.entry-points.'swarmauri.toolkits']
+JupyterToolkit = "swarmauri_toolkit_jupytertoolkit:JupyterToolkit"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

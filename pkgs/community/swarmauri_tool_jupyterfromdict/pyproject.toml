@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterfromdict"
-version = "0.7.0"
+version = "0.7.2"
 description = "A tool that converts a plain dictionary into a NotebookNode object using nbformat, facilitating programmatic notebook creation."
 license = "Apache-2.0"
 readme = "README.md"
@@ -45,8 +45,9 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.tools"]
-jupyterfromdicttool = "swarmauri_tool_jupyterfromdict:JupyterFromDictTool"
+[project.entry-points.'swarmauri.tools']
+JupyterFromDictTool = "swarmauri_tool_jupyterfromdict:JupyterFromDictTool"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

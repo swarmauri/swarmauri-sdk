@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexportmarkdown"
-version = "1.1.0"
+version = "1.1.2"
 description = "A Swarmauri tool designed to export Jupyter Notebooks to Markdown."
 license = "Apache-2.0"
 readme = "README.md"
@@ -45,8 +45,9 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.tools"]
-swarmauri_tool_jupyterexportmarkdown = "swarmauri_tool_jupyterexportmarkdown:JupyterExportMarkdownTool"
+[project.entry-points.'swarmauri.tools']
+JupyterExportMarkdownTool = "swarmauri_tool_jupyterexportmarkdown:JupyterExportMarkdownTool"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

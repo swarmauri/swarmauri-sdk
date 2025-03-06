@@ -13,7 +13,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
-dependencies = ["swarmauri_core{'path': '../../core'}", "swarmauri_base{'path': '../../base'}"]
+dependencies = ["swarmauri_core", "swarmauri_base"]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -25,8 +29,8 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.agents"]
-example_agent = "swm_example_package:ExampleAgent"
+[project.entry-points.'swarmauri.agents']
+ExampleAgent = "swm_example_package:ExampleAgent"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_pypdf2"
-version = "0.7.0"
+version = "0.7.2"
 description = "PyPDF2 Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -44,7 +44,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.parsers"]
+[project.entry-points.'swarmauri.parsers']
 PyPDF2Parser = "swarmauri_parser_pypdf2.PyPDF2Parser:PyPDF2Parser"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
