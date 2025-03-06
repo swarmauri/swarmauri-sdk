@@ -9,7 +9,7 @@ import sys
 from importlib.metadata import EntryPoint, entry_points
 from typing import Any, Dict, Optional
 
-from swarmauri_base.ComponentBase import ComponentBase
+#from swarmauri_base.ComponentBase import ComponentBase
 
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
@@ -280,13 +280,13 @@ def _register_lazy_plugin_from_metadata(
         # Add LazyLoaded plugin
         sys.modules[spec.name] = plugin_class
 
-        type_name = resource_path.split(".")[-1]
-        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = (
-            plugin_class
-        )
-        logger.info(
-            f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'"
-        )
+        # type_name = resource_path.split(".")[-1]
+        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = (
+        #     plugin_class
+        # )
+        # logger.info(
+        #     f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'"
+        # )
 
     except KeyError as e:
         logger.error(
@@ -410,13 +410,13 @@ def _process_class_plugin(
 
         # Step 5: Register the plugin class in ComponentBase.TYPE_REGISTRY
         # Extract type_name from resource_path (e.g., 'ExampleAgent' from 'swarmauri.agents.ExampleAgent')
-        type_name = resource_path.split(".")[-1]
-        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = (
-            plugin_class
-        )
-        logger.info(
-            f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'"
-        )
+        # type_name = resource_path.split(".")[-1]
+        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = (
+        #     plugin_class
+        # )
+        # logger.info(
+        #     f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'"
+        # )
 
         return True
 
@@ -502,12 +502,12 @@ def _process_module_plugin(
                         )
 
                         # Register in TYPE_REGISTRY
-                        ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[
-                            attr_name
-                        ] = attr
-                        logger.info(
-                            f"Registered class-based plugin '{attr_name}' in TYPE_REGISTRY under '{interface_class}'"
-                        )
+                        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[
+                        #     attr_name
+                        # ] = attr
+                        # logger.info(
+                        #     f"Registered class-based plugin '{attr_name}' in TYPE_REGISTRY under '{interface_class}'"
+                        # )
 
                     elif citizenship is None:
                         logger.warning(
