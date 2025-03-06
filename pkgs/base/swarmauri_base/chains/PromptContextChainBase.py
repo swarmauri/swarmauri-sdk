@@ -10,7 +10,7 @@ from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
 from swarmauri_base.agents.AgentBase import AgentBase
 
 from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
