@@ -45,6 +45,6 @@ def test_serialization():
     tool_from_dict = AdditionTool.model_validate(deserialized_step.method)
 
     assert isinstance(tool_from_dict, AdditionTool)
-    
+
     result = tool_from_dict(*args, **kwargs)
     assert result["sum"] == "3"
