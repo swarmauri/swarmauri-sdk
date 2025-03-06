@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_entityrecognition"
-version = "0.7.2.dev1"
+version = "0.7.2.dev2"
 description = "Swarmauri Community Entity Recognition Tool"
 license = "Apache-2.0"
 readme = "README.md"
