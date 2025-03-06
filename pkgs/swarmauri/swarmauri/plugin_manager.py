@@ -9,7 +9,7 @@ import sys
 from importlib.metadata import EntryPoint, entry_points
 from typing import Any, Dict, Optional
 
-#from swarmauri_base.ComponentBase import ComponentBase
+# from swarmauri_base.ComponentBase import ComponentBase
 
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
