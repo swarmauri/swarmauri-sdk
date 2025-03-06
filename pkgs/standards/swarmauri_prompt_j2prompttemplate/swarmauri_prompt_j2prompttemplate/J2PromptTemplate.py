@@ -1,22 +1,22 @@
 from typing import Dict, List, Union, Optional, Literal
-from pydantic import Field, ConfigDict, FilePath
+from pydantic import ConfigDict, FilePath
 from jinja2 import Environment, FileSystemLoader, Template
 import os
 
-from swarmauri_core.prompts.IPrompt import IPrompt
-from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
-@ComponentBase.register_type(PromptTemplateBase, 'J2PromptTemplate')
+
+@ComponentBase.register_type(PromptTemplateBase, "J2PromptTemplate")
 class J2PromptTemplate(PromptTemplateBase):
     """
     A subclass of PromptTemplateBase that uses Jinja2 for template rendering.
-    
-    The `template` attribute supports either a literal string representing the template content 
-    or a Pydantic FilePath. When a FilePath is provided, the template is loaded using 
+
+    The `template` attribute supports either a literal string representing the template content
+    or a Pydantic FilePath. When a FilePath is provided, the template is loaded using
     `env.get_template()` and stored in `template`.
     """
+
     # The template attribute may be a literal string (template content),
     # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
     template: Union[str, FilePath, Template] = ""
@@ -25,15 +25,15 @@ class J2PromptTemplate(PromptTemplateBase):
     templates_dir: Optional[Union[str, List[str]]] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    type: Literal['J2PromptTemplate'] = 'J2PromptTemplate'
-    
+    type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
+
     def get_env(self) -> Environment:
         """
         Constructs and returns a Jinja2 Environment.
-        
+
         If `templates_dir` is provided, a FileSystemLoader is created with that directory (or directories).
         Otherwise, no loader is set.
-        
+
         The custom 'split' filter is added before returning the environment.
         """
         if self.templates_dir:
@@ -44,13 +44,13 @@ class J2PromptTemplate(PromptTemplateBase):
         else:
             loader = None
         env = Environment(loader=loader, autoescape=False)
-        env.filters['split'] = self.split_whitespace
+        env.filters["split"] = self.split_whitespace
         return env
 
     def set_template(self, template: Union[str, FilePath]) -> None:
         """
         Sets or updates the template.
-        
+
         - If the provided `template` is a literal string, it is stored as-is.
         - If it is a FilePath, the template is loaded via an environment using `get_template()`.
         """
@@ -68,7 +68,7 @@ class J2PromptTemplate(PromptTemplateBase):
     def _set_template_from_filepath(self, template_path: FilePath) -> None:
         """
         Loads the template from a file specified by a FilePath.
-        
+
         If `templates_dir` is provided and the template file is located in one of the directories,
         the relative path is computed so that subdirectories (e.g. 'test2') are preserved.
         If the direct lookup fails, a recursive search is performed over all provided directories.
@@ -89,7 +89,9 @@ class J2PromptTemplate(PromptTemplateBase):
                 abs_dir = os.path.abspath(d)
                 if abs_template.startswith(abs_dir):
                     # Compute the relative path and normalize to forward slashes.
-                    rel_template = os.path.relpath(abs_template, abs_dir).replace(os.sep, '/')
+                    rel_template = os.path.relpath(abs_template, abs_dir).replace(
+                        os.sep, "/"
+                    )
                     try:
                         self.template = env.get_template(rel_template)
                         return
@@ -103,8 +105,9 @@ class J2PromptTemplate(PromptTemplateBase):
                 for root, _, files in os.walk(abs_dir):
                     if os.path.basename(template_path_str) in files:
                         rel_template = os.path.relpath(
-                            os.path.join(root, os.path.basename(template_path_str)), abs_dir
-                        ).replace(os.sep, '/')
+                            os.path.join(root, os.path.basename(template_path_str)),
+                            abs_dir,
+                        ).replace(os.sep, "/")
                         try:
                             self.template = env.get_template(rel_template)
                             return
@@ -117,19 +120,23 @@ class J2PromptTemplate(PromptTemplateBase):
             # If no directory component is provided, use the first entry of templates_dir (if available) or CWD.
             if self.templates_dir:
                 directory = os.path.abspath(
-                    self.templates_dir[0] if isinstance(self.templates_dir, list) else self.templates_dir
+                    self.templates_dir[0]
+                    if isinstance(self.templates_dir, list)
+                    else self.templates_dir
                 )
             else:
                 directory = os.getcwd()
         template_name = os.path.basename(template_path_str)
-        fallback_env = Environment(loader=FileSystemLoader([directory]), autoescape=False)
-        fallback_env.filters['split'] = self.split_whitespace
+        fallback_env = Environment(
+            loader=FileSystemLoader([directory]), autoescape=False
+        )
+        fallback_env.filters["split"] = self.split_whitespace
         self.template = fallback_env.get_template(template_name)
 
     def generate_prompt(self, variables: Dict[str, str] = None) -> str:
         """
         Generates a prompt by rendering the current template with the provided variables.
-        
+
         - If `template` is a literal string, it is compiled on the fly.
         - If it is already a compiled Template (loaded via FilePath), it is rendered directly.
         """
@@ -142,7 +149,7 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         variables = variables if variables else self.variables
         return self.fill(variables)
-        
+
     def fill(self, variables: Dict[str, str] = None) -> str:
         variables = variables or self.variables
         env = self.get_env()
