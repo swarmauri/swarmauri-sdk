@@ -280,7 +280,7 @@ jobs:
           PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
           echo "Previous tag: $PREVIOUS_TAG"
           if [ -n "$PREVIOUS_TAG" ]; then
-            RELEASE_NOTES=$(git log "$PREVIOUS_TAG".."$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+            RELEASE_NOTES=$(git log "$PREVIOUS_TAG"--"$CURRENT_TAG" --pretty=format:"* %s" --reverse)
           else
             RELEASE_NOTES="Initial release."
           fi
