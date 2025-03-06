@@ -1,10 +1,29 @@
+from typing import List, Dict, Any, Type
 from abc import ABC, abstractmethod
+from swarmauri_core.messages.IMessage
 
-
-class IPredict(ABC):
+class IToolPredict(ABC):
     """
     Interface focusing on the basic properties and settings essential for defining models.
     """
+
+    @abstractmethod
+    def get_schema_converter(self) -> Type["ISchemaConvert"]:
+        pass
+
+    @abstractmethod
+    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+        pass
+
+    @abstractmethod
+    def _format_messages(
+        self, messages: List[Type["IMessage"]]
+    ) -> List[Dict[str, str]]:
+        pass
+
+    @abstractmethod
+    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[IMessage]:
+        pass
 
     @abstractmethod
     def predict(self, *args, **kwargs) -> any:
