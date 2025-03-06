@@ -1,19 +1,22 @@
 import asyncio
 import json
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
-
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.conversations.IConversation import IConversation
 
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
 
 @ComponentBase.register_type(ToolLLMBase, "GroqToolModel")
 class GroqToolModel(ToolLLMBase):
@@ -25,7 +28,7 @@ class GroqToolModel(ToolLLMBase):
     and handle tool-related functions.
 
     Attributes:
-        api_key (str): API key to authenticate with Groq API.
+        api_key (SecretStr): API key to authenticate with Groq API.
         allowed_models (List[str]): List of permissible model names.
         name (str): Default model name for predictions.
         type (Literal): Type identifier for the model.
@@ -36,37 +39,45 @@ class GroqToolModel(ToolLLMBase):
     api_key: SecretStr
     allowed_models: List[str] = []
     name: str = ""
-
     type: Literal["GroqToolModel"] = "GroqToolModel"
+
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(
-        default="https://api.groq.com/openai/v1/chat/completions"
-    )
-
+    BASE_URL: str = "https://api.groq.com/openai/v1/chat/completions"
     timeout: float = 600.0
 
     def __init__(self, **data):
         """
-        Initialize the GroqAIAudio class with the provided data.
+        Initialize the GroqToolModel class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
+        self._headers = {
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
+            "Content-Type": "application/json",
+        }
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
-            base_url=self._BASE_URL,
+            headers=self._headers,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
-            base_url=self._BASE_URL,
+            headers=self._headers,
             timeout=self.timeout,
         )
-
         self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
+        if not self.name and self.allowed_models:
+            self.name = self.allowed_models[0]
+
+    def get_schema_converter(self) -> Type[SchemaConverterBase]:
+        """
+        Returns the schema converter class for Groq API.
+
+        Returns:
+            Type[SchemaConverterBase]: The GroqSchemaConverter class.
+        """
+        return GroqSchemaConverter
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -78,7 +89,28 @@ class GroqToolModel(ToolLLMBase):
         Returns:
             List[Dict[str, Any]]: Formatted list of tool dictionaries.
         """
-        return [GroqSchemaConverter().convert(tools[tool]) for tool in tools]
+        converter = self.get_schema_converter()()
+        return [converter.convert(tools[tool]) for tool in tools]
+
+    def _format_messages(
+        self, messages: List[Type[MessageBase]]
+    ) -> List[Dict[str, str]]:
+        """
+        Formats messages for API compatibility.
+
+        Parameters:
+            messages (List[MessageBase]): List of message instances to format.
+
+        Returns:
+            List[Dict[str, str]]: List of formatted message dictionaries.
+        """
+        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        formatted_messages = [
+            message.model_dump(include=message_properties, exclude_none=True)
+            for message in messages
+            if message.role != "tool"
+        ]
+        return formatted_messages
 
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
         """
@@ -112,170 +144,30 @@ class GroqToolModel(ToolLLMBase):
                 )
         return messages
 
-    def _format_messages(
-        self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
-        """
-        Formats messages for API compatibility.
-
-        Parameters:
-            messages (List[MessageBase]): List of message instances to format.
-
-        Returns:
-            List[Dict[str, str]]: List of formatted message dictionaries.
-        """
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
-        formatted_messages = [
-            message.model_dump(include=message_properties, exclude_none=True)
-            for message in messages
-        ]
-        return formatted_messages
-
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
+        multiturn: bool = True,
         temperature=0.7,
         max_tokens=1024,
-    ) -> Conversation:
+    ) -> IConversation:
         """
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message history.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
+            multiturn (bool): Whether to follow up a tool call with another LLM request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            Conversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool calls.
         """
-        formatted_messages = self._format_messages(conversation.history)
-
-        if toolkit and not tool_choice:
-            tool_choice = "auto"
-
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-        }
-
-        response = self._client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
-
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
-
-        payload["messages"] = messages
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
-        response = self._client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
-
-        agent_response = response.json()
-
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
-        )
-        conversation.add_message(agent_message)
-        return conversation
-
-    @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict(
-        self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> Conversation:
-        """
-        Makes an asynchronous prediction using the Groq model.
-
-        Parameters:
-            conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
-            temperature (float): Sampling temperature.
-            max_tokens (int): Maximum token limit.
-
-        Returns:
-            Conversation: Updated conversation with agent responses and tool calls.
-        """
-        formatted_messages = self._format_messages(conversation.history)
-
-        if toolkit and not tool_choice:
-            tool_choice = "auto"
-
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
-            "tool_choice": tool_choice,
-        }
-
-        response = await self._async_client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
-
-        tool_response = response.json()
-
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
-
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
-
-        payload["messages"] = messages
-        payload.pop("tools", None)
-        payload.pop("tool_choice", None)
-
-        response = await self._async_client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
-
-        agent_response = response.json()
-
-        agent_message = AgentMessage(
-            content=agent_response["choices"][0]["message"]["content"]
-        )
-        conversation.add_message(agent_message)
-        return conversation
-
-    @retry_on_status_codes((429, 529), max_retries=1)
-    def stream(
-        self,
-        conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> Iterator[str]:
-        """
-        Streams response from Groq model in real-time.
-
-        Parameters:
-            conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
-            temperature (float): Sampling temperature.
-            max_tokens (int): Maximum token limit.
-
-        Yields:
-            Iterator[str]: Streamed response content.
-        """
-
         formatted_messages = self._format_messages(conversation.history)
 
         payload = {
@@ -287,43 +179,238 @@ class GroqToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        response = self._client.post(self._BASE_URL, json=payload)
+        response = self._client.post(self.BASE_URL, json=payload)
         response.raise_for_status()
-
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = formatted_messages.copy()
 
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
+        # Add the assistant message
+        if "choices" in tool_response and tool_response["choices"]:
+            assistant_message = tool_response["choices"][0]["message"]
+            messages.append(assistant_message)
 
+            # Process tool calls if any
+            tool_calls = assistant_message.get("tool_calls", [])
+            messages = self._process_tool_calls(tool_calls, toolkit, messages)
+
+            # Extract tool messages for the conversation
+            tool_messages = [
+                FunctionMessage(
+                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                )
+                for m in messages
+                if m.get("role") == "tool"
+            ]
+
+            # Add tool messages to conversation
+            conversation.add_messages(tool_messages)
+
+        # For multiturn, make a follow-up request with the tool results
+        if multiturn and tool_calls:
+            payload["messages"] = messages
+            payload.pop("tools", None)
+            payload.pop("tool_choice", None)
+
+            response = self._client.post(self.BASE_URL, json=payload)
+            response.raise_for_status()
+            agent_response = response.json()
+
+            if "choices" in agent_response and agent_response["choices"]:
+                agent_message = AgentMessage(
+                    content=agent_response["choices"][0]["message"]["content"]
+                )
+                conversation.add_message(agent_message)
+
+        return conversation
+
+    @retry_on_status_codes((429, 529), max_retries=1)
+    async def apredict(
+        self,
+        conversation: IConversation,
+        toolkit=None,
+        tool_choice=None,
+        multiturn: bool = True,
+        temperature=0.7,
+        max_tokens=1024,
+    ) -> IConversation:
+        """
+        Makes an asynchronous prediction using the Groq model.
+
+        Parameters:
+            conversation (IConversation): Conversation instance with message history.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
+
+        Returns:
+            IConversation: Updated conversation with agent responses and tool calls.
+        """
+        formatted_messages = self._format_messages(conversation.history)
+
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tool_choice": tool_choice or "auto",
+        }
+
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=self.timeout
+        ) as client:
+            response = await client.post(self.BASE_URL, json=payload)
+            response.raise_for_status()
+            tool_response = response.json()
+
+        messages = formatted_messages.copy()
+
+        # Add the assistant message
+        if "choices" in tool_response and tool_response["choices"]:
+            assistant_message = tool_response["choices"][0]["message"]
+            messages.append(assistant_message)
+
+            # Process tool calls if any
+            tool_calls = assistant_message.get("tool_calls", [])
+            messages = self._process_tool_calls(tool_calls, toolkit, messages)
+
+            # Extract tool messages for the conversation
+            tool_messages = [
+                FunctionMessage(
+                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                )
+                for m in messages
+                if m.get("role") == "tool"
+            ]
+
+            # Add tool messages to conversation
+            conversation.add_messages(tool_messages)
+
+        # For multiturn, make a follow-up request with the tool results
+        if multiturn and tool_calls:
+            payload["messages"] = messages
+            payload.pop("tools", None)
+            payload.pop("tool_choice", None)
+
+            async with httpx.AsyncClient(
+                headers=self._headers, timeout=self.timeout
+            ) as client:
+                response = await client.post(self.BASE_URL, json=payload)
+                response.raise_for_status()
+                agent_response = response.json()
+
+            if "choices" in agent_response and agent_response["choices"]:
+                agent_message = AgentMessage(
+                    content=agent_response["choices"][0]["message"]["content"]
+                )
+                conversation.add_message(agent_message)
+
+        return conversation
+
+    @retry_on_status_codes((429, 529), max_retries=1)
+    def stream(
+        self,
+        conversation: IConversation,
+        toolkit=None,
+        tool_choice=None,
+        temperature=0.7,
+        max_tokens=1024,
+    ) -> Iterator[str]:
+        """
+        Streams response from Groq model in real-time.
+
+        Parameters:
+            conversation (IConversation): Conversation instance with message history.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
+
+        Yields:
+            Iterator[str]: Streamed response content.
+        """
+        formatted_messages = self._format_messages(conversation.history)
+
+        # First, make a non-streaming request to handle tool calls
+        payload = {
+            "model": self.name,
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tool_choice": tool_choice or "auto",
+        }
+
+        response = self._client.post(self.BASE_URL, json=payload)
+        response.raise_for_status()
+        tool_response = response.json()
+
+        messages = formatted_messages.copy()
+
+        # Process tool calls if any
+        if "choices" in tool_response and tool_response["choices"]:
+            assistant_message = tool_response["choices"][0]["message"]
+            messages.append(assistant_message)
+
+            tool_calls = assistant_message.get("tool_calls", [])
+            messages = self._process_tool_calls(tool_calls, toolkit, messages)
+
+            # Extract tool messages for the conversation
+            tool_messages = [
+                FunctionMessage(
+                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                )
+                for m in messages
+                if m.get("role") == "tool"
+            ]
+
+            # Add tool messages to conversation
+            conversation.add_messages(tool_messages)
+
+        # Now make a streaming request for the final response
         payload["messages"] = messages
         payload["stream"] = True
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        response = self._client.post(self._BASE_URL, json=payload)
+        response = self._client.post(self.BASE_URL, json=payload)
         response.raise_for_status()
         message_content = ""
 
         for line in response.iter_lines():
-            json_str = line.replace("data: ", "")
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
-                        message_content += delta
-                        yield delta
-            except json.JSONDecodeError:
-                pass
+            # Convert bytes to string if needed
+            line_str = line.decode("utf-8") if isinstance(line, bytes) else line
 
+            if not line_str or line_str == "data: [DONE]":
+                continue
+
+            if line_str.startswith("data: "):
+                json_str = line_str.replace("data: ", "")
+                try:
+                    if json_str:
+                        chunk = json.loads(json_str)
+                        if (
+                            "choices" in chunk
+                            and chunk["choices"]
+                            and "delta" in chunk["choices"][0]
+                            and "content" in chunk["choices"][0]["delta"]
+                        ):
+                            delta = chunk["choices"][0]["delta"]["content"]
+                            message_content += delta
+                            yield delta
+                except json.JSONDecodeError:
+                    pass
+
+        # Add the final agent message to the conversation
         conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
@@ -333,7 +420,7 @@ class GroqToolModel(ToolLLMBase):
         Asynchronously streams response from Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message history.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -344,6 +431,7 @@ class GroqToolModel(ToolLLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
+        # First, make a non-streaming request to handle tool calls
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -353,104 +441,132 @@ class GroqToolModel(ToolLLMBase):
             "tool_choice": tool_choice or "auto",
         }
 
-        response = self._client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=self.timeout
+        ) as client:
+            response = await client.post(self.BASE_URL, json=payload)
+            response.raise_for_status()
+            tool_response = response.json()
 
-        tool_response = response.json()
+        messages = formatted_messages.copy()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        # Process tool calls if any
+        if "choices" in tool_response and tool_response["choices"]:
+            assistant_message = tool_response["choices"][0]["message"]
+            messages.append(assistant_message)
 
-        messages = self._process_tool_calls(tool_calls, toolkit, messages)
+            tool_calls = assistant_message.get("tool_calls", [])
+            messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
+            # Extract tool messages for the conversation
+            tool_messages = [
+                FunctionMessage(
+                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                )
+                for m in messages
+                if m.get("role") == "tool"
+            ]
+
+            # Add tool messages to conversation
+            conversation.add_messages(tool_messages)
+
+        # Now make a streaming request for the final response
         payload["messages"] = messages
         payload["stream"] = True
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        response = self._client.post(self._BASE_URL, json=payload)
-        response.raise_for_status()
         message_content = ""
 
-        async for line in response.aiter_lines():
-            json_str = line.replace("data: ", "")
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
-                        message_content += delta
-                        yield delta
-            except json.JSONDecodeError:
-                pass
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=self.timeout
+        ) as client:
+            response = await client.post(self.BASE_URL, json=payload)
+            response.raise_for_status()
+
+            async for line in response.aiter_lines():
+                if not line or line == "data: [DONE]":
+                    continue
+
+                if line.startswith("data: "):
+                    json_str = line.replace("data: ", "")
+                    try:
+                        if json_str:
+                            chunk = json.loads(json_str)
+                            if (
+                                "choices" in chunk
+                                and chunk["choices"]
+                                and "delta" in chunk["choices"][0]
+                                and "content" in chunk["choices"][0]["delta"]
+                            ):
+                                delta = chunk["choices"][0]["delta"]["content"]
+                                message_content += delta
+                                yield delta
+                    except json.JSONDecodeError:
+                        pass
+
+        # Add the final agent message to the conversation
         conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
-        conversations: List[Conversation],
+        conversations: List[IConversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
-    ) -> List[Conversation]:
+    ) -> List[IConversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            temperature (float): Sampling temperature for response diversity.
-            max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            conversations (List[IConversation]): List of conversations to process.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[IConversation]: List of updated conversations with responses.
         """
-        if toolkit and not tool_choice:
-            tool_choice = "auto"
-
-        return [
-            self.predict(
-                conv,
+        results = []
+        for conv in conversations:
+            result = self.predict(
+                conversation=conv,
                 toolkit=toolkit,
                 tool_choice=tool_choice,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            for conv in conversations
-        ]
+            results.append(result)
+        return results
 
     async def abatch(
         self,
-        conversations: List[Conversation],
+        conversations: List[IConversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
         max_concurrent=5,
-    ) -> List[Conversation]:
+    ) -> List[IConversation]:
         """
-        Async method for processing a batch of conversations concurrently.
+        Processes a batch of conversations concurrently with limited concurrency.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            temperature (float): Sampling temperature for response diversity.
-            max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            conversations (List[IConversation]): List of conversations to process.
+            toolkit: Optional toolkit for tool conversion.
+            tool_choice: Tool selection strategy.
+            temperature (float): Sampling temperature.
+            max_tokens (int): Maximum token limit.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[IConversation]: List of updated conversations with responses.
         """
-        if toolkit and not tool_choice:
-            tool_choice = "auto"
-
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv) -> Conversation:
+        async def process_conversation(conv):
             async with semaphore:
                 return await self.apredict(
                     conv,
@@ -465,10 +581,10 @@ class GroqToolModel(ToolLLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Returns the list of allowed models for Groq API.
 
         Returns:
-            List[str]: List of allowed model names.
+            List[str]: A list of allowed model names.
         """
         models_data = [
             "qwen-2.5-32b",
