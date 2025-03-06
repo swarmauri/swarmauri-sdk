@@ -46,6 +46,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.tools']
 PsutilTool = "swarmauri_tool_psutil.PsutilTool:PsutilTool"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -48,6 +48,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.vector_stores']
 PersistentChromaDBVectorStore = "swarmauri_vectorstore_persistentchromadb.PersistentChromaDBVectorStore:PersistentChromaDBVectorStore"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

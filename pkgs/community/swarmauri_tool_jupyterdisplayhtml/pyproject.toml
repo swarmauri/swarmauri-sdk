@@ -46,7 +46,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.tools']
-jupyterdisplayhtmltool = "swarmauri_tool_jupyterdisplayhtml:JupyterDisplayHtmlTool"
+JupyterDisplayHtmlTool = "swarmauri_tool_jupyterdisplayhtml:JupyterDisplayHtmlTool"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

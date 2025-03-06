@@ -49,6 +49,7 @@ asyncio_default_fixture_loop_scope = "function"
 [project.entry-points.'swarmauri.vector_stores']
 CloudQdrantVectorStore = "swarmauri_vectorstore_qdrant.CloudQdrantVectorStore:CloudQdrantVectorStore"
 PersistentQdrantVectorStore = "swarmauri_vectorstore_qdrant.PersistentQdrantVectorStore:PersistentQdrantVectorStore"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

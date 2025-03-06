@@ -48,7 +48,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.tools']
-jupyterexecutenotebookwithparameterstool = "swarmauri_tool_jupyterexecutenotebookwithparameters:JupyterExecuteNotebookWithParametersTool"
+JupyterExecuteNotebookWithParametersTool = "swarmauri_tool_jupyterexecutenotebookwithparameters:JupyterExecuteNotebookWithParametersTool"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
