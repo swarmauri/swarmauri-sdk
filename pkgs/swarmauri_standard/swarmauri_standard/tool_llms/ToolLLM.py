@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import Any, AsyncIterator, Dict, Iterator, List, Type
 
@@ -434,3 +435,12 @@ class ToolLLM(ToolLLMBase):
 
         tasks = [process_conversation(conv) for conv in conversations]
         return await asyncio.gather(*tasks)
+
+    def get_allowed_models(self) -> List[str]:
+        """
+        Get the list of allowed models for the OpenAI API.
+
+        Returns:
+            List[str]: List of allowed models.
+        """
+        pass

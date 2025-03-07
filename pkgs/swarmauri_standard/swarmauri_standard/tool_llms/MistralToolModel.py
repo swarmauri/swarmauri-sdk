@@ -4,7 +4,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
@@ -36,12 +36,8 @@ class MistralToolModel(ToolLLMBase):
 
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
-    timeout: float = 600.0
     BASE_URL: str = "https://api.mistral.ai/v1/chat/completions"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -105,9 +101,8 @@ class MistralToolModel(ToolLLMBase):
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
-            if message.role != "assistant"
+            if message.role != "assistant" and message.role != "tool"
         ]
-        logging.info(formatted_messages)
         return formatted_messages
 
     def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[Dict]:
@@ -207,6 +202,7 @@ class MistralToolModel(ToolLLMBase):
         }
 
         response = self._client.post(self.BASE_URL, json=payload)
+        logging.info(f"Response: {response.json()}")
         response.raise_for_status()
         tool_response = response.json()
 

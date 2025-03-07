@@ -140,7 +140,6 @@ async def test_apredict(anthropic_tool_model, toolkit, conversation, model_name)
 
 @timeout(5)
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
 def test_stream(anthropic_tool_model, toolkit, conversation, model_name):
     anthropic_tool_model.name = model_name

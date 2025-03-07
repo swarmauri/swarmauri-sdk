@@ -4,7 +4,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
@@ -32,13 +32,9 @@ class GeminiToolModel(ToolLLMBase):
         type (Literal["GeminiToolModel"]): The model type, set to "GeminiToolModel".
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
     """
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     timeout: float = 600.0
-    # Changed from PrivateAttr _BASE_URL to public BASE_URL as required by ToolLLMBase
     BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/models"
 
     _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
@@ -128,7 +124,6 @@ class GeminiToolModel(ToolLLMBase):
             if message["role"] == "tool":
                 message["role"] = "function"
 
-            # update content naming
             if "content" in message:
                 message["parts"] = [{"text": message.pop("content")}]
 
@@ -439,7 +434,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        tool_choice=None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -570,7 +565,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        tool_choice=None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -699,7 +694,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversations: List[IConversation],
         toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        tool_choice=None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> List[IConversation]:

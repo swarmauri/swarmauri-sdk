@@ -3,7 +3,7 @@ import json
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
@@ -35,16 +35,12 @@ class GroqToolModel(ToolLLMBase):
 
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["GroqToolModel"] = "GroqToolModel"
 
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     BASE_URL: str = "https://api.groq.com/openai/v1/chat/completions"
-    timeout: float = 600.0
 
     def __init__(self, **data):
         """

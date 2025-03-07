@@ -5,7 +5,7 @@ import uuid
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
@@ -44,12 +44,8 @@ class CohereToolModel(ToolLLMBase):
     BASE_URL: str = "https://api.cohere.ai/v1"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["CohereToolModel"] = "CohereToolModel"
-    timeout: float = 600.0
 
     def __init__(self, **data):
         """
@@ -59,16 +55,16 @@ class CohereToolModel(ToolLLMBase):
             **data: Keyword arguments for configuring the model, including api_key
         """
         super().__init__(**data)
-        headers = {
+        self._headers = {
             "accept": "application/json",
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self.BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self.BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
