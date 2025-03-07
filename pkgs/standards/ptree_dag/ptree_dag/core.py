@@ -53,7 +53,7 @@ class ProjectFileGenerator(ComponentBase):
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    swarmauri_package_path: str = Field(exclude=True, default_factory=lambda: os.path.join("e:\\swarmauri_github", "swarmauri-sdk", "pkgs"))
+    additional_package_dirs: List[str] = Field(exclude=True, default=list)
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
@@ -68,7 +68,8 @@ class ProjectFileGenerator(ComponentBase):
     def setup_env(self) -> "ProjectFileGenerator":
         # Gather all physical directories that provide ptree_dag.templates:
         namespace_dirs = list(ptree_dag.templates.__path__)  # installed template dirs
-        initial_dirs = [self.swarmauri_package_path]
+        initial_dirs = []
+        initial_dirs.extend(self.additional_package_dirs)
         namespace_dirs.append(self.base_dir)  # include current working directory
         initial_dirs.append(self.base_dir)
         if self.template_base_dir:
@@ -84,11 +85,12 @@ class ProjectFileGenerator(ComponentBase):
     # ---------------------
 
     def update_templates_dir(self, package_specific_template_dir):
-        self.j2pt.templates_dir = [
+        dirs = [
             package_specific_template_dir,
             self.base_dir,
-            self.swarmauri_package_path
         ]
+        dirs.extend(self.additional_package_dirs)
+        self.j2pt.templates_dir = dirs
         
     def get_template_dir_any(self, template_set: str) -> Path:
         """
