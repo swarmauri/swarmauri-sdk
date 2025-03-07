@@ -85,11 +85,10 @@ class ProjectFileGenerator(ComponentBase):
 
     def update_templates_dir(self, package_specific_template_dir):
         self.j2pt.templates_dir = [
+            package_specific_template_dir,
             self.base_dir,
-            self.swarmauri_package_path,
-            package_specific_template_dir
+            self.swarmauri_package_path
         ]
-        
         
     def get_template_dir_any(self, template_set: str) -> Path:
         """
