@@ -149,6 +149,10 @@ nav:
     - api/third_class/index.md
     - Module 1: api/third_class/module1.md
     - Module 2: api/third_class/module2.md
+  - Standard:
+    - api/swarmauri_standard/index.md
+    - Module 1: api/swarmauri_standard/module1.md
+    - Module 2: api/swarmauri_standard/module2.md
   - Base:
     - api/base/index.md
     - Module 1: api/base/module1.md
