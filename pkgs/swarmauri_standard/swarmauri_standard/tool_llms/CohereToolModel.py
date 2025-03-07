@@ -1,20 +1,25 @@
 import asyncio
 import json
+import logging
+import uuid
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
 from swarmauri_standard.schema_converters.CohereSchemaConverter import (
     CohereSchemaConverter,
 )
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
 
 @ComponentBase.register_type(ToolLLMBase, "CohereToolModel")
 class CohereToolModel(ToolLLMBase):
@@ -36,15 +41,11 @@ class CohereToolModel(ToolLLMBase):
     Link to API Key: https://dashboard.cohere.com/api-keys
     """
 
-    _BASE_URL: str = PrivateAttr("https://api.cohere.ai/v1")
+    BASE_URL: str = "https://api.cohere.ai/v1"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["CohereToolModel"] = "CohereToolModel"
-    timeout: float = 600.0
 
     def __init__(self, **data):
         """
@@ -54,19 +55,28 @@ class CohereToolModel(ToolLLMBase):
             **data: Keyword arguments for configuring the model, including api_key
         """
         super().__init__(**data)
-        headers = {
+        self._headers = {
             "accept": "application/json",
             "content-type": "application/json",
             "authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
+
+    def get_schema_converter(self) -> Type[SchemaConverterBase]:
+        """
+        Get the schema converter class for this tool model.
+
+        Returns:
+            Type[SchemaConverterBase]: The CohereSchemaConverter class
+        """
+        return CohereSchemaConverter
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -207,7 +217,9 @@ class CohereToolModel(ToolLLMBase):
         """
         tool_results = []
         tool_calls = response_data.get("tool_calls", [])
+        logging.info(f"Tool calls: {tool_calls}")
 
+        tool_messages = []
         if tool_calls:
             for tool_call in tool_calls:
                 func_name = tool_call.get("name")
@@ -218,7 +230,15 @@ class CohereToolModel(ToolLLMBase):
                     {"call": tool_call, "outputs": [{"result": func_results}]}
                 )
 
-        return tool_results
+                tool_messages.append(
+                    FunctionMessage(
+                        content=json.dumps(func_results),
+                        tool_call_id=str(uuid.uuid4()),
+                        name=func_name,
+                    )
+                )
+
+        return tool_results, tool_messages
 
     def _prepare_chat_payload(
         self,
@@ -262,7 +282,14 @@ class CohereToolModel(ToolLLMBase):
         return payload
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict(self, conversation, toolkit=None, temperature=0.3, max_tokens=1024):
+    def predict(
+        self,
+        conversation,
+        toolkit=None,
+        temperature=0.3,
+        max_tokens=1024,
+        multiturn: bool = True,
+    ):
         """
         Generate a response for a conversation synchronously.
 
@@ -290,36 +317,40 @@ class CohereToolModel(ToolLLMBase):
             )
 
             tool_response = self._client.post("/chat", json=tool_payload)
+            logging.info(tool_response.json())
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
 
-        with DurationManager() as response_timer:
-            response_payload = self._prepare_chat_payload(
-                message=formatted_messages[-1]["message"],
-                chat_history=(
-                    formatted_messages[:-1] if len(formatted_messages) > 1 else None
-                ),
-                tools=tools,
-                tool_results=tool_results,
-                temperature=temperature,
-                force_single_step=True,
+        conversation.add_messages(tool_messages)
+
+        if multiturn:
+            with DurationManager() as response_timer:
+                response_payload = self._prepare_chat_payload(
+                    message=formatted_messages[-1]["message"],
+                    chat_history=(
+                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                    ),
+                    tools=tools,
+                    tool_results=tool_results,
+                    temperature=temperature,
+                    force_single_step=True,
+                )
+
+                response = self._client.post("/chat", json=response_payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                usage_data = response_data.get("usage", {})
+
+            usage = self._prepare_usage_data(
+                usage_data, tool_timer.duration, response_timer.duration
             )
 
-            response = self._client.post("/chat", json=response_payload)
-            response.raise_for_status()
-            response_data = response.json()
-
-            usage_data = response_data.get("usage", {})
-
-        usage = self._prepare_usage_data(
-            usage_data, tool_timer.duration, response_timer.duration
-        )
-
-        conversation.add_message(
-            AgentMessage(content=response_data.get("text", ""), usage=usage)
-        )
+            conversation.add_message(
+                AgentMessage(content=response_data.get("text", ""), usage=usage)
+            )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -356,7 +387,9 @@ class CohereToolModel(ToolLLMBase):
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+
+        conversation.add_messages(tool_messages)
 
         # Prepare streaming payload
         stream_payload = self._prepare_chat_payload(
@@ -394,7 +427,12 @@ class CohereToolModel(ToolLLMBase):
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
-        self, conversation, toolkit=None, temperature=0.3, max_tokens=1024
+        self,
+        conversation,
+        toolkit=None,
+        temperature=0.3,
+        max_tokens=1024,
+        multiturn=True,
     ):
         """
         Generate a response for a conversation asynchronously.
@@ -426,33 +464,36 @@ class CohereToolModel(ToolLLMBase):
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
 
-        with DurationManager() as response_timer:
-            response_payload = self._prepare_chat_payload(
-                message=formatted_messages[-1]["message"],
-                chat_history=(
-                    formatted_messages[:-1] if len(formatted_messages) > 1 else None
-                ),
-                tools=tools,
-                tool_results=tool_results,
-                temperature=temperature,
-                force_single_step=True,
+        conversation.add_messages(tool_messages)
+
+        if multiturn:
+            with DurationManager() as response_timer:
+                response_payload = self._prepare_chat_payload(
+                    message=formatted_messages[-1]["message"],
+                    chat_history=(
+                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                    ),
+                    tools=tools,
+                    tool_results=tool_results,
+                    temperature=temperature,
+                    force_single_step=True,
+                )
+
+                response = await self._async_client.post("/chat", json=response_payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                usage_data = response_data.get("usage", {})
+
+            usage = self._prepare_usage_data(
+                usage_data, tool_timer.duration, response_timer.duration
             )
 
-            response = await self._async_client.post("/chat", json=response_payload)
-            response.raise_for_status()
-            response_data = response.json()
-
-            usage_data = response_data.get("usage", {})
-
-        usage = self._prepare_usage_data(
-            usage_data, tool_timer.duration, response_timer.duration
-        )
-
-        conversation.add_message(
-            AgentMessage(content=response_data.get("text", ""), usage=usage)
-        )
+            conversation.add_message(
+                AgentMessage(content=response_data.get("text", ""), usage=usage)
+            )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -489,7 +530,9 @@ class CohereToolModel(ToolLLMBase):
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+
+        conversation.add_messages(tool_messages)
 
         # Prepare streaming payload
         stream_payload = self._prepare_chat_payload(
@@ -613,7 +656,15 @@ class CohereToolModel(ToolLLMBase):
         Returns:
             List[str]: List of allowed model names from the API
         """
+        non_tool_models = ["c4ai-aya-expanse-32b", "command-light-nightly", "command"]
         response = self._client.get("/models")
         response.raise_for_status()
         models_data = response.json()
-        return models_data.get("models", [])
+
+        return [
+            model["name"]
+            for model in models_data["models"]
+            if "chat" in model["endpoints"]
+            and "generate" in model["endpoints"]
+            and model["name"] not in non_tool_models
+        ]

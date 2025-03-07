@@ -1,10 +1,14 @@
 from abc import abstractmethod
-from typing import Optional, List, Literal, Type, Any, Dict
-from pydantic import ConfigDict, model_validator, Field, PrivateAttr, SecretStr
+import json
+from typing import Any, Dict, List, Literal, Optional, Type
 
+from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.tool_llms.IToolPredict import IToolPredict
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+
 
 @ComponentBase.register_model()
 class ToolLLMBase(IToolPredict, ComponentBase):
@@ -51,16 +55,15 @@ class ToolLLMBase(IToolPredict, ComponentBase):
             raise ValueError(f"Model '{model}' is not in the allowed models list.")
         self.allowed_models.remove(model)
 
-
     @abstractmethod
     def get_schema_converter(self) -> Type["SchemaConverterBase"]:
-        raise NotImplementedError("get_schema_converter() not implemented in subclass yet.")
-
+        raise NotImplementedError(
+            "get_schema_converter() not implemented in subclass yet."
+        )
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         converter = self.get_schema_converter()
         return [converter.convert(tools[tool]) for tool in tools]
-
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]

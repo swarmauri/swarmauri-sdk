@@ -4,10 +4,12 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.conversations.IConversation import IConversation
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
@@ -15,6 +17,7 @@ from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
 
 @ComponentBase.register_type(ToolLLMBase, "AnthropicToolModel")
 class AnthropicToolModel(ToolLLMBase):
@@ -35,39 +38,43 @@ class AnthropicToolModel(ToolLLMBase):
     Link to API KEY: https://console.anthropic.com/settings/keys
     """
 
-    _BASE_URL: str = PrivateAttr("https://api.anthropic.com/v1")
+    BASE_URL: str = "https://api.anthropic.com/v1"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
     name: str = ""
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    timeout: float = 600.0
-
     def __init__(self, **data):
         super().__init__(**data)
-        headers = {
+        self._headers = {
             "Content-Type": "application/json",
             "x-api-key": self.api_key.get_secret_value(),
             "anthropic-version": "2023-06-01",
         }
         self._client = httpx.Client(
-            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self._async_client = httpx.AsyncClient(
-            headers=headers, base_url=self._BASE_URL, timeout=self.timeout
+            headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
         self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
+        self.name = self.name or self.allowed_models[0]
+
+    def get_schema_converter(self) -> Type[SchemaConverterBase]:
+        """
+        Returns the schema converter class for Anthropic API.
+
+        Returns:
+            Type[SchemaConverterBase]: The AnthropicSchemaConverter class.
+        """
+        return AnthropicSchemaConverter
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the Anthropic-compatible schema format.
 
         Args:
-            tools (List): A list of tools to be converted.
+            tools (Dict): A dictionary of tools to be converted.
 
         Returns:
             List[Dict[str, Any]]: A list of tool schemas converted to the Anthropic format.
@@ -94,30 +101,80 @@ class AnthropicToolModel(ToolLLMBase):
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
-            if message.role != "assistant"
+            if message.role != "assistant" and message.role != "tool"
         ]
         return formatted_messages
 
+    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+        """
+        Processes tool calls from Anthropic API response and adds the results to messages.
+
+        Args:
+            tool_calls (List): The tool calls from Anthropic response.
+            toolkit: The toolkit containing the tools to call.
+            messages (List): The current list of messages.
+
+        Returns:
+            List[MessageBase]: Updated list of messages with tool responses.
+        """
+        if not tool_calls:
+            return messages
+
+        tool_messages = []
+        for tool_call in tool_calls:
+            if tool_call["type"] == "tool_use":
+                func_name = tool_call["name"]
+                func_call = toolkit.get_tool_by_name(func_name)
+                func_args = tool_call["input"]
+                func_result = func_call(**func_args)
+
+                # Create a function message for the tool response
+                tool_message = FunctionMessage(
+                    content=json.dumps(func_result),
+                    name=func_name,
+                    tool_call_id=tool_call["id"],
+                )
+
+                tool_messages.append(tool_message)
+
+                # Also add to the messages list for API calls
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "content": json.dumps(func_result),
+                                "tool_use_id": tool_call["id"],
+                            }
+                        ],
+                    }
+                )
+
+        return messages, tool_messages
+
     def predict(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
+        multiturn: bool = True,
         temperature=0.7,
         max_tokens=1024,
-    ):
+    ) -> IConversation:
         """
         Predicts the response based on the given conversation and optional toolkit.
 
         Args:
-            conversation: The current conversation object.
+            conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object containing tools for tool-based responses.
             tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            multiturn (bool): Whether to process multiple turns in a single call.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            The conversation object updated with the assistant's response.
+            IConversation: The updated conversation with the assistant's response.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -134,51 +191,83 @@ class AnthropicToolModel(ToolLLMBase):
         response.raise_for_status()
         response_data = response.json()
 
-        logging.info(f"tool_response: {response_data}")
+        # Extract text content if available
         tool_text_response = None
-        if response_data["content"][0]["type"] == "text":
+        if response_data["content"] and response_data["content"][0]["type"] == "text":
             tool_text_response = response_data["content"][0]["text"]
             logging.info(f"tool_text_response: {tool_text_response}")
 
-        func_result = None
-        for tool_call in response_data["content"]:
-            if tool_call["type"] == "tool_use":
-                func_name = tool_call["name"]
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = tool_call["input"]
-                func_result = func_call(**func_args)
+        # Process tool calls
+        tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
+        messages = formatted_messages.copy()
 
+        messages.append(
+            {
+                "role": "assistant",
+                "content": response_data["content"],
+            }
+        )
+
+        messages, tool_messages = self._process_tool_calls(
+            tool_calls, toolkit, messages
+        )
+
+        conversation.add_messages(tool_messages)
+
+        # For multiturn, we need to make a follow-up request with the tool results
+        if multiturn and tool_calls:
+            # Create a new payload without tools
+            followup_payload = {
+                "model": self.name,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+
+            logging.info(f"messages: {messages}")
+
+            followup_response = self._client.post("/messages", json=followup_payload)
+            logging.info(f"response: {followup_response.json()}")
+
+            followup_response.raise_for_status()
+            followup_data = followup_response.json()
+
+            if (
+                followup_data["content"]
+                and followup_data["content"][0]["type"] == "text"
+            ):
+                tool_text_response = followup_data["content"][0]["text"]
+
+        # Create and add the agent message
         if tool_text_response:
-            agent_response = f"{tool_text_response} {func_result}"
-        else:
-            agent_response = f"{func_result}"
+            agent_message = AgentMessage(content=tool_text_response)
+            conversation.add_message(agent_message)
 
-        agent_message = AgentMessage(content=agent_response)
-        conversation.add_message(agent_message)
-        logging.info(f"conversation: {conversation}")
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
+        multiturn: bool = True,
         temperature=0.7,
         max_tokens=1024,
-    ):
+    ) -> IConversation:
         """
         Asynchronous version of the `predict` method to handle concurrent processing of requests.
 
         Args:
-            conversation: The current conversation object.
+            conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object containing tools for tool-based responses.
             tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            multiturn (bool): Whether to process multiple turns in a single call.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            The conversation object updated with the assistant's response.
+            IConversation: The updated conversation with the assistant's response.
         """
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f"formatted_messages: {formatted_messages}")
@@ -197,31 +286,61 @@ class AnthropicToolModel(ToolLLMBase):
         response_data = response.json()
 
         logging.info(f"tool_response: {response_data}")
+
+        # Extract text content if available
         tool_text_response = None
-        if response_data["content"][0]["type"] == "text":
+        if response_data["content"] and response_data["content"][0]["type"] == "text":
             tool_text_response = response_data["content"][0]["text"]
             logging.info(f"tool_text_response: {tool_text_response}")
 
-        func_result = None
-        for tool_call in response_data["content"]:
-            if tool_call["type"] == "tool_use":
-                func_name = tool_call["name"]
-                func_call = toolkit.get_tool_by_name(func_name)
-                func_args = tool_call["input"]
-                func_result = func_call(**func_args)
+        # Process tool calls
+        tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
+        messages = formatted_messages.copy()
+        messages.append(
+            {
+                "role": "assistant",
+                "content": response_data["content"],
+            }
+        )
 
+        messages, tool_messages = self._process_tool_calls(
+            tool_calls, toolkit, messages
+        )
+
+        conversation.add_messages(tool_messages)
+
+        # For multiturn, we need to make a follow-up request with the tool results
+        if multiturn and tool_calls:
+            # Create a new payload without tools
+            followup_payload = {
+                "model": self.name,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+
+            followup_response = await self._async_client.post(
+                "/messages", json=followup_payload
+            )
+            followup_response.raise_for_status()
+            followup_data = followup_response.json()
+
+            if (
+                followup_data["content"]
+                and followup_data["content"][0]["type"] == "text"
+            ):
+                tool_text_response = followup_data["content"][0]["text"]
+
+        # Create and add the agent message
         if tool_text_response:
-            agent_response = f"{tool_text_response} {func_result}"
-        else:
-            agent_response = f"{func_result}"
+            agent_message = AgentMessage(content=tool_text_response)
+            conversation.add_message(agent_message)
 
-        agent_message = AgentMessage(content=agent_response)
-        conversation.add_message(agent_message)
         return conversation
 
     def stream(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
@@ -231,71 +350,103 @@ class AnthropicToolModel(ToolLLMBase):
         Streams the response for a conversation in real-time, yielding text as it is received.
 
         Args:
-            conversation: The current conversation object.
+            conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            temperature (float): The temperature for the model's output randomness.
-            max_tokens (int): The maximum number of tokens in the response.
+            tool_choice: Optional parameter to choose specific tools or set to 'auto'.
+            temperature (float): Controls randomness in the output.
+            max_tokens (int): Maximum tokens in the response.
 
         Yields:
             Iterator[str]: Chunks of text received from the streaming response.
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        payload = {
+        # First, handle any tool calls that might be needed
+        tool_payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
             "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+        }
+
+        response = self._client.post("/messages", json=tool_payload)
+        response.raise_for_status()
+        tool_response_data = response.json()
+
+        tool_calls = [
+            c for c in tool_response_data["content"] if c["type"] == "tool_use"
+        ]
+        messages = formatted_messages.copy()
+
+        if tool_calls:
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": tool_response_data["content"],
+                }
+            )
+
+            messages, tool_messages = self._process_tool_calls(
+                tool_calls, toolkit, messages
+            )
+            conversation.add_messages(tool_messages)
+
+        stream_payload = {
+            "model": self.name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             "stream": True,
         }
 
         message_content = ""
-        with self._client.stream("POST", "/messages", json=payload) as response:
+
+        with self._client.stream("POST", "/messages", json=stream_payload) as response:
             response.raise_for_status()
+
             for line in response.iter_lines():
-                if line:
-                    try:
-                        # Handle the case where line might be bytes or str
-                        line_text = (
-                            line if isinstance(line, str) else line.decode("utf-8")
-                        )
-                        if line_text.startswith("data: "):
-                            line_text = line_text.removeprefix("data: ")
+                if not line:
+                    continue
 
-                        if not line_text or line_text == "[DONE]":
-                            continue
+                line_text = line.decode("utf-8") if isinstance(line, bytes) else line
 
-                        event = json.loads(line_text)
-                        if event["type"] == "content_block_delta":
-                            if event["delta"]["type"] == "text":
-                                delta = event["delta"]["text"]
-                                message_content += delta
-                                yield delta
-                        elif event["type"] == "tool_use":
-                            func_name = event["name"]
-                            func_call = toolkit.get_tool_by_name(func_name)
-                            func_args = event["input"]
-                            func_result = func_call(**func_args)
+                if not line_text.startswith("data: "):
+                    continue
 
-                            func_message = FunctionMessage(
-                                content=json.dumps(func_result),
-                                name=func_name,
-                                tool_call_id=event["id"],
-                            )
-                            conversation.add_message(func_message)
-                    except (json.JSONDecodeError, KeyError):
-                        continue
+                json_str = line_text.removeprefix("data: ").strip()
+                if not json_str or json_str == "[DONE]":
+                    continue
 
-        agent_message = AgentMessage(content=message_content)
-        conversation.add_message(agent_message)
+                try:
+                    event = json.loads(json_str)
+
+                    if event["type"] == "content_block_delta":
+                        if "delta" in event and "text" in event["delta"].get(
+                            "type", ""
+                        ):
+                            delta_text = event["delta"].get("text", "")
+                            if delta_text:
+                                message_content += delta_text
+                                yield delta_text
+
+                    elif event["type"] == "tool_use":
+                        logging.info(f"Tool use event in stream: {event}")
+
+                except json.JSONDecodeError as e:
+                    logging.warning(
+                        f"Error parsing stream event: {e}\nLine: {line_text}"
+                    )
+
+        if message_content:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     async def astream(
         self,
-        conversation,
+        conversation: IConversation,
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
@@ -305,93 +456,113 @@ class AnthropicToolModel(ToolLLMBase):
         Asynchronously streams the response for a conversation, yielding text in real-time.
 
         Args:
-            conversation: The current conversation object.
+            conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            temperature (float): The temperature for the model's output randomness.
-            max_tokens (int): The maximum number of tokens in the response.
+            tool_choice: Optional parameter to choose specific tools or set to 'auto'.
+            temperature (float): Controls randomness in the output.
+            max_tokens (int): Maximum tokens in the response.
 
         Yields:
             AsyncIterator[str]: Chunks of text received from the streaming response.
         """
         formatted_messages = self._format_messages(conversation.history)
-        logging.info(formatted_messages)
 
-        payload = {
+        tool_payload = {
             "model": self.name,
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
             "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+        }
+
+        response = await self._async_client.post("/messages", json=tool_payload)
+        response.raise_for_status()
+        tool_response_data = response.json()
+
+        tool_calls = [
+            c for c in tool_response_data["content"] if c["type"] == "tool_use"
+        ]
+        messages = formatted_messages.copy()
+
+        if tool_calls:
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": tool_response_data["content"],
+                }
+            )
+
+            messages, tool_messages = self._process_tool_calls(
+                tool_calls, toolkit, messages
+            )
+            conversation.add_messages(tool_messages)
+
+        stream_payload = {
+            "model": self.name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             "stream": True,
         }
 
-        collected_content = []
+        message_content = ""
+
         async with self._async_client.stream(
-            "POST", "/messages", json=payload
+            "POST", "/messages", json=stream_payload
         ) as response:
             response.raise_for_status()
+
             async for line in response.aiter_lines():
-                if line:
-                    try:
-                        # Handle the case where line might be bytes or str
-                        line_text = (
-                            line if isinstance(line, str) else line.decode("utf-8")
-                        )
-                        if line_text.startswith("data: "):
-                            line_text = line_text.removeprefix("data: ")
+                if not line:
+                    continue
 
-                        if not line_text or line_text == "[DONE]":
-                            continue
+                if not line.startswith("data: "):
+                    continue
 
-                        event = json.loads(line_text)
-                        if event["type"] == "content_block_delta":
-                            if event["delta"]["type"] == "text_delta":
-                                collected_content.append(event["delta"]["text"])
-                                yield event["delta"]["text"]
-                            if event["delta"]["type"] == "input_json_delta":
-                                collected_content.append(event["delta"]["partial_json"])
-                                yield event["delta"]["partial_json"]
-                        elif event["type"] == "tool_use":
-                            func_name = event["name"]
-                            func_call = toolkit.get_tool_by_name(func_name)
-                            func_args = event["input"]
-                            func_result = func_call(**func_args)
+                json_str = line.removeprefix("data: ").strip()
+                if not json_str or json_str == "[DONE]":
+                    continue
 
-                            func_message = FunctionMessage(
-                                content=json.dumps(func_result),
-                                name=func_name,
-                                tool_call_id=event["id"],
-                            )
-                            conversation.add_message(func_message)
-                    except (json.JSONDecodeError, KeyError):
-                        continue
+                try:
+                    event = json.loads(json_str)
 
-        full_content = "".join(collected_content)
-        agent_message = AgentMessage(content=full_content)
-        conversation.add_message(agent_message)
+                    if event["type"] == "content_block_delta":
+                        if (
+                            "delta" in event
+                            and event["delta"].get("type") == "text_delta"
+                        ):
+                            delta_text = event["delta"].get("text", "")
+                            if delta_text:
+                                message_content += delta_text
+                                yield delta_text
+
+                except json.JSONDecodeError as e:
+                    logging.warning(f"Error parsing stream event: {e}\nLine: {line}")
+
+        if message_content:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
-        conversations: List,
+        conversations: List[IConversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
-    ) -> List:
+    ) -> List[IConversation]:
         """
         Processes a batch of conversations in a synchronous manner.
 
         Args:
-            conversations (List): A list of conversation objects to process.
+            conversations (List[IConversation]): A list of conversation objects to process.
             toolkit: Optional toolkit object for tool-based responses.
             tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            List: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with the assistant's responses.
         """
         results = []
         for conv in conversations:
@@ -407,18 +578,18 @@ class AnthropicToolModel(ToolLLMBase):
 
     async def abatch(
         self,
-        conversations: List,
+        conversations: List[IConversation],
         toolkit=None,
         tool_choice=None,
         temperature=0.7,
         max_tokens=1024,
         max_concurrent=5,
-    ) -> List:
+    ) -> List[IConversation]:
         """
         Processes a batch of conversations asynchronously with limited concurrency.
 
         Args:
-            conversations (List): A list of conversation objects to process.
+            conversations (List[IConversation]): A list of conversation objects to process.
             toolkit: Optional toolkit object for tool-based responses.
             tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
@@ -426,9 +597,8 @@ class AnthropicToolModel(ToolLLMBase):
             max_concurrent (int): The maximum number of concurrent processes allowed.
 
         Returns:
-            List: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with the assistant's responses.
         """
-
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
@@ -446,10 +616,10 @@ class AnthropicToolModel(ToolLLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Returns the list of allowed models for Anthropic API.
 
         Returns:
-            List[str]: A list of allowed model names retrieved from the API.
+            List[str]: A list of allowed model names.
         """
         allowed_models = [
             "claude-3-sonnet-20240229",
