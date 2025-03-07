@@ -18,4 +18,4 @@ class LoggerMixin(BaseModel):
 
     def model_post_init(self, logger: Optional[FullUnion[LoggerBase]] = None) -> None:
         # Directly assign the provided FullUnion[LoggerBase] or fallback to the class-level default.
-        self.logger = logger or self.default_logger
+        self.logger = self.logger or logger or self.default_logger
