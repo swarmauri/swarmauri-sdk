@@ -14,12 +14,9 @@ Note:
     which is later rendered to obtain the correct template file path, with an expected '.j2' extension).
 """
 
-import os
-import yaml
-from pprint import pprint
 from pydantic import FilePath
-from typing import Any, Dict, List
-from .Jinja2PromptTemplate import j2pt
+from typing import Any, Dict
+from ._Jinja2PromptTemplate import j2pt
 
 def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any]) -> str:
     """

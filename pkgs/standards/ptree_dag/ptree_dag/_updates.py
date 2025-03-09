@@ -17,7 +17,6 @@ Section 2: Template (.yaml.j2) CRUD Operations
   - The save_template() function writes the updated template data back to the .yaml.j2 file.
 """
 
-import os
 import yaml
 from typing import Any, Dict
 
@@ -143,7 +142,7 @@ def update_module_value(project_name: str, package_name: str, module_name: str, 
                     break
             break
     if not updated:
-        print(f"[WARNING] Could not update module value. Please verify the project/package/module names.")
+        print("[WARNING] Could not update module value. Please verify the project/package/module names.")
     return updated
 
 

@@ -11,7 +11,7 @@ The module also provides a function to process all file records for a project.
 
 import os
 from typing import Dict, Any, List
-from .rendering import _render_copy_template, _render_generate_template
+from ._rendering import _render_copy_template, _render_generate_template
 
 # If needed, you could also import additional functions such as chunk_content from external.py.
 # from filegenerator.external import chunk_content
@@ -122,7 +122,7 @@ def _process_file(file_record: Dict[str, Any],
     return True
 
 
-def process_project_files(global_attrs: Dict[str, Any],
+def _process_project_files(global_attrs: Dict[str, Any],
                           file_records: List[Dict[str, Any]],
                           template_dir: str,
                           agent_env: Dict[str, Any]) -> None:

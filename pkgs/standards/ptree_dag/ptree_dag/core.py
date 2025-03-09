@@ -23,20 +23,15 @@ This class uses helper methods from modules such as:
 
 import os
 import yaml
-import copy
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pydantic import FilePath
-from pprint import pprint
 
 from pathlib import Path
 
 # Import helper modules from our package.
-from .processing import process_project_files
-from .graph import _build_forward_graph, _topological_sort, _find_start_node, _process_from_node
-from .updates import update_global_value, update_package_value, update_module_value, save_global_projects, update_template, save_template, GLOBAL_PROJECTS_DATA
-from .dependencies import get_direct_dependencies, get_transitive_dependencies, get_dependents, resolve_glob_dependencies
-from .external import call_external_agent, chunk_content
-from .Jinja2PromptTemplate import Jinja2PromptTemplate, j2pt
+from ._processing import _process_project_files
+from ._graph import _topological_sort
+from ._Jinja2PromptTemplate import j2pt
 
 import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
@@ -180,10 +175,10 @@ class ProjectFileGenerator(ComponentBase):
             self.logger.info(f" Topologically sorted {len(sorted_records)} file records for project '{project.get('PROJECT_NAME')}'.")
         except Exception as e:
             self.logger.error(f"Failed to sort file records for project '{project.get('PROJECT_NAME')}': {e}")
-            sorted_records = file_records
+            raise e
 
         # Process the file records.
-        process_project_files(global_attrs=project, 
+        _process_project_files(global_attrs=project, 
                               file_records=sorted_records, 
                               template_dir=template_dir, 
                               agent_env =self.agent_env)

@@ -11,8 +11,7 @@ It includes functions to:
 Each file record is expected to have a unique identifier in the key "RENDERED_FILE_NAME"
 and a list of resolved dependency identifiers in "RENDERED_DEPENDENCIES".
 """
-from pprint import pprint
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Any
 from collections import defaultdict, deque
 
 def _topological_sort(payload):

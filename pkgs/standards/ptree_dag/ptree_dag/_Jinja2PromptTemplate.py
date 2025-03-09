@@ -1,11 +1,10 @@
-from typing import Dict, List, Union, Optional, Literal
-from pydantic import Field, ConfigDict, FilePath
+import typing
+from typing import List, Union, Optional, Literal
+from pydantic import ConfigDict, FilePath
 from jinja2 import Environment, FileSystemLoader, Template
 import os
 
-from swarmauri_core.prompts.IPrompt import IPrompt
-from swarmauri_core.prompts.ITemplate import ITemplate
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
 @ComponentBase.register_type(PromptTemplateBase, 'Jinja2PromptTemplate')
@@ -20,7 +19,7 @@ class Jinja2PromptTemplate(PromptTemplateBase):
     # The template attribute may be a literal string (template content),
     # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
     template: Union[str, FilePath, Template] = ""
-    variables: Dict[str, Union[str, int, float]] = {}
+    variables: typing.Dict[str, Union[str, int, float]] = {}
     # Optional templates_dir attribute (can be a single path or a list of paths)
     templates_dir: Optional[Union[str, List[str]]] = None
 
@@ -128,7 +127,7 @@ class Jinja2PromptTemplate(PromptTemplateBase):
         fallback_env.filters['make_singular'] = self.make_singular
         self.template = fallback_env.get_template(template_name)
 
-    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+    def generate_prompt(self, variables: typing.Dict[str, str] = None) -> str:
         """
         Generates a prompt by rendering the current template with the provided variables.
         
@@ -138,14 +137,14 @@ class Jinja2PromptTemplate(PromptTemplateBase):
         variables = variables if variables else self.variables
         return self.fill(variables)
 
-    def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
+    def __call__(self, variables: Optional[typing.Dict[str, str]] = None) -> str:
         """
         Allows the instance to be called directly to generate a prompt.
         """
         variables = variables if variables else self.variables
         return self.fill(variables)
         
-    def fill(self, variables: Dict[str, str] = None) -> str:
+    def fill(self, variables: typing.Dict[str, str] = None) -> str:
         variables = variables or self.variables
         env = self.get_env()
         if isinstance(self.template, Template):

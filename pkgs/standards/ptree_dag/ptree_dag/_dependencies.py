@@ -8,7 +8,7 @@ strings using a context, and querying dependency relationships from a dependency
 
 import os
 import glob
-from typing import List, Dict, Any
+from typing import List, Dict
 from jinja2 import Environment
 
 
@@ -63,7 +63,7 @@ def resolve_dependency_references(dependencies: List[str], context: dict) -> Lis
             template = env.from_string(dep)
             rendered = template.render(**context)
             resolved.append(rendered)
-        except Exception as e:
+        except Exception:
             # In case of rendering failure, return the original dependency string.
             resolved.append(dep)
     return resolved
