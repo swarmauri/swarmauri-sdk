@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "python-dotenv",
     "jinja2",
     "inflect",
     "swarmauri_core",
