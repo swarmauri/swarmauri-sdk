@@ -12,7 +12,14 @@ class LogColors:
 
 
 class CustomFormatter(logging.Formatter):
+    """
+    Custom formatter to colorize log messages based on log level.
+    """
+
     def format(self, record):
+        """
+        Format log messages based on log level.
+        """
         if record.levelno == logging.INFO:
             record.msg = f"{LogColors.GREEN}{record.msg}{LogColors.RESET}"
         elif record.levelno == logging.WARNING:
@@ -31,13 +38,10 @@ logger.addHandler(handler)
 missing_tests = []
 
 
-def get_classes_from_file(file_path):
-    with open(file_path, "r") as file:
-        tree = ast.parse(file.read(), filename=file_path)
-    return [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
-
-
 def check_files_integrity(path):
+    """
+    Check if the test files are present for each python file in the given path.
+    """
     for root, dirs, files in os.walk(path):
         if "tests" not in dirs:
             continue
@@ -61,15 +65,27 @@ def check_files_integrity(path):
 
 
 def validate_test_file(test_file_path, file_path):
+    """
+    Validate the test file for the given python file.
+    """
     if not os.path.exists(test_file_path):
         missing_tests.append(f"Missing test file for {file_path}")
         logger.error(f"Missing test file for {file_path}")
         raise FileNotFoundError(f"Missing test file for {file_path}")
-    logger.info(f"Test file {test_file_path} exists for {file_path}")
+
+    if os.path.getsize(test_file_path) == 0:
+        missing_tests.append(f"Test file {test_file_path} is empty for {file_path}")
+        logger.error(f"Test file {test_file_path} is empty for {file_path}")
+        raise ValueError(f"Test file {test_file_path} is empty for {file_path}")
+
+    logger.info(f"Test file {test_file_path} exists and is not empty for {file_path}")
     return True
 
 
 def check_subdir_files(subdir_path, tests_root):
+    """
+    Check the files in the given subdirectory.
+    """
     for file in os.listdir(subdir_path):
         if file.endswith(".py") and file != "__init__.py":
             file_path = os.path.join(subdir_path, file)
