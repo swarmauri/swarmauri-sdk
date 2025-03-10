@@ -9,14 +9,16 @@ Welcome to the Swarmauri SDK usage guide. This document will help you understand
 To get started with Swarmauri SDK, you need to import the necessary modules and initialize the components you plan to use.
 
 ```python
-from swarmauri import Conversation, HumanMessage, ToolLLM
+from swarmauri_standard.conversations import Conversation
+from swarmauri_standard.messages import HumanMessage
+from swarmauri_standard.tool_llms import OpenAIToolModel
 
 # Create a conversation
 conversation = Conversation()
-conversation.add_message(HumanMessage("Hello, how can I help you today?"))
+conversation.add_message(HumanMessage(content="Hello, how can I help you today?"))
 
 # Initialize an LLM with tool capabilities
-llm = ToolLLM(model="gpt-4-turbo")
+llm = OpenAIToolModel(model="gpt-4-turbo")
 
 # Generate a response
 response = llm.predict(conversation=conversation)
@@ -28,18 +30,23 @@ print(response.get_last().content)
 Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
 
 ```python
-from swarmauri import CalculatorTool, WebSearchTool
+from swarmauri_standard.tools import CalculatorTool, RequestsTool
 
 # Initialize tools
 calculator = CalculatorTool()
-web_search = WebSearchTool()
+web_request = RequestsTool()
 
-# Use the tools
-calc_result = calculator.calculate("2 + 2")
-search_result = web_search.search("latest AI research papers")
+# Use the calculator tool
+calc_result = calculator(operation="add", x=2, y=2)
+print(f"Calculator Result: {calc_result['calculated_result']}")
 
-print(f"Calculator Result: {calc_result}")
-print(f"Search Result: {search_result}")
+# Use the web request tool
+request_result = web_request(
+    method="GET",
+    url="https://api.example.com/data",
+    headers={"Content-Type": "application/json"}
+)
+print(f"Request Result: {request_result}")
 ```
 
 ## Common Workflows
@@ -49,21 +56,36 @@ print(f"Search Result: {search_result}")
 Create a simple AI assistant that can handle multiple tasks using different tools.
 
 ```python
-from swarmauri import Conversation, HumanMessage, AgentWithTools
+from swarmauri_standard.conversations import Conversation
+from swarmauri_standard.messages import HumanMessage
+from swarmauri_standard.agents import ToolAgent
+from swarmauri_standard.tool_llms import OpenAIToolModel
+from swarmauri_standard.toolkits import Toolkit
+from swarmauri_standard.tools import CalculatorTool, RequestsTool, CodeInterpreterTool
 
 # Create a conversation
 conversation = Conversation()
-conversation.add_message(HumanMessage("Can you help me analyze this dataset?"))
+conversation.add_message(HumanMessage(content="Can you help me analyze this dataset?"))
+
+# Create a toolkit with various tools
+toolkit = Toolkit(
+    tools=[
+        CalculatorTool(),
+        RequestsTool(),
+        CodeInterpreterTool()
+    ]
+)
 
 # Create an agent with tools
-agent = AgentWithTools(
-    llm="gpt-4-turbo",
-    tools=["calculator", "data_analyzer", "chart_generator"]
+agent = ToolAgent(
+    llm=OpenAIToolModel(model="gpt-4-turbo"),
+    toolkit=toolkit,
+    conversation=conversation
 )
 
 # Generate a response
-response = agent.run(conversation)
-print(response.get_last().content)
+response = agent.exec("Can you calculate 25 * 4 and then fetch the weather for New York?")
+print(response)
 ```
 
 ### Document Processing Pipeline
@@ -71,7 +93,11 @@ print(response.get_last().content)
 Set up a pipeline to process and analyze documents.
 
 ```python
-from swarmauri import Pipeline, CSVParser, TextSplitter, OpenAIEmbedding, SqliteVectorStore
+from swarmauri_standard.pipelines import Pipeline
+from swarmauri_standard.parsers import CSVParser
+from swarmauri_standard.chunkers import TextSplitter
+from swarmauri_standard.embeddings import OpenAIEmbedding
+from swarmauri_standard.vector_stores import SqliteVectorStore
 
 # Create a pipeline for document processing
 pipeline = Pipeline([
@@ -90,16 +116,19 @@ result = pipeline.run("data.csv")
 ### Example 1: Simple Chatbot
 
 ```python
-from swarmauri import Conversation, HumanMessage, ToolLLM
+from swarmauri_standard.conversations import Conversation
+from swarmauri_standard.messages import HumanMessage, SystemMessage
+from swarmauri_standard.tool_llms import OpenAIToolModel
 
-# Create a conversation
+# Create a conversation with a system message
 conversation = Conversation()
-conversation.add_message(HumanMessage("What's the weather in New York?"))
+conversation.add_message(SystemMessage(content="You are a helpful assistant."))
+conversation.add_message(HumanMessage(content="What's the weather in New York?"))
 
 # Create an LLM with tool capabilities
-llm = ToolLLM(model="gpt-4-turbo")
+llm = OpenAIToolModel(model="gpt-4-turbo")
 
-# Generate a response using built-in tools
+# Generate a response
 response = llm.predict(conversation=conversation)
 print(response.get_last().content)
 ```
@@ -107,22 +136,35 @@ print(response.get_last().content)
 ### Example 2: Research Assistant
 
 ```python
-from swarmauri import ResearchAgent, ResearchQuery
+from swarmauri_standard.agents import ToolAgent
+from swarmauri_standard.conversations import Conversation
+from swarmauri_standard.messages import SystemMessage
+from swarmauri_standard.tool_llms import OpenAIToolModel
+from swarmauri_standard.toolkits import Toolkit
+from swarmauri_standard.tools import RequestsTool, CodeInterpreterTool
+
+# Create a conversation with a system message for a research assistant
+conversation = Conversation()
+conversation.add_message(SystemMessage(content="You are a research assistant specialized in gathering and analyzing information."))
+
+# Create a toolkit with research tools
+toolkit = Toolkit(
+    tools=[
+        RequestsTool(),
+        CodeInterpreterTool()
+    ]
+)
 
 # Create a research agent
-agent = ResearchAgent(
-    search_tools=["web_search", "wikipedia", "scholar"],
-    analysis_tools=["summarizer", "fact_checker"]
+agent = ToolAgent(
+    llm=OpenAIToolModel(model="gpt-4-turbo"),
+    toolkit=toolkit,
+    conversation=conversation
 )
 
 # Conduct research
-research = agent.research(
-    ResearchQuery("What are the latest advancements in fusion energy?")
-)
-
-# Generate a report
-report = agent.generate_report(research)
-print(report)
+research_result = agent.exec("What are the latest advancements in fusion energy?")
+print(research_result)
 ```
 
 ## Best Practices
