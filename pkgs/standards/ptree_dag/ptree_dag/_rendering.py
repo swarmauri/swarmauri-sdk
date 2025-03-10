@@ -15,10 +15,10 @@ Note:
 """
 
 from pydantic import FilePath
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from ._Jinja2PromptTemplate import j2pt
 
-def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any]) -> str:
+def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any], logger: Optional[Any] = None) -> str:
     """
     Renders a file’s template for a "COPY" operation.
     It assumes that file_record contains a "FILE_NAME" key representing the unrendered template file path.
@@ -38,7 +38,8 @@ def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any]) 
         rendered_content = j2pt.fill(context)
         return rendered_content
     except Exception as e:
-        print(f"[ERROR] Failed to render copy template '{template_path}': {e}")
+        if logger:
+          logger.error(f"[ERROR] Failed to render copy template '{template_path}': {e}")
         return ""
 
 
@@ -46,6 +47,7 @@ def _render_generate_template(file_record: Dict[str, Any],
                               context: Dict[str, Any], 
                               agent_prompt_template: str,
                               agent_env: Dict[str, str] = {},
+                              logger: Optional[Any] = None
                               ) -> str:
     """
     Renders the agent prompt template for a "GENERATE" operation using the provided context,
@@ -61,14 +63,14 @@ def _render_generate_template(file_record: Dict[str, Any],
     """
     try:
         # Set up a Jinja2 environment with a FileSystemLoader.
-        print('\n==>', j2pt.templates_dir)
         j2pt.set_template(FilePath(agent_prompt_template))
         rendered_prompt = j2pt.fill(context)
         # Call the external agent to generate content.
         # Here we assume a function call_external_agent exists in external.py.
         from ._external import call_external_agent
-        rendered_content = call_external_agent(rendered_prompt, agent_env)
+        rendered_content = call_external_agent(rendered_prompt, agent_env, logger)
         return rendered_content
     except Exception as e:
-        print(f"[ERROR] Failed to render generate template '{agent_prompt_template}': {e}")
+        if logger:
+          logger.error(f"[ERROR] Failed to render generate template '{agent_prompt_template}': {e}")
         return ""

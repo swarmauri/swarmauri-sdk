@@ -125,7 +125,7 @@ class ProjectFileGenerator(ComponentBase):
                 self.projects_list = data.get("PROJECTS", [])
             else:
                 self.projects_list = data
-            self.logger.info(f" Loaded {len(self.projects_list)} projects from '{self.projects_payload_path}'.")
+            self.logger.info(f"Loaded {len(self.projects_list)} projects from '{self.projects_payload_path}'.")
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
@@ -174,7 +174,7 @@ class ProjectFileGenerator(ComponentBase):
             import json
             with open('sorted_records.json', 'w') as f:
                 json.dump(sorted_records, f, indent=4)
-            self.logger.info(f" Topologically sorted {len(sorted_records)} file records for project '{project.get('PROJECT_NAME')}'.")
+            self.logger.info(f"Topologically sorted {len(sorted_records)} file records for project '{project.get('PROJECT_NAME')}'.")
         except Exception as e:
             self.logger.error(f"Failed to sort file records for project '{project.get('PROJECT_NAME')}': {e}")
             raise e
@@ -184,12 +184,13 @@ class ProjectFileGenerator(ComponentBase):
             if record["TEMPLATE_SET"]:
                 template_override = self.get_template_dir_any(record["TEMPLATE_SET"])
 
-            record["TEMPLATE_SET"] = template_override  or project["TEMPLATE_SET"]
+            record["TEMPLATE_SET"] = template_override  or self.get_template_dir_any(project["TEMPLATE_SET"])
         # Process the file records.
         _process_project_files(global_attrs=project, 
                               file_records=sorted_records, 
                               template_dir=template_dir, 
-                              agent_env =self.agent_env)
+                              agent_env =self.agent_env,
+                              logger=self.logger)
 
     def load_files_payload(self, path, global_attrs):
         """

@@ -19,13 +19,13 @@ Note:
 
 import re
 import os
-from typing import Dict
+from typing import Dict, Optional, Any
 from ._config import _config
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def call_external_agent(prompt: str, agent_env: Dict[str, str]) -> str:
+def call_external_agent(prompt: str, agent_env: Dict[str, str], logger: Optional[Any] = None) -> str:
     """
     Sends the rendered prompt to an external agent (e.g., a language model) and returns the generated content.
     
@@ -45,8 +45,8 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str]) -> str:
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
     # For demonstration purposes, we simply log the prompt and return a dummy response.
-    truncated_prompt = prompt + "..." if _config["truncate"] else prompt
-    print(f"[INFO] Sending prompt to external agent: \n{truncated_prompt}")
+    truncated_prompt = prompt[:100] + "..." if _config["truncate"] else prompt
+    logger.info(f"Sending prompt to external agent: \n{truncated_prompt}")
     
     
     llm = DeepInfraModel(api_key=os.getenv("DEEPINFRA_API_KEY", ""), name="meta-llama/Meta-Llama-3.1-405B-Instruct")
@@ -67,13 +67,12 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str]) -> str:
         result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000})
         
 
-    content = chunk_content(result)
+    content = chunk_content(result, logger)
     del agent
     return content
-    # return ""
 
 
-def chunk_content(full_content: str) -> str:
+def chunk_content(full_content: str, logger: Optional[Any] = None) -> str:
     """
     Optionally splits the content into chunks. Returns either a single chunk
     or the full content.
@@ -93,8 +92,10 @@ def chunk_content(full_content: str) -> str:
         except IndexError:
             return cleaned_text
     except ImportError:
-        print("[WARNING] MdSnippetChunker not found. Returning full content without chunking.")
+        if logger:
+            logger.warning("MdSnippetChunker not found. Returning full content without chunking.")
         return full_content
     except Exception as e:
-        print(f"[ERROR] Failed to chunk content: {e}")
+        if logger:
+            logger.error(f"[ERROR] Failed to chunk content: {e}")
         return full_content

@@ -10,11 +10,11 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from ._rendering import _render_copy_template, _render_generate_template
 from ._Jinja2PromptTemplate import j2pt
 
-def _save_file(content: str, filepath: str) -> None:
+def _save_file(content: str, filepath: str, logger: Optional[Any] = None) -> None:
     """
     Saves the given content to the specified file path.
     Creates the target directory if it does not exist.
@@ -28,9 +28,9 @@ def _save_file(content: str, filepath: str) -> None:
         os.makedirs(directory, exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"[INFO] File saved: {filepath}")
+        logger.info(f"File saved: {filepath}")
     except Exception as e:
-        print(f"[ERROR] Failed to save file '{filepath}': {e}")
+        logger.error(f"Failed to save file '{filepath}': {e}")
 
 
 def _create_context(file_record, project_global_attributes):
@@ -72,7 +72,8 @@ def _create_context(file_record, project_global_attributes):
 def _process_file(file_record: Dict[str, Any],
                   global_attrs: Dict[str, Any],
                   template_dir: str,
-                  agent_env: Dict[str, Any]) -> None:
+                  agent_env: Dict[str, Any],
+                  logger: Optional[Any] = None) -> None:
     """
     Processes a single file record based on its PROCESS_TYPE.
 
@@ -100,30 +101,33 @@ def _process_file(file_record: Dict[str, Any],
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
     
     if process_type == "COPY":
-        content = _render_copy_template(file_record, context)
+        content = _render_copy_template(file_record, context, logger)
 
     elif process_type == "GENERATE":
         # Determine the agent prompt template.
         agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
         agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
 
-        content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env)
+        content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env, logger)
     else:
-        print(f"[WARNING] Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping.")
+        if logger:
+            logger.warning(f"Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping.")
         return False
 
     if not content:
-        print(f"[WARNING] No content generated for file '{final_filename}'.")
+        if logger:
+            logger.warning(f"No content generated for file '{final_filename}'.")
         return False
 
-    _save_file(content, final_filename)
+    _save_file(content, final_filename, logger)
     return True
 
 
 def _process_project_files(global_attrs: Dict[str, Any],
                           file_records: List[Dict[str, Any]],
                           template_dir: str,
-                          agent_env: Dict[str, Any]) -> None:
+                          agent_env: Dict[str, Any],
+                          logger: Optional[Any] = None) -> None:
     """
     Processes all file records for a project.
 
@@ -137,7 +141,10 @@ def _process_project_files(global_attrs: Dict[str, Any],
       agent_env (dict): Configuration for agent operations used in GENERATE processing.
     """
     for file_record in file_records:
-        print(f"changing {j2pt.templates_dir[0]} to {file_record['TEMPLATE_SET']}")
-        j2pt.templates_dir[0] = file_record['TEMPLATE_SET']
-        if not _process_file(file_record, global_attrs, template_dir, agent_env):
+        if j2pt.templates_dir[0] != file_record['TEMPLATE_SET']:
+            if logger:
+                logger.info(f"Changing Primary Tempalte Directory from: '{j2pt.templates_dir[0]}' to '{file_record['TEMPLATE_SET']}'")
+            j2pt.templates_dir[0] = file_record['TEMPLATE_SET']
+
+        if not _process_file(file_record, global_attrs, template_dir, agent_env, logger):
             break
