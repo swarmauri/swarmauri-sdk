@@ -247,7 +247,7 @@ class ProjectFileGenerator(ComponentBase):
             sorted_records = sorted_records[start_idx:]
             self.logger.info(
                "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL 
-               + f" on f'{project_name}'"
+               + f" on '{project_name}'"
             )
         except Exception as e:
             self.logger.error(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 

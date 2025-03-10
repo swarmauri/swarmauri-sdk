@@ -114,7 +114,7 @@ def process(
         else:
             sorted_records, start_idx = pfg.process_single_project(project, start_idx=start_idx if start_idx else 0)
         pfg.logger.info("")
-        pfg.logger.info(Fore.GREEN + f"{[project_name]}" + Style.RESET_ALL)
+        pfg.logger.info(Fore.GREEN + f"\t{[project_name]}" + Style.RESET_ALL)
         for _, record in enumerate(sorted_records):
             pfg.logger.info(f'\t{_+start_idx}) {record.get("RENDERED_FILE_NAME")}')
         
@@ -123,7 +123,7 @@ def process(
         for sorted_records in projects_sorted_records:
             project_name = sorted_records[0].get("PROJECT_NAME")
             pfg.logger.info("")
-            pfg.logger.info(Fore.GREEN + f"{[project_name]}" + Style.RESET_ALL)
+            pfg.logger.info(Fore.GREEN + f"\t{[project_name]}" + Style.RESET_ALL)
             for _, record in enumerate(sorted_records):
                 pfg.logger.info(f'\t{_}) {record.get("RENDERED_FILE_NAME")}')
         
