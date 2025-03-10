@@ -9,9 +9,7 @@ Welcome to the Swarmauri SDK usage guide. This document will help you understand
 To get started with Swarmauri SDK, you need to import the necessary modules and initialize the components you plan to use.
 
 ```python
-from swarmauri_standard.conversations import Conversation
-from swarmauri_standard.messages import HumanMessage
-from swarmauri_standard.tool_llms import OpenAIToolModel
+from swarmauri import Conversation, HumanMessage, OpenAIToolModel
 
 # Create a conversation
 conversation = Conversation()
@@ -30,7 +28,7 @@ print(response.get_last().content)
 Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
 
 ```python
-from swarmauri_standard.tools import CalculatorTool, RequestsTool
+from swarmauri import CalculatorTool, RequestsTool
 
 # Initialize tools
 calculator = CalculatorTool()
@@ -40,131 +38,139 @@ web_request = RequestsTool()
 calc_result = calculator(operation="add", x=2, y=2)
 print(f"Calculator Result: {calc_result['calculated_result']}")
 
-# Use the web request tool
+# Use the web request tool for a simple API call
 request_result = web_request(
     method="GET",
-    url="https://api.example.com/data",
-    headers={"Content-Type": "application/json"}
+    url="https://jsonplaceholder.typicode.com/todos/1"
 )
 print(f"Request Result: {request_result}")
 ```
 
 ## Common Workflows
 
-### Building an AI Assistant
+### Building a Simple Chatbot
 
-Create a simple AI assistant that can handle multiple tasks using different tools.
-
-```python
-from swarmauri_standard.conversations import Conversation
-from swarmauri_standard.messages import HumanMessage
-from swarmauri_standard.agents import ToolAgent
-from swarmauri_standard.tool_llms import OpenAIToolModel
-from swarmauri_standard.toolkits import Toolkit
-from swarmauri_standard.tools import CalculatorTool, RequestsTool, CodeInterpreterTool
-
-# Create a conversation
-conversation = Conversation()
-conversation.add_message(HumanMessage(content="Can you help me analyze this dataset?"))
-
-# Create a toolkit with various tools
-toolkit = Toolkit(
-    tools=[
-        CalculatorTool(),
-        RequestsTool(),
-        CodeInterpreterTool()
-    ]
-)
-
-# Create an agent with tools
-agent = ToolAgent(
-    llm=OpenAIToolModel(model="gpt-4-turbo"),
-    toolkit=toolkit,
-    conversation=conversation
-)
-
-# Generate a response
-response = agent.exec("Can you calculate 25 * 4 and then fetch the weather for New York?")
-print(response)
-```
-
-### Document Processing Pipeline
-
-Set up a pipeline to process and analyze documents.
+Create a basic chatbot that can respond to user queries.
 
 ```python
-from swarmauri_standard.pipelines import Pipeline
-from swarmauri_standard.parsers import CSVParser
-from swarmauri_standard.chunkers import TextSplitter
-from swarmauri_standard.embeddings import OpenAIEmbedding
-from swarmauri_standard.vector_stores import SqliteVectorStore
-
-# Create a pipeline for document processing
-pipeline = Pipeline([
-    CSVParser(),
-    TextSplitter(chunk_size=1000),
-    OpenAIEmbedding(),
-    SqliteVectorStore(db_path="documents.db")
-])
-
-# Process documents
-result = pipeline.run("data.csv")
-```
-
-## Code Examples
-
-### Example 1: Simple Chatbot
-
-```python
-from swarmauri_standard.conversations import Conversation
-from swarmauri_standard.messages import HumanMessage, SystemMessage
-from swarmauri_standard.tool_llms import OpenAIToolModel
+from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIModel
 
 # Create a conversation with a system message
 conversation = Conversation()
 conversation.add_message(SystemMessage(content="You are a helpful assistant."))
-conversation.add_message(HumanMessage(content="What's the weather in New York?"))
 
-# Create an LLM with tool capabilities
-llm = OpenAIToolModel(model="gpt-4-turbo")
+# Initialize an LLM
+llm = OpenAIModel(model="gpt-3.5-turbo")
 
-# Generate a response
-response = llm.predict(conversation=conversation)
-print(response.get_last().content)
+# Function to handle user input
+def chat_with_bot(user_input):
+    # Add the user's message to the conversation
+    conversation.add_message(HumanMessage(content=user_input))
+
+    # Generate a response
+    llm.predict(conversation=conversation)
+
+    # Return the latest response
+    return conversation.get_last().content
+
+# Example usage
+response = chat_with_bot("What is machine learning?")
+print(response)
 ```
 
-### Example 2: Research Assistant
+### Using Tools with an LLM
+
+Create an assistant that can use tools to answer questions.
 
 ```python
-from swarmauri_standard.agents import ToolAgent
-from swarmauri_standard.conversations import Conversation
-from swarmauri_standard.messages import SystemMessage
-from swarmauri_standard.tool_llms import OpenAIToolModel
-from swarmauri_standard.toolkits import Toolkit
-from swarmauri_standard.tools import RequestsTool, CodeInterpreterTool
+from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIToolModel, CalculatorTool, Toolkit
 
-# Create a conversation with a system message for a research assistant
+# Create a conversation
 conversation = Conversation()
-conversation.add_message(SystemMessage(content="You are a research assistant specialized in gathering and analyzing information."))
+conversation.add_message(SystemMessage(content="You are a helpful assistant with access to tools."))
 
-# Create a toolkit with research tools
+# Create a toolkit with a calculator
 toolkit = Toolkit(
-    tools=[
-        RequestsTool(),
-        CodeInterpreterTool()
-    ]
+    tools=[CalculatorTool()]
 )
 
-# Create a research agent
-agent = ToolAgent(
-    llm=OpenAIToolModel(model="gpt-4-turbo"),
-    toolkit=toolkit,
+# Initialize an LLM with tool capabilities
+llm = OpenAIToolModel(model="gpt-4-turbo")
+
+# Function to handle user input
+def ask_with_tools(user_input):
+    # Add the user's message to the conversation
+    conversation.add_message(HumanMessage(content=user_input))
+
+    # Generate a response using the toolkit
+    llm.predict(conversation=conversation, toolkit=toolkit)
+
+    # Return the latest response
+    return conversation.get_last().content
+
+# Example usage
+response = ask_with_tools("What is 25 * 16?")
+print(response)
+```
+
+## Code Examples
+
+### Example 1: Question Answering
+
+```python
+from swarmauri import QAAgent, OpenAIModel, Conversation
+
+# Create a conversation
+conversation = Conversation()
+
+# Create a QA agent
+agent = QAAgent(
+    llm=OpenAIModel(model="gpt-3.5-turbo"),
     conversation=conversation
 )
 
-# Conduct research
-research_result = agent.exec("What are the latest advancements in fusion energy?")
-print(research_result)
+# Ask a question
+answer = agent.exec("What is the capital of France?")
+print(answer)
+```
+
+### Example 2: RAG (Retrieval-Augmented Generation)
+
+```python
+from swarmauri import (
+    RagAgent,
+    OpenAIModel,
+    OpenAIEmbedding,
+    SqliteVectorStore,
+    Document,
+    Conversation
+)
+
+# Create documents
+documents = [
+    Document(content="Paris is the capital of France."),
+    Document(content="Berlin is the capital of Germany."),
+    Document(content="Rome is the capital of Italy.")
+]
+
+# Create a vector store and add documents
+embedding_model = OpenAIEmbedding()
+vector_store = SqliteVectorStore(embedding=embedding_model, db_path=":memory:")
+vector_store.add_documents(documents)
+
+# Create a conversation
+conversation = Conversation()
+
+# Create a RAG agent
+agent = RagAgent(
+    llm=OpenAIModel(model="gpt-3.5-turbo"),
+    vector_store=vector_store,
+    conversation=conversation
+)
+
+# Ask a question
+answer = agent.exec("What is the capital of France?")
+print(answer)
 ```
 
 ## Best Practices
@@ -187,10 +193,6 @@ source swarmauri_env/bin/activate
 # Install Swarmauri SDK
 pip install swarmauri
 ```
-
-### Modular Design
-
-Leverage Swarmauri's modular architecture to build scalable and maintainable applications. Use only the components you need and extend them as required.
 
 ### Error Handling
 
