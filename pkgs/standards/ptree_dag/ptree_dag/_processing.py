@@ -12,10 +12,7 @@ The module also provides a function to process all file records for a project.
 import os
 from typing import Dict, Any, List
 from ._rendering import _render_copy_template, _render_generate_template
-
-# If needed, you could also import additional functions such as chunk_content from external.py.
-# from filegenerator.external import chunk_content
-
+from ._Jinja2PromptTemplate import j2pt
 
 def _save_file(content: str, filepath: str) -> None:
     """
@@ -104,6 +101,7 @@ def _process_file(file_record: Dict[str, Any],
     
     if process_type == "COPY":
         content = _render_copy_template(file_record, context)
+
     elif process_type == "GENERATE":
         # Determine the agent prompt template.
         agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
@@ -139,5 +137,7 @@ def _process_project_files(global_attrs: Dict[str, Any],
       agent_env (dict): Configuration for agent operations used in GENERATE processing.
     """
     for file_record in file_records:
+        print(f"changing {j2pt.templates_dir[0]} to {file_record['TEMPLATE_SET']}")
+        j2pt.templates_dir[0] = file_record['TEMPLATE_SET']
         if not _process_file(file_record, global_attrs, template_dir, agent_env):
             break

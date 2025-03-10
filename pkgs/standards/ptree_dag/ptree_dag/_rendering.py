@@ -61,11 +61,12 @@ def _render_generate_template(file_record: Dict[str, Any],
     """
     try:
         # Set up a Jinja2 environment with a FileSystemLoader.
+        print('\n==>', j2pt.templates_dir)
         j2pt.set_template(FilePath(agent_prompt_template))
         rendered_prompt = j2pt.fill(context)
         # Call the external agent to generate content.
         # Here we assume a function call_external_agent exists in external.py.
-        from .external import call_external_agent
+        from ._external import call_external_agent
         rendered_content = call_external_agent(rendered_prompt, agent_env)
         return rendered_content
     except Exception as e:

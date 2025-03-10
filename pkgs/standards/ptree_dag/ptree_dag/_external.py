@@ -20,6 +20,7 @@ Note:
 import re
 import os
 from typing import Dict
+from ._config import _config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,7 +45,7 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str]) -> str:
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
     # For demonstration purposes, we simply log the prompt and return a dummy response.
-    truncated_prompt = prompt + "..." if len(prompt) > 100 else prompt
+    truncated_prompt = prompt + "..." if _config["truncate"] else prompt
     print(f"[INFO] Sending prompt to external agent: \n{truncated_prompt}")
     
     

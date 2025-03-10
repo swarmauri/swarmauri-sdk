@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv",
     "jinja2",
     "inflect",
+    "typer",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -50,6 +51,8 @@ asyncio_default_fixture_loop_scope = "function"
 # [project.entry-points.'swarmauri.workflows']
 # Ptree_Dag = "Ptree_Dag:PtreeDag"
 
+[project.scripts]
+ptree = "ptree_dag.cli:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -61,8 +61,8 @@ def _build_forward_graph(payload):
             if dep in all_nodes:
                 graph[dep].append(file_node)
                 in_degree[file_node] += 1
-            else:
-                print(f"[WARNING] Dependency '{dep}' for file '{file_node}' not found among all nodes.")
+            # else:
+            #     print(f"[WARNING] Dependency '{dep}' for file '{file_node}' not found among all nodes.")
 
     # Ensure every node appears in the graph.
     for node in all_nodes:

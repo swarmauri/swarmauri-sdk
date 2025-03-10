@@ -32,6 +32,7 @@ from pathlib import Path
 from ._processing import _process_project_files
 from ._graph import _topological_sort
 from ._Jinja2PromptTemplate import j2pt
+from ._config import _config
 
 import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
@@ -48,14 +49,14 @@ class ProjectFileGenerator(ComponentBase):
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    additional_package_dirs: List[str] = Field(exclude=True, default=list)
+    additional_package_dirs: List[Path] = Field(exclude=True, default=list)
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger()
+    logger: FullUnion[LoggerBase] = Logger(name="pfg")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -85,6 +86,7 @@ class ProjectFileGenerator(ComponentBase):
             self.base_dir,
         ]
         dirs.extend(self.additional_package_dirs)
+        dirs = [os.path.normpath(_d) for _d in dirs]
         self.j2pt.templates_dir = dirs
         
     def get_template_dir_any(self, template_set: str) -> Path:
@@ -177,6 +179,12 @@ class ProjectFileGenerator(ComponentBase):
             self.logger.error(f"Failed to sort file records for project '{project.get('PROJECT_NAME')}': {e}")
             raise e
 
+        for record in sorted_records:
+            template_override = None
+            if record["TEMPLATE_SET"]:
+                template_override = self.get_template_dir_any(record["TEMPLATE_SET"])
+
+            record["TEMPLATE_SET"] = template_override  or project["TEMPLATE_SET"]
         # Process the file records.
         _process_project_files(global_attrs=project, 
                               file_records=sorted_records, 
