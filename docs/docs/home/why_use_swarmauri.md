@@ -4,46 +4,67 @@
 
 Swarmauri SDK is a comprehensive and modular toolkit for building AI-powered applications that require seamless integration of multiple models, tools, and services. Whether you're building a simple chatbot or a complex AI agent system, Swarmauri provides the building blocks to accelerate your development while maintaining flexibility and control.
 
+!!! info "What is Swarmauri?"
+    Swarmauri is an SDK designed to simplify AI application development by providing a unified interface to various AI models and tools. It emphasizes type safety, modularity, and production readiness.
+
 ## Core Advantages
 
 ### Modular Architecture
+
 Swarmauri is built on a highly modular architecture that allows you to use only what you need. Each component can be used independently or combined with others, making it easy to start small and scale up as your requirements grow.
 
 ### Unified API
+
 Work with different AI models, embeddings, and tools through a consistent interface. Whether you're using OpenAI, Anthropic, Cohere, or open-source models, the API remains the same, allowing you to switch providers without changing your application code.
 
+!!! tip "Provider Switching"
+    With Swarmauri's unified API, switching between model providers is as simple as changing a single parameter:
+
+    ```python 
+    # Using OpenAI
+    llm = OpenAIModel(model="gpt-4-turbo")
+
+    # Switch to Anthropic
+    llm = AnthropicModel(model="claude-3-opus")
+
+    # The rest of your code remains unchanged!
+    ```
+
 ### Type Safety
+
 Built with Python's type system and leveraging Pydantic, Swarmauri provides excellent IDE auto-completion, static analysis, and runtime validation, significantly reducing bugs and improving developer productivity.
 
 ### Production Ready
+
 Swarmauri is designed for production environments with robust error handling, retry mechanisms, rate limiting, and other features that ensure reliability in real-world applications.
 
 ## How Swarmauri Compares
 
-| Feature | Swarmauri | LangChain | LlamaIndex | Raw APIs |
-|---------|-----------|-----------|------------|----------|
-| Modular components | ✅ | ✅ | ✅ | ❌ |
-| Type safety | ✅ | Partial | Partial | Varies |
-| Standardized interfaces | ✅ | ✅ | ✅ | ❌ |
-| Community packages | ✅ | ✅ | ✅ | ❌ |
-| Model-agnostic | ✅ | ✅ | ✅ | ❌ |
-| Minimal dependencies | ✅ | ❌ | ❌ | ✅ |
-| Consistent patterns | ✅ | Partial | Partial | ❌ |
-| Enterprise support | ✅ | ✅ | ✅ | Varies |
+| Feature                 | Swarmauri | LangChain | LlamaIndex | Raw APIs |
+| ----------------------- | --------- | --------- | ---------- | -------- |
+| Modular components      | ✅        | ✅        | ✅         | ❌       |
+| Type safety             | ✅        | Partial   | Partial    | Varies   |
+| Standardized interfaces | ✅        | ✅        | ✅         | ❌       |
+| Community packages      | ✅        | ✅        | ✅         | ❌       |
+| Model-agnostic          | ✅        | ✅        | ✅         | ❌       |
+| Minimal dependencies    | ✅        | ❌        | ❌         | ✅       |
+| Consistent patterns     | ✅        | Partial   | Partial    | ❌       |
+| Enterprise support      | ✅        | ✅        | ✅         | Varies   |
 
 While other frameworks offer similar capabilities, Swarmauri distinguishes itself with its consistent design philosophy, focus on type safety, and carefully controlled dependencies.
 
 ## Key Capabilities
 
-### Diverse Model Support
-Swarmauri supports a wide range of AI models including:
+???+ abstract "Diverse Model Support"
+    Swarmauri supports a wide range of AI models including:
 
-- **LLMs**: OpenAI, Anthropic, Cohere, Gemini, Mistral, and more
-- **Embedding Models**: OpenAI, Cohere, Voyage, and various open-source options
-- **Image Generation**: DALL-E, Stable Diffusion, Midjourney API
-- **Speech-to-Text & Text-to-Speech**: Whisper, Play.ht, and various cloud providers
+    - **LLMs**: OpenAI, Anthropic, Cohere, Gemini, Mistral, and more
+    - **Embedding Models**: OpenAI, Cohere, Voyage, and various open-source options
+    - **Image Generation**: DALL-E, Stable Diffusion, Midjourney API
+    - **Speech-to-Text & Text-to-Speech**: Whisper, Play.ht, and various cloud providers
 
 ### Tool Integration
+
 Build AI agents that can use tools to accomplish tasks:
 
 - **Calculator tools** for mathematical operations
@@ -53,7 +74,11 @@ Build AI agents that can use tools to accomplish tasks:
 - **Jupyter notebook tools** for data science workflows
 - **Custom tools** that you can easily build and integrate
 
+!!! tip "Custom Tools"
+    Creating your own tools is straightforward with Swarmauri. Extend the `ToolBase` class, register it with `@ComponentBase.register_type`, and implement the `__call__` method. See the [Custom Components](../guide/usage.md#creating-custom-components) section for examples.
+
 ### Data Processing
+
 Process and analyze data efficiently:
 
 - **Parsers** for extracting information from text and documents
@@ -62,6 +87,7 @@ Process and analyze data efficiently:
 - **Document management** for organizing your data
 
 ### Agent Framework
+
 Create sophisticated AI agents that can:
 
 - Understand complex instructions
@@ -71,85 +97,142 @@ Create sophisticated AI agents that can:
 
 ## Common Use Cases
 
-### AI Assistants
-Build chatbots and virtual assistants with memory, tool use, and multi-turn conversations.
+### Basic Conversational AI
+
+Build simple chatbots that can engage in natural conversations with users.
 
 ```python
-from swarmauri import Conversation, HumanMessage, AgentWithTools
+from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIModel
+
+# Create a conversation with a system message
+conversation = Conversation()
+conversation.add_message(SystemMessage(content="You are a helpful assistant."))
+
+# Initialize an LLM
+llm = OpenAIModel(model="gpt-3.5-turbo")
+
+# Function to handle user input
+def chat_with_bot(user_input):
+    # Add the user's message to the conversation
+    conversation.add_message(HumanMessage(content=user_input))
+
+    # Generate a response
+    llm.predict(conversation=conversation)
+
+    # Return the latest response
+    return conversation.get_last().content
+
+# Example usage
+response = chat_with_bot("What is artificial intelligence?")
+print(response)
+```
+
+!!! example "Use Case: Customer Support Bot"
+    This pattern can be used to create customer support chatbots that can answer common questions, guide users through troubleshooting steps, and escalate to human agents when necessary.
+
+### Tool-Augmented Assistants
+
+Create assistants that can use tools to perform calculations, fetch information, and more.
+
+```python
+from swarmauri import Conversation, HumanMessage, ToolAgent, OpenAIToolModel, Toolkit, CalculatorTool, RequestsTool
 
 # Create a conversation
 conversation = Conversation()
-conversation.add_message(HumanMessage("Can you help me analyze this dataset?"))
+
+# Create a toolkit with various tools
+toolkit = Toolkit(
+    tools=[
+        CalculatorTool(),
+        RequestsTool()
+    ]
+)
 
 # Create an agent with tools
-agent = AgentWithTools(
-    llm="gpt-4-turbo",
-    tools=["calculator", "data_analyzer", "chart_generator"]
+agent = ToolAgent(
+    llm=OpenAIToolModel(model="gpt-4-turbo"),
+    toolkit=toolkit,
+    conversation=conversation
 )
 
-# Generate a response
-response = agent.run(conversation)
-print(response.get_last().content)
+# Ask the agent to perform a task
+response = agent.exec("Calculate 25 * 16 and then fetch information about the weather in New York.")
+print(response)
 ```
 
-### Document Processing Pipelines
-Create workflows for processing, analyzing, and extracting insights from documents.
+### Question Answering with RAG
+
+Build systems that can answer questions based on your own documents using Retrieval-Augmented Generation.
 
 ```python
-from swarmauri import Pipeline, CSVParser, TextSplitter, OpenAIEmbedding, SqliteVectorStore
+from swarmauri import RagAgent, OpenAIModel, OpenAIEmbedding, SqliteVectorStore, Document, Conversation
 
-# Create a pipeline for document processing
-pipeline = Pipeline([
-    CSVParser(),
-    TextSplitter(chunk_size=1000),
-    OpenAIEmbedding(),
-    SqliteVectorStore(db_path="documents.db")
-])
+# Create sample documents
+documents = [
+    Document(content="Paris is the capital of France and is known for the Eiffel Tower."),
+    Document(content="Rome is the capital of Italy and home to the Colosseum."),
+    Document(content="Tokyo is the capital of Japan and is the most populous city in the world.")
+]
 
-# Process documents
-result = pipeline.run("data.csv")
-```
+# Create a vector store and add documents
+embedding_model = OpenAIEmbedding()
+vector_store = SqliteVectorStore(embedding=embedding_model, db_path=":memory:")
+vector_store.add_documents(documents)
 
-### Research Assistants
-Build AI systems that can research topics, summarize findings, and generate reports.
+# Create a conversation
+conversation = Conversation()
 
-```python
-from swarmauri import ResearchAgent, ResearchQuery
-
-# Create a research agent
-agent = ResearchAgent(
-    search_tools=["web_search", "wikipedia", "scholar"],
-    analysis_tools=["summarizer", "fact_checker"]
+# Create a RAG agent
+agent = RagAgent(
+    llm=OpenAIModel(model="gpt-3.5-turbo"),
+    vector_store=vector_store,
+    conversation=conversation
 )
 
-# Conduct research
-research = agent.research(
-    ResearchQuery("What are the latest advancements in fusion energy?")
-)
-
-# Generate a report
-report = agent.generate_report(research)
-print(report)
+# Ask a question
+answer = agent.exec("What is the capital of France and what is it known for?")
+print(answer)
 ```
 
-### Multi-modal Applications
-Develop applications that work with text, images, audio, and other data types.
+!!! warning "Vector Store Persistence"
+    When using `:memory:` as the database path, the vector store will be lost when your application exits. For production use, specify a file path to persist your vector store.
+
+### Document Processing
+
+Process and analyze documents to extract insights and make them searchable.
 
 ```python
-from swarmauri import MultimodalAgent, ImageInput, AudioInput
+from swarmauri import Document, TextSplitter, OpenAIEmbedding, SqliteVectorStore
 
-# Create a multimodal agent
-agent = MultimodalAgent()
+# Create a document
+document = Document(content="""
+Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to intelligence displayed by humans or other animals.
+AI applications include advanced web search engines, recommendation systems, understanding human speech, self-driving cars,
+automated decision-making, and competing at the highest level in strategic game systems.
+""")
 
-# Process different input types
-text_response = agent.process_text("Describe this image")
-image_response = agent.process_image(ImageInput("image.jpg"))
-audio_response = agent.process_audio(AudioInput("recording.mp3"))
+# Split the document into chunks
+chunker = TextSplitter(chunk_size=100)
+chunks = chunker.split_document(document)
+
+# Create embeddings for the chunks
+embedding_model = OpenAIEmbedding()
+embeddings = [embedding_model.embed_query(chunk.content) for chunk in chunks]
+
+# Store the embeddings in a vector store
+vector_store = SqliteVectorStore(embedding=embedding_model, db_path="ai_documents.db")
+vector_store.add_documents(chunks)
+
+# Search for relevant information
+results = vector_store.similarity_search("What are examples of AI applications?", k=2)
+for doc in results:
+    print(doc.content)
 ```
 
 ## Developer Experience
 
 ### Easy Installation
+
 Get started quickly with a simple pip installation:
 
 ```bash
@@ -161,10 +244,15 @@ pip install swarmauri_tool_jupytertoolkit
 pip install swarmauri_vectorstore_redis
 ```
 
+!!! note "Installation Options"
+    See our [Installation Guide](installation.md) for detailed instructions on different installation methods, including virtual environments, conda, and development setups.
+
 ### Extensive Documentation
+
 Comprehensive documentation with examples, tutorials, and API references to help you get started and solve common problems.
 
 ### Active Community
+
 Join a growing community of developers building with Swarmauri:
 
 - Get help on Discord
@@ -172,6 +260,7 @@ Join a growing community of developers building with Swarmauri:
 - Share your projects and packages
 
 ### Flexible Integration
+
 Easily integrate Swarmauri with your existing stack:
 
 - Works with FastAPI, Flask, and other web frameworks
@@ -180,14 +269,16 @@ Easily integrate Swarmauri with your existing stack:
 
 ## Enterprise Benefits
 
-### Security & Compliance
-Swarmauri is designed with security in mind:
+???+ success "Security & Compliance"
+    Swarmauri is designed with security in mind:
 
-- No telemetry or data collection
-- Support for private deployments
-- Control over data storage and processing
+    - No telemetry or data collection
+    - Support for private deployments
+    - Control over data storage and processing
+    - Ability to use your own API keys and credentials
 
 ### Scalability
+
 Build applications that can scale from prototypes to production:
 
 - Efficient resource utilization
@@ -195,13 +286,18 @@ Build applications that can scale from prototypes to production:
 - Batch processing capabilities
 
 ### Customizability
+
 Adapt Swarmauri to your specific needs:
 
 - Extend base classes for custom functionality
 - Override default behaviors
 - Create specialized components
 
+!!! tip "Extensibility"
+    Swarmauri's component-based architecture makes it easy to extend and customize. You can create your own components by extending the base classes and registering them with the component system.
+
 ### Future-proof
+
 As AI technology evolves rapidly, Swarmauri helps you stay current:
 
 - Provider-agnostic interfaces
@@ -220,16 +316,19 @@ Discover how easy it is to build with Swarmauri:
 Or jump right in with a simple example:
 
 ```python
-from swarmauri import Conversation, HumanMessage, ToolLLM
+from swarmauri import Conversation, HumanMessage, OpenAIToolModel
 
 # Create a conversation
 conversation = Conversation()
-conversation.add_message(HumanMessage("What's the weather in New York?"))
+conversation.add_message(HumanMessage(content="What's the weather in New York?"))
 
 # Create an LLM with tool capabilities
-llm = ToolLLM(model="gpt-4-turbo")
+llm = OpenAIToolModel(model="gpt-4-turbo")
 
 # Generate a response using built-in tools
 response = llm.predict(conversation=conversation)
 print(response.get_last().content)
 ```
+
+!!! info "Need Help?"
+    If you have questions or need assistance, join our [Discord community](https://discord.gg/swarmauri) or check out our [FAQ](../guide/faq.md).
