@@ -21,6 +21,7 @@ This class uses helper methods from modules such as:
   - external.py (for calling external agents and chunking content)
 """
 import colorama
+from colorama import init as colorama_init, Fore, Back, Style
 import os
 import yaml
 from typing import Any, Dict, List, Optional
@@ -41,7 +42,7 @@ from swarmauri_base import FullUnion
 from swarmauri_standard.logging.Logger import Logger
 from swarmauri_base.logging.LoggerBase import LoggerBase
 
-colorama.init()
+colorama_init(autoreset=True)
 
 class ProjectFileGenerator(ComponentBase):
     projects_payload_path: str
@@ -58,7 +59,7 @@ class ProjectFileGenerator(ComponentBase):
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger(name="\033[32mpfg\033[0m")
+    logger: FullUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -168,7 +169,7 @@ class ProjectFileGenerator(ComponentBase):
 
             # 1A. Determine the correct template set for this package
             #     either from an override on the package or from the project-level default
-            pkg_template_set = pkg.get("TEMPLATE_SET_OVERRIDE") or pkg.get("TEMPLATE_SET") or project.get("TEMPLATE_SET", "default")
+            pkg_template_set = pkg.get("TEMPLATE_SET_OVERRIDE") or pkg.get("TEMPLATE_SET", None) or project.get("TEMPLATE_SET", "default")
 
             try:
                 template_dir = self.get_template_dir_any(pkg_template_set)
@@ -211,7 +212,11 @@ class ProjectFileGenerator(ComponentBase):
                 )
                 continue
 
-            # 1F. Accumulate these package-level file records
+            # 1F. Set template on each file
+            for record in pkg_file_records:
+                record.update({"TEMPLATE_SET":template_dir})
+
+            # 1G. Accumulate these package-level file records
             all_file_records.extend(pkg_file_records)
 
         # ------------------------------------------------------
@@ -236,12 +241,6 @@ class ProjectFileGenerator(ComponentBase):
         # If each record might still have a unique template set, you can do a 
         # second override resolution here if needed. Or you can assume the record 
         # already includes its final template path from the partial step.
-        for record in sorted_records:
-            template_override = None
-            if record["TEMPLATE_SET"]:
-                template_override = self.get_template_dir_any(record["TEMPLATE_SET"])
-
-            record["TEMPLATE_SET"] = template_override or self.get_template_dir_any(project["TEMPLATE_SET"])
 
         _process_project_files(
             global_attrs=project,

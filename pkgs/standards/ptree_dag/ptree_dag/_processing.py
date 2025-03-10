@@ -10,6 +10,7 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
+from colorama import Fore, Back, Style
 from typing import Dict, Any, List, Optional
 from ._rendering import _render_copy_template, _render_generate_template
 from ._Jinja2PromptTemplate import j2pt
@@ -128,23 +129,28 @@ def _process_project_files(global_attrs: Dict[str, Any],
                           template_dir: str,
                           agent_env: Dict[str, Any],
                           logger: Optional[Any] = None) -> None:
-    """
-    Processes all file records for a project.
-
-    Iterates over each file record and processes it using the appropriate method based on the file's PROCESS_TYPE.
-    This function is typically called after the file records have been expanded to include package and module contexts.
-
-    Parameters:
-      global_attrs (dict): The project-level context.
-      file_records (list of dict): A list of file records to process.
-      template_dir (str): The base directory for templates.
-      agent_env (dict): Configuration for agent operations used in GENERATE processing.
-    """
     for file_record in file_records:
-        if j2pt.templates_dir[0] != file_record['TEMPLATE_SET'] or global_attrs["TEMPLATE_SET"]:
-            if logger:
-                logger.info(f"Using template set: '{file_record['TEMPLATE_SET']}'")
-            j2pt.templates_dir[0] = file_record['TEMPLATE_SET']
+        # Decide which template dir to use for the current record:
+        # (1) If the file record has a "TEMPLATE_SET", use that;
+        # (2) else fall back to the project-level global_attrs["TEMPLATE_SET"].
+        new_template_dir = file_record.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
 
-        if not _process_file(file_record, global_attrs, template_dir, agent_env, logger):
+        # Update j2pt.templates_dir[0] only if it’s actually changed
+        if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
+            if logger:
+                logger.info(
+                    "Changing Primary Template Directory from:"
+                    f" \033[35m '{j2pt.templates_dir[0]}' " + Style.RESET_ALL + "to" +
+                    Fore.YELLOW + f" '{new_template_dir}'" + Style.RESET_ALL
+                )
+            j2pt.templates_dir[0] = new_template_dir
+
+        # Now process the file
+        if not _process_file(
+            file_record=file_record,
+            global_attrs=global_attrs,
+            template_dir=template_dir,
+            agent_env=agent_env,
+            logger=logger
+        ):
             break
