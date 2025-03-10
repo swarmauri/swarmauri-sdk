@@ -141,11 +141,13 @@ class ProjectFileGenerator(ComponentBase):
         For each project, it renders the project YAML, processes file records,
         and (optionally) handles dependency ordering.
         """
+
         sorted_records = []
         if not self.projects_list:
             self.load_projects()
         for project in self.projects_list:
-            sorted_records.append(self.process_single_project(project))
+            file_records, start_idx = self.process_single_project(project)
+            sorted_records.append(file_records)
         return sorted_records
 
 
@@ -178,14 +180,16 @@ class ProjectFileGenerator(ComponentBase):
                 template_dir = self.get_template_dir_any(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Package '{pkg.get('NAME')}' error: {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Package '{pkg.get('NAME')}' error: {e}")
                 continue  # skip or handle differently
 
             # 1B. Find the package’s `ptree.yaml.j2` in that template directory
             ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
             if not os.path.isfile(ptree_template_path):
                 self.logger.error(
-                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
+                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
                 )
                 continue
 
@@ -194,14 +198,16 @@ class ProjectFileGenerator(ComponentBase):
                 self.j2pt.set_template(FilePath(ptree_template_path))
                 rendered_yaml_str = self.j2pt.fill(project_only_context)  # or fill(**pkg)
             except Exception as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Render failure for package '{pkg.get('NAME')}': {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Render failure for package '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1D. Parse the rendered YAML into file records
             try:
                 partial_data = yaml.safe_load(rendered_yaml_str)
             except yaml.YAMLError as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "YAML parse failure for '{pkg.get('NAME')}': {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "YAML parse failure for '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1E. The partial data might be {"FILES": [...]} or just [...]
@@ -211,7 +217,8 @@ class ProjectFileGenerator(ComponentBase):
                 pkg_file_records = partial_data
             else:
                 self.logger.warning(
-                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
+                    Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
                 )
                 continue
 
@@ -226,7 +233,8 @@ class ProjectFileGenerator(ComponentBase):
         # PHASE 2: TOPOLOGICAL SORT ACROSS ALL RECORDS
         # ------------------------------------------------------
         if not all_file_records:
-            self.logger.warning(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "No file records found at all.")
+            self.logger.warning(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                "No file records found at all.")
             return
 
         try:
@@ -237,10 +245,12 @@ class ProjectFileGenerator(ComponentBase):
                         start_idx = _idx
             sorted_records = sorted_records[start_idx:]
             self.logger.info(
-                Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL + " file records across all packages."
+               "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL 
+               + f" on f'{project_name}'"
             )
         except Exception as e:
-            self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + f"Failed to topologically sort: {e}")
+            self.logger.error(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                f"Failed to topologically sort: {e}")
             return
 
         # ------------------------------------------------------
@@ -259,7 +269,7 @@ class ProjectFileGenerator(ComponentBase):
                 agent_env=self.agent_env,
                 logger=self.logger
             )
-            self.logger.info(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Completed file generation workflow.")
+            self.logger.info(f"Completed file generation workflow on {project_name}'")
             return sorted_records, start_idx
         else:
             return sorted_records, start_idx
