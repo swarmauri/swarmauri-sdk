@@ -54,7 +54,7 @@ def check_files_integrity(path):
             "\n\n==========================Summary of missing test files:===================================\n"
         )
         for missing_test in missing_tests:
-            logger.warning(missing_test)
+            logger.error(missing_test)
     else:
         logger.info("All test files are present.")
 
@@ -62,7 +62,7 @@ def check_files_integrity(path):
 def validate_test_file(test_file_path, file_path):
     if not os.path.exists(test_file_path):
         missing_tests.append(f"Missing test file for {file_path}")
-        logger.warning(f"Missing test file for {file_path}")
+        logger.error(f"Missing test file for {file_path}")
         return False
     logger.info(f"Test file {test_file_path} exists for {file_path}")
     return True
@@ -83,7 +83,7 @@ def check_subdir_files(subdir_path, tests_root):
                 break
             else:
                 missing_tests.append(f"Missing test file for {file_path}")
-                logger.warning(f"Missing test file for {file_path}")
+                logger.error(f"Missing test file for {file_path}")
 
 
 if __name__ == "__main__":
