@@ -141,9 +141,9 @@ def _process_project_files(global_attrs: Dict[str, Any],
       agent_env (dict): Configuration for agent operations used in GENERATE processing.
     """
     for file_record in file_records:
-        if j2pt.templates_dir[0] != file_record['TEMPLATE_SET']:
+        if j2pt.templates_dir[0] != file_record['TEMPLATE_SET'] or global_attrs["TEMPLATE_SET"]:
             if logger:
-                logger.info(f"Changing Primary Template Directory from: '{j2pt.templates_dir[0]}' to '{file_record['TEMPLATE_SET']}'")
+                logger.info(f"Using template set: '{file_record['TEMPLATE_SET']}'")
             j2pt.templates_dir[0] = file_record['TEMPLATE_SET']
 
         if not _process_file(file_record, global_attrs, template_dir, agent_env, logger):

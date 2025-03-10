@@ -39,7 +39,7 @@ def _render_copy_template(file_record: Dict[str, Any], context: Dict[str, Any], 
         return rendered_content
     except Exception as e:
         if logger:
-          logger.error(f"[ERROR] Failed to render copy template '{template_path}': {e}")
+          logger.error(f"Failed to render copy template '{template_path}': {e}")
         return ""
 
 
@@ -72,5 +72,5 @@ def _render_generate_template(file_record: Dict[str, Any],
         return rendered_content
     except Exception as e:
         if logger:
-          logger.error(f"[ERROR] Failed to render generate template '{agent_prompt_template}': {e}")
+          logger.error(f"Failed to render generate template '{agent_prompt_template}': {e}")
         return ""
