@@ -119,7 +119,6 @@ def _process_file(file_record: Dict[str, Any],
         if logger:
             logger.warning(f"No content generated for file '{final_filename}'.")
         return False
-
     _save_file(content, final_filename, logger)
     return True
 
@@ -138,8 +137,8 @@ def _process_project_files(global_attrs: Dict[str, Any],
         # Update j2pt.templates_dir[0] only if it’s actually changed
         if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
             if logger:
-                logger.info(
-                    "Changing Primary Template Directory from:"
+                logger.debug(
+                    "Template dir updated: "
                     f" \033[35m '{j2pt.templates_dir[0]}' " + Style.RESET_ALL + "to" +
                     Fore.YELLOW + f" '{new_template_dir}'" + Style.RESET_ALL
                 )

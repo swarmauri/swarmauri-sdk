@@ -24,7 +24,7 @@ import colorama
 from colorama import init as colorama_init, Fore, Back, Style
 import os
 import yaml
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pydantic import FilePath
 
 from pathlib import Path
@@ -60,6 +60,7 @@ class ProjectFileGenerator(ComponentBase):
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: FullUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
+    dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -128,24 +129,27 @@ class ProjectFileGenerator(ComponentBase):
                 self.projects_list = data.get("PROJECTS", [])
             else:
                 self.projects_list = data
-            self.logger.info(f"Loaded {len(self.projects_list)} projects from '{self.projects_payload_path}'.")
+            self.logger.info("Loaded " +Fore.GREEN + f"{len(self.projects_list)}" + Style.RESET_ALL + f" projects from '{self.projects_payload_path}'.")
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
         return self.projects_list
 
-    def process_all_projects(self) -> None:
+    def process_all_projects(self) -> list:
         """
         Processes all projects in self.projects_list.
         For each project, it renders the project YAML, processes file records,
         and (optionally) handles dependency ordering.
         """
+        sorted_records = []
         if not self.projects_list:
             self.load_projects()
         for project in self.projects_list:
-            self.process_single_project(project)
+            sorted_records.append(self.process_single_project(project))
+        return sorted_records
 
-    def process_single_project(self, project: Dict[str, Any]) -> None:
+
+    def process_single_project(self, project: Dict[str, Any], start_idx: int = 0, start_file: Optional[str] = None) -> Tuple[list,int]:
         """
         1) For each package in the project, render its ptree.yaml.j2 to get file records.
         2) Combine those records into a single list.
@@ -158,7 +162,6 @@ class ProjectFileGenerator(ComponentBase):
 
         packages = project.get("PACKAGES", [])
         project_name = project.get("PROJECT_NAME", "UnnamedProject")
-
         # ------------------------------------------------------
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------
@@ -175,14 +178,14 @@ class ProjectFileGenerator(ComponentBase):
                 template_dir = self.get_template_dir_any(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
-                self.logger.error(f"[{project_name}] Package '{pkg.get('NAME')}' error: {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Package '{pkg.get('NAME')}' error: {e}")
                 continue  # skip or handle differently
 
             # 1B. Find the package’s `ptree.yaml.j2` in that template directory
             ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
             if not os.path.isfile(ptree_template_path):
                 self.logger.error(
-                    f"[{project_name}] Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
+                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
                 )
                 continue
 
@@ -191,14 +194,14 @@ class ProjectFileGenerator(ComponentBase):
                 self.j2pt.set_template(FilePath(ptree_template_path))
                 rendered_yaml_str = self.j2pt.fill(project_only_context)  # or fill(**pkg)
             except Exception as e:
-                self.logger.error(f"[{project_name}] Render failure for package '{pkg.get('NAME')}': {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Render failure for package '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1D. Parse the rendered YAML into file records
             try:
                 partial_data = yaml.safe_load(rendered_yaml_str)
             except yaml.YAMLError as e:
-                self.logger.error(f"[{project_name}] YAML parse failure for '{pkg.get('NAME')}': {e}")
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "YAML parse failure for '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1E. The partial data might be {"FILES": [...]} or just [...]
@@ -208,7 +211,7 @@ class ProjectFileGenerator(ComponentBase):
                 pkg_file_records = partial_data
             else:
                 self.logger.warning(
-                    f"[{project_name}] Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
+                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
                 )
                 continue
 
@@ -223,16 +226,21 @@ class ProjectFileGenerator(ComponentBase):
         # PHASE 2: TOPOLOGICAL SORT ACROSS ALL RECORDS
         # ------------------------------------------------------
         if not all_file_records:
-            self.logger.warning(f"[{project_name}] No file records found at all.")
+            self.logger.warning(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "No file records found at all.")
             return
 
         try:
             sorted_records = _topological_sort(all_file_records)
+            if not start_idx and start_file:
+                for _idx, _rec in enumerate(sorted_records):
+                    if _rec.get("RENDERED_FILE_NAME") == start_file:
+                        start_idx = _idx
+            sorted_records = sorted_records[start_idx:]
             self.logger.info(
-                f"[{project_name}] Topologically sorted {len(sorted_records)} file records across all packages."
+                Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL + " file records across all packages."
             )
         except Exception as e:
-            self.logger.error(f"[{project_name}] Failed to topologically sort: {e}")
+            self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + f"Failed to topologically sort: {e}")
             return
 
         # ------------------------------------------------------
@@ -241,16 +249,19 @@ class ProjectFileGenerator(ComponentBase):
         # If each record might still have a unique template set, you can do a 
         # second override resolution here if needed. Or you can assume the record 
         # already includes its final template path from the partial step.
+        if not self.dry_run:
+            _process_project_files(
+                global_attrs=project,
+                file_records=sorted_records,
+                # You might pass a default template_dir, but each record can override
+                # as needed if your _process_project_files supports that.
+                template_dir=template_dir, 
+                agent_env=self.agent_env,
+                logger=self.logger
+            )
+            self.logger.info(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + "Completed file generation workflow.")
+            return sorted_records, start_idx
+        else:
+            return sorted_records, start_idx
 
-        _process_project_files(
-            global_attrs=project,
-            file_records=sorted_records,
-            # You might pass a default template_dir, but each record can override
-            # as needed if your _process_project_files supports that.
-            template_dir=template_dir, 
-            agent_env=self.agent_env,
-            logger=self.logger
-        )
-
-        self.logger.info(f"[{project_name}] Completed file generation workflow.")
 
