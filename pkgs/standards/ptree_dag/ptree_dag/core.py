@@ -20,7 +20,7 @@ This class uses helper methods from modules such as:
   - dependencies.py (for resolving and querying dependencies)
   - external.py (for calling external agents and chunking content)
 """
-
+import colorama
 import os
 import yaml
 from typing import Any, Dict, List, Optional
@@ -41,6 +41,8 @@ from swarmauri_base import FullUnion
 from swarmauri_standard.logging.Logger import Logger
 from swarmauri_base.logging.LoggerBase import LoggerBase
 
+colorama.init()
+
 class ProjectFileGenerator(ComponentBase):
     projects_payload_path: str
     template_base_dir: Optional[str] = None
@@ -56,7 +58,7 @@ class ProjectFileGenerator(ComponentBase):
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger(name="pfg")
+    logger: FullUnion[LoggerBase] = Logger(name="\033[32mpfg\033[0m")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
