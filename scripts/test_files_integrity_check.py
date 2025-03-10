@@ -1,14 +1,23 @@
+"""
+This script checks if the test files are present for each python file in the given path.
+If the test file is missing or empty, it raises an error.
+"""
+
 import os
-import ast
 import logging
+from typing import List
 
 
 # Define color codes
 class LogColors:
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    RESET = "\033[0m"
+    """
+    Color codes for log messages.
+    """
+
+    GREEN: str = "\033[92m"
+    YELLOW: str = "\033[93m"
+    RED: str = "\033[91m"
+    RESET: str = "\033[0m"
 
 
 class CustomFormatter(logging.Formatter):
@@ -16,7 +25,7 @@ class CustomFormatter(logging.Formatter):
     Custom formatter to colorize log messages based on log level.
     """
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """
         Format log messages based on log level.
         """
@@ -35,10 +44,10 @@ handler = logging.StreamHandler()
 handler.setFormatter(CustomFormatter())
 logger.addHandler(handler)
 
-missing_tests = []
+missing_tests: List[str] = []
 
 
-def check_files_integrity(path):
+def check_files_integrity(path: str) -> None:
     """
     Check if the test files are present for each python file in the given path.
     """
@@ -64,7 +73,7 @@ def check_files_integrity(path):
         logger.info("All test files are present.")
 
 
-def validate_test_file(test_file_path, file_path):
+def validate_test_file(test_file_path: str, file_path: str) -> bool:
     """
     Validate the test file for the given python file.
     """
@@ -82,7 +91,7 @@ def validate_test_file(test_file_path, file_path):
     return True
 
 
-def check_subdir_files(subdir_path, tests_root):
+def check_subdir_files(subdir_path: str, tests_root: str) -> None:
     """
     Check the files in the given subdirectory.
     """
