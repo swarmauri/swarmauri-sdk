@@ -32,3 +32,4 @@ def _print_banner():
     typer.echo(repo_info)
     typer.echo(usage_hint)
     typer.echo(current_time)
+    typer.echo()
