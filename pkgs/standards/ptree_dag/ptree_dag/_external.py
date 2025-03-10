@@ -45,8 +45,8 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str], logger: Optional
     from swarmauri.agents.RagAgent import RagAgent
     from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
     # For demonstration purposes, we simply log the prompt and return a dummy response.
-    truncated_prompt = prompt[:100] + "..." if _config["truncate"] else prompt
-    logger.info(f"Sending prompt to external agent: \n{truncated_prompt}")
+    truncated_prompt = prompt[:140] + "..." if _config["truncate"] else prompt
+    logger.info(f"Sending prompt to external agent: \n\t{truncated_prompt}\n")
     
     
     llm = DeepInfraModel(api_key=os.getenv("DEEPINFRA_API_KEY", ""), name="meta-llama/Meta-Llama-3.1-405B-Instruct")
