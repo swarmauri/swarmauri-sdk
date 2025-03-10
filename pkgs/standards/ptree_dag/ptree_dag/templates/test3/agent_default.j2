@@ -14,20 +14,19 @@ Below are the details and requirements for this task:
    {%- endfor %}
 
 
-4. **File and Code Preferences**:
+4. **Style Guide**:
    - The code follows PEP 8 style guidelines.
-   - All functions, classes, and methods include clear docstrings that explain their functionality.
-   - Include module-level docstrings to explain the purpose of modules.
-   - Type hints are used throughout the code.
+   - All modules, functions, classes, and methods must include spacy styled docstrings.
+   - The code follows PEP 484 annotation guidelines.
    - Critical sections of the code include comments explaining the logic.
    - Assume the user will copy-paste this code as-is into their project.
+
+5. **File and Code Preferences**:
    - Provide the concrete fully functional implementation of the code.
    - All methods must feature a complete implementation.
-   
-
-5. **Behavior**:
    - Must inherit the base class.
    - Must provide fully functional implementations for all required methods.
+   - Implement logging using logging.
 
 ### Desired Output
 Produce a single code snippet that contains the entire content for the file {{ RENDERED_FILE_NAME }}. 

@@ -7,8 +7,8 @@
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "agent_requirements.j2"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
-  PACKAGE_NAME: "None"
-  MODULE_NAME: "None"
+  PACKAGE_NAME: null
+  MODULE_NAME: null
   DEPENDENCIES: []
   FILE_CONTEXT:
     PURPOSE: "Defines project-wide functional and non-functional requirements."
@@ -37,7 +37,7 @@
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
+  MODULE_NAME: null
   DEPENDENCIES: []
   FILE_CONTEXT:
     PURPOSE: "Defines the license for package {{ PKG.NAME }}."
@@ -49,7 +49,7 @@
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
+  MODULE_NAME: null
   DEPENDENCIES:
     {# Loop over modules to include their main file as dependencies #}
     {%- for MOD in PKG.MODULES %}
@@ -70,7 +70,7 @@
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
+  MODULE_NAME: null
   DEPENDENCIES:
       - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
     {%- for MOD in PKG.MODULES %}
@@ -98,7 +98,7 @@
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
+  MODULE_NAME: null
   DEPENDENCIES: []
   FILE_CONTEXT:
     PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
@@ -125,14 +125,18 @@
       {%- for dep in MOD.DEPENDENCIES %}
         {%- if "/" in dep %}
             - "{{ dep }}"
+        {%- elif ":" in dep %}
+          {%- set colon_parts = dep | split(':') %}
+          {%- set pkg_part = colon_parts[0] %}
+          {%- set module_ext = colon_parts[1] %}
+          {%- set module_parts = module_ext | split('.') %}
+          {%- if module_parts | length == 2 %}
+            - "{{ PROJECT_ROOT }}/{{ pkg_part }}/{{ pkg_part }}/{{ module_parts[0] }}.{{ module_parts[1] }}"
+          {%- endif %}    
         {%- else %}
-          {%- set parts = dep | split('.') %}
-          {%- if parts | length > 2 %}
-            - "{{ PROJECT_ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
-          {%- else %}
-            - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
-          {%- endif %}
+            - "{{ dep }}"
         {%- endif %}
+
       {%- endfor %}
     {%- endif %}
     {%- if MOD.MIXIN_FILES %}
@@ -187,7 +191,7 @@
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
+  MODULE_NAME: null
   DEPENDENCIES:
     - "{{ PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
   FILE_CONTEXT:

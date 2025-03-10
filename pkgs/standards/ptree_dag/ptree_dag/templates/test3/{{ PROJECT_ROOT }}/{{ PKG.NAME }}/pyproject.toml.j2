@@ -1,17 +1,19 @@
 [tool.poetry]
 name = "{{ PKG.NAME }}"
-version = "0.6.1.dev1"
+version = "0.6.2.dev1"
 description = "{{ PKG.DESCRIPTION }}"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/{{ PROJECT_ROOT }}/community/{{ PKG.NAME }}/"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJECT_ROOT }}/{{ PKG.NAME }}/"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha"
 ]
 keywords = []
 
@@ -19,14 +21,13 @@ keywords = []
 python = ">=3.10,<3.13"
 
 # Swarmauri
-swarmauri_core = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
-swarmauri_base = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev, subdirectory = "pkgs/base"}
-swarmauri_standard = { git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard" }
-
+swarmauri_core = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/core"}
+swarmauri_base = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/base"}
+swarmauri_standard = {git = "https://github.com/swarmauri/swarmauri-sdk.git", branch = "mono/dev", subdirectory = "pkgs/swarmauri_standard"}
 
 # Dependencies
 <!-- include additional dependencies here -->
-{% if PACKAGE_REQUIRES %}
+{% if PKG.PACKAGE_REQUIRES %}
 {% for required in PACKAGE_REQUIRES %}
 {{ required.NAME }} = "{{ required.VERSION }}"
 {% endfor %}
@@ -51,8 +52,9 @@ build-backend = "poetry.core.masonry.api"
 markers = [
     "unit: Unit tests",
     "i9n: Integration tests",
-    "xfail": Expected failures",
-    "xpass": Expected passes"
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
 ]
 log_cli = true
 log_cli_level = "INFO"

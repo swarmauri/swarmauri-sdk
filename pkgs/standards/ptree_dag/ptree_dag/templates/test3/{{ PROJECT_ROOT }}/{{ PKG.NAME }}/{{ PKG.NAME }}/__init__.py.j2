@@ -1,6 +1,5 @@
-{%- for mod in PKG.MODULES %}
+{%- for mod in PKG.MODULES -%}
 from .{{ mod.NAME }} import {{ mod.NAME }}
-
 {%- endfor %}
 
 __all__ = [
