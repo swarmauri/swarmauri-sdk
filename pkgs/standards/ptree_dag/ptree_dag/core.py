@@ -63,6 +63,7 @@ class ProjectFileGenerator(ComponentBase):
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    version: str = "0.1.0"
 
     @model_validator(mode="after")
     def setup_env(self) -> "ProjectFileGenerator":

@@ -19,7 +19,7 @@ def _print_banner():
 
     """   
     # Additional details
-    version_info = f"{Fore.CYAN}{Style.BRIGHT}Version: 1.0.0"
+    version_info = f"{Fore.CYAN}{Style.BRIGHT}Version: 0.1.0"
     tagline = f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri scaffolding tool to simplify code gen."
     usage_hint = f"{Fore.YELLOW}Type '--help' to see available commands."
     current_time = f"{Fore.MAGENTA}Started at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" + Style.RESET_ALL
