@@ -3,10 +3,11 @@ This script checks if the test files are present for each python file in the giv
 If the test file is missing or empty, it raises an error.
 """
 
-import os
 import logging
+import os
+import sys
 from typing import List
-from rag_issue_manager import create_issue, add_comment_to_issue
+from rag_issue_manager import create_issue, add_comment_to_issue, get_existing_issues
 
 
 # Define color codes
@@ -140,5 +141,19 @@ if __name__ == "__main__":
     missing_tests_data = check_files_integrity("pkgs")
 
     for test_data in missing_tests_data:
-        issue_number = create_issue(test_data, test_data["path"].split("/")[1])
-        add_comment_to_issue(issue_number, test_data, test_data["path"].split("/")[1])
+        existing_issues = get_existing_issues()
+
+        issue_title = f"[Test Case Failure]: {test_data['name']}"
+        for issue in existing_issues:
+            if issue_title == issue["title"]:
+                add_comment_to_issue(
+                    issue_number=issue["number"],
+                    comment=test_data,
+                    repo=test_data["path"].split("/")[1],
+                )
+                logging.warning("Issue exists!")
+                sys.exit()
+
+        issue_title = create_issue(
+            issue_data=test_data, repo=test_data["path"].split("/")[1]
+        )
