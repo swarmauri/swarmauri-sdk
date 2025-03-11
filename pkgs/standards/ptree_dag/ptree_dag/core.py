@@ -268,7 +268,8 @@ class ProjectFileGenerator(ComponentBase):
                 # as needed if your _process_project_files supports that.
                 template_dir=template_dir, 
                 agent_env=self.agent_env,
-                logger=self.logger
+                logger=self.logger,
+                start_idx=start_idx
             )
             self.logger.info(f"Completed file generation workflow on {project_name}'")
             return sorted_records, start_idx

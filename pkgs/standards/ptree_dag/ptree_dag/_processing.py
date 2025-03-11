@@ -15,7 +15,7 @@ from typing import Dict, Any, List, Optional
 from ._rendering import _render_copy_template, _render_generate_template
 from ._Jinja2PromptTemplate import j2pt
 
-def _save_file(content: str, filepath: str, logger: Optional[Any] = None) -> None:
+def _save_file(content: str, filepath: str, logger: Optional[Any] = None, start_idx: int = 0, idx_len: int = 1) -> None:
     """
     Saves the given content to the specified file path.
     Creates the target directory if it does not exist.
@@ -29,7 +29,7 @@ def _save_file(content: str, filepath: str, logger: Optional[Any] = None) -> Non
         os.makedirs(directory, exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        logger.info(f"File saved: {filepath}")
+        logger.info(f"({start_idx+1}/{idx_len}) File saved: {filepath}")
     except Exception as e:
         logger.error(f"Failed to save file '{filepath}': {e}")
 
@@ -74,7 +74,9 @@ def _process_file(file_record: Dict[str, Any],
                   global_attrs: Dict[str, Any],
                   template_dir: str,
                   agent_env: Dict[str, Any],
-                  logger: Optional[Any] = None) -> None:
+                  logger: Optional[Any] = None,
+                  start_idx: int = 0,
+                  idx_len: int = 1) -> None:
     """
     Processes a single file record based on its PROCESS_TYPE.
 
@@ -119,7 +121,7 @@ def _process_file(file_record: Dict[str, Any],
         if logger:
             logger.warning(f"No content generated for file '{final_filename}'.")
         return False
-    _save_file(content, final_filename, logger)
+    _save_file(content, final_filename, logger, start_idx, idx_len)
     return True
 
 
@@ -127,7 +129,10 @@ def _process_project_files(global_attrs: Dict[str, Any],
                           file_records: List[Dict[str, Any]],
                           template_dir: str,
                           agent_env: Dict[str, Any],
-                          logger: Optional[Any] = None) -> None:
+                          logger: Optional[Any] = None,
+                          start_idx: int = 0) -> None:
+    
+    idx_len = len(file_records) + start_idx
     for file_record in file_records:
         # Decide which template dir to use for the current record:
         # (1) If the file record has a "TEMPLATE_SET", use that;
@@ -144,12 +149,16 @@ def _process_project_files(global_attrs: Dict[str, Any],
                 )
             j2pt.templates_dir[0] = new_template_dir
 
+
         # Now process the file
         if not _process_file(
             file_record=file_record,
             global_attrs=global_attrs,
             template_dir=template_dir,
             agent_env=agent_env,
-            logger=logger
+            logger=logger,
+            start_idx=start_idx,
+            idx_len=idx_len
         ):
             break
+        start_idx += 1

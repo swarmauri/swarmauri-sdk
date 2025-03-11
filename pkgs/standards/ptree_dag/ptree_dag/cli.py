@@ -34,9 +34,12 @@ def process(
     Process a single project specified by its PROJECT_NAME in the YAML payload.
     """
     if start_idx and start_file:
-        pfg.logger.error(f"Cannot assign both start_idx and start_file.")
+        pfg.logger.error(f"Cannot assign both start-idx and start-file.")
         raise typer.Exit(code=1)
 
+    if not project_name and (start_idx or start_file):
+        pfg.logger.error(f"Cannot assign start-idx or start-file without project-name.")
+        raise typer.Exit(code=1)
 
     additional_package_dirs = additional_package_dirs.split(',') if additional_package_dirs else []
     additional_package_dirs = [FilePath(_d) for _d in additional_package_dirs]
@@ -56,7 +59,7 @@ def process(
             # Look for a project with the matching "PROJECT_NAME" key
             project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
             if project is None:
-                pfg.logger.info(f"Project '{project_name}' not found.", err=True)
+                pfg.logger.info(f"Project '{project_name}' not found.")
                 raise typer.Exit(code=1)
             if start_file:
                 sorted_records, start_idx = pfg.process_single_project(project, start_file=start_file)
@@ -87,9 +90,12 @@ def process(
     """
 
     if start_idx and start_file:
-        pfg.logger.error(f"Cannot assign both start_idx and start_file.")
+        pfg.logger.error(f"Cannot assign both start-idx and start-file.")
         raise typer.Exit(code=1)
 
+    if not project_name and (start_idx or start_file):
+            pfg.logger.error(f"Cannot assign start-idx or start-file without project-name.")
+            raise typer.Exit(code=1)        
 
     additional_package_dirs = additional_package_dirs.split(',') if additional_package_dirs else []
     additional_package_dirs = [FilePath(_d) for _d in additional_package_dirs]
