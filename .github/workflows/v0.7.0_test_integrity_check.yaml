@@ -25,5 +25,5 @@ jobs:
       - name: Install dependencies
         run: pip install requests swarmauri swarmauri_vectorstore_tfidf
 
-      - name: Run Test Files Integrity Check
-        run: python ./scripts/test_files_integrity_check.py
+      - name: Run Test Files Integrity Check and Creates issues
+        run: python ./scripts/test_files_integrity_check_and_create_issues.py
