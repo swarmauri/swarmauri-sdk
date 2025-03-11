@@ -10,14 +10,12 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
-from typing import Dict, Any, List
+from colorama import Fore, Back, Style
+from typing import Dict, Any, List, Optional
 from ._rendering import _render_copy_template, _render_generate_template
+from ._Jinja2PromptTemplate import j2pt
 
-# If needed, you could also import additional functions such as chunk_content from external.py.
-# from filegenerator.external import chunk_content
-
-
-def _save_file(content: str, filepath: str) -> None:
+def _save_file(content: str, filepath: str, logger: Optional[Any] = None, start_idx: int = 0, idx_len: int = 1) -> None:
     """
     Saves the given content to the specified file path.
     Creates the target directory if it does not exist.
@@ -31,9 +29,9 @@ def _save_file(content: str, filepath: str) -> None:
         os.makedirs(directory, exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"[INFO] File saved: {filepath}")
+        logger.info(f"({start_idx+1}/{idx_len}) File saved: {filepath}")
     except Exception as e:
-        print(f"[ERROR] Failed to save file '{filepath}': {e}")
+        logger.error(f"Failed to save file '{filepath}': {e}")
 
 
 def _create_context(file_record, project_global_attributes):
@@ -75,7 +73,10 @@ def _create_context(file_record, project_global_attributes):
 def _process_file(file_record: Dict[str, Any],
                   global_attrs: Dict[str, Any],
                   template_dir: str,
-                  agent_env: Dict[str, Any]) -> None:
+                  agent_env: Dict[str, Any],
+                  logger: Optional[Any] = None,
+                  start_idx: int = 0,
+                  idx_len: int = 1) -> None:
     """
     Processes a single file record based on its PROCESS_TYPE.
 
@@ -103,41 +104,61 @@ def _process_file(file_record: Dict[str, Any],
     process_type = file_record.get("PROCESS_TYPE", "COPY").upper()
     
     if process_type == "COPY":
-        content = _render_copy_template(file_record, context)
+        content = _render_copy_template(file_record, context, logger)
+
     elif process_type == "GENERATE":
         # Determine the agent prompt template.
         agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
         agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
 
-        content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env)
+        content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env, logger)
     else:
-        print(f"[WARNING] Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping.")
+        if logger:
+            logger.warning(f"Unknown PROCESS_TYPE '{process_type}' for file '{final_filename}'. Skipping.")
         return False
 
     if not content:
-        print(f"[WARNING] No content generated for file '{final_filename}'.")
+        if logger:
+            logger.warning(f"No content generated for file '{final_filename}'.")
         return False
-
-    _save_file(content, final_filename)
+    _save_file(content, final_filename, logger, start_idx, idx_len)
     return True
 
 
 def _process_project_files(global_attrs: Dict[str, Any],
                           file_records: List[Dict[str, Any]],
                           template_dir: str,
-                          agent_env: Dict[str, Any]) -> None:
-    """
-    Processes all file records for a project.
-
-    Iterates over each file record and processes it using the appropriate method based on the file's PROCESS_TYPE.
-    This function is typically called after the file records have been expanded to include package and module contexts.
-
-    Parameters:
-      global_attrs (dict): The project-level context.
-      file_records (list of dict): A list of file records to process.
-      template_dir (str): The base directory for templates.
-      agent_env (dict): Configuration for agent operations used in GENERATE processing.
-    """
+                          agent_env: Dict[str, Any],
+                          logger: Optional[Any] = None,
+                          start_idx: int = 0) -> None:
+    
+    idx_len = len(file_records) + start_idx
     for file_record in file_records:
-        if not _process_file(file_record, global_attrs, template_dir, agent_env):
+        # Decide which template dir to use for the current record:
+        # (1) If the file record has a "TEMPLATE_SET", use that;
+        # (2) else fall back to the project-level global_attrs["TEMPLATE_SET"].
+        new_template_dir = file_record.get("TEMPLATE_SET") or global_attrs.get("TEMPLATE_SET")
+
+        # Update j2pt.templates_dir[0] only if it’s actually changed
+        if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
+            if logger:
+                logger.debug(
+                    "Template dir updated: "
+                    f" \033[35m '{j2pt.templates_dir[0]}' " + Style.RESET_ALL + "to" +
+                    Fore.YELLOW + f" '{new_template_dir}'" + Style.RESET_ALL
+                )
+            j2pt.templates_dir[0] = new_template_dir
+
+
+        # Now process the file
+        if not _process_file(
+            file_record=file_record,
+            global_attrs=global_attrs,
+            template_dir=template_dir,
+            agent_env=agent_env,
+            logger=logger,
+            start_idx=start_idx,
+            idx_len=idx_len
+        ):
             break
+        start_idx += 1

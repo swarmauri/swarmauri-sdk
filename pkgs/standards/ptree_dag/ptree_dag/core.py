@@ -20,10 +20,11 @@ This class uses helper methods from modules such as:
   - dependencies.py (for resolving and querying dependencies)
   - external.py (for calling external agents and chunking content)
 """
-
+import colorama
+from colorama import init as colorama_init, Fore, Back, Style
 import os
 import yaml
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pydantic import FilePath
 
 from pathlib import Path
@@ -32,6 +33,7 @@ from pathlib import Path
 from ._processing import _process_project_files
 from ._graph import _topological_sort
 from ._Jinja2PromptTemplate import j2pt
+from ._config import _config
 
 import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
@@ -39,6 +41,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base import FullUnion
 from swarmauri_standard.logging.Logger import Logger
 from swarmauri_base.logging.LoggerBase import LoggerBase
+
+colorama_init(autoreset=True)
 
 class ProjectFileGenerator(ComponentBase):
     projects_payload_path: str
@@ -48,16 +52,18 @@ class ProjectFileGenerator(ComponentBase):
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    additional_package_dirs: List[str] = Field(exclude=True, default=list)
+    additional_package_dirs: List[Path] = Field(exclude=True, default=list)
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger()
+    logger: FullUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
+    dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    version: str = "0.1.0"
 
     @model_validator(mode="after")
     def setup_env(self) -> "ProjectFileGenerator":
@@ -85,6 +91,7 @@ class ProjectFileGenerator(ComponentBase):
             self.base_dir,
         ]
         dirs.extend(self.additional_package_dirs)
+        dirs = [os.path.normpath(_d) for _d in dirs]
         self.j2pt.templates_dir = dirs
         
     def get_template_dir_any(self, template_set: str) -> Path:
@@ -123,103 +130,150 @@ class ProjectFileGenerator(ComponentBase):
                 self.projects_list = data.get("PROJECTS", [])
             else:
                 self.projects_list = data
-            self.logger.info(f" Loaded {len(self.projects_list)} projects from '{self.projects_payload_path}'.")
+            self.logger.info("Loaded " +Fore.GREEN + f"{len(self.projects_list)}" + Style.RESET_ALL + f" projects from '{self.projects_payload_path}'.")
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
         return self.projects_list
 
-    def process_all_projects(self) -> None:
+    def process_all_projects(self) -> list:
         """
         Processes all projects in self.projects_list.
         For each project, it renders the project YAML, processes file records,
         and (optionally) handles dependency ordering.
         """
+
+        sorted_records = []
         if not self.projects_list:
             self.load_projects()
         for project in self.projects_list:
-            self.process_single_project(project)
+            file_records, start_idx = self.process_single_project(project)
+            sorted_records.append(file_records)
+        return sorted_records
 
-    def process_single_project(self, project: Dict[str, Any]) -> None:
+
+    def process_single_project(self, project: Dict[str, Any], start_idx: int = 0, start_file: Optional[str] = None) -> Tuple[list,int]:
         """
-        Processes a single project:
-          - Renders the project YAML using the .yaml.j2 template from the appropriate template set.
-          - Expands file records (package and module context).
-          - Builds and orders the dependency graph.
-          - Processes all file records (via COPY or GENERATE operations).
-
-        Parameters:
-          project (dict): A project dictionary from self.projects_list.
+        1) For each package in the project, render its ptree.yaml.j2 to get file records.
+        2) Combine those records into a single list.
+        3) Perform topological sort across ALL records in the project.
+        4) Process the sorted records.
         """
-        # Get the template set from the project payload (or use "default")
-        template_set = project.get("TEMPLATE_SET", "default")
-        try:
-            template_dir = self.get_template_dir_any(template_set)
-            self.update_templates_dir(template_dir)
-        except ValueError as e:
-            self.logger.error(f"{e}")
-            return
-    
-        # Note: Use the YAML version of the payload template.
-        files_payload_template_path = os.path.join(template_dir, "ptree.yaml.j2")
-        # Step 1: Load the files payload using the YAML payload template
-        files_payload = self.load_files_payload(files_payload_template_path, project)
-        
-        # Optionally, build the dependency graph (if your workflow requires it).
-        try:
-            sorted_records = _topological_sort(files_payload)
-            
-            import json
-            with open('sorted_records.json', 'w') as f:
-                json.dump(sorted_records, f, indent=4)
-            self.logger.info(f" Topologically sorted {len(sorted_records)} file records for project '{project.get('PROJECT_NAME')}'.")
-        except Exception as e:
-            self.logger.error(f"Failed to sort file records for project '{project.get('PROJECT_NAME')}': {e}")
-            raise e
 
-        # Process the file records.
-        _process_project_files(global_attrs=project, 
-                              file_records=sorted_records, 
-                              template_dir=template_dir, 
-                              agent_env =self.agent_env)
+        # We gather all file records from all packages here:
+        all_file_records = []
 
-    def load_files_payload(self, path, global_attrs):
-        """
-        Loads a Jinja2-based YAML template (payload.yaml.j2), renders it
-        with `global_attrs`, and then parses the result as YAML.
-        
-        Supports an optional top-level key "AGENT_PROMPT_TEMPLATE" in the payload.
-        If the rendered YAML is a dictionary, it is expected to contain a "FILES"
-        key with the list of file payloads, and optionally an "AGENT_PROMPT_TEMPLATE".
-        If the rendered YAML is a list, then it is taken as the list of file payloads.
-        """
-        try:
-            ## use j2pt to render the ptree.yaml.j2
-            self.logger.info(path)
-            self.j2pt.set_template(FilePath(path))
+        packages = project.get("PACKAGES", [])
+        project_name = project.get("PROJECT_NAME", "UnnamedProject")
+        # ------------------------------------------------------
+        # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
+        # ------------------------------------------------------
+        for pkg in packages:
+            project_only_context = project.copy()
+            project_only_context['PACKAGES'] = [pkg]
 
-            rendered_str = self.j2pt.fill(global_attrs)
 
-            with open('dump.yaml', 'w') as f:
-                 f.writelines(rendered_str)
+            # 1A. Determine the correct template set for this package
+            #     either from an override on the package or from the project-level default
+            pkg_template_set = pkg.get("TEMPLATE_SET_OVERRIDE") or pkg.get("TEMPLATE_SET", None) or project.get("TEMPLATE_SET", "default")
 
-            payload_data = yaml.safe_load(rendered_str)
-            
-            if isinstance(payload_data, dict):
-                # If an agent prompt template is defined in the payload, update global_attrs.
-                if "AGENT_PROMPT_TEMPLATE" in payload_data:
-                    global_attrs["AGENT_PROMPT_TEMPLATE"] = payload_data["AGENT_PROMPT_TEMPLATE"]
-                # Return the list of file definitions under the "FILES" key.
-                return payload_data.get("FILES", [])
+            try:
+                template_dir = self.get_template_dir_any(pkg_template_set)
+                self.update_templates_dir(template_dir)
+            except ValueError as e:
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Package '{pkg.get('NAME')}' error: {e}")
+                continue  # skip or handle differently
+
+            # 1B. Find the package’s `ptree.yaml.j2` in that template directory
+            ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
+            if not os.path.isfile(ptree_template_path):
+                self.logger.error(
+                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
+                )
+                continue
+
+            # 1C. Render it with the package data
+            try:
+                self.j2pt.set_template(FilePath(ptree_template_path))
+                rendered_yaml_str = self.j2pt.fill(project_only_context)  # or fill(**pkg)
+            except Exception as e:
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Render failure for package '{pkg.get('NAME')}': {e}")
+                continue
+
+            # 1D. Parse the rendered YAML into file records
+            try:
+                partial_data = yaml.safe_load(rendered_yaml_str)
+            except yaml.YAMLError as e:
+                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "YAML parse failure for '{pkg.get('NAME')}': {e}")
+                continue
+
+            # 1E. The partial data might be {"FILES": [...]} or just [...]
+            if isinstance(partial_data, dict) and "FILES" in partial_data:
+                pkg_file_records = partial_data["FILES"]
+            elif isinstance(partial_data, list):
+                pkg_file_records = partial_data
             else:
-                # If the payload is a list, return it as is.
-                return payload_data
-        except FileNotFoundError:
-            self.logger.error(f"The file {path} does not exist.")
-            return []
-        except yaml.YAMLError as e:
-            self.logger.error(f"Failed to parse rendered YAML from {path}: {e}")
-            return []
+                self.logger.warning(
+                    Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                    "Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
+                )
+                continue
+
+            # 1F. Set template on each file
+            for record in pkg_file_records:
+                record.update({"TEMPLATE_SET":template_dir})
+
+            # 1G. Accumulate these package-level file records
+            all_file_records.extend(pkg_file_records)
+
+        # ------------------------------------------------------
+        # PHASE 2: TOPOLOGICAL SORT ACROSS ALL RECORDS
+        # ------------------------------------------------------
+        if not all_file_records:
+            self.logger.warning(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                "No file records found at all.")
+            return
+
+        try:
+            sorted_records = _topological_sort(all_file_records)
+            if not start_idx and start_file:
+                for _idx, _rec in enumerate(sorted_records):
+                    if _rec.get("RENDERED_FILE_NAME") == start_file:
+                        start_idx = _idx
+            sorted_records = sorted_records[start_idx:]
+            self.logger.info(
+               "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL 
+               + f" on '{project_name}'"
+            )
         except Exception as e:
-            self.logger.error(f"An unexpected error occurred while loading files payload: {e}")
-            return []
+            self.logger.error(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
+                f"Failed to topologically sort: {e}")
+            return
+
+        # ------------------------------------------------------
+        # PHASE 3: PROCESS THE SORTED FILES
+        # ------------------------------------------------------
+        # If each record might still have a unique template set, you can do a 
+        # second override resolution here if needed. Or you can assume the record 
+        # already includes its final template path from the partial step.
+        if not self.dry_run:
+            _process_project_files(
+                global_attrs=project,
+                file_records=sorted_records,
+                # You might pass a default template_dir, but each record can override
+                # as needed if your _process_project_files supports that.
+                template_dir=template_dir, 
+                agent_env=self.agent_env,
+                logger=self.logger,
+                start_idx=start_idx
+            )
+            self.logger.info(f"Completed file generation workflow on {project_name}'")
+            return sorted_records, start_idx
+        else:
+            return sorted_records, start_idx
+
+
