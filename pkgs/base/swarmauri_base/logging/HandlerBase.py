@@ -1,12 +1,15 @@
 import logging
+from swarmauri_base import FullUnion
+from swarmauri_base.logging.FormatterBase import FormatterBase
 from swarmauri_core.logging.IHandler import IHandler
 from swarmauri_base.ObserveBase import ObserveBase
+from typing import Optional, Union
 
 
 @ObserveBase.register_model()
 class HandlerBase(IHandler, ObserveBase):
     level: int = logging.INFO
-    format: str = "[%(name)s][%(levelname)s] %(message)s"
+    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
 
     def compile_handler(self) -> logging.Handler:
         """
@@ -15,6 +18,16 @@ class HandlerBase(IHandler, ObserveBase):
         """
         handler = logging.StreamHandler()
         handler.setLevel(self.level)
-        formatter = logging.Formatter(self.format)
-        handler.setFormatter(formatter)
+
+        if self.formatter:
+            if isinstance(self.formatter, str):
+                handler.setFormatter(logging.Formatter(self.formatter))
+            else:
+                handler.setFormatter(self.formatter.compile_formatter())
+        else:
+            default_formatter = logging.Formatter(
+                "[%(name)s][%(levelname)s] %(message)s"
+            )
+            handler.setFormatter(default_formatter)
+
         return handler
