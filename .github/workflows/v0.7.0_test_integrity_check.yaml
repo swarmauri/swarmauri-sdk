@@ -23,7 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install requests swarmauri
+        run: pip install requests swarmauri swarmauri_vectorstore_tfidf
 
       - name: Run Test Files Integrity Check
         run: python ./scripts/test_files_integrity_check.py
