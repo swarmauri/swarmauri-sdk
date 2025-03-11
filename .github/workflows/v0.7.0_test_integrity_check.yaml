@@ -22,5 +22,8 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install dependencies
+        run: pip install requests swarmauri
+
       - name: Run Test Files Integrity Check
         run: python ./scripts/test_files_integrity_check.py
