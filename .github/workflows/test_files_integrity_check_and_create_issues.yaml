@@ -1,12 +1,9 @@
-name: v0.7.0 - Test Integrity Check
+name: v0.7.0 - Test Integrity Check and Creation of their Issues
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    paths:
-      - 'pkgs/**'
   workflow_dispatch:
 
 jobs:
@@ -21,6 +18,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Export environment variables
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "GITHUB_BASE_REF=${{ github.base_ref }}" >> $GITHUB_ENV
+          echo "GITHUB_HEAD_REF=${{ github.head_ref }}" >> $GITHUB_ENV
+          echo "GITHUB_REF=${{ github.ref }}" >> $GITHUB_ENV
+          echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
+          echo "GITHUB_SERVER_URL=${{ github.server_url }}" >> $GITHUB_ENV
+          echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
+          echo "DEEPINFRA_API_KEY=${{ secrets.DEEPINFRA_API_KEY }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pip install requests swarmauri swarmauri_vectorstore_tfidf
