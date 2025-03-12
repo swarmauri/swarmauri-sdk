@@ -2,6 +2,7 @@ name: v0.7.0 - Test Integrity Check and Creation of their Issues
 
 on:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   test-integrity-check:
@@ -20,14 +21,15 @@ jobs:
         run: |
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
           echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
-          echo "GITHUB_BASE_REF=${{ github.base_ref }}" >> $GITHUB_ENV
-          echo "GITHUB_HEAD_REF=${{ github.head_ref }}" >> $GITHUB_ENV
+          echo "GITHUB_BASE_REF=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+          echo "GITHUB_HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
           echo "GITHUB_REF=${{ github.ref }}" >> $GITHUB_ENV
           echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
           echo "GITHUB_SERVER_URL=${{ github.server_url }}" >> $GITHUB_ENV
           echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
           echo "DEEPINFRA_API_KEY=${{ secrets.DEEPINFRA_API_KEY }}" >> $GITHUB_ENV
 
+      - name: Install dependencies
         run: pip install uv
 
       - name: Run Test Files Integrity Check and Creates issues

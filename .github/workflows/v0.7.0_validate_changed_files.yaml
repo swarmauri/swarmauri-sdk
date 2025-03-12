@@ -1,8 +1,10 @@
 name: v0.7.0 - Changes (Validate)
 
 on:
+  pull_request:
+    paths:
+      - 'pkgs/**'
   workflow_dispatch:
-
 jobs:
   detect-changed-files:
     runs-on: ubuntu-latest
