@@ -7,7 +7,7 @@ from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "QAAgent")

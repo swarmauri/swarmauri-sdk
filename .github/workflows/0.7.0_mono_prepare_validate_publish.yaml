@@ -146,30 +146,6 @@ jobs:
           path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
           if-no-files-found: warn
 
-      ## Build
-      - name: Build
-        run: |
-          cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Command
-          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
-
-      ## Publish
-      - name: Publish
-        run: |
-          cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Command
-          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
-
   commit:
     name: Commit Changes
     needs: test
@@ -227,6 +203,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -247,6 +226,18 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           # Command
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+
+      ## Publish
+      - name: Publish
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          # Read the package name from the member's pyproject.toml
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          # Command
+          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
       ## --- Release Steps: Auto-tag, generate release notes, zip artifacts, create release ---
       - name: Prepare release variables
@@ -277,7 +268,7 @@ jobs:
           PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
           echo "Previous tag: $PREVIOUS_TAG"
           if [ -n "$PREVIOUS_TAG" ]; then
-            RELEASE_NOTES=$(git log "$PREVIOUS_TAG".."$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+            RELEASE_NOTES=$(git log "$PREVIOUS_TAG" -- "$CURRENT_TAG" --pretty=format:"* %s" --reverse)
           else
             RELEASE_NOTES="Initial release."
           fi

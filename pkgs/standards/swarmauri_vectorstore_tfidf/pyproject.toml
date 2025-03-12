@@ -45,7 +45,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.vector_stores"]
+[project.entry-points.'swarmauri.vector_stores']
 TfidfVectorStore = "swarmauri_vectorstore_tfidf:TfidfVectorStore"
 
 

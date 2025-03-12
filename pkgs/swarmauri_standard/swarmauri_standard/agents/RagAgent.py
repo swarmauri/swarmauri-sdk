@@ -17,7 +17,7 @@ from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
 from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_core.messages import IMessage
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "RagAgent")

@@ -41,6 +41,8 @@ members = [
     "standards/swarmauri_parser_beautifulsoupelement",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_prompt_j2prompttemplate",
+    "standards/ptree_dag",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -107,6 +109,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri = { workspace = true }
 typing = { workspace = true }
+
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
 #swarmauri_embedding_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
@@ -114,8 +117,10 @@ swarmauri_embedding_nmf = { workspace = true }
 swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
+swarmauri_prompt_j2prompttemplate = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
+ptree_dag = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
