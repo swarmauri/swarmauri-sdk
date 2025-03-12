@@ -1,7 +1,7 @@
 import logging
 from swarmauri_base import FullUnion
-from swarmauri_base.logging.FormatterBase import FormatterBase
-from swarmauri_core.logging.IHandler import IHandler
+from swarmauri_base.logger_formatter.FormatterBase import FormatterBase
+from swarmauri_core.logger_handler.IHandler import IHandler
 from swarmauri_base.ObserveBase import ObserveBase
 from typing import Optional, Union
 

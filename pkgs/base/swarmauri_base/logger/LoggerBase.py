@@ -1,8 +1,8 @@
 import logging
 from typing import List, Optional, Any
 from pydantic import Field
-from swarmauri_core.logging.ILogger import ILogger
-from swarmauri_base.logging.HandlerBase import HandlerBase
+from swarmauri_core.logger.ILogger import ILogger
+from swarmauri_base.logger_handler.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 from swarmauri_base import SubclassUnion
 

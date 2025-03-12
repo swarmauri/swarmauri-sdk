@@ -1,6 +1,6 @@
 # swarmauri_base/logging/logger_formatters/LoggerFormatterBase.py
 import logging
-from swarmauri_core.logging.IFormatter import IFormatter
+from swarmauri_core.logger_formatter.IFormatter import IFormatter
 from swarmauri_base.ObserveBase import ObserveBase
 
 
