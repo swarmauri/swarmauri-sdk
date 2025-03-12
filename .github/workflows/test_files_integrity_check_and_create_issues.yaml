@@ -1,13 +1,7 @@
 name: v0.7.0 - Test Integrity Check and Creation of their Issues
 
 on:
-  push:
-    branches:
-      - main
-    pull_request:
-      paths:
-        - 'pkgs/**'
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   test-integrity-check:
