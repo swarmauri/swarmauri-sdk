@@ -203,6 +203,6 @@ After installation:
 !!! question "Need Help?"
     If you run into issues:
 
-        1. Check our FAQ
-        2. Visit our [GitHub Issues](https://github.com/swarmauri/swarmauri-sdk/issues)
-        3. Join our [Discord Community](https://discord.gg/swarmauri)
+    1. Check our FAQ
+    2. Visit our [GitHub Issues](https://github.com/swarmauri/swarmauri-sdk/issues)
+    3. Join our [Discord Community](https://discord.gg/swarmauri)
