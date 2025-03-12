@@ -161,4 +161,4 @@ if __name__ == "__main__":
             )
             logging.warning("Issue exists!")
         else:
-            create_issue(issue_data=test_data, repo=test_data["path"].split("/")[1])
+            create_issue(test=test_data, package=test_data["path"].split("/")[1])

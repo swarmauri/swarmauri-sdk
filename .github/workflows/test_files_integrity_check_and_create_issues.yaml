@@ -27,7 +27,6 @@ jobs:
           echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
           echo "GITHUB_SERVER_URL=${{ github.server_url }}" >> $GITHUB_ENV
           echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
-          echo "DEEPINFRA_API_KEY=${{ secrets.DEEPINFRA_API_KEY }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pip install uv
