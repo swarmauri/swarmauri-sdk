@@ -2,6 +2,9 @@
 
 Welcome to Swarmauri guides! This section contains practical tutorials and how-to content to help you build AI applications with the Swarmauri SDK.
 
+!!! info "About These Guides"
+    These guides are designed to be practical and hands-on. Each guide focuses on specific aspects of the Swarmauri SDK to help you build production-ready AI applications quickly.
+
 ## Available Guides
 
 - **[Installation Guide](installation.md)** - Step-by-step instructions for setting up Swarmauri SDK
@@ -13,25 +16,35 @@ Welcome to Swarmauri guides! This section contains practical tutorials and how-t
 
 Choose the path that fits your needs:
 
-### 1. Beginners 
+!!! tip "Choose Your Path"
+    Select the learning path that best matches your experience level and goals. You can always explore other paths later as you become more familiar with the SDK.
+
+### 1. Beginners
+
 Start with the **[Installation Guide](installation.md)** followed by the **[Entry Course](course/1.md)**. This path introduces core concepts without assuming prior AI development experience.
 
 ### 2. AI/ML Practitioners
+
 Begin with **[Installation Guide](installation.md)** and jump straight to the **[Generative AI Course](course/2.md)**. This path focuses on using Swarmauri with existing AI/ML knowledge.
 
 ### 3. Tool Developers
+
 After installation, explore the **[Tool Development Course](course/3.md)**. This path is ideal if you want to extend Swarmauri with custom components.
+
+!!! warning "Prerequisites"
+    The Tool Development path assumes familiarity with Python development practices, including package management, testing, and object-oriented programming concepts.
 
 ## Who Should Use These Guides
 
-| Guide Section | Target Audience |
-|---------------|----------------|
-| Installation | All users |
-| Usage Guide | Newcomers to Swarmauri |
-| Entry Course | Developers new to AI tools |
-| Generative AI | ML engineers, AI researchers |
-| Tool Development | Contributors, SDK extenders |
-| FAQ | All users |
+???+ info "Target Audiences"
+    | Guide Section | Target Audience |
+    |---------------|----------------|
+    | Installation | All users |
+    | Usage Guide | Newcomers to Swarmauri |
+    | Entry Course | Developers new to AI tools |
+    | Generative AI | ML engineers, AI researchers |
+    | Tool Development | Contributors, SDK extenders |
+    | FAQ | All users |
 
 ## Getting Started
 
@@ -41,4 +54,5 @@ If this is your first time using Swarmauri, we recommend:
 2. Follow the basic examples in the [Usage Guide](usage.md)
 3. Explore more advanced concepts in our [Courses](course/1.md)
 
-Need help? Visit our [community resources](../home/help.md) or check the [FAQ](faq.md).
+!!! note "Community Support"
+    Need help? Visit our [community resources](../home/help.md) or check the [FAQ](faq.md). Our active community is ready to assist with any questions you might have.

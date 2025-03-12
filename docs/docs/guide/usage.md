@@ -23,6 +23,9 @@ response = llm.predict(conversation=conversation)
 print(response.get_last().content)
 ```
 
+!!! info "API Key Requirements"
+    Remember that you'll need to set up your API key for OpenAI or any other LLM provider before initializing the models. This can be done through environment variables or configuration files.
+
 ### Using Tools
 
 Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
@@ -45,6 +48,9 @@ request_result = web_request(
 )
 print(f"Request Result: {request_result}")
 ```
+
+!!! warning "Security Considerations"
+    When using the `RequestsTool`, be careful with the URLs you allow it to access. Consider implementing URL validation or allowlists to prevent potential security risks.
 
 ## Common Workflows
 
@@ -77,6 +83,16 @@ def chat_with_bot(user_input):
 response = chat_with_bot("What is machine learning?")
 print(response)
 ```
+
+!!! tip "Conversation Management"
+    For longer conversations, consider implementing a mechanism to trim the conversation history to avoid hitting token limits. You can either summarize previous exchanges or remove older messages.
+    
+    ```python
+    # Example of trimming conversation history
+    if len(conversation.messages) > 10:
+        # Keep only the last 5 messages
+        conversation.messages = conversation.messages[-5:]
+    ```
 
 ### Using Tools with an LLM
 
@@ -173,6 +189,16 @@ answer = agent.exec("What is the capital of France?")
 print(answer)
 ```
 
+!!! note "In-Memory vs. Persistent Storage"
+    The example above uses an in-memory SQLite database (`:memory:`) which is suitable for testing but not for production. For production applications, specify a file path to create a persistent vector store:
+    
+    ```python
+    vector_store = SqliteVectorStore(
+        embedding=embedding_model, 
+        db_path="./data/vector_store.db"
+    )
+    ```
+
 ## Best Practices
 
 ### Use Virtual Environments
@@ -194,6 +220,17 @@ source swarmauri_env/bin/activate
 pip install swarmauri
 ```
 
+!!! tip "Requirements File"
+    For team projects or deployments, consider creating a `requirements.txt` file to ensure consistent environments:
+    
+    ```bash
+    # Generate requirements.txt
+    pip freeze > requirements.txt
+    
+    # Install from requirements.txt
+    pip install -r requirements.txt
+    ```
+
 ### Error Handling
 
 Implement robust error handling to ensure your application can gracefully handle unexpected situations.
@@ -205,6 +242,26 @@ try:
 except Exception as e:
     print(f"An error occurred: {e}")
 ```
+
+!!! warning "Rate Limits"
+    When working with external API services like OpenAI, be aware of rate limits. Implement exponential backoff strategies for retries:
+    
+    ```python
+    import time
+    
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = llm.predict(conversation=conversation)
+            break  # Success, exit the retry loop
+        except Exception as e:
+            if attempt < max_retries - 1:
+                # Wait with exponential backoff (1s, 2s, 4s, etc.)
+                time.sleep(2 ** attempt)
+                continue
+            else:
+                print(f"Failed after {max_retries} attempts: {e}")
+    ```
 
 ### Logging
 
@@ -218,6 +275,20 @@ logger = logging.getLogger(__name__)
 
 logger.info("Starting the AI assistant")
 ```
+
+!!! info "Structured Logging"
+    For production applications, consider using structured logging for better searchability:
+    
+    ```python
+    logger.info(
+        "LLM response generated", 
+        extra={
+            "tokens_used": response.usage.total_tokens,
+            "response_time_ms": response_time,
+            "model": "gpt-4-turbo"
+        }
+    )
+    ```
 
 ## Next Steps
 
