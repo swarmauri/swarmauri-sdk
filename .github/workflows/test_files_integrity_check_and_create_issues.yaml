@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+    pull_request:
+    branches:
+      - main
+    workflow_dispatch:
 
 jobs:
   test-integrity-check:
@@ -31,8 +34,7 @@ jobs:
           echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
           echo "DEEPINFRA_API_KEY=${{ secrets.DEEPINFRA_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        run: pip install requests swarmauri swarmauri_vectorstore_tfidf
+        run: pip install uv
 
       - name: Run Test Files Integrity Check and Creates issues
-        run: python ./scripts/test_files_integrity_check_and_create_issues.py
+        run: uv run ./scripts/test_files_integrity_check_and_create_issues.py
