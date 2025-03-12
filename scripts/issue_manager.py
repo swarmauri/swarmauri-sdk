@@ -39,7 +39,7 @@ def create_issue(test, package):
 
     # Construct the issue body
     data = {
-        "title": f"[Missing Test Cases]: {test['name']}",
+        "title": f"[Missing Test Coverage]: {test['name']}",
         "body": f"""
 ### Test Case:
 `{test["path"]}`

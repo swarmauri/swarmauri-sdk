@@ -2,8 +2,6 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "requests",
-#     "swarmauri",
-#     "swarmauri-vectorstore-tfidf",
 # ]
 # ///
 """
@@ -151,7 +149,8 @@ if __name__ == "__main__":
     existing_issues_dict = {issue["title"]: issue for issue in existing_issues}
 
     for test_data in missing_tests_data:
-        issue_title = f"[Test Case Failure]: {test_data['name']}"
+        # Technical Debt: This is a temporary fix to handle the missing test files.
+        issue_title = (f"[Missing Test Coverage]: {test_data['name']}",)
 
         if issue_title in existing_issues_dict:
             add_comment_to_issue(
