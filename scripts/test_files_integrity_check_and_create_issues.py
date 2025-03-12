@@ -13,9 +13,8 @@ If the test file is missing or empty, it raises an error.
 
 import logging
 import os
-import sys
 from typing import List
-from rag_issue_manager import create_issue, add_comment_to_issue, get_existing_issues
+from issue_manager import create_issue, add_comment_to_issue, get_existing_issues
 
 
 # Define color codes
