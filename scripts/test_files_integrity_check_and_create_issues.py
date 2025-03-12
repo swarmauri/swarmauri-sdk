@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "requests",
+#     "swarmauri",
+#     "swarmauri-vectorstore-tfidf",
+# ]
+# ///
 """
 This script checks if the test files are present for each python file in the given path.
 If the test file is missing or empty, it raises an error.
@@ -140,20 +148,18 @@ def check_files_integrity(path: str) -> List[dict]:
 if __name__ == "__main__":
     missing_tests_data = check_files_integrity("pkgs")
 
+    existing_issues = get_existing_issues()
+    existing_issues_dict = {issue["title"]: issue for issue in existing_issues}
+
     for test_data in missing_tests_data:
-        existing_issues = get_existing_issues()
-
         issue_title = f"[Test Case Failure]: {test_data['name']}"
-        for issue in existing_issues:
-            if issue_title == issue["title"]:
-                add_comment_to_issue(
-                    issue_number=issue["number"],
-                    comment=test_data,
-                    repo=test_data["path"].split("/")[1],
-                )
-                logging.warning("Issue exists!")
-                sys.exit()
 
-        issue_title = create_issue(
-            issue_data=test_data, repo=test_data["path"].split("/")[1]
-        )
+        if issue_title in existing_issues_dict:
+            add_comment_to_issue(
+                issue_number=existing_issues_dict[issue_title]["number"],
+                comment=test_data,
+                repo=test_data["path"].split("/")[1],
+            )
+            logging.warning("Issue exists!")
+        else:
+            create_issue(issue_data=test_data, repo=test_data["path"].split("/")[1])
