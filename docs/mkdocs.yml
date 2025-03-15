@@ -126,14 +126,6 @@ nav:
   - Swarmauri: concept/swarmauri.md
 - API Documentation:
   - api/index.md
-  - First Class:
-    - api/first_class/index.md
-    - Module 1: api/first_class/module1.md
-    - Module 2: api/first_class/module2.md
-  - Second Class:
-    - api/second_class/index.md
-    - Module 1: api/second_class/module1.md
-    - Module 2: api/second_class/module2.md
   - Third Class:
     - api/third_class/index.md
     - Module 1: api/third_class/module1.md
@@ -453,6 +445,12 @@ nav:
     - IVectorMeta: api/core/swarmauri_core/vectors/IVectorMeta.md
     - IVectorProduct: api/core/swarmauri_core/vectors/IVectorProduct.md
     - IPredictVision: api/core/swarmauri_core/vlms/IPredictVision.md
+  - First_Class:
+    - Home: api/first_class/index.md
+    - MinkowskiDistance: api/first_class/swarmauri_distance_minkowski/MinkowskiDistance.md
+  - Second_Class:
+    - Home: api/second_class/index.md
+    - MlmEmbedding: api/second_class/swarmauri_embedding_mlm/MlmEmbedding.md
 - Blog:
   - blog/index.md
   - News: blog/news.md

@@ -267,9 +267,9 @@ def generate(
 if __name__ == "__main__":
     # Example usage
     generate(
-        package_name="swarmauri_standard",
+        package_name="swarmauri_embedding_mlm",
         docs_dir="docs/docs",
         api_output_dir="api",
         mkdocs_yml_path="docs/mkdocs.yml",
-        top_label="Standard",
+        top_label="Second_Class",
     )
