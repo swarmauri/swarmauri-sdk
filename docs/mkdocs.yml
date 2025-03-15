@@ -1,28 +1,23 @@
 site_name: Swarmauri SDK
 repo_url: https://github.com/swarmauri/swarmauri-sdk
 repo_name: swarmauri/swarmauri-sdk
-
 theme:
   name: material
   logo: assets/swarmauri_logo_dark.jpeg
   favicon: assets/swarmauri_logo_dark.jpeg
   palette:
-    # Dark Mode
-    - scheme: slate
-      toggle:
-        icon: material/weather-sunny
-        name: Dark mode
-      primary: orange
-      accent: deep purple
-
-    # Light Mode
-    - scheme: default
-      toggle:
-        icon: material/weather-night
-        name: Light mode
-      primary: orange
-      accent: deep orange
-
+  - scheme: slate
+    toggle:
+      icon: material/weather-sunny
+      name: Dark mode
+    primary: orange
+    accent: deep purple
+  - scheme: default
+    toggle:
+      icon: material/weather-night
+      name: Light mode
+    primary: orange
+    accent: deep orange
   features:
   - announce.dismiss
   - content.action.edit
@@ -47,7 +42,6 @@ theme:
   - toc.follow
   icon:
     repo: fontawesome/brands/github
-
 plugins:
 - mkdocstrings:
     handlers:
@@ -75,50 +69,45 @@ plugins:
     enabled: true
 - search: null
 - autorefs: null
-
 markdown_extensions:
-  - admonition
-  - pymdownx.details
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-  - abbr
-  - attr_list
-  - pymdownx.snippets
-  - pymdownx.tasklist:
-      custom_checkbox: true
+- admonition
+- pymdownx.details
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: __PYTHON_TAG_0__
+- pymdownx.tabbed:
+    alternate_style: true
+- abbr
+- attr_list
+- pymdownx.snippets
+- pymdownx.tasklist:
+    custom_checkbox: true
 extra:
   alternate:
   - name: English
     link: /en/
     lang: en
-
   social:
-    - icon: fontawesome/brands/discord
-      link: https://discord.gg/swarmauri
-    - icon: fontawesome/brands/youtube
-      link: https://youtube.com/@swarmauri
-    - icon: fontawesome/brands/linkedin
-      link: https://www.linkedin.com/company/swarmauri
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/swarmauri
-    - icon: fontawesome/brands/github
-      link: https://github.com/swarmauri/swarmauri-sdk
-
+  - icon: fontawesome/brands/discord
+    link: https://discord.gg/swarmauri
+  - icon: fontawesome/brands/youtube
+    link: https://youtube.com/@swarmauri
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/swarmauri
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/swarmauri
+  - icon: fontawesome/brands/github
+    link: https://github.com/swarmauri/swarmauri-sdk
 copyright: Copyright &copy; 2025 Swarmauri
-
 nav:
-- Home: 
+- Home:
   - index.md
   - Why Use Swarmauri: home/why_use_swarmauri.md
   - Installation & Setup: home/installation.md
   - Contributing: home/contribute.md
   - Get Help: home/help.md
-
 - Guide:
   - guide/index.md
   - Installation: guide/installation.md
@@ -129,14 +118,12 @@ nav:
     - Generative AI: guide/course/2.md
     - Tool: guide/course/3.md
   - FAQ: guide/faq.md
-
 - Concept:
   - concept/index.md
   - Core: concept/core.md
   - Base: concept/base.md
   - Standard: concept/standard.md
   - Swarmauri: concept/swarmauri.md
-
 - API Documentation:
   - api/index.md
   - First Class:
@@ -152,24 +139,323 @@ nav:
     - Module 1: api/third_class/module1.md
     - Module 2: api/third_class/module2.md
   - Standard:
-    - api/swarmauri_standard/index.md
-    - Module 1: api/swarmauri_standard/module1.md
-    - Module 2: api/swarmauri_standard/module2.md
+    - Home: api/standard/index.md
+    - QAAgent: api/standard/swarmauri_standard/agents/QAAgent.md
+    - RagAgent: api/standard/swarmauri_standard/agents/RagAgent.md
+    - SimpleConversationAgent: api/standard/swarmauri_standard/agents/SimpleConversationAgent.md
+    - ToolAgent: api/standard/swarmauri_standard/agents/ToolAgent.md
+    - CallableChain: api/standard/swarmauri_standard/chains/CallableChain.md
+    - ChainStep: api/standard/swarmauri_standard/chains/ChainStep.md
+    - ContextChain: api/standard/swarmauri_standard/chains/ContextChain.md
+    - DelimiterBasedChunker: api/standard/swarmauri_standard/chunkers/DelimiterBasedChunker.md
+    - FixedLengthChunker: api/standard/swarmauri_standard/chunkers/FixedLengthChunker.md
+    - MdSnippetChunker: api/standard/swarmauri_standard/chunkers/MdSnippetChunker.md
+    - SentenceChunker: api/standard/swarmauri_standard/chunkers/SentenceChunker.md
+    - SlidingWindowChunker: api/standard/swarmauri_standard/chunkers/SlidingWindowChunker.md
+    - ControlPanel: api/standard/swarmauri_standard/control_panels/ControlPanel.md
+    - Conversation: api/standard/swarmauri_standard/conversations/Conversation.md
+    - MaxSizeConversation: api/standard/swarmauri_standard/conversations/MaxSizeConversation.md
+    - MaxSystemContextConversation: api/standard/swarmauri_standard/conversations/MaxSystemContextConversation.md
+    - SessionCacheConversation: api/standard/swarmauri_standard/conversations/SessionCacheConversation.md
+    - GoogleDriveDataConnector: api/standard/swarmauri_standard/dataconnectors/GoogleDriveDataConnector.md
+    - CanberraDistance: api/standard/swarmauri_standard/distances/CanberraDistance.md
+    - ChebyshevDistance: api/standard/swarmauri_standard/distances/ChebyshevDistance.md
+    - ChiSquaredDistance: api/standard/swarmauri_standard/distances/ChiSquaredDistance.md
+    - CosineDistance: api/standard/swarmauri_standard/distances/CosineDistance.md
+    - EuclideanDistance: api/standard/swarmauri_standard/distances/EuclideanDistance.md
+    - HaversineDistance: api/standard/swarmauri_standard/distances/HaversineDistance.md
+    - JaccardIndexDistance: api/standard/swarmauri_standard/distances/JaccardIndexDistance.md
+    - LevenshteinDistance: api/standard/swarmauri_standard/distances/LevenshteinDistance.md
+    - ManhattanDistance: api/standard/swarmauri_standard/distances/ManhattanDistance.md
+    - SorensenDiceDistance: api/standard/swarmauri_standard/distances/SorensenDiceDistance.md
+    - SquaredEuclideanDistance: api/standard/swarmauri_standard/distances/SquaredEuclideanDistance.md
+    - Document: api/standard/swarmauri_standard/documents/Document.md
+    - CohereEmbedding: api/standard/swarmauri_standard/embeddings/CohereEmbedding.md
+    - GeminiEmbedding: api/standard/swarmauri_standard/embeddings/GeminiEmbedding.md
+    - MistralEmbedding: api/standard/swarmauri_standard/embeddings/MistralEmbedding.md
+    - OpenAIEmbedding: api/standard/swarmauri_standard/embeddings/OpenAIEmbedding.md
+    - TfidfEmbedding: api/standard/swarmauri_standard/embeddings/TfidfEmbedding.md
+    - VoyageEmbedding: api/standard/swarmauri_standard/embeddings/VoyageEmbedding.md
+    - IndexErrorWithContext: api/standard/swarmauri_standard/exceptions/IndexErrorWithContext.md
+    - AgentFactory: api/standard/swarmauri_standard/factories/AgentFactory.md
+    - Factory: api/standard/swarmauri_standard/factories/Factory.md
+    - BlackForestImgGenModel: api/standard/swarmauri_standard/image_gens/BlackForestImgGenModel.md
+    - DeepInfraImgGenModel: api/standard/swarmauri_standard/image_gens/DeepInfraImgGenModel.md
+    - FalAIImgGenModel: api/standard/swarmauri_standard/image_gens/FalAIImgGenModel.md
+    - HyperbolicImgGenModel: api/standard/swarmauri_standard/image_gens/HyperbolicImgGenModel.md
+    - OpenAIImgGenModel: api/standard/swarmauri_standard/image_gens/OpenAIImgGenModel.md
+    - AI21StudioModel: api/standard/swarmauri_standard/llms/AI21StudioModel.md
+    - AnthropicModel: api/standard/swarmauri_standard/llms/AnthropicModel.md
+    - AnthropicToolModel: api/standard/swarmauri_standard/llms/AnthropicToolModel.md
+    - CohereModel: api/standard/swarmauri_standard/llms/CohereModel.md
+    - CohereToolModel: api/standard/swarmauri_standard/llms/CohereToolModel.md
+    - DeepInfraModel: api/standard/swarmauri_standard/llms/DeepInfraModel.md
+    - DeepSeekModel: api/standard/swarmauri_standard/llms/DeepSeekModel.md
+    - FalAIVisionModel: api/standard/swarmauri_standard/llms/FalAIVisionModel.md
+    - GeminiProModel: api/standard/swarmauri_standard/llms/GeminiProModel.md
+    - GeminiToolModel: api/standard/swarmauri_standard/llms/GeminiToolModel.md
+    - GroqAIAudio: api/standard/swarmauri_standard/llms/GroqAIAudio.md
+    - GroqModel: api/standard/swarmauri_standard/llms/GroqModel.md
+    - GroqToolModel: api/standard/swarmauri_standard/llms/GroqToolModel.md
+    - GroqVisionModel: api/standard/swarmauri_standard/llms/GroqVisionModel.md
+    - HyperbolicAudioTTS: api/standard/swarmauri_standard/llms/HyperbolicAudioTTS.md
+    - HyperbolicModel: api/standard/swarmauri_standard/llms/HyperbolicModel.md
+    - HyperbolicVisionModel: api/standard/swarmauri_standard/llms/HyperbolicVisionModel.md
+    - LlamaCppModel: api/standard/swarmauri_standard/llms/LlamaCppModel.md
+    - MistralModel: api/standard/swarmauri_standard/llms/MistralModel.md
+    - MistralToolModel: api/standard/swarmauri_standard/llms/MistralToolModel.md
+    - OpenAIAudio: api/standard/swarmauri_standard/llms/OpenAIAudio.md
+    - OpenAIAudioTTS: api/standard/swarmauri_standard/llms/OpenAIAudioTTS.md
+    - OpenAIModel: api/standard/swarmauri_standard/llms/OpenAIModel.md
+    - OpenAIReasonModel: api/standard/swarmauri_standard/llms/OpenAIReasonModel.md
+    - OpenAIToolModel: api/standard/swarmauri_standard/llms/OpenAIToolModel.md
+    - PerplexityModel: api/standard/swarmauri_standard/llms/PerplexityModel.md
+    - PlayHTModel: api/standard/swarmauri_standard/llms/PlayHTModel.md
+    - WhisperLargeModel: api/standard/swarmauri_standard/llms/WhisperLargeModel.md
+    - Logger: api/standard/swarmauri_standard/logging/Logger.md
+    - CompletenessMeasurement: api/standard/swarmauri_standard/measurements/CompletenessMeasurement.md
+    - DistinctivenessMeasurement: api/standard/swarmauri_standard/measurements/DistinctivenessMeasurement.md
+    - FirstImpressionMeasurement: api/standard/swarmauri_standard/measurements/FirstImpressionMeasurement.md
+    - MeanMeasurement: api/standard/swarmauri_standard/measurements/MeanMeasurement.md
+    - MiscMeasurement: api/standard/swarmauri_standard/measurements/MiscMeasurement.md
+    - MissingnessMeasurement: api/standard/swarmauri_standard/measurements/MissingnessMeasurement.md
+    - PatternMatchingMeasurement: api/standard/swarmauri_standard/measurements/PatternMatchingMeasurement.md
+    - RatioOfSumsMeasurement: api/standard/swarmauri_standard/measurements/RatioOfSumsMeasurement.md
+    - StaticMeasurement: api/standard/swarmauri_standard/measurements/StaticMeasurement.md
+    - UniquenessMeasurement: api/standard/swarmauri_standard/measurements/UniquenessMeasurement.md
+    - ZeroMeasurement: api/standard/swarmauri_standard/measurements/ZeroMeasurement.md
+    - AgentMessage: api/standard/swarmauri_standard/messages/AgentMessage.md
+    - UsageData: api/standard/swarmauri_standard/messages/UsageData.md
+    - FunctionMessage: api/standard/swarmauri_standard/messages/FunctionMessage.md
+    - HumanMessage: api/standard/swarmauri_standard/messages/HumanMessage.md
+    - ImageUrlContent: api/standard/swarmauri_standard/messages/ImageUrlContent.md
+    - TextContent: api/standard/swarmauri_standard/messages/TextContent.md
+    - SystemMessage: api/standard/swarmauri_standard/messages/SystemMessage.md
+    - CSVParser: api/standard/swarmauri_standard/parsers/CSVParser.md
+    - HTMLTagStripParser: api/standard/swarmauri_standard/parsers/HTMLTagStripParser.md
+    - Md2HtmlParser: api/standard/swarmauri_standard/parsers/Md2HtmlParser.md
+    - OpenAPISpecParser: api/standard/swarmauri_standard/parsers/OpenAPISpecParser.md
+    - PhoneNumberExtractorParser: api/standard/swarmauri_standard/parsers/PhoneNumberExtractorParser.md
+    - PythonParser: api/standard/swarmauri_standard/parsers/PythonParser.md
+    - RegExParser: api/standard/swarmauri_standard/parsers/RegExParser.md
+    - URLExtractorParser: api/standard/swarmauri_standard/parsers/URLExtractorParser.md
+    - XMLParser: api/standard/swarmauri_standard/parsers/XMLParser.md
+    - Pipeline: api/standard/swarmauri_standard/pipelines/Pipeline.md
+    - PromptTemplate: api/standard/swarmauri_standard/prompt_templates/PromptTemplate.md
+    - Prompt: api/standard/swarmauri_standard/prompts/Prompt.md
+    - PromptGenerator: api/standard/swarmauri_standard/prompts/PromptGenerator.md
+    - PromptMatrix: api/standard/swarmauri_standard/prompts/PromptMatrix.md
+    - AnthropicSchemaConverter: api/standard/swarmauri_standard/schema_converters/AnthropicSchemaConverter.md
+    - CohereSchemaConverter: api/standard/swarmauri_standard/schema_converters/CohereSchemaConverter.md
+    - GeminiSchemaConverter: api/standard/swarmauri_standard/schema_converters/GeminiSchemaConverter.md
+    - GroqSchemaConverter: api/standard/swarmauri_standard/schema_converters/GroqSchemaConverter.md
+    - MistralSchemaConverter: api/standard/swarmauri_standard/schema_converters/MistralSchemaConverter.md
+    - OpenAISchemaConverter: api/standard/swarmauri_standard/schema_converters/OpenAISchemaConverter.md
+    - ShuttleAISchemaConverter: api/standard/swarmauri_standard/schema_converters/ShuttleAISchemaConverter.md
+    - ServiceRegistry: api/standard/swarmauri_standard/service_registries/ServiceRegistry.md
+    - DictState: api/standard/swarmauri_standard/state/DictState.md
+    - GroqSTT: api/standard/swarmauri_standard/stt/GroqSTT.md
+    - OpenaiSTT: api/standard/swarmauri_standard/stt/OpenaiSTT.md
+    - WhisperLargeSTT: api/standard/swarmauri_standard/stt/WhisperLargeSTT.md
+    - Swarm: api/standard/swarmauri_standard/swarms/Swarm.md
+    - RoundRobinStrategy: api/standard/swarmauri_standard/task_mgmt_strategies/RoundRobinStrategy.md
+    - AnthropicToolModel: api/standard/swarmauri_standard/tool_llms/AnthropicToolModel.md
+    - CohereToolModel: api/standard/swarmauri_standard/tool_llms/CohereToolModel.md
+    - GeminiToolModel: api/standard/swarmauri_standard/tool_llms/GeminiToolModel.md
+    - GroqToolModel: api/standard/swarmauri_standard/tool_llms/GroqToolModel.md
+    - MistralToolModel: api/standard/swarmauri_standard/tool_llms/MistralToolModel.md
+    - OpenAIToolModel: api/standard/swarmauri_standard/tool_llms/OpenAIToolModel.md
+    - AccessibilityToolkit: api/standard/swarmauri_standard/toolkits/AccessibilityToolkit.md
+    - Toolkit: api/standard/swarmauri_standard/toolkits/Toolkit.md
+    - AdditionTool: api/standard/swarmauri_standard/tools/AdditionTool.md
+    - AutomatedReadabilityIndexTool: api/standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.md
+    - CalculatorTool: api/standard/swarmauri_standard/tools/CalculatorTool.md
+    - CodeExtractorTool: api/standard/swarmauri_standard/tools/CodeExtractorTool.md
+    - CodeInterpreterTool: api/standard/swarmauri_standard/tools/CodeInterpreterTool.md
+    - ColemanLiauIndexTool: api/standard/swarmauri_standard/tools/ColemanLiauIndexTool.md
+    - FleschKincaidTool: api/standard/swarmauri_standard/tools/FleschKincaidTool.md
+    - FleschReadingEaseTool: api/standard/swarmauri_standard/tools/FleschReadingEaseTool.md
+    - GunningFogTool: api/standard/swarmauri_standard/tools/GunningFogTool.md
+    - ImportMemoryModuleTool: api/standard/swarmauri_standard/tools/ImportMemoryModuleTool.md
+    - JSONRequestsTool: api/standard/swarmauri_standard/tools/JSONRequestsTool.md
+    - Parameter: api/standard/swarmauri_standard/tools/Parameter.md
+    - JSONRequestsTool: api/standard/swarmauri_standard/tools/JSONRequestsTool.md
+    - TemperatureConverterTool: api/standard/swarmauri_standard/tools/TemperatureConverterTool.md
+    - TestTool: api/standard/swarmauri_standard/tools/TestTool.md
+    - WeatherTool: api/standard/swarmauri_standard/tools/WeatherTool.md
+    - ChainTracer: api/standard/swarmauri_standard/tracing/ChainTracer.md
+    - SimpleTraceContext: api/standard/swarmauri_standard/tracing/SimpleTraceContext.md
+    - SimpleTracer: api/standard/swarmauri_standard/tracing/SimpleTracer.md
+    - TracedVariable: api/standard/swarmauri_standard/tracing/TracedVariable.md
+    - PubSubTransport: api/standard/swarmauri_standard/transports/PubSubTransport.md
+    - HyperbolicTTS: api/standard/swarmauri_standard/tts/HyperbolicTTS.md
+    - OpenaiTTS: api/standard/swarmauri_standard/tts/OpenaiTTS.md
+    - PlayhtTTS: api/standard/swarmauri_standard/tts/PlayhtTTS.md
+    - DurationManager: api/standard/swarmauri_standard/utils/DurationManager.md
+    - MemoizingMeta: api/standard/swarmauri_standard/utils/MemoizingMeta.md
+    - MethodSignatureExtractor: api/standard/swarmauri_standard/utils/MethodSignatureExtractor.md
+    - SqlLogMeta: api/standard/swarmauri_standard/utils/SqlLogMeta.md
+    - TfidfVectorStore: api/standard/swarmauri_standard/vector_stores/TfidfVectorStore.md
+    - Vector: api/standard/swarmauri_standard/vectors/Vector.md
+    - FalVLM: api/standard/swarmauri_standard/vlms/FalVLM.md
+    - GroqVLM: api/standard/swarmauri_standard/vlms/GroqVLM.md
+    - HyperbolicVLM: api/standard/swarmauri_standard/vlms/HyperbolicVLM.md
   - Base:
-    - api/base/index.md
-    - Module 1: api/base/module1.md
-    - Module 2: api/base/module2.md
+    - Home: api/base/index.md
+    - ComponentBase: api/base/swarmauri_base/ComponentBase.md
+    - ResourceTypes: api/base/swarmauri_base/ResourceTypes.md
+    - DynamicBase: api/base/swarmauri_base/DynamicBase.md
+    - LoggerMixin: api/base/swarmauri_base/LoggerMixin.md
+    - ObserveBase: api/base/swarmauri_base/ObserveBase.md
+    - ServiceMixin: api/base/swarmauri_base/ServiceMixin.md
+    - YamlMixin: api/base/swarmauri_base/YamlMixin.md
+    - AgentBase: api/base/swarmauri_base/agents/AgentBase.md
+    - AgentConversationMixin: api/base/swarmauri_base/agents/AgentConversationMixin.md
+    - AgentRetrieveMixin: api/base/swarmauri_base/agents/AgentRetrieveMixin.md
+    - AgentSystemContextMixin: api/base/swarmauri_base/agents/AgentSystemContextMixin.md
+    - AgentToolMixin: api/base/swarmauri_base/agents/AgentToolMixin.md
+    - AgentVectorStoreMixin: api/base/swarmauri_base/agents/AgentVectorStoreMixin.md
+    - ChainBase: api/base/swarmauri_base/chains/ChainBase.md
+    - ChainContextBase: api/base/swarmauri_base/chains/ChainContextBase.md
+    - ChainStepBase: api/base/swarmauri_base/chains/ChainStepBase.md
+    - ChunkerBase: api/base/swarmauri_base/chunkers/ChunkerBase.md
+    - ControlPanelBase: api/base/swarmauri_base/control_panels/ControlPanelBase.md
+    - ConversationBase: api/base/swarmauri_base/conversations/ConversationBase.md
+    - ConversationSystemContextMixin: api/base/swarmauri_base/conversations/ConversationSystemContextMixin.md
+    - DataConnectorBase: api/base/swarmauri_base/dataconnectors/DataConnectorBase.md
+    - DistanceBase: api/base/swarmauri_base/distances/DistanceBase.md
+    - VisionDistanceBase: api/base/swarmauri_base/distances/VisionDistanceBase.md
+    - DocumentStoreBase: api/base/swarmauri_base/document_stores/DocumentStoreBase.md
+    - DocumentStoreRetrieveBase: api/base/swarmauri_base/document_stores/DocumentStoreRetrieveBase.md
+    - DocumentBase: api/base/swarmauri_base/documents/DocumentBase.md
+    - EmbeddingBase: api/base/swarmauri_base/embeddings/EmbeddingBase.md
+    - VisionEmbeddingBase: api/base/swarmauri_base/embeddings/VisionEmbeddingBase.md
+    - ImageGenBase: api/base/swarmauri_base/image_gens/ImageGenBase.md
+    - LLMBase: api/base/swarmauri_base/llms/LLMBase.md
+    - LoggerBase: api/base/swarmauri_base/logger/LoggerBase.md
+    - FormatterBase: api/base/swarmauri_base/logger_formatter/FormatterBase.md
+    - HandlerBase: api/base/swarmauri_base/logger_handler/HandlerBase.md
+    - MeasurementAggregateMixin: api/base/swarmauri_base/measurements/MeasurementAggregateMixin.md
+    - MeasurementBase: api/base/swarmauri_base/measurements/MeasurementBase.md
+    - MeasurementCalculateMixin: api/base/swarmauri_base/measurements/MeasurementCalculateMixin.md
+    - MeasurementThresholdMixin: api/base/swarmauri_base/measurements/MeasurementThresholdMixin.md
+    - MessageBase: api/base/swarmauri_base/messages/MessageBase.md
+    - OCRBase: api/base/swarmauri_base/ocrs/OCRBase.md
+    - ParserBase: api/base/swarmauri_base/parsers/ParserBase.md
+    - PipelineBase: api/base/swarmauri_base/pipelines/PipelineBase.md
+    - PromptTemplateBase: api/base/swarmauri_base/prompt_templates/PromptTemplateBase.md
+    - PromptBase: api/base/swarmauri_base/prompts/PromptBase.md
+    - PromptGeneratorBase: api/base/swarmauri_base/prompts/PromptGeneratorBase.md
+    - PromptMatrixBase: api/base/swarmauri_base/prompts/PromptMatrixBase.md
+    - SchemaConverterBase: api/base/swarmauri_base/schema_converters/SchemaConverterBase.md
+    - ServiceRegistryBase: api/base/swarmauri_base/service_registries/ServiceRegistryBase.md
+    - StateBase: api/base/swarmauri_base/state/StateBase.md
+    - STTBase: api/base/swarmauri_base/stt/STTBase.md
+    - SwarmBase: api/base/swarmauri_base/swarms/SwarmBase.md
+    - SwarmStatus: api/base/swarmauri_base/swarms/SwarmStatus.md
+    - TaskMgmtStrategyBase: api/base/swarmauri_base/task_mgmt_strategies/TaskMgmtStrategyBase.md
+    - ToolLLMBase: api/base/swarmauri_base/tool_llms/ToolLLMBase.md
+    - ToolkitBase: api/base/swarmauri_base/toolkits/ToolkitBase.md
+    - ParameterBase: api/base/swarmauri_base/tools/ParameterBase.md
+    - ToolBase: api/base/swarmauri_base/tools/ToolBase.md
+    - TransportBase: api/base/swarmauri_base/transports/TransportBase.md
+    - TransportProtocol: api/base/swarmauri_base/transports/TransportProtocol.md
+    - TTSBase: api/base/swarmauri_base/tts/TTSBase.md
+    - VectorStoreBase: api/base/swarmauri_base/vector_stores/VectorStoreBase.md
+    - VectorStoreCloudMixin: api/base/swarmauri_base/vector_stores/VectorStoreCloudMixin.md
+    - VectorStorePersistentMixin: api/base/swarmauri_base/vector_stores/VectorStorePersistentMixin.md
+    - VectorStoreRetrieveMixin: api/base/swarmauri_base/vector_stores/VectorStoreRetrieveMixin.md
+    - VectorStoreSaveLoadMixin: api/base/swarmauri_base/vector_stores/VectorStoreSaveLoadMixin.md
+    - VisionVectorStoreBase: api/base/swarmauri_base/vector_stores/VisionVectorStoreBase.md
+    - VectorBase: api/base/swarmauri_base/vectors/VectorBase.md
+    - VLMBase: api/base/swarmauri_base/vlms/VLMBase.md
   - Core:
-    - api/core/index.md
-    - Module 1: api/core/module1.md
-    - Module 2: api/core/module2.md
-  
-
+    - Home: api/core/index.md
+    - ComponentBase: api/core/swarmauri_core/ComponentBase.md
+    - ResourceTypes: api/core/swarmauri_core/ResourceTypes.md
+    - SubclassUnion: api/core/swarmauri_core/SubclassUnion.md
+    - SubclassUnionMetadata: api/core/swarmauri_core/SubclassUnionMetadata.md
+    - IAgentCommands: api/core/swarmauri_core/agent_apis/IAgentCommands.md
+    - IAgentRouterCRUD: api/core/swarmauri_core/agent_apis/IAgentRouterCRUD.md
+    - IExportConf: api/core/swarmauri_core/agent_factories/IExportConf.md
+    - IAgent: api/core/swarmauri_core/agents/IAgent.md
+    - IAgentConversation: api/core/swarmauri_core/agents/IAgentConversation.md
+    - IAgentParser: api/core/swarmauri_core/agents/IAgentParser.md
+    - IAgentRetrieve: api/core/swarmauri_core/agents/IAgentRetrieve.md
+    - IAgentSystemContext: api/core/swarmauri_core/agents/IAgentSystemContext.md
+    - IAgentToolkit: api/core/swarmauri_core/agents/IAgentToolkit.md
+    - IAgentVectorStore: api/core/swarmauri_core/agents/IAgentVectorStore.md
+    - ICallableChain: api/core/swarmauri_core/chains/ICallableChain.md
+    - IChain: api/core/swarmauri_core/chains/IChain.md
+    - IChainContext: api/core/swarmauri_core/chains/IChainContext.md
+    - IChainContextLoader: api/core/swarmauri_core/chains/IChainContextLoader.md
+    - IChainFactory: api/core/swarmauri_core/chains/IChainFactory.md
+    - IChainStep: api/core/swarmauri_core/chains/IChainStep.md
+    - IChunker: api/core/swarmauri_core/chunkers/IChunker.md
+    - IControlPlane: api/core/swarmauri_core/control_panels/IControlPlane.md
+    - IConversation: api/core/swarmauri_core/conversations/IConversation.md
+    - IMaxSize: api/core/swarmauri_core/conversations/IMaxSize.md
+    - ISystemContext: api/core/swarmauri_core/conversations/ISystemContext.md
+    - IDataConnector: api/core/swarmauri_core/dataconnectors/IDataConnector.md
+    - IDistanceSimilarity: api/core/swarmauri_core/distances/IDistanceSimilarity.md
+    - IDocumentRetrieve: api/core/swarmauri_core/document_stores/IDocumentRetrieve.md
+    - IDocumentStore: api/core/swarmauri_core/document_stores/IDocumentStore.md
+    - IDocument: api/core/swarmauri_core/documents/IDocument.md
+    - IExperimentDocument: api/core/swarmauri_core/documents/IExperimentDocument.md
+    - IFeature: api/core/swarmauri_core/embeddings/IFeature.md
+    - ISaveModel: api/core/swarmauri_core/embeddings/ISaveModel.md
+    - IVectorize: api/core/swarmauri_core/embeddings/IVectorize.md
+    - IFactory: api/core/swarmauri_core/factories/IFactory.md
+    - IGenImage: api/core/swarmauri_core/image_gens/IGenImage.md
+    - IFit: api/core/swarmauri_core/llms/IFit.md
+    - IPredict: api/core/swarmauri_core/llms/IPredict.md
+    - ILogger: api/core/swarmauri_core/logger/ILogger.md
+    - IFormatter: api/core/swarmauri_core/logger_formatter/IFormatter.md
+    - IHandler: api/core/swarmauri_core/logger_handler/IHandler.md
+    - IMeasurement: api/core/swarmauri_core/measurements/IMeasurement.md
+    - IMeasurementAggregate: api/core/swarmauri_core/measurements/IMeasurementAggregate.md
+    - IMeasurementCalculate: api/core/swarmauri_core/measurements/IMeasurementCalculate.md
+    - IThreshold: api/core/swarmauri_core/measurements/IThreshold.md
+    - IMessage: api/core/swarmauri_core/messages/IMessage.md
+    - IPredict: api/core/swarmauri_core/ocrs/IPredict.md
+    - IParser: api/core/swarmauri_core/parsers/IParser.md
+    - IPipeline: api/core/swarmauri_core/pipelines/IPipeline.md
+    - PipelineStatus: api/core/swarmauri_core/pipelines/PipelineStatus.md
+    - IPromptTemplate: api/core/swarmauri_core/prompt_templates/IPromptTemplate.md
+    - IPrompt: api/core/swarmauri_core/prompts/IPrompt.md
+    - IPromptMatrix: api/core/swarmauri_core/prompts/IPromptMatrix.md
+    - ITemplate: api/core/swarmauri_core/prompts/ITemplate.md
+    - ISchemaConvert: api/core/swarmauri_core/schema_converters/ISchemaConvert.md
+    - IServiceRegistry: api/core/swarmauri_core/service_registries/IServiceRegistry.md
+    - IPredict: api/core/swarmauri_core/sst/IPredict.md
+    - IAgentRegistrationAPI: api/core/swarmauri_core/swarm_apis/IAgentRegistrationAPI.md
+    - ISwarmAPI: api/core/swarmauri_core/swarm_apis/ISwarmAPI.md
+    - ISwarm: api/core/swarmauri_core/swarms/ISwarm.md
+    - ITaskMgmtStrategy: api/core/swarmauri_core/task_mgmt_strategies/ITaskMgmtStrategy.md
+    - IPredict: api/core/swarmauri_core/tool_llms/IPredict.md
+    - IToolkit: api/core/swarmauri_core/toolkits/IToolkit.md
+    - IParameter: api/core/swarmauri_core/tools/IParameter.md
+    - ITool: api/core/swarmauri_core/tools/ITool.md
+    - IChainTracer: api/core/swarmauri_core/tracing/IChainTracer.md
+    - ITraceContext: api/core/swarmauri_core/tracing/ITraceContext.md
+    - ITracer: api/core/swarmauri_core/tracing/ITracer.md
+    - ITransport: api/core/swarmauri_core/transports/ITransport.md
+    - IPredict: api/core/swarmauri_core/tts/IPredict.md
+    - ITransactional: api/core/swarmauri_core/utils/ITransactional.md
+    - ICloudVectorStore: api/core/swarmauri_core/vector_stores/ICloudVectorStore.md
+    - IPersistentVectorStore: api/core/swarmauri_core/vector_stores/IPersistentVectorStore.md
+    - ISimilarity: api/core/swarmauri_core/vector_stores/ISimilarity.md
+    - IVectorNorm: api/core/swarmauri_core/vector_stores/IVectorNorm.md
+    - IVectorStore: api/core/swarmauri_core/vector_stores/IVectorStore.md
+    - IVectorStoreRetrieve: api/core/swarmauri_core/vector_stores/IVectorStoreRetrieve.md
+    - IVectorStoreSaveLoad: api/core/swarmauri_core/vector_stores/IVectorStoreSaveLoad.md
+    - IVector: api/core/swarmauri_core/vectors/IVector.md
+    - IVectorMeta: api/core/swarmauri_core/vectors/IVectorMeta.md
+    - IVectorProduct: api/core/swarmauri_core/vectors/IVectorProduct.md
+    - IPredictVision: api/core/swarmauri_core/vlms/IPredictVision.md
 - Blog:
   - blog/index.md
   - News: blog/news.md
   - Events: blog/events.md
   - Releases: blog/releases.md
-  
 - Swarmauri People: people/index.md
-
