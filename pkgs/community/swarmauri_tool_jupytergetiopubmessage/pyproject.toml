@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetiopubmessage"
-version = "0.6.2.dev3"
+version = "0.7.2"
 description = "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs."
 license = "Apache-2.0"
 readme = "README.md"
@@ -45,8 +45,9 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.tools"]
-jupytergetiopubmessagetool = "swarmauri_tool_jupytergetiopubmessage:JupyterGetIOPubMessageTool"
+[project.entry-points.'swarmauri.tools']
+JupyterGetIOPubMessageTool = "swarmauri_tool_jupytergetiopubmessage:JupyterGetIOPubMessageTool"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -60,4 +61,6 @@ dev = [
     "python-dotenv",
     "requests>=2.32.3",
     "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

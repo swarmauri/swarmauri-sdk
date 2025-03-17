@@ -11,6 +11,7 @@ from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
 )
 from swarmauri_base.transports.TransportBase import TransportBase
 
+
 @ComponentBase.register_model()
 class ControlPanelBase(IControlPlane, ComponentBase):
     """

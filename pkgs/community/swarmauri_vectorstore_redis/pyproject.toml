@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_redis"
-version = "0.6.2.dev3"
+version = "0.7.2"
 description = "Swarmauri Redis Vector Store"
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,15 +15,18 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "redis>=4.0",
+    "redisearch",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+    "swarmauri_embedding_doc2vec"
 ]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+swarmauri_embedding_doc2vec = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -44,10 +47,10 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.vector_stores"]
+[project.entry-points.'swarmauri.vector_stores']
 RedisVectorStore = "swarmauri_vectorstore_redis.RedisVectorStore:RedisVectorStore"
 
-[tool.project.entry-points."swarmauri.retrievers"]
+[project.entry-points.'swarmauri.retrievers']
 RedisDocumentRetriever = "swarmauri_vectorstore_redis.RedisDocumentRetriever:RedisDocumentRetriever"
 
 
@@ -64,4 +67,6 @@ dev = [
     "python-dotenv",
     "requests>=2.32.3",
     "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

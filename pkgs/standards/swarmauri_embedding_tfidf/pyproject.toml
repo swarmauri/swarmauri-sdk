@@ -30,7 +30,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.embeddings"]
+[project.entry-points.'swarmauri.embeddings']
 TfidfEmbedding = "swarmauri_embedding_tfidf:TfidfEmbedding"
 
 [build-system]
@@ -38,4 +38,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3", "flake8>=7.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24.0", "pytest-xdist>=3.6.1", "pytest-json-report>=1.5.0", "python-dotenv", "requests>=2.32.3", "flake8>=7.0", "pytest-timeout>=2.3.1", "ruff>=0.9.9"]

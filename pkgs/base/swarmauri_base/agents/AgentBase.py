@@ -5,6 +5,7 @@ from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_core.agents.IAgent import IAgent
 from swarmauri_base.llms.LLMBase import LLMBase
 
+
 @ComponentBase.register_model()
 class AgentBase(IAgent, ComponentBase):
     llm: SubclassUnion[LLMBase]

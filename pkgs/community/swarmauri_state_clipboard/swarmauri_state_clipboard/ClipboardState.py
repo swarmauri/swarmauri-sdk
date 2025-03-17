@@ -1,14 +1,15 @@
 """
 This module provides a ClipboardState class that implements a system clipboard-based approach
 to storing and retrieving state data. It uses only built-in Python modules and platform-specific
-commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux). 
+commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux).
 """
 
-import sys
 import subprocess
+import sys
 from typing import Dict, Literal
-from swarmauri_base.state.StateBase import StateBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.state.StateBase import StateBase
 
 
 @ComponentBase.register_type(StateBase, "ClipboardState")
@@ -16,8 +17,8 @@ class ClipboardState(StateBase):
     """A concrete implementation of StateBase that uses the system clipboard
     to store and retrieve state data.
 
-    The class relies on the standard library for subprocess calls to external 
-    commands available on each platform. If these commands are missing, a 
+    The class relies on the standard library for subprocess calls to external
+    commands available on each platform. If these commands are missing, a
     FileNotFoundError or subprocess.CalledProcessError may be raised.
     """
 
@@ -29,7 +30,7 @@ class ClipboardState(StateBase):
 
         text (str): The text to copy to the clipboard.
         RETURNS (None): This method does not return anything.
-        RAISES (FileNotFoundError, subprocess.CalledProcessError): 
+        RAISES (FileNotFoundError, subprocess.CalledProcessError):
             If the underlying system command is unavailable or fails.
         """
         platform = sys.platform
@@ -43,8 +44,9 @@ class ClipboardState(StateBase):
                 proc.communicate(text)
         else:
             # Linux/Unix: uses 'xclip'
-            with subprocess.Popen(["xclip", "-selection", "clipboard"],
-                                  stdin=subprocess.PIPE, text=True) as proc:
+            with subprocess.Popen(
+                ["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE, text=True
+            ) as proc:
                 proc.communicate(text)
 
     @classmethod
@@ -60,7 +62,8 @@ class ClipboardState(StateBase):
             # Windows: No direct paste command, so we use PowerShell
             completed = subprocess.run(
                 ["powershell", "-command", "Get-Clipboard"],
-                capture_output=True, text=True
+                capture_output=True,
+                text=True,
             )
             return completed.stdout
         elif platform.startswith("darwin"):
@@ -69,22 +72,31 @@ class ClipboardState(StateBase):
             return completed.stdout
         else:
             # Linux/Unix: uses 'xclip'
-            completed = subprocess.run(["xclip", "-selection", "clipboard", "-o"],
-                                       capture_output=True, text=True)
+            completed = subprocess.run(
+                ["xclip", "-selection", "clipboard", "-o"],
+                capture_output=True,
+                text=True,
+            )
             return completed.stdout
 
     def read(self) -> Dict[str, str]:
         """Read the current state from the system clipboard as a dictionary.
 
-        RETURNS (Dict[str, str]): The clipboard data parsed as a dictionary. 
+        RETURNS (Dict[str, str]): The clipboard data parsed as a dictionary.
             Returns an empty dictionary if clipboard content is empty.
         RAISES (ValueError): If there is an error reading or parsing the state.
         """
         try:
-            clipboard_content = self.clipboard_copy()
-            # For safety, replace eval(...) with json.loads(...) if storing JSON.
+            # Use the class method via the class
+            clipboard_content = self.__class__.clipboard_copy()
+
+            # For safety, replace eval with safer alternatives
             if clipboard_content.strip():
-                return eval(clipboard_content)
+                import ast
+
+                # Use ast.literal_eval which is much safer than eval()
+                # It only evaluates literals, not arbitrary code
+                return ast.literal_eval(clipboard_content)
             return {}
         except Exception as e:
             raise ValueError(f"Failed to read state from clipboard: {e}")
@@ -99,7 +111,7 @@ class ClipboardState(StateBase):
         if isinstance(data, str):
             raise ValueError("Must be data must be type Dict.")
         try:
-            self.clipboard_paste(str(data))
+            self.__class__.clipboard_paste(str(data))
         except Exception as e:
             raise ValueError(f"Failed to write state to clipboard: {e}")
 
@@ -140,4 +152,6 @@ class ClipboardState(StateBase):
             new_instance.write(current_state)
             return new_instance
         except Exception as e:
-            raise ValueError(f"Failed to create a deep copy of the clipboard state: {e}")
+            raise ValueError(
+                f"Failed to create a deep copy of the clipboard state: {e}"
+            )

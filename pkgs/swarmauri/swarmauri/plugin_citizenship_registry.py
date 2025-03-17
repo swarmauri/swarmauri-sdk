@@ -96,7 +96,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.embeddings.MistralEmbedding": "swarmauri_standard.embeddings.MistralEmbedding",
         # "swarmauri.embeddings.NmfEmbedding": "swarmauri_standard.embeddings.NmfEmbedding",
         "swarmauri.embeddings.OpenAIEmbedding": "swarmauri_standard.embeddings.OpenAIEmbedding",
-        # "swarmauri.embeddings.TfidfEmbedding": "swarmauri_standard.embeddings.TfidfEmbedding",
+        "swarmauri.embeddings.TfidfEmbedding": "swarmauri_standard.embeddings.TfidfEmbedding",
         "swarmauri.embeddings.VoyageEmbedding": "swarmauri_standard.embeddings.VoyageEmbedding",
         "swarmauri.exceptions.IndexErrorWithContext": "swarmauri_standard.exceptions.IndexErrorWithContext",
         "swarmauri.factories.AgentFactory": "swarmauri_standard.factories.AgentFactory",
@@ -145,6 +145,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.tool_llms.GeminiToolModel": "swarmauri_standard.tool_llms.GeminiToolModel",
         "swarmauri.tool_llms.GroqToolModel": "swarmauri_standard.tool_llms.GroqToolModel",
         "swarmauri.tool_llms.MistralToolModel": "swarmauri_standard.tool_llms.MistralToolModel",
+        "swarmauri.tool_llms.ToolLLM": "swarmauri_standard.tool_llms.ToolLLM",
         "swarmauri.stt.WhisperLargeSTT": "swarmauri_standard.stt.WhisperLargeSTT",
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
@@ -260,7 +261,7 @@ class PluginCitizenshipRegistry:
         # Vector Stores
         ###
         "swarmauri.vector_stores.SqliteVectorStore": "swarmauri_standard.vector_stores.SqliteVectorStore",
-        # "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
+        "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
         "swarmauri.vectors.Vector": "swarmauri_standard.vectors.Vector",
         # extra
         "swarmauri.vector_stores.Doc2vecVectorStore": "swarmauri_vectorstore_doc2vec.Doc2vecVectorStore",
@@ -268,8 +269,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.tools.MatplotlibCsvTool": "swarmauri_tool_matplotlib.MatplotlibCsvTool",
         "swarmauri.tools.MatplotlibTool": "swarmauri_tool_matplotlib.MatplotlibTool",
         "swarmauri.parsers.KeywordExtractorParser": "swarmauri_parser_keywordextractor.KeywordExtractorParser",
-        "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_vectorstore_tfidf.TfidfVectorStore",
-        "swarmauri.embeddings.TfidfEmbedding": "swarmauri_embedding_tfidf.TfidfEmbedding",
         "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
         "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",
         "swarmauri.distances.MinkowskiDistance": "swarmauri_distance_minkowski.MinkowskiDistance",

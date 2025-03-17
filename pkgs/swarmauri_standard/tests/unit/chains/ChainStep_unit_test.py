@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.chains.ChainStep import ChainStep
 from swarmauri_standard.tools.AdditionTool import AdditionTool
 
@@ -41,5 +42,9 @@ def test_serialization():
     serialized_step = step.model_dump_json()
     deserialized_step = ChainStep.model_validate_json(serialized_step)
 
-    # Assert that the method (tool) remains the same after serialization and deserialization
-    assert isinstance(deserialized_step.method, AdditionTool)
+    tool_from_dict = AdditionTool.model_validate(deserialized_step.method)
+
+    assert isinstance(tool_from_dict, AdditionTool)
+
+    result = tool_from_dict(*args, **kwargs)
+    assert result["sum"] == "3"

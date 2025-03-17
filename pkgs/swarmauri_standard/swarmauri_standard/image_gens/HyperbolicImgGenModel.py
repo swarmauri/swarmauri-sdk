@@ -9,6 +9,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(ImageGenBase, "HyperbolicImgGenModel")
 class HyperbolicImgGenModel(ImageGenBase):
     """
@@ -39,7 +40,7 @@ class HyperbolicImgGenModel(ImageGenBase):
     allowed_models: List[str] = []
     timeout: float = 600.0
 
-    name: str = "SDXL1.0-base"  # Default model
+    name: str = ""
     type: Literal["HyperbolicImgGenModel"] = "HyperbolicImgGenModel"
 
     # Additional configuration parameters
@@ -133,7 +134,7 @@ class HyperbolicImgGenModel(ImageGenBase):
         response.raise_for_status()
         return response.json()
 
-    def generate_image_base64(self, prompt: str) -> str:
+    def generate_image(self, prompt: str) -> str:
         """
         Generates an image synchronously based on the provided prompt and returns it as a base64-encoded string.
 
@@ -146,7 +147,7 @@ class HyperbolicImgGenModel(ImageGenBase):
         response_data = self._send_request(prompt)
         return response_data["images"][0]["image"]
 
-    async def agenerate_image_base64(self, prompt: str) -> str:
+    async def agenerate_image(self, prompt: str) -> str:
         """
         Generates an image asynchronously based on the provided prompt and returns it as a base64-encoded string.
 
@@ -162,7 +163,7 @@ class HyperbolicImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_base64(self, prompts: List[str]) -> List[str]:
+    def batch_generate(self, prompts: List[str]) -> List[str]:
         """
         Generates images for a batch of prompts synchronously and returns them as a list of base64-encoded strings.
 
@@ -174,7 +175,7 @@ class HyperbolicImgGenModel(ImageGenBase):
         """
         return [self.generate_image_base64(prompt) for prompt in prompts]
 
-    async def abatch_base64(
+    async def abatch_generate(
         self, prompts: List[str], max_concurrent: int = 5
     ) -> List[str]:
         """

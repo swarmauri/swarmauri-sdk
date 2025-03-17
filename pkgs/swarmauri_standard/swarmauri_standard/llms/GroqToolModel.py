@@ -24,6 +24,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 @ComponentBase.register_type(LLMBase, "GroqToolModel")
 class GroqToolModel(LLMBase):
     """

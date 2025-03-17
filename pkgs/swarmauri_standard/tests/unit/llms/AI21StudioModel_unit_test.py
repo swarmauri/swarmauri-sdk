@@ -16,7 +16,6 @@ load_dotenv()
 API_KEY = os.getenv("AI21STUDIO_API_KEY")
 
 
-
 @pytest.fixture(scope="module")
 def ai21studio_model():
     if not API_KEY:

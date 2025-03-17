@@ -54,13 +54,13 @@ def test_default_model_name(falai_vision_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.timeout(5)
 @pytest.mark.unit
-def test_process_image(falai_vision_model, model_name):
+def test_predict(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Who painted this artwork?"
-    result = model.process_image(image_url=image_url, prompt=prompt)
+    result = model.predict(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0
@@ -70,13 +70,13 @@ def test_process_image(falai_vision_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.timeout(5)
 @pytest.mark.unit
-async def test_aprocess_image(falai_vision_model, model_name):
+async def test_apredict(falai_vision_model, model_name):
     model = falai_vision_model
     model.name = model_name
 
     image_url = "https://llava-vl.github.io/static/images/monalisa.jpg"
     prompt = "Describe the woman in the painting."
-    result = await model.aprocess_image(image_url=image_url, prompt=prompt)
+    result = await model.apredict(image_url=image_url, prompt=prompt)
 
     assert isinstance(result, str)
     assert len(result) > 0

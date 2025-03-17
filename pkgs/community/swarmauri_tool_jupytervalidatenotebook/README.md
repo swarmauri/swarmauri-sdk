@@ -1,22 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupytervalidatenotebook" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytervalidatenotebook">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytervalidatenotebook&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytervalidatenotebook">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupytervalidatenotebook/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytervalidatenotebook/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupytervalidatenotebook" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytervalidatenotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytervalidatenotebook" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupytervalidatenotebook">
+    <a href="https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytervalidatenotebook?label=swarmauri_tool_jupytervalidatenotebook&color=green" alt="PyPI - swarmauri_tool_jupytervalidatenotebook"/></a>
 </p>
 
 ---
 
-# swarmauri_tool_jupytervalidatenotebook
+# Swarmauri Tool Jupyter Validate Notebook
 
 ## Overview
 This package provides a tool that validates a Jupyter notebook (NotebookNode) against its JSON schema using nbformat. It is useful for ensuring that your notebooks follow the correct structural and metadata standards required for processing or distribution. The tool can easily be integrated into automated workflows for CI/CD or general code validation processes.

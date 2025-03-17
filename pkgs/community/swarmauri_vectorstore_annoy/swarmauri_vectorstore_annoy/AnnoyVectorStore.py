@@ -16,6 +16,7 @@ from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 
+
 @ComponentBase.register_type(VectorStoreBase, "AnnoyVectorStore")
 class AnnoyVectorStore(
     VectorStoreRetrieveMixin,

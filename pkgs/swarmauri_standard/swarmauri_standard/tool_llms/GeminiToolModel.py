@@ -19,6 +19,7 @@ from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
+
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
 class GeminiToolModel(ToolLLMBase):
     """
@@ -60,14 +61,14 @@ class GeminiToolModel(ToolLLMBase):
         ]
     )
 
-    def __init__(self, **data):
+    def __init__(self, *args, **kwargs):
         """
         Initializes the GeminiToolModel instance with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
         """
-        super().__init__(**data)
+        super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         if not self.name and self.allowed_models:
             self.name = self.allowed_models[0]

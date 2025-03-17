@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(STTBase, "WhisperLargeSTT")
 class WhisperLargeSTT(STTBase):
     """
@@ -54,7 +55,7 @@ class WhisperLargeSTT(STTBase):
         """
         super().__init__(**data)
         self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
-        self._client = httpx.Client(header=self._header, timeout=30)
+        self._client = httpx.Client(headers=self._header, timeout=30)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
@@ -142,7 +143,7 @@ class WhisperLargeSTT(STTBase):
         if task == "translation":
             params["language"] = "en"
 
-        async with httpx.AsyncClient(header=self._header) as client:
+        async with httpx.AsyncClient(headers=self._header) as client:
             response = await client.post(self._BASE_URL, data=data, params=params)
             response.raise_for_status()
             result = response.json()

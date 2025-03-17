@@ -13,6 +13,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(LLMBase, "MistralModel")
 class MistralModel(LLMBase):
     """
@@ -121,10 +122,12 @@ class MistralModel(LLMBase):
         response.raise_for_status()
         response_data = response.json()
 
+        print(response_data)
+
         chat_models = [
             model["id"]
             for model in response_data["data"]
-            if model["supports_chat"]["completion_chat"]
+            if model["capabilities"]["completion_chat"]
         ]
 
         return chat_models

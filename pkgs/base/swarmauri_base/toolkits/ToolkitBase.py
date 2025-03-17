@@ -5,6 +5,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassU
 from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_base.tools.ToolBase import ToolBase
 
+
 @ComponentBase.register_model()
 class ToolkitBase(IToolkit, ComponentBase):
     """

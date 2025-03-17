@@ -13,6 +13,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(LLMBase, "AnthropicModel")
 class AnthropicModel(LLMBase):
     """
@@ -435,4 +436,4 @@ class AnthropicModel(LLMBase):
         response = self._client.get("/models")
         response.raise_for_status()
         models_data = response.json()
-        return [model["name"] for model in models_data["models"]]
+        return [model["id"] for model in models_data["data"]]

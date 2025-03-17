@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_bertembedding"
-version = "0.6.2.dev3"
+version = "0.7.2"
 description = "Swarmauri Bert Embedding Parser"
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,6 +15,7 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "transformers>=4.45.0",
+    "torch",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -44,7 +45,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.parsers"]
+[project.entry-points.'swarmauri.parsers']
 BERTEmbeddingParser = "swarmauri_parser_bertembedding.BERTEmbeddingParser:BERTEmbeddingParser"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -59,4 +60,6 @@ dev = [
     "python-dotenv",
     "requests>=2.32.3",
     "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
 ]

@@ -8,6 +8,7 @@ import pytesseract
 from io import BytesIO
 from swarmauri_base.ocrs.OCRBase import OCRBase
 
+
 @ComponentBase.register_type(OCRBase, "PytesseractOCR")
 class PytesseractOCR(OCRBase):
     """

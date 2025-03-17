@@ -5,6 +5,7 @@ from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverter
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
+
 @ComponentBase.register_type(SchemaConverterBase, "AnthropicSchemaConverter")
 class AnthropicSchemaConverter(SchemaConverterBase):
     type: Literal["AnthropicSchemaConverter"] = "AnthropicSchemaConverter"

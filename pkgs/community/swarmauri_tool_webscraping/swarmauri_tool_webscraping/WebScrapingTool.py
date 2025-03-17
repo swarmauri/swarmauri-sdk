@@ -6,6 +6,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict
 from pydantic import Field
 
+
 @ComponentBase.register_type(ToolBase, "WebScrapingTool")
 class WebScrapingTool(ToolBase):
     version: str = "1.0.0"

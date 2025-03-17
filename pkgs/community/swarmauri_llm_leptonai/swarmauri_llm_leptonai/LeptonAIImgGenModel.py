@@ -7,6 +7,7 @@ from pydantic import Field, ConfigDict, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 
+
 @ComponentBase.register_type(ImageGenBase, "LeptonAIImgGenModel")
 class LeptonAIImgGenModel(ImageGenBase):
     """

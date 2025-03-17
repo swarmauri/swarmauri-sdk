@@ -9,6 +9,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
+
 @ComponentBase.register_type(ImageGenBase, "DeepInfraImgGenModel")
 class DeepInfraImgGenModel(ImageGenBase):
     """
@@ -116,7 +117,7 @@ class DeepInfraImgGenModel(ImageGenBase):
         response.raise_for_status()
         return response.json()
 
-    def generate_image_base64(self, prompt: str) -> str:
+    def generate_image(self, prompt: str) -> str:
         """
         Generates an image synchronously based on the provided prompt and returns it as a base64-encoded string.
 
@@ -130,7 +131,7 @@ class DeepInfraImgGenModel(ImageGenBase):
         image_base64 = response_data["images"][0].split(",")[1]
         return image_base64
 
-    async def agenerate_image_base64(self, prompt: str) -> str:
+    async def agenerate_image(self, prompt: str) -> str:
         """
         Generates an image asynchronously based on the provided prompt and returns it as a base64-encoded string.
 
@@ -147,7 +148,7 @@ class DeepInfraImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_base64(self, prompts: List[str]) -> List[str]:
+    def batch_generate(self, prompts: List[str]) -> List[str]:
         """
         Generates images for a batch of prompts synchronously and returns them as a list of base64-encoded strings.
 
@@ -157,9 +158,9 @@ class DeepInfraImgGenModel(ImageGenBase):
         Returns:
             List[str]: A list of base64-encoded representations of the generated images.
         """
-        return [self.generate_image_base64(prompt) for prompt in prompts]
+        return [self.generate_image(prompt) for prompt in prompts]
 
-    async def abatch_base64(
+    async def abatch_generate(
         self, prompts: List[str], max_concurrent: int = 5
     ) -> List[str]:
         """

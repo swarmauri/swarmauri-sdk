@@ -4,14 +4,15 @@ from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.vlms.VLMBase import VLMBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
 
 @ComponentBase.register_type(VLMBase, "HyperbolicVLM")
 class HyperbolicVLM(VLMBase):
@@ -132,7 +133,7 @@ class HyperbolicVLM(VLMBase):
         return chat_models
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict(
+    def predict_vision(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
@@ -176,7 +177,7 @@ class HyperbolicVLM(VLMBase):
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict(
+    async def apredict_vision(
         self,
         conversation: Conversation,
         temperature: float = 0.7,
@@ -350,7 +351,7 @@ class HyperbolicVLM(VLMBase):
         """
         results = []
         for conversation in conversations:
-            result_conversation = self.predict(
+            result_conversation = self.predict_vision(
                 conversation,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -387,7 +388,7 @@ class HyperbolicVLM(VLMBase):
 
         async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
-                return await self.apredict(
+                return await self.apredict_vision(
                     conv,
                     temperature=temperature,
                     max_tokens=max_tokens,

@@ -1,23 +1,22 @@
-<!-- Swarmauri Branding & Badges -->
-<img src="https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png" alt="Swamauri Logo" width="400"/>
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupytergetiopubmessage" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetiopubmessage">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetiopubmessage&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupytergetiopubmessage/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetiopubmessage/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupytergetiopubmessage" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytergetiopubmessage" alt="PyPI - License"/></a>
-    <br />
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetiopubmessage?label=swarmauri_tool_jupytergetiopubmessage&color=green" alt="PyPI - swarmauri_tool_jupytergetiopubmessage"/></a>
 </p>
 
 ---
 
-# swarmauri_tool_jupytergetiopubmessage
+# Swarmauri Tool Jupyter Get IO PubMessage
 
 A Python tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs, logging information, and errors.
 

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-typing"
-version = "0.6.2.dev4"
+version = "0.7.2"
 description = "This repository includes typing used in the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -30,6 +30,7 @@ dev = [
 "python-dotenv>=1.0.0",
 "pytest-mock>=3.14.0",
 "jsonschema>=4.18.5",
+"ruff>=0.9.9",
 ]
 
 [tool.pytest.ini_options]

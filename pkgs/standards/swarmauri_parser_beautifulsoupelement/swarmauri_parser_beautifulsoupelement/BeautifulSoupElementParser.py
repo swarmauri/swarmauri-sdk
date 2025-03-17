@@ -4,6 +4,7 @@ from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(ParserBase, "BeautifulSoupElementParser")
 class BeautifulSoupElementParser(ParserBase):
     """

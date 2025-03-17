@@ -4,6 +4,7 @@ from pydantic import Field
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "MiscMeasurement")
 class MiscMeasurement(MeasurementBase):
     """

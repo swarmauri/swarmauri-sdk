@@ -4,6 +4,7 @@ from pydantic import Field, model_validator
 from swarmauri_base.state.StateBase import StateBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(StateBase, "DictState")
 class DictState(StateBase):
     """

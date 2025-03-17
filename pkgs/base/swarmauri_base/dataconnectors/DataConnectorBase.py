@@ -1,6 +1,7 @@
 from swarmauri_core.dataconnectors.IDataConnector import IDataConnector
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 class DataConnectorBase(IDataConnector, ComponentBase):
     """
     Base implementation of IDataConnector that raises NotImplementedError

@@ -6,6 +6,8 @@ readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 
+package = false
+
 [dependency-groups]
 dev = [
     "toml>=0.10.2",
@@ -17,7 +19,7 @@ dev = [
     "python-dotenv>=1.0.0",
     "pytest-mock>=3.14.0",
     "jsonschema>=4.18.5",
-    "ruff",
+    "ruff>=0.9.9",
 ]
 
 [tool.uv]
@@ -39,8 +41,9 @@ members = [
     "standards/swarmauri_parser_beautifulsoupelement",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_prompt_j2prompttemplate",
+    "standards/ptree_dag",
     "community/swarmauri_vectorstore_redis",
-    "community/swarmauri_documentstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
     "community/swarmauri_vectorstore_persistentchromadb",
@@ -106,6 +109,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri = { workspace = true }
 typing = { workspace = true }
+
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
 #swarmauri_embedding_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
@@ -113,11 +117,12 @@ swarmauri_embedding_nmf = { workspace = true }
 swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
+swarmauri_prompt_j2prompttemplate = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
+ptree_dag = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
-swarmauri_documentstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
 swarmauri_vectorstore_pinecone = { workspace = true }
 swarmauri_vectorstore_persistentchromadb = { workspace = true }
@@ -178,6 +183,7 @@ swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = [
+    "deprecated",
     "experimental", 
     #"community",
     "swarmauri_embedding_tfidf",

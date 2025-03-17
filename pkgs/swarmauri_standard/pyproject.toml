@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-standard"
-version = "0.6.2.dev3"
+version = "0.7.2"
 description = "This repository includes standard components within the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -48,6 +48,7 @@ dev = [
 "jsonschema>=4.18.5",
 "ipython>=8.28.0",
 "requests>=2.32.3",
+"ruff>=0.9.9",
 ]
 
 [tool.pytest.ini_options]

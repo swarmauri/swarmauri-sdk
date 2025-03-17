@@ -69,7 +69,9 @@ async def test_abatch(lepton_ai_imggen_model):
         "A snowy mountain peak",
         "A vintage car on a rural road",
     ]
-    result_image_bytes_list = await lepton_ai_imggen_model.abatch_generate(prompts=prompts)
+    result_image_bytes_list = await lepton_ai_imggen_model.abatch_generate(
+        prompts=prompts
+    )
     assert len(result_image_bytes_list) == len(prompts)
     for image_bytes in result_image_bytes_list:
         assert isinstance(image_bytes, bytes)

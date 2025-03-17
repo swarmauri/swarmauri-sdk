@@ -7,6 +7,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 from swarmauri_core.documents.IDocument import IDocument
 
+
 @ComponentBase.register_model()
 class DocumentStoreRetrieveBase(IDocumentRetrieve, ComponentBase):
     resource: ResourceTypes = Field(default=ResourceTypes.DOCUMENT_STORE.value)

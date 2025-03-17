@@ -15,6 +15,7 @@ from swarmauri_standard.tools.FleschReadingEaseTool import FleschReadingEaseTool
 
 from swarmauri_standard.tools.GunningFogTool import GunningFogTool
 
+
 @ComponentBase.register_type(ToolkitBase, "AccessibilityToolkit")
 class AccessibilityToolkit(ToolkitBase):
     type: Literal["AccessibilityToolkit"] = "AccessibilityToolkit"

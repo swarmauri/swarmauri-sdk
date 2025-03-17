@@ -10,6 +10,7 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 
 
+
 @ComponentBase.register_model()
 class ToolLLMBase(IToolPredict, ComponentBase):
     allowed_models: List[str] = []

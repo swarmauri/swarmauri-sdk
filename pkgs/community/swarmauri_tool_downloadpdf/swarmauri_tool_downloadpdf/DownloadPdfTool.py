@@ -6,6 +6,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
+
 @ComponentBase.register_type(ToolBase, "DownloadPDFTool")
 class DownloadPDFTool(ToolBase):
     """

@@ -3,6 +3,7 @@ import pandas as pd
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 @ComponentBase.register_type(MeasurementBase, "DistinctivenessMeasurement")
 class DistinctivenessMeasurement(MeasurementBase):
     """

@@ -6,6 +6,7 @@ import warnings
 from swarmauri_core.prompt_templates.IPromptTemplate import IPromptTemplate
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 @ComponentBase.register_model()
 class PromptTemplateBase(IPromptTemplate, ComponentBase):
     """

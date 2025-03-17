@@ -6,6 +6,7 @@ from pydantic import Field
 from swarmauri_core.chunkers.IChunker import IChunker
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+
 @ComponentBase.register_model()
 class ChunkerBase(IChunker, ComponentBase):
     """

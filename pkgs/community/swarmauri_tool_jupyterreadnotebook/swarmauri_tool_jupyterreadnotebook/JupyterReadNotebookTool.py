@@ -18,6 +18,7 @@ validates its integrity, and returns the resulting node for further processing. 
 inherits from the ToolBase class to seamlessly integrate with the system's tool architecture.
 """
 
+
 @ComponentBase.register_type(ToolBase, "JupyterReadNotebookTool")
 class JupyterReadNotebookTool(ToolBase):
     """

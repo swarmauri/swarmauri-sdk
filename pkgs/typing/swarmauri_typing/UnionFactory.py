@@ -1,5 +1,13 @@
 from typing import (
-    Type, TypeVar, Callable, List, Union, Any, Annotated, get_args, Optional
+    Type,
+    TypeVar,
+    Callable,
+    List,
+    Union,
+    Any,
+    Annotated,
+    get_args,
+    Optional,
 )
 
 T = TypeVar("T")
@@ -11,6 +19,7 @@ class UnionFactoryMetadata:
     You can store anything you like in here (e.g., the original input
     or other context data).
     """
+
     def __init__(self, data: Any, name: Optional[str] = None):
         self.data = data
         self.name = name or self.__class__.__name__
@@ -18,6 +27,7 @@ class UnionFactoryMetadata:
     def __repr__(self):
         # Return a more 'developer-focused' string, e.g.:
         return f"UnionFactoryMetadata(name={self.name!r}, data={self.data!r})"
+
 
 class UnionFactory:
     """
@@ -32,7 +42,7 @@ class UnionFactory:
         self,
         bound: Callable[[Type[T]], List[type]],
         name: "str" = None,
-        annotation_extenders: List[Any] = None
+        annotation_extenders: List[Any] = None,
     ):
         """
         :param bound:
@@ -51,7 +61,10 @@ class UnionFactory:
         Appends 'new_metadata' to an existing Annotated type,
         or wraps a bare type in Annotated if it's not already Annotated.
         """
-        if not (hasattr(annotated_type, '__origin__') and annotated_type.__origin__ is Annotated):
+        if not (
+            hasattr(annotated_type, "__origin__")
+            and annotated_type.__origin__ is Annotated
+        ):
             return Annotated[annotated_type, new_metadata]
 
         args = get_args(annotated_type)
@@ -80,10 +93,14 @@ class UnionFactory:
 
         # If no types are returned, fall back to Annotated[Any, UnionFactoryMetadata]
         if not union_members:
-            final_annotated = Annotated[Any, UnionFactoryMetadata(data=model_name, name=self.name)]
+            final_annotated = Annotated[
+                Any, UnionFactoryMetadata(data=model_name, name=self.name)
+            ]
         else:
             union_type = Union[tuple(union_members)]
-            final_annotated = Annotated[union_type, UnionFactoryMetadata(data=model_name, name=self.name)]
+            final_annotated = Annotated[
+                union_type, UnionFactoryMetadata(data=model_name, name=self.name)
+            ]
 
             # Add any additional metadata
             for extension in self._annotation_extenders:
