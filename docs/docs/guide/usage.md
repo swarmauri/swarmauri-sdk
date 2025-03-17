@@ -9,14 +9,16 @@ Welcome to the Swarmauri SDK usage guide. This document will help you understand
 To get started with Swarmauri SDK, you need to import the necessary modules and initialize the components you plan to use.
 
 ```python
-from swarmauri import Conversation, HumanMessage, OpenAIToolModel
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.HumanMessage import HumanMessage
+from swarmauri.tool_llms.OpenAIToolModel import OpenAIToolModel
 
 # Create a conversation
 conversation = Conversation()
 conversation.add_message(HumanMessage(content="Hello, how can I help you today?"))
 
 # Initialize an LLM with tool capabilities
-llm = OpenAIToolModel(model="gpt-4-turbo")
+llm = OpenAIModel(model="gpt-4-turbo")
 
 # Generate a response
 response = llm.predict(conversation=conversation)
@@ -28,25 +30,46 @@ print(response.get_last().content)
 
 ### Using Tools
 
+### Using Tools
+
 Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
 
 ```python
-from swarmauri import CalculatorTool, RequestsTool
+from swarmauri.tools.CalculatorTool import CalculatorTool
+from swarmauri.tool_llms.OpenAIToolModel import OpenAIToolModel
+from swarmauri.toolkit.Toolkit import Toolkit
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.HumanMessage import HumanMessage
+import os
 
-# Initialize tools
-calculator = CalculatorTool()
-web_request = RequestsTool()
+# Create a toolkit to hold our tools
+toolkit = Toolkit()
 
-# Use the calculator tool
-calc_result = calculator(operation="add", x=2, y=2)
-print(f"Calculator Result: {calc_result['calculated_result']}")
+# Initialize the calculator tool and add it to our toolkit
+calculator_tool = CalculatorTool()
+toolkit.add_tool(calculator_tool)
 
-# Use the web request tool for a simple API call
-request_result = web_request(
-    method="GET",
-    url="https://jsonplaceholder.typicode.com/todos/1"
+# Create a conversation object to manage the message history
+conversation = Conversation()
+
+# Prepare the user's input as a human message
+input_data = "Add 512+671"
+human_message = HumanMessage(content=input_data)
+
+# Add the message to our conversation
+conversation.add_message(human_message)
+
+# Initialize the OpenAI Tool Model
+openai_tool_model = OpenAIToolModel(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    model="gpt-4-turbo"
 )
-print(f"Request Result: {request_result}")
+
+# Generate a response using the model and toolkit
+conversation = openai_tool_model.predict(conversation=conversation, toolkit=toolkit)
+
+# Print the model's response
+print(f"Response: {conversation.get_last().content}")
 ```
 
 !!! warning "Security Considerations"
@@ -59,7 +82,10 @@ print(f"Request Result: {request_result}")
 Create a basic chatbot that can respond to user queries.
 
 ```python
-from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIModel
+from swarmauri.agents.SimpleConversationAgent import SimpleConversationAgent
+from swarmauri.conversation.Conversation import Conversation
+from swarmauri.messages.SystemMessage import SystemMessage
+from swarmauri.llms.OpenAIModel import OpenAIModel
 
 # Create a conversation with a system message
 conversation = Conversation()
@@ -68,64 +94,56 @@ conversation.add_message(SystemMessage(content="You are a helpful assistant."))
 # Initialize an LLM
 llm = OpenAIModel(model="gpt-3.5-turbo")
 
-# Function to handle user input
-def chat_with_bot(user_input):
-    # Add the user's message to the conversation
-    conversation.add_message(HumanMessage(content=user_input))
-
-    # Generate a response
-    llm.predict(conversation=conversation)
-
-    # Return the latest response
-    return conversation.get_last().content
+# Create a simple conversation agent
+agent = SimpleConversationAgent(conversation=conversation, llm=llm)
 
 # Example usage
-response = chat_with_bot("What is machine learning?")
+response = agent.exec("What is machine learning?")
+print(response)
+
+# Continue the conversation
+response = agent.exec("Can you explain it in simpler terms?")
 print(response)
 ```
-
-!!! tip "Conversation Management"
-    For longer conversations, consider implementing a mechanism to trim the conversation history to avoid hitting token limits. You can either summarize previous exchanges or remove older messages.
-    
-    ```python
-    # Example of trimming conversation history
-    if len(conversation.messages) > 10:
-        # Keep only the last 5 messages
-        conversation.messages = conversation.messages[-5:]
-    ```
 
 ### Using Tools with an LLM
 
 Create an assistant that can use tools to answer questions.
 
-```python
-from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIToolModel, CalculatorTool, Toolkit
+### How do I use tools in Swarmauri SDK?
 
-# Create a conversation
+Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
+
+```python
+from swarmauri.agents.ToolAgent import ToolAgent
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.SystemMessage import SystemMessage
+from swarmauri.tool_llms.OpenAIToolModel import OpenAIToolModel
+from swarmauri.tools.CalculatorTool import CalculatorTool
+from swarmauri.toolkits.Toolkit import Toolkit
+
+# Create a conversation with a system message
 conversation = Conversation()
 conversation.add_message(SystemMessage(content="You are a helpful assistant with access to tools."))
 
 # Create a toolkit with a calculator
-toolkit = Toolkit(
-    tools=[CalculatorTool()]
-)
+toolkit = Toolkit()
+toolkit.add_tool(CalculatorTool())
 
 # Initialize an LLM with tool capabilities
-llm = OpenAIToolModel(model="gpt-4-turbo")
-
-# Function to handle user input
-def ask_with_tools(user_input):
-    # Add the user's message to the conversation
-    conversation.add_message(HumanMessage(content=user_input))
-
-    # Generate a response using the toolkit
-    llm.predict(conversation=conversation, toolkit=toolkit)
-
-    # Return the latest response
-    return conversation.get_last().content
+openai_tool_model = OpenAIToolModel(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    model="gpt-4-turbo"
+)
+# Create a tool agent
+agent = ToolAgent(conversation=conversation, llm=llm, toolkit=toolkit)
 
 # Example usage
-response = ask_with_tools("What is 25 * 16?")
+response = agent.exec("What is 25 * 16?")
+print(response)
+
+# Continue the conversation with another tool-based query
+response = agent.exec("What is the square root of 144?")
 print(response)
 ```
 
@@ -134,7 +152,9 @@ print(response)
 ### Example 1: Question Answering
 
 ```python
-from swarmauri import QAAgent, OpenAIModel, Conversation
+from swarmauri.agents.QAAgent import QAAgent
+from swarmauri.llms.OpenAIModel import OpenAIModel
+from swarrmauri.conversation.Conversation import Conversation
 
 # Create a conversation
 conversation = Conversation()
@@ -153,14 +173,12 @@ print(answer)
 ### Example 2: RAG (Retrieval-Augmented Generation)
 
 ```python
-from swarmauri import (
-    RagAgent,
-    OpenAIModel,
-    OpenAIEmbedding,
-    SqliteVectorStore,
-    Document,
-    Conversation
-)
+from swarmauri.agents.RagAgent import RagAgent
+from swarmauri.llms.OpenAIModel import OpenAIModel
+from swarmauri.documents.Document import Document
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+import os
 
 # Create documents
 documents = [
@@ -169,9 +187,10 @@ documents = [
     Document(content="Rome is the capital of Italy.")
 ]
 
-# Create a vector store and add documents
-embedding_model = OpenAIEmbedding()
-vector_store = SqliteVectorStore(embedding=embedding_model, db_path=":memory:")
+# Initialize TfidfVectorStore
+vector_store = TfidfVectorStore()
+
+# Add documents to the vector store
 vector_store.add_documents(documents)
 
 # Create a conversation
@@ -179,7 +198,7 @@ conversation = Conversation()
 
 # Create a RAG agent
 agent = RagAgent(
-    llm=OpenAIModel(model="gpt-3.5-turbo"),
+    llm=OpenAIModel(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY")),
     vector_store=vector_store,
     conversation=conversation
 )
@@ -189,14 +208,26 @@ answer = agent.exec("What is the capital of France?")
 print(answer)
 ```
 
-!!! note "In-Memory vs. Persistent Storage"
-    The example above uses an in-memory SQLite database (`:memory:`) which is suitable for testing but not for production. For production applications, specify a file path to create a persistent vector store:
-    
+??? note "TfidfVectorStore vs. Other Vector Stores"
+    The `TfidfVectorStore` is a simple in-memory vector store that:
+
+    - Doesn't require external services or API keys
+    - Uses TF-IDF for document embeddings
+    - Performs well for small to medium document collections
+    - Doesn't persist data between application restarts
+
+    For production applications with large document collections, consider other storage like:
+
     ```python
-    vector_store = SqliteVectorStore(
-        embedding=embedding_model, 
-        db_path="./data/vector_store.db"
+    # Pinecone for cloud-based storage
+    from swarmauri_vectorstore_pinecone import PineconeVectorStore
+
+    vector_store = PineconeVectorStore(
+        api_key=os.getenv("PINECONE_API_KEY"),
+        collection_name="my-collection",
+        vector_size=1536
     )
+    vector_store.connect()
     ```
 
 ## Best Practices
@@ -220,13 +251,13 @@ source swarmauri_env/bin/activate
 pip install swarmauri
 ```
 
-!!! tip "Requirements File"
-    For team projects or deployments, consider creating a `requirements.txt` file to ensure consistent environments:
-    
+??? tip "Requirements File"
+For team projects or deployments, consider creating a `requirements.txt` file to ensure consistent environments:
+
     ```bash
     # Generate requirements.txt
     pip freeze > requirements.txt
-    
+
     # Install from requirements.txt
     pip install -r requirements.txt
     ```
@@ -243,12 +274,12 @@ except Exception as e:
     print(f"An error occurred: {e}")
 ```
 
-!!! warning "Rate Limits"
+??? warning "Rate Limits"
     When working with external API services like OpenAI, be aware of rate limits. Implement exponential backoff strategies for retries:
-    
+
     ```python
     import time
-    
+
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -278,10 +309,10 @@ logger.info("Starting the AI assistant")
 
 !!! info "Structured Logging"
     For production applications, consider using structured logging for better searchability:
-    
+
     ```python
     logger.info(
-        "LLM response generated", 
+        "LLM response generated",
         extra={
             "tokens_used": response.usage.total_tokens,
             "response_time_ms": response_time,

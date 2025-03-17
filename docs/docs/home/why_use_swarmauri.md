@@ -20,7 +20,7 @@ Work with different AI models, embeddings, and tools through a consistent interf
 !!! tip "Provider Switching"
     With Swarmauri's unified API, switching between model providers is as simple as changing a single parameter:
 
-    ```python 
+    ```python
     # Using OpenAI
     llm = OpenAIModel(model="gpt-4-turbo")
 
@@ -75,7 +75,7 @@ Build AI agents that can use tools to accomplish tasks:
 - **Custom tools** that you can easily build and integrate
 
 !!! tip "Custom Tools"
-    Creating your own tools is straightforward with Swarmauri. Extend the `ToolBase` class, register it with `@ComponentBase.register_type`, and implement the `__call__` method. See the [Custom Components](../guide/usage.md#creating-custom-components) section for examples.
+Creating your own tools is straightforward with Swarmauri. Extend the `ToolBase` class, register it with `@ComponentBase.register_type`, and implement the `__call__` method. See the [Custom Components](../guide/usage.md#creating-custom-components) section for examples.
 
 ### Data Processing
 
@@ -102,7 +102,10 @@ Create sophisticated AI agents that can:
 Build simple chatbots that can engage in natural conversations with users.
 
 ```python
-from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIModel
+from swarmauri.agents.SimpleConversationAgent import SimpleConversationAgent
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.SystemMessage import SystemMessage
+from swarmauri.llms.OpenAIModel import OpenAIModel
 
 # Create a conversation with a system message
 conversation = Conversation()
@@ -111,19 +114,15 @@ conversation.add_message(SystemMessage(content="You are a helpful assistant."))
 # Initialize an LLM
 llm = OpenAIModel(model="gpt-3.5-turbo")
 
-# Function to handle user input
-def chat_with_bot(user_input):
-    # Add the user's message to the conversation
-    conversation.add_message(HumanMessage(content=user_input))
-
-    # Generate a response
-    llm.predict(conversation=conversation)
-
-    # Return the latest response
-    return conversation.get_last().content
+# Create a simple conversation agent
+agent = SimpleConversationAgent(conversation=conversation, llm=llm)
 
 # Example usage
-response = chat_with_bot("What is artificial intelligence?")
+response = agent.exec("What is machine learning?")
+print(response)
+
+# Continue the conversation
+response = agent.exec("Can you explain it in simpler terms?")
 print(response)
 ```
 
@@ -135,7 +134,12 @@ print(response)
 Create assistants that can use tools to perform calculations, fetch information, and more.
 
 ```python
-from swarmauri import Conversation, HumanMessage, ToolAgent, OpenAIToolModel, Toolkit, CalculatorTool, RequestsTool
+from swarmauri.agents.ToolAgent import ToolAgent
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.SystemMessage import SystemMessage
+from swarmauri.tool_llms.OpenAIToolModel import OpenAIToolModel
+from swarmauri.tools.CalculatorTool import CalculatorTool
+from swarmauri.toolkits.Toolkit import Toolkit
 
 # Create a conversation
 conversation = Conversation()
@@ -165,18 +169,24 @@ print(response)
 Build systems that can answer questions based on your own documents using Retrieval-Augmented Generation.
 
 ```python
-from swarmauri import RagAgent, OpenAIModel, OpenAIEmbedding, SqliteVectorStore, Document, Conversation
+from swarmauri.agents.RagAgent import RagAgent
+from swarmauri.llms.OpenAIModel import OpenAIModel
+from swarmauri.documents.Document import Document
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+import os
 
-# Create sample documents
+# Create documents
 documents = [
-    Document(content="Paris is the capital of France and is known for the Eiffel Tower."),
-    Document(content="Rome is the capital of Italy and home to the Colosseum."),
-    Document(content="Tokyo is the capital of Japan and is the most populous city in the world.")
+    Document(content="Paris is the capital of France."),
+    Document(content="Berlin is the capital of Germany."),
+    Document(content="Rome is the capital of Italy.")
 ]
 
-# Create a vector store and add documents
-embedding_model = OpenAIEmbedding()
-vector_store = SqliteVectorStore(embedding=embedding_model, db_path=":memory:")
+# Initialize TfidfVectorStore
+vector_store = TfidfVectorStore()
+
+# Add documents to the vector store
 vector_store.add_documents(documents)
 
 # Create a conversation
@@ -184,25 +194,24 @@ conversation = Conversation()
 
 # Create a RAG agent
 agent = RagAgent(
-    llm=OpenAIModel(model="gpt-3.5-turbo"),
+    llm=OpenAIModel(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY")),
     vector_store=vector_store,
     conversation=conversation
 )
 
 # Ask a question
-answer = agent.exec("What is the capital of France and what is it known for?")
+answer = agent.exec("What is the capital of France?")
 print(answer)
 ```
-
-!!! warning "Vector Store Persistence"
-    When using `:memory:` as the database path, the vector store will be lost when your application exits. For production use, specify a file path to persist your vector store.
 
 ### Document Processing
 
 Process and analyze documents to extract insights and make them searchable.
 
 ```python
-from swarmauri import Document, TextSplitter, OpenAIEmbedding, SqliteVectorStore
+from swarmauri.documents.Document import Document
+from swarmauri.chunkers.SentenceChunker import SentenceChunker
+from swarmauri_vectorstore_mlm.MlmVectorStore import MlmVectorStore  # Import from community package
 
 # Create a document
 document = Document(content="""
@@ -211,23 +220,61 @@ AI applications include advanced web search engines, recommendation systems, und
 automated decision-making, and competing at the highest level in strategic game systems.
 """)
 
-# Split the document into chunks
-chunker = TextSplitter(chunk_size=100)
+# Split the document into chunks by sentences
+# This creates more natural chunks based on sentence boundaries
+chunker = SentenceChunker()
 chunks = chunker.split_document(document)
 
-# Create embeddings for the chunks
-embedding_model = OpenAIEmbedding()
-embeddings = [embedding_model.embed_query(chunk.content) for chunk in chunks]
+# Initialize MlmVectorStore
+# This vector store uses masked language model embeddings
+vector_store = MlmVectorStore()
 
-# Store the embeddings in a vector store
-vector_store = SqliteVectorStore(embedding=embedding_model, db_path="ai_documents.db")
+# Add documents to the vector store
+# MlmVectorStore will automatically calculate embeddings using a masked language model
 vector_store.add_documents(chunks)
 
 # Search for relevant information
-results = vector_store.similarity_search("What are examples of AI applications?", k=2)
+results = vector_store.retrieve(query="What are examples of AI applications?", top_k=2)
 for doc in results:
     print(doc.content)
 ```
+
+!!! tip "Using Different Chunkers"
+    Swarmauri offers various specialized chunkers for different document types:
+
+    ```python
+    from swarmauri.documents.Document import Document
+    from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
+    from swarmauri_vectorstore_mlm.MlmVectorStore import MlmVectorStore
+
+    # Create a markdown document
+    markdown_doc = Document(content="""
+    # AI Applications
+
+    ## Web Search
+    Modern search engines use AI to understand queries and rank results.
+
+    ## Self-Driving Cars
+    Autonomous vehicles use AI for perception, decision-making, and control.
+
+    ## Natural Language Processing
+    AI systems can understand and generate human language.
+    """)
+
+    # Use a specialized chunker for markdown documents
+    # This preserves the structure of markdown headings and sections
+    md_chunker = MdSnippetChunker()
+    md_chunks = md_chunker.split_document(markdown_doc)
+
+    # Process the chunks as before
+    vector_store = MlmVectorStore()
+    vector_store.add_documents(md_chunks)
+
+    # Search for specific markdown sections
+    results = vector_store.retrieve(query="Tell me about self-driving cars", top_k=1)
+    for doc in results:
+        print(doc.content)
+    ```
 
 ## Developer Experience
 

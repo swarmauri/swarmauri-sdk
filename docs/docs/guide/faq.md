@@ -30,9 +30,8 @@ For detailed installation instructions, refer to our Installation Guide.
 
 ### What are the system requirements for Swarmauri SDK?
 
-- Python 3.8 or higher
-- pip (Python package installer)
-- 4GB RAM (minimum)
+- Python 3.10, 3.11, or 3.12
+- Package installer (pip or uv)
 - Internet connection for downloading packages
 
 ### How do I get started with Swarmauri SDK?
@@ -63,7 +62,8 @@ If you face dependency conflicts:
 ```bash
 # Create a fresh virtual environment
 python -m venv fresh-env
-source fresh-env/bin/activate  
+source fresh-env/bin/activate
+
 # or fresh-env\Scripts\activate on Windows
 pip install swarmauri
 ```
@@ -93,7 +93,7 @@ pip install --upgrade setuptools wheel
 sudo apt install build-essential  # For Ubuntu/Debian
 ```
 
-!!! danger "Installation Troubleshooting"
+??? danger "Installation Troubleshooting"
     If you encounter persistent installation issues:
     
     1. Make sure your pip is up to date: `pip install --upgrade pip`
@@ -108,33 +108,34 @@ sudo apt install build-essential  # For Ubuntu/Debian
 Swarmauri SDK allows you to integrate various tools to enhance the capabilities of your AI models.
 
 ```python
-from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIToolModel, CalculatorTool, Toolkit
-
-# Create a conversation
+from swarmauri.tools.JSONRequestsTool import JSONRequestsTool
+from swarmauri.tools.CalculatorTool import CalculatorTool
+from swarmauri.tool_llms.OpenAIToolModel import OpenAIToolModel
+from swarmauri.toolkit.Toolkit import Toolkit
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.messages.HumanMessage import HumanMessage
+from swarmauri.messages.SystemMessage import SystemMessage
+import os
+# Create a conversation with a system message
 conversation = Conversation()
 conversation.add_message(SystemMessage(content="You are a helpful assistant with access to tools."))
 
 # Create a toolkit with a calculator
-toolkit = Toolkit(
-    tools=[CalculatorTool()]
-)
+toolkit = Toolkit()
+toolkit.add_tool(CalculatorTool())
 
 # Initialize an LLM with tool capabilities
 llm = OpenAIToolModel(model="gpt-4-turbo")
 
-# Function to handle user input
-def ask_with_tools(user_input):
-    # Add the user's message to the conversation
-    conversation.add_message(HumanMessage(content=user_input))
-
-    # Generate a response using the toolkit
-    llm.predict(conversation=conversation, toolkit=toolkit)
-
-    # Return the latest response
-    return conversation.get_last().content
+# Create a tool agent
+agent = ToolAgent(conversation=conversation, llm=llm, toolkit=toolkit)
 
 # Example usage
-response = ask_with_tools("What is 25 * 16?")
+response = agent.exec("What is 25 * 16?")
+print(response)
+
+# Continue the conversation with another tool-based query
+response = agent.exec("What is the square root of 144?")
 print(response)
 ```
 
@@ -150,10 +151,10 @@ print(response)
 
 ### How do I create an AI assistant?
 
-Create a simple AI assistant that can handle multiple tasks using different tools.
+Create a simple AI assistant that can handle conversations:
 
 ```python
-from swarmauri import Conversation, HumanMessage, SystemMessage, OpenAIModel
+from swarmauri import SimpleConversationAgent, Conversation, SystemMessage, OpenAIModel
 
 # Create a conversation with a system message
 conversation = Conversation()
@@ -162,22 +163,17 @@ conversation.add_message(SystemMessage(content="You are a helpful assistant."))
 # Initialize an LLM
 llm = OpenAIModel(model="gpt-3.5-turbo")
 
-# Function to handle user input
-def chat_with_bot(user_input):
-    # Add the user's message to the conversation
-    conversation.add_message(HumanMessage(content=user_input))
-
-    # Generate a response
-    llm.predict(conversation=conversation)
-
-    # Return the latest response
-    return conversation.get_last().content
+# Create a simple conversation agent
+agent = SimpleConversationAgent(conversation=conversation, llm=llm)
 
 # Example usage
-response = chat_with_bot("What is machine learning?")
+response = agent.exec("What is machine learning?")
+print(response)
+
+# Continue the conversation
+response = agent.exec("Can you explain it in simpler terms?")
 print(response)
 ```
-
 ### How do I handle large datasets?
 
 - **Chunking**: Break down large datasets into smaller chunks for processing.
@@ -185,14 +181,12 @@ print(response)
 - **Vector Stores**: Use vector stores for efficient storage and retrieval of embeddings.
 
 ```python
-from swarmauri import (
-    RagAgent,
-    OpenAIModel,
-    OpenAIEmbedding,
-    SqliteVectorStore,
-    Document,
-    Conversation
-)
+from swarmauri.agents.RagAgent import RagAgent
+from swarmauri.llms.OpenAIModel import OpenAIModel
+from swarmauri.documents.Document import Document
+from swarmauri.conversations.Conversation import Conversation
+from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+import os
 
 # Create documents
 documents = [
@@ -201,9 +195,10 @@ documents = [
     Document(content="Rome is the capital of Italy.")
 ]
 
-# Create a vector store and add documents
-embedding_model = OpenAIEmbedding()
-vector_store = SqliteVectorStore(embedding=embedding_model, db_path=":memory:")
+# Initialize TfidfVectorStore
+vector_store = TfidfVectorStore()
+
+# Add documents to the vector store
 vector_store.add_documents(documents)
 
 # Create a conversation
@@ -211,7 +206,7 @@ conversation = Conversation()
 
 # Create a RAG agent
 agent = RagAgent(
-    llm=OpenAIModel(model="gpt-3.5-turbo"),
+    llm=OpenAIModel(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY")),
     vector_store=vector_store,
     conversation=conversation
 )

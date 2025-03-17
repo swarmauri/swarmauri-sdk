@@ -191,31 +191,39 @@ This example demonstrates:
 ??? example "More Examples"
     === "RAG (Retrieval Augmented Generation)"
         ```python
-        from swarmauri.llms import OpenAIModel
-        from swarmauri.embeddings import OpenAIEmbedding
-        from swarmauri.vector_stores import SqliteVectorStore
-        from swarmauri.documents import Document
-        from swarmauri.agents import RagAgent
-        
-        # Initialize components
-        llm = OpenAIModel(api_key=os.getenv("OPENAI_API_KEY"))
-        embedding = OpenAIEmbedding(api_key=os.getenv("OPENAI_API_KEY"))
-        vector_store = SqliteVectorStore(embedding=embedding, db_path="knowledge.db")
-        
-        # Add documents to the vector store
-        docs = [
-            Document(content="The capital of France is Paris."),
-            Document(content="The capital of Italy is Rome."),
-            Document(content="The capital of Spain is Madrid.")
+        from swarmauri.agents.RagAgent import RagAgent
+        from swarmauri.llms.OpenAIModel import OpenAIModel
+        from swarmauri.documents.Document import Document
+        from swarmauri.conversations.Conversation import Conversation
+        from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+        import os
+
+        # Create documents
+        documents = [
+            Document(content="Paris is the capital of France."),
+            Document(content="Berlin is the capital of Germany."),
+            Document(content="Rome is the capital of Italy.")
         ]
-        vector_store.add_documents(docs)
-        
+
+        # Initialize TfidfVectorStore
+        vector_store = TfidfVectorStore()
+
+        # Add documents to the vector store
+        vector_store.add_documents(documents)
+
+        # Create a conversation
+        conversation = Conversation()
+
         # Create a RAG agent
-        agent = RagAgent(llm=llm, vector_store=vector_store)
-        
-        # Query the agent
-        response = agent.exec("What is the capital of France?")
-        print(response)  # Should include information retrieved from the documents
+        agent = RagAgent(
+            llm=OpenAIModel(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY")),
+            vector_store=vector_store,
+            conversation=conversation
+        )
+
+        # Ask a question
+        answer = agent.exec("What is the capital of France?")
+        print(answer)
         ```
     
     === "Tool-augmented Agent"
