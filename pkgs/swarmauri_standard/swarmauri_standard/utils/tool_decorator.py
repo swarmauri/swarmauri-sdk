@@ -6,6 +6,7 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
+
 def tool(func):
     """
     Decorator that creates a dynamic ToolBase subclass from the decorated function.
@@ -32,11 +33,11 @@ def tool(func):
         # Derive a required flag by checking if the parameter has a default
         required = param.default == inspect.Parameter.empty
 
-        # Use the parameter’s name, the string version of the annotated type, etc.
+        # Use the parameter's name, the string version of the annotated type, etc.
         parameters_list.append(
             Parameter(
                 name=param_name,
-                type=annotated_type.__name__,
+                input_type=annotated_type.__name__,  # Convert to lowercase
                 description=f"Parameter for {param_name}",
                 required=required,
             )
@@ -49,7 +50,6 @@ def tool(func):
         parameters: List[Parameter] = Field(default_factory=lambda: parameters_list)
         name: str = func_name
         description: str = docstring
-        # The tool type is set to be the same as the function name
         type: str = func_name
 
         def __call__(self, *args, **kwargs) -> Any:
@@ -58,5 +58,9 @@ def tool(func):
             """
             return func(*args, **kwargs)
 
-    # Return an *instance* of this generated class (or the class itself)
-    return FunctionTool()
+    tool_instance = FunctionTool()
+
+    # Explicitly set the type attribute to ensure it matches the function name
+    tool_instance.type = func_name
+
+    return tool_instance
