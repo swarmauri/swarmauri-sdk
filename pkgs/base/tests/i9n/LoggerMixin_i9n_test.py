@@ -4,8 +4,8 @@ import pytest
 
 from typing import Any
 from swarmauri_base.LoggerMixin import LoggerMixin  # Adjust the import as needed
-from swarmauri_base.logging.LoggerBase import LoggerBase
-from swarmauri_base.logging.HandlerBase import HandlerBase
+from swarmauri_base.logger.LoggerBase import LoggerBase
+from swarmauri_base.logger_handler.HandlerBase import HandlerBase
 from swarmauri_base import register_type
 
 

@@ -1,4 +1,4 @@
-import sys
+import sys as _sys
 import logging
 from .importer import SwarmauriImporter
 from .plugin_manager import discover_and_register_plugins
@@ -6,9 +6,9 @@ from .plugin_manager import discover_and_register_plugins
 logger = logging.getLogger(__name__)
 
 try:
-    if not any(isinstance(importer, SwarmauriImporter) for importer in sys.meta_path):
-        logger.info("Registering SwarmauriImporter in sys.meta_path.")
-        sys.meta_path.insert(0, SwarmauriImporter())
+    if not any(isinstance(importer, SwarmauriImporter) for importer in _sys.meta_path):
+        logger.info("Registering SwarmauriImporter in _sys.meta_path.")
+        _sys.meta_path.insert(0, SwarmauriImporter())
     else:
         logger.info("SwarmauriImporter is already registered.")
 except Exception as e:
