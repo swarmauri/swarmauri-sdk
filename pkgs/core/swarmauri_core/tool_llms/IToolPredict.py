@@ -1,6 +1,8 @@
-from typing import List, Dict, Any, Type
 from abc import ABC, abstractmethod
-from swarmauri_core.messages.IMessage
+from typing import Any, Dict, List, Type
+
+from swarmauri_core.messages.IMessage import IMessage
+
 
 class IToolPredict(ABC):
     """
