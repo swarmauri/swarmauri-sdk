@@ -1,0 +1,35 @@
+name: v0.7.0 - Test Integrity Check and Creation of their Issues
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  test-integrity-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Export environment variables
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "GITHUB_BASE_REF=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+          echo "GITHUB_HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+          echo "GITHUB_REF=${{ github.ref }}" >> $GITHUB_ENV
+          echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
+          echo "GITHUB_SERVER_URL=${{ github.server_url }}" >> $GITHUB_ENV
+          echo "GITHUB_RUN_ID=${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: pip install uv
+
+      - name: Run Test Files Integrity Check and Creates issues
+        run: uv run ./scripts/test_files_integrity_check_and_create_issues.py
