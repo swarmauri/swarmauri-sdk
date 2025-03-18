@@ -4,6 +4,7 @@ import importlib
 import inspect
 import yaml
 import re
+from typing import Dict, List
 
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
 
@@ -105,7 +106,7 @@ def build_nav_for_api_docs(
           - RagAgent: api/top_label/package_name/agents/RagAgent.md
         - Chains:
           - CallableChain: api/top_label/package_name/chains/CallableChain.md
-          ...
+        ...
 
     This function organizes classes by module category (agents, chains, etc.)
     """
@@ -315,9 +316,9 @@ def generate(
 if __name__ == "__main__":
     # Example usage
     generate(
-        package_name="swarmauri_standard",
+        package_name="swarmauri_base",
         docs_dir="docs/docs",
         api_output_dir="api",
         mkdocs_yml_path="docs/mkdocs.yml",
-        top_label="Standard",
+        top_label="Base",
     )
