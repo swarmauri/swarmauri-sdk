@@ -47,14 +47,14 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str], logger: Optional
     # For demonstration purposes, we simply log the prompt and return a dummy response.
     truncated_prompt = prompt[:140] + "..." if _config["truncate"] else prompt
     logger.info(f"Sending prompt to external agent: \n\t{truncated_prompt}\n")
+    api_key = agent_env.get("api_key")
     
-    
-    llm = DeepInfraModel(api_key=os.getenv("DEEPINFRA_API_KEY", ""), name="meta-llama/Meta-Llama-3.1-405B-Instruct")
+    llm = DeepInfraModel(api_key=api_key, name="meta-llama/Meta-Llama-3.1-405B-Instruct")
     system_context = "You are a software developer."
     agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
 
     if os.getenv("PROVIDER", agent_env.get("provider", None)) == "Openai":
-        llm = O1Model(api_key=os.getenv("API_KEY"), name=agent_env.get("model_name", "o3-mini"))
+        llm = O1Model(api_key=api_key, name=agent_env.get("model_name", "o3-mini"))
         agent.llm = llm
         result = agent.exec(prompt, top_k=0)
 

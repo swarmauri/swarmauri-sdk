@@ -2,23 +2,22 @@
 """
 CLI for the ProjectFileGenerator
 
-This script provides commands to process projects from a YAML payload using the core functionality.
+Enhancement: --api-key support with environment variable fallback.
 """
 
+import os
 import typer
-import typing
-import pkgutil
-from pathlib import Path
 from pydantic import FilePath
+from pathlib import Path
 from .core import ProjectFileGenerator, Fore, Back, Style
 from ._config import _config
 from ._banner import _print_banner
 from ._gitops import _clone_swarmauri_repo
+from ._api_key import _resolve_api_key
 
 app = typer.Typer(help="CLI tool for processing project files using ProjectFileGenerator.")
 
 _print_banner()
-
 
 
 @app.command("process")
@@ -30,7 +29,7 @@ def process(
         None, 
         help="Optional list of additional directories to include in J2 env. Delimited by ','"
     ),
-    provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai)"),
+    provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai, etc.)"),
     model_name: str = typer.Option(None, help="The model_name to use."),
     trunc: bool = typer.Option(True, help="Truncate response (True or False)"),
     start_idx: int = typer.Option(None, help="Start at a certain file (Use sort to find idx number)"),
@@ -45,16 +44,26 @@ def process(
         "--swarmauri-dev/--no-swarmauri-dev",
         help="Use the mono/dev branch of swarmauri-sdk instead of master."
     ),
+    api_key: str = typer.Option(
+        None, 
+        help="API key used to authenticate with the selected provider. "
+             "If omitted, we look up <PROVIDER>_API_KEY in the environment."
+    ),
+    env: str = typer.Option(
+        ".env", 
+        help="Filepath for env file used to authenticate with the selected provider. "
+             "If omitted, we only load the environment."
+    ),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
     """
     if start_idx and start_file:
-        typer.echo("[ERROR] Cannot assign both start-idx and start-file.")
+        typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
         raise typer.Exit(code=1)
 
     if not project_name and (start_idx or start_file):
-        typer.echo("[ERROR] Cannot assign start-idx or start-file without project-name.")
+        typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
         raise typer.Exit(code=1)
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
@@ -69,12 +78,19 @@ def process(
     # Update config to set truncation
     _config["truncate"] = trunc
 
+    # Resolve the appropriate API key
+    resolved_key = _resolve_api_key(provider, api_key, env)
+
     try:
         pfg = ProjectFileGenerator(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
-            agent_env={"provider": provider, "model_name": model_name},
+            agent_env={
+                "provider": provider, 
+                "model_name": model_name,
+                "api_key": resolved_key,  # <--- The new key we resolved
+            },
         )
         if project_name:
             projects = pfg.load_projects()
@@ -86,7 +102,7 @@ def process(
             if start_file:
                 sorted_records, start_idx = pfg.process_single_project(project, start_file=start_file)
             else:
-                sorted_records, start_idx = pfg.process_single_project(project, start_idx=start_idx if start_idx else 0)
+                sorted_records, start_idx = pfg.process_single_project(project, start_idx=start_idx or 0)
             pfg.logger.info(f"Processed project '{project_name}' successfully.")
         else:
             pfg.process_all_projects()
@@ -119,16 +135,21 @@ def sort(
         "--swarmauri-dev/--no-swarmauri-dev",
         help="Use the mono/dev branch of swarmauri-sdk instead of master."
     ),
+    api_key: str = typer.Option(
+        None, 
+        help="API key used to authenticate with the selected provider. "
+             "If omitted, we look up <PROVIDER>_API_KEY in the environment."
+    ),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
     """
     if start_idx and start_file:
-        typer.echo("[ERROR] Cannot assign both start-idx and start-file.")
+        typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
         raise typer.Exit(code=1)
 
     if not project_name and (start_idx or start_file):
-        typer.echo("[ERROR] Cannot assign start-idx or start-file without project-name.")
+        typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
         raise typer.Exit(code=1)
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
@@ -140,11 +161,18 @@ def sort(
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))
 
+    # Resolve the appropriate API key
+    resolved_key = _resolve_api_key(provider, api_key)
+
     pfg = ProjectFileGenerator(
         projects_payload_path=str(projects_payload),
         template_base_dir=str(template_base_dir) if template_base_dir else None,
         additional_package_dirs=additional_dirs_list,
-        agent_env={"provider": provider, "model_name": model_name},
+        agent_env={
+            "provider": provider,
+            "model_name": model_name,
+            "api_key": resolved_key,  # <--- The new key we resolved
+        },
         dry_run=True
     )
 
@@ -159,12 +187,11 @@ def sort(
         if start_file:
             sorted_records, start_idx = pfg.process_single_project(project, start_file=start_file)
         else:
-            sorted_records, start_idx = pfg.process_single_project(project, start_idx=start_idx if start_idx else 0)
+            sorted_records, start_idx = pfg.process_single_project(project, start_idx=start_idx or 0)
 
         pfg.logger.info("")
         pfg.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
         for i, record in enumerate(sorted_records):
-            # The i+start_idx is purely for display
             pfg.logger.info(f'\t{i + start_idx}) {record.get("RENDERED_FILE_NAME")}')
 
     else:
