@@ -195,27 +195,29 @@ Each step in the pipeline expands or refines context data, which drives the fina
 ---
 
 ### 5. **Conceptual Generation Mechanics**
-This section outlines how PTGEN processes a declarative YAML file to produce the final project structure, using conceptual labels (e.g., “the generation tool,” “the processor,” “the templating engine”) rather than implementation-specific details. It also details the File Context alongside the other context layers.
 
 ## 5.1 Process Flow
-Initial Input Parsing
+### Initial Input Parsing
 
 The generation tool begins by loading and validating the YAML configuration (e.g., projects_payload.yaml).
 Required fields (such as project_name, packages[].name, etc.) are checked. If any are missing or invalid, the system issues a validation error. Optional fields may default to placeholder values or simply be omitted.
-Context Construction
+
+### Context Construction
 
 From the parsed data, the processor builds multiple layers of context in a hierarchical manner:
 Project Context: Summarizes top-level metadata (e.g., project_name, project_root).
 Package Context: One for each package, detailing its purpose, authors, and relevant attributes.
 Module Context: One for each module, capturing details like description, requirements, and dependencies.
 File Context: An additional context relevant to individual files as defined in the next steps. This can include file-specific purpose, description, or other file-oriented requirements.
-File Record Generation
+
+### File Record Generation
 
 The transformation pipeline then applies a template definition file (often ptree.yaml.j2) to create a list of file records.
 Each record specifies:
 How a particular file is produced (copied, generated, or run through a script).
 The File Context for that file (combining relevant data from the Project/Package/Module contexts, plus any file-specific attributes defined in FILE_CTX).
-Rendering or Copying Files
+
+### Rendering or Copying Files
 
 For file records, the templating engine merges the corresponding File Context with a template (e.g., agent_default.j2) if PROCESS_TYPE is GENERATE.
 If PROCESS_TYPE is COPY, the source file is transferred as-is.
