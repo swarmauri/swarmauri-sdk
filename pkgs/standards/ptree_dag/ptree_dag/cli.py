@@ -140,6 +140,11 @@ def sort(
         help="API key used to authenticate with the selected provider. "
              "If omitted, we look up <PROVIDER>_API_KEY in the environment."
     ),
+    env: str = typer.Option(
+        ".env", 
+        help="Filepath for env file used to authenticate with the selected provider. "
+             "If omitted, we only load the environment."
+    ),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -162,7 +167,7 @@ def sort(
         additional_dirs_list.append(FilePath(cloned_dir))
 
     # Resolve the appropriate API key
-    resolved_key = _resolve_api_key(provider, api_key)
+    resolved_key = _resolve_api_key(provider, api_key, env)
 
     pfg = ProjectFileGenerator(
         projects_payload_path=str(projects_payload),
