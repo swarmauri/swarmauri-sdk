@@ -27,18 +27,18 @@ def process(
     provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai)"),
     model_name: str = typer.Option(None, help="The model_name to use."),
     trunc: bool = typer.Option(True, help="Truncate response (True or False)"),
-    start_idx: int = typer.Option(0, help="Start at a certain file (Use sort to find idx number)"),
+    start_idx: int = typer.Option(None, help="Start at a certain file (Use sort to find idx number)"),
     start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use sort to find filename)")
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
     """
     if start_idx and start_file:
-        pfg.logger.error(f"Cannot assign both start-idx and start-file.")
+        typer.echo(f"[ERROR] Cannot assign both start-idx and start-file.")
         raise typer.Exit(code=1)
 
     if not project_name and (start_idx or start_file):
-        pfg.logger.error(f"Cannot assign start-idx or start-file without project-name.")
+        typer.echo(f"[ERROR] Cannot assign start-idx or start-file without project-name.")
         raise typer.Exit(code=1)
 
     additional_package_dirs = additional_package_dirs.split(',') if additional_package_dirs else []
@@ -90,11 +90,11 @@ def process(
     """
 
     if start_idx and start_file:
-        pfg.logger.error(f"Cannot assign both start-idx and start-file.")
+        typer.echo(f"[ERROR] Cannot assign both start-idx and start-file.")
         raise typer.Exit(code=1)
 
     if not project_name and (start_idx or start_file):
-            pfg.logger.error(f"Cannot assign start-idx or start-file without project-name.")
+            typer.echo(f"[ERROR] Cannot assign start-idx or start-file without project-name.")
             raise typer.Exit(code=1)        
 
     additional_package_dirs = additional_package_dirs.split(',') if additional_package_dirs else []
