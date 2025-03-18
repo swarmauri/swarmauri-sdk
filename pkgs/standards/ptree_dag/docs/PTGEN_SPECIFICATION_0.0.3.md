@@ -31,32 +31,31 @@ Extended Customization of advanced logic like post-processing scripts, plugin-ba
 
 ## Definitions, Acronyms, and Abbreviations
 
-PTGEN: An acronym for Project Template Generation, referring to the overall mechanism or system that automates project scaffolding based on YAML specifications and Jinja templates.
+* `PTGEN`: An acronym for Project Template Generation, referring to the overall mechanism or system that automates project scaffolding based on YAML specifications and Jinja templates.
 
-PTREE: Shorthand for Project Tree, used to describe a structured index of files and folders in a generated project. It also refers to the `ptree.yaml.j2` template that orchestrates file generation.
+* `PTREE`: Shorthand for Project Tree, used to describe a structured index of files and folders in a generated project. It also refers to the `ptree.yaml.j2` template that orchestrates file generation.
 
-YAML: Stands for YAML Ain’t Markup Language, a human-friendly data serialization format used for the projects_payload.yaml configuration file.
+* `YAML`: Stands for YAML Ain’t Markup Language, a human-friendly data serialization format used for the projects_payload.yaml configuration file.
 
-Jinja: A Python-based templating engine that processes template files (e.g., `agent_default.j2`) using context from YAML inputs to render final artifacts.
+* `Jinja`: A Python-based templating engine that processes template files (e.g., `agent_default.j2`) using context from YAML inputs to render final artifacts.
 
-Project Context: The highest-level context in PTGEN, derived from the top-level information in projects_payload.yaml (e.g., project_name, project_root, etc.).
+* `Project Context`: The highest-level context in PTGEN, derived from the top-level information in projects_payload.yaml (e.g., project_name, project_root, etc.).
 
-Package Context: A context object generated for each package within the project, containing package-specific metadata (name, authors, purpose, etc.).
+* `Package Context`: A context object generated for each package within the project, containing package-specific metadata (name, authors, purpose, etc.).
 
-Module Context: A context object generated for each module in a package, capturing module-specific metadata (name, description, dependencies, etc.).
+* `Module Context`: A context object generated for each module in a package, capturing module-specific metadata (name, description, dependencies, etc.).
 
-File Context: Context data that describes an individual file to be generated, including file-specific purpose, requirements, and dependencies. Produced by combining the higher-level contexts in the `ptree.yaml.j2` template.
+* `File Context`: Context data that describes an individual file to be generated, including file-specific purpose, requirements, and dependencies. Produced by combining the higher-level contexts in the `ptree.yaml.j2` template.
 
-PEP 8: The Python Enhancement Proposal that defines style conventions for Python code, including formatting, naming standards, and whitespace usage.
+* `PEP 8`: The Python Enhancement Proposal that defines style conventions for Python code, including formatting, naming standards, and whitespace usage.
 
-PEP 420: The Python Enhancement Proposal introducing implicit namespace packages. This allows a single import namespace to be split across multiple directories without requiring an `__init__.py`.
+* `PEP 420`: The Python Enhancement Proposal introducing implicit namespace packages. This allows a single import namespace to be split across multiple directories without requiring an `__init__.py`.
 
-PEP 484: The Python Enhancement Proposal introducing optional type hints and annotations to improve code clarity and tooling support.
+* `PEP 484`: The Python Enhancement Proposal introducing optional type hints and annotations to improve code clarity and tooling support.
 
-CI/CD: Continuous Integration/Continuous Deployment, a software development practice that automates building, testing, and deploying code.
+* `CI/CD`: Continuous Integration/Continuous Deployment, a software development practice that automates building, testing, and deploying code.
 
-Spec (or Specification): This PTGEN document, outlining structure, formatting, and behavioral rules for the PTGEN ecosystem.
-
+* `Spec (or Specification)`: This PTGEN document, outlining structure, formatting, and behavioral rules for the PTGEN ecosystem.
 
 ## Table of Contents
 
@@ -64,43 +63,21 @@ Spec (or Specification): This PTGEN document, outlining structure, formatting, a
 2. [Scope](#scope)  
 3. [Definitions, Acronyms, and Abbreviations](#definitions-acronyms-and-abbreviations)  
 4. [PTGEN Specification Overview](#ptgen-specification-overview)  
-   4.1 [projects_payload.yaml](#projects_payloadyaml)  
-   4.2 [ptree.yaml.j2](#ptreeyamlj2)  
-   4.3 [agent_default.j2](#agent_defaultj2)  
-   4.4 [Context Production and Consumption Summary](#context-production-and-consumption-summary)  
+   4.1 [projects_payload.yaml](#1-projects_payloadyaml)  
+   4.2 [ptree.yaml.j2](#2-ptreeyamlj2)  
+   4.3 [agent_default.j2](#3-agent_defaultj2)  
+   4.4 [Context Production and Consumption Summary](#4-context-production-and-consumption-summary)  
 5. [Revision History](#revision-history)  
-6. [References](#references)  
-7. [Roles and Responsiblities](#roles-and-responsibilites)  
-    7.1 [Specification Owner](#specification-Owner)
-    7.2 [Maintainers](#maintainers)
-    7.3 [Contributors](#contributors)
-    7.4 [Implementers / End Users](#implementers-end-users)
+6. [References](#references)
+7. [Roles and Responsiblities](#roles-and-responsibilities)  
+   7.1 [Specification Owner](#specification-owner)  
+   7.2 [Maintainers](#maintainers)  
+   7.3 [Contributors](#contributors)  
+   7.4 [Implementers](#implementers)   
+   7.5 [Reviewers](#reviewers) 
 8. [Compliance and Conformance](#compliance-and-conformance)
 
-
-### Specification Owner
-
-Oversees the overall direction, completeness, and accuracy of the PTGEN specification.
-Approves major changes and version increments.
-Ensures alignment of updates with overarching organizational or community goals.
-
-
-### Maintainers
-
-Manage the day-to-day upkeep of the specification, including minor fixes, clarifications, and editorial improvements.
-Incorporate feedback from contributors and end users.
-Handle version control, merge requests, and documentation of revisions (e.g., updating the Revision History).
-
-### Contributors
-
-Propose changes, improvements, or clarifications to the specification.
-Provide feedback on new features, schema revisions, or clarifications.
-Adhere to established guidelines for submitting pull requests, issues, or discussion threads.
-
-### Implementers / End Users
-
 ## PTGEN Specification Overview
-
 
 
 ### 1. **projects_payload.yaml**
@@ -317,7 +294,7 @@ Propose changes, improvements, or clarifications to the specification.
 Provide feedback on new features, schema revisions, or clarifications.
 Adhere to established guidelines for submitting pull requests, issues, or discussion threads.
 
-### Implementers / End Users
+### Implementers
 
 Use the PTGEN specification to create or generate projects, packages, and modules.
 Report issues or ambiguities in the specification.
