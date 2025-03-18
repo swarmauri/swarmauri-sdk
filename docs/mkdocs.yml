@@ -132,166 +132,201 @@ nav:
     - Module 2: api/third_class/module2.md
   - Standard:
     - Home: api/standard/index.md
-    - QAAgent: api/standard/swarmauri_standard/agents/QAAgent.md
-    - RagAgent: api/standard/swarmauri_standard/agents/RagAgent.md
-    - SimpleConversationAgent: api/standard/swarmauri_standard/agents/SimpleConversationAgent.md
-    - ToolAgent: api/standard/swarmauri_standard/agents/ToolAgent.md
-    - CallableChain: api/standard/swarmauri_standard/chains/CallableChain.md
-    - ChainStep: api/standard/swarmauri_standard/chains/ChainStep.md
-    - ContextChain: api/standard/swarmauri_standard/chains/ContextChain.md
-    - DelimiterBasedChunker: api/standard/swarmauri_standard/chunkers/DelimiterBasedChunker.md
-    - FixedLengthChunker: api/standard/swarmauri_standard/chunkers/FixedLengthChunker.md
-    - MdSnippetChunker: api/standard/swarmauri_standard/chunkers/MdSnippetChunker.md
-    - SentenceChunker: api/standard/swarmauri_standard/chunkers/SentenceChunker.md
-    - SlidingWindowChunker: api/standard/swarmauri_standard/chunkers/SlidingWindowChunker.md
-    - ControlPanel: api/standard/swarmauri_standard/control_panels/ControlPanel.md
-    - Conversation: api/standard/swarmauri_standard/conversations/Conversation.md
-    - MaxSizeConversation: api/standard/swarmauri_standard/conversations/MaxSizeConversation.md
-    - MaxSystemContextConversation: api/standard/swarmauri_standard/conversations/MaxSystemContextConversation.md
-    - SessionCacheConversation: api/standard/swarmauri_standard/conversations/SessionCacheConversation.md
-    - GoogleDriveDataConnector: api/standard/swarmauri_standard/dataconnectors/GoogleDriveDataConnector.md
-    - CanberraDistance: api/standard/swarmauri_standard/distances/CanberraDistance.md
-    - ChebyshevDistance: api/standard/swarmauri_standard/distances/ChebyshevDistance.md
-    - ChiSquaredDistance: api/standard/swarmauri_standard/distances/ChiSquaredDistance.md
-    - CosineDistance: api/standard/swarmauri_standard/distances/CosineDistance.md
-    - EuclideanDistance: api/standard/swarmauri_standard/distances/EuclideanDistance.md
-    - HaversineDistance: api/standard/swarmauri_standard/distances/HaversineDistance.md
-    - JaccardIndexDistance: api/standard/swarmauri_standard/distances/JaccardIndexDistance.md
-    - LevenshteinDistance: api/standard/swarmauri_standard/distances/LevenshteinDistance.md
-    - ManhattanDistance: api/standard/swarmauri_standard/distances/ManhattanDistance.md
-    - SorensenDiceDistance: api/standard/swarmauri_standard/distances/SorensenDiceDistance.md
-    - SquaredEuclideanDistance: api/standard/swarmauri_standard/distances/SquaredEuclideanDistance.md
-    - Document: api/standard/swarmauri_standard/documents/Document.md
-    - CohereEmbedding: api/standard/swarmauri_standard/embeddings/CohereEmbedding.md
-    - GeminiEmbedding: api/standard/swarmauri_standard/embeddings/GeminiEmbedding.md
-    - MistralEmbedding: api/standard/swarmauri_standard/embeddings/MistralEmbedding.md
-    - OpenAIEmbedding: api/standard/swarmauri_standard/embeddings/OpenAIEmbedding.md
-    - TfidfEmbedding: api/standard/swarmauri_standard/embeddings/TfidfEmbedding.md
-    - VoyageEmbedding: api/standard/swarmauri_standard/embeddings/VoyageEmbedding.md
-    - IndexErrorWithContext: api/standard/swarmauri_standard/exceptions/IndexErrorWithContext.md
-    - AgentFactory: api/standard/swarmauri_standard/factories/AgentFactory.md
-    - Factory: api/standard/swarmauri_standard/factories/Factory.md
-    - BlackForestImgGenModel: api/standard/swarmauri_standard/image_gens/BlackForestImgGenModel.md
-    - DeepInfraImgGenModel: api/standard/swarmauri_standard/image_gens/DeepInfraImgGenModel.md
-    - FalAIImgGenModel: api/standard/swarmauri_standard/image_gens/FalAIImgGenModel.md
-    - HyperbolicImgGenModel: api/standard/swarmauri_standard/image_gens/HyperbolicImgGenModel.md
-    - OpenAIImgGenModel: api/standard/swarmauri_standard/image_gens/OpenAIImgGenModel.md
-    - AI21StudioModel: api/standard/swarmauri_standard/llms/AI21StudioModel.md
-    - AnthropicModel: api/standard/swarmauri_standard/llms/AnthropicModel.md
-    - AnthropicToolModel: api/standard/swarmauri_standard/llms/AnthropicToolModel.md
-    - CohereModel: api/standard/swarmauri_standard/llms/CohereModel.md
-    - CohereToolModel: api/standard/swarmauri_standard/llms/CohereToolModel.md
-    - DeepInfraModel: api/standard/swarmauri_standard/llms/DeepInfraModel.md
-    - DeepSeekModel: api/standard/swarmauri_standard/llms/DeepSeekModel.md
-    - FalAIVisionModel: api/standard/swarmauri_standard/llms/FalAIVisionModel.md
-    - GeminiProModel: api/standard/swarmauri_standard/llms/GeminiProModel.md
-    - GeminiToolModel: api/standard/swarmauri_standard/llms/GeminiToolModel.md
-    - GroqAIAudio: api/standard/swarmauri_standard/llms/GroqAIAudio.md
-    - GroqModel: api/standard/swarmauri_standard/llms/GroqModel.md
-    - GroqToolModel: api/standard/swarmauri_standard/llms/GroqToolModel.md
-    - GroqVisionModel: api/standard/swarmauri_standard/llms/GroqVisionModel.md
-    - HyperbolicAudioTTS: api/standard/swarmauri_standard/llms/HyperbolicAudioTTS.md
-    - HyperbolicModel: api/standard/swarmauri_standard/llms/HyperbolicModel.md
-    - HyperbolicVisionModel: api/standard/swarmauri_standard/llms/HyperbolicVisionModel.md
-    - LlamaCppModel: api/standard/swarmauri_standard/llms/LlamaCppModel.md
-    - MistralModel: api/standard/swarmauri_standard/llms/MistralModel.md
-    - MistralToolModel: api/standard/swarmauri_standard/llms/MistralToolModel.md
-    - OpenAIAudio: api/standard/swarmauri_standard/llms/OpenAIAudio.md
-    - OpenAIAudioTTS: api/standard/swarmauri_standard/llms/OpenAIAudioTTS.md
-    - OpenAIModel: api/standard/swarmauri_standard/llms/OpenAIModel.md
-    - OpenAIReasonModel: api/standard/swarmauri_standard/llms/OpenAIReasonModel.md
-    - OpenAIToolModel: api/standard/swarmauri_standard/llms/OpenAIToolModel.md
-    - PerplexityModel: api/standard/swarmauri_standard/llms/PerplexityModel.md
-    - PlayHTModel: api/standard/swarmauri_standard/llms/PlayHTModel.md
-    - WhisperLargeModel: api/standard/swarmauri_standard/llms/WhisperLargeModel.md
-    - Logger: api/standard/swarmauri_standard/logging/Logger.md
-    - CompletenessMeasurement: api/standard/swarmauri_standard/measurements/CompletenessMeasurement.md
-    - DistinctivenessMeasurement: api/standard/swarmauri_standard/measurements/DistinctivenessMeasurement.md
-    - FirstImpressionMeasurement: api/standard/swarmauri_standard/measurements/FirstImpressionMeasurement.md
-    - MeanMeasurement: api/standard/swarmauri_standard/measurements/MeanMeasurement.md
-    - MiscMeasurement: api/standard/swarmauri_standard/measurements/MiscMeasurement.md
-    - MissingnessMeasurement: api/standard/swarmauri_standard/measurements/MissingnessMeasurement.md
-    - PatternMatchingMeasurement: api/standard/swarmauri_standard/measurements/PatternMatchingMeasurement.md
-    - RatioOfSumsMeasurement: api/standard/swarmauri_standard/measurements/RatioOfSumsMeasurement.md
-    - StaticMeasurement: api/standard/swarmauri_standard/measurements/StaticMeasurement.md
-    - UniquenessMeasurement: api/standard/swarmauri_standard/measurements/UniquenessMeasurement.md
-    - ZeroMeasurement: api/standard/swarmauri_standard/measurements/ZeroMeasurement.md
-    - AgentMessage: api/standard/swarmauri_standard/messages/AgentMessage.md
-    - UsageData: api/standard/swarmauri_standard/messages/UsageData.md
-    - FunctionMessage: api/standard/swarmauri_standard/messages/FunctionMessage.md
-    - HumanMessage: api/standard/swarmauri_standard/messages/HumanMessage.md
-    - ImageUrlContent: api/standard/swarmauri_standard/messages/ImageUrlContent.md
-    - TextContent: api/standard/swarmauri_standard/messages/TextContent.md
-    - SystemMessage: api/standard/swarmauri_standard/messages/SystemMessage.md
-    - CSVParser: api/standard/swarmauri_standard/parsers/CSVParser.md
-    - HTMLTagStripParser: api/standard/swarmauri_standard/parsers/HTMLTagStripParser.md
-    - Md2HtmlParser: api/standard/swarmauri_standard/parsers/Md2HtmlParser.md
-    - OpenAPISpecParser: api/standard/swarmauri_standard/parsers/OpenAPISpecParser.md
-    - PhoneNumberExtractorParser: api/standard/swarmauri_standard/parsers/PhoneNumberExtractorParser.md
-    - PythonParser: api/standard/swarmauri_standard/parsers/PythonParser.md
-    - RegExParser: api/standard/swarmauri_standard/parsers/RegExParser.md
-    - URLExtractorParser: api/standard/swarmauri_standard/parsers/URLExtractorParser.md
-    - XMLParser: api/standard/swarmauri_standard/parsers/XMLParser.md
-    - Pipeline: api/standard/swarmauri_standard/pipelines/Pipeline.md
-    - PromptTemplate: api/standard/swarmauri_standard/prompt_templates/PromptTemplate.md
-    - Prompt: api/standard/swarmauri_standard/prompts/Prompt.md
-    - PromptGenerator: api/standard/swarmauri_standard/prompts/PromptGenerator.md
-    - PromptMatrix: api/standard/swarmauri_standard/prompts/PromptMatrix.md
-    - AnthropicSchemaConverter: api/standard/swarmauri_standard/schema_converters/AnthropicSchemaConverter.md
-    - CohereSchemaConverter: api/standard/swarmauri_standard/schema_converters/CohereSchemaConverter.md
-    - GeminiSchemaConverter: api/standard/swarmauri_standard/schema_converters/GeminiSchemaConverter.md
-    - GroqSchemaConverter: api/standard/swarmauri_standard/schema_converters/GroqSchemaConverter.md
-    - MistralSchemaConverter: api/standard/swarmauri_standard/schema_converters/MistralSchemaConverter.md
-    - OpenAISchemaConverter: api/standard/swarmauri_standard/schema_converters/OpenAISchemaConverter.md
-    - ShuttleAISchemaConverter: api/standard/swarmauri_standard/schema_converters/ShuttleAISchemaConverter.md
-    - ServiceRegistry: api/standard/swarmauri_standard/service_registries/ServiceRegistry.md
-    - DictState: api/standard/swarmauri_standard/state/DictState.md
-    - GroqSTT: api/standard/swarmauri_standard/stt/GroqSTT.md
-    - OpenaiSTT: api/standard/swarmauri_standard/stt/OpenaiSTT.md
-    - WhisperLargeSTT: api/standard/swarmauri_standard/stt/WhisperLargeSTT.md
-    - Swarm: api/standard/swarmauri_standard/swarms/Swarm.md
-    - RoundRobinStrategy: api/standard/swarmauri_standard/task_mgmt_strategies/RoundRobinStrategy.md
-    - AnthropicToolModel: api/standard/swarmauri_standard/tool_llms/AnthropicToolModel.md
-    - CohereToolModel: api/standard/swarmauri_standard/tool_llms/CohereToolModel.md
-    - GeminiToolModel: api/standard/swarmauri_standard/tool_llms/GeminiToolModel.md
-    - GroqToolModel: api/standard/swarmauri_standard/tool_llms/GroqToolModel.md
-    - MistralToolModel: api/standard/swarmauri_standard/tool_llms/MistralToolModel.md
-    - OpenAIToolModel: api/standard/swarmauri_standard/tool_llms/OpenAIToolModel.md
-    - AccessibilityToolkit: api/standard/swarmauri_standard/toolkits/AccessibilityToolkit.md
-    - Toolkit: api/standard/swarmauri_standard/toolkits/Toolkit.md
-    - AdditionTool: api/standard/swarmauri_standard/tools/AdditionTool.md
-    - AutomatedReadabilityIndexTool: api/standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.md
-    - CalculatorTool: api/standard/swarmauri_standard/tools/CalculatorTool.md
-    - CodeExtractorTool: api/standard/swarmauri_standard/tools/CodeExtractorTool.md
-    - CodeInterpreterTool: api/standard/swarmauri_standard/tools/CodeInterpreterTool.md
-    - ColemanLiauIndexTool: api/standard/swarmauri_standard/tools/ColemanLiauIndexTool.md
-    - FleschKincaidTool: api/standard/swarmauri_standard/tools/FleschKincaidTool.md
-    - FleschReadingEaseTool: api/standard/swarmauri_standard/tools/FleschReadingEaseTool.md
-    - GunningFogTool: api/standard/swarmauri_standard/tools/GunningFogTool.md
-    - ImportMemoryModuleTool: api/standard/swarmauri_standard/tools/ImportMemoryModuleTool.md
-    - JSONRequestsTool: api/standard/swarmauri_standard/tools/JSONRequestsTool.md
-    - Parameter: api/standard/swarmauri_standard/tools/Parameter.md
-    - JSONRequestsTool: api/standard/swarmauri_standard/tools/JSONRequestsTool.md
-    - TemperatureConverterTool: api/standard/swarmauri_standard/tools/TemperatureConverterTool.md
-    - TestTool: api/standard/swarmauri_standard/tools/TestTool.md
-    - WeatherTool: api/standard/swarmauri_standard/tools/WeatherTool.md
-    - ChainTracer: api/standard/swarmauri_standard/tracing/ChainTracer.md
-    - SimpleTraceContext: api/standard/swarmauri_standard/tracing/SimpleTraceContext.md
-    - SimpleTracer: api/standard/swarmauri_standard/tracing/SimpleTracer.md
-    - TracedVariable: api/standard/swarmauri_standard/tracing/TracedVariable.md
-    - PubSubTransport: api/standard/swarmauri_standard/transports/PubSubTransport.md
-    - HyperbolicTTS: api/standard/swarmauri_standard/tts/HyperbolicTTS.md
-    - OpenaiTTS: api/standard/swarmauri_standard/tts/OpenaiTTS.md
-    - PlayhtTTS: api/standard/swarmauri_standard/tts/PlayhtTTS.md
-    - DurationManager: api/standard/swarmauri_standard/utils/DurationManager.md
-    - MemoizingMeta: api/standard/swarmauri_standard/utils/MemoizingMeta.md
-    - MethodSignatureExtractor: api/standard/swarmauri_standard/utils/MethodSignatureExtractor.md
-    - SqlLogMeta: api/standard/swarmauri_standard/utils/SqlLogMeta.md
-    - TfidfVectorStore: api/standard/swarmauri_standard/vector_stores/TfidfVectorStore.md
-    - Vector: api/standard/swarmauri_standard/vectors/Vector.md
-    - FalVLM: api/standard/swarmauri_standard/vlms/FalVLM.md
-    - GroqVLM: api/standard/swarmauri_standard/vlms/GroqVLM.md
-    - HyperbolicVLM: api/standard/swarmauri_standard/vlms/HyperbolicVLM.md
+    - Agents:
+      - QAAgent: api/standard/swarmauri_standard/agents/QAAgent.md
+      - RagAgent: api/standard/swarmauri_standard/agents/RagAgent.md
+      - SimpleConversationAgent: api/standard/swarmauri_standard/agents/SimpleConversationAgent.md
+      - ToolAgent: api/standard/swarmauri_standard/agents/ToolAgent.md
+    - Chains:
+      - CallableChain: api/standard/swarmauri_standard/chains/CallableChain.md
+      - ChainStep: api/standard/swarmauri_standard/chains/ChainStep.md
+      - ContextChain: api/standard/swarmauri_standard/chains/ContextChain.md
+    - Chunkers:
+      - DelimiterBasedChunker: api/standard/swarmauri_standard/chunkers/DelimiterBasedChunker.md
+      - FixedLengthChunker: api/standard/swarmauri_standard/chunkers/FixedLengthChunker.md
+      - MdSnippetChunker: api/standard/swarmauri_standard/chunkers/MdSnippetChunker.md
+      - SentenceChunker: api/standard/swarmauri_standard/chunkers/SentenceChunker.md
+      - SlidingWindowChunker: api/standard/swarmauri_standard/chunkers/SlidingWindowChunker.md
+    - Control Panels:
+      - ControlPanel: api/standard/swarmauri_standard/control_panels/ControlPanel.md
+    - Conversations:
+      - Conversation: api/standard/swarmauri_standard/conversations/Conversation.md
+      - MaxSizeConversation: api/standard/swarmauri_standard/conversations/MaxSizeConversation.md
+      - MaxSystemContextConversation: api/standard/swarmauri_standard/conversations/MaxSystemContextConversation.md
+      - SessionCacheConversation: api/standard/swarmauri_standard/conversations/SessionCacheConversation.md
+    - Dataconnectors:
+      - GoogleDriveDataConnector: api/standard/swarmauri_standard/dataconnectors/GoogleDriveDataConnector.md
+    - Distances:
+      - CanberraDistance: api/standard/swarmauri_standard/distances/CanberraDistance.md
+      - ChebyshevDistance: api/standard/swarmauri_standard/distances/ChebyshevDistance.md
+      - ChiSquaredDistance: api/standard/swarmauri_standard/distances/ChiSquaredDistance.md
+      - CosineDistance: api/standard/swarmauri_standard/distances/CosineDistance.md
+      - EuclideanDistance: api/standard/swarmauri_standard/distances/EuclideanDistance.md
+      - HaversineDistance: api/standard/swarmauri_standard/distances/HaversineDistance.md
+      - JaccardIndexDistance: api/standard/swarmauri_standard/distances/JaccardIndexDistance.md
+      - LevenshteinDistance: api/standard/swarmauri_standard/distances/LevenshteinDistance.md
+      - ManhattanDistance: api/standard/swarmauri_standard/distances/ManhattanDistance.md
+      - SorensenDiceDistance: api/standard/swarmauri_standard/distances/SorensenDiceDistance.md
+      - SquaredEuclideanDistance: api/standard/swarmauri_standard/distances/SquaredEuclideanDistance.md
+    - Documents:
+      - Document: api/standard/swarmauri_standard/documents/Document.md
+    - Embeddings:
+      - CohereEmbedding: api/standard/swarmauri_standard/embeddings/CohereEmbedding.md
+      - GeminiEmbedding: api/standard/swarmauri_standard/embeddings/GeminiEmbedding.md
+      - MistralEmbedding: api/standard/swarmauri_standard/embeddings/MistralEmbedding.md
+      - OpenAIEmbedding: api/standard/swarmauri_standard/embeddings/OpenAIEmbedding.md
+      - TfidfEmbedding: api/standard/swarmauri_standard/embeddings/TfidfEmbedding.md
+      - VoyageEmbedding: api/standard/swarmauri_standard/embeddings/VoyageEmbedding.md
+    - Exceptions:
+      - IndexErrorWithContext: api/standard/swarmauri_standard/exceptions/IndexErrorWithContext.md
+    - Factories:
+      - AgentFactory: api/standard/swarmauri_standard/factories/AgentFactory.md
+      - Factory: api/standard/swarmauri_standard/factories/Factory.md
+    - Image Gens:
+      - BlackForestImgGenModel: api/standard/swarmauri_standard/image_gens/BlackForestImgGenModel.md
+      - DeepInfraImgGenModel: api/standard/swarmauri_standard/image_gens/DeepInfraImgGenModel.md
+      - FalAIImgGenModel: api/standard/swarmauri_standard/image_gens/FalAIImgGenModel.md
+      - HyperbolicImgGenModel: api/standard/swarmauri_standard/image_gens/HyperbolicImgGenModel.md
+      - OpenAIImgGenModel: api/standard/swarmauri_standard/image_gens/OpenAIImgGenModel.md
+    - Llms:
+      - AI21StudioModel: api/standard/swarmauri_standard/llms/AI21StudioModel.md
+      - AnthropicModel: api/standard/swarmauri_standard/llms/AnthropicModel.md
+      - AnthropicToolModel: api/standard/swarmauri_standard/llms/AnthropicToolModel.md
+      - CohereModel: api/standard/swarmauri_standard/llms/CohereModel.md
+      - CohereToolModel: api/standard/swarmauri_standard/llms/CohereToolModel.md
+      - DeepInfraModel: api/standard/swarmauri_standard/llms/DeepInfraModel.md
+      - DeepSeekModel: api/standard/swarmauri_standard/llms/DeepSeekModel.md
+      - FalAIVisionModel: api/standard/swarmauri_standard/llms/FalAIVisionModel.md
+      - GeminiProModel: api/standard/swarmauri_standard/llms/GeminiProModel.md
+      - GeminiToolModel: api/standard/swarmauri_standard/llms/GeminiToolModel.md
+      - GroqAIAudio: api/standard/swarmauri_standard/llms/GroqAIAudio.md
+      - GroqModel: api/standard/swarmauri_standard/llms/GroqModel.md
+      - GroqToolModel: api/standard/swarmauri_standard/llms/GroqToolModel.md
+      - GroqVisionModel: api/standard/swarmauri_standard/llms/GroqVisionModel.md
+      - HyperbolicAudioTTS: api/standard/swarmauri_standard/llms/HyperbolicAudioTTS.md
+      - HyperbolicModel: api/standard/swarmauri_standard/llms/HyperbolicModel.md
+      - HyperbolicVisionModel: api/standard/swarmauri_standard/llms/HyperbolicVisionModel.md
+      - LlamaCppModel: api/standard/swarmauri_standard/llms/LlamaCppModel.md
+      - MistralModel: api/standard/swarmauri_standard/llms/MistralModel.md
+      - MistralToolModel: api/standard/swarmauri_standard/llms/MistralToolModel.md
+      - OpenAIAudio: api/standard/swarmauri_standard/llms/OpenAIAudio.md
+      - OpenAIAudioTTS: api/standard/swarmauri_standard/llms/OpenAIAudioTTS.md
+      - OpenAIModel: api/standard/swarmauri_standard/llms/OpenAIModel.md
+      - OpenAIReasonModel: api/standard/swarmauri_standard/llms/OpenAIReasonModel.md
+      - OpenAIToolModel: api/standard/swarmauri_standard/llms/OpenAIToolModel.md
+      - PerplexityModel: api/standard/swarmauri_standard/llms/PerplexityModel.md
+      - PlayHTModel: api/standard/swarmauri_standard/llms/PlayHTModel.md
+      - WhisperLargeModel: api/standard/swarmauri_standard/llms/WhisperLargeModel.md
+    - Logging:
+      - Logger: api/standard/swarmauri_standard/logging/Logger.md
+    - Measurements:
+      - CompletenessMeasurement: api/standard/swarmauri_standard/measurements/CompletenessMeasurement.md
+      - DistinctivenessMeasurement: api/standard/swarmauri_standard/measurements/DistinctivenessMeasurement.md
+      - FirstImpressionMeasurement: api/standard/swarmauri_standard/measurements/FirstImpressionMeasurement.md
+      - MeanMeasurement: api/standard/swarmauri_standard/measurements/MeanMeasurement.md
+      - MiscMeasurement: api/standard/swarmauri_standard/measurements/MiscMeasurement.md
+      - MissingnessMeasurement: api/standard/swarmauri_standard/measurements/MissingnessMeasurement.md
+      - PatternMatchingMeasurement: api/standard/swarmauri_standard/measurements/PatternMatchingMeasurement.md
+      - RatioOfSumsMeasurement: api/standard/swarmauri_standard/measurements/RatioOfSumsMeasurement.md
+      - StaticMeasurement: api/standard/swarmauri_standard/measurements/StaticMeasurement.md
+      - UniquenessMeasurement: api/standard/swarmauri_standard/measurements/UniquenessMeasurement.md
+      - ZeroMeasurement: api/standard/swarmauri_standard/measurements/ZeroMeasurement.md
+    - Messages:
+      - AgentMessage: api/standard/swarmauri_standard/messages/AgentMessage.md
+      - FunctionMessage: api/standard/swarmauri_standard/messages/FunctionMessage.md
+      - HumanMessage: api/standard/swarmauri_standard/messages/HumanMessage.md
+      - ImageUrlContent: api/standard/swarmauri_standard/messages/ImageUrlContent.md
+      - SystemMessage: api/standard/swarmauri_standard/messages/SystemMessage.md
+      - TextContent: api/standard/swarmauri_standard/messages/TextContent.md
+      - UsageData: api/standard/swarmauri_standard/messages/UsageData.md
+    - Parsers:
+      - CSVParser: api/standard/swarmauri_standard/parsers/CSVParser.md
+      - HTMLTagStripParser: api/standard/swarmauri_standard/parsers/HTMLTagStripParser.md
+      - Md2HtmlParser: api/standard/swarmauri_standard/parsers/Md2HtmlParser.md
+      - OpenAPISpecParser: api/standard/swarmauri_standard/parsers/OpenAPISpecParser.md
+      - PhoneNumberExtractorParser: api/standard/swarmauri_standard/parsers/PhoneNumberExtractorParser.md
+      - PythonParser: api/standard/swarmauri_standard/parsers/PythonParser.md
+      - RegExParser: api/standard/swarmauri_standard/parsers/RegExParser.md
+      - URLExtractorParser: api/standard/swarmauri_standard/parsers/URLExtractorParser.md
+      - XMLParser: api/standard/swarmauri_standard/parsers/XMLParser.md
+    - Pipelines:
+      - Pipeline: api/standard/swarmauri_standard/pipelines/Pipeline.md
+    - Prompt Templates:
+      - PromptTemplate: api/standard/swarmauri_standard/prompt_templates/PromptTemplate.md
+    - Prompts:
+      - Prompt: api/standard/swarmauri_standard/prompts/Prompt.md
+      - PromptGenerator: api/standard/swarmauri_standard/prompts/PromptGenerator.md
+      - PromptMatrix: api/standard/swarmauri_standard/prompts/PromptMatrix.md
+    - Schema Converters:
+      - AnthropicSchemaConverter: api/standard/swarmauri_standard/schema_converters/AnthropicSchemaConverter.md
+      - CohereSchemaConverter: api/standard/swarmauri_standard/schema_converters/CohereSchemaConverter.md
+      - GeminiSchemaConverter: api/standard/swarmauri_standard/schema_converters/GeminiSchemaConverter.md
+      - GroqSchemaConverter: api/standard/swarmauri_standard/schema_converters/GroqSchemaConverter.md
+      - MistralSchemaConverter: api/standard/swarmauri_standard/schema_converters/MistralSchemaConverter.md
+      - OpenAISchemaConverter: api/standard/swarmauri_standard/schema_converters/OpenAISchemaConverter.md
+      - ShuttleAISchemaConverter: api/standard/swarmauri_standard/schema_converters/ShuttleAISchemaConverter.md
+    - Service Registries:
+      - ServiceRegistry: api/standard/swarmauri_standard/service_registries/ServiceRegistry.md
+    - State:
+      - DictState: api/standard/swarmauri_standard/state/DictState.md
+    - Stt:
+      - GroqSTT: api/standard/swarmauri_standard/stt/GroqSTT.md
+      - OpenaiSTT: api/standard/swarmauri_standard/stt/OpenaiSTT.md
+      - WhisperLargeSTT: api/standard/swarmauri_standard/stt/WhisperLargeSTT.md
+    - Swarms:
+      - Swarm: api/standard/swarmauri_standard/swarms/Swarm.md
+    - Task Mgmt Strategies:
+      - RoundRobinStrategy: api/standard/swarmauri_standard/task_mgmt_strategies/RoundRobinStrategy.md
+    - Tool Llms:
+      - AnthropicToolModel: api/standard/swarmauri_standard/tool_llms/AnthropicToolModel.md
+      - CohereToolModel: api/standard/swarmauri_standard/tool_llms/CohereToolModel.md
+      - GeminiToolModel: api/standard/swarmauri_standard/tool_llms/GeminiToolModel.md
+      - GroqToolModel: api/standard/swarmauri_standard/tool_llms/GroqToolModel.md
+      - MistralToolModel: api/standard/swarmauri_standard/tool_llms/MistralToolModel.md
+      - OpenAIToolModel: api/standard/swarmauri_standard/tool_llms/OpenAIToolModel.md
+    - Toolkits:
+      - AccessibilityToolkit: api/standard/swarmauri_standard/toolkits/AccessibilityToolkit.md
+      - Toolkit: api/standard/swarmauri_standard/toolkits/Toolkit.md
+    - Tools:
+      - AdditionTool: api/standard/swarmauri_standard/tools/AdditionTool.md
+      - AutomatedReadabilityIndexTool: api/standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.md
+      - CalculatorTool: api/standard/swarmauri_standard/tools/CalculatorTool.md
+      - CodeExtractorTool: api/standard/swarmauri_standard/tools/CodeExtractorTool.md
+      - CodeInterpreterTool: api/standard/swarmauri_standard/tools/CodeInterpreterTool.md
+      - ColemanLiauIndexTool: api/standard/swarmauri_standard/tools/ColemanLiauIndexTool.md
+      - FleschKincaidTool: api/standard/swarmauri_standard/tools/FleschKincaidTool.md
+      - FleschReadingEaseTool: api/standard/swarmauri_standard/tools/FleschReadingEaseTool.md
+      - GunningFogTool: api/standard/swarmauri_standard/tools/GunningFogTool.md
+      - ImportMemoryModuleTool: api/standard/swarmauri_standard/tools/ImportMemoryModuleTool.md
+      - JSONRequestsTool: api/standard/swarmauri_standard/tools/JSONRequestsTool.md
+      - Parameter: api/standard/swarmauri_standard/tools/Parameter.md
+      - TemperatureConverterTool: api/standard/swarmauri_standard/tools/TemperatureConverterTool.md
+      - TestTool: api/standard/swarmauri_standard/tools/TestTool.md
+      - WeatherTool: api/standard/swarmauri_standard/tools/WeatherTool.md
+    - Tracing:
+      - ChainTracer: api/standard/swarmauri_standard/tracing/ChainTracer.md
+      - SimpleTraceContext: api/standard/swarmauri_standard/tracing/SimpleTraceContext.md
+      - SimpleTracer: api/standard/swarmauri_standard/tracing/SimpleTracer.md
+      - TracedVariable: api/standard/swarmauri_standard/tracing/TracedVariable.md
+    - Transports:
+      - PubSubTransport: api/standard/swarmauri_standard/transports/PubSubTransport.md
+    - Tts:
+      - HyperbolicTTS: api/standard/swarmauri_standard/tts/HyperbolicTTS.md
+      - OpenaiTTS: api/standard/swarmauri_standard/tts/OpenaiTTS.md
+      - PlayhtTTS: api/standard/swarmauri_standard/tts/PlayhtTTS.md
+    - Utils:
+      - DurationManager: api/standard/swarmauri_standard/utils/DurationManager.md
+      - MemoizingMeta: api/standard/swarmauri_standard/utils/MemoizingMeta.md
+      - MethodSignatureExtractor: api/standard/swarmauri_standard/utils/MethodSignatureExtractor.md
+      - SqlLogMeta: api/standard/swarmauri_standard/utils/SqlLogMeta.md
+    - Vector Stores:
+      - TfidfVectorStore: api/standard/swarmauri_standard/vector_stores/TfidfVectorStore.md
+    - Vectors:
+      - Vector: api/standard/swarmauri_standard/vectors/Vector.md
+    - Vlms:
+      - FalVLM: api/standard/swarmauri_standard/vlms/FalVLM.md
+      - GroqVLM: api/standard/swarmauri_standard/vlms/GroqVLM.md
+      - HyperbolicVLM: api/standard/swarmauri_standard/vlms/HyperbolicVLM.md
   - Base:
     - Home: api/base/index.md
     - ComponentBase: api/base/swarmauri_base/ComponentBase.md
@@ -450,7 +485,8 @@ nav:
     - MinkowskiDistance: api/first_class/swarmauri_distance_minkowski/MinkowskiDistance.md
   - Second_Class:
     - Home: api/second_class/index.md
-    - MlmEmbedding: api/second_class/swarmauri_embedding_mlm/MlmEmbedding.md
+    - Mlmembedding:
+      - MlmEmbedding: api/second_class/swarmauri_embedding_mlm/MlmEmbedding.md
 - Blog:
   - blog/index.md
   - News: blog/news.md

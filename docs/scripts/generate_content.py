@@ -100,35 +100,83 @@ def build_nav_for_api_docs(
       - api/index.md
       - Top Label:
         - Home: api/top_label/index.md
-        - ClassName: api/top_label/package_name/module_name/ClassName.md
-        ...
+        - Agents:
+          - QAAgent: api/top_label/package_name/agents/QAAgent.md
+          - RagAgent: api/top_label/package_name/agents/RagAgent.md
+        - Chains:
+          - CallableChain: api/top_label/package_name/chains/CallableChain.md
+          ...
 
-    This function only includes class entries in the navigation, not module entries.
+    This function organizes classes by module category (agents, chains, etc.)
     """
-    # Sort the modules for stable output
-    sorted_modules = sorted(module_classes_map.keys())
-
     # Start with the index page
     top_label_items = [
         {"Home": os.path.join(local_output_dir, top_label.lower(), home_page)}
     ]
 
-    # Process all modules and add only their classes to the navigation
-    for module_name in sorted_modules:
-        # Create the module path that includes the full package structure
-        module_path = os.path.join(
-            local_output_dir, top_label.lower(), module_name.replace(".", "/") + ".md"
-        )
+    # Group modules by their category
+    category_map = {}
 
-        # Add classes for this module
-        class_names = sorted(module_classes_map[module_name])
-        for cls_name in class_names:
-            # Create the class path in the same directory as its module
-            module_dir = os.path.dirname(module_path)
-            class_path = os.path.join(module_dir, f"{cls_name}.md")
+    # First pass: extract all module categories
+    for full_module_name in module_classes_map.keys():
+        # Skip modules with no classes
+        if not module_classes_map[full_module_name]:
+            continue
 
-            # Add the class to the navigation
-            top_label_items.append({cls_name: class_path})
+        # Parse the module path to extract the category
+        parts = full_module_name.split(".")
+
+        # We need at least package.category format
+        if len(parts) < 2:
+            continue
+
+        # For modules like "swarmauri_standard.agents.QAAgent", category is "agents"
+        # For modules like "swarmauri_standard.agents", category is also "agents"
+        if len(parts) == 2:
+            category = parts[1]  # package.category
+        else:
+            # For deeper modules, we want to use the folder name as the category
+            # e.g., "swarmauri_standard.agents.submodule" -> "agents"
+            category = parts[1]
+
+        # Format the category name nicely
+        # Convert snake_case to Title Case (e.g., "tool_llms" -> "Tool Llms")
+        display_category = category.replace("_", " ").title()
+
+        # Initialize category if not exists
+        if display_category not in category_map:
+            category_map[display_category] = []
+
+        # Get the class names for this module
+        for class_name in module_classes_map[full_module_name]:
+            # In generate_docs, class files are created as:
+            # module_dir = os.path.join(output_dir, os.path.dirname(relative_path))
+            # class_file_path = os.path.join(module_dir, f"{cls_name}.md")
+
+            # So we need to recreate that path structure
+            module_dirname = os.path.dirname(full_module_name.replace(".", "/"))
+
+            # Build the correct path to the class documentation file
+            class_path = os.path.join(
+                local_output_dir, top_label.lower(), module_dirname, f"{class_name}.md"
+            )
+
+            # Add the class and path to the category
+            category_map[display_category].append({class_name: class_path})
+
+    # Add each category to the navigation
+    for category, items in sorted(category_map.items()):
+        # Sort items by class name and deduplicate
+        seen_classes = set()
+        unique_sorted_items = []
+
+        for item in sorted(items, key=lambda x: list(x.keys())[0]):
+            class_name = list(item.keys())[0]
+            if class_name not in seen_classes:
+                seen_classes.add(class_name)
+                unique_sorted_items.append(item)
+
+        top_label_items.append({category: unique_sorted_items})
 
     # Return the structure for this top_label
     return [{top_label: top_label_items}]
@@ -267,9 +315,9 @@ def generate(
 if __name__ == "__main__":
     # Example usage
     generate(
-        package_name="swarmauri_embedding_mlm",
+        package_name="swarmauri_standard",
         docs_dir="docs/docs",
         api_output_dir="api",
         mkdocs_yml_path="docs/mkdocs.yml",
-        top_label="Second_Class",
+        top_label="Standard",
     )
