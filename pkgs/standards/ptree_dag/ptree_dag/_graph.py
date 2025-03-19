@@ -42,19 +42,19 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
     graph = defaultdict(list)
     in_degree = {}
     all_nodes = set(entry["RENDERED_FILE_NAME"] for entry in payload)
-
     # Initialize in_degree for every node.
     for node in all_nodes:
         in_degree[node] = 0
 
-    # Build edges based on DEPENDENCIES.
     for entry in payload:
         file_node = entry["RENDERED_FILE_NAME"]
-        for dep in entry.get("DEPENDENCIES", []):
-            # Only add the edge if the dependency also exists in our payload.
-            if dep in all_nodes:
-                graph[dep].append(file_node)
-                in_degree[file_node] += 1
+        deps = entry.get("DEPENDENCIES", [])
+        if deps:
+            for dep in deps:
+                # Only add the edge if the dependency also exists in our payload.
+                if dep in all_nodes:
+                    graph[dep].append(file_node)
+                    in_degree[file_node] += 1
 
     # Ensure every node shows up in the adjacency list, even if it has no outgoing edges.
     for node in all_nodes:

@@ -184,7 +184,7 @@ def sort(
     if project_name:
         projects = pfg.load_projects()
         # Look for a project with the matching "PROJECT_NAME" key
-        project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
+        project = next((proj for proj in projects if proj.get("PROJ.PROJECT_NAME") == project_name), None)
         if project is None:
             pfg.logger.error(f"Project '{project_name}' not found.")
             raise typer.Exit(code=1)
@@ -202,7 +202,7 @@ def sort(
     else:
         projects_sorted_records = pfg.process_all_projects()
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJECT_NAME")
+            current_project_name = sorted_records[0].get("PROJ.PROJECT_NAME")
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):

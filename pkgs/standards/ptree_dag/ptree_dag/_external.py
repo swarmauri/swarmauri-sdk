@@ -53,12 +53,12 @@ def call_external_agent(prompt: str, agent_env: Dict[str, str], logger: Optional
     system_context = "You are a software developer."
     agent = RagAgent(llm=llm, vector_store=TfidfVectorStore(), system_context=system_context)
 
-    if os.getenv("PROVIDER", agent_env.get("provider", None)) == "Openai":
+    if os.getenv("PROVIDER", agent_env.get("provider", None).upper()) == "OPENAI":
         llm = O1Model(api_key=api_key, name=agent_env.get("model_name", "o3-mini"))
         agent.llm = llm
         result = agent.exec(prompt, top_k=0)
 
-    elif os.getenv("PROVIDER", agent_env.get("provider", None)) == "LlamaCpp":
+    elif os.getenv("PROVIDER", agent_env.get("provider", None).upper()) == "LLAMACPP":
         llm = LlamaCppModel(allowed_models=['localhost'], name="localhost")
         agent.llm = llm
         result = agent.exec(prompt, top_k=0, llm_kwargs={"max_tokens": 3000}) 
