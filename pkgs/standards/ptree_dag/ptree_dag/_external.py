@@ -63,7 +63,6 @@ def call_external_agent(
     api_key = os.getenv(f"{provider.upper()}_API_KEY") or agent_env.get("api_key")
     model_name = agent_env.get("model_name")
     max_tokens = int(agent_env.get("max_tokens", 3000))
-    temperature = float(agent_env.get("temperature", 0.7))
 
     # Initialize the generic LLM manager
     llm_manager = GenericLLM()
@@ -81,6 +80,7 @@ def call_external_agent(
             provider=provider,
             api_key=api_key,
             model_name=model_name,
+            allowed_models=[model_name],
         )
 
     # Create RagAgent with the configured LLM
@@ -93,7 +93,7 @@ def call_external_agent(
     result = agent.exec(
         prompt,
         top_k=0,
-        llm_kwargs={"max_tokens": max_tokens, "temperature": temperature},
+        llm_kwargs={"max_tokens": max_tokens},
     )
 
     # Process and chunk the content

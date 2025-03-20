@@ -6,15 +6,13 @@ It dynamically loads and instantiates LLM classes based on the specified provide
 """
 
 import importlib
+import logging
 import os
 from typing import Optional, Union
 
 from pydantic import SecretStr
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 
-
-@ComponentBase.register_type(LLMBase, "GenericLLM")
 class GenericLLM:
     """
     A generic class that provides a unified interface to all supported LLM providers.
@@ -48,16 +46,6 @@ class GenericLLM:
         # Add more providers as needed
     }
 
-    _tool_providers = {
-        "openai": "OpenAIToolModel",
-        "anthropic": "AnthropicToolModel",
-        "cohere": "CohereToolModel",
-        "groq": "GroqToolModel",
-        "gemini": "GeminiToolModel",
-        "mistral": "MistralToolModel",
-        # Add more tool-enabled providers as needed
-    }
-
     def __init__(self):
         self._llm_instance = None
 
@@ -66,7 +54,7 @@ class GenericLLM:
         provider: str,
         api_key: Optional[Union[str, SecretStr]] = None,
         model_name: Optional[str] = None,
-        timeout: int = 600.0,
+        timeout: int = 1200.0,
         **kwargs,
     ) -> LLMBase:
         """
