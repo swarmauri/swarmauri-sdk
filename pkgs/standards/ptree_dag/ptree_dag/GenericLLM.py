@@ -6,12 +6,12 @@ It dynamically loads and instantiates LLM classes based on the specified provide
 """
 
 import importlib
-import logging
 import os
 from typing import Optional, Union
 
 from pydantic import SecretStr
 from swarmauri_base.llms.LLMBase import LLMBase
+
 
 class GenericLLM:
     """
@@ -43,7 +43,8 @@ class GenericLLM:
         "google": "GeminiProModel",
         "mistral": "MistralModel",
         "deepseek": "DeepSeekModel",
-        # Add more providers as needed
+        "ai21studio": "AI21StudioModel",
+        "hyperbolic": "HyperbolicModel",
     }
 
     def __init__(self):
@@ -89,6 +90,7 @@ class GenericLLM:
         if api_key is None:
             env_var = f"{provider.upper()}_API_KEY"
             api_key = os.environ.get(env_var)
+            print(f"API key: {api_key}")
             if api_key is None:
                 raise ValueError(
                     f"No API key provided for {provider}. "

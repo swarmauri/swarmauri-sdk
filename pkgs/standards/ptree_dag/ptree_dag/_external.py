@@ -80,7 +80,6 @@ def call_external_agent(
             provider=provider,
             api_key=api_key,
             model_name=model_name,
-            allowed_models=[model_name],
         )
 
     # Create RagAgent with the configured LLM
