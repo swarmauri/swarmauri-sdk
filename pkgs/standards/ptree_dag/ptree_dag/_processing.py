@@ -68,8 +68,8 @@ def _create_context(file_record: Dict[str, Any], project_global_attributes: Dict
     # If the file is package-level or module-level, add the corresponding modules
     if package_name and package:
         context['MODULES'] = [mod for mod in package['MODULES']]
-       
-    context = {**context, **file_record}
+    
+    context['FILE'] = file_record
     logger.debug(f"Context: '{context}'")
     return context
 

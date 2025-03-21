@@ -1,8 +1,8 @@
 import logging
 from typing import List, Optional, Any
 from pydantic import Field
-from swarmauri_core.logger.ILogger import ILogger
-from swarmauri_base.logger_handler.HandlerBase import HandlerBase
+from swarmauri_core.loggers.ILogger import ILogger
+from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 from swarmauri_base import SubclassUnion
 
@@ -35,41 +35,34 @@ class LoggerBase(ILogger, ObserveBase):
         self.logger = self.compile_logger(logger_name=self.name)
 
     def compile_logger(self, logger_name: str = __name__) -> logging.Logger:
-        """Compile and return a logger instance.
-
-        Compiles and returns a `logging.Logger` object with the configured handlers.
-        If no handlers are provided, a default `StreamHandler` with a default formatter is attached.
-
-        Parameters
-        ----------
-        logger_name : str
-            The name of the logger.
-
-        Returns
-        -------
-        logging.Logger
-            The compiled logger.
-        """
         logger = logging.getLogger(logger_name)
         logger.setLevel(self.default_level)
-
-        # Remove any existing handlers to avoid duplicates
-        logger.handlers = []
-
+        
+        # Clear existing handlers to avoid stale configurations
+        logger.handlers.clear()
+        
         if self.handlers:
             for handler_model in self.handlers:
                 handler = handler_model.compile_handler()
+                handler.setLevel(self.default_level)
                 logger.addHandler(handler)
         else:
-            # Fallback: add a default StreamHandler
             default_handler = logging.StreamHandler()
             default_handler.setLevel(self.default_level)
-            default_formatter = logging.Formatter(self.default_format)
-            default_handler.setFormatter(default_formatter)
+            default_handler.setFormatter(logging.Formatter(self.default_format))
             logger.addHandler(default_handler)
-
+        
         logger.propagate = False
         return logger
+
+    def set_level(self, level: int = 20) -> None:
+        self.default_level = level
+        self.logger = self.compile_logger()
+
+    def set_format(self, format_string: str = "[%(name)s][%(levelname)s] %(message)s") -> None:
+        self.default_format = format_string
+        self.logger = self.compile_logger()
+
 
     def debug(self, *args, **kwargs) -> None:
         """Log a debug message.

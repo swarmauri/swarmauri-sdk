@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional, ClassVar
 
 from swarmauri_base import FullUnion
-from swarmauri_base.logger.LoggerBase import LoggerBase
+from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_base.DynamicBase import DynamicBase
 
 
