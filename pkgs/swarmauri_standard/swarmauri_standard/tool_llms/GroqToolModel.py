@@ -1,19 +1,19 @@
 import asyncio
 import json
-import httpx
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
+import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.GroqSchemaConverter import (
     GroqSchemaConverter,
 )
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "GroqToolModel")
@@ -35,7 +35,15 @@ class GroqToolModel(ToolLLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "qwen-2.5-32b",
+        "deepseek-r1-distill-qwen-32b",
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+    ]
     name: str = ""
 
     type: Literal["GroqToolModel"] = "GroqToolModel"
@@ -65,9 +73,6 @@ class GroqToolModel(ToolLLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """

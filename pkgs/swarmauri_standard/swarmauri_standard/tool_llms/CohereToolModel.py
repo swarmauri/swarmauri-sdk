@@ -4,9 +4,9 @@ from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Unio
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
@@ -42,8 +42,17 @@ class CohereToolModel(ToolLLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "command-a-03-2025",
+        "command-r7b-12-2024",
+        "command-r-plus",
+        "command-r",
+        "command",
+        "command-nightly",
+        "command-light",
+        "command-light-nightly",
+    ]
+    name: str = "command-a-03-2025"
     type: Literal["CohereToolModel"] = "CohereToolModel"
     timeout: float = 600.0
 
@@ -66,8 +75,6 @@ class CohereToolModel(ToolLLMBase):
         self._async_client = httpx.AsyncClient(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import warnings
 from typing import Dict, List, Literal
@@ -101,6 +102,7 @@ class PlayHTModel(LLMBase):
 
         with httpx.Client(base_url=self._BASE_URL, timeout=self.timeout) as client:
             voice_response = client.get("/voices", headers=self._headers)
+            voice_response.raise_for_status()
 
         for item in json.loads(voice_response.text):
             voice_engine = item.get("voice_engine")
