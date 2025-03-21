@@ -1,15 +1,15 @@
-I need you to generate a file named "{{ RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
+I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
 
 Below are the details and requirements for this task:
 
 1. **Purpose**:
-   {{ FILE_CONTEXT.PURPOSE }}
+   {{ FILE.PURPOSE }}
 
 2. **Description**:
-   {{ FILE_CONTEXT.DESCRIPTION }}
+   {{ FILE.DESCRIPTION }}
 
 3. **Requirements / Constraints**:
-   {%- for requirement in FILE_CONTEXT.REQUIREMENTS %}
+   {%- for requirement in FILE.REQUIREMENTS %}
    - {{ requirement }}
    {%- endfor %}
 
@@ -29,16 +29,16 @@ Below are the details and requirements for this task:
    - Implement logging using logging.
 
 ### Desired Output
-Produce a single code snippet that contains the entire content for the file {{ RENDERED_FILE_NAME }}. 
+Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 
 Do not wrap it in triple backticks! Just provide the raw code ready to copy-paste.
 Do not provide an explanation afterward.
 
 {# At the bottom of the template, include any example files specified by the EXAMPLES array #}
-{% if FILE_CONTEXT.EXAMPLES %}
+{% if FILE.EXAMPLES %}
 #### 
 Leverage the reference file below as a guideline to utilize when creating the new component.
 
-{%- for example in FILE_CONTEXT.EXAMPLES %}
+{%- for example in FILE.EXAMPLES %}
 #### Reference File: `{{ example }}`
 ```
 {% include example %}
@@ -49,12 +49,12 @@ Leverage the reference file below as a guideline to utilize when creating the ne
  
 ### Example Format of the Output
 <!-- Example only; your code will vary. This is to show how your response should look. -->
-{% include FILE_NAME %}
+{% include FILE.FILE_NAME %}
 
 {# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
-{% if DEPENDENCIES %}
+{% if FILE.DEPENDENCIES %}
 ### Dependencies
-{%- for dependency in DEPENDENCIES %}
+{%- for dependency in FILE.DEPENDENCIES %}
 #### `{{ dependency | replace(PROJ.PROJECT_ROOT + '/', '') }}`
 ```
 {% include dependency %}

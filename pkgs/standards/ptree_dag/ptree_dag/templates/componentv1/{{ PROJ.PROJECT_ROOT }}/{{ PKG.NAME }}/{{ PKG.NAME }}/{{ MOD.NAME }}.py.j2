@@ -2,7 +2,7 @@ from swarmauri_core.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type({{ MOD.BASE_NAME }}, "{{ MOD.NAME }}")
-class {{ MOD.NAME }}({{ MOD.BASE_NAME }}, ComponentBase):
+class {{ MOD.NAME }}({% if FILE.MIXINS %}{{ FILE.MIXINS|join(', ') }},{% endif %}{{ MOD.BASE_NAME }}, ComponentBase):
     type: Literal["{{ MOD.NAME }}"] = "{{ MOD.NAME }}"
     <!-- Add additional attributes here -->
     
