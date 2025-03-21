@@ -71,6 +71,7 @@ def call_external_agent(
     if provider.lower() == "llamacpp":
         llm = llm_manager.get_llm(
             provider=provider,
+            api_key=api_key,
             model_name="localhost",
             allowed_models=["localhost"],
         )
