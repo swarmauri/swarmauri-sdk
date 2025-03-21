@@ -34,7 +34,7 @@ def _save_file(content: str, filepath: str, logger: Optional[Any] = None, start_
         logger.error(f"Failed to save file '{filepath}': {e}")
 
 
-def _create_context(file_record, project_global_attributes):
+def _create_context(file_record: Dict[str, Any], project_global_attributes: Dict[str, Any], logger: Optional[Any] = None,):
     project_name = file_record.get('PROJECT_NAME')
     package_name = file_record.get('PACKAGE_NAME')
     module_name = file_record.get('MODULE_NAME')
@@ -45,7 +45,7 @@ def _create_context(file_record, project_global_attributes):
     # Find the project information
     if project_name:
         project = project_global_attributes  # project_global_attributes contains all the project context
-        context['PROJECT'] = project
+        context['PROJ'] = project
 
     # If a package_name is provided, match it to the correct package
     if package_name:
@@ -62,12 +62,15 @@ def _create_context(file_record, project_global_attributes):
                 module = next((mod for mod in package['MODULES'] if mod['NAME'] == module_name), None)
         if module:
             context['MOD'] = module
+            if 'EXTRAS' not in context['MOD']:
+                context['MOD']['EXTRAS'] = {}
     
     # If the file is package-level or module-level, add the corresponding modules
     if package_name and package:
         context['MODULES'] = [mod for mod in package['MODULES']]
        
     context = {**context, **file_record}
+    logger.debug(f"Context: '{context}'")
     return context
 
 def _process_file(file_record: Dict[str, Any],
@@ -91,7 +94,7 @@ def _process_file(file_record: Dict[str, Any],
       agent_env (dict): Configuration for agent operations (used in GENERATE process).
     """
     # Merge the project-level context with file-specific data.
-    context = _create_context(file_record, global_attrs)
+    context = _create_context(file_record, global_attrs, logger)
     # from pprint import pprint
 
     # print("_process_file: combined context")
