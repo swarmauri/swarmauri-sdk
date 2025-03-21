@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -30,8 +30,15 @@ class OpenAIReasonModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "o1-mini",
+        "o1",
+        "o1-2024-12-17",
+        "o1-mini-2024-09-12",
+        "o3-mini",
+        "o3-mini-2025-01-31",
+    ]
+    name: str = "o1-mini"
     type: Literal["OpenAIReasonModel"] = "OpenAIReasonModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
@@ -49,8 +56,6 @@ class OpenAIReasonModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,

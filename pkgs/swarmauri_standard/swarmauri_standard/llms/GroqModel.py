@@ -1,12 +1,13 @@
 import asyncio
 import json
+import logging
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -30,8 +31,30 @@ class GroqModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "distil-whisper-large-v3-en",
+        "whisper-large-v3-turbo",
+        "qwen-2.5-coder-32b",
+        "gemma2-9b-it",
+        "llama3-70b-8192",
+        "llama-3.2-1b-preview",
+        "llama-3.2-3b-preview",
+        "mistral-saba-24b",
+        "qwen-2.5-32b",
+        "llama-3.2-90b-vision-preview",
+        "qwen-qwq-32b",
+        "llama-3.3-70b-specdec",
+        "whisper-large-v3",
+        "deepseek-r1-distill-qwen-32b",
+        "allam-2-7b",
+        "llama3-8b-8192",
+        "deepseek-r1-distill-llama-70b",
+        "llama-guard-3-8b",
+        "llama-3.2-11b-vision-preview",
+    ]
+    name: str = "llama-3.3-70b-versatile"
 
     type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)
@@ -60,9 +83,6 @@ class GroqModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
