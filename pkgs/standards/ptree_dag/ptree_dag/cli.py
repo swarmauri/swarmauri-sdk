@@ -54,6 +54,7 @@ def process(
         help="Filepath for env file used to authenticate with the selected provider. "
              "If omitted, we only load the environment."
     ),
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
@@ -89,12 +90,19 @@ def process(
             agent_env={
                 "provider": provider, 
                 "model_name": model_name,
-                "api_key": resolved_key,  # <--- The new key we resolved
+                "api_key": resolved_key,
             },
         )
+        # Set verbosity level based on count
+        if verbose == 1:
+            pfg.logger.set_level(30)  # INFO
+        elif verbose == 2:
+            pfg.logger.set_level(20)  # DEBUG
+        elif verbose >= 3:
+            pfg.logger.set_level(10)  # VERBOSE
+
         if project_name:
             projects = pfg.load_projects()
-            # Look for a project with the matching "PROJECT_NAME" key
             project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
             if project is None:
                 pfg.logger.info(f"Project '{project_name}' not found.")
@@ -145,6 +153,7 @@ def sort(
         help="Filepath for env file used to authenticate with the selected provider. "
              "If omitted, we only load the environment."
     ),
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -176,15 +185,22 @@ def sort(
         agent_env={
             "provider": provider,
             "model_name": model_name,
-            "api_key": resolved_key,  # <--- The new key we resolved
+            "api_key": resolved_key,
         },
         dry_run=True
     )
+    
+    # Set verbosity level based on count
+    if verbose == 1:
+        pfg.logger.set_level(30)  # INFO
+    elif verbose == 2:
+        pfg.logger.set_level(20)  # DEBUG
+    elif verbose >= 3:
+        pfg.logger.set_level(10)  # VERBOSE
 
     if project_name:
         projects = pfg.load_projects()
-        # Look for a project with the matching "PROJECT_NAME" key
-        project = next((proj for proj in projects if proj.get("PROJ.PROJECT_NAME") == project_name), None)
+        project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
         if project is None:
             pfg.logger.error(f"Project '{project_name}' not found.")
             raise typer.Exit(code=1)
@@ -198,11 +214,10 @@ def sort(
         pfg.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
         for i, record in enumerate(sorted_records):
             pfg.logger.info(f'\t{i + start_idx}) {record.get("RENDERED_FILE_NAME")}')
-
     else:
         projects_sorted_records = pfg.process_all_projects()
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJ.PROJECT_NAME")
+            current_project_name = sorted_records[0].get("PROJECT_NAME")
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):
@@ -210,7 +225,9 @@ def sort(
 
 
 @app.command("templates")
-def get_templates():
+def get_templates(
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)")
+):
     import ptree_dag.templates
     from pathlib import Path
 

@@ -18,9 +18,9 @@
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
-  DEPENDENCIES: []
-  FILE_CONTEXT:
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES: []
     PURPOSE: "Defines the license for package {{ PKG.NAME }}."
     DESCRIPTION: "This file contains the license for package {{ PKG.NAME }}."
 
@@ -30,14 +30,14 @@
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
-  DEPENDENCIES:
-    {#- Loop over modules to include their main file as dependencies #}
-    {%- for MOD in PKG.MODULES %}
-      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
-    {%- endfor %}
-      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-  FILE_CONTEXT:
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES:
+      {#- Loop over modules to include their main file as dependencies #}
+      {%- for MOD in PKG.MODULES %}
+        - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+      {%- endfor %}
+        - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
     PURPOSE: "Specifies package metadata and dependencies for {{ PKG.NAME }}."
     DESCRIPTION: "Configuration for package {{ PKG.NAME }}. Must reference all module source files, README, and LICENSE."
     REQUIREMENTS:
@@ -51,14 +51,14 @@
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
-  DEPENDENCIES:
-      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-    {%- for MOD in PKG.MODULES %}
-      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
-    {%- endfor %}
-      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/pyproject.toml"
-  FILE_CONTEXT:
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES:
+        - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+      {%- for MOD in PKG.MODULES %}
+        - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+      {%- endfor %}
+        - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/pyproject.toml"
     PURPOSE: "Documents package {{ PKG.NAME }}."
     DESCRIPTION: "{{ PKG.DESCRIPTION }}"
     REQUIREMENTS:
@@ -79,11 +79,11 @@
   AGENT_PROMPT_TEMPLATE: "agent_default.j2"
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "None"
-  DEPENDENCIES: []
-  FILE_CONTEXT:
+  MODULE_NAME: null
+  EXTRAS:
     PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
     DESCRIPTION: "This file makes the directory a Python package."
+    DEPENDENCIES: []
 
 {% for MOD in PKG.MODULES %}
 - FILE_NAME: "{% raw %}{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py.j2{% endraw %}"
@@ -93,35 +93,35 @@
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
   MODULE_NAME: "{{ MOD.NAME }}"
-  DEPENDENCIES:
-    {%- if MOD.BASE_FILE %}
-            - "{{ MOD.BASE_FILE }}"
-    {%- endif %}
-    {%- if MOD.EXTERNAL_DOC_FILES %}
-      {%- for doc in MOD.EXTERNAL_DOC_FILES %}
-            - "{{ doc }}"
-      {%- endfor %}
-    {%- endif %}
-    {%- if MOD.DEPENDENCIES %}
-      {%- for dep in MOD.DEPENDENCIES %}
-        {%- if "/" in dep %}
-            - "{{ dep }}"
-        {%- else %}
-          {%- set parts = dep | split('.') %}
-          {%- if parts | length > 2 %}
-            - "{{ PROJ.PROJECT_ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
+  EXTRAS:
+    DEPENDENCIES:
+      {%- if MOD.BASE_FILE %}
+              - "{{ MOD.BASE_FILE }}"
+      {%- endif %}
+      {%- if MOD.EXTERNAL_DOC_FILES %}
+        {%- for doc in MOD.EXTERNAL_DOC_FILES %}
+              - "{{ doc }}"
+        {%- endfor %}
+      {%- endif %}
+      {%- if MOD.DEPENDENCIES %}
+        {%- for dep in MOD.DEPENDENCIES %}
+          {%- if "/" in dep %}
+              - "{{ dep }}"
           {%- else %}
-            - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
+            {%- set parts = dep | split('.') %}
+            {%- if parts | length > 2 %}
+              - "{{ PROJ.PROJECT_ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
+            {%- else %}
+              - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ dep }}"
+            {%- endif %}
           {%- endif %}
-        {%- endif %}
-      {%- endfor %}
-    {%- endif %}
-    {%- if MOD.MIXIN_FILES %}
-      {%- for mf in MOD.MIXIN_FILES %}
-            - "{{ mf }}"
-      {%- endfor %}
-    {%- endif %}
-  FILE_CONTEXT:
+        {%- endfor %}
+      {%- endif %}
+      {%- if MOD.MIXIN_FILES %}
+        {%- for mf in MOD.MIXIN_FILES %}
+              - "{{ mf }}"
+        {%- endfor %}
+      {%- endif %}
     PURPOSE: "{{ MOD.PURPOSE }}"
     DESCRIPTION: "{{ MOD.DESCRIPTION }}"
     REQUIREMENTS:
@@ -145,9 +145,9 @@
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
   MODULE_NAME: "{{ MOD.NAME }}"
-  DEPENDENCIES:
-    - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
-  FILE_CONTEXT:
+  EXTRAS:
+    DEPENDENCIES:
+      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
     PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
     DESCRIPTION: "Tests for module {{ MOD.NAME }}."
     REQUIREMENTS:
@@ -169,15 +169,15 @@
   PROJECT_NAME: "{{ PROJ.PROJECT_NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
   MODULE_NAME: "None"
-  DEPENDENCIES:
-    - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-  FILE_CONTEXT:
+  EXTRAS:
     PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
     DESCRIPTION: "Ensures that the __init__.py in the source folder loads correctly."
     REQUIREMENTS:
       - "Must use pytest."
       - "Must use @pytest.mark.i9n decorator to mark test cases."
       - "Where applicable use pytest fixtures."
+    DEPENDENCIES:
+      - "{{ PROJ.PROJECT_ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
 
 {%- endfor %}
 

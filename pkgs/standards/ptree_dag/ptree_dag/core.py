@@ -38,7 +38,7 @@ from ._config import _config
 import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base import FullUnion
+from swarmauri_base import SubclassUnion
 from swarmauri_standard.loggers.Logger import Logger
 from swarmauri_base.loggers.LoggerBase import LoggerBase
 
@@ -59,7 +59,7 @@ class ProjectFileGenerator(ComponentBase):
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
+    logger: SubclassUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
