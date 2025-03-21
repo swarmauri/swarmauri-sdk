@@ -57,11 +57,12 @@ class LoggerBase(ILogger, ObserveBase):
 
     def set_level(self, level: int = 20) -> None:
         self.default_level = level
-        self.logger = self.compile_logger()
+        print(self.default_level)
+        self.compile_logger(logger_name=self.name)
 
     def set_format(self, format_string: str = "[%(name)s][%(levelname)s] %(message)s") -> None:
         self.default_format = format_string
-        self.logger = self.compile_logger()
+        self.compile_logger(logger_name=self.name)
 
 
     def debug(self, *args, **kwargs) -> None:
