@@ -39,7 +39,7 @@ import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base import FullUnion
-from swarmauri_standard.logging.Logger import Logger
+from swarmauri_standard.logger.Logger import Logger
 from swarmauri_base.logger.LoggerBase import LoggerBase
 
 colorama_init(autoreset=True)

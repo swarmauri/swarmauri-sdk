@@ -1,7 +1,7 @@
 import logging
 import io
 import pytest
-from swarmauri_standard.logging.Logger import Logger
+from swarmauri_standard.logger.Logger import Logger
 from swarmauri_base.logger_handler.HandlerBase import HandlerBase
 from swarmauri_standard.logger_formatters.LoggerFormatter import LoggerFormatter
 
