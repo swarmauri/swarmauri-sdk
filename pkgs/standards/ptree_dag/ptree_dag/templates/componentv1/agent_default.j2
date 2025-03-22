@@ -55,7 +55,7 @@ Leverage the reference file below as a guideline to utilize when creating the ne
 {% if FILE.EXTRAS.DEPENDENCIES %}
 ### Dependencies
 {%- for dependency in FILE.EXTRAS.DEPENDENCIES %}
-#### `{{ dependency | replace(PROJ.PROJECT_ROOT + '/', '') }}`
+#### `{{ dependency | replace(PROJ.ROOT + '/', '') }}`
 ```
 {% include dependency %}
 

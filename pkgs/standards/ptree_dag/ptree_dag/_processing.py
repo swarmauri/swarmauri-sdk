@@ -46,13 +46,17 @@ def _create_context(file_record: Dict[str, Any], project_global_attributes: Dict
     # Find the project information
     if project_name:
         project = project_global_attributes  # project_global_attributes contains all the project context
-        context['PROJ'] = project
+        context['PROJ'] = project    
+        if 'EXTRAS' not in context['PROJ']:
+            context['PROJ']['EXTRAS'] = {}
 
     # If a package_name is provided, match it to the correct package
     if package_name:
         package = next((pkg for pkg in project_global_attributes['PACKAGES'] if pkg['NAME'] == package_name), None)
         if package:
             context['PKG'] = package
+            if 'EXTRAS' not in context['PKG']:
+                context['PKG']['EXTRAS'] = {}
 
     # If a module_name is provided, match it to the correct module within the package
     if module_name:
