@@ -1,7 +1,7 @@
 PROJECTS:
   - PROJECT_NAME: "tooling"
     PROJECT_ROOT: "pkgs"
-    PROJECT_REQUIREMENTS:
+    REQUIREMENTS:
       - "Initialize profiling using libraries such as cProfile or psutil."
       - "Capture CPU, memory, and I/O metrics from the application."
       - "Log the start of the profiling session with appropriate timestamps."
