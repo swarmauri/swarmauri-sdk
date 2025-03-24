@@ -3,6 +3,7 @@ import os
 from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.agents.QAAgent import QAAgent
 from dotenv import load_dotenv
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 load_dotenv()
 
@@ -29,6 +30,13 @@ def test_ubc_type(qa_agent):
 
 @pytest.mark.unit
 def test_agent_exec(qa_agent):
+    result = qa_agent.exec("hello")
+    assert isinstance(result, str)
+
+@pytest.mark.unit
+def test_agent_exec_context():
+    qa_agent = QAAgent(llm=GroqModel(api_key=os.getenv("GROQ_API_KEY")))
+    qa_agent.conversation.system_context = SystemMessage(content="Respond with Hi Only")
     result = qa_agent.exec("hello")
     assert isinstance(result, str)
 
