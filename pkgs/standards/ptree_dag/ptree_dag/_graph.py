@@ -47,8 +47,10 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
         in_degree[node] = 0
 
     for entry in payload:
+        print(entry)
         file_node = entry["RENDERED_FILE_NAME"]
-        deps = entry.get("DEPENDENCIES", [])
+        extras = entry.get("EXTRAS", [])
+        deps = extras.get("DEPENDENCIES", [])
         if deps:
             for dep in deps:
                 # Only add the edge if the dependency also exists in our payload.

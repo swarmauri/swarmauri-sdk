@@ -24,6 +24,7 @@ _print_banner()
 def process(
     projects_payload: str = typer.Argument(..., help="Path to the projects YAML file."),
     project_name: str = typer.Option(None, help="Name of the project to process."),
+    cwd: str = typer.Option(None, help="Optional cwd to execute in"),
     template_base_dir: str = typer.Option(None, help="Optional base directory for templates."),
     additional_package_dirs: str = typer.Option(
         None, 
@@ -83,7 +84,9 @@ def process(
     resolved_key = _resolve_api_key(provider, api_key, env)
 
     try:
+        base_dir = str(cwd) or os.getcwd()
         pfg = ProjectFileGenerator(
+            base_dir=base_dir,
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
