@@ -29,13 +29,13 @@ PROJECTS:
             EXTRAS:
               PURPOSE: "Maintain and update per-session conversation context."
               DESCRIPTION: "Tracks conversation history within a session, leveraging concurrency-safe data structures for reliable context retrieval."
-              RESOURCE_KIND: "conversations"
-              BASE_NAME: "ConversationBase"
-              BASE_FILE: "base/swarmauri_base/conversations/ConversationBase.py"
               REQUIREMENTS:
               - "Implement session retrieval and update methods with locks or atomic operations to prevent race conditions."
               - "Avoid duplicating conversation logs; instead, merge incremental user turns into a centralized store."
               - "Allow developers to configure session size limits, with clear error-handling or trimming mechanisms when limits are reached."
+              RESOURCE_KIND: "conversations"
+              BASE_NAME: "ConversationBase"
+              BASE_FILE: "base/swarmauri_base/conversations/ConversationBase.py"
               EXAMPLES:
               - "swarmauri_standard/swarmauri_standard/conversations/Conversation.py"
             
