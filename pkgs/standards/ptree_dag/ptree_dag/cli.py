@@ -7,6 +7,7 @@ Enhancement: --api-key support with environment variable fallback.
 
 import os
 import typer
+from pprint import pformat
 from pydantic import FilePath
 from pathlib import Path
 from .core import ProjectFileGenerator, Fore, Back, Style
@@ -103,7 +104,8 @@ def process(
 
         if project_name:
             projects = pfg.load_projects()
-            project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
+            pfg.logger.debug(pformat(projects))
+            project = next((proj for proj in projects if proj.get("NAME") == project_name), None)
             if project is None:
                 pfg.logger.info(f"Project '{project_name}' not found.")
                 raise typer.Exit(code=1)
@@ -200,7 +202,9 @@ def sort(
 
     if project_name:
         projects = pfg.load_projects()
-        project = next((proj for proj in projects if proj.get("PROJECT_NAME") == project_name), None)
+        pfg.logger.debug(pformat(projects))
+
+        project = next((proj for proj in projects if proj.get("NAME") == project_name), None)
         if project is None:
             pfg.logger.error(f"Project '{project_name}' not found.")
             raise typer.Exit(code=1)
@@ -216,6 +220,7 @@ def sort(
             pfg.logger.info(f'\t{i + start_idx}) {record.get("RENDERED_FILE_NAME")}')
     else:
         projects_sorted_records = pfg.process_all_projects()
+        pfg.logger.debug(pformat(projects_sorted_records))
         for sorted_records in projects_sorted_records:
             current_project_name = sorted_records[0].get("PROJECT_NAME")
             pfg.logger.info("")
