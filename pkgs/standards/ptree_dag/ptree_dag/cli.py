@@ -222,7 +222,7 @@ def sort(
         projects_sorted_records = pfg.process_all_projects()
         pfg.logger.debug(pformat(projects_sorted_records))
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJECT_NAME")
+            current_project_name = sorted_records[0].get("PROJECT_NAME") # This references the PROJECT_NAME found on the File Record
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):
