@@ -47,7 +47,6 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
         in_degree[node] = 0
 
     for entry in payload:
-        print(entry)
         file_node = entry["RENDERED_FILE_NAME"]
         extras = entry.get("EXTRAS", [])
         deps = extras.get("DEPENDENCIES", [])
