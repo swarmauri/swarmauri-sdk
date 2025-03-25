@@ -58,8 +58,6 @@ class MistralModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -121,8 +119,6 @@ class MistralModel(LLMBase):
         response = self._client.get("models")
         response.raise_for_status()
         response_data = response.json()
-
-        print(response_data)
 
         chat_models = [
             model["id"]

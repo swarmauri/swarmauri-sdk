@@ -73,7 +73,7 @@ class LlamaCppModel(LLMBase):
         )
 
         self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
+        self.name = self.name or self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

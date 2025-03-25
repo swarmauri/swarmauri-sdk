@@ -24,8 +24,8 @@ class OpenAIImgGenModel(ImageGenBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["dall-e-2", "dall-e-3"]
+    name: str = "dall-e-2"
     type: Literal["OpenAIImgGenModel"] = "OpenAIImgGenModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
@@ -43,8 +43,6 @@ class OpenAIImgGenModel(ImageGenBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def generate_image(

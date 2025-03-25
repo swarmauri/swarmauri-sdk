@@ -1,13 +1,14 @@
 import asyncio
 import json
+import logging
 import warnings
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -41,8 +42,11 @@ class HyperbolicVisionModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "Qwen/Qwen2.5-VL-72B-Instruct",
+        "Qwen/Qwen2.5-VL-7B-Instruct",
+    ]
+    name: str = "Qwen/Qwen2.5-VL-72B-Instruct"
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
     timeout: float = 600.0
     _headers: Dict[str, str] = PrivateAttr(default=None)
@@ -66,8 +70,6 @@ class HyperbolicVisionModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -138,7 +140,7 @@ class HyperbolicVisionModel(LLMBase):
             for model in response_data["data"]
             if model["supports_image_input"]
         ]
-
+        logging.info(f"Allowed models: {chat_models}")
         return chat_models
 
     @retry_on_status_codes((429, 529), max_retries=1)

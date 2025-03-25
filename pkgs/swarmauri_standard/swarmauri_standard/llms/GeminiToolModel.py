@@ -6,9 +6,9 @@ from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -43,7 +43,14 @@ class GeminiToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp-02-05",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
+    ]
     name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     _BASE_URL: str = PrivateAttr(
@@ -84,8 +91,6 @@ class GeminiToolModel(LLMBase):
             name (str): The name of the Gemini model in use.
         """
         super().__init__(*args, **kwargs)
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
@@ -98,7 +103,6 @@ class GeminiToolModel(LLMBase):
             List[Dict[str, Any]]: List of converted tool definitions.
         """
         response = [GeminiSchemaConverter().convert(tools[tool]) for tool in tools]
-        logging.info(response)
         return {"function_declarations": response}
 
     def _format_messages(

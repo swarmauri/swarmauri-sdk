@@ -1,9 +1,14 @@
 import asyncio
 import json
 import logging
-from typing import AsyncIterator, Iterator, List, Literal, Dict, Any, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
@@ -11,9 +16,6 @@ from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
 )
 from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
@@ -32,8 +34,15 @@ class GeminiToolModel(ToolLLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp-02-05",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
+    ]
+    name: str = "gemini-1.5-pro"
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     _BASE_URL: str = PrivateAttr(
         default="https://generativelanguage.googleapis.com/v1beta/models"
@@ -63,18 +72,6 @@ class GeminiToolModel(ToolLLMBase):
             },
         ]
     )
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initializes the GeminiToolModel instance with the provided API key and model name.
-
-        Args:
-            api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
-            name (str): The name of the Gemini model in use.
-        """
-        super().__init__(*args, **kwargs)
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         """
