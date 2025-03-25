@@ -47,17 +47,6 @@ class LLM(LLMBase):
             "Content-Type": "application/json",
         }
 
-        # Initialize HTTP clients
-        self._client = httpx.Client(
-            headers=self._headers,
-            timeout=self.timeout,
-        )
-
-        self._async_client = httpx.AsyncClient(
-            headers=self._headers,
-            timeout=self.timeout,
-        )
-
         # Load allowed models and set default if needed
         if not self.allowed_models:
             self.allowed_models = self.get_allowed_models()
@@ -80,9 +69,10 @@ class LLM(LLMBase):
         """
         formatted_messages = []
         for message in messages:
-            formatted_message = message.model_dump(
-                include=["content", "role", "name"], exclude_none=True
-            )
+            if message.role != "assistant":
+                formatted_message = message.model_dump(
+                    include=["content", "role", "name"], exclude_none=True
+                )
 
             # Handle multi-modal content
             if isinstance(formatted_message["content"], list):
@@ -167,8 +157,11 @@ class LLM(LLMBase):
 
         # Make the API request and measure time
         with DurationManager() as prompt_timer:
-            response = self._client.post(self.BASE_URL, json=payload)
-            response.raise_for_status()
+            with httpx.Client(timeout=self.timeout) as client:
+                response = client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
 
         # Parse the response
         response_data = response.json()
@@ -181,7 +174,6 @@ class LLM(LLMBase):
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
             conversation.add_message(AgentMessage(content=message_content))
-
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=3)
@@ -226,8 +218,11 @@ class LLM(LLMBase):
 
         # Make the async API request and measure time
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self.BASE_URL, json=payload)
-            response.raise_for_status()
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
 
         # Parse the response
         response_data = response.json()
@@ -288,8 +283,11 @@ class LLM(LLMBase):
 
         # Start timing for prompt processing
         with DurationManager() as prompt_timer:
-            response = self._client.post(self.BASE_URL, json=payload)
-            response.raise_for_status()
+            with httpx.Client(timeout=self.timeout) as client:
+                response = client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
 
         # Process the streaming response
         message_content = ""
@@ -297,8 +295,8 @@ class LLM(LLMBase):
 
         with DurationManager() as completion_timer:
             for line in response.iter_lines():
-                if line.startswith(b"data: "):
-                    json_str = line.decode("utf-8")[6:]  # Remove 'data: ' prefix
+                if line.startswith("data: "):
+                    json_str = line.replace("data: ", "")  # Remove 'data: ' prefix
 
                     if json_str.strip() == "[DONE]":
                         break
@@ -382,8 +380,11 @@ class LLM(LLMBase):
 
         # Start timing for prompt processing
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self.BASE_URL, json=payload)
-            response.raise_for_status()
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    self.BASE_URL, headers=self._headers, json=payload
+                )
+                response.raise_for_status()
 
         # Process the streaming response asynchronously
         message_content = ""
