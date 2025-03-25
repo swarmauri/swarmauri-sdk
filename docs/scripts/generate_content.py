@@ -4,7 +4,6 @@ import importlib
 import inspect
 import yaml
 import re
-from typing import Dict, List
 
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
 
@@ -24,6 +23,175 @@ def ensure_home_page(docs_dir: str):
         print(f"Home page already exists at {home_file_path}")
 
 
+def get_packages(package_name: str) -> str:
+    """
+    Given a directory path, return a dictionary where the key is the package name
+    and the value is the path to the package.
+
+    Args:
+
+    Returns:
+    """
+    BASEDIR = "../pkgs"
+    swarmauri_packages = {
+        "QAAgent": f"{BASEDIR}/standard/swarmauri_standard/agents/QAAgent.md",
+        "RagAgent": f"{BASEDIR}/standard/swarmauri_standard/agents/RagAgent.md",
+        "SimpleConversationAgent": f"{BASEDIR}/standard/swarmauri_standard/agents/SimpleConversationAgent.md",
+        "ToolAgent": f"{BASEDIR}/standard/swarmauri_standard/agents/ToolAgent.md",
+        "CallableChain": f"{BASEDIR}/standard/swarmauri_standard/chains/CallableChain.md",
+        "ChainStep": f"{BASEDIR}/standard/swarmauri_standard/chains/ChainStep.md",
+        "ContextChain": f"{BASEDIR}/standard/swarmauri_standard/chains/ContextChain.md",
+        "DelimiterBasedChunker": f"{BASEDIR}/standard/swarmauri_standard/chunkers/DelimiterBasedChunker.md",
+        "FixedLengthChunker": f"{BASEDIR}/standard/swarmauri_standard/chunkers/FixedLengthChunker.md",
+        "MdSnippetChunker": f"{BASEDIR}/standard/swarmauri_standard/chunkers/MdSnippetChunker.md",
+        "SentenceChunker": f"{BASEDIR}/standard/swarmauri_standard/chunkers/SentenceChunker.md",
+        "SlidingWindowChunker": f"{BASEDIR}/standard/swarmauri_standard/chunkers/SlidingWindowChunker.md",
+        "ControlPanel": f"{BASEDIR}/standard/swarmauri_standard/control_panels/ControlPanel.md",
+        "Conversation": f"{BASEDIR}/standard/swarmauri_standard/conversations/Conversation.md",
+        "MaxSizeConversation": f"{BASEDIR}/standard/swarmauri_standard/conversations/MaxSizeConversation.md",
+        "MaxSystemContextConversation": f"{BASEDIR}/standard/swarmauri_standard/conversations/MaxSystemContextConversation.md",
+        "SessionCacheConversation": f"{BASEDIR}/standard/swarmauri_standard/conversations/SessionCacheConversation.md",
+        "GoogleDriveDataConnector": f"{BASEDIR}/standard/swarmauri_standard/dataconnectors/GoogleDriveDataConnector.md",
+        "CanberraDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/CanberraDistance.md",
+        "ChebyshevDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/ChebyshevDistance.md",
+        "ChiSquaredDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/ChiSquaredDistance.md",
+        "CosineDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/CosineDistance.md",
+        "EuclideanDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/EuclideanDistance.md",
+        "HaversineDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/HaversineDistance.md",
+        "JaccardIndexDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/JaccardIndexDistance.md",
+        "LevenshteinDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/LevenshteinDistance.md",
+        "ManhattanDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/ManhattanDistance.md",
+        "SorensenDiceDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/SorensenDiceDistance.md",
+        "SquaredEuclideanDistance": f"{BASEDIR}/standard/swarmauri_standard/distances/SquaredEuclideanDistance.md",
+        "Document": f"{BASEDIR}/standard/swarmauri_standard/documents/Document.md",
+        "CohereEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/CohereEmbedding.md",
+        "GeminiEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/GeminiEmbedding.md",
+        "MistralEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/MistralEmbedding.md",
+        "OpenAIEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/OpenAIEmbedding.md",
+        "TfidfEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/TfidfEmbedding.md",
+        "VoyageEmbedding": f"{BASEDIR}/standard/swarmauri_standard/embeddings/VoyageEmbedding.md",
+        "IndexErrorWithContext": f"{BASEDIR}/standard/swarmauri_standard/exceptions/IndexErrorWithContext.md",
+        "AgentFactory": f"{BASEDIR}/standard/swarmauri_standard/factories/AgentFactory.md",
+        "Factory": f"{BASEDIR}/standard/swarmauri_standard/factories/Factory.md",
+        "BlackForestImgGenModel": f"{BASEDIR}/standard/swarmauri_standard/image_gens/BlackForestImgGenModel.md",
+        "DeepInfraImgGenModel": f"{BASEDIR}/standard/swarmauri_standard/image_gens/DeepInfraImgGenModel.md",
+        "FalAIImgGenModel": f"{BASEDIR}/standard/swarmauri_standard/image_gens/FalAIImgGenModel.md",
+        "HyperbolicImgGenModel": f"{BASEDIR}/standard/swarmauri_standard/image_gens/HyperbolicImgGenModel.md",
+        "OpenAIImgGenModel": f"{BASEDIR}/standard/swarmauri_standard/image_gens/OpenAIImgGenModel.md",
+        "AI21StudioModel": f"{BASEDIR}/standard/swarmauri_standard/llms/AI21StudioModel.md",
+        "AnthropicModel": f"{BASEDIR}/standard/swarmauri_standard/llms/AnthropicModel.md",
+        "AnthropicToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/AnthropicToolModel.md",
+        "CohereModel": f"{BASEDIR}/standard/swarmauri_standard/llms/CohereModel.md",
+        "CohereToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/CohereToolModel.md",
+        "DeepInfraModel": f"{BASEDIR}/standard/swarmauri_standard/llms/DeepInfraModel.md",
+        "DeepSeekModel": f"{BASEDIR}/standard/swarmauri_standard/llms/DeepSeekModel.md",
+        "FalAIVisionModel": f"{BASEDIR}/standard/swarmauri_standard/llms/FalAIVisionModel.md",
+        "GeminiProModel": f"{BASEDIR}/standard/swarmauri_standard/llms/GeminiProModel.md",
+        "GeminiToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/GeminiToolModel.md",
+        "GroqAIAudio": f"{BASEDIR}/standard/swarmauri_standard/llms/GroqAIAudio.md",
+        "GroqModel": f"{BASEDIR}/standard/swarmauri_standard/llms/GroqModel.md",
+        "GroqToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/GroqToolModel.md",
+        "GroqVisionModel": f"{BASEDIR}/standard/swarmauri_standard/llms/GroqVisionModel.md",
+        "HyperbolicAudioTTS": f"{BASEDIR}/standard/swarmauri_standard/llms/HyperbolicAudioTTS.md",
+        "HyperbolicModel": f"{BASEDIR}/standard/swarmauri_standard/llms/HyperbolicModel.md",
+        "HyperbolicVisionModel": f"{BASEDIR}/standard/swarmauri_standard/llms/HyperbolicVisionModel.md",
+        "LlamaCppModel": f"{BASEDIR}/standard/swarmauri_standard/llms/LlamaCppModel.md",
+        "MistralModel": f"{BASEDIR}/standard/swarmauri_standard/llms/MistralModel.md",
+        "MistralToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/MistralToolModel.md",
+        "OpenAIAudio": f"{BASEDIR}/standard/swarmauri_standard/llms/OpenAIAudio.md",
+        "OpenAIAudioTTS": f"{BASEDIR}/standard/swarmauri_standard/llms/OpenAIAudioTTS.md",
+        "OpenAIModel": f"{BASEDIR}/standard/swarmauri_standard/llms/OpenAIModel.md",
+        "OpenAIReasonModel": f"{BASEDIR}/standard/swarmauri_standard/llms/OpenAIReasonModel.md",
+        "OpenAIToolModel": f"{BASEDIR}/standard/swarmauri_standard/llms/OpenAIToolModel.md",
+        "PerplexityModel": f"{BASEDIR}/standard/swarmauri_standard/llms/PerplexityModel.md",
+        "PlayHTModel": f"{BASEDIR}/standard/swarmauri_standard/llms/PlayHTModel.md",
+        "WhisperLargeModel": f"{BASEDIR}/standard/swarmauri_standard/llms/WhisperLargeModel.md",
+        "Logger": f"{BASEDIR}/standard/swarmauri_standard/logging/Logger.md",
+        "CompletenessMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/CompletenessMeasurement.md",
+        "DistinctivenessMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/DistinctivenessMeasurement.md",
+        "FirstImpressionMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/FirstImpressionMeasurement.md",
+        "MeanMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/MeanMeasurement.md",
+        "MiscMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/MiscMeasurement.md",
+        "MissingnessMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/MissingnessMeasurement.md",
+        "PatternMatchingMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/PatternMatchingMeasurement.md",
+        "RatioOfSumsMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/RatioOfSumsMeasurement.md",
+        "StaticMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/StaticMeasurement.md",
+        "UniquenessMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/UniquenessMeasurement.md",
+        "ZeroMeasurement": f"{BASEDIR}/standard/swarmauri_standard/measurements/ZeroMeasurement.md",
+        "AgentMessage": f"{BASEDIR}/standard/swarmauri_standard/messages/AgentMessage.md",
+        "FunctionMessage": f"{BASEDIR}/standard/swarmauri_standard/messages/FunctionMessage.md",
+        "HumanMessage": f"{BASEDIR}/standard/swarmauri_standard/messages/HumanMessage.md",
+        "ImageUrlContent": f"{BASEDIR}/standard/swarmauri_standard/messages/ImageUrlContent.md",
+        "SystemMessage": f"{BASEDIR}/standard/swarmauri_standard/messages/SystemMessage.md",
+        "TextContent": f"{BASEDIR}/standard/swarmauri_standard/messages/TextContent.md",
+        "UsageData": f"{BASEDIR}/standard/swarmauri_standard/messages/UsageData.md",
+        "CSVParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/CSVParser.md",
+        "HTMLTagStripParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/HTMLTagStripParser.md",
+        "Md2HtmlParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/Md2HtmlParser.md",
+        "OpenAPISpecParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/OpenAPISpecParser.md",
+        "PhoneNumberExtractorParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/PhoneNumberExtractorParser.md",
+        "PythonParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/PythonParser.md",
+        "RegExParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/RegExParser.md",
+        "URLExtractorParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/URLExtractorParser.md",
+        "XMLParser": f"{BASEDIR}/standard/swarmauri_standard/parsers/XMLParser.md",
+        "Pipeline": f"{BASEDIR}/standard/swarmauri_standard/pipelines/Pipeline.md",
+        "PromptTemplate": f"{BASEDIR}/standard/swarmauri_standard/prompt_templates/PromptTemplate.md",
+        "Prompt": f"{BASEDIR}/standard/swarmauri_standard/prompts/Prompt.md",
+        "PromptGenerator": f"{BASEDIR}/standard/swarmauri_standard/prompts/PromptGenerator.md",
+        "PromptMatrix": f"{BASEDIR}/standard/swarmauri_standard/prompts/PromptMatrix.md",
+        "AnthropicSchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/AnthropicSchemaConverter.md",
+        "CohereSchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/CohereSchemaConverter.md",
+        "GeminiSchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/GeminiSchemaConverter.md",
+        "GroqSchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/GroqSchemaConverter.md",
+        "MistralSchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/MistralSchemaConverter.md",
+        "OpenAISchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/OpenAISchemaConverter.md",
+        "ShuttleAISchemaConverter": f"{BASEDIR}/standard/swarmauri_standard/schema_converters/ShuttleAISchemaConverter.md",
+        "ServiceRegistry": f"{BASEDIR}/standard/swarmauri_standard/service_registries/ServiceRegistry.md",
+        "DictState": f"{BASEDIR}/standard/swarmauri_standard/state/DictState.md",
+        "GroqSTT": f"{BASEDIR}/standard/swarmauri_standard/stt/GroqSTT.md",
+        "OpenaiSTT": f"{BASEDIR}/standard/swarmauri_standard/stt/OpenaiSTT.md",
+        "WhisperLargeSTT": f"{BASEDIR}/standard/swarmauri_standard/stt/WhisperLargeSTT.md",
+        "Swarm": f"{BASEDIR}/standard/swarmauri_standard/swarms/Swarm.md",
+        "RoundRobinStrategy": f"{BASEDIR}/standard/swarmauri_standard/task_mgmt_strategies/RoundRobinStrategy.md",
+        "AccessibilityToolkit": f"{BASEDIR}/standard/swarmauri_standard/toolkits/AccessibilityToolkit.md",
+        "Toolkit": f"{BASEDIR}/standard/swarmauri_standard/toolkits/Toolkit.md",
+        "AdditionTool": f"{BASEDIR}/standard/swarmauri_standard/tools/AdditionTool.md",
+        "AutomatedReadabilityIndexTool": f"{BASEDIR}/standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.md",
+        "CalculatorTool": f"{BASEDIR}/standard/swarmauri_standard/tools/CalculatorTool.md",
+        "CodeExtractorTool": f"{BASEDIR}/standard/swarmauri_standard/tools/CodeExtractorTool.md",
+        "CodeInterpreterTool": f"{BASEDIR}/standard/swarmauri_standard/tools/CodeInterpreterTool.md",
+        "ColemanLiauIndexTool": f"{BASEDIR}/standard/swarmauri_standard/tools/ColemanLiauIndexTool.md",
+        "FleschKincaidTool": f"{BASEDIR}/standard/swarmauri_standard/tools/FleschKincaidTool.md",
+        "FleschReadingEaseTool": f"{BASEDIR}/standard/swarmauri_standard/tools/FleschReadingEaseTool.md",
+        "GunningFogTool": f"{BASEDIR}/standard/swarmauri_standard/tools/GunningFogTool.md",
+        "ImportMemoryModuleTool": f"{BASEDIR}/standard/swarmauri_standard/tools/ImportMemoryModuleTool.md",
+        "JSONRequestsTool": f"{BASEDIR}/standard/swarmauri_standard/tools/JSONRequestsTool.md",
+        "Parameter": f"{BASEDIR}/standard/swarmauri_standard/tools/Parameter.md",
+        "TemperatureConverterTool": f"{BASEDIR}/standard/swarmauri_standard/tools/TemperatureConverterTool.md",
+        "TestTool": f"{BASEDIR}/standard/swarmauri_standard/tools/TestTool.md",
+        "WeatherTool": f"{BASEDIR}/standard/swarmauri_standard/tools/WeatherTool.md",
+        "ChainTracer": f"{BASEDIR}/standard/swarmauri_standard/tracing/ChainTracer.md",
+        "SimpleTraceContext": f"{BASEDIR}/standard/swarmauri_standard/tracing/SimpleTraceContext.md",
+        "SimpleTracer": f"{BASEDIR}/standard/swarmauri_standard/tracing/SimpleTracer.md",
+        "TracedVariable": f"{BASEDIR}/standard/swarmauri_standard/tracing/TracedVariable.md",
+        "PubSubTransport": f"{BASEDIR}/standard/swarmauri_standard/transports/PubSubTransport.md",
+        "HyperbolicTTS": f"{BASEDIR}/standard/swarmauri_standard/tts/HyperbolicTTS.md",
+        "OpenaiTTS": f"{BASEDIR}/standard/swarmauri_standard/tts/OpenaiTTS.md",
+        "PlayhtTTS": f"{BASEDIR}/standard/swarmauri_standard/tts/PlayhtTTS.md",
+        "DurationManager": f"{BASEDIR}/standard/swarmauri_standard/utils/DurationManager.md",
+        "MemoizingMeta": f"{BASEDIR}/standard/swarmauri_standard/utils/MemoizingMeta.md",
+        "MethodSignatureExtractor": f"{BASEDIR}/standard/swarmauri_standard/utils/MethodSignatureExtractor.md",
+        "SqlLogMeta": f"{BASEDIR}/standard/swarmauri_standard/utils/SqlLogMeta.md",
+        "TfidfVectorStore": f"{BASEDIR}/standard/swarmauri_standard/vector_stores/TfidfVectorStore.md",
+        "Vector": f"{BASEDIR}/standard/swarmauri_standard/vectors/Vector.md",
+        "FalVLM": f"{BASEDIR}/standard/swarmauri_standard/vlms/FalVLM.md",
+        "GroqVLM": f"{BASEDIR}/standard/swarmauri_standard/vlms/GroqVLM.md",
+        "HyperbolicVLM": f"{BASEDIR}/standard/swarmauri_standard/vlms/HyperbolicVLM.md",
+    }
+
+    return swarmauri_packages.get(package_name, None)
+
+
 def generate_docs(package_name: str, output_dir: str) -> dict:
     """
     Generate MkDocs-friendly Markdown files for each class in 'package_name',
@@ -34,7 +202,14 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
 
     # Attempt to import the package
     try:
-        root_package = importlib.import_module(package_name)
+        package_path = get_packages(package_name)
+        if not package_path:
+            raise ValueError(
+                f"Package '{package_name}' not found in the predefined packages."
+            )
+        spec = importlib.util.spec_from_file_location(package_name, package_path)
+        root_package = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(root_package)
     except ImportError as e:
         raise ImportError(f"Could not import package '{package_name}': {e}")
 
@@ -53,7 +228,12 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
         module_name = module_info.name
 
         try:
-            module = importlib.import_module(module_name)
+            package_path = get_packages(module_name.split(".")[-1])
+            if not package_path:
+                continue
+            spec = importlib.util.spec_from_file_location(module_name, package_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
         except ImportError:
             continue
 
@@ -98,14 +278,14 @@ def build_nav_for_api_docs(
     Return a nav structure that fits under the API Documentation section:
 
     - API Documentation:
-      - api/index.md
+      - {BASEDIR}/index.md
       - Top Label:
-        - Home: api/top_label/index.md
+        - Home: {BASEDIR}/top_label/index.md
         - Agents:
-          - QAAgent: api/top_label/package_name/agents/QAAgent.md
-          - RagAgent: api/top_label/package_name/agents/RagAgent.md
+          - QAAgent: {BASEDIR}/top_label/package_name/agents/QAAgent.md
+          - RagAgent: {BASEDIR}/top_label/package_name/agents/RagAgent.md
         - Chains:
-          - CallableChain: api/top_label/package_name/chains/CallableChain.md
+          - CallableChain: {BASEDIR}/top_label/package_name/chains/CallableChain.md
         ...
 
     This function organizes classes by module category (agents, chains, etc.)

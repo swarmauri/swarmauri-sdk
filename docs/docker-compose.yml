@@ -1,0 +1,37 @@
+services:
+    mkdocs:
+        image: python:3.12-slim
+        container_name: mkdocs
+        # restart: unless-stopped
+        ports:
+            - "8000:8000" # Expose mkdocs on port 8000
+        volumes:
+            - .:/docs # Mount the local docs directory
+            - ./pyproject.toml:/docs/pyproject.toml # Mount pyproject.toml for dependencies
+            - ./poetry.lock:/docs/poetry.lock # Mount poetry.lock for dependencies
+        working_dir: /docs
+        command: sh -c "pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && poetry install && mkdocs serve -a 0.0.0.0:8000"
+        networks:
+            - dockernet
+
+    nginxproxymanager:
+        image: 'jc21/nginx-proxy-manager:latest'
+        container_name: nginxproxymanager
+        restart: unless-stopped
+        expose:
+            - 81
+            - 80
+            - 443
+        ports:
+            - '80:80' # Public HTTP Port
+            - '443:443' # Public HTTPS Port
+            - '81:81'
+        volumes:
+            - ./mnt/data/nginx-proxy-manager:/data
+            - ./mnt/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+        networks:
+            - dockernet
+
+networks:
+    dockernet:
+        driver: bridge
