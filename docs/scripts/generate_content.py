@@ -278,14 +278,14 @@ def build_nav_for_api_docs(
     Return a nav structure that fits under the API Documentation section:
 
     - API Documentation:
-      - {BASEDIR}/index.md
+      - api/index.md
       - Top Label:
-        - Home: {BASEDIR}/top_label/index.md
+        - Home: api/top_label/index.md
         - Agents:
-          - QAAgent: {BASEDIR}/top_label/package_name/agents/QAAgent.md
-          - RagAgent: {BASEDIR}/top_label/package_name/agents/RagAgent.md
+          - QAAgent: api/top_label/package_name/agents/QAAgent.md
+          - RagAgent: api/top_label/package_name/agents/RagAgent.md
         - Chains:
-          - CallableChain: {BASEDIR}/top_label/package_name/chains/CallableChain.md
+          - CallableChain: api/top_label/package_name/chains/CallableChain.md
         ...
 
     This function organizes classes by module category (agents, chains, etc.)
