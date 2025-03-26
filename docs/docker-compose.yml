@@ -7,10 +7,9 @@ services:
             - "8000:8000" # Expose mkdocs on port 8000
         volumes:
             - .:/docs # Mount the local docs directory
-            - ./pyproject.toml:/docs/pyproject.toml # Mount pyproject.toml for dependencies
-            - ./poetry.lock:/docs/poetry.lock # Mount poetry.lock for dependencies
+            - ../pkgs:/pkgs # Mount the local pkgs directory
         working_dir: /docs
-        command: sh -c "pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && poetry install && mkdocs serve -a 0.0.0.0:8000"
+        command: sh -c " pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && python scripts/install_packages.py && poetry install && mkdocs serve -a 0.0.0.0:8000"
         networks:
             - dockernet
 
