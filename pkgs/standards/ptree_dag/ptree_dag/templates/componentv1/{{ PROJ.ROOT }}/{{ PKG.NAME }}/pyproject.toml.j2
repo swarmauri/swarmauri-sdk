@@ -62,11 +62,11 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-{%- set grouped_modules = PKG.MODULES | groupby('RESOURCE_KIND') %}
+{%- set grouped_modules = PKG.MODULES | groupby('EXTRAS.RESOURCE_KIND') %}
 {%- for kind, mods in grouped_modules %}
 [tool.poetry.plugins."swarmauri.{{ kind }}"]
 {%- for mod in mods %}
-{{ mod.NAME|lower }} = "{{ PKG.NAME }}:{{ mod.NAME }}"
+{{ mod.NAME }} = "{{ PKG.NAME }}:{{ mod.NAME }}"
 {%- endfor %}
 {%- endfor %}
 
