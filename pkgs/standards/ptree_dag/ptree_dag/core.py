@@ -38,9 +38,9 @@ from ._config import _config
 import ptree_dag.templates
 from pydantic import Field, ConfigDict, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base import FullUnion
-from swarmauri_standard.logging.Logger import Logger
-from swarmauri_base.logger.LoggerBase import LoggerBase
+from swarmauri_base import SubclassUnion
+from swarmauri_standard.loggers.Logger import Logger
+from swarmauri_base.loggers.LoggerBase import LoggerBase
 
 colorama_init(autoreset=True)
 
@@ -59,7 +59,7 @@ class ProjectFileGenerator(ComponentBase):
     
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: FullUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
+    logger: SubclassUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -146,6 +146,7 @@ class ProjectFileGenerator(ComponentBase):
         sorted_records = []
         if not self.projects_list:
             self.load_projects()
+        self.logger.debug(f"Projects loaded: '{self.projects_list}'")
         for project in self.projects_list:
             file_records, start_idx = self.process_single_project(project)
             sorted_records.append(file_records)
@@ -164,13 +165,14 @@ class ProjectFileGenerator(ComponentBase):
         all_file_records = []
 
         packages = project.get("PACKAGES", [])
-        project_name = project.get("PROJECT_NAME", "UnnamedProject")
+        project_name = project.get("NAME", "UnnamedProject")
         # ------------------------------------------------------
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------
         for pkg in packages:
-            project_only_context = project.copy()
-            project_only_context['PACKAGES'] = [pkg]
+            project_only_context = {}
+            project_only_context["PROJ"] = project.copy()
+            project_only_context['PROJ']['PKGS'] = [pkg]
 
 
             # 1A. Determine the correct template set for this package
@@ -182,7 +184,7 @@ class ProjectFileGenerator(ComponentBase):
                 self.update_templates_dir(template_dir)
             except ValueError as e:
                 self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    "Package '{pkg.get('NAME')}' error: {e}")
+                    f"Package '{pkg.get('NAME')}' error: {e}")
                 continue  # skip or handle differently
 
             # 1B. Find the package’s `ptree.yaml.j2` in that template directory
@@ -190,7 +192,7 @@ class ProjectFileGenerator(ComponentBase):
             if not os.path.isfile(ptree_template_path):
                 self.logger.error(
                     Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    "Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
+                    f"Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
                 )
                 continue
 
@@ -200,7 +202,7 @@ class ProjectFileGenerator(ComponentBase):
                 rendered_yaml_str = self.j2pt.fill(project_only_context)  # or fill(**pkg)
             except Exception as e:
                 self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    "Render failure for package '{pkg.get('NAME')}': {e}")
+                    f"Ptree render failure for package '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1D. Parse the rendered YAML into file records
@@ -208,7 +210,7 @@ class ProjectFileGenerator(ComponentBase):
                 partial_data = yaml.safe_load(rendered_yaml_str)
             except yaml.YAMLError as e:
                 self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    "YAML parse failure for '{pkg.get('NAME')}': {e}")
+                    f"YAML parse failure for '{pkg.get('NAME')}': {e}")
                 continue
 
             # 1E. The partial data might be {"FILES": [...]} or just [...]
@@ -219,7 +221,7 @@ class ProjectFileGenerator(ComponentBase):
             else:
                 self.logger.warning(
                     Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
-                    "Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
+                    f"Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
                 )
                 continue
 
