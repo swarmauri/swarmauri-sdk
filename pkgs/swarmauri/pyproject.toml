@@ -73,6 +73,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
 log_cli = true
@@ -102,4 +103,5 @@ dev = [
     "requests>=2.32.3",
     "flake8>=7.0",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

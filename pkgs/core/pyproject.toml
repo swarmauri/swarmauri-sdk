@@ -28,7 +28,8 @@ dev = [
 "pytest-xdist>=3.6.1",
 "pytest-json-report>=1.5.0",
 "pytest-timeout>=2.3.1",
-"ruff>=0.9.9"
+"ruff>=0.9.9",
+"pytest-benchmark>=4.0.0"
 ]
 
 [tool.pytest.ini_options]
@@ -40,7 +41,8 @@ markers = [
     "timeout: mark test to timeout after X seconds",
     "xfail: Expected failures",
     "xpass: Expected passes",
-    "acceptance: Acceptance tests"
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage"
 ]
 
 log_cli = true

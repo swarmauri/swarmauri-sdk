@@ -20,6 +20,7 @@ dev = [
     "pytest-mock>=3.14.0",
     "jsonschema>=4.18.5",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]
 
 [tool.uv]
@@ -199,6 +200,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 
 timeout = 300
