@@ -165,7 +165,7 @@ class ProjectFileGenerator(ComponentBase):
         all_file_records = []
 
         packages = project.get("PACKAGES", [])
-        project_name = project.get("PROJECT_NAME", "UnnamedProject")
+        project_name = project.get("NAME", "UnnamedProject")
         # ------------------------------------------------------
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------

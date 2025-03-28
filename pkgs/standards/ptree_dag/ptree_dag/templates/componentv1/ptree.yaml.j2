@@ -95,16 +95,16 @@
   MODULE_NAME: "{{ MOD.NAME }}"
   EXTRAS:
     DEPENDENCIES:
-      {%- if MOD.BASE_FILE %}
-              - "{{ MOD.BASE_FILE }}"
+      {%- if MOD.EXTRAS.BASE_FILE %}
+              - "{{ MOD.EXTRAS.BASE_FILE }}"
       {%- endif %}
-      {%- if MOD.EXTERNAL_DOC_FILES %}
-        {%- for doc in MOD.EXTERNAL_DOC_FILES %}
+      {%- if MOD.EXTRAS.EXTERNAL_DOC_FILES %}
+        {%- for doc in MOD.EXTRAS.EXTERNAL_DOC_FILES %}
               - "{{ doc }}"
         {%- endfor %}
       {%- endif %}
-      {%- if MOD.DEPENDENCIES %}
-        {%- for dep in MOD.DEPENDENCIES %}
+      {%- if MOD.EXTRAS.DEPENDENCIES %}
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
           {%- if "/" in dep %}
               - "{{ dep }}"
           {%- else %}
@@ -117,19 +117,19 @@
           {%- endif %}
         {%- endfor %}
       {%- endif %}
-      {%- if MOD.MIXIN_FILES %}
-        {%- for mf in MOD.MIXIN_FILES %}
+      {%- if MOD.EXTRAS.MIXIN_FILES %}
+        {%- for mf in MOD.EXTRAS.MIXIN_FILES %}
               - "{{ mf }}"
         {%- endfor %}
       {%- endif %}
-    PURPOSE: "{{ MOD.PURPOSE }}"
-    DESCRIPTION: "{{ MOD.DESCRIPTION }}"
+    PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+    DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
     REQUIREMENTS:
       - "Implement the functionality for module {{ MOD.NAME }}."
       - "Provide implementation logic for inherited methods when applicable."
       - "Ensure that all methods include complete, comprehensive, and fully functional implementation logic."
-    {%- if MOD.REQUIREMENTS %}
-    {%- for req in MOD.REQUIREMENTS %}
+    {%- if MOD.EXTRAS.REQUIREMENTS %}
+    {%- for req in MOD.EXTRAS.REQUIREMENTS %}
       - "{{ req }}"
     {%- endfor %}
     {%- endif %}
