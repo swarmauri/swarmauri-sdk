@@ -1,6 +1,6 @@
-I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
+I need you to revise the file named "{{ FILE.RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
 
-Below are the details and requirements for this task:
+Below are the details and requirements for the original task task:
 
 1. **Purpose**:
    {{ FILE.EXTRAS.PURPOSE }}
@@ -52,7 +52,9 @@ Leverage the reference file below as a guideline to utilize when creating the ne
 {% include FILE.RENDERED_FILE_NAME %}
 
 ### Test results
-{{ INJ.REVISON_NOTES }}
+```
+{{ INJ }}
+```
 
 {# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
 {% if FILE.EXTRAS.DEPENDENCIES %}
