@@ -3,13 +3,17 @@
 CLI for the ProjectFileGenerator
 
 Enhancement: --api-key support with environment variable fallback.
+If --revise is used, we now require either --revision-notes or --revision-notes-file.
 """
 
 import os
+import json
 import typer
 from pprint import pformat
 from pydantic import FilePath
 from pathlib import Path
+from typing import Optional
+
 from .core import ProjectFileGenerator, Fore, Back, Style
 from ._config import _config
 from ._banner import _print_banner
@@ -27,7 +31,7 @@ def process(
     project_name: str = typer.Option(None, help="Name of the project to process."),
     template_base_dir: str = typer.Option(None, help="Optional base directory for templates."),
     additional_package_dirs: str = typer.Option(
-        None, 
+        None,
         help="Optional list of additional directories to include in J2 env. Delimited by ','"
     ),
     provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai, etc.)"),
@@ -36,8 +40,8 @@ def process(
     start_idx: int = typer.Option(None, help="Start at a certain file (Use sort to find idx number)"),
     start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use sort to find filename)"),
     include_swarmauri: bool = typer.Option(
-        True, 
-        "--include-swarmauri/--no-include-swarmauri", 
+        True,
+        "--include-swarmauri/--no-include-swarmauri",
         help="Include swarmauri-sdk in the environment by default."
     ),
     swarmauri_dev: bool = typer.Option(
@@ -46,12 +50,12 @@ def process(
         help="Use the mono/dev branch of swarmauri-sdk instead of master."
     ),
     api_key: str = typer.Option(
-        None, 
+        None,
         help="API key used to authenticate with the selected provider. "
              "If omitted, we look up <PROVIDER>_API_KEY in the environment."
     ),
     env: str = typer.Option(
-        ".env", 
+        ".env",
         help="Filepath for env file used to authenticate with the selected provider. "
              "If omitted, we only load the environment."
     ),
@@ -61,9 +65,21 @@ def process(
         "--revise/--no-revise",
         help="Boolean flag to indicate 'revision' mode. Defaults to off."
     ),
+    revision_notes: Optional[str] = typer.Option(
+        None,
+        "--revision-notes",
+        help="Inline text for revision notes (required if --revise is used without --revision-notes-file)."
+    ),
+    revision_notes_file: Optional[Path] = typer.Option(
+        None,
+        "--revision-notes-file",
+        help="File containing revision notes (.yaml, .yml, .json, or raw text)."
+    ),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
+
+    If --revise is used, either --revision-notes or --revision-notes-file is required.
     """
     if start_idx and start_file:
         typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
@@ -72,6 +88,43 @@ def process(
     if not project_name and (start_idx or start_file):
         typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
         raise typer.Exit(code=1)
+
+    # -------- NEW LOGIC FOR REVISION NOTES --------
+    if revise:
+        # Must provide at least one of --revision-notes or --revision-notes-file
+        if not (revision_notes or revision_notes_file):
+            typer.echo(
+                "[ERROR] The --revise flag requires either "
+                "--revision-notes or --revision-notes-file."
+            )
+            raise typer.Exit(code=1)
+
+        # If both are provided, prefer the file
+        notes_text = None
+        if revision_notes_file is not None:
+            try:
+                suffix = revision_notes_file.suffix.lower()
+                if suffix in [".yaml", ".yml"]:
+                    import yaml
+                    with open(revision_notes_file, "r") as f:
+                        loaded_data = yaml.safe_load(f)
+                    notes_text = pformat(loaded_data)
+                elif suffix == ".json":
+                    with open(revision_notes_file, "r") as f:
+                        loaded_data = json.load(f)
+                    notes_text = pformat(loaded_data)
+                else:
+                    # Fallback to reading plain text
+                    notes_text = revision_notes_file.read_text()
+            except Exception as exc:
+                typer.echo(f"[ERROR] Failed to read/parse revision notes file: {exc}")
+                raise typer.Exit(code=1)
+        else:
+            # If no file provided, we default to the inline text
+            notes_text = revision_notes
+
+        # Store to _config so you can pass it into your logic
+        _config["revision_notes"] = notes_text
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
     additional_dirs_list = additional_package_dirs.split(',') if additional_package_dirs else []
@@ -84,7 +137,7 @@ def process(
 
     # Update config to set truncation and revision
     _config["truncate"] = trunc
-    _config["revise"] = revise  # <--- Here is our new config addition
+    _config["revise"] = revise
 
     # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)
@@ -95,7 +148,7 @@ def process(
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
             agent_env={
-                "provider": provider, 
+                "provider": provider,
                 "model_name": model_name,
                 "api_key": resolved_key,
             },
@@ -134,7 +187,7 @@ def sort(
     project_name: str = typer.Option(None, help="Name of the project to process."),
     template_base_dir: str = typer.Option(None, help="Optional base directory for templates."),
     additional_package_dirs: str = typer.Option(
-        None, 
+        None,
         help="Optional list of additional directories to include in J2 env. Delimited by ','"
     ),
     provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai)"),
@@ -142,8 +195,8 @@ def sort(
     start_idx: int = typer.Option(None, help="Start at a certain file idx-wise (Use sort to find idx number)"),
     start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use sort to find filename)"),
     include_swarmauri: bool = typer.Option(
-        True, 
-        "--include-swarmauri/--no-include-swarmauri", 
+        True,
+        "--include-swarmauri/--no-include-swarmauri",
         help="Include swarmauri-sdk in the environment by default."
     ),
     swarmauri_dev: bool = typer.Option(
@@ -152,12 +205,12 @@ def sort(
         help="Use the mono/dev branch of swarmauri-sdk instead of master."
     ),
     api_key: str = typer.Option(
-        None, 
+        None,
         help="API key used to authenticate with the selected provider. "
              "If omitted, we look up <PROVIDER>_API_KEY in the environment."
     ),
     env: str = typer.Option(
-        ".env", 
+        ".env",
         help="Filepath for env file used to authenticate with the selected provider. "
              "If omitted, we only load the environment."
     ),
@@ -178,12 +231,10 @@ def sort(
     additional_dirs_list = additional_package_dirs.split(',') if additional_package_dirs else []
     additional_dirs_list = [FilePath(_d) for _d in additional_dirs_list]
 
-    # Conditionally include swarmauri-sdk
     if include_swarmauri:
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))
 
-    # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)
 
     pfg = ProjectFileGenerator(
@@ -197,8 +248,7 @@ def sort(
         },
         dry_run=True
     )
-    
-    # Set verbosity level based on count
+
     if verbose == 1:
         pfg.logger.set_level(30)  # INFO
     elif verbose == 2:
@@ -228,7 +278,7 @@ def sort(
         projects_sorted_records = pfg.process_all_projects()
         pfg.logger.debug(pformat(projects_sorted_records))
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJECT_NAME")  # This references the PROJECT_NAME found on the File Record
+            current_project_name = sorted_records[0].get("PROJECT_NAME")
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):
