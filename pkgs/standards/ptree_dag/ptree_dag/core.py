@@ -31,7 +31,7 @@ from pathlib import Path
 
 # Import helper modules from our package.
 from ._processing import _process_project_files
-from ._graph import _topological_sort
+from ._graph import _topological_sort, _transitive_dependency_sort
 from ._Jinja2PromptTemplate import j2pt
 from ._config import _config
 
@@ -153,130 +153,186 @@ class ProjectFileGenerator(ComponentBase):
         return sorted_records
 
 
-    def process_single_project(self, project: Dict[str, Any], start_idx: int = 0, start_file: Optional[str] = None) -> Tuple[list,int]:
+    def process_single_project(
+        self,
+        project: Dict[str, Any],
+        start_idx: int = 0,
+        start_file: Optional[str] = None
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
         1) For each package in the project, render its ptree.yaml.j2 to get file records.
         2) Combine those records into a single list.
-        3) Perform topological sort across ALL records in the project.
-        4) Process the sorted records.
+        3) Depending on _config['transitive']:
+           - If transitive=True and start_file is set, use _transitive_dependency_sort.
+           - If transitive=True and start_file is not set, use _topological_sort.
+           - If transitive=False, always use _topological_sort.
+        4) Even if transitive=False, still honor start_file by skipping up to that file's index in the sorted list.
+        5) Skip start_idx files.
+        6) Process the remaining files.
         """
 
-        # We gather all file records from all packages here:
         all_file_records = []
 
         packages = project.get("PACKAGES", [])
         project_name = project.get("NAME", "UnnamedProject")
+
         # ------------------------------------------------------
         # PHASE 1: RENDER EACH PACKAGE’S ptree.yaml.j2
         # ------------------------------------------------------
         for pkg in packages:
             project_only_context = {}
             project_only_context["PROJ"] = project.copy()
-            project_only_context['PROJ']['PKGS'] = [pkg]
+            project_only_context["PROJ"]["PKGS"] = [pkg]
 
-
-            # 1A. Determine the correct template set for this package
-            #     either from an override on the package or from the project-level default
-            #     🚧 This requires that we have a `default` TEMPLATE_SET in existence 🚧
-            pkg_template_set = pkg.get("TEMPLATE_SET_OVERRIDE") or pkg.get("TEMPLATE_SET", None) or project.get("TEMPLATE_SET", "default")
+            pkg_template_set = (
+                pkg.get("TEMPLATE_SET_OVERRIDE")
+                or pkg.get("TEMPLATE_SET", None)
+                or project.get("TEMPLATE_SET", "default")
+            )
 
             try:
                 template_dir = self.get_template_dir_any(pkg_template_set)
                 self.update_templates_dir(template_dir)
             except ValueError as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    f"Package '{pkg.get('NAME')}' error: {e}")
-                continue  # skip or handle differently
-
-            # 1B. Find the package’s `ptree.yaml.j2` in that template directory
-            ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
-            if not os.path.isfile(ptree_template_path):
                 self.logger.error(
-                    Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    f"Missing ptree.yaml.j2 in template dir {template_dir} for package '{pkg.get('NAME')}'."
+                    f"[{project_name}] Package '{pkg.get('NAME')}' error: {e}"
                 )
                 continue
 
-            # 1C. Render it with the package data
-            try:
-                self.j2pt.set_template(FilePath(ptree_template_path))
-                rendered_yaml_str = self.j2pt.fill(project_only_context)  # or fill(**pkg)
-            except Exception as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    f"Ptree render failure for package '{pkg.get('NAME')}': {e}")
+            ptree_template_path = os.path.join(template_dir, "ptree.yaml.j2")
+            if not os.path.isfile(ptree_template_path):
+                self.logger.error(
+                    f"[{project_name}] Missing ptree.yaml.j2 in template dir "
+                    f"{template_dir} for package '{pkg.get('NAME')}'."
+                )
                 continue
 
-            # 1D. Parse the rendered YAML into file records
+            try:
+                self.j2pt.set_template(FilePath(ptree_template_path))
+                rendered_yaml_str = self.j2pt.fill(project_only_context)
+            except Exception as e:
+                self.logger.error(
+                    f"[{project_name}] Ptree render failure for package "
+                    f"'{pkg.get('NAME')}': {e}"
+                )
+                continue
+
             try:
                 partial_data = yaml.safe_load(rendered_yaml_str)
             except yaml.YAMLError as e:
-                self.logger.error(Fore.GREEN + f"[{project_name}] "+ Style.RESET_ALL + 
-                    f"YAML parse failure for '{pkg.get('NAME')}': {e}")
+                self.logger.error(
+                    f"[{project_name}] YAML parse failure for '{pkg.get('NAME')}': {e}"
+                )
                 continue
 
-            # 1E. The partial data might be {"FILES": [...]} or just [...]
             if isinstance(partial_data, dict) and "FILES" in partial_data:
                 pkg_file_records = partial_data["FILES"]
             elif isinstance(partial_data, list):
                 pkg_file_records = partial_data
             else:
                 self.logger.warning(
-                    Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
-                    f"Unexpected YAML structure from package '{pkg.get('NAME')}'; skipping."
+                    f"[{project_name}] Unexpected YAML structure from "
+                    f"package '{pkg.get('NAME')}'; skipping."
                 )
                 continue
 
-            # 1F. Set template on each file
             for record in pkg_file_records:
-                record.update({"TEMPLATE_SET":template_dir})
+                record["TEMPLATE_SET"] = template_dir
 
-            # 1G. Accumulate these package-level file records
             all_file_records.extend(pkg_file_records)
 
-        # ------------------------------------------------------
-        # PHASE 2: TOPOLOGICAL SORT ACROSS ALL RECORDS
-        # ------------------------------------------------------
         if not all_file_records:
-            self.logger.warning(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
-                "No file records found at all.")
-            return
+            self.logger.warning(f"[{project_name}] No file records found at all.")
+            return ([], 0)
+
+        # ------------------------------------------------------
+        # PHASE 2: DECIDE WHICH TOPOLOGICAL SORT METHOD
+        # ------------------------------------------------------
+        from ._config import _config
+        transitive = _config.get("transitive", False)
 
         try:
-            sorted_records = _topological_sort(all_file_records)
-            if not start_idx and start_file:
-                for _idx, _rec in enumerate(sorted_records):
-                    if _rec.get("RENDERED_FILE_NAME") == start_file:
-                        start_idx = _idx
-            sorted_records = sorted_records[start_idx:]
-            self.logger.info(
-               "Topologically sorted " + Fore.GREEN + f"{len(sorted_records)}" + Style.RESET_ALL 
-               + f" on '{project_name}'"
-            )
+            if transitive:
+                # If transitive is True and a specific file is given, 
+                # return only the transitive closure for that file.
+                if start_file:
+                    sorted_records = _transitive_dependency_sort(all_file_records, start_file)
+                    self.logger.info(
+                        f"Transitive sort for '{start_file}' on project '{project_name}', "
+                        f"yielding {len(sorted_records)} files."
+                    )
+                else:
+                    # Otherwise, do a full topological sort
+                    sorted_records = _topological_sort(all_file_records)
+                    self.logger.info(
+                        f"Full transitive sort ({len(sorted_records)} files) "
+                        f"on project '{project_name}'."
+                    )
+            else:
+                # transitive=False => always a full topological sort
+                sorted_records = _topological_sort(all_file_records)
+                self.logger.info(
+                    f"Non-transitive sort ({len(sorted_records)} files) "
+                    f"on project '{project_name}'."
+                )
+
+            # ------------------------------------------------------
+            # PHASE 3: HANDLE start_file EVEN IF NOT TRANSITIVE
+            # (i.e., skip up to that file in the sorted list)
+            # ------------------------------------------------------
+            if start_file and not transitive:
+                # Find the first occurrence of `start_file` by name in the sorted list
+                found_index = next(
+                    (i for i, fr in enumerate(sorted_records)
+                     if fr.get("RENDERED_FILE_NAME") == start_file),
+                    None
+                )
+                if found_index is not None:
+                    self.logger.info(
+                        f"Skipping all files before '{start_file}' (index {found_index})."
+                    )
+                    sorted_records = sorted_records[found_index:]
+                else:
+                    self.logger.warning(
+                        f"Requested start_file '{start_file}' not found; "
+                        f"no skipping applied."
+                    )
+
+            # ------------------------------------------------------
+            # PHASE 4: SKIP start_idx FILES
+            # ------------------------------------------------------
+            if start_idx > 0:
+                # Make sure we do not exceed length
+                to_process_count = max(0, len(sorted_records) - start_idx)
+                self.logger.info(
+                    f"Skipping first {start_idx} file(s). "
+                    f"Processing {to_process_count} remaining files for '{project_name}'."
+                )
+                sorted_records = sorted_records[start_idx:]
+
         except Exception as e:
-            self.logger.error(Fore.RED + f"[{project_name}] "+ Style.RESET_ALL + 
-                f"Failed to topologically sort: {e}")
-            return
+            self.logger.error(
+                f"[{project_name}] Failed to topologically sort: {e}"
+            )
+            return ([], 0)
 
         # ------------------------------------------------------
-        # PHASE 3: PROCESS THE SORTED FILES
+        # PHASE 5: PROCESS THE SORTED FILES
         # ------------------------------------------------------
-        # If each record might still have a unique template set, you can do a 
-        # second override resolution here if needed. Or you can assume the record 
-        # already includes its final template path from the partial step.
-        if not self.dry_run:
+        if not self.dry_run and sorted_records:
             _process_project_files(
                 global_attrs=project,
                 file_records=sorted_records,
-                # You might pass a default template_dir, but each record can override
-                # as needed if your _process_project_files supports that.
-                template_dir=template_dir, 
+                template_dir=template_dir,  # Each record has its own TEMPLATE_SET
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=start_idx
+                start_idx=0
             )
-            self.logger.info(f"Completed file generation workflow on {project_name}'")
-            return sorted_records, start_idx
-        else:
-            return sorted_records, start_idx
+            self.logger.info(f"Completed file generation workflow on '{project_name}'.")
+
+        return (sorted_records, start_idx)
+
+
+
 
 

@@ -4,6 +4,8 @@ CLI for the ProjectFileGenerator
 
 Enhancement: --api-key support with environment variable fallback.
 If --revise is used, we now require either --revision-notes or --revision-notes-file.
+
+Also added --transitive to limit sorting to transitive dependencies if start-file or start-idx is used.
 """
 
 import os
@@ -37,8 +39,8 @@ def process(
     provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai, etc.)"),
     model_name: str = typer.Option(None, help="The model_name to use."),
     trunc: bool = typer.Option(True, help="Truncate response (True or False)"),
-    start_idx: int = typer.Option(None, help="Start at a certain file (Use sort to find idx number)"),
-    start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use sort to find filename)"),
+    start_idx: int = typer.Option(None, help="Start at a certain file (Use 'sort' to find idx number)"),
+    start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use 'sort' to find filename)"),
     include_swarmauri: bool = typer.Option(
         True,
         "--include-swarmauri/--no-include-swarmauri",
@@ -75,6 +77,14 @@ def process(
         "--revision-notes-file",
         help="File containing revision notes (.yaml, .yml, .json, or raw text)."
     ),
+    # -----------------------------
+    # NEW TRANSITIVE FLAG
+    # -----------------------------
+    transitive: bool = typer.Option(
+        False,
+        "--transitive/--no-transitive",
+        help="If set, will only process transitive dependencies if start-file or start-idx is provided."
+    ),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
@@ -99,7 +109,6 @@ def process(
             )
             raise typer.Exit(code=1)
 
-        # If both are provided, prefer the file
         notes_text = None
         if revision_notes_file is not None:
             try:
@@ -120,10 +129,7 @@ def process(
                 typer.echo(f"[ERROR] Failed to read/parse revision notes file: {exc}")
                 raise typer.Exit(code=1)
         else:
-            # If no file provided, we default to the inline text
             notes_text = revision_notes
-
-        # Store to _config so you can pass it into your logic
         _config["revision_notes"] = notes_text
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
@@ -132,12 +138,14 @@ def process(
 
     # Conditionally include swarmauri-sdk by cloning and adding the tmpdir to additional_package_dirs
     if include_swarmauri:
+        from ._gitops import _clone_swarmauri_repo
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))
 
-    # Update config to set truncation and revision
+    # Update config to set truncation, revision, and transitive
     _config["truncate"] = trunc
     _config["revise"] = revise
+    _config["transitive"] = transitive
 
     # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)
@@ -153,7 +161,6 @@ def process(
                 "api_key": resolved_key,
             },
         )
-        # Set verbosity level based on count
         if verbose == 1:
             pfg.logger.set_level(30)  # INFO
         elif verbose == 2:
@@ -192,11 +199,11 @@ def sort(
     ),
     provider: str = typer.Option(None, help="The LLM Provider (DeepInfra, LlamaCpp, Openai)"),
     model_name: str = typer.Option(None, help="The model_name to use."),
-    start_idx: int = typer.Option(None, help="Start at a certain file idx-wise (Use sort to find idx number)"),
-    start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use sort to find filename)"),
+    start_idx: int = typer.Option(None, help="Start at a certain file idx-wise (Use 'sort' to find idx number)"),
+    start_file: str = typer.Option(None, help="Start at a certain file name-wise (Use 'sort' to find filename)"),
     include_swarmauri: bool = typer.Option(
         True,
-        "--include-swarmauri/--no-include-swarmauri",
+        "--include-swarmauri/--no-swarmauri",
         help="Include swarmauri-sdk in the environment by default."
     ),
     swarmauri_dev: bool = typer.Option(
@@ -215,6 +222,14 @@ def sort(
              "If omitted, we only load the environment."
     ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
+    # -----------------------------
+    # NEW TRANSITIVE FLAG
+    # -----------------------------
+    transitive: bool = typer.Option(
+        False,
+        "--transitive/--no-transitive",
+        help="If set, will only show transitive dependencies if start-file or start-idx is provided."
+    ),
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -227,13 +242,17 @@ def sort(
         typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
         raise typer.Exit(code=1)
 
+    # Put transitive setting into _config
+    _config["transitive"] = transitive
+
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
     additional_dirs_list = additional_package_dirs.split(',') if additional_package_dirs else []
     additional_dirs_list = [FilePath(_d) for _d in additional_dirs_list]
 
-    if include_swarmauri:
-        cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
-        additional_dirs_list.append(FilePath(cloned_dir))
+    # if include_swarmauri:
+    #     from ._gitops import _clone_swarmauri_repo
+    #     cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
+    #     additional_dirs_list.append(FilePath(cloned_dir))
 
     resolved_key = _resolve_api_key(provider, api_key, env)
 
@@ -273,12 +292,17 @@ def sort(
         pfg.logger.info("")
         pfg.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
         for i, record in enumerate(sorted_records):
-            pfg.logger.info(f'\t{i + start_idx}) {record.get("RENDERED_FILE_NAME")}')
+            pfg.logger.info(f'\t{i + (start_idx or 0)}) {record.get("RENDERED_FILE_NAME")}')
     else:
         projects_sorted_records = pfg.process_all_projects()
         pfg.logger.debug(pformat(projects_sorted_records))
+
+        # If process_all_projects returns multiple lists (one per project),
+        # each sublist has sorted records for that project
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJECT_NAME")
+            if not sorted_records:
+                continue
+            current_project_name = sorted_records[0].get("PROJECT_NAME", "UnknownProject")
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):
@@ -311,7 +335,7 @@ def get_templates(
         if isinstance(each, list):
             templates.extend(each)
 
-    typer.echo('\nTemplate Directories:')
+    typer.echo('\nAvailable Template Folders:')
     for _t in templates:
         typer.echo(f"- {_t}")
 

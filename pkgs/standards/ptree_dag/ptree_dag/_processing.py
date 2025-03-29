@@ -119,11 +119,14 @@ def _process_file(file_record: Dict[str, Any],
 
 
         if _config['revise']:
+            # Set agent_prompte_template from agent_env and set INJ_CTX.
             agent_prompt_template_name = agent_env['AGENT_PROMPT_TEMPLATE']
             context['INJ'] = _config['revision_notes']
+        else:
+            # Determine the agent prompt template.
+            agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
 
-        # Determine the agent prompt template.
-        agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
+        # Set final agent_prompt_template_path
         agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
 
 
