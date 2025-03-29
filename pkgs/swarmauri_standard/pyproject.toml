@@ -49,6 +49,7 @@ dev = [
 "ipython>=8.28.0",
 "requests>=2.32.3",
 "ruff>=0.9.9",
+"pytest-benchmark>=4.0.0",
 ]
 
 [tool.pytest.ini_options]
@@ -63,7 +64,8 @@ markers = [
     "timeout: mark test to timeout after X seconds",
     "xfail: Expected failures",
     "xpass: Expected passes",
-    "acceptance: Acceptance tests"
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage"
 ]
 
 
