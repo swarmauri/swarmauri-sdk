@@ -114,13 +114,13 @@ def _process_file(file_record: Dict[str, Any],
         content = _render_copy_template(file_record, context, logger)
 
     elif process_type == "GENERATE":
-        if _config['revise'] and 'AGENT_PROMPT_TEMPLATE' not in agent_env:
-            agent_env['AGENT_PROMPT_TEMPLATE'] = "agent_revise.j2"
+        if _config['revise'] and 'agent_prompt_template_file' not in agent_env:
+            agent_env['agent_prompt_template_file'] = "agent_revise.j2"
 
 
         if _config['revise']:
             # Set agent_prompte_template from agent_env and set INJ_CTX.
-            agent_prompt_template_name = agent_env['AGENT_PROMPT_TEMPLATE']
+            agent_prompt_template_name = agent_env['agent_prompt_template_file']
             context['INJ'] = _config['revision_notes']
         else:
             # Determine the agent prompt template.
