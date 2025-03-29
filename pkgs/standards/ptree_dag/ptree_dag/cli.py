@@ -56,6 +56,11 @@ def process(
              "If omitted, we only load the environment."
     ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
+    revise: bool = typer.Option(
+        False,
+        "--revise/--no-revise",
+        help="Boolean flag to indicate 'revision' mode. Defaults to off."
+    ),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
@@ -77,8 +82,9 @@ def process(
         cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
         additional_dirs_list.append(FilePath(cloned_dir))
 
-    # Update config to set truncation
+    # Update config to set truncation and revision
     _config["truncate"] = trunc
+    _config["revise"] = revise  # <--- Here is our new config addition
 
     # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)
@@ -222,7 +228,7 @@ def sort(
         projects_sorted_records = pfg.process_all_projects()
         pfg.logger.debug(pformat(projects_sorted_records))
         for sorted_records in projects_sorted_records:
-            current_project_name = sorted_records[0].get("PROJECT_NAME") # This references the PROJECT_NAME found on the File Record
+            current_project_name = sorted_records[0].get("PROJECT_NAME")  # This references the PROJECT_NAME found on the File Record
             pfg.logger.info("")
             pfg.logger.info(Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL)
             for i, record in enumerate(sorted_records):

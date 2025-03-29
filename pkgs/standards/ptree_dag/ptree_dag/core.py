@@ -177,6 +177,7 @@ class ProjectFileGenerator(ComponentBase):
 
             # 1A. Determine the correct template set for this package
             #     either from an override on the package or from the project-level default
+            #     🚧 This requires that we have a `default` TEMPLATE_SET in existence 🚧
             pkg_template_set = pkg.get("TEMPLATE_SET_OVERRIDE") or pkg.get("TEMPLATE_SET", None) or project.get("TEMPLATE_SET", "default")
 
             try:

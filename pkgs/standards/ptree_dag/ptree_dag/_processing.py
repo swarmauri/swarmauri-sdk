@@ -13,6 +13,7 @@ import os
 from colorama import Fore, Back, Style
 from typing import Dict, Any, List, Optional
 from pprint import pformat
+from ._config import _config
 from ._rendering import _render_copy_template, _render_generate_template
 from ._Jinja2PromptTemplate import j2pt
 
@@ -113,9 +114,18 @@ def _process_file(file_record: Dict[str, Any],
         content = _render_copy_template(file_record, context, logger)
 
     elif process_type == "GENERATE":
+        if _config['revise'] and 'AGENT_PROMPT_TEMPLATE' not in agent_env:
+            agent_env['AGENT_PROMPT_TEMPLATE'] = "agent_revise.j2"
+
+
+        if _config['revise']:
+            agent_prompt_template_name = agent_env['AGENT_PROMPT_TEMPLATE']
+            context['INJ'] = _config['revision_notes']
+
         # Determine the agent prompt template.
         agent_prompt_template_name = file_record.get("AGENT_PROMPT_TEMPLATE", "agent_default.j2")
         agent_prompt_template_path = os.path.join(template_dir, agent_prompt_template_name)
+
 
         content = _render_generate_template(file_record, context, agent_prompt_template_path, agent_env, logger)
     else:
