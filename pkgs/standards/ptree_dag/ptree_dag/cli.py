@@ -6,6 +6,7 @@ Enhancement: --api-key support with environment variable fallback.
 If --revise is used, we now require either --revision-notes or --revision-notes-file.
 
 Also added --transitive to limit sorting to transitive dependencies if start-file or start-idx is used.
+Now adding an optional --agent-prompt-template-file parameter on process.
 """
 
 import os
@@ -77,19 +78,23 @@ def process(
         "--revision-notes-file",
         help="File containing revision notes (.yaml, .yml, .json, or raw text)."
     ),
-    # -----------------------------
     # NEW TRANSITIVE FLAG
-    # -----------------------------
     transitive: bool = typer.Option(
         False,
         "--transitive/--no-transitive",
         help="If set, will only process transitive dependencies if start-file or start-idx is provided."
+    ),
+    # NEW AGENT PROMPT TEMPLATE FLAG
+    agent_prompt_template_file: str = typer.Option(
+        None,
+        help="Path to a custom agent prompt template file to be used in the agent environment."
     ),
 ):
     """
     Process a single project specified by its PROJECT_NAME in the YAML payload.
 
     If --revise is used, either --revision-notes or --revision-notes-file is required.
+    If --agent-prompt-template-file is used, it is passed along to the agent_env.
     """
     if start_idx and start_file:
         typer.echo("[ERROR] Cannot assign both --start-idx and --start-file.")
@@ -150,16 +155,21 @@ def process(
     # Resolve the appropriate API key
     resolved_key = _resolve_api_key(provider, api_key, env)
 
+    # Build the agent_env
+    agent_env = {
+        "provider": provider,
+        "model_name": model_name,
+        "api_key": resolved_key,
+    }
+    if agent_prompt_template_file:
+        agent_env["agent_prompt_template_file"] = agent_prompt_template_file
+
     try:
         pfg = ProjectFileGenerator(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
-            agent_env={
-                "provider": provider,
-                "model_name": model_name,
-                "api_key": resolved_key,
-            },
+            agent_env=agent_env,
         )
         if verbose == 1:
             pfg.logger.set_level(30)  # INFO
@@ -222,9 +232,7 @@ def sort(
              "If omitted, we only load the environment."
     ),
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"),
-    # -----------------------------
     # NEW TRANSITIVE FLAG
-    # -----------------------------
     transitive: bool = typer.Option(
         False,
         "--transitive/--no-transitive",
@@ -242,7 +250,6 @@ def sort(
         typer.echo("[ERROR] Cannot assign --start-idx or --start-file without --project-name.")
         raise typer.Exit(code=1)
 
-    # Put transitive setting into _config
     _config["transitive"] = transitive
 
     # Convert additional_package_dirs from comma-delimited string to list[FilePath]
@@ -297,8 +304,6 @@ def sort(
         projects_sorted_records = pfg.process_all_projects()
         pfg.logger.debug(pformat(projects_sorted_records))
 
-        # If process_all_projects returns multiple lists (one per project),
-        # each sublist has sorted records for that project
         for sorted_records in projects_sorted_records:
             if not sorted_records:
                 continue
