@@ -42,7 +42,10 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
         # predict a response
         self.conversation = self.llm.predict(
-            conversation=self.conversation, toolkit=self.toolkit, multiturn=multiturn, **llm_kwargs
+            conversation=self.conversation,
+            toolkit=self.toolkit,
+            multiturn=multiturn,
+            **llm_kwargs,
         )
 
         logging.info(self.conversation.get_last().content)
@@ -67,8 +70,13 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         self.conversation.add_message(human_message)
 
         # Use the LLM in async mode
-        await self.llm.apredict(conversation=self.conversation, toolkit=self.toolkit, multiturn=multiturn, **llm_kwargs)
+        await self.llm.apredict(
+            conversation=self.conversation,
+            toolkit=self.toolkit,
+            multiturn=multiturn,
+            **llm_kwargs,
+        )
         return self.conversation.get_last().content
 
     def get_tool_message_content(self) -> List[str]:
-        return [m.content for m in self.conversation.history if m.role == 'tool']
+        return [m.content for m in self.conversation.history if m.role == "tool"]

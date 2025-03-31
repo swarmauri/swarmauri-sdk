@@ -31,7 +31,7 @@ def test_set_template_from_filepath():
         temp_file.write(b"Hello, {{ name }}!")
         temp_file_path = temp_file.name
 
-    with open(temp_file_path, 'r') as file:
+    with open(temp_file_path, "r") as file:
         template_content = file.read()
 
     template.set_template(template_content)
@@ -55,7 +55,7 @@ def test_generate_prompt_from_file_template():
         temp_file.write(b"Hello, {{ name }}!")
         temp_file_path = temp_file.name
 
-    with open(temp_file_path, 'r') as file:
+    with open(temp_file_path, "r") as file:
         template_content = file.read()
 
     template.set_template(template_content)

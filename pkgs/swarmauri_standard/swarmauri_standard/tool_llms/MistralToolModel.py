@@ -36,6 +36,7 @@ class MistralToolModel(ToolLLMBase):
 
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
+
     name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
     BASE_URL: str = "https://api.mistral.ai/v1/chat/completions"
