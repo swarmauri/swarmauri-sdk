@@ -81,8 +81,9 @@ def test_default_name(openai_tool_model):
 @timeout(5)
 @pytest.mark.unit
 @pytest.mark.parametrize("model_name", get_allowed_models())
-def test_agent_exec(openai_tool_model, toolkit, conversation, model_name):
+def test_agent_exec(openai_tool_model, toolkit, model_name):
     openai_tool_model.name = model_name
+    conversation = Conversation()
 
     agent = ToolAgent(llm=openai_tool_model, conversation=conversation, toolkit=toolkit)
     result = agent.exec("Add 512+671")

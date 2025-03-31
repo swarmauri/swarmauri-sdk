@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetiopubmessage"
-version = "0.7.2"
+version = "0.7.3"
 description = "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs."
 license = "Apache-2.0"
 readme = "README.md"
@@ -37,6 +37,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
 log_cli = true
@@ -63,4 +64,5 @@ dev = [
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]
