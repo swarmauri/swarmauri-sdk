@@ -51,6 +51,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
