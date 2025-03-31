@@ -474,7 +474,7 @@ wheels = [
 
 [[package]]
 name = "catoml"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 source = { editable = "catoml" }
 
 [package.dev-dependencies]
@@ -509,7 +509,7 @@ dev = [
 
 [[package]]
 name = "cayaml"
-version = "0.1.0.dev6"
+version = "0.1.0.dev8"
 source = { editable = "cayaml" }
 
 [package.dev-dependencies]
