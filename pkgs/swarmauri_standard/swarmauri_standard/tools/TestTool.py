@@ -47,12 +47,10 @@ class TestTool(ToolBase):
                 "paint": ["open", "-a", "Preview"],
             }
         elif os_name == "Linux":
-            # For Linux, we assume some common applications.
             commands = {
                 "notepad": ["gedit"],
-                "calc": ["gnome-calculator"],
-                # 'pinta' is often used as a simple image editor similar to MSPaint.
-                "paint": ["pinta"],
+                "calc": ["xcalc"],  # Use xcalc if available
+                "mspaint": ["pinta"],
             }
         else:
             return {"error": f"Unsupported OS: {os_name}"}
@@ -66,6 +64,6 @@ class TestTool(ToolBase):
             # If cmd is a list (for Darwin/Linux) we pass it directly.
             # If it’s a string (as for Windows) we pass it as is.
             sp.Popen(cmd) if isinstance(cmd, list) else sp.Popen([cmd])
-            return {"program": f"Program Opened: {program} on {os_name}"}
+            return {"program": f"Program Opened: {program}"}
         except Exception as e:
             return {"error": f"Failed to open program: {str(e)}"}
