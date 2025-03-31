@@ -69,7 +69,7 @@ jobs:
           echo "::notice::Package name: $PACKAGE_NAME"
 
           # We run tests; if they fail, let's output an annotation (but we don't stop the workflow).
-          pytest -vvv || echo "::error::Some or all tests failed for $PACKAGE_NAME. Please review the test logs above."
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
       - name: Create patch for changes
         if: always()
