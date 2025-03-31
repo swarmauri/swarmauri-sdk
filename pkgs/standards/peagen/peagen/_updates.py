@@ -40,21 +40,27 @@ def update_global_value(key: str, value: Any) -> None:
     print(f"[INFO] Global value updated: {key} = {value}")
 
 
-def update_package_value(project_name: str, package_name: str, key: str, new_value: Any, mode: str = "replace") -> bool:
+def update_package_value(
+    project_name: str,
+    package_name: str,
+    key: str,
+    new_value: Any,
+    mode: str = "replace",
+) -> bool:
     """
     Updates a key value for a specific package within a given project in the global projects data.
     Supports list operations via the mode parameter:
       - "replace": Replace the entire value.
       - "append": Append (or extend) if the current value is a list.
       - "remove": Remove items from a list if applicable.
-    
+
     Parameters:
       project_name (str): The name of the project (e.g. "tooling").
       package_name (str): The name of the package.
       key (str): The package-level key to update.
       new_value (Any): The new value or values.
       mode (str): Operation mode ("replace", "append", or "remove"). Defaults to "replace".
-    
+
     Returns:
       bool: True if update successful, False otherwise.
     """
@@ -73,32 +79,49 @@ def update_package_value(project_name: str, package_name: str, key: str, new_val
                                 current_value.append(new_value)
                         elif mode == "remove":
                             if isinstance(new_value, list):
-                                pkg[key] = [item for item in current_value if item not in new_value]
+                                pkg[key] = [
+                                    item
+                                    for item in current_value
+                                    if item not in new_value
+                                ]
                             else:
-                                pkg[key] = [item for item in current_value if item != new_value]
+                                pkg[key] = [
+                                    item for item in current_value if item != new_value
+                                ]
                         else:  # "replace"
                             pkg[key] = new_value
                     else:
                         pkg[key] = new_value
                     updated = True
-                    print(f"[INFO] Updated package '{package_name}' key '{key}' to '{pkg[key]}' (mode: {mode}) in project '{project_name}'.")
+                    print(
+                        f"[INFO] Updated package '{package_name}' key '{key}' to '{pkg[key]}' (mode: {mode}) in project '{project_name}'."
+                    )
                     break
             if not updated:
-                print(f"[WARNING] Package '{package_name}' not found in project '{project_name}'.")
+                print(
+                    f"[WARNING] Package '{package_name}' not found in project '{project_name}'."
+                )
             break
     else:
         print(f"[WARNING] Project '{project_name}' not found in global projects data.")
     return updated
 
 
-def update_module_value(project_name: str, package_name: str, module_name: str, key: str, new_value: Any, mode: str = "replace") -> bool:
+def update_module_value(
+    project_name: str,
+    package_name: str,
+    module_name: str,
+    key: str,
+    new_value: Any,
+    mode: str = "replace",
+) -> bool:
     """
     Updates a key value for a specific module within a package in the global projects data.
     Supports list operations via the mode parameter:
       - "replace": Replace the entire value.
       - "append": Append (or extend) if the current value is a list.
       - "remove": Remove items from a list if applicable.
-    
+
     Parameters:
       project_name (str): The name of the project.
       package_name (str): The name of the package.
@@ -106,7 +129,7 @@ def update_module_value(project_name: str, package_name: str, module_name: str, 
       key (str): The module-level key to update.
       new_value (Any): The new value or values.
       mode (str): Operation mode ("replace", "append", or "remove"). Defaults to "replace".
-    
+
     Returns:
       bool: True if update successful; False otherwise.
     """
@@ -127,22 +150,36 @@ def update_module_value(project_name: str, package_name: str, module_name: str, 
                                         current_value.append(new_value)
                                 elif mode == "remove":
                                     if isinstance(new_value, list):
-                                        mod[key] = [item for item in current_value if item not in new_value]
+                                        mod[key] = [
+                                            item
+                                            for item in current_value
+                                            if item not in new_value
+                                        ]
                                     else:
-                                        mod[key] = [item for item in current_value if item != new_value]
+                                        mod[key] = [
+                                            item
+                                            for item in current_value
+                                            if item != new_value
+                                        ]
                                 else:  # "replace"
                                     mod[key] = new_value
                             else:
                                 mod[key] = new_value
                             updated = True
-                            print(f"[INFO] Updated module '{module_name}' key '{key}' to '{mod[key]}' (mode: {mode}) in package '{package_name}' of project '{project_name}'.")
+                            print(
+                                f"[INFO] Updated module '{module_name}' key '{key}' to '{mod[key]}' (mode: {mode}) in package '{package_name}' of project '{project_name}'."
+                            )
                             break
                     if not updated:
-                        print(f"[WARNING] Module '{module_name}' not found in package '{package_name}'.")
+                        print(
+                            f"[WARNING] Module '{module_name}' not found in package '{package_name}'."
+                        )
                     break
             break
     if not updated:
-        print("[WARNING] Could not update module value. Please verify the project/package/module names.")
+        print(
+            "[WARNING] Could not update module value. Please verify the project/package/module names."
+        )
     return updated
 
 
@@ -155,10 +192,13 @@ def save_global_projects(global_projects_path: str) -> None:
     """
     try:
         with open(global_projects_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump(GLOBAL_PROJECTS_DATA, f, default_flow_style=False, sort_keys=False)
+            yaml.safe_dump(
+                GLOBAL_PROJECTS_DATA, f, default_flow_style=False, sort_keys=False
+            )
         print(f"[INFO] Global projects saved to: {global_projects_path}")
     except Exception as e:
         print(f"[ERROR] Failed to save global projects: {e}")
+
 
 # -----------------------------------------------------------------------------
 # Section 2: Template (.yaml.j2) CRUD Operations
@@ -171,7 +211,7 @@ TEMPLATE_DATA: Dict[str, Any] = {}
 def update_template(operation: str, target: str, data: Dict[str, Any]) -> None:
     """
     Performs a CRUD operation on the in‑memory template data.
-    
+
     Parameters:
       operation (str): The operation to perform ("add", "update", "remove").
       target (str): The target entity in the template (e.g. "project", "package", "module", "file", or "dependency").
@@ -206,7 +246,9 @@ def update_template(operation: str, target: str, data: Dict[str, Any]) -> None:
         if target == "file":
             file_id = data.get("id")
             original_count = len(TEMPLATE_DATA.get("FILES", []))
-            TEMPLATE_DATA["FILES"] = [r for r in TEMPLATE_DATA.get("FILES", []) if r.get("id") != file_id]
+            TEMPLATE_DATA["FILES"] = [
+                r for r in TEMPLATE_DATA.get("FILES", []) if r.get("id") != file_id
+            ]
             if len(TEMPLATE_DATA["FILES"]) < original_count:
                 print(f"[INFO] Removed file record with id {file_id}")
             else:

@@ -19,7 +19,6 @@ from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
-
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
 class GeminiToolModel(ToolLLMBase):
     """
@@ -33,6 +32,7 @@ class GeminiToolModel(ToolLLMBase):
         type (Literal["GeminiToolModel"]): The model type, set to "GeminiToolModel".
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
     """
+
     name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     timeout: float = 600.0

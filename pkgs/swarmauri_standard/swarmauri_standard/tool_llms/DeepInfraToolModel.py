@@ -36,6 +36,7 @@ class DeepInfraToolModel(ToolLLMBase):
 
     Provider information: https://deepinfra.com/docs/api/openai_api
     """
+
     name: str = ""
     type: Literal["DeepInfraToolModel"] = "DeepInfraToolModel"
     BASE_URL: str = "https://api.deepinfra.com/v1/openai/chat/completions"

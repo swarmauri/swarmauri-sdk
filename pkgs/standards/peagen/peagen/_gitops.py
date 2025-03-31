@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+
 def _clone_swarmauri_repo(use_dev_branch: bool = False) -> Path:
     """
     Clones the swarmauri-sdk repository to a temporary directory.
@@ -16,7 +17,9 @@ def _clone_swarmauri_repo(use_dev_branch: bool = False) -> Path:
     branch = "mono/dev" if use_dev_branch else "master"
     try:
         typer.echo(f"Starting clone of {repo_url}")
-        subprocess.check_call(["git", "clone", "--depth=1", "--branch", branch, repo_url, str(tmp_dir)])
+        subprocess.check_call(
+            ["git", "clone", "--depth=1", "--branch", branch, repo_url, str(tmp_dir)]
+        )
         typer.echo("")
         return os.path.join(tmp_dir, "pkgs")
     except subprocess.CalledProcessError as e:

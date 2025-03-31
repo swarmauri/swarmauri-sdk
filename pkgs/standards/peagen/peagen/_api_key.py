@@ -2,11 +2,8 @@ import os
 import typer
 from dotenv import load_dotenv
 
-def _resolve_api_key(
-    provider: str, 
-    api_key: str = None,
-    env_file: str = None
-) -> str:
+
+def _resolve_api_key(provider: str, api_key: str = None, env_file: str = None) -> str:
     """
     Resolve the API key for a given provider.
     If `api_key` is provided, we use that.
@@ -19,7 +16,9 @@ def _resolve_api_key(
 
     if not provider:
         # If there's no provider, there's no way to deduce which env variable to read.
-        typer.echo("[ERROR] --provider is required to auto-resolve an API key from env.")
+        typer.echo(
+            "[ERROR] --provider is required to auto-resolve an API key from env."
+        )
         raise typer.Exit(code=1)
 
     if env_file:

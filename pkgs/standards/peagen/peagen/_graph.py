@@ -2,6 +2,7 @@ import heapq
 from typing import List, Dict, Any
 from collections import defaultdict
 
+
 def _build_forward_graph(payload: List[Dict[str, Any]]):
     """
     Builds a graph (adjacency list) and an in-degree map from the payload.
@@ -37,6 +38,7 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
 
     return forward_graph, in_degree, all_nodes
 
+
 def _build_reverse_graph(forward_graph: Dict[str, List[str]]):
     """
     Given the forward graph (dep -> file),
@@ -53,6 +55,7 @@ def _build_reverse_graph(forward_graph: Dict[str, List[str]]):
         if node not in reverse_graph:
             reverse_graph[node] = []
     return reverse_graph
+
 
 def _topological_sort(payload: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
@@ -85,8 +88,10 @@ def _topological_sort(payload: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     sorted_entries = [entry_map[name] for name in sorted_names]
     return sorted_entries
 
-def _get_transitive_dependencies(target_file: str,
-                                reverse_graph: Dict[str, List[str]]) -> set:
+
+def _get_transitive_dependencies(
+    target_file: str, reverse_graph: Dict[str, List[str]]
+) -> set:
     """
     Returns a set of all files (including `target_file` itself)
     that are transitive dependencies leading to `target_file`.
@@ -104,8 +109,10 @@ def _get_transitive_dependencies(target_file: str,
             stack.extend(reverse_graph[node])
     return visited
 
-def _transitive_dependency_sort(payload: List[Dict[str, Any]], 
-                               target_file: str) -> List[Dict[str, Any]]:
+
+def _transitive_dependency_sort(
+    payload: List[Dict[str, Any]], target_file: str
+) -> List[Dict[str, Any]]:
     """
     Return a topologically-sorted list of *only* those files
     that are transitive dependencies for `target_file` (plus `target_file` itself).
