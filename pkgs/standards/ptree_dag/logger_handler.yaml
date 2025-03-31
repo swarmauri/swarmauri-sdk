@@ -1,0 +1,238 @@
+PROJECTS:
+  - NAME: "LoggerHandlers"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "componentv1"
+    EXTRAS:
+      REQUIREMENTS:
+        - "Provide a comprehensive suite of logging handlers for diverse application environments."
+        - "Ensure consistent interface across all handlers while supporting specialized functionality."
+        - "Enable robust logging capabilities with configurable behavior for various deployment scenarios."
+        - "Support structured logging with metadata retention across different output formats and destinations."
+
+    PACKAGES:
+      #-----------------------------------------------------
+      # 1) Handlers
+      #-----------------------------------------------------
+      - NAME: "handlers"
+        TEMPLATE_SET_OVERRIDE: "componentv1"
+        EXTRAS:
+          AUTHORS:
+            - "Michael Decent"
+          PURPOSE: "Implement a complete ecosystem of logging handlers with specialized output capabilities."
+          DESCRIPTION: "A collection of logging handlers that direct log messages to various destinations including files, network services, messaging systems, and operating system facilities."
+          REQUIREMENTS:
+            - "Ensure thread-safety across all handlers to support concurrent logging operations."
+            - "Implement configurable formatting with support for JSON and other structured formats."
+            - "Provide robust error handling to prevent logging failures from affecting application performance."
+            - "Support dynamic reconfiguration without application restart."
+
+        MODULES:
+          - NAME: "FileHandler"
+            EXTRAS:
+              PURPOSE: "Write log messages to a specified file."
+              DESCRIPTION: "Basic file-based logging handler that writes formatted log records to a designated file path with configurable permissions and encoding."
+              REQUIREMENTS:
+                - "Support configurable file paths with environment variable expansion."
+                - "Handle file permission issues gracefully with fallback options."
+                - "Provide buffering options to optimize I/O performance."
+                - "Support different encodings including UTF-8 and platform-specific encodings."
+              RESOURCE_KIND: "logger_handlers"
+              BASE_NAME: "HandlerBase"
+              BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+              EXAMPLES:
+                - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          - NAME: "RotatingFileHandler"
+            EXTRAS:
+              PURPOSE: "Write logs to a file with automatic rotation based on file size."
+              DESCRIPTION: "Enhanced file handler that automatically rotates log files when they reach a specified size, maintaining a configurable number of backup files."
+              REQUIREMENTS:
+                - "Support configurable maximum file size before rotation."
+                - "Maintain a specified number of backup files with sequential naming."
+                - "Handle race conditions during rotation in multi-process environments."
+                - "Support compression of rotated log files to save disk space."
+              RESOURCE_KIND: "logger_handlers"
+              BASE_NAME: "HandlerBase"
+              BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+              EXAMPLES:
+                - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "TimedRotatingFileHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Rotate log files at specified time intervals."
+          #     DESCRIPTION: "Time-based file handler that rotates logs at predetermined intervals (hourly, daily, weekly, monthly) regardless of file size."
+          #     REQUIREMENTS:
+          #       - "Support various rotation intervals (seconds, minutes, hours, days, weeks)."
+          #       - "Allow customization of rotation timing with specific hour/minute/second."
+          #       - "Include date/time information in rotated file names for easy identification."
+          #       - "Implement thread-safe rotation mechanisms for high-concurrency environments."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "SocketHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send log records over TCP sockets."
+          #     DESCRIPTION: "Network-based handler that transmits log records to a remote server using TCP sockets, supporting persistent connections and reconnection strategies."
+          #     REQUIREMENTS:
+          #       - "Implement connection pooling for efficient network resource usage."
+          #       - "Support automatic reconnection with exponential backoff on connection failures."
+          #       - "Include configurable timeout settings for network operations."
+          #       - "Provide SSL/TLS support for secure transmission of log data."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "DatagramHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send log records over UDP datagrams."
+          #     DESCRIPTION: "Lightweight network handler that sends log messages as UDP datagrams, optimized for high-throughput logging scenarios where delivery guarantees are not critical."
+          #     REQUIREMENTS:
+          #       - "Support configurable packet size limits to prevent fragmentation."
+          #       - "Include retry mechanisms for handling temporary network issues."
+          #       - "Provide optional message batching for improved network efficiency."
+          #       - "Implement fallback logging when network transmission fails."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "HTTPHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send log records to a web server via HTTP/HTTPS."
+          #     DESCRIPTION: "Web-based handler that posts log records to a remote HTTP/HTTPS endpoint, supporting authentication and custom headers for integration with log management services."
+          #     REQUIREMENTS:
+          #       - "Support both GET and POST request methods with configurable endpoints."
+          #       - "Include authentication mechanisms (Basic, OAuth, API keys)."
+          #       - "Allow customization of request headers and content types."
+          #       - "Implement request batching and compression for efficient transmission."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "SMTPHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send log messages via email."
+          #     DESCRIPTION: "Email-based handler that sends log messages as emails, useful for critical error notifications and alerts that require immediate attention."
+          #     REQUIREMENTS:
+          #       - "Support various SMTP authentication methods including STARTTLS and SSL/TLS."
+          #       - "Allow customization of email subject, sender, and recipient lists."
+          #       - "Include rate limiting to prevent email flooding during error cascades."
+          #       - "Support HTML email formatting for improved readability."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "SysLogHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send logs to the Unix syslog daemon."
+          #     DESCRIPTION: "System logger handler that integrates with the Unix syslog facility, supporting standard syslog severity levels and facilities for proper categorization."
+          #     REQUIREMENTS:
+          #       - "Support both local and remote syslog servers via UDP/TCP."
+          #       - "Map application log levels to appropriate syslog severity levels."
+          #       - "Allow customization of syslog facility codes for proper categorization."
+          #       - "Handle syslog message size limitations appropriately."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "NTEventLogHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Log messages to the Windows Event Log."
+          #     DESCRIPTION: "Windows-specific handler that writes log messages to the Windows NT Event Log, supporting proper event types and categories for system administration tools."
+          #     REQUIREMENTS:
+          #       - "Map log levels to appropriate Windows event types (Information, Warning, Error)."
+          #       - "Support custom event IDs and categories for better organization."
+          #       - "Include application name and proper source registration in the Windows registry."
+          #       - "Handle Windows-specific error conditions gracefully."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "JournalHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Log messages to the systemd journal on Linux."
+          #     DESCRIPTION: "Linux-specific handler for systemd's journal logging system, supporting structured metadata and integration with systemd tools."
+          #     REQUIREMENTS:
+          #       - "Preserve structured log metadata in journal fields."
+          #       - "Support addition of custom journal fields for enhanced filtering."
+          #       - "Implement priority mapping between application and journal log levels."
+          #       - "Handle journal capacity limitations gracefully."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "WindowsEventLogHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send logs to the Windows Event Viewer."
+          #     DESCRIPTION: "Modern Windows event logging handler for Windows Event Viewer integration, supporting event source registration and structured event data."
+          #     REQUIREMENTS:
+          #       - "Support modern Windows event creation APIs with proper error handling."
+          #       - "Allow for structured event data with XML formatting."
+          #       - "Include event source registration utilities for proper setup."
+          #       - "Support both simplified and advanced event creation patterns."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "WatchedFileHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Handle log files rotated by external tools."
+          #     DESCRIPTION: "Enhanced file handler that detects when a log file has been rotated by external tools (like logrotate) and automatically reopens the file."
+          #     REQUIREMENTS:
+          #       - "Periodically check if the log file has been moved or replaced."
+          #       - "Automatically reopen the file when rotation is detected."
+          #       - "Support configurable check intervals for optimal performance."
+          #       - "Prevent data loss during external rotation operations."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "MemoryHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Buffer logs in memory before flushing."
+          #     DESCRIPTION: "In-memory buffering handler that collects log records in a buffer and flushes them to a target handler when certain conditions are met."
+          #     REQUIREMENTS:
+          #       - "Support capacity-based flushing with configurable buffer size."
+          #       - "Implement level-triggered flushing for immediate handling of critical events."
+          #       - "Provide time-based flushing for regular processing regardless of volume."
+          #       - "Include thread-safe buffer management for concurrent environments."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
+
+          # - NAME: "QueueHandler"
+          #   EXTRAS:
+          #     PURPOSE: "Send logs to a queue for asynchronous processing."
+          #     DESCRIPTION: "Asynchronous handler that queues log records for background processing, improving application performance by decoupling logging operations from the main execution path."
+          #     REQUIREMENTS:
+          #       - "Support various queue implementations (standard queue, multiprocessing queue)."
+          #       - "Include configurable queue size limits with appropriate overflow handling."
+          #       - "Provide separate worker threads/processes for queue consumption."
+          #       - "Implement graceful shutdown with proper queue draining."
+          #     RESOURCE_KIND: "logger_handlers"
+          #     BASE_NAME: "HandlerBase"
+          #     BASE_FILE: "base/swarmauri_base/logger_handlers/HandlerBase.py"
+          #     EXAMPLES:
+          #       - "swarmauri_standard/swarmauri_standard/logger_handlers/StreamHandler.py"
