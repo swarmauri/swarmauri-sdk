@@ -11,68 +11,16 @@ on:
         description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
         required: false
       member:
-        description: "Specify a specific member to run the workflow for (optional)"
-        required: false
+        description: "Specify a specific member to run the workflow for"
+        required: true
 
 concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
 
 jobs:
-  set-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.get-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies for matrix generation
-        run: pip install toml
-
-      - name: Get workspace members
-        id: get-matrix
-        run: |
-          cd pkgs
-          python - <<'EOF'
-          import toml, json, os
-          # Open the root pyproject.toml file
-          with open("pyproject.toml", "r") as f:
-              config = toml.load(f)
-          # Extract the workspace members from tool.uv.workspace.members
-          members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
-          if not isinstance(members, list):
-              raise Exception("The 'members' entry is not a list.")
-          
-          # Check for an override via the 'member' input (available as INPUT_MEMBER)
-          member_override = os.environ.get("INPUT_MEMBER", "").strip()
-          if member_override:
-              if member_override in members:
-                  members = [member_override]
-              else:
-                  print(f"Specified member '{member_override}' not found in workspace members.")
-                  members = []
-          
-          # Build a matrix with one entry per member
-          matrix = {"include": [{"member": member} for member in members]}
-          print(f"Matrix: {json.dumps(matrix)}")
-          # Write the matrix JSON to the GitHub Actions output
-          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-              print(f"matrix={json.dumps(matrix)}", file=fh)
-          EOF
-
-
   test:
-    needs: set-matrix
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
-      fail-fast: false
     continue-on-error: true
     steps:
       - name: Checkout code
@@ -88,12 +36,12 @@ jobs:
 
       - name: Bump Version Placeholder
         run: |
-          MEMBER="${{ matrix.member }}"
+          MEMBER="${{ github.event.inputs.member }}"
           echo "Running tests for workspace member: $MEMBER"
           # Read the package name from the member's pyproject.toml
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           echo "Package name: $PACKAGE_NAME"
-          
+
           # Determine whether to use bump or set based on inputs
           if [ -n "${{ github.event.inputs.set_version }}" ]; then
             VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
@@ -106,42 +54,33 @@ jobs:
       - name: Ruff format
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "Running format for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
       - name: Ruff lint check & fix
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "Running lint for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
-      - name: Run tests for member ${{ matrix.member }}
+      - name: Run tests
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
+          MEMBER="${{ github.event.inputs.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
-      ## Patches 
+      # Patches
       - name: Create patch for changes
         if: always()
         run: |
           mkdir -p patches
-          MEMBER="${{ matrix.member }}"
+          MEMBER="${{ github.event.inputs.member }}"
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
           # Generate a patch relative to the repository root for the member directory
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
@@ -150,7 +89,7 @@ jobs:
         if: always()
         id: set_safe_member
         run: |
-          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "SAFE_MEMBER=$(echo '${{ github.event.inputs.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
 
       - name: Upload patch artifact
         if: always()
@@ -197,11 +136,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Add GitHub to known hosts to prevent interactive verification
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          # Change remote URL to SSH so that git push uses the deploy key
           git remote set-url origin git@github.com:${{ github.repository }}.git
-
 
       - name: Git Commit and Push
         run: |
@@ -216,15 +152,10 @@ jobs:
             echo "No changes to commit."
           fi
 
-
   release:
-    needs: [commit, set-matrix]
+    needs: [commit]
     runs-on: ubuntu-latest
     if: always()
-    strategy:
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
-      fail-fast: false
-      max-parallel: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -237,42 +168,36 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies for testing
+      - name: Install dependencies
         run: pip install uv pytest toml
 
-      ## Build
+      # Build
       - name: Build
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "Building workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Command
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
-      ## Publish
+      # Publish
       - name: Publish
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "Publishing workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
-      ## --- Release Steps: Auto-tag, generate release notes, zip artifacts, create release ---
+      # Release Steps
       - name: Prepare release variables
         id: prepare_release
         run: |
-          cd pkgs/${{ matrix.member }}
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['name'])")
-          VERSION=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['version'])")
+          cd pkgs/${{ github.event.inputs.member }}
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])")
+          VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           TAG="${PACKAGE_NAME}==${VERSION}"
-          # If bump_type is 'finalize' OR the version does not contain ".dev", create a normal release.
+          # If bump_type is 'finalize' OR the version has no '.dev', treat this as a final release
           if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
             PRERELEASE_FLAG=false
           else
@@ -287,7 +212,7 @@ jobs:
       - name: Generate Release Notes
         id: generate_release_notes
         run: |
-          cd pkgs/${{ matrix.member }}
+          cd pkgs/${{ github.event.inputs.member }}
           CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
           # Find the most recent tag for this package excluding the current tag
           PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
@@ -303,13 +228,13 @@ jobs:
 
       - name: Create Git Tag
         run: |
-          cd pkgs/${{ matrix.member }}
+          cd pkgs/${{ github.event.inputs.member }}
           git tag "${{ steps.prepare_release.outputs.tag }}"
           git push origin "${{ steps.prepare_release.outputs.tag }}"
 
       - name: Zip distribution artifacts
         run: |
-          cd pkgs/${{ matrix.member }}
+          cd pkgs/${{ github.event.inputs.member }}
           mkdir -p release_artifacts
           ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
           zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
@@ -326,4 +251,4 @@ jobs:
           body: ${{ steps.generate_release_notes.outputs.release_notes }}
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
-            pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+            pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
