@@ -20,8 +20,7 @@ This class uses helper methods from modules such as:
   - dependencies.py (for resolving and querying dependencies)
   - external.py (for calling external agents and chunking content)
 """
-import colorama
-from colorama import init as colorama_init, Fore, Back, Style
+from colorama import init as colorama_init, Fore, Style
 import os
 import yaml
 from typing import Any, Dict, List, Optional, Tuple
@@ -248,7 +247,6 @@ class Peagen(ComponentBase):
         # ------------------------------------------------------
         # PHASE 2: DECIDE WHICH TOPOLOGICAL SORT METHOD
         # ------------------------------------------------------
-        from ._config import _config
         transitive = _config.get("transitive", False)
 
         try:
