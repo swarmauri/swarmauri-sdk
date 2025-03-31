@@ -43,7 +43,7 @@ def test_call(mock_popen):
     if system == "darwin":  # macOS
         mock_popen.assert_called_once_with(["open", "-a", "Calculator"])
     elif system == "linux":
-        mock_popen.assert_called_once_with(["gnome-calculator"])
+        mock_popen.assert_called_once_with(["xcalc"])
     else:  # Windows or other
         mock_popen.assert_called_once_with(["calc"])
 
