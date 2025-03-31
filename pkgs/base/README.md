@@ -1,20 +1,23 @@
+
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_base/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_base" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/base">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/base&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri_base/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_base" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_base/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_base" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_base/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_base?label=swarmauri_base&color=green" alt="PyPI - swarmauri_base"/></a>
+    <a href="https://pypi.org/project/swarmauri-base/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri-base" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/base/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/base/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri-base/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri-base" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri-base/">
+        <img src="https://img.shields.io/pypi/l/swarmauri-base" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri-base/">
+        <img src="https://img.shields.io/pypi/v/swarmauri-base?label=swarmauri-base&color=green" alt="PyPI - swarmauri-base"/></a>
+
 </p>
 
+---
 
-# Swarmauri Base Classes
+# Swarmauri Base
 
 ## Getting Started
 

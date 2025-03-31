@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_fitzpdf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_fitzpdf)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_fitzpdf)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_fitzpdf?label=swarmauri_parser_fitzpdf&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_parser_fitzpdf/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_parser_fitzpdf" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_parser_fitzpdf/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_parser_fitzpdf/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_fitzpdf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_fitzpdf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_fitzpdf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_fitzpdf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_fitzpdf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_fitzpdf?label=swarmauri_parser_fitzpdf&color=green" alt="PyPI - swarmauri_parser_fitzpdf"/></a>
+</p>
 
 ---
 
-# Swarmauri FitzPDF Parser
+# Swarmauri Parser Fitz PDF
 
 A parser to extract text from PDF files using PyMuPDF.
 

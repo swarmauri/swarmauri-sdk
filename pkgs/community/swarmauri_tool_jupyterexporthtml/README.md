@@ -1,22 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexporthtml/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterexporthtml" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexporthtml">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexporthtml&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexporthtml">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterexporthtml/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexporthtml/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexporthtml/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterexporthtml" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexporthtml">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexporthtml/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterexporthtml" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexporthtml">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexporthtml/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexporthtml?label=swarmauri_tool_jupyterexporthtml&color=green" alt="PyPI - swarmauri_tool_jupyterexporthtml"/></a>
 </p>
 
 ---
 
-# swarmauri_tool_jupyterexporthtml
+# Swarmauri Tool Jupyter Export Html
 
 The purpose of this package is to provide a flexible tool for converting Jupyter Notebook content into HTML format using nbconvert’s HTMLExporter. This enables easy presentation, sharing, or embedding of Jupyter Notebook content into various workflows or web applications.
 

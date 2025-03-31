@@ -37,6 +37,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
 log_cli = true
@@ -45,7 +46,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.vector_stores"]
+[project.entry-points.'swarmauri.vector_stores']
 TfidfVectorStore = "swarmauri_vectorstore_tfidf:TfidfVectorStore"
 
 
@@ -64,4 +65,5 @@ dev = [
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

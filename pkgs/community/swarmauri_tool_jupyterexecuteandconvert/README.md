@@ -1,28 +1,22 @@
-<!-- 
-   ______________________________________________________________________________
-   Swarmauri Tools - JupyterExecuteAndConvert
-   ______________________________________________________________________________
--->
 
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterexecuteandconvert" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecuteandconvert">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecuteandconvert&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecuteandconvert">
+    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterexecuteandconvert/README.md">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecuteandconvert/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupyterexecuteandconvert" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecuteandconvert">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterexecuteandconvert" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_jupyterexecuteandconvert">
+    <a href="https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexecuteandconvert?label=swarmauri_tool_jupyterexecuteandconvert&color=green" alt="PyPI - swarmauri_tool_jupyterexecuteandconvert"/></a>
 </p>
 
 ---
 
-# swarmauri_tool_jupyterexecuteandconvert
+# Swarmauri Tool Jupyterexecuteandconvert
 
 This package provides functionality to programmatically execute a Jupyter Notebook and convert it to a variety of output formats using nbconvert, enabling automated workflows within the Swarmauri framework.
 
