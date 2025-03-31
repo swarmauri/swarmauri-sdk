@@ -1,4 +1,8 @@
+import platform
+from unittest.mock import patch
+
 import pytest
+
 from swarmauri_standard.tools.TestTool import TestTool as Tool
 
 
@@ -26,22 +30,25 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_call():
+@patch("subprocess.Popen")
+def test_call(mock_popen):
     tool = Tool()
-
     expected_keys = {"program"}
     success_message = "Program Opened: calc"
 
     result = tool("calc")
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
-    assert expected_keys.issubset(result.keys()), (
-        f"Expected keys {expected_keys} but got {result.keys()}"
-    )
-    assert isinstance(result.get("program"), str), (
-        f"Expected str, but got {type(result.get('program')).__name__}"
-    )
+    # Platform-dependent assertion
+    system = platform.system().lower()
+    if system == "darwin":  # macOS
+        mock_popen.assert_called_once_with(["open", "-a", "Calculator"])
+    elif system == "linux":
+        mock_popen.assert_called_once_with(["gnome-calculator"])
+    else:  # Windows or other
+        mock_popen.assert_called_once_with(["calc"])
 
-    assert result.get("program") == success_message, (
-        f"Expected Calculated result {success_message}, but got {result.get('program')}"
-    )
+    # Rest of the assertions remain the same
+    assert isinstance(result, dict)
+    assert expected_keys.issubset(result.keys())
+    assert isinstance(result.get("program"), str)
+    assert result.get("program") == success_message

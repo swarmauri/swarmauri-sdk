@@ -1,10 +1,13 @@
-import subprocess as sp
 import platform
-from typing import List, Literal, Dict, Union
+import subprocess as sp
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
+
 
 @ComponentBase.register_type(ToolBase, "TestTool")
 class TestTool(ToolBase):
@@ -16,7 +19,7 @@ class TestTool(ToolBase):
             Parameter(
                 name="program",
                 input_type="string",
-                description="The program to open ('notepad', 'calc', or 'paint')",
+                description="The program that the user wants to open",
                 required=True,
                 enum=["notepad", "calc", "paint"],
             )
@@ -50,7 +53,7 @@ class TestTool(ToolBase):
             commands = {
                 "notepad": ["gedit"],
                 "calc": ["xcalc"],  # Use xcalc if available
-                "mspaint": ["pinta"],
+                "paint": ["pinta"],
             }
         else:
             return {"error": f"Unsupported OS: {os_name}"}
