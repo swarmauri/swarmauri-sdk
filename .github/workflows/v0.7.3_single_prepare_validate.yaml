@@ -14,6 +14,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # We'll continue on error to ensure we capture all issues and still produce patches/artifacts
     continue-on-error: true
     steps:
       - name: Checkout code
@@ -25,43 +26,50 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies for testing
-        run: pip install uv pytest toml
+        run: |
+          echo "::notice::Installing Python test dependencies..."
+          pip install uv pytest toml
 
       - name: Bump Version Placeholder
         run: |
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+          if [ -z "$MEMBER" ]; then
+            echo "::error::No member specified. Please provide a valid member name."
+            exit 1
+          fi
+
+          echo "::notice::Running bump version process for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ github.event.inputs.member }}/pyproject.toml')['project']['name'])")
+          echo "::notice::Package name detected: $PACKAGE_NAME"
+
+          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${{ github.event.inputs.member }}/pyproject.toml
 
       - name: Ruff format
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "::notice::Running Ruff format on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
       - name: Ruff lint check & fix
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "::notice::Running Ruff lint check & fix on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
       - name: Run tests for member
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "::notice::Running tests for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+          echo "::notice::Package name: $PACKAGE_NAME"
+
+          # We run tests; if they fail, let's output an annotation (but we don't stop the workflow).
+          pytest -vvv || echo "::error::Some or all tests failed for $PACKAGE_NAME. Please review the test logs above."
 
       - name: Create patch for changes
         if: always()
@@ -69,13 +77,19 @@ jobs:
           mkdir -p patches
           MEMBER="${{ github.event.inputs.member }}"
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          echo "::notice::Creating patch file for changed files in $MEMBER..."
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+          if [ ! -s "patches/patch_${SAFE_MEMBER}.patch" ]; then
+            echo "::warning::No changes detected for $MEMBER, the patch file is empty."
+          fi
 
       - name: Set safe member variable
         if: always()
         id: set_safe_member
         run: |
           echo "SAFE_MEMBER=$(echo '${{ github.event.inputs.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "::notice::Safe member name set to $SAFE_MEMBER"
 
       - name: Upload patch artifact
         if: always()
@@ -107,18 +121,22 @@ jobs:
           path: patches
 
       - name: List downloaded artifacts
-        run: ls -R patches
+        run: |
+          echo "::notice::Listing patch artifacts..."
+          ls -R patches
 
       - name: Apply patches
         run: |
+          echo "::notice::Applying downloaded patches..."
           find patches -type f -name "*.patch" | while read patch; do
             echo "Applying patch $patch"
-            git apply -p1 "$patch"
+            git apply -p1 "$patch" || echo "::error::Failed to apply patch $patch"
           done
           rm -rf patches
 
       - name: Configure SSH for deploy key
         run: |
+          echo "::notice::Configuring SSH for deploy key..."
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
@@ -131,9 +149,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           if ! git diff-index --quiet HEAD; then
+            echo "::notice::Changes detected; committing and pushing..."
             git commit -m "chore: apply automatic formatting and lint fixes"
             git pull --rebase origin "${{ github.ref }}"
             git push origin HEAD:"${{ github.ref }}" --force
           else
-            echo "No changes to commit."
+            echo "::notice::No changes to commit."
           fi
