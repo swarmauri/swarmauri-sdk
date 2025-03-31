@@ -1,6 +1,6 @@
 import platform
 import subprocess as sp
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Union
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
