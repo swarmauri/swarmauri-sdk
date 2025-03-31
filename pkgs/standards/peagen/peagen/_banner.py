@@ -1,7 +1,7 @@
 from ._config import __version__, __package_name__
 import typer
 import datetime
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 def _print_banner():
     # ASCII art banner

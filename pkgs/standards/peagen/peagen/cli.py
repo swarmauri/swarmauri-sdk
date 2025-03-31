@@ -9,7 +9,6 @@ Also added --transitive to limit sorting to transitive dependencies if start-fil
 Now adding an optional --agent-prompt-template-file parameter on process.
 """
 
-import os
 import json
 import typer
 from pprint import pformat
@@ -17,10 +16,9 @@ from pydantic import FilePath
 from pathlib import Path
 from typing import Optional
 
-from .core import Peagen, Fore, Back, Style
+from .core import Peagen, Fore, Style
 from ._config import _config
 from ._banner import _print_banner
-from ._gitops import _clone_swarmauri_repo
 from ._api_key import _resolve_api_key
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
