@@ -20,6 +20,7 @@ This class uses helper methods from modules such as:
   - dependencies.py (for resolving and querying dependencies)
   - external.py (for calling external agents and chunking content)
 """
+
 from colorama import init as colorama_init, Fore, Style
 import os
 import yaml
@@ -43,6 +44,7 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 
 colorama_init(autoreset=True)
 
+
 class Peagen(ComponentBase):
     projects_payload_path: str
     template_base_dir: Optional[str] = None
@@ -55,10 +57,12 @@ class Peagen(ComponentBase):
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
-    
+
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
-    logger: SubclassUnion[LoggerBase] = Logger(name=Fore.GREEN + "pfg" + Style.RESET_ALL)
+    logger: SubclassUnion[LoggerBase] = Logger(
+        name=Fore.GREEN + "pfg" + Style.RESET_ALL
+    )
     dry_run: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -92,7 +96,7 @@ class Peagen(ComponentBase):
         dirs.extend(self.additional_package_dirs)
         dirs = [os.path.normpath(_d) for _d in dirs]
         self.j2pt.templates_dir = dirs
-        
+
     def get_template_dir_any(self, template_set: str) -> Path:
         """
         Searches each directory in `self.namespace_dirs` for a subfolder
@@ -129,7 +133,13 @@ class Peagen(ComponentBase):
                 self.projects_list = data.get("PROJECTS", [])
             else:
                 self.projects_list = data
-            self.logger.info("Loaded " +Fore.GREEN + f"{len(self.projects_list)}" + Style.RESET_ALL + f" projects from '{self.projects_payload_path}'.")
+            self.logger.info(
+                "Loaded "
+                + Fore.GREEN
+                + f"{len(self.projects_list)}"
+                + Style.RESET_ALL
+                + f" projects from '{self.projects_payload_path}'."
+            )
         except Exception as e:
             self.logger.error(f"Failed to load projects: {e}")
             self.projects_list = []
@@ -151,12 +161,11 @@ class Peagen(ComponentBase):
             sorted_records.append(file_records)
         return sorted_records
 
-
     def process_single_project(
         self,
         project: Dict[str, Any],
         start_idx: int = 0,
-        start_file: Optional[str] = None
+        start_file: Optional[str] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         1) For each package in the project, render its ptree.yaml.j2 to get file records.
@@ -251,10 +260,12 @@ class Peagen(ComponentBase):
 
         try:
             if transitive:
-                # If transitive is True and a specific file is given, 
+                # If transitive is True and a specific file is given,
                 # return only the transitive closure for that file.
                 if start_file:
-                    sorted_records = _transitive_dependency_sort(all_file_records, start_file)
+                    sorted_records = _transitive_dependency_sort(
+                        all_file_records, start_file
+                    )
                     self.logger.info(
                         f"Transitive sort for '{start_file}' on project '{project_name}', "
                         f"yielding {len(sorted_records)} files."
@@ -281,9 +292,12 @@ class Peagen(ComponentBase):
             if start_file and not transitive:
                 # Find the first occurrence of `start_file` by name in the sorted list
                 found_index = next(
-                    (i for i, fr in enumerate(sorted_records)
-                     if fr.get("RENDERED_FILE_NAME") == start_file),
-                    None
+                    (
+                        i
+                        for i, fr in enumerate(sorted_records)
+                        if fr.get("RENDERED_FILE_NAME") == start_file
+                    ),
+                    None,
                 )
                 if found_index is not None:
                     self.logger.info(
@@ -309,9 +323,7 @@ class Peagen(ComponentBase):
                 sorted_records = sorted_records[start_idx:]
 
         except Exception as e:
-            self.logger.error(
-                f"[{project_name}] Failed to topologically sort: {e}"
-            )
+            self.logger.error(f"[{project_name}] Failed to topologically sort: {e}")
             return ([], 0)
 
         # ------------------------------------------------------
@@ -324,13 +336,8 @@ class Peagen(ComponentBase):
                 template_dir=template_dir,  # Each record has its own TEMPLATE_SET
                 agent_env=self.agent_env,
                 logger=self.logger,
-                start_idx=0
+                start_idx=0,
             )
             self.logger.info(f"Completed file generation workflow on '{project_name}'.")
 
         return (sorted_records, start_idx)
-
-
-
-
-

@@ -37,10 +37,10 @@ class LoggerBase(ILogger, ObserveBase):
     def compile_logger(self, logger_name: str = __name__) -> logging.Logger:
         logger = logging.getLogger(logger_name)
         logger.setLevel(self.default_level)
-        
+
         # Clear existing handlers to avoid stale configurations
         logger.handlers.clear()
-        
+
         if self.handlers:
             for handler_model in self.handlers:
                 handler = handler_model.compile_handler()
@@ -51,7 +51,7 @@ class LoggerBase(ILogger, ObserveBase):
             default_handler.setLevel(self.default_level)
             default_handler.setFormatter(logging.Formatter(self.default_format))
             logger.addHandler(default_handler)
-        
+
         logger.propagate = False
         return logger
 
@@ -60,10 +60,11 @@ class LoggerBase(ILogger, ObserveBase):
         print(self.default_level)
         self.compile_logger(logger_name=self.name)
 
-    def set_format(self, format_string: str = "[%(name)s][%(levelname)s] %(message)s") -> None:
+    def set_format(
+        self, format_string: str = "[%(name)s][%(levelname)s] %(message)s"
+    ) -> None:
         self.default_format = format_string
         self.compile_logger(logger_name=self.name)
-
 
     def debug(self, *args, **kwargs) -> None:
         """Log a debug message.

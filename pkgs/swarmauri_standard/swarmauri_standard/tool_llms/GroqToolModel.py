@@ -18,7 +18,6 @@ from swarmauri_standard.schema_converters.GroqSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
-
 @ComponentBase.register_type(ToolLLMBase, "GroqToolModel")
 class GroqToolModel(ToolLLMBase):
     """
@@ -36,6 +35,7 @@ class GroqToolModel(ToolLLMBase):
 
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
+
     name: str = ""
     type: Literal["GroqToolModel"] = "GroqToolModel"
 

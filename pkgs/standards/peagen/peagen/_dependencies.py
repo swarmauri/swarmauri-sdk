@@ -69,7 +69,9 @@ def resolve_dependency_references(dependencies: List[str], context: dict) -> Lis
     return resolved
 
 
-def get_direct_dependencies(file_record: dict, context: dict, base_dir: str = None) -> List[str]:
+def get_direct_dependencies(
+    file_record: dict, context: dict, base_dir: str = None
+) -> List[str]:
     """
     Returns a list of resolved direct dependency paths for a given file record.
     It first renders any dependency strings using the provided context. If a rendered
@@ -86,7 +88,7 @@ def get_direct_dependencies(file_record: dict, context: dict, base_dir: str = No
     dependencies = file_record.get("DEPENDENCIES", [])
     # Render dependency strings using the context.
     resolved_deps = resolve_dependency_references(dependencies, context)
-    
+
     final_deps = []
     for dep in resolved_deps:
         if "*" in dep or "?" in dep:
@@ -100,7 +102,9 @@ def get_direct_dependencies(file_record: dict, context: dict, base_dir: str = No
     return final_deps
 
 
-def get_transitive_dependencies(file_record: dict, dependency_graph: Dict[str, List[str]]) -> List[str]:
+def get_transitive_dependencies(
+    file_record: dict, dependency_graph: Dict[str, List[str]]
+) -> List[str]:
     """
     Recursively retrieves all transitive dependencies for the given file record
     from the dependency graph.
@@ -129,7 +133,9 @@ def get_transitive_dependencies(file_record: dict, dependency_graph: Dict[str, L
     return list(visited)
 
 
-def get_dependents(file_record: dict, dependency_graph: Dict[str, List[str]]) -> List[str]:
+def get_dependents(
+    file_record: dict, dependency_graph: Dict[str, List[str]]
+) -> List[str]:
     """
     Returns all file identifiers that depend on the given file record (reverse dependencies).
 
