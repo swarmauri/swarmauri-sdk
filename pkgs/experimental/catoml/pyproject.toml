@@ -1,11 +1,11 @@
 [project]
-name = "CanonToml"
+name = "catoml"
 version = "0.1.1.dev3"
-description = "Swarmauri's Ptree Dag"
+description = "Swarmauri's Canon Toml"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/CanonToml"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/catoml"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
