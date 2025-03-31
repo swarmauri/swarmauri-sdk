@@ -1,7 +1,6 @@
 import os
 from tempfile import NamedTemporaryFile
 import pytest
-from jinja2 import Template
 from swarmauri_prompt_j2prompttemplate.J2PromptTemplate import J2PromptTemplate
 
 

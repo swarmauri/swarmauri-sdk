@@ -10,7 +10,7 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 from typing import Dict, Any, List, Optional
 from pprint import pformat
 from ._config import _config
