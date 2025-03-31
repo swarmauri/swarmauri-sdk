@@ -72,7 +72,6 @@
       - "{{ req }}"
     {%- endfor %}
     {%- endif %}
-    INTERFACE_CLASS: "{{ MOD.EXTRAS.BASE_NAME }}"
     RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
     EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
 
