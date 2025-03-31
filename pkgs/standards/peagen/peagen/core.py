@@ -67,8 +67,8 @@ class Peagen(ComponentBase):
 
     @model_validator(mode="after")
     def setup_env(self) -> "Peagen":
-        # Gather all physical directories that provide ptree_dag.templates:
-        namespace_dirs = list(ptree_dag.templates.__path__)  # installed template dirs
+        # Gather all physical directories that provide peagen.templates:
+        namespace_dirs = list(peagen.templates.__path__)  # installed template dirs
         initial_dirs = []
         initial_dirs.extend(self.additional_package_dirs)
         namespace_dirs.append(self.base_dir)  # include current working directory
