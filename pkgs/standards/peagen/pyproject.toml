@@ -1,11 +1,11 @@
 [project]
-name = "ptree_dag"
+name = "peagen"
 version = "0.1.1.dev3"
-description = "Swarmauri's Ptree Dag"
+description = "Swarmauri's Peagan - An AI-driven contextual, dependency-based scaffolding tool for rapid content generation."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/ptree_dag/swarmauri_ptree_dag"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen/peagen"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -53,7 +53,7 @@ asyncio_default_fixture_loop_scope = "function"
 # Ptree_Dag = "Ptree_Dag:PtreeDag"
 
 [project.scripts]
-ptree = "ptree_dag.cli:app"
+peagen = "peagen.cli:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

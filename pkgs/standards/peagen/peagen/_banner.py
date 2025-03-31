@@ -1,3 +1,4 @@
+from ._config import __version__, __package_name__
 import typer
 import datetime
 from colorama import Fore, Back, Style
@@ -16,10 +17,10 @@ def _print_banner():
                                                                                                      
                                                                                                      
                                                                                                      
-
     """   
     # Additional details
-    version_info = f"{Fore.CYAN}{Style.BRIGHT}Version: 0.1.0"
+    version_info = f"{Fore.CYAN}{Style.BRIGHT}Version: {__version__}"
+    package_info = f"{Fore.BLUE}{Style.BRIGHT}Package Name: {__package_name__}{Style.RESET_ALL}"
     tagline = f"{Fore.GREEN}{Style.BRIGHT}A Swarmauri scaffolding tool to simplify code gen."
     repo_info = Fore.YELLOW + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/ptree_dag" + Style.RESET_ALL
     usage_hint = f"{Fore.YELLOW}Type '--help' to see available commands."
@@ -27,6 +28,7 @@ def _print_banner():
 
     # Print banner and additional information
     typer.echo(banner)
+    typer.echo(package_info)
     typer.echo(version_info)
     typer.echo(tagline)
     typer.echo(repo_info)

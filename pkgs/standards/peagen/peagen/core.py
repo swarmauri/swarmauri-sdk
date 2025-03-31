@@ -2,7 +2,7 @@
 core.py
 
 This module defines the main class for the file generation workflow.
-The ProjectFileGenerator class encapsulates the overall workflow:
+The Peagen class encapsulates the overall workflow:
   - Loading global project data from a YAML file.
   - Rendering project YAML from a .yaml.j2 template.
   - Expanding file records (with package and module context).
@@ -35,7 +35,7 @@ from ._graph import _topological_sort, _transitive_dependency_sort
 from ._Jinja2PromptTemplate import j2pt
 from ._config import _config
 
-import ptree_dag.templates
+import peagen.templates
 from pydantic import Field, ConfigDict, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base import SubclassUnion
@@ -44,7 +44,7 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 
 colorama_init(autoreset=True)
 
-class ProjectFileGenerator(ComponentBase):
+class Peagen(ComponentBase):
     projects_payload_path: str
     template_base_dir: Optional[str] = None
     agent_env: Dict[str, Any] = Field(default_factory=dict)
@@ -66,7 +66,7 @@ class ProjectFileGenerator(ComponentBase):
     version: str = "0.1.0"
 
     @model_validator(mode="after")
-    def setup_env(self) -> "ProjectFileGenerator":
+    def setup_env(self) -> "Peagen":
         # Gather all physical directories that provide ptree_dag.templates:
         namespace_dirs = list(ptree_dag.templates.__path__)  # installed template dirs
         initial_dirs = []

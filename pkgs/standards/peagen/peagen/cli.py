@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI for the ProjectFileGenerator
+CLI for the Peagen
 
 Enhancement: --api-key support with environment variable fallback.
 If --revise is used, we now require either --revision-notes or --revision-notes-file.
@@ -17,13 +17,13 @@ from pydantic import FilePath
 from pathlib import Path
 from typing import Optional
 
-from .core import ProjectFileGenerator, Fore, Back, Style
+from .core import Peagen, Fore, Back, Style
 from ._config import _config
 from ._banner import _print_banner
 from ._gitops import _clone_swarmauri_repo
 from ._api_key import _resolve_api_key
 
-app = typer.Typer(help="CLI tool for processing project files using ProjectFileGenerator.")
+app = typer.Typer(help="CLI tool for processing project files using Peagen.")
 
 _print_banner()
 
@@ -116,7 +116,7 @@ def process(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     try:
-        pfg = ProjectFileGenerator(
+        pfg = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
@@ -284,7 +284,7 @@ def revise(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     try:
-        pfg = ProjectFileGenerator(
+        pfg = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
@@ -382,7 +382,7 @@ def sort(
 
     resolved_key = _resolve_api_key(provider, api_key, env)
 
-    pfg = ProjectFileGenerator(
+    pfg = Peagen(
         projects_payload_path=str(projects_payload),
         template_base_dir=str(template_base_dir) if template_base_dir else None,
         additional_package_dirs=additional_dirs_list,
