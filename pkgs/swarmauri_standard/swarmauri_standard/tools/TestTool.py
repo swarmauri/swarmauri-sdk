@@ -53,7 +53,7 @@ class TestTool(ToolBase):
             commands = {
                 "notepad": ["gedit"],
                 "calc": ["xcalc"],  # Use xcalc if available
-                "mspaint": ["pinta"],
+                "paint": ["pinta"],
             }
         else:
             return {"error": f"Unsupported OS: {os_name}"}
