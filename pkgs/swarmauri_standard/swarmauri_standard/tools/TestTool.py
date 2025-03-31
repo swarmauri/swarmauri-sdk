@@ -21,7 +21,7 @@ class TestTool(ToolBase):
                 input_type="string",
                 description="The program that the user wants to open",
                 required=True,
-                enum=["notepad", "calc", "mspaint"],
+                enum=["notepad", "calc", "paint"],
             )
         ]
     )
@@ -29,25 +29,44 @@ class TestTool(ToolBase):
     description: str = "This opens a program based on the user's request."
     type: Literal["TestTool"] = "TestTool"
 
-    def __call__(self, program) -> Dict[str, str]:
-        # Map Windows program names to macOS equivalents
+    def __call__(self, program: str) -> Dict[str, str]:
+        os_name = platform.system()
+        # Define mappings for each OS
+        commands: Dict[str, Union[str, List[str]]] = {}
+        if os_name == "Windows":
+            # On Windows, the commands are used directly.
+            commands = {
+                "notepad": "notepad",
+                "calc": "calc",
+                "paint": "mspaint",
+            }
+        elif os_name == "Darwin":
+            # On macOS, we use the 'open' command with the -a flag to open applications.
+            commands = {
+                "notepad": ["open", "-a", "TextEdit"],
+                "calc": ["open", "-a", "Calculator"],
+                # macOS doesn't have an exact equivalent of MS Paint.
+                # 'Preview' is used here as a placeholder.
+                "paint": ["open", "-a", "Preview"],
+            }
+        elif os_name == "Linux":
+            commands = {
+                "notepad": ["gedit"],
+                "calc": ["xcalc"],  # Use xcalc if available
+                "mspaint": ["pinta"],
+            }
+        else:
+            return {"error": f"Unsupported OS: {os_name}"}
 
-        system = platform.system().lower()
-        if system == "darwin":  # macOS
-            if program == "notepad":
-                sp.Popen(["open", "-a", "TextEdit"])
-            elif program == "calc":
-                sp.Popen(["open", "-a", "Calculator"])
-            elif program == "mspaint":
-                sp.Popen(["open", "-a", "Preview"])
-        elif system == "linux":
-            if program == "notepad":
-                sp.Popen(["gedit"])
-            elif program == "calc":
-                sp.Popen(["gnome-calculator"])
-            elif program == "mspaint":
-                sp.Popen(["gimp"])
-        else:  # Windows or other
-            sp.Popen([program])
+        # Retrieve the command based on the program parameter
+        cmd = commands.get(program)
+        if cmd is None:
+            return {"error": f"Unsupported program: {program}"}
 
-        return {"program": f"Program Opened: {program}"}
+        try:
+            # If cmd is a list (for Darwin/Linux) we pass it directly.
+            # If it’s a string (as for Windows) we pass it as is.
+            sp.Popen(cmd) if isinstance(cmd, list) else sp.Popen([cmd])
+            return {"program": f"Program Opened: {program}"}
+        except Exception as e:
+            return {"error": f"Failed to open program: {str(e)}"}
