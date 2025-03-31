@@ -172,7 +172,7 @@ jobs:
           if ! git diff-index --quiet HEAD; then
             git commit -m "chore: apply automatic formatting and lint fixes"
             git pull --rebase origin "${{ github.ref }}"
-            git push origin HEAD:"${{ github.ref }}" \
+            git push origin HEAD:"${{ github.ref }}"
           else
             echo "No changes to commit."
           fi
