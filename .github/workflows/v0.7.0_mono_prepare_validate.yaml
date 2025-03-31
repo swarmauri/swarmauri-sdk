@@ -165,6 +165,16 @@ jobs:
           done
           rm -rf patches
 
+      - name: Configure SSH for deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Add GitHub to known hosts to prevent interactive verification
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          # Change remote URL to SSH so that git push uses the deploy key
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
       - name: Git Commit and Push
         run: |
           git config user.name "github-actions[bot]"
