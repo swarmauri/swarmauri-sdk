@@ -12,7 +12,6 @@ This module supports a subset of TOML:
 Note: This is a simple implementation and does not cover the full TOML spec.
 """
 
-import io
 import re
 
 # A regex to detect bare keys (letters, numbers, underscore and dash)
