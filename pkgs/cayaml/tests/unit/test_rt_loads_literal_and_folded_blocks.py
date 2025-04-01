@@ -1,40 +1,33 @@
 import pytest
+from textwrap import dedent
 from cayaml import round_trip_loads
+from cayaml.ast_nodes import ScalarNode
 
-@pytest.mark.xfail(reason="Literal block scalars not yet supported by cayaml.")
+@pytest.mark.unit
 def test_literal_block():
-    """
-    Test literal block scalar (|) formatting.
-    
-    Example:
-        literal_block: |
-          Line one
-          Line two
-    """
-    yaml_str = """
-    literal_block: |
+    yaml_str = dedent('''literal_block: |
       Line one
       Line two
-    """
-    data = round_trip_loads(yaml_str)
-    # Literal blocks preserve line breaks.
-    assert data["literal_block"] == "Line one\nLine two\n"
+    ''')
+    doc = round_trip_loads(yaml_str)  # doc is a DocumentNode
+    node = doc["literal_block"]
+    print("DEBUG:", repr(yaml_str))
+    assert isinstance(node, ScalarNode), "Expected a ScalarNode"
+    assert node.style == "|", f"Got style={node.style}, expected '|'"
+    assert node.lines == ["Line one", "Line two"]
 
-@pytest.mark.xfail(reason="Folded block scalars not yet supported by cayaml.")
+
+@pytest.mark.unit
 def test_folded_block():
     """
-    Test folded block scalar (>) formatting.
-    
-    Example:
-        folded_block: >
-          This is folded
-          into one line.
+    Test loading a folded block scalar (>)
     """
-    yaml_str = """
+    yaml_str = dedent('''
     folded_block: >
       This is folded
       into one line.
-    """
-    data = round_trip_loads(yaml_str)
-    # Folded blocks typically join lines into one space-separated line.
-    assert data["folded_block"] == "This is folded into one line.\n"
+    ''')
+    doc = round_trip_loads(yaml_str)
+    node = doc["folded_block"]
+    assert isinstance(node, ScalarNode), "Expected a ScalarNode"
+    assert node.style == ">", f"Got style={node.style}, expected '>'"

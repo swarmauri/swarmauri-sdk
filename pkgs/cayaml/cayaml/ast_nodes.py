@@ -91,15 +91,12 @@ class MappingNode(Node):
         self.pairs.append((key_node, value_node))
 
     def __getitem__(self, key):
-        # Iterate over pairs and return the value where the key matches.
         for k, v in self.pairs:
-            # Assume key is stored in a ScalarNode.
             if hasattr(k, 'value') and k.value == key:
-                # If the value is a ScalarNode, unbox it.
-                if isinstance(v, ScalarNode):
+                # For plain scalars (no block style, no comments, etc.), return the raw value.
+                if isinstance(v, ScalarNode) and v.style is None:
                     return v.value
-                else:
-                    return v
+                return v
         raise KeyError(key)
 
     def __setitem__(self, key, value):
