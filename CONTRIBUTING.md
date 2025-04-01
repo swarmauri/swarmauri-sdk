@@ -75,6 +75,143 @@ _This section is currently under development and will provide coding style conve
    - Once your changes are ready, create a pull request (PR) to merge your branch into the main repository. 
    - Provide a detailed description, link to related issues, and request a review.
 
+### Developing Swarmauri Packages and Plugins
+
+Swarmauri follows a plugin-based architecture where components can be added via Python's entry point system. Understanding this system is essential for developing new packages.
+
+#### Package Development Setup
+
+1. **Minimal Development Environment:**
+   
+   For developing a new Swarmauri package, you typically only need to install the core dependencies:
+
+   ```bash
+   # Using pip
+   pip install -e pkgs/core/
+   pip install -e pkgs/base/
+   pip install -e pkgs/swarmauri_standard/
+   
+   # Or using uv (faster)
+   uv pip install -e pkgs/core/
+   uv pip install -e pkgs/base/
+   uv pip install -e pkgs/swarmauri_standard/
+   ```
+2. **Package Structure:**
+
+A typical Swarmauri plugin package should follow this structure:
+```
+swarmauri_<resource_kind>_<plugin_name>/
+├── LICENSE
+├── README.md
+├── pyproject.toml
+├── swarmauri_<resource_kind>_<plugin_name>/
+│   ├── __init__.py
+│   └── <PluginName>.py
+└── tests/
+    └── unit/
+        └── <PluginName>_test.py
+```
+
+3. **Entry Point Registration:**
+
+Swarmauri uses Python's entry points for plugin discovery. In your pyproject.toml, register your plugin:
+
+```toml
+[project.entry-points.'swarmauri.<resource_kind>']
+<plugin_name> = "swarmauri_<resource_kind>_<plugin_name>:<PluginClass>"
+```
+For example, for a vector store plugin:
+
+```toml
+[project.entry-points.'swarmauri.vectorstores']
+PineconeVectorStore = "swarmauri_vectorstore_pinecone:PineconeVectorStore"
+```
+
+**Plugin Citizenship Classes**
+
+Swarmauri has a concept of "citizenship" for plugins, which determines their privileges:
+
+1. **First-Class Plugins:**
+
+    - Pre-registered and maintained by the core team
+    - Must implement required interfaces
+    - Example: `@ComponentBase.register_type(VectorStoreBase, "PineconeVectorStore")`
+
+2. **Second-Class Plugins:**
+
+    - Community-contributed plugins
+    - Must implement the same interfaces as first-class plugins
+    - Registered with the same namespace (e.g., swarmauri.vectorstores)
+
+3. **Third-Class Plugins:**
+
+    - Generic plugins with fewer restrictions
+    - Registered under swarmauri.plugins namespace
+    - Not required to implement specific interfaces
+
+### Creating a New Plugin
+1. **Subclass the Appropriate Base Class:**
+```python
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.vectorstores.VectorStoreBase import VectorStoreBase
+
+@ComponentBase.register_type(VectorStoreBase, "MyVectorStore")
+class MyVectorStore(VectorStoreBase):
+    """
+    My custom vector store implementation.
+    """
+    type: Literal["MyVectorStore"] = "MyVectorStore"
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Your initialization code
+
+    # Implement required methods from VectorStoreBase
+```
+2. **Configure Entry Point in pyproject.toml:**
+```toml
+[project]
+name = "swarmauri_vectorstore_myvectorstore"
+version = "0.1.0"
+description = "My custom vector store for Swarmauri"
+license = "Apache-2.0"
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard"
+]
+
+[project.entry-points.'swarmauri.vectorstores']
+MyVectorStore = "swarmauri_vectorstore_myvectorstore:MyVectorStore"
+```
+4. **Test Your Plugin:**
+```sh
+# Install your package in development mode
+pip install -e path/to/swarmauri_vectorstore_myvectorstore
+
+# Run unit tests
+pytest swarmauri_vectorstore_myvectorstore/tests
+```
+
+**Accessing Your Plugin**
+
+After registration, your plugin can be accessed in two ways:
+
+1. **Via Namespace (Recommended):**
+```python
+from swarmauri.vectorstores import MyVectorStore
+
+my_store = MyVectorStore()
+```
+2. **Direct Package Import:**
+
+```python
+from swarmauri_vectorstore_myvectorstore import MyVectorStore
+
+my_store = MyVectorStore()
+```
+
 ### Development Setup
 
 1. **Run Tests with GitHub Actions:**
