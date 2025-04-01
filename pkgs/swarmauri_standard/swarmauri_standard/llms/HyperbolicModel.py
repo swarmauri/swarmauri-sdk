@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -29,11 +29,6 @@ class HyperbolicModel(LLMBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-    type: Literal["HyperbolicModel"] = "HyperbolicModel"
-    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -199,8 +194,11 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -247,8 +245,11 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -305,11 +306,13 @@ class HyperbolicModel(LLMBase):
                             usage_data = chunk["usage"]
                 except json.JSONDecodeError:
                     pass
-
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, promt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -371,10 +374,13 @@ class HyperbolicModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, promt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

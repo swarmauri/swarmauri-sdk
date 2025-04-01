@@ -28,9 +28,6 @@ class LLM(LLMBase):
         BASE_URL (str): The base URL for API requests.
         timeout (float): Timeout for API requests in seconds.
     """
-
-    include_usage: bool = True
-
     def __init__(self, **data) -> None:
         """
         Initialize the LLM class with the provided data.

@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import AsyncIterator, Dict, Iterator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -32,11 +32,6 @@ class PerplexityModel(LLMBase):
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-    type: Literal["PerplexityModel"] = "PerplexityModel"
-    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.perplexity.ai/chat/completions")
@@ -318,11 +313,13 @@ class PerplexityModel(LLMBase):
                     if chunk_data["usage"]:
                         usage_data = chunk_data["usage"]
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -391,10 +388,13 @@ class PerplexityModel(LLMBase):
                     yield delta_content
                     usage_data = chunk_data.get("usage", usage_data)
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import AsyncIterator, Dict, Iterator, List, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -32,13 +32,6 @@ class AnthropicModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.anthropic.com/v1")
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-    type: Literal["AnthropicModel"] = "AnthropicModel"
-
-    timeout: float = 600.0
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -162,11 +155,15 @@ class AnthropicModel(LLMBase):
             message_content = response_data["content"][0]["text"]
 
         usage_data = response_data["usage"]
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -245,10 +242,13 @@ class AnthropicModel(LLMBase):
                             except (json.JSONDecodeError, KeyError):
                                 continue
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
@@ -287,11 +287,15 @@ class AnthropicModel(LLMBase):
             message_content = response_data["content"][0]["text"]
 
         usage_data = response_data["usage"]
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -372,10 +376,13 @@ class AnthropicModel(LLMBase):
                             except (json.JSONDecodeError, KeyError):
                                 continue
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self, conversations: List[Conversation], temperature=0.7, max_tokens=256
