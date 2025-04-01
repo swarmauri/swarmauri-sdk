@@ -14,7 +14,6 @@ class LLMBase(IPredict, ComponentBase):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["LLMBase"] = "LLMBase"
 
-    # Common attributes found in both GroqModel and OpenAIModel
     api_key: Optional[SecretStr] = None
     name: str = ""
     timeout: float = 600.0
@@ -56,18 +55,6 @@ class LLMBase(IPredict, ComponentBase):
         if model not in self.allowed_models:
             raise ValueError(f"Model '{model}' is not in the allowed models list.")
         self.allowed_models.remove(model)
-
-    @abstractmethod
-    def _format_messages(self, *args, **kwargs):
-        """Format conversation messages for API request."""
-        raise NotImplementedError("_format_messages() not implemented in subclass yet.")
-
-    @abstractmethod
-    def get_allowed_models(self) -> List[str]:
-        """Get the list of allowed models for this LLM provider."""
-        raise NotImplementedError(
-            "get_allowed_models() not implemented in subclass yet."
-        )
 
     @abstractmethod
     def predict(self, *args, **kwargs):
