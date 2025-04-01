@@ -4,9 +4,8 @@
 
 <a href="https://pypi.org/project/swarmauri-core/">
         <img src="https://img.shields.io/pypi/dm/swarmauri-core" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/core/README.md">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/core/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri-core/">
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/core/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/core.svg"/></a>
         <img src="https://img.shields.io/pypi/pyversions/swarmauri-core" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri-core/">
         <img src="https://img.shields.io/pypi/l/swarmauri-core" alt="PyPI - License"/></a>
@@ -173,8 +172,6 @@ class MyModel(IPredict):
     pass
 ```
 
-
 ## Contributing
 
 Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.
-
