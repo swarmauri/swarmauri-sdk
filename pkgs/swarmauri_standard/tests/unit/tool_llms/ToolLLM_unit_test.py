@@ -226,7 +226,9 @@ async def test_astream(tool_llm_config, toolkit, conversation):
     logging.info(f"Testing astream with provider: {provider}")
 
     collected_tokens = []
-    async for token in llm.astream(conversation=conversation.model_copy(), toolkit=toolkit):
+    async for token in llm.astream(
+        conversation=conversation.model_copy(), toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 

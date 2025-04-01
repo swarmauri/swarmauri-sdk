@@ -33,6 +33,7 @@ def test_agent_exec(qa_agent):
     result = qa_agent.exec("hello")
     assert isinstance(result, str)
 
+
 @pytest.mark.unit
 def test_agent_exec_context(qa_agent):
     qa_agent.conversation.system_context = SystemMessage(content="Respond with Hi Only")

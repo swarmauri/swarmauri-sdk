@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_entityrecognition"
-version = "0.6.4"
+version = "0.6.6.dev1"
 description = "Entity Recognition Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,6 +15,7 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "spacy>=3.7.0,<3.8.0",
+    "spacy-lookups-data>=1.0.5",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
