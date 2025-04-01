@@ -1,0 +1,15 @@
+import pytest
+from {{ PKG.NAME }}.{{ MOD.NAME }} import {{ MOD.NAME }}
+
+@pytest.marker.unit
+def test_resource():
+    assert {{ MOD.NAME }}.resource == "{{ MOD.EXTRAS.RESOURCE_KIND | make_singular | capitalize }}"
+
+@pytest.marker.unit
+def test_type():
+    assert {{ MOD.NAME }}.type == "{{ MOD.NAME }}"
+
+@pytest.marker.unit
+def test_serialization():
+    {{ MOD.NAME|lower() }} = {{ MOD.NAME }}()
+    assert {{ MOD.NAME }}.id == {{ MOD.NAME }}.model_validate_json({{ MOD.NAME | lower() }}.model_dump_json())
