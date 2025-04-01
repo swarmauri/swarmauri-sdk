@@ -1,6 +1,7 @@
 import pytest
 from cayaml import round_trip_loads, round_trip_loads_all
 
+
 @pytest.mark.unit
 def test_rt_single_document_selection():
     """
@@ -24,7 +25,7 @@ def test_rt_single_document_selection():
     """
     data = round_trip_loads(yaml_str)
     assert not isinstance(data, list), "Expecting a single document"
-    
+
 
 @pytest.mark.unit
 def test_rt_loads_document_markers():

@@ -1,7 +1,10 @@
 import pytest
-from cayaml import loads, dumps
+from cayaml import loads
 
-@pytest.mark.xfail(reason="YAML directives (%YAML, %TAG, etc.) not yet supported by cayaml.")
+
+@pytest.mark.xfail(
+    reason="YAML directives (%YAML, %TAG, etc.) not yet supported by cayaml."
+)
 def test_directives():
     """
     Tests handling of YAML directives such as %YAML 1.2, %TAG, etc.

@@ -1,11 +1,12 @@
 import pytest
 from cayaml import loads
 
+
 @pytest.mark.xfail(reason="Literal block scalars not yet supported by cayaml.")
 def test_literal_block():
     """
     Test literal block scalar (|) formatting.
-    
+
     Example:
         literal_block: |
           Line one
@@ -20,11 +21,12 @@ def test_literal_block():
     # Literal blocks preserve line breaks.
     assert data["literal_block"] == "Line one\nLine two\n"
 
+
 @pytest.mark.xfail(reason="Folded block scalars not yet supported by cayaml.")
 def test_folded_block():
     """
     Test folded block scalar (>) formatting.
-    
+
     Example:
         folded_block: >
           This is folded
