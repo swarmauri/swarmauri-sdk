@@ -33,7 +33,7 @@ from pathlib import Path
 from ._processing import _process_project_files
 from ._graph import _topological_sort, _transitive_dependency_sort
 from ._Jinja2PromptTemplate import j2pt
-from ._config import _config
+from ._config import _config, __logger_name__
 
 import peagen.templates
 from pydantic import Field, ConfigDict, model_validator
@@ -61,7 +61,7 @@ class Peagen(ComponentBase):
     # These will be computed in the validator:
     namespace_dirs: List[str] = Field(default_factory=list)
     logger: SubclassUnion[LoggerBase] = Logger(
-        name=Fore.GREEN + "pfg" + Style.RESET_ALL
+        name=Fore.GREEN + __logger_name__ + Style.RESET_ALL
     )
     dry_run: bool = False
 
