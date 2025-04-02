@@ -3,6 +3,7 @@ import pytest
 
 from cayaml import load, loads, dump, dumps
 
+
 def test_loads_scalars():
     yaml_str = """
     # Testing scalars
@@ -79,7 +80,7 @@ def test_dumps_list():
     assert lines[0] == "- 1"
     assert lines[1] == "- 2"
     assert lines[2] == "- 3"
-    assert lines[3] == '- four'
+    assert lines[3] == "- four"
 
 
 def test_dumps_get_attribute_from_list():
@@ -90,6 +91,7 @@ def test_dumps_get_attribute_from_list():
     lines = yaml_str.splitlines()
     value = lines[0]
     assert type(value) is str
+
 
 def test_round_trip():
     yaml_str = """

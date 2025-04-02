@@ -1,6 +1,7 @@
 import pytest
 from cayaml import round_trip_loads, round_trip_dumps
 
+
 @pytest.mark.unit
 def test_literal_block_dump():
     """
@@ -19,9 +20,10 @@ def test_literal_block_dump():
     # Because docs is a list of docs, you might do round_trip_dumps(docs[0]) if you only want single doc
     # Or if your design expects a YamlStream, you can pass the entire structure.
     # We expect the output to match the original text (minus potential trailing blanks).
-    
+
     # A typical check is "does the output contain '|\\n  Line one\\n  Line two' ?"
-    assert "|\\n  Line one\\n  Line two" in output_yaml.replace("\r","")
+    assert "|\\n  Line one\\n  Line two" in output_yaml.replace("\r", "")
+
 
 @pytest.mark.unit
 def test_folded_block_dump():
@@ -40,4 +42,4 @@ def test_folded_block_dump():
     # folded_block: >
     #   This is folded
     #   into one line.
-    assert ">\\n  This is folded\\n  into one line." in output_yaml.replace("\r","")
+    assert ">\\n  This is folded\\n  into one line." in output_yaml.replace("\r", "")

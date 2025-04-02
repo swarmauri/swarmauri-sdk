@@ -1,5 +1,6 @@
 import pytest
-from cayaml import loads, dumps
+from cayaml import loads
+
 
 @pytest.mark.xfail(reason="Merge operator '<<:' not yet supported by cayaml.")
 def test_merge_operator():

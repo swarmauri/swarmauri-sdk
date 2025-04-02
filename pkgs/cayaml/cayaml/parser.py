@@ -13,6 +13,7 @@ This module exposes two internal functions:
 import math
 from .ast_nodes import YamlStream, DocumentNode, MappingNode, SequenceNode, ScalarNode
 
+
 def parse_scalar(value: str):
     """
     Convert a scalar string into int, float, bool, None, or leave as string.
@@ -58,12 +59,14 @@ def parse_scalar(value: str):
 
     return value
 
+
 def _internal_parse_stream(yaml_str: str) -> YamlStream:
     """
     Tokenize and parse a YAML string, returning a YamlStream (which may have multiple DocumentNodes).
     """
     lines = yaml_str.splitlines()
     return parse_stream(lines)
+
 
 def _internal_load(yaml_str: str):
     """
@@ -77,11 +80,13 @@ def _internal_load(yaml_str: str):
         return stream.documents[0]
     return stream
 
+
 def _internal_to_ast(data):
     """
     Convert plain Python data (dict, list, or scalar) into our AST.
     """
     from .ast_nodes import MappingNode, SequenceNode, ScalarNode
+
     if isinstance(data, dict):
         node = MappingNode()
         for key, value in data.items():
@@ -96,6 +101,7 @@ def _internal_to_ast(data):
         return node
     else:
         return ScalarNode(data)
+
 
 def parse_stream(lines: list) -> YamlStream:
     """
@@ -143,6 +149,7 @@ def parse_stream(lines: list) -> YamlStream:
 
     return stream
 
+
 def parse_block(lines: list, indent: int):
     """
     Decide whether the block is a mapping or a sequence, then parse.
@@ -158,6 +165,7 @@ def parse_block(lines: list, indent: int):
         return parse_sequence(lines, indent)
     else:
         return parse_mapping(lines, indent)
+
 
 def parse_mapping(lines: list, indent: int):
     """
@@ -239,7 +247,6 @@ def parse_mapping(lines: list, indent: int):
 
     remaining = lines[i:]
     return mapping, remaining
-
 
 
 def parse_sequence(lines: list, indent: int):

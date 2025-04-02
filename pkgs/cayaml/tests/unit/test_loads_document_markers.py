@@ -1,6 +1,7 @@
 import pytest
 from cayaml import loads, loads_all
 
+
 @pytest.mark.unit
 def test_single_document_selection():
     """
@@ -24,7 +25,7 @@ def test_single_document_selection():
     """
     data = loads(yaml_str)
     assert not isinstance(data, list), "Expecting a single document"
-    
+
 
 @pytest.mark.unit
 def test_loads_document_markers():
@@ -52,4 +53,3 @@ def test_loads_document_markers():
     assert len(data) == 2
     assert data[0]["doc1"]["key"] == "value1"
     assert data[1]["doc2"]["key"] == "value2"
-

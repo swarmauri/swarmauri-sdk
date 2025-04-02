@@ -29,7 +29,7 @@ def _print_banner():
     )
     repo_info = (
         Fore.YELLOW
-        + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/ptree_dag"
+        + "GitHub: https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen"
         + Style.RESET_ALL
     )
     usage_hint = f"{Fore.YELLOW}Type '--help' to see available commands."

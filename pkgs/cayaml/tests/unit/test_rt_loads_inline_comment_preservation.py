@@ -1,6 +1,7 @@
 import pytest
 from cayaml import round_trip_loads, dumps
 
+
 @pytest.mark.xfail(reason="Inline comment preservation not yet supported by cayaml.")
 def test_inline_comment_preservation():
     """
