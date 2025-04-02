@@ -33,6 +33,8 @@ members = [
     "swarmauri_standard",
     "swarmauri",
     "typing",
+    "cayaml",
+    "catoml",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -102,6 +104,7 @@ members = [
     "community/swarmauri_toolkit_jupytertoolkit",
     "community/swarmauri_tool_jupyterexportlatex",
     "community/swarmauri_tool_jupytergetiopubmessage",
+
 ]
 
 [tool.uv.sources]
@@ -110,6 +113,8 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri = { workspace = true }
 typing = { workspace = true }
+cayaml = { workspace = true }
+catoml = { workspace = true }
 
 
 
@@ -183,6 +188,7 @@ swarmauri_tool_jupyterclearoutput = { workspace = true }
 swarmauri_tool_jupyterexportlatex = { workspace = true }
 swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+
 
 [tool.pytest.ini_options]
 norecursedirs = [

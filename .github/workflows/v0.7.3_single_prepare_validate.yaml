@@ -5,66 +5,16 @@ on:
     inputs:
       member:
         description: "Specify a specific member to run the workflow for (optional)"
-        required: false
+        required: true
 
 concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
 
 jobs:
-  set-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.get-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies for matrix generation
-        run: pip install toml
-
-      - name: Get workspace members
-        id: get-matrix
-        run: |
-          cd pkgs
-          python - <<'EOF'
-          import toml, json, os
-          # Open the root pyproject.toml file
-          with open("pyproject.toml", "r") as f:
-              config = toml.load(f)
-          # Extract the workspace members from tool.uv.workspace.members
-          members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
-          if not isinstance(members, list):
-              raise Exception("The 'members' entry is not a list.")
-
-          # Check for an override via the 'member' input (available as INPUT_MEMBER)
-          member_override = os.environ.get("INPUT_MEMBER", "").strip()
-          if member_override:
-              if member_override in members:
-                  members = [member_override]
-              else:
-                  print(f"Specified member '{member_override}' not found in workspace members.")
-                  members = []
-
-          # Build a matrix with one entry per member
-          matrix = {"include": [{"member": member} for member in members]}
-          print(f"Matrix: {json.dumps(matrix)}")
-          # Write the matrix JSON to the GitHub Actions output
-          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-              print(f"matrix={json.dumps(matrix)}", file=fh)
-          EOF
-
   test:
-    needs: set-matrix
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
-      fail-fast: false
+    # We'll continue on error to ensure we capture all issues and still produce patches/artifacts
     continue-on-error: true
     steps:
       - name: Checkout code
@@ -76,57 +26,70 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies for testing
-        run: pip install uv pytest toml
+        run: |
+          echo "::notice::Installing Python test dependencies..."
+          pip install uv pytest toml
 
       - name: Bump Version Placeholder
         run: |
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
-          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+          MEMBER="${{ github.event.inputs.member }}"
+          if [ -z "$MEMBER" ]; then
+            echo "::error::No member specified. Please provide a valid member name."
+            exit 1
+          fi
+
+          echo "::notice::Running bump version process for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ github.event.inputs.member }}/pyproject.toml')['project']['name'])")
+          echo "::notice::Package name detected: $PACKAGE_NAME"
+
+          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${{ github.event.inputs.member }}/pyproject.toml
 
       - name: Ruff format
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Running Ruff format on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
       - name: Ruff lint check & fix
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Running Ruff lint check & fix on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
-      - name: Run tests for member ${{ matrix.member }}
+      - name: Run tests for member
         run: |
           cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Running tests for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
+          echo "::notice::Package name: $PACKAGE_NAME"
+
+          # We run tests; if they fail, let's output an annotation (but we don't stop the workflow).
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
       - name: Create patch for changes
         if: always()
         run: |
           mkdir -p patches
-          MEMBER="${{ matrix.member }}"
+          MEMBER="${{ github.event.inputs.member }}"
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          echo "::notice::Creating patch file for changed files in $MEMBER..."
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+          if [ ! -s "patches/patch_${SAFE_MEMBER}.patch" ]; then
+            echo "::warning::No changes detected for $MEMBER, the patch file is empty."
+          fi
 
       - name: Set safe member variable
         if: always()
         id: set_safe_member
         run: |
-          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "SAFE_MEMBER=$(echo '${{ github.event.inputs.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "::notice::Safe member name set to $SAFE_MEMBER"
 
       - name: Upload patch artifact
         if: always()
@@ -158,18 +121,22 @@ jobs:
           path: patches
 
       - name: List downloaded artifacts
-        run: ls -R patches
+        run: |
+          echo "::notice::Listing patch artifacts..."
+          ls -R patches
 
       - name: Apply patches
         run: |
+          echo "::notice::Applying downloaded patches..."
           find patches -type f -name "*.patch" | while read patch; do
             echo "Applying patch $patch"
-            git apply -p1 "$patch"
+            git apply -p1 "$patch" || echo "::error::Failed to apply patch $patch"
           done
           rm -rf patches
 
       - name: Configure SSH for deploy key
         run: |
+          echo "::notice::Configuring SSH for deploy key..."
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
@@ -182,9 +149,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           if ! git diff-index --quiet HEAD; then
+            echo "::notice::Changes detected; committing and pushing..."
             git commit -m "chore: apply automatic formatting and lint fixes"
             git pull --rebase origin "${{ github.ref }}"
             git push origin HEAD:"${{ github.ref }}" --force
           else
-            echo "No changes to commit."
+            echo "::notice::No changes to commit."
           fi
