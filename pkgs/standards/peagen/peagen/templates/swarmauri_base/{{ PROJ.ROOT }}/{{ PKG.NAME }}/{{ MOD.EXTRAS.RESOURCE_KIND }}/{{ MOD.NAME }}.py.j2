@@ -7,7 +7,7 @@ class {{ MOD.NAME }}({{ MOD.EXTRAS.INTERFACE_NAME }}, ComponentBase):
     """
     <!-- Add docstrings here -->
     """
-    resource: Optional[str] = Field(default=ResourceTypes.{{ MOD.EXTRAS.RESOURCE_KIND | capitalize | make_singular  }}.value)
+    resource: Optional[str] = Field(default=ResourceTypes.{{ MOD.EXTRAS.RESOURCE_KIND | upper | make_singular  }}.value)
     
     # Methods
     <!-- Include additional methods here. All methods should include complete implementation logic. -->
