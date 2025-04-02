@@ -15,4 +15,4 @@ PROJECTS:
               BASE_NAME: "ParserBase"
               BASE_FILE: "base/swarmauri_base/parsers/ParserBase.py"
               EXAMPLES:
-              - "swarmauri_standard/swarmauri_standard/parsers/PythonParser.py"
+              - "swarmauri_standard/swarmauri_standard/parsers/CSVParser.py"
