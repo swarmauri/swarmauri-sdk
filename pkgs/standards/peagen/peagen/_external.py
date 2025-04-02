@@ -65,10 +65,9 @@ def call_external_agent(
     except Exception as e:
         error_details = traceback.format_exc()  # Get full traceback details
         raise ImportError(
-            f"\n\n{Fore.YELLOW}Swarmauri SDK has been corrupted."
-            f"\nException: {Fore.RED}({e}){Fore.YELLOW}"
+            f"\n\n{Fore.YELLOW}Exception: {Fore.RED}({e}){Fore.YELLOW}"
             f"\nTraceback details:\n{Fore.RED}{error_details}{Fore.YELLOW}\n"
-            "\nThis often happens when an SDK package is installed in editable mode and an SDK file has been "
+            "\nThis often happens when an SDK package is installed in editable mode and a file has been "
             "corrupted with a bad overwrite. "
             "\nSee the issue thread here: "
             f"{Fore.BLUE}{UNDERLINE}https://github.com/swarmauri/swarmauri-sdk/issues/1300{Style.RESET_ALL}\n"
@@ -109,11 +108,14 @@ def call_external_agent(
 
     agent.conversation.system_context = SystemMessage(content=system_context)
 
-    # Execute the prompt against the agent
-    result = agent.exec(
-        prompt,
-        llm_kwargs={"max_tokens": max_tokens},
-    )
+    try:
+        # Execute the prompt against the agent
+        result = agent.exec(
+            prompt,
+            llm_kwargs={"max_tokens": max_tokens},
+        )
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt("'Interrupted...'")
 
     # Process and chunk the content
     content = chunk_content(result, logger)
