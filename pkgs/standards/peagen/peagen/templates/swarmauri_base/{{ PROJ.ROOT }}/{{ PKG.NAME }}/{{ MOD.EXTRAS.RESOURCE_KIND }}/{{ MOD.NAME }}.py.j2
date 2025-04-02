@@ -2,7 +2,7 @@ from typing import Optional
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
-class {{ MOD.NAME }}(ComponentBase):
+class {{ MOD.NAME }}({{ MOD.EXTRAS.BASE_NAME }}, ComponentBase):
     """
     <!-- Add docstrings here -->
     """
