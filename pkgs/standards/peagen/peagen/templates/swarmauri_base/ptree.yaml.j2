@@ -35,8 +35,8 @@
   MODULE_NAME: "{{ MOD.NAME }}"
   EXTRAS:
     DEPENDENCIES:
-      {%- if MOD.EXTRAS.BASE_FILE %}
-              - "{{ MOD.EXTRAS.BASE_FILE }}"
+      {%- if MOD.EXTRAS.INTERFACE_FILE %}
+              - "{{ MOD.EXTRAS.INTERFACE_FILE }}"
       {%- endif %}
       {%- if MOD.EXTRAS.EXTERNAL_DOC_FILES %}
         {%- for doc in MOD.EXTRAS.EXTERNAL_DOC_FILES %}
@@ -73,6 +73,7 @@
     {%- endfor %}
     {%- endif %}
     RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
+    INTERFACE_NAME: "{{ MOD.EXTRAS.INTERFACE_NAME }}"
     EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
 
 {% endfor %}

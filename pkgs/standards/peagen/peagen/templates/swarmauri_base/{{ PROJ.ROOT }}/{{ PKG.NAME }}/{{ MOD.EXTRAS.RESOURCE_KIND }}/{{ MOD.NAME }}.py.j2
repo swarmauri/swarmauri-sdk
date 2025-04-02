@@ -1,8 +1,9 @@
 from typing import Optional
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.{{ MOD.EXTRAS.RESOURCE_KIND }}.{{ MOD.EXTRAS.INTERFACE_NAME }} import {{ MOD.EXTRAS.INTERFACE_NAME }}
 
 @ComponentBase.register_model()
-class {{ MOD.NAME }}({{ MOD.EXTRAS.BASE_NAME }}, ComponentBase):
+class {{ MOD.NAME }}({{ MOD.EXTRAS.INTERFACE_NAME }}, ComponentBase):
     """
     <!-- Add docstrings here -->
     """

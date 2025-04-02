@@ -7,13 +7,13 @@ PROJECTS:
     MODULES:
     - NAME: "ParserBase"
       EXTRAS:
-        PURPOSE: "r"
+        PURPOSE: ""
         DESCRIPTION: "r"
         REQUIREMENTS:
-        - "r"
+        - "Should implement the inteface first and the ComponentBase second."
         RESOURCE_KIND: "parsers"
-        BASE_NAME: "IParser"
-        BASE_FILE: "pkgs/core/swarmauri_core/parsers/IParser.py"
+        INTERFACE_NAME: "IParser"
+        INTERFACE_FILE: "pkgs/core/swarmauri_core/parsers/IParser.py"
 
 
             
