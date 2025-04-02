@@ -1,9 +1,9 @@
 PROJECTS:
   - NAME: "ExampleParserProject"
-    ROOT: "pkgs"
+    ROOT: "pkgs/core"
     TEMPLATE_SET: "swarmauri_core"
     PACKAGES:
-      - NAME: "core"
+      - NAME: "swarmauri_core"
         MODULES:
           - NAME: "IParser"
             EXTRAS:
