@@ -16,6 +16,13 @@ Note:
 
 from pydantic import FilePath
 from typing import Any, Dict, Optional
+
+import colorama
+from colorama import Fore, Style
+
+# Initialize colorama for auto-resetting colors
+colorama.init(autoreset=True)
+
 from ._Jinja2PromptTemplate import j2pt
 
 
@@ -42,7 +49,7 @@ def _render_copy_template(
         return rendered_content
     except Exception as e:
         if logger:
-            logger.error(f"Failed to render copy template '{template_path}': {e}")
+            logger.error(f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}': {e}")
         return ""
 
 
@@ -78,6 +85,6 @@ def _render_generate_template(
     except Exception as e:
         if logger:
             logger.error(
-                f"Failed to render generate template '{agent_prompt_template}': {e}"
+                f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}': {e}"
             )
         return ""
