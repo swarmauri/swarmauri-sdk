@@ -176,7 +176,8 @@ def _process_file(
     if not content:
         if logger:
             logger.warning(f"No content generated for file '{final_filename}'.")
-        return False
+        if process_type == "GENERATE":
+            return False
     _save_file(content, final_filename, logger, start_idx, idx_len)
     return True
 
