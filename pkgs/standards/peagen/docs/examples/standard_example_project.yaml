@@ -1,0 +1,18 @@
+PROJECTS:
+  - NAME: "StandardParserImplementation"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "swarmauri_standard"
+    PACKAGES:
+      - NAME: "swarmauri_standard"        
+        MODULES:
+          - NAME: "Parser"
+            EXTRAS:
+              PURPOSE: "r"
+              DESCRIPTION: "r"
+              REQUIREMENTS:
+              - "r"
+              RESOURCE_KIND: "parsers"
+              BASE_NAME: "ParserBase"
+              BASE_FILE: "base/swarmauri_base/parsers/ParserBase.py"
+              EXAMPLES:
+              - "swarmauri_standard/swarmauri_standard/parsers/PythonParser.py"

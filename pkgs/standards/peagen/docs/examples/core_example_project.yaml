@@ -12,6 +12,7 @@ PROJECTS:
               REQUIREMENTS:
               - "Include abstractmethods for: dump, dumps, load, loads"
               - "Include abstractmethods for: round_trip_dump, round_trip_dumps, round_trip_load, round_trip_loads"
+              - "Include pass keyword for all abstractmethods"
               RESOURCE_KIND: "parsers"
             
 
