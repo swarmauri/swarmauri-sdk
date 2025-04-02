@@ -33,11 +33,6 @@ class DeepSeekModel(LLMBase):
 
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-
-    type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
 
