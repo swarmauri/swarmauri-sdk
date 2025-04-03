@@ -7,12 +7,10 @@ PROJECTS:
     MODULES:
     - NAME: "ParserBase"
       EXTRAS:
-        PURPOSE: "Provide a base implementation of the IParser interface for extension by specialized parsers."
-        DESCRIPTION: "Base implementation of the IParser interface."
+        PURPOSE: "Provide a base implementation of the interface class for extension by subclasses."
+        DESCRIPTION: "Base implementation of the interface class"
         REQUIREMENTS:
         - "Should inherit from the interface first and ComponentBase second."
-        - "Must declare the same abstract methods as IParser with proper type annotations."
-        - "Should raise NotImplementedError for abstract methods"
         RESOURCE_KIND: "parsers"
         INTERFACE_NAME: "IParser"
         INTERFACE_FILE: "pkgs/core/swarmauri_core/parsers/IParser.py"

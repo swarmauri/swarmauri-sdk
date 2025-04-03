@@ -1,6 +1,7 @@
-I need you to revise the file named "{{ FILE.RENDERED_FILE_NAME }}". This file provides part of the implementation for the "{{ PKG.NAME }}" package.
+I need you to revise the file named "{{ FILE.RENDERED_FILE_NAME }}".
+This file provides a concrete implementation of {{ FILE.EXTRAS.BASE_NAME }} for the "{{ PKG.NAME }}" package.
 
-Below are the details and requirements for the original task task:
+Below are the details and requirements for this task:
 
 1. **Purpose**:
    {{ FILE.EXTRAS.PURPOSE }}
@@ -47,14 +48,10 @@ Leverage the reference file below as a guideline to utilize when creating the ne
 {%- endfor %}
 {% endif %}
  
-### Output to be Revised
-<!-- File to be revised; This file will need to be revised based on the test results. -->
-{% include FILE.RENDERED_FILE_NAME %}
+### Example Format of the Output
+<!-- Example only; your code will vary. This is to show how your response should look. -->
+{% include FILE.FILE_NAME %}
 
-### Test results
-```
-{{ INJ }}
-```
 
 {# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
 {% if FILE.EXTRAS.DEPENDENCIES %}

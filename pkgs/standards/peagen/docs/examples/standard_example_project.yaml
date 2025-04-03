@@ -10,8 +10,6 @@ PROJECTS:
               PURPOSE: "Implement specialized parsing for JSON formatted data."
               DESCRIPTION: "Concrete JSON parser implementation that efficiently processes JSON data with support for complex nested structures and specialized JSON-specific features."
               REQUIREMENTS:
-              - "Must inherit from the Base class."
-              - "Must implement all required methods from ParserBase with concrete implementations."
               - "Must handle all valid JSON formats including nested objects and arrays."
               - "Should provide specialized JSON schema validation capabilities."
               - "Should include optimized handling for large JSON documents."
