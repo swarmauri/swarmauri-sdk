@@ -11,6 +11,7 @@ resolution-markers = [
 members = [
     "catoml",
     "cayaml",
+    "jaml",
     "peagen",
     "swarmauri",
     "swarmauri-base",
@@ -509,7 +510,7 @@ dev = [
 
 [[package]]
 name = "cayaml"
-version = "0.1.0.dev8"
+version = "0.1.0.dev9"
 source = { editable = "cayaml" }
 
 [package.dev-dependencies]
@@ -1792,6 +1793,41 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ef/4c/5dd1d8af08107f88c7f741ead7a40854b8ac24ddf9ae850afbcf698aa552/ipython_pygments_lexers-1.1.1.tar.gz", hash = "sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81", size = 8393 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl", hash = "sha256:a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c", size = 8074 },
+]
+
+[[package]]
+name = "jaml"
+version = "0.1.0.dev8"
+source = { editable = "jaml" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -3160,7 +3196,7 @@ wheels = [
 
 [[package]]
 name = "peagen"
-version = "0.1.2.dev3"
+version = "0.1.2.dev5"
 source = { editable = "standards/peagen" }
 dependencies = [
     { name = "inflect" },
@@ -6217,7 +6253,6 @@ dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "jupyter-client" },
-    { name = "pydantic" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -6242,7 +6277,6 @@ requires-dist = [
     { name = "ipykernel", specifier = "==6.29.5" },
     { name = "ipython", specifier = ">=8.32.0" },
     { name = "jupyter-client", specifier = ">=8.6.3" },
-    { name = "pydantic", specifier = "==2.10.6" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },

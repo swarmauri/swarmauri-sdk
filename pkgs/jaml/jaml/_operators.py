@@ -1,0 +1,8 @@
+_MERGE_OPERATOR = '>>'
+_MERGE_KEY = '<<'
+_ANCHOR_KEY = '@'
+_CONTEXT_KEY = '$'
+_EVAL_KEY = "~"
+_COMMENT_KEY = "#"
+_START_LIST_KEY = "["
+_END_LIST_KEY = "]"
