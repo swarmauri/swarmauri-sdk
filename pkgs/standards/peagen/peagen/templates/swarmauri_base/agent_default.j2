@@ -1,5 +1,5 @@
 I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}". 
-This file provides a BaseClass for a concrete classes within the "{{ PKG.NAME }}" package.
+This file provides a base implementation that extends a core interface class within the "{{ PKG.NAME }}" package.
 
 Below are the details and requirements for this task:
 
@@ -23,8 +23,10 @@ Below are the details and requirements for this task:
    - Assume the user will copy-paste this code as-is into their project.
 
 5. **File and Code Preferences**:
-   - Provide the abstract class and abstractmethods only.
+   - Include all abstract methods from the interface
    - All methods must have type annotations.
+   - Ensure all necessary imports are included.
+
 
 ### Desired Output
 Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 

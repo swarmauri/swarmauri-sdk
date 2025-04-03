@@ -1,5 +1,5 @@
-I need you to revise the file named "{{ FILE.RENDERED_FILE_NAME }}". 
-This file provides a base implementation that extends a core interface class within the "{{ PKG.NAME }}" package.
+I need you to revise the file named "{{ FILE.RENDERED_FILE_NAME }}".
+This file provides a concrete implementation of the base class "{{ FILE.EXTRAS.BASE_CLASS }}" for the "{{ PKG.NAME }}" package.
 
 Below are the details and requirements for this task:
 
@@ -23,10 +23,11 @@ Below are the details and requirements for this task:
    - Assume the user will copy-paste this code as-is into their project.
 
 5. **File and Code Preferences**:
-   - Include all abstract methods from the interface
-   - All methods must have type annotations.
-   - Ensure all necessary imports are included.
-
+   - Provide the concrete fully functional implementation of the code.
+   - All methods must feature a complete implementation.
+   - Must inherit the base class.
+   - Must provide fully functional implementations for all required methods.
+   - Implement logging using logging.
 
 ### Desired Output
 Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 

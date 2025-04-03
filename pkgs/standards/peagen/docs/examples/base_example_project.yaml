@@ -7,14 +7,10 @@ PROJECTS:
     MODULES:
     - NAME: "ParserBase"
       EXTRAS:
-        PURPOSE: "Create a base class that provides default implementation logic of the inherited interface."
-        DESCRIPTION: "The base class inherits and implements default behavior for core interfaces."
+        PURPOSE: "Provide a base implementation of the interface class for extension by subclasses."
+        DESCRIPTION: "Base implementation of the interface class"
         REQUIREMENTS:
-        - "Should implement the inteface first and the ComponentBase second."
+        - "Should inherit from the interface first and ComponentBase second."
         RESOURCE_KIND: "parsers"
         INTERFACE_NAME: "IParser"
         INTERFACE_FILE: "pkgs/core/swarmauri_core/parsers/IParser.py"
-
-
-            
-
