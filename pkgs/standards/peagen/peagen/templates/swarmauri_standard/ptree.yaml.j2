@@ -72,6 +72,8 @@
       - "{{ req }}"
     {%- endfor %}
     {%- endif %}
+    BASE_CLASS: "{{ MOD.EXTRAS.BASE_NAME }}"
+    MIXINS: {{ MOD.EXTRAS.MIXINS | default([]) | tojson }}
     RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
     EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
 
