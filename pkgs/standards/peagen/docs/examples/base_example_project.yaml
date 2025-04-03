@@ -7,8 +7,8 @@ PROJECTS:
     MODULES:
     - NAME: "ParserBase"
       EXTRAS:
-        PURPOSE: ""
-        DESCRIPTION: "r"
+        PURPOSE: "Create a base class that provides default implementation logic of the inherited interface."
+        DESCRIPTION: "The base class inherits and implements default behavior for core interfaces."
         REQUIREMENTS:
         - "Should implement the inteface first and the ComponentBase second."
         RESOURCE_KIND: "parsers"

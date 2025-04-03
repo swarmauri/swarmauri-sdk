@@ -66,7 +66,6 @@
     DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
     REQUIREMENTS:
       - "Implement the functionality for module {{ MOD.NAME }}."
-      - "Provide typed abstractmethods only. Do not include implementation logic."
     {%- if MOD.EXTRAS.REQUIREMENTS %}
     {%- for req in MOD.EXTRAS.REQUIREMENTS %}
       - "{{ req }}"
