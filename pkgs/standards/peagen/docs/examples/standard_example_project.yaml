@@ -5,12 +5,16 @@ PROJECTS:
     PACKAGES:
       - NAME: "swarmauri_standard"        
         MODULES:
-          - NAME: "Parser"
+          - NAME: "JSONParser"
             EXTRAS:
-              PURPOSE: "r"
-              DESCRIPTION: "r"
+              PURPOSE: "Implement specialized parsing for JSON formatted data."
+              DESCRIPTION: "Concrete JSON parser implementation that efficiently processes JSON data with support for complex nested structures and specialized JSON-specific features."
               REQUIREMENTS:
-              - "r"
+              - "Must inherit from the Base class."
+              - "Must implement all required methods from ParserBase with concrete implementations."
+              - "Must handle all valid JSON formats including nested objects and arrays."
+              - "Should provide specialized JSON schema validation capabilities."
+              - "Should include optimized handling for large JSON documents."
               RESOURCE_KIND: "parsers"
               BASE_NAME: "ParserBase"
               BASE_FILE: "base/swarmauri_base/parsers/ParserBase.py"
