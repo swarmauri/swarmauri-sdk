@@ -35,6 +35,7 @@ members = [
     "typing",
     "cayaml",
     "catoml",
+    "jaml",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -115,7 +116,7 @@ swarmauri = { workspace = true }
 typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
-
+jaml = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
