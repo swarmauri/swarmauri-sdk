@@ -200,8 +200,8 @@ def _process_project_files(
         )
 
         # Update j2pt.templates_dir[0] only if it’s actually changed
-        if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
-        # if new_template_dir and (str(j2pt.templates_dir[0]) != str(new_template_dir)):
+        # if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
+        if new_template_dir and (str(j2pt.templates_dir[0]) != str(new_template_dir)):
             if logger:
                 logger.debug(
                     "Template dir updated: "
