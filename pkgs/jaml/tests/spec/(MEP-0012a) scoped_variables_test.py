@@ -9,8 +9,18 @@ from jaml import (
 
 from jaml._tokenizer import tokenize
 
+
+# Test that an f-string with a scoped variable is recognized as a STRING.
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Global scope variable resolution not fully implemented yet.")
+def test_f_string_precedence():
+    tokens = tokenize('f"Hello, ${base}!"')
+    # The f-string should be matched entirely as a STRING.
+    assert len(tokens) == 1
+    assert tokens[0][0] == "STRING"
+    assert "${base}" in tokens[0][1]
+
+@pytest.mark.spec
+# @pytest.mark.xfail(reason="Global scope variable resolution not fully implemented yet.")
 def test_global_scope_variable_resolved():
     """
     MEP-012:
@@ -38,7 +48,7 @@ config = f"@{base}/config.toml"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Self scope override not fully enforced yet.")
+# @pytest.mark.xfail(reason="Self scope override not fully enforced yet.")
 def test_self_scope_overrides_global():
     """
     MEP-012:
@@ -60,7 +70,7 @@ greeting = f"Hello, %{name}!"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Context scope resolution not fully implemented yet.")
+# @pytest.mark.xfail(reason="Context scope resolution not fully implemented yet.")
 def test_context_scope_render_time():
     """
     MEP-012:
@@ -82,7 +92,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="F-string dynamic style resolution not fully implemented yet.")
+# @pytest.mark.xfail(reason="F-string dynamic style resolution not fully implemented yet.")
 def test_f_string_dynamic_style():
     """
     MEP-012:
@@ -99,7 +109,7 @@ config_path = f"@{base}/config.toml"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Concatenation style resolution not fully implemented yet.")
+# @pytest.mark.xfail(reason="Concatenation style resolution not fully implemented yet.")
 def test_concatenation_style():
     """
     MEP-012:
@@ -116,8 +126,8 @@ config_path = @{base} + "/myapp/config.toml"
     assert "/var/www/myapp/config.toml" in rendered
 
 
-@pytest.mark.xfail(reason="Partial expression evaluation for mixed styles not implemented yet.")
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Partial expression evaluation for mixed styles not implemented yet.")
 def test_mixed_styles_incomplete_implementation():
     """
     MEP-012:
@@ -135,8 +145,8 @@ config_path = f"${base}" + "/dynamic/config.toml"
     assert "/opt/dynamic/config.toml" in rendered or "/custom/dynamic/config.toml" in rendered
 
 
-@pytest.mark.xfail(reason="Global and context scope overshadow handling not fully implemented yet.")
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Global and context scope overshadow handling not fully implemented yet.")
 def test_global_and_context_scope_same_name():
     """
     MEP-012:
@@ -158,11 +168,3 @@ file = f"${path}/config.toml"   # Possibly overshadowed by context
     assert "/render-time/config.toml" in rendered
 
 
-# Test that an f-string with a scoped variable is recognized as a STRING.
-@pytest.mark.spec
-def test_f_string_precedence():
-    tokens = tokenize('f"Hello, ${base}!"')
-    # The f-string should be matched entirely as a STRING.
-    assert len(tokens) == 1
-    assert tokens[0][0] == "STRING"
-    assert "${base}" in tokens[0][1]
