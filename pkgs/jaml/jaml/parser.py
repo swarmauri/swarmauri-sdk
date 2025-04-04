@@ -216,19 +216,20 @@ class JMLParser:
             # Remove the delimiters: {~ and ~}
             inner = raw_value[2:-2].strip()
             try:
-                # Use an empty dict for __builtins__ and supply required variables.
+                from types import SimpleNamespace
+                # Use an empty __builtins__ and supply required variables.
                 eval_globals = {"__builtins__": {}}
                 eval_locals = {
                     "true": True,
                     "false": False,
                     "inf": float("inf"),
                     "nan": float("nan"),
-                    "is_active": True  # Supply is_active; adjust as needed.
                 }
                 evaluated = eval(inner, eval_globals, eval_locals)
             except Exception as e:
                 raise SyntaxError(f"Error evaluating expression: {inner}") from e
             return ScalarNode(value=evaluated), consumed
+
 
 
 
