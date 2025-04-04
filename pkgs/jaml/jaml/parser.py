@@ -29,15 +29,15 @@ class JMLParser:
         i = 0
 
         while i < len(tokens):
-            # Always skip whitespace tokens that contain a newline,
-            # as they separate logical lines.
+            # Skip any whitespace tokens that contain a newline.
             if tokens[i][0] == "WHITESPACE" and "\n" in tokens[i][1]:
                 i += 1
                 continue
 
             kind, value = tokens[i][0], tokens[i][1]
 
-            # Capture standalone comments that are not inline.
+            # Process standalone comments only if they are not part of an inline construct.
+            # Inline comments are detected after a key–value pair.
             if kind == "COMMENT":
                 comment_node = CommentNode(comment=value)
                 if current_section is None:
@@ -72,47 +72,57 @@ class JMLParser:
                 raise SyntaxError(f"Cannot use reserved function '{value}' as an identifier/key")
 
             if kind == "IDENTIFIER":
+                # Process the key.
                 key = value
-                if value in ("File", "Git"):
-                    raise SyntaxError(f"Cannot use reserved function name '{value}' as an identifier/key")
-                
-                # Determine whether the key is followed by ":" or "=".
-                if (i + 1 < len(tokens)
-                    and tokens[i + 1][0] == "PUNCTUATION"
-                    and tokens[i + 1][1] == ":"):
-                    i += 2  # Skip the identifier and the colon
-                    type_annotation = None
+                if key in ("File", "Git"):
+                    raise SyntaxError(f"Cannot use reserved function name '{key}' as an identifier/key")
+                i += 1
+
+                # Skip any inline whitespace (without newline) between the key and the punctuation.
+                while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
+                    i += 1
+
+                type_annotation = None
+                value_node = ScalarNode(value=None)
+
+                # Check for colon indicating a type annotation.
+                if i < len(tokens) and tokens[i][0] == "PUNCTUATION" and tokens[i][1] == ":":
+                    i += 1  # Skip the colon
+                    while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
+                        i += 1
                     if i < len(tokens) and tokens[i][0] == "IDENTIFIER":
                         type_annotation = tokens[i][1]
                         i += 1
-                    if i < len(tokens) and tokens[i][0] == "OPERATOR" and tokens[i][1] == "=":
+                    # Skip any whitespace before the operator.
+                    while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
                         i += 1
+                    if i < len(tokens) and tokens[i][0] == "OPERATOR" and tokens[i][1] == "=":
+                        i += 1  # Skip '='
+                        while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
+                            i += 1
                         value_node, consumed = self._parse_value(tokens, i)
                         i += consumed
                     else:
                         value_node = ScalarNode(value=None)
-                elif (i + 1 < len(tokens)
-                      and tokens[i + 1][0] == "OPERATOR"
-                      and tokens[i + 1][1] == "="):
-                    i += 2  # Skip the identifier and '='
-                    type_annotation = None
+                # Check for an operator '=' directly after the key.
+                elif i < len(tokens) and tokens[i][0] == "OPERATOR" and tokens[i][1] == "=":
+                    i += 1  # Skip '='
+                    while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
+                        i += 1
                     value_node, consumed = self._parse_value(tokens, i)
                     i += consumed
                 else:
-                    i += 1
-                    type_annotation = None
+                    # If neither ':' nor '=' is found, leave the value as None.
                     value_node = ScalarNode(value=None)
 
                 # Check for an inline (trailing) comment after the value.
-                # We first check for a whitespace token; then we remove any leading newline(s)
-                # so that inline comments remain attached.
                 inline_comment = None
-                if i < len(tokens) and tokens[i][0] == "WHITESPACE":
-                    # Remove any leading newline characters.
-                    inline_ws = tokens[i][1].lstrip("\n")
-                    if inline_ws and i + 1 < len(tokens) and tokens[i + 1][0] == "COMMENT":
+                if i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
+                    # Preserve the whitespace exactly as is.
+                    inline_ws = tokens[i][1]
+                    if i + 1 < len(tokens) and tokens[i + 1][0] == "COMMENT":
                         inline_comment = inline_ws + tokens[i + 1][1]
-                        i += 2  # Skip the whitespace and comment tokens
+                        i += 2  # Consume both the whitespace and the COMMENT tokens
 
                 # If no section has been started, create a default section.
                 if current_section is None:

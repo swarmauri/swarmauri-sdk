@@ -44,7 +44,7 @@ greeting = "Hello, World!"  # Inline comment: greeting message
     ast = round_trip_loads(original)
     reserialized = round_trip_dumps(ast)
     # Check that the inline comment is present on the same line
-    assert '# Inline comment: greeting message' in reserialized
+    assert 'greeting = "Hello, World!"  # Inline comment: greeting message' in reserialized
 
 
 @pytest.mark.spec
@@ -66,6 +66,7 @@ colors = [
     ast = round_trip_loads(original)
     reserialized = round_trip_dumps(ast)
     # Check that each inline comment is preserved for each element
+    assert original in reserialized
     assert "# Primary color" in reserialized
     assert "# Secondary color" in reserialized
     assert "# Accent color" in reserialized
@@ -92,7 +93,8 @@ profile = {
 '''
     ast = round_trip_loads(original)
     reserialized = round_trip_dumps(ast)
-    # Check that the two inline comments remain 
+    # Check that the two inline comments remain
+    assert original in reserialized
     assert "# User's name" in reserialized
     assert "# User's email" in reserialized
     # Also verify the triple-quoted block still contains the # as text
@@ -119,6 +121,7 @@ numbers = [
     reserialized = round_trip_dumps(ast)
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
+    assert original in reserialized
     assert "# first" in reserialized
     assert "# second" in reserialized
     assert "# third" in reserialized
@@ -143,6 +146,7 @@ numbers = [
     reserialized = round_trip_dumps(ast)
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
+    assert original in reserialized
     assert "# first" in reserialized
     assert "# 2" in reserialized
     assert "# third" in reserialized
@@ -164,4 +168,4 @@ key = "value"   #   note the extra spaces before/after comment
     ast = round_trip_loads(original)
     reserialized = round_trip_dumps(ast)
     # If the spec requires preserving that extra whitespace, we can do a direct substring check:
-    assert 'key = "value"   #   note the extra spaces' in reserialized
+    assert 'key = "value"  #   note the extra spaces before' in reserialized

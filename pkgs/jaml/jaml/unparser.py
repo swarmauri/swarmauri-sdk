@@ -38,17 +38,15 @@ class JMLUnparser:
 
         for section in self.ast.sections:
             lines.append(f"[{section.name}]")
-            # Optionally emit section-specific comments, if your AST captures them.
+            # Instead of printing section.comments as separate lines,
+            # collect them so they can be merged into key–value lines.
+            inline_comments = []
             if hasattr(section, "comments") and section.comments:
-                for comment in section.comments:
-                    lines.append(comment.comment)
+                inline_comments.extend(comment.comment for comment in section.comments)
             for kv in section.keyvalues:
-                value_str = self._unparse_node(kv.value)
-                if kv.comment:
-                    # Append the inline comment exactly as stored.
-                    lines.append(f"{kv.key} = {value_str}{kv.comment}")
-                else:
-                    lines.append(f"{kv.key} = {value_str}")
+                # Use the dedicated key–value unparser to generate the line.
+                line = self._unparse_keyvalue(kv, inline_comments)
+                lines.append(line)
             lines.append("")  # Blank line between sections
 
         result = "\n".join(lines)
@@ -57,6 +55,41 @@ class JMLUnparser:
         if not result.endswith("\n"):
             result = result + "\n"
         return result
+
+    def _unparse_keyvalue(self, kv: KeyValueNode, inline_comments=None) -> str:
+        """
+        Convert a single KeyValueNode to a string while preserving inline comments,
+        including the exact whitespace between the closing quote and the comment marker.
+        
+        Produces output like:
+            key = value  # Inline comment: greeting message
+        or, if a type annotation exists:
+            key: type_annotation = value  # Inline comment: greeting message
+        """
+        # Build the key-value portion.
+        value_str = self._unparse_node(kv.value)
+        if kv.type_annotation:
+            kv_line = f"{kv.key}: {kv.type_annotation} = {value_str}"
+        else:
+            kv_line = f"{kv.key} = {value_str}"
+        
+        # Use the key–value node's inline comment if present,
+        # otherwise try to merge a comment from the section.
+        comment_text = kv.comment
+        if not comment_text and inline_comments:
+            comment_text = inline_comments.pop(0)
+        
+        if comment_text:
+            # Count the number of leading spaces in the comment.
+            leading_spaces = len(comment_text) - len(comment_text.lstrip(" "))
+            # If there are fewer than 2 leading spaces, ensure exactly 2.
+            if leading_spaces < 2:
+                comment_text = "  " + comment_text.lstrip(" ")
+            # If there are 2 or more, leave them as captured.
+            kv_line += comment_text
+        return kv_line
+
+
 
     def _unparse_node(self, node):
         # For string scalar nodes, use the raw text if available.
@@ -76,8 +109,7 @@ class JMLUnparser:
                 return node.raw
             parts = []
             for kv in node.keyvalues:
-                value_str = self._unparse_node(kv.value)
-                parts.append(f"{kv.key} = {value_str}")
+                parts.append(f"{kv.key} = {self._unparse_node(kv.value)}")
             return "{ " + ", ".join(parts) + " }"
         elif isinstance(node, LogicExpressionNode):
             return "{~ " + node.expression + " ~}"
@@ -86,86 +118,9 @@ class JMLUnparser:
         else:
             return str(node.to_plain())
 
-
-    def _unparse_section(self, section: SectionNode) -> str:
-        """
-        Unparse a single section into JML lines.
-        
-        Format:
-        
-            [section_name]
-            key: type_annotation = value
-            ...
-        """
-        result_lines = []
-        # Section header line
-        result_lines.append(f"[{section.name}]")
-
-        # Key-value lines
-        for kv in section.keyvalues:
-            kv_line = self._unparse_keyvalue(kv)
-            # If you prefer to avoid blank lines, you can omit them
-            if kv_line:
-                result_lines.append(kv_line)
-
-        # Blank line after each section
-        result_lines.append("")
-        return "\n".join(result_lines)
-
-    def _unparse_keyvalue(self, kv_node: KeyValueNode) -> str:
-        """
-        Convert a single KeyValueNode to a string like:
-            my_key: str = "hello"
-        or:
-            my_list: list = [1, 2, 3]
-        """
-        key = kv_node.key
-        # Use the node's type_annotation if present; otherwise guess
-        type_ann = kv_node.type_annotation or self._guess_type_annotation(kv_node.value)
-        value_str = self._unparse_value(kv_node.value)
-        return f"{key}: {type_ann} = {value_str}"
-
-    def _unparse_value(self, node) -> str:
-        """
-        Convert a value node (ScalarNode, ArrayNode, TableNode, LogicExpressionNode) into JML syntax.
-        """
-        if isinstance(node, ScalarNode):
-            return self._unparse_scalar(node)
-        elif isinstance(node, ArrayNode):
-            return self._unparse_array(node)
-        elif isinstance(node, TableNode):
-            return self._unparse_table(node)
-        elif isinstance(node, LogicExpressionNode):
-            # You might store the raw string or reconstruct from sub-nodes if you had them
-            return f"<Expression: {node.expression}>"
-        else:
-            # Fallback
-            return str(node)
-
-    def _unparse_scalar(self, scalar: ScalarNode) -> str:
-        """
-        Convert a ScalarNode (string, bool, int, float, null, etc.) to a JML-compliant string.
-        """
-        val = scalar.value
-
-        # Strings: wrap in quotes
-        if isinstance(val, str):
-            # Naive approach: does not escape quotes inside the string
-            return f"\"{val}\""
-        # Booleans
-        elif isinstance(val, bool):
-            return "true" if val else "false"
-        # Null
-        elif val is None:
-            return "null"
-        # Everything else (int, float, etc.)
-        else:
-            return str(val)
-
     def _unparse_array(self, array_node: ArrayNode) -> str:
         items_str = [self._unparse_node(item) for item in array_node.items]
         return f"[ {', '.join(items_str)} ]"
-
 
     def _unparse_table(self, table_node: TableNode) -> str:
         """
@@ -174,9 +129,7 @@ class JMLUnparser:
         """
         pairs = []
         for kv in table_node.keyvalues:
-            val_str = self._unparse_value(kv.value)
-            pairs.append(f"{kv.key} = {val_str}")
-        # You can add spacing/formatting as you prefer
+            pairs.append(f"{kv.key} = {self._unparse_node(kv.value)}")
         return "{ " + ", ".join(pairs) + " }"
 
     def _guess_type_annotation(self, node) -> str:
