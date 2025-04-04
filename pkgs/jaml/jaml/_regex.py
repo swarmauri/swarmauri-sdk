@@ -37,11 +37,11 @@ def regex_identifier():
 
 def regex_illegal_identifier():
     # This regex matches identifiers that include at least one disallowed special character.
-    # Disallowed characters include: !, @, #, $, %, ^, &, *, (, ), +, =, {, }, [, ], |, \, :, ;, ", ', <, >, ,, ., ?, /
-    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_-]*[!@#$%^&*()+={}\[\]|\\:;"\'<>,.?/][a-zA-Z0-9_-]*\b'
+    # We add a negative lookahead to avoid matching tokens that begin with an f-string literal.
+    pattern = r'\b(?!f(?=["\']))[a-zA-Z_][a-zA-Z0-9_-]*[!@#$%^&*()+={}\[\]|\\:;"\'<>,.?/][a-zA-Z0-9_-]*\b'
     return re.compile(pattern)
 
-def regex_exclamation_outside():
+def regex_illegal_special_char():
     pattern = r'(?<![\[{(])!([^)\]}]*?(?=[\[{(]|$)|(?=[\]}\)]))'
     return re.compile(pattern, re.DOTALL)
 

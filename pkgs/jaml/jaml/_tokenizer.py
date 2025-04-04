@@ -26,7 +26,7 @@ def tokenize(source: str):
         if kind == 'ILLEGAL_ID':
             raise SyntaxError("illegal identifier")
 
-        if kind == 'INVALID_CHARACTER':
+        if kind == 'ILLEGAL_SPECIAL_CHAR':
             raise SyntaxError("disallowed special character in identifier")
 
         if kind == "OPERATOR" and value == "|":

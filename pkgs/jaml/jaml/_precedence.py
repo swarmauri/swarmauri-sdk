@@ -6,13 +6,13 @@ from ._regex import (
     regex_array, regex_inline_table, regex_table_section, regex_table_array,
     regex_operator, regex_punctuation, regex_comment, regex_scoped_variable,
     regex_whitespace, regex_tilde_block, regex_folder_block, regex_illegal_identifier,
-    regex_exclamation_outside
+    regex_illegal_special_char
 ) 
 
 __PRECEDENCE_SPECIFICATION__ = [
     # 1) ILLEGAL_ID must come before IDENTIFIER in order to catch it first
     ('ILLEGAL_ID',  regex_illegal_identifier().pattern),
-    ('INVALID_CHARACTER', regex_exclamation_outside().pattern),
+    ('ILLEGAL_SPECIAL_CHAR', regex_illegal_special_char().pattern),
     ('STRING',      regex_string().pattern),
     ('SCOPED_VAR',  regex_scoped_variable().pattern),
     ('COMMENT',     regex_comment().pattern),
