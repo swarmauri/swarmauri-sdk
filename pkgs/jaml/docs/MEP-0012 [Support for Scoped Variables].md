@@ -1,9 +1,3 @@
-(Draft)
-# Draft Notes
-
-Add more details about f-string interpolation here
-
----
 
 # MEP-012: Support for Scoped Variables
 
@@ -19,7 +13,7 @@ We further support two styles for using these scoped variables in configuration 
 - **Dynamic Style:** Using f-string–like syntax (e.g., `f"${base}/config.toml"`) where placeholders are replaced by their resolved values.
 - **Concatenation Style:** Using an explicit concatenation operator (e.g., `${base} + '/config.toml'`) that produces the same resolved output.
 
-The resolution order is defined such that a variable defined locally (self scope) overrides a global variable if both are present, and context scope is only available at render time. This proposal does not cover arbitrary expression evaluation but focuses solely on the resolution of scoped variables in static (load-time) and dynamic (render-time) contexts.
+This proposal does not cover arbitrary expression evaluation but focuses solely on the resolution of scoped variables in static (load-time) and dynamic (render-time) contexts.
 
 ---
 
@@ -53,7 +47,7 @@ The resolution order is defined such that a variable defined locally (self scope
   ```toml
   [user]
   name = "LocalName"
-  greeting = f"Hello, ${user.name}"  # Should resolve using a local definition if available
+  greeting = f"Hello, %{name}"  # Should resolve using a local definition if available
   ```
   Here, if the table contains a local `name`, it takes precedence over any global `name`.
 
@@ -89,8 +83,6 @@ Our language will support two syntactic styles for including scoped variables in
 
 ### 3.3. Resolution Order
 
-- **Self (Table-Local) overrides Global:**  
-  When a variable exists both in self scope and in the global scope, the self (local) value takes precedence.
 - **Context Variables:**  
   Variables referenced via `${...}` are only available at render time and are resolved using the supplied context.
 - **Default Behavior:**  
@@ -102,7 +94,7 @@ Our language will support two syntactic styles for including scoped variables in
 
 - **Explicit Scoping:**  
   The use of distinct notations for each scope (`@{...}`, `%{...}`, `${...}`) provides clarity. Authors immediately understand whether a value is being drawn from a global default, a table-local override, or an external context.
-  
+
 - **Flexible Construction:**  
   By supporting both dynamic (f-string) and concatenation styles, the language accommodates various coding styles without sacrificing consistency. Both methods produce identical outcomes.
 
@@ -142,6 +134,49 @@ config_concat = ${base} + '/config.toml'
 ```
 Both `config_fstring` and `config_concat` resolve to `/home/user/config.toml`.
 
+### Example: List and Dict Comprehensions with Scoped Variables
+
+```toml
+[globals]
+prefix = "item"
+items = ["apple", "banana", "cherry"]
+
+[server]
+config = {f"{prefix}_{item}" for item in items if item != "banana"}
+```
+In this case:
+- `prefix` is from the global scope.
+- `items` is a list in the global scope.
+- The comprehension iterates over `items` and generates a set of formatted strings, excluding `"banana"`.
+
+Result:
+```plaintext
+config = {"item_apple", "item_cherry"}
+```
+
+### Example: `%{base}` vs `@{base}` Comparison
+
+```toml
+# Global scope
+[globals]
+base = "/home/user"
+
+# Self (Table-Local) scope
+[user]
+base = "/home/user/local"
+
+# Using the variable in both contexts
+greeting_local = f"User config directory (local): %{base}/config.toml"
+greeting_global = f"User config directory (global): @{base}/config.toml"
+```
+
+### Expected Output:
+- **greeting_local:** Resolves to the table-local `base` (`/home/user/local`) because `%{base}` refers to the local scope.
+  - Result: `"User config directory (local): /home/user/local/config.toml"`
+  
+- **greeting_global:** Resolves to the global `base` (`/home/user`) because `@{base}` explicitly refers to the global scope.
+  - Result: `"User config directory (global): /home/user/config.toml"`
+
 ---
 
 ## 6. Implementation Considerations
@@ -155,9 +190,11 @@ Both `config_fstring` and `config_concat` resolve to `/home/user/config.toml`.
 - **Consistency:**  
   Both dynamic styles (f-string and concatenation) should be handled identically in the AST and final output.
 
+- **Comprehensions and Variables:**  
+  List and dict comprehensions should support scoped variables seamlessly, with the same resolution rules as string interpolation, ensuring consistency in how scoped variables are used in dynamic and static contexts.
+
 ---
 
 ## 7. Conclusion
 
-MEP-012 outlines the support for scoped variables in our markup language. By providing three distinct scopes—global (`@{...}`), self/local (`%{...}`), and context (`${...}`)—and supporting both dynamic and static reference styles (f-string and concatenation), we achieve a system that is clear, flexible, and predictable. This proposal lays a solid foundation for managing configuration variables, ensuring that values are resolved in the intended order and context.
-
+MEP-012 outlines the support for scoped variables in our markup language. By providing three distinct scopes—global (`@{...}`), self/local (`%{...}`), and context (`${...}`)—and supporting both dynamic and static reference styles (f-string and concatenation), we achieve a system that is clear, flexible, and predictable. The proposal also extends to list and dict comprehensions, integrating scoped variables seamlessly into these constructs. This proposal lays a solid foundation for managing configuration variables, ensuring that values are resolved in the intended order and context.
