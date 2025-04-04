@@ -105,6 +105,7 @@ def test_arithmetic_operators():
     _ = loads(source)
 
 
+## this test case should be moved to another MEP spec test
 @pytest.mark.spec
 # @pytest.mark.xfail(reason="Spec not fully implemented – pipeline operator not fully enforced")
 def test_pipeline_operator():
@@ -118,6 +119,7 @@ def test_pipeline_operator():
         # If your grammar doesn't allow '|', we might fail. 
         _ = loads(source)
 
+## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
 @pytest.mark.spec
 def test_conditional_ternary_operator():
     """
@@ -127,7 +129,7 @@ def test_conditional_ternary_operator():
     source = 'status = {~ "Active" if "Active" else "Inactive" ~}'
     _ = loads(source)
 
-
+## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
 @pytest.mark.spec
 def test_membership_operators():
     """
