@@ -4,7 +4,7 @@ import re
 # Regex for Reserved Keywords
 # ---------------------------
 def regex_keywords():
-    pattern = r'\b(?:is|not|and|or|if|elif|else|for|in|include)\b'
+    pattern = r'\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include)\b'
     return re.compile(pattern)
 
 # ---------------------------

@@ -1,5 +1,5 @@
 
-# MEP-012: Support for Scoped Variables
+# MEP-012: Scoped Variables
 
 ## 1. Abstract
 

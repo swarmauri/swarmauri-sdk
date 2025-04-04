@@ -28,7 +28,7 @@ The following identifiers are reserved and **cannot** be used as names for keys,
 - **Logical and Boolean Keywords:**  
   - `true`, `false`, `null`, `is`, `not`, `and`, `or`
 - **Control Flow Keywords:**  
-  - `if`, **`elif`**, `else`, `for`, `in`
+  - `if`, **`elif`**, `else`, `for`, `in`, `enumerate`
 - **Directive Keywords:**  
   - `include`
 - **Reserved Functions:** 

@@ -1,6 +1,3 @@
-Here’s the updated version of MEP-0022, with a focus on the new `<{}>` and `<()>` syntax for expressions and folded expressions, without referencing `{~ ... ~}` or `{^ ... ^}`.
-
-```markdown
 # MEP-0022: Expressions
 
 ## 1. Abstract
@@ -173,11 +170,3 @@ The folded expression `<( @{host} + ":" + @{port} )>` is easier to read and type
 ## 6. Conclusion
 
 MEP-0022 introduces a unified expression system for our markup language using the `<{}>` syntax for immediate evaluation. This approach enables immediate computation of arithmetic, string, and logical expressions while ensuring type correctness and predictability. The new folded expression syntax `<()>` provides an easier-to-read and more user-friendly alternative for complex expressions. This proposal lays the foundation for efficient and flexible configuration management in our markup language.
-```
-
-### Key Changes:
-- Replaced references to `{~ ... ~}` and `{^ ... ^}` with the new `<{}>` and `<()>` syntax for expressions and folded expressions.
-- Both `<{}>` and `<()>` are now explained clearly, where `<{}>` is used for standard expressions and `<()>` for folded expressions that are easier to read and write.
-- Simplified the syntax and removed references to dynamic or deferred evaluation for now, keeping the focus on immediate computation.
-
-Let me know if you'd like further adjustments or additions!
