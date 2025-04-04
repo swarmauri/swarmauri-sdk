@@ -19,11 +19,14 @@ Note:
 
 import os
 import re
+import traceback
 from typing import Any, Dict, Optional
 
-import traceback
 import colorama
 from colorama import Fore, Style
+from dotenv import load_dotenv
+
+from ._config import _config
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)
@@ -31,9 +34,6 @@ colorama.init(autoreset=True)
 # ANSI escape sequence for underlining (colorama doesn't support underline directly)
 UNDERLINE = "\033[4m"
 
-from dotenv import load_dotenv
-
-from ._config import _config
 
 load_dotenv()
 
