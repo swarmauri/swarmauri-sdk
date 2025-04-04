@@ -32,19 +32,18 @@ def regex_null():
 # Regex for Identifiers
 # ---------------------------
 def regex_identifier():
-    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_-]*\b'
     return re.compile(pattern)
 
 def regex_illegal_identifier():
-    """
-    Matches an unquoted string that looks like an identifier 
-    but contains a colon somewhere in the middle, e.g. 'some:key'
-    """
-    # A simple approach: start with [a-zA-Z_] and continue with 
-    # letters/digits/underscore, but somewhere in there has at least one colon 
-    # followed by more letters/digits/underscore.
-    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z0-9_]+\b'
+    # This regex matches identifiers that include at least one disallowed special character.
+    # Disallowed characters include: !, @, #, $, %, ^, &, *, (, ), +, =, {, }, [, ], |, \, :, ;, ", ', <, >, ,, ., ?, /
+    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_-]*[!@#$%^&*()+={}\[\]|\\:;"\'<>,.?/][a-zA-Z0-9_-]*\b'
     return re.compile(pattern)
+
+def regex_exclamation_outside():
+    pattern = r'(?<![\[{(])!([^)\]}]*?(?=[\[{(]|$)|(?=[\]}\)]))'
+    return re.compile(pattern, re.DOTALL)
 
 # ---------------------------
 # Regex for Numeric Types: Integers

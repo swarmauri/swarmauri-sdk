@@ -24,7 +24,10 @@ def tokenize(source: str):
 
         # ILLEGAL_ID check
         if kind == 'ILLEGAL_ID':
-            raise SyntaxError("invalid punctuation in identifier")
+            raise SyntaxError("illegal identifier")
+
+        if kind == 'INVALID_CHARACTER':
+            raise SyntaxError("disallowed special character in identifier")
 
         if kind == "OPERATOR" and value == "|":
             raise SyntaxError("pipeline operator support is in discussion, but not planned.")

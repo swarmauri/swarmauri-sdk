@@ -47,7 +47,7 @@ def test_reserved_punctuation():
     e.g. some:key = 1
     """
     source = "some:key = 1"
-    with pytest.raises(SyntaxError, match="invalid punctuation"):
+    with pytest.raises(SyntaxError, match="illegal identifier"):
         _ = loads(source)
 
 
@@ -157,7 +157,7 @@ def test_invalid_use_of_colon():
     Confirms that using a colon as part of a key name triggers a syntax error.
     """
     source = 'invalid:key = "value"'
-    with pytest.raises(SyntaxError, match="invalid punctuation"):
+    with pytest.raises(SyntaxError, match="illegal identifier"):
         _ = loads(source)
 
 
@@ -193,6 +193,14 @@ def test_identifier_assigned_identifier():
     with pytest.raises(SyntaxError, match="cannot assign identifier to identifier."):
         _ = loads(source)
 
+@pytest.mark.spec
+def test_underscored_identifier():
+    """
+    Verifies that an identifier cannot be assigned to an identifier.
+    Should raise an error.
+    """
+    source = 'identifier_1 = "test"'
+    _ = loads(source)
 
 @pytest.mark.spec
 def test_unmatched_brackets():
@@ -213,4 +221,31 @@ def test_invalid_mismatched_quotes():
     """
     source = 'bad = "Missing end quote'
     with pytest.raises(SyntaxError, match="missing closing quote|Syntax error"):
+        _ = loads(source)
+
+@pytest.mark.spec
+def test_invalid_enclosed_special_character_identifier():
+    """
+    Expect a syntax error when an invalid special character is used.
+    """
+    source = 'mykey!a = "strange_value"'
+    with pytest.raises(SyntaxError, match="illegal identifier"):
+        _ = loads(source)
+
+@pytest.mark.spec
+def test_invalid_prefix_special_character_identifier():
+    """
+    Expect a syntax error when an invalid special character is used.
+    """
+    source = '!mykey = "strange_value"'
+    with pytest.raises(SyntaxError, match="disallowed special character in identifier"):
+        _ = loads(source)
+        
+@pytest.mark.spec
+def test_invalid_special_character_identifier():
+    """
+    Expect a syntax error when an invalid special character is used.
+    """
+    source = 'mykey! = "strange_value"'
+    with pytest.raises(SyntaxError, match="disallowed special character in identifier"):
         _ = loads(source)

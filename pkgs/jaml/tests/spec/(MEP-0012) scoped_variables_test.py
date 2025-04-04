@@ -7,6 +7,8 @@ from jaml import (
     render
 )
 
+from jaml._tokenizer import tokenize
+
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Global scope variable resolution not fully implemented yet.")
 def test_global_scope_variable_resolved():
@@ -154,3 +156,13 @@ file = f"${path}/config.toml"   # Possibly overshadowed by context
     rendered = render(toml_str, context=ctx)
     # Expect context overshadowing to yield "/render-time/config.toml"
     assert "/render-time/config.toml" in rendered
+
+
+# Test that an f-string with a scoped variable is recognized as a STRING.
+@pytest.mark.spec
+def test_f_string_precedence():
+    tokens = tokenize('f"Hello, ${base}!"')
+    # The f-string should be matched entirely as a STRING.
+    assert len(tokens) == 1
+    assert tokens[0][0] == "STRING"
+    assert "${base}" in tokens[0][1]

@@ -33,15 +33,6 @@ def test_standalone_comment():
     assert tokens[0][0] == "COMMENT"
     assert tokens[0][1].startswith("#")
 
-# Test that an f-string with a scoped variable is recognized as a STRING.
-@pytest.mark.spec
-def test_f_string_precedence():
-    tokens = tokenize('f"Hello, ${base}!"')
-    # The f-string should be matched entirely as a STRING.
-    assert len(tokens) == 1
-    assert tokens[0][0] == "STRING"
-    assert "${base}" in tokens[0][1]
-
 # Test that an inline table is recognized as INLINE_TABLE and that its nested tokens include comments.
 @pytest.mark.spec
 def test_inline_table_nesting():
