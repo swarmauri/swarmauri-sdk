@@ -1,4 +1,5 @@
 # unparser.py
+import json
 
 from .ast_nodes import (
     DocumentNode,
@@ -28,18 +29,64 @@ class JMLUnparser:
 
     def unparse(self) -> str:
         lines = []
+        # Emit preamble comments (standalone comments before any section)
+        if hasattr(self.ast, "preamble") and self.ast.preamble:
+            for comment in self.ast.preamble:
+                # Emit the comment exactly as captured (including the "#")
+                lines.append(comment.comment)
+            lines.append("")  # Blank line after preamble comments
+
         for section in self.ast.sections:
             lines.append(f"[{section.name}]")
+            # Optionally emit section-specific comments, if your AST captures them.
+            if hasattr(section, "comments") and section.comments:
+                for comment in section.comments:
+                    lines.append(comment.comment)
             for kv in section.keyvalues:
-                # Only include the type annotation if it is not None.
-                if kv.type_annotation is not None:
-                    line = f"{kv.key}: {kv.type_annotation} = {kv.value}"
+                value_str = self._unparse_node(kv.value)
+                if kv.comment:
+                    # Append the inline comment exactly as stored.
+                    lines.append(f"{kv.key} = {value_str}{kv.comment}")
                 else:
-                    line = f"{kv.key} = {kv.value}"
-                lines.append(line)
-            lines.append("")  # Optional blank line between sections.
-        return "\n".join(lines)
-    
+                    lines.append(f"{kv.key} = {value_str}")
+            lines.append("")  # Blank line between sections
+
+        result = "\n".join(lines)
+        if not result.startswith("\n"):
+            result = "\n" + result
+        if not result.endswith("\n"):
+            result = result + "\n"
+        return result
+
+    def _unparse_node(self, node):
+        # For string scalar nodes, use the raw text if available.
+        if isinstance(node, ScalarNode) and isinstance(node.value, str):
+            if hasattr(node, "raw"):
+                return node.raw
+            else:
+                return json.dumps(node.value)
+        elif isinstance(node, ArrayNode):
+            # Use the raw representation if it contains newlines.
+            if hasattr(node, "raw") and "\n" in node.raw:
+                return node.raw
+            else:
+                return self._unparse_array(node)
+        elif isinstance(node, TableNode):
+            if hasattr(node, "raw"):
+                return node.raw
+            parts = []
+            for kv in node.keyvalues:
+                value_str = self._unparse_node(kv.value)
+                parts.append(f"{kv.key} = {value_str}")
+            return "{ " + ", ".join(parts) + " }"
+        elif isinstance(node, LogicExpressionNode):
+            return "{~ " + node.expression + " ~}"
+        elif isinstance(node, ScalarNode):
+            return str(node.value)
+        else:
+            return str(node.to_plain())
+
+
     def _unparse_section(self, section: SectionNode) -> str:
         """
         Unparse a single section into JML lines.
@@ -116,14 +163,9 @@ class JMLUnparser:
             return str(val)
 
     def _unparse_array(self, array_node: ArrayNode) -> str:
-        """
-        Convert an ArrayNode into JML array syntax:
-          [item1, item2, item3]
-        """
-        items_str = []
-        for item in array_node.items:
-            items_str.append(self._unparse_value(item))
-        return f"[{', '.join(items_str)}]"
+        items_str = [self._unparse_node(item) for item in array_node.items]
+        return f"[ {', '.join(items_str)} ]"
+
 
     def _unparse_table(self, table_node: TableNode) -> str:
         """

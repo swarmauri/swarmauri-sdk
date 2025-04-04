@@ -60,26 +60,38 @@ def test_trailing_punctuation_allowed():
     source = "some: key = 1"
     _ = loads(source)
 
+@pytest.mark.spec
+def test_single_quote_string():
+    source = "single = 'Hello, World!'"
+    data = loads(source)
+    # Expect that the value has been unquoted correctly.
+    assert data["__default__"]["single"] == "Hello, World!"
 
 @pytest.mark.spec
-def test_string_quotation_rules():
-    """
-    Demonstrates multiple string forms. For now, we check that it parses 
-    without error. If your parser or grammar is advanced, you might do 
-    a round-trip and confirm the exact string forms are preserved.
-    """
-    source = r'''
-single = 'Hello, World!'
-double = "Hello, ${user.name}!"
-triple_single = '''"""One\nTwo\nThree"""'''
-triple_double = """Line1
-Line2
-Line3"""
-raw_backticks = `C:/Users/Name`
-f_string = f"${base}/docs"
-'''
-    # If your parser doesn't handle all these string forms, it might raise SyntaxError.
+def test_triple_single_quote_string():
+    # The JML source uses triple-single quotes to enclose a triple-double-quoted string.
+    # The inner value should be: """One\nTwo\nThree"""
+    source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
+    expected = '"""One\nTwo\nThree"""'
+    assert data["__default__"]["triple_single"] == expected
+
+@pytest.mark.spec
+def test_triple_double_quote_string():
+    # The JML source contains a triple-double quoted string with embedded newlines.
+    source = 'triple_double = """Line1\nLine2\nLine3"""'
+    data = loads(source)
+    expected = "Line1\nLine2\nLine3"
+    assert data["__default__"]["triple_double"] == expected
+
+@pytest.mark.spec
+def test_raw_backticks_string():
+    # The JML source uses backticks to represent a raw string.
+    source = "raw_backticks = `C:/Users/Name`"
+    data = loads(source)
+    expected = "C:/Users/Name"
+    assert data["__default__"]["raw_backticks"] == expected
+
 
 
 @pytest.mark.spec
@@ -171,6 +183,16 @@ def test_reserved_function_as_var():
     with pytest.raises(SyntaxError, match="reserved function"):
         _ = loads(source)
 
+@pytest.mark.spec
+def test_identifier_assigned_identifier():
+    """
+    Verifies that an identifier cannot be assigned to an identifier.
+    Should raise an error.
+    """
+    source = 'identifier = another_identifier'
+    with pytest.raises(SyntaxError, match="cannot assign identifier to identifier."):
+        _ = loads(source)
+
 
 @pytest.mark.spec
 def test_unmatched_brackets():
@@ -192,20 +214,3 @@ def test_invalid_mismatched_quotes():
     source = 'bad = "Missing end quote'
     with pytest.raises(SyntaxError, match="missing closing quote|Syntax error"):
         _ = loads(source)
-
-
-def test_print_tokens_for_inspection():
-    """
-    Optional test: just prints out tokens for manual inspection; not xfailed.
-    If you want to still see the raw tokens from the tokenizer, you can 
-    call the parser or do a special debug function. But here's a direct example:
-    """
-    sample = 'merged = default << user_override'
-    # We can still directly call the parser internals if needed:
-    # Or do something like:
-    try:
-        ast = round_trip_loads(sample)
-        unparsed = round_trip_dumps(ast)
-        print("Round-trip JML:\n", unparsed)
-    except SyntaxError as e:
-        print("SyntaxError encountered:", e)

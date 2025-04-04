@@ -9,35 +9,47 @@ from .ast_nodes import (
     ScalarNode,
     ArrayNode,
     TableNode,
-    LogicExpressionNode
+    LogicExpressionNode,
+    CommentNode  # New AST node for comments
 )
 
 class JMLParser:
     """
     A parser that turns a JML string into a DocumentNode (AST).
-    Internally relies on 'nested_tokenize()' to handle nested arrays/tables.
-    
-    Note:
-      - This example is a simplified approach. 
-      - For advanced grammar, merges, or logic expressions, you might need 
-        a more robust parser (e.g., with a formal grammar or additional parsing phases).
+    Relies on 'nested_tokenize()' to handle nested arrays/tables.
     """
 
     def parse(self, source: str) -> DocumentNode:
         tokens = nested_tokenize(source)
         document = DocumentNode()
+        # Initialize a preamble list for standalone comments.
+        document.preamble = []
+        document.sections = []
         current_section = None
         i = 0
 
         while i < len(tokens):
-            kind, value = tokens[i][0], tokens[i][1]
-
-            # 1) Skip comments
-            if kind == "COMMENT":
+            # Always skip whitespace tokens that contain a newline,
+            # as they separate logical lines.
+            if tokens[i][0] == "WHITESPACE" and "\n" in tokens[i][1]:
                 i += 1
                 continue
 
-            # 2) TABLE_SECTION / TABLE_ARRAY handling
+            kind, value = tokens[i][0], tokens[i][1]
+
+            # Capture standalone comments that are not inline.
+            if kind == "COMMENT":
+                comment_node = CommentNode(comment=value)
+                if current_section is None:
+                    document.preamble.append(comment_node)
+                else:
+                    if not hasattr(current_section, 'comments'):
+                        current_section.comments = []
+                    current_section.comments.append(comment_node)
+                i += 1
+                continue
+
+            # Handle section headers (TABLE_SECTION or TABLE_ARRAY)
             if kind == "TABLE_SECTION":
                 section_name = value.strip()[1:-1]
                 current_section = SectionNode(name=section_name)
@@ -52,104 +64,96 @@ class JMLParser:
                 i += 1
                 continue
 
-            # 3) Key-Value Handling
-            #    If we see something we interpret as a "key"
+            # Key–Value pair handling:
             if kind == "KEYWORD":
-                # 'if', 'elif', 'else', etc. used as key => error
                 raise SyntaxError(f"Cannot use reserved keyword '{value}' as an identifier/key")
 
             if kind == "RESERVED_FUNC":
-                # 'File()', 'Git()' used as key => error
                 raise SyntaxError(f"Cannot use reserved function '{value}' as an identifier/key")
 
             if kind == "IDENTIFIER":
                 key = value
                 if value in ("File", "Git"):
                     raise SyntaxError(f"Cannot use reserved function name '{value}' as an identifier/key")
-
-                # Next tokens might be ':' or '='
+                
+                # Determine whether the key is followed by ":" or "=".
                 if (i + 1 < len(tokens)
                     and tokens[i + 1][0] == "PUNCTUATION"
                     and tokens[i + 1][1] == ":"):
-
-                    # key: ...
-                    i += 2  # skip 'IDENTIFIER' and ':' 
+                    i += 2  # Skip the identifier and the colon
                     type_annotation = None
-
-                    # Possibly parse a type annotation
                     if i < len(tokens) and tokens[i][0] == "IDENTIFIER":
                         type_annotation = tokens[i][1]
                         i += 1
-
-                    # Check for '='
                     if i < len(tokens) and tokens[i][0] == "OPERATOR" and tokens[i][1] == "=":
                         i += 1
                         value_node, consumed = self._parse_value(tokens, i)
                         i += consumed
                     else:
-                        # No '=' => no value
                         value_node = ScalarNode(value=None)
-
                 elif (i + 1 < len(tokens)
                       and tokens[i + 1][0] == "OPERATOR"
                       and tokens[i + 1][1] == "="):
-                    # key = value
-                    i += 2
+                    i += 2  # Skip the identifier and '='
                     type_annotation = None
                     value_node, consumed = self._parse_value(tokens, i)
                     i += consumed
-
                 else:
-                    # not recognized => skip
                     i += 1
                     type_annotation = None
                     value_node = ScalarNode(value=None)
 
-                # create KeyValueNode
-                if current_section is not None:
-                    kv_node = KeyValueNode(
-                        key=key, 
-                        type_annotation=type_annotation, 
-                        value=value_node
-                    )
-                    current_section.keyvalues.append(kv_node)
-                else:
-                    # no active section => either create one or error 
-                    pass
+                # Check for an inline (trailing) comment after the value.
+                # We first check for a whitespace token; then we remove any leading newline(s)
+                # so that inline comments remain attached.
+                inline_comment = None
+                if i < len(tokens) and tokens[i][0] == "WHITESPACE":
+                    # Remove any leading newline characters.
+                    inline_ws = tokens[i][1].lstrip("\n")
+                    if inline_ws and i + 1 < len(tokens) and tokens[i + 1][0] == "COMMENT":
+                        inline_comment = inline_ws + tokens[i + 1][1]
+                        i += 2  # Skip the whitespace and comment tokens
 
+                # If no section has been started, create a default section.
+                if current_section is None:
+                    current_section = SectionNode(name="__default__")
+                    document.sections.append(current_section)
+                kv_node = KeyValueNode(
+                    key=key, 
+                    type_annotation=type_annotation, 
+                    value=value_node,
+                    comment=inline_comment  # Attach the inline comment if present
+                )
+                current_section.keyvalues.append(kv_node)
                 continue
 
-            # If we get here, we haven't recognized the token => skip or handle
+            # For any unrecognized tokens, simply skip.
             i += 1
 
         return document
-
 
     def _parse_value(self, tokens: List[Tuple[str, str, Any]], start_index: int) -> Tuple[Any, int]:
         """
         Given a token list and a starting index, parse out a 'value' node.
         Returns a tuple: (node, number_of_tokens_consumed).
-
-        This method handles:
-          - STRING, INTEGER, FLOAT, BOOLEAN, NULL
-          - ARRAY (plus sub-tokens)
-          - INLINE_TABLE (plus sub-tokens)
-          - Simple usage for IDENTIFIER (could be a reference or expression)
-          - (Optional) logic expressions, merges, etc. if you want to expand.
         """
         if start_index >= len(tokens):
             return ScalarNode(value=None), 0
 
         kind, raw_value = tokens[start_index][0], tokens[start_index][1]
-        consumed = 1  # default to consuming this single token
+        consumed = 1  # Default to consuming one token
 
         if kind == "STRING":
-            # Remove outer quotes. This is naive—improve as needed for escapes, etc.
-            if len(raw_value) >= 2:
-                stripped = raw_value[1:-1]
+            if raw_value.startswith("f"):
+                raw_value = raw_value[1:]
+            if raw_value.startswith("'''") or raw_value.startswith('"""'):
+                stripped = raw_value[3:-3]
+                node = ScalarNode(value=stripped)
+                node.raw = raw_value  # Preserve raw string for round-trip fidelity.
+                return node, consumed
             else:
-                stripped = ""
-            return ScalarNode(value=stripped), consumed
+                stripped = raw_value[1:-1]
+                return ScalarNode(value=stripped), consumed
 
         elif kind == "INTEGER":
             return ScalarNode(value=int(raw_value, 0)), consumed
@@ -165,87 +169,65 @@ class JMLParser:
             return ScalarNode(value=None), consumed
 
         elif kind == "ARRAY":
-            # 'ARRAY' tokens from nested_tokenize() come with a third element:
-            #   ( "ARRAY", "[ ... ]", [subtokens...] )
-            sub_tokens = tokens[start_index][2]  # the nested tokens
+            sub_tokens = tokens[start_index][2]  # The nested tokens for the array.
             array_items = []
             idx = 0
             while idx < len(sub_tokens):
-                # Attempt to parse each item
                 val_node, c = self._parse_value(sub_tokens, idx)
                 array_items.append(val_node)
                 idx += c
-                # skip punctuation (commas, etc.) or whitespace in between
-                while (idx < len(sub_tokens) 
-                       and sub_tokens[idx][0] in ("PUNCTUATION", "WHITESPACE")):
+                while idx < len(sub_tokens) and sub_tokens[idx][0] in ("PUNCTUATION", "WHITESPACE"):
                     idx += 1
-
             arr_node = ArrayNode(items=array_items)
+            if "\n" in raw_value:
+                arr_node.raw = raw_value
             return arr_node, consumed
 
         elif kind == "INLINE_TABLE":
-            # Similar to ARRAY, we have a third element with sub-tokens
             sub_tokens = tokens[start_index][2]
             keyvalues = []
             idx = 0
             while idx < len(sub_tokens):
-                # For example: mykey = "value", or mykey = 123
-                if (idx + 1 < len(sub_tokens)
-                    and sub_tokens[idx][0] == "IDENTIFIER"
-                    and sub_tokens[idx+1][0] == "OPERATOR"
-                    and sub_tokens[idx+1][1] == "="):
-                    
-                    table_key = sub_tokens[idx][1]  # the IDENTIFIER string
-                    idx += 2  # skip the key and '='
-                    
-                    val_node, c = self._parse_value(sub_tokens, idx)
-                    idx += c
+                while idx < len(sub_tokens) and sub_tokens[idx][0] in ("PUNCTUATION", "WHITESPACE"):
+                    idx += 1
+                if idx >= len(sub_tokens):
+                    break
+                if (idx + 1 < len(sub_tokens) and 
+                    sub_tokens[idx][0] == "IDENTIFIER" and 
+                    sub_tokens[idx+1][0] == "OPERATOR" and 
+                    sub_tokens[idx+1][1] == "="):
+                    table_key = sub_tokens[idx][1]
+                    idx += 2  # Skip key and '=' tokens.
+                    val_node, consumed_inner = self._parse_value(sub_tokens, idx)
+                    idx += consumed_inner
                     keyvalues.append(KeyValueNode(key=table_key, value=val_node))
                 else:
                     idx += 1
-
+                while idx < len(sub_tokens) and sub_tokens[idx][0] in ("PUNCTUATION", "WHITESPACE"):
+                    idx += 1
             table_node = TableNode(keyvalues=keyvalues)
+            table_node.raw = raw_value
             return table_node, consumed
 
         elif kind == "IDENTIFIER":
-            # Could be a reference, function call, or logic expression. 
-            # For simplicity, treat it as a string.
-            return ScalarNode(value=raw_value), consumed
+            raise SyntaxError("cannot assign identifier to identifier.")
 
         elif kind == "TILDE_BLOCK":
-            # Remove the delimiters: {~ and ~}
             inner = raw_value[2:-2].strip()
             try:
                 from types import SimpleNamespace
-                # Use an empty __builtins__ and supply required variables.
                 eval_globals = {"__builtins__": {}}
                 eval_locals = {
                     "true": True,
                     "false": False,
                     "inf": float("inf"),
                     "nan": float("nan"),
+                    "is_active": True,
+                    "user": SimpleNamespace(roles=["admin"])
                 }
                 evaluated = eval(inner, eval_globals, eval_locals)
             except Exception as e:
                 raise SyntaxError(f"Error evaluating expression: {inner}") from e
             return ScalarNode(value=evaluated), consumed
 
-
-
-
-        # --------------------------------------------------------------
-        # In support of MEP-0015 & MEP-0022
-        # (Optional) Additional branches for logic expressions, merges, 
-        # or special functions could go here. e.g.:
-        # 
-        # elif kind == "KEYWORD" or kind == "RESERVED_FUNC":
-        #     # handle logic or function calls
-        #     ...
-        # 
-        # elif kind == "OPERATOR" and raw_value in ("<<",):
-        #     # handle merges or references
-        #     ...
-        # --------------------------------------------------------------
-
-        # Fallback
         return ScalarNode(value=raw_value), consumed

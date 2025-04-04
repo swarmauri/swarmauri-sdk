@@ -66,7 +66,7 @@ key    =    "value"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inline table whitespace preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Inline table whitespace preservation not fully implemented yet.")
 def test_inline_tables_whitespace_preserved_round_trip():
     """
     MEP-006 Section 3.4:
@@ -84,12 +84,13 @@ profile = { name = "Alice", age = 30 }
     # If your unparser precisely preserves spacing, the strings should match.
     # Some implementations only preserve structure, not exact spacing.
     # Adjust accordingly. For strict tests:
+    
     assert "name = \"Alice\"" in reserialized
     assert "age = 30" in reserialized
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Multiline string whitespace preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Multiline string whitespace preservation not fully implemented yet.")
 def test_multiline_string_leading_whitespace_preserved():
     """
     MEP-006 Section 3.5:
@@ -114,7 +115,7 @@ description = \"\"\"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error.")
+# @pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error.")
 def test_unquoted_key_with_space_should_raise_syntax_error():
     """
     MEP-006 Section 4:
@@ -128,7 +129,7 @@ my key = "value"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Line continuation support not yet implemented.")
+@pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
 def test_line_continuation_not_supported_yet():
     """
     MEP-006 Section 6.1 (Open Issues):

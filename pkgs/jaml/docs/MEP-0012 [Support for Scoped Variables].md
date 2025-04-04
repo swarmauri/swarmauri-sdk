@@ -1,3 +1,10 @@
+(Draft)
+# Draft Notes
+
+Add more details about f-string interpolation here
+
+---
+
 # MEP-012: Support for Scoped Variables
 
 ## 1. Abstract
