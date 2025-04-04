@@ -142,7 +142,8 @@ prefix = "item"
 items = ["apple", "banana", "cherry"]
 
 [server]
-config = {f"{prefix}_{item}" for item in items if item != "banana"}
+dict_config = {f"@{prefix}_{item}":{item} for item in @{items} if item != "banana"}
+list_config = [f"@{prefix}_{item}" for item in @{items} if item != "banana"]
 ```
 In this case:
 - `prefix` is from the global scope.
@@ -151,7 +152,8 @@ In this case:
 
 Result:
 ```plaintext
-config = {"item_apple", "item_cherry"}
+dict_config = {"item_apple": "apple", "item_cherry": "cherry"}
+list_config = ["item_apple", "item_cherry"]
 ```
 
 ### Example: `%{base}` vs `@{base}` Comparison
