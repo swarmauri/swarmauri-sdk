@@ -9,7 +9,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
 def test_primitive_type_annotations():
     """
     MEP-009 Section 3.1:
@@ -37,7 +37,7 @@ missing_val: null = null
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="List annotation handling not fully implemented yet.")
+# @pytest.mark.xfail(reason="List annotation handling not fully implemented yet.")
 def test_list_annotation():
     """
     MEP-009 Section 3.1:
@@ -57,7 +57,7 @@ colors: list = ["red", "green", "blue"]
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inline table type annotations not fully preserved yet.")
+# @pytest.mark.xfail(reason="Inline table type annotations not fully preserved yet.")
 def test_table_annotation():
     """
     MEP-009 Section 3.1:
@@ -75,7 +75,7 @@ point: table = { x = 10, y = 20 }
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Nested inline table type annotations not fully supported yet.")
+# @pytest.mark.xfail(reason="Nested inline table type annotations not fully supported yet.")
 def test_nested_inline_table_annotation():
     """
     MEP-009:
@@ -96,7 +96,7 @@ user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str =
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Lists of inline tables annotations not fully implemented yet.")
+# @pytest.mark.xfail(reason="Lists of inline tables annotations not fully implemented yet.")
 def test_table_arrays_and_lists_of_inline_tables():
     """
     MEP-009 Section 4.5:
@@ -118,7 +118,7 @@ authors: list = [
     assert "{ name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\" }" in reserialized
 
 
-@pytest.mark.xfail(reason="Type validation not implemented yet.")
+# @pytest.mark.xfail(reason="Type validation not implemented yet.")
 @pytest.mark.spec
 def test_value_does_not_match_annotation():
     """
@@ -135,7 +135,7 @@ wrong_type: int = "this is not an int"
     loads(invalid_toml)  # Expect some form of error/exception
 
 
-@pytest.mark.xfail(reason="Strict type enforcement for nested complex types not yet implemented.")
+# @pytest.mark.xfail(reason="Strict type enforcement for nested complex types not yet implemented.")
 @pytest.mark.spec
 def test_nested_type_mismatch():
     """

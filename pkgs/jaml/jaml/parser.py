@@ -90,7 +90,7 @@ class JMLParser:
                     i += 1  # Skip the colon
                     while i < len(tokens) and tokens[i][0] == "WHITESPACE" and "\n" not in tokens[i][1]:
                         i += 1
-                    if i < len(tokens) and tokens[i][0] == "IDENTIFIER":
+                    if i < len(tokens) and tokens[i][0] in ("IDENTIFIER", "NULL"):
                         type_annotation = tokens[i][1]
                         i += 1
                     # Skip any whitespace before the operator.

@@ -90,7 +90,6 @@ class JMLUnparser:
         return kv_line
 
 
-
     def _unparse_node(self, node):
         # For string scalar nodes, use the raw text if available.
         if isinstance(node, ScalarNode) and isinstance(node.value, str):
@@ -114,13 +113,19 @@ class JMLUnparser:
         elif isinstance(node, LogicExpressionNode):
             return "{~ " + node.expression + " ~}"
         elif isinstance(node, ScalarNode):
-            return str(node.value)
+            if isinstance(node.value, bool):
+                return "true" if node.value else "false"
+            elif node.value is None:
+                return "null"
+            else:
+                return str(node.value)
+
         else:
             return str(node.to_plain())
 
     def _unparse_array(self, array_node: ArrayNode) -> str:
         items_str = [self._unparse_node(item) for item in array_node.items]
-        return f"[ {', '.join(items_str)} ]"
+        return f"[{', '.join(items_str)}]"
 
     def _unparse_table(self, table_node: TableNode) -> str:
         """
