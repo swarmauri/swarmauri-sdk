@@ -66,14 +66,22 @@ F-strings are prefixed with `f` and allow embedding variables and expressions wi
 - **Basic Usage:**
 
   ```toml
-  greeting = f"Hello, {name}!"
+  [user]
+  name = "John"
+
+  [section]
+  greeting = f"Hello, @{user.name}!"
   ```
 
 - **Conditional Logic and Ternary-like Syntax:**  
   Supports inline conditions:
   
   ```toml
-  status = f"{'Active' if {user.active} else 'Inactive'}"
+  [user]
+  active = "Active"
+  
+  [section]
+  status = f"{'Active' if @{user.active} else 'Inactive'}"
   ```
 
 - **Operations Supported:**  

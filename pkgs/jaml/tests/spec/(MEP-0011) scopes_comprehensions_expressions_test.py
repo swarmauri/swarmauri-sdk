@@ -1,136 +1,171 @@
 import pytest
+from jaml import loads, dumps
 
-# Note: The following tests assume the existence of an evaluation engine for MEP-0011.
-# Since the evaluation engine is not implemented, all tests are marked as xfail.
+# Test 1: Whitespace Preservation
+@pytest.mark.spec
+@pytest.mark.xfail(reason="Whitespace preservation not implemented")
+def test_whitespace_preservation():
+    toml_str = """
+[settings]
+name = "  Jeff  "
+"""
+    data = loads(toml_str)
+    assert data["settings"]["name"] == "  Jeff  ", "Leading/trailing spaces should be preserved"
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["settings"]["name"] == "  Jeff  "
 
+# Test 2: Global Scope Evaluation
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Global scope evaluation not implemented")
 def test_global_scope_evaluation():
-    """
-    Verify that a global scope variable using the @{...} syntax is correctly resolved.
-    """
-    # Hypothetical expression and globals configuration.
-    expr = "@{base}"
-    globals_dict = {"base": "/home/user"}
-    # Expected behavior: the evaluator returns the value "/home/user".
-    result = "/home/user"  # Placeholder for evaluate_scoped_variable(expr, globals_dict)
-    assert result == "/home/user"
+    toml_str = """
+[globals]
+base = "/home/user"
 
+[paths]
+config = f"@{base}/config.toml"
+"""
+    data = loads(toml_str)
+    assert data["paths"]["config"] == "/home/user/config.toml"
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["paths"]["config"] == "/home/user/config.toml"
 
+# Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Self (local) scope evaluation not implemented")
+@pytest.mark.xfail(reason="Self scope evaluation not implemented")
 def test_self_scope_evaluation():
-    """
-    Verify that a self (table-local) variable using the %{...} syntax is correctly resolved.
-    """
-    expr = "%{name}"
-    local_dict = {"name": "Alice"}
-    # Expected behavior: the evaluator returns "Alice".
-    result = "Alice"  # Placeholder for evaluate_scoped_variable(expr, local=local_dict)
-    assert result == "Alice"
+    toml_str = """
+[globals]
+base = "/home/user"
 
+[user]
+name = "Alice"
+greeting = f"Hello, %{name}!"
+"""
+    data = loads(toml_str)
+    assert data["user"]["greeting"] == "Hello, Alice!"
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["user"]["greeting"] == "Hello, Alice!"
 
+# Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
 def test_context_scope_deferred():
-    """
-    Verify that a context scope variable (${...}) remains deferred at load time 
-    and is only evaluated during render time.
-    """
-    expr = "${user.age}"
-    context = {"user.age": 30}
-    # At load time, the context variable should remain unresolved.
-    load_time_result = "${user.age}"  # Placeholder for load_time evaluation
-    # At render time, the evaluator should return 30.
-    render_time_result = 30  # Placeholder for render_time evaluation
-    assert render_time_result == 30
+    toml_str = """
+[logic]
+summary = f"User: ${user.name}, Age: ${user.age}"
+"""
+    # Without context, placeholders remain unresolved.
+    data = loads(toml_str)
+    assert data["logic"]["summary"] == "User: ${user.name}, Age: ${user.age}"
+    # With a render context provided:
+    data_with_context = loads(toml_str, context={"user.name": "Alice", "user.age": 30})
+    assert data_with_context["logic"]["summary"] == "User: Alice, Age: 30"
 
-
+# Test 5: F-String Interpolation
 @pytest.mark.spec
 @pytest.mark.xfail(reason="F-string interpolation evaluation not implemented")
 def test_fstring_interpolation():
-    """
-    Verify that f-string interpolation correctly embeds variables within strings.
-    """
-    expr = 'f"Hello, {name}!"'
-    local_dict = {"name": "Alice"}
-    # Expected behavior: interpolation yields "Hello, Alice!".
-    result = "Hello, Alice!"  # Placeholder for render_fstring(expr, local_dict)
-    assert result == "Hello, Alice!"
+    toml_str = """
+[message]
+text = f"Hello, {name}!"
+"""
+    # Assuming 'name' is provided via render context.
+    data = loads(toml_str, context={"name": "Alice"})
+    assert data["message"]["text"] == "Hello, Alice!"
+    out = dumps(data)
+    data_again = loads(out, context={"name": "Alice"})
+    assert data_again["message"]["text"] == "Hello, Alice!"
 
-
+# Test 6: Immediate Expression Evaluation using <{ ... }>
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Immediate expression evaluation using <{ ... }> not implemented")
+@pytest.mark.xfail(reason="Immediate expression evaluation not implemented")
 def test_immediate_expression():
-    """
-    Verify that an immediate expression (<{ ... }>) is evaluated at load time.
-    """
-    expr = "<{ '/usr/local' + '/config.toml' }>"
-    # Expected behavior: the expression evaluates to "/usr/local/config.toml".
-    result = "/usr/local/config.toml"  # Placeholder for evaluate_expression(expr)
-    assert result == "/usr/local/config.toml"
+    toml_str = """
+[paths]
+base = "/usr/local"
+config = <{ @{base} + '/config.toml' }>
+"""
+    data = loads(toml_str)
+    assert data["paths"]["config"] == "/usr/local/config.toml"
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["paths"]["config"] == "/usr/local/config.toml"
 
-
+# Test 7: Folded Expression Evaluation using <( ... )>
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Folded expression evaluation using <( ... )> not implemented")
+@pytest.mark.xfail(reason="Folded expression evaluation not implemented")
 def test_folded_expression():
-    """
-    Verify that a folded expression (<( ... )>) evaluates static parts at load time
-    and defers context variable resolution to render time.
-    """
-    expr = "<( 'http://' + 'prodserver' + ':' + '8080' + '/api?token=' + ${auth_token} )>"
-    context = {"auth_token": "ABC123"}
-    # Expected behavior:
-    #   - Load time: static parts are resolved.
-    #   - Render time: context variable 'auth_token' is injected.
-    result = "http://prodserver:8080/api?token=ABC123"  # Placeholder for full evaluation
-    assert result == "http://prodserver:8080/api?token=ABC123"
+    toml_str = """
+[server]
+host = "prodserver"
+port = "8080"
 
+[api]
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+"""
+    # Provide context for the deferred part.
+    data = loads(toml_str, context={"auth_token": "ABC123"})
+    assert data["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
+    out = dumps(data)
+    data_again = loads(out, context={"auth_token": "ABC123"})
+    assert data_again["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
 
+# Test 8: List Comprehension Evaluation
 @pytest.mark.spec
 @pytest.mark.xfail(reason="List comprehension evaluation not implemented")
 def test_list_comprehension():
-    """
-    Verify that a list comprehension produces the expected list.
-    """
-    expr = '[f"item_{x}" for x in [1, 2, 3]]'
-    # Expected behavior: the list comprehension evaluates to ["item_1", "item_2", "item_3"].
-    result = ["item_1", "item_2", "item_3"]  # Placeholder for evaluate_comprehension(expr)
-    assert result == ["item_1", "item_2", "item_3"]
+    toml_str = """
+[items]
+list_config = [f"item_{x}" for x in [1, 2, 3]]
+"""
+    data = loads(toml_str)
+    assert data["items"]["list_config"] == ["item_1", "item_2", "item_3"]
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["items"]["list_config"] == ["item_1", "item_2", "item_3"]
 
-
+# Test 9: Dict Comprehension Evaluation
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
 def test_dict_comprehension():
-    """
-    Verify that a dict comprehension produces the expected dictionary.
-    """
-    expr = '{f"user_{n}": f"ID-{i}" for i, n in enumerate(["alice", "bob"])}'
-    # Expected behavior: the dict comprehension evaluates to:
-    #   {"user_alice": "ID-0", "user_bob": "ID-1"}
-    result = {"user_alice": "ID-0", "user_bob": "ID-1"}  # Placeholder for evaluate_comprehension(expr)
-    assert result == {"user_alice": "ID-0", "user_bob": "ID-1"}
+    toml_str = """
+[items]
+dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
+"""
+    data = loads(toml_str)
+    assert data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
 
-
+# Test 10: Arithmetic Operations in Expressions
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
 def test_arithmetic_operations():
-    """
-    Verify that arithmetic operations within expressions are computed correctly.
-    """
-    expr = "<{ 3 + 4 }>"
-    # Expected behavior: the arithmetic expression evaluates to 7.
-    result = 7  # Placeholder for evaluate_expression(expr)
-    assert result == 7
+    toml_str = """
+[calc]
+result = <{ 3 + 4 }>
+"""
+    data = loads(toml_str)
+    assert data["calc"]["result"] == 7
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["calc"]["result"] == 7
 
-
+# Test 11: Conditional Logic in Expressions
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Conditional logic in expressions not implemented")
+@pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
 def test_conditional_logic():
-    """
-    Verify that conditional (ternary-like) expressions are evaluated correctly.
-    """
-    expr = 'f"{ \'Yes\' if true else \'No\' }"'
-    # Expected behavior: the condition evaluates to true, so the expression yields "Yes".
-    result = "Yes"  # Placeholder for render_fstring(expr)
-    assert result == "Yes"
+    toml_str = """
+[cond]
+status = f"{'Yes' if true else 'No'}"
+"""
+    data = loads(toml_str)
+    assert data["cond"]["status"] == "Yes"
+    out = dumps(data)
+    data_again = loads(out)
+    assert data_again["cond"]["status"] == "Yes"
