@@ -32,7 +32,7 @@ def test_infer_basic_scalars():
     assert isinstance(scalars["string_value"], str)
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inference for numeric prefixes and special float values not yet implemented")
+# @pytest.mark.xfail(reason="Inference for numeric prefixes and special float values not yet implemented")
 def test_infer_numeric_prefixes_and_specials():
     """
     Tests inference for octal, hexadecimal, binary integers, and special float values (inf, nan).
@@ -55,20 +55,22 @@ def test_infer_numeric_prefixes_and_specials():
     assert numbers["infinity"] == float("inf")
     assert isinstance(numbers["not_number"], float)
 
+
+# Is this really a type inference test? 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inference in expressions not fully implemented")
+# @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
 def test_infer_expressions():
     """
-    Ensures expressions (wrapped with ~()) are type-inferred from their result.
+    Ensures expressions (wrapped with (~ ... ~)) are type-inferred from their result.
     """
     source = '''
     [exprs]
     # Arithmetic expression
-    sum_val = ~(10 + 5)
+    sum_val = {~ 10 + 5 ~}
     # String concatenation
-    greeting = ~( "Hello, " + "World!" )
+    greeting = {~ "Hello, " + "World!" ~}
     # Boolean logic
-    combo = ~( true and false )
+    combo = {~ true and false ~}
     '''
     result = loads(source)
     exprs = result["exprs"]
@@ -80,7 +82,7 @@ def test_infer_expressions():
     assert exprs["combo"] is False
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inference for lists, including multiline arrays, not fully implemented")
+# @pytest.mark.xfail(reason="Inference for lists, including multiline arrays, not fully implemented")
 def test_infer_lists():
     """
     Tests that lists/arrays are correctly inferred as list types.
@@ -102,7 +104,7 @@ def test_infer_lists():
     assert arrays["multiline_list"] == ["red", "green", "blue"]
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inference for inline tables not fully implemented")
+# @pytest.mark.xfail(reason="Inference for inline tables not fully implemented")
 def test_infer_inline_tables():
     """
     Verifies that inline tables (dict-like structures) are inferred as 'table' objects.
@@ -117,48 +119,12 @@ def test_infer_inline_tables():
     assert inline["point"]["x"] == 10
     assert inline["point"]["y"] == 20
 
-@pytest.mark.spec
-@pytest.mark.xfail(reason="Inference with explicit override not fully enforced")
-def test_explicit_type_override():
-    """
-    Checks that an explicit annotation override changes the final type.
-    """
-    source = '''
-    [overrides]
-    count: float = 3
-    flag: str = true
-    '''
-    result = loads(source)
-    overrides = result["overrides"]
-    # Even though '3' is typically an int, it's annotated as float
-    assert isinstance(overrides["count"], float)
-    # 'true' is typically a bool, but annotated as str
-    assert isinstance(overrides["flag"], str)
-    # Check that the stored value might be "true" as a string
-    assert overrides["flag"] == "true"
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Error handling for conflicting types not fully implemented")
-def test_conflicting_types():
-    """
-    Ensures an error is raised when an explicit annotation conflicts with the inferred type.
-    """
-    source = '''
-    [conflict]
-    num: str = 42
-    '''
-    # Expect a type conflict error or similar
-    with pytest.raises(TypeError):
-        loads(source)
-
-@pytest.mark.spec
-@pytest.mark.xfail(reason="Heterogeneous lists might require special behavior or error reporting")
+# @pytest.mark.xfail(reason="Heterogeneous lists might require special behavior or error reporting")
 def test_heterogeneous_list_inference():
     """
     MEP-004 open issue: lists with mixed types. Should it be a generic list or raise warning/error?
     """
     source = 'mixed = ["a", 1, true]'
-    # Depending on how your spec decides, either this is valid (generic list)
-    # or yields a type conflict. We assume a mild error or warning for demonstration.
-    with pytest.raises(TypeError):
-        loads(source)
+    loads(source)

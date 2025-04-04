@@ -9,7 +9,7 @@ from pprint import pprint
 from jaml import loads
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Namespace merging not yet implemented")
+# @pytest.mark.xfail(reason="Namespace merging not yet implemented")
 def test_simple_namespace_merging():
     """
     Verifies that separate sections with a shared dotted prefix are merged under the same namespace.
@@ -34,7 +34,7 @@ def test_simple_namespace_merging():
     assert result["app"]["paths"]["log"] == "/var/log/app.log"
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
+# @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
 def test_conflicting_keys_last_key_wins():
     """
     Tests that when two tables in the same namespace define the same key, the last one overwrites the first.
@@ -55,7 +55,7 @@ def test_conflicting_keys_last_key_wins():
     assert result["server"]["port"] == 8080
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Nested namespaces not yet implemented or tested")
+# @pytest.mark.xfail(reason="Nested namespaces not yet implemented or tested")
 def test_nested_namespace():
     """
     Ensures multiple dotted levels are merged into nested dictionaries.
@@ -84,7 +84,7 @@ def test_nested_namespace():
     assert result["project"]["author"]["email"] == "john@example.com"
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Key merging from multiple sources not yet handled")
+@pytest.mark.xfail(reason="Loading multiple files simultaneously is not supported.")
 def test_merge_across_multiple_sources():
     """
     If the parser merges multiple file sources, ensure that dotted namespaces combine them.

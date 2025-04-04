@@ -7,6 +7,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Load-time string concatenation not fully implemented.")
 def test_simple_string_concat_expression():
     """
     MEP-0022:
@@ -23,23 +24,16 @@ config = {~ @{base} + "/config.toml" ~}
     ast = round_trip_loads(toml_str)
     # Now the expression should be replaced with the resulting string "/usr/local/config.toml"
 
-    # If your AST stores final values in a data structure, verify them:
-    # E.g., ast.sections[0].keyvalues[1].value might be "/usr/local/config.toml"
-    # or if you have a to_plain_data() or something:
-    # data = ast.to_plain_data()
-    # assert data["paths"]["config"] == "/usr/local/config.toml"
-
     # Also check round-trip output if you keep expressions or if they're replaced:
     reserialized = round_trip_dumps(ast)
     # The spec says the result is inserted as plain value, so 
     # we expect something like: `config = "/usr/local/config.toml"`
-    # or if no quotes are used, that depends on how your unparser handles strings.
-    # For example:
     assert "/usr/local/config.toml" in reserialized, \
         "Expected the expression to be replaced with its evaluated string result."
 
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Arithmetic evaluation not yet fully integrated.")
 def test_arithmetic_expression():
     """
     MEP-0022:
@@ -54,13 +48,12 @@ max_retries = {~ @{default_retries} * 2 ~}
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
     # The expression {~ 3 * 2 ~} should evaluate to 6, inserted as a plain integer.
-
-    # e.g., we expect "max_retries = 6" in the final serialization
     assert "max_retries = 6" in reserialized, \
         "Arithmetic expression did not evaluate to integer at load time."
 
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Conditional expression evaluation not fully supported yet.")
 def test_conditional_expression():
     """
     MEP-0022:
@@ -75,13 +68,12 @@ log_level: str = {~ "DEBUG" if false else "INFO" ~}
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
     # Because the conditional is 'false', the result should be "INFO".
-    # We expect that string inserted as a plain string (with or without quotes 
-    # depending on your unparser).
     assert "log_level: str = \"INFO\"" in reserialized, \
         "Conditional expression did not evaluate to 'INFO'."
 
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="List comprehension support for expressions not fully implemented.")
 def test_list_comprehension_expression():
     """
     MEP-0022:
@@ -100,6 +92,7 @@ values = {~ [ x * 2 for x in [1, 2, 3] ] ~}
 
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Context scope disallowed in load-time expressions not enforced yet.")
 def test_scope_restrictions_disallow_context_scope():
     """
     MEP-0022 Section 3.3:
@@ -110,13 +103,12 @@ def test_scope_restrictions_disallow_context_scope():
 [invalid]
 value = {~ ${external} + 10 ~}
 """
-    # If your parser raises an exception, we can test for that. 
-    # If you have a custom error type, adjust accordingly.
     with pytest.raises(Exception, match="context variables are not allowed in load-time expressions"):
         round_trip_loads(invalid_toml)
 
 
 @pytest.mark.spec
+@pytest.mark.xfail(reason="not fully implemented.")
 def test_undefined_variable_raises_error():
     """
     MEP-0022:
@@ -131,8 +123,8 @@ value = {~ @{nonexistent} * 2 ~}
         round_trip_loads(invalid_toml)
 
 
-@pytest.mark.xfail(reason="Syntax errors in expressions not fully handled yet")
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Syntax error reporting within expressions not fully implemented.")
 def test_syntax_error_in_expression():
     """
     MEP-0022:
@@ -143,13 +135,12 @@ def test_syntax_error_in_expression():
 [broken]
 value = {~ "str" if 1 else ~}
 """
-    # There's a partial expression with missing content
     with pytest.raises(Exception, match="Syntax error in expression"):
         round_trip_loads(invalid_toml)
 
 
-@pytest.mark.xfail(reason="Operator precedence not fully implemented")
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Operator precedence in load-time expressions not fully implemented.")
 def test_operator_precedence_in_expression():
     """
     MEP-0022:

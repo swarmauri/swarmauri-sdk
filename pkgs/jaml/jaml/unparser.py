@@ -27,14 +27,19 @@ class JMLUnparser:
         self.ast = ast
 
     def unparse(self) -> str:
-        """
-        Main entry point: returns the entire JML as a string.
-        """
         lines = []
         for section in self.ast.sections:
-            lines.append(self._unparse_section(section))
+            lines.append(f"[{section.name}]")
+            for kv in section.keyvalues:
+                # Only include the type annotation if it is not None.
+                if kv.type_annotation is not None:
+                    line = f"{kv.key}: {kv.type_annotation} = {kv.value}"
+                else:
+                    line = f"{kv.key} = {kv.value}"
+                lines.append(line)
+            lines.append("")  # Optional blank line between sections.
         return "\n".join(lines)
-
+    
     def _unparse_section(self, section: SectionNode) -> str:
         """
         Unparse a single section into JML lines.

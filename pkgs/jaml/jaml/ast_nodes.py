@@ -1,13 +1,10 @@
-# ast_nodes.py
-
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
 
 @dataclass
 class Node:
     """
-    Base class for all AST nodes. This allows for type hints and 
-    a common interface for shared functionality (if needed).
+    Base class for all AST nodes.
     """
     pass
 
@@ -16,7 +13,6 @@ class Node:
 class ScalarNode(Node):
     """
     Represents a single scalar value (string, int, float, bool, null, etc.).
-    
     Attributes:
         value: The underlying Python data (e.g., str, int, float, bool, None).
     """
@@ -27,7 +23,6 @@ class ScalarNode(Node):
 class ArrayNode(Node):
     """
     Represents an array-like structure [ ... ] in JML.
-    
     Attributes:
         items: A list of Node objects that comprise the elements of the array.
     """
@@ -38,7 +33,6 @@ class ArrayNode(Node):
 class TableNode(Node):
     """
     Represents an inline table { ... } in JML.
-    
     Attributes:
         keyvalues: A list of KeyValueNode objects representing the table's content.
     """
@@ -48,12 +42,9 @@ class TableNode(Node):
 @dataclass
 class LogicExpressionNode(Node):
     """
-    Represents a logical expression or other evaluable expression in JML.
-    
-    Example: if x > 3 then "yes" else "no"
-    
+    Represents a logical or evaluable expression in JML.
     Attributes:
-        expression: The raw expression string, which you could parse or evaluate later.
+        expression: The raw expression string.
     """
     expression: str
 
@@ -62,19 +53,10 @@ class LogicExpressionNode(Node):
 class KeyValueNode(Node):
     """
     Represents a single key-value pair in a JML section.
-    
-    Example of a typical line:
-        mykey: int = 42
-    
     Attributes:
-        key: The string key, e.g. 'mykey'.
-        type_annotation: An optional string describing the data type (e.g. 'int', 'str'), if present.
-        value: A Node representing the value, which might be:
-            - ScalarNode (string, bool, number, etc.)
-            - ArrayNode
-            - TableNode
-            - LogicExpressionNode
-            - or any other Node type you define.
+        key: The string key (e.g. 'mykey').
+        type_annotation: An optional string describing the data type (e.g. 'int', 'str').
+        value: A Node representing the value.
     """
     key: str
     type_annotation: Optional[str] = None
@@ -84,11 +66,9 @@ class KeyValueNode(Node):
 @dataclass
 class SectionNode(Node):
     """
-    Represents a named section [section_name].
-    A JML file can have multiple sections.
-
+    Represents a named section [section_name] in a JML file.
     Attributes:
-        name: The section name (the text within [ ] or [[ ]]).
+        name: The section name.
         keyvalues: A list of KeyValueNode objects belonging to this section.
     """
     name: str
@@ -98,103 +78,59 @@ class SectionNode(Node):
 @dataclass
 class DocumentNode(Node):
     """
-    Represents the entire JML document, composed of zero or more sections.
-    
+    Represents the entire JML document.
     Attributes:
-        sections: A list of SectionNode objects, each representing a [section].
+        sections: A list of SectionNode objects.
     """
     sections: List[SectionNode] = field(default_factory=list)
 
     def to_plain_data(self) -> dict:
         """
         Convert the AST into a plain dictionary (for non-round-trip usage).
-        This strips out comments, extra formatting, etc.
-        
-        For complex cases (nested tables, arrays, or merges), adjust accordingly.
-
-        Returns:
-            A dictionary that mirrors the structure of the JML content:
-            
-            {
-              'section_name': {
-                  'key': <scalar or nested structure>,
-                  ...
-              },
-              ...
-            }
+        This method uses the helper function `node_to_plain` to convert
+        each AST node into its underlying Python value.
         """
         plain = {}
 
         for section in self.sections:
             section_data = {}
-
             for kv in section.keyvalues:
-                # Direct ScalarNode (e.g., int, str, bool, null)
-                if isinstance(kv.value, ScalarNode):
-                    section_data[kv.key] = kv.value.value
-
-                # ArrayNode
-                elif isinstance(kv.value, ArrayNode):
-                    # Convert each item in the array into a Python value
-                    array_values = []
-                    for item in kv.value.items:
-                        if isinstance(item, ScalarNode):
-                            array_values.append(item.value)
-                        elif isinstance(item, TableNode):
-                            array_values.append(self._table_to_dict(item))
-                        elif isinstance(item, ArrayNode):
-                            # Recursively handle nested arrays
-                            array_values.append(self._array_to_list(item))
-                        else:
-                            array_values.append(str(item))
-                    section_data[kv.key] = array_values
-
-                # TableNode
-                elif isinstance(kv.value, TableNode):
-                    section_data[kv.key] = self._table_to_dict(kv.value)
-
-                # LogicExpressionNode
-                elif isinstance(kv.value, LogicExpressionNode):
-                    # Option 1: store the expression string
-                    # Option 2: evaluate it now (if you have an evaluation context)
-                    section_data[kv.key] = f"<Expression: {kv.value.expression}>"
-
-                # Fallback for unknown node type
-                else:
-                    section_data[kv.key] = str(kv.value)
-
-            plain[section.name] = section_data
+                # Convert each value node to its plain Python value.
+                section_data[kv.key] = node_to_plain(kv.value)
+            # Namespace merging: split section name by '.' and nest accordingly.
+            parts = section.name.split('.')
+            current = plain
+            for part in parts[:-1]:
+                if part not in current or not isinstance(current[part], dict):
+                    current[part] = {}
+                current = current[part]
+            # Merge if the last part already exists.
+            if parts[-1] in current and isinstance(current[parts[-1]], dict):
+                current[parts[-1]].update(section_data)
+            else:
+                current[parts[-1]] = section_data
 
         return plain
 
-    def _table_to_dict(self, table_node: TableNode) -> dict:
-        """
-        Helper to convert a TableNode into a Python dict.
-        """
-        result = {}
-        for kv in table_node.keyvalues:
-            if isinstance(kv.value, ScalarNode):
-                result[kv.key] = kv.value.value
-            elif isinstance(kv.value, TableNode):
-                result[kv.key] = self._table_to_dict(kv.value)
-            elif isinstance(kv.value, ArrayNode):
-                result[kv.key] = self._array_to_list(kv.value)
-            else:
-                result[kv.key] = str(kv.value)
-        return result
 
-    def _array_to_list(self, array_node: ArrayNode) -> list:
-        """
-        Helper to convert an ArrayNode into a plain Python list.
-        """
-        items = []
-        for item in array_node.items:
-            if isinstance(item, ScalarNode):
-                items.append(item.value)
-            elif isinstance(item, TableNode):
-                items.append(self._table_to_dict(item))
-            elif isinstance(item, ArrayNode):
-                items.append(self._array_to_list(item))
-            else:
-                items.append(str(item))
-        return items
+def node_to_plain(node: Optional[Node]) -> Any:
+    """
+    Recursively convert an AST node into its plain Python value.
+      - For ScalarNode: return the underlying value.
+      - For ArrayNode: return a list of plain values.
+      - For TableNode: return a dict of key-values.
+      - For LogicExpressionNode: return a representation of the expression.
+      - Fallback: return the string representation.
+    """
+    if node is None:
+        return None
+    if isinstance(node, ScalarNode):
+        return node.value
+    elif isinstance(node, ArrayNode):
+        return [node_to_plain(item) for item in node.items]
+    elif isinstance(node, TableNode):
+        return {kv.key: node_to_plain(kv.value) for kv in node.keyvalues}
+    elif isinstance(node, LogicExpressionNode):
+        return f"<Expression: {node.expression}>"
+    else:
+        return str(node)

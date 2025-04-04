@@ -1,11 +1,8 @@
-# api.py
-
 import os
 from typing import IO, Any, Dict
 
 # If you have helper modules for evaluating expressions or merges:
-from ._eval import _eval_ast_logical_expressions
-from ._helpers import _process_table_merges
+# from ._eval import _eval_ast_logical_expressions
 
 # Core JML modules
 from .parser import JMLParser
@@ -39,25 +36,54 @@ def check_extension(filename: str) -> None:
 # 2) Non-Round-Trip Helpers
 # -------------------------------------
 
+def _node_to_plain_value(node: Any) -> Any:
+    """
+    Recursively convert an AST node into its plain Python value.
+      - ScalarNode: returns its underlying value.
+      - ArrayNode: returns a list of plain values.
+      - TableNode: returns a dict of plain values.
+      - LogicExpressionNode: returns the expression string.
+    """
+    if isinstance(node, ScalarNode):
+        return node.value
+    elif isinstance(node, ArrayNode):
+        return [_node_to_plain_value(item) for item in node.items]
+    elif isinstance(node, TableNode):
+        table_data = {}
+        for kv in node.keyvalues:
+            table_data[kv.key] = _node_to_plain_value(kv.value)
+        return table_data
+    elif isinstance(node, LogicExpressionNode):
+        return node.expression
+    else:
+        # Fallback conversion
+        return str(node)
+
 def _ast_to_plain(ast: DocumentNode) -> Dict[str, Dict[str, Any]]:
     """
     Convert a DocumentNode AST into a plain Python dictionary.
     This discards comments, merges, and formatting, preserving only the data.
     """
-    return ast.to_plain_data()
+    plain = {}
+    for section in ast.sections:
+        section_data = {}
+        for kv in section.keyvalues:
+            section_data[kv.key] = _node_to_plain_value(kv.value)
+        plain[section.name] = section_data
+    return plain
 
 def _plain_to_ast(data: Dict[str, Dict[str, Any]]) -> DocumentNode:
     """
     Convert a plain Python dictionary into a minimal DocumentNode.
-    This is used for simple dumps().
+    This is used for simple dumps() where comments, merges, and type annotations are discarded.
     """
     document = DocumentNode()
     for section_name, kv_pairs in data.items():
         section_node = SectionNode(name=section_name)
         for key, raw_value in kv_pairs.items():
             value_node = _plain_value_to_ast_node(raw_value)
-            # Attempt a basic type_annotation
-            type_annotation = _guess_basic_type_annotation(raw_value)
+            # For non-round-trip dumps, drop type annotations.
+            type_annotation = None
             kv_node = KeyValueNode(key=key, type_annotation=type_annotation, value=value_node)
             section_node.keyvalues.append(kv_node)
         document.sections.append(section_node)
@@ -84,27 +110,6 @@ def _plain_value_to_ast_node(value: Any):
     else:
         # Fallback: store as string
         return ScalarNode(value=str(value))
-
-def _guess_basic_type_annotation(value: Any) -> str:
-    """
-    A naive guess of the type annotation for non-round-trip usage.
-    """
-    if isinstance(value, str):
-        return "str"
-    elif isinstance(value, bool):
-        return "bool"
-    elif isinstance(value, int):
-        return "int"
-    elif isinstance(value, float):
-        return "float"
-    elif value is None:
-        return "null"
-    elif isinstance(value, list):
-        return "list"
-    elif isinstance(value, dict):
-        return "table"
-    else:
-        return "unknown"
 
 def _plain_dumps(data: Dict[str, Dict[str, Any]]) -> str:
     """
@@ -137,12 +142,17 @@ def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
 
 def loads(s: str) -> Dict[str, Any]:
     """
-    Parse a JML string (non-round-trip), returning a plain Python dict of data.
-    This discards formatting and merges.
+    Parse a JML string into a plain Python dictionary.
+    This function should return native types (e.g. a plain string for string values),
+    not AST nodes.
     """
+    print("[DEBUG] Input to loads:\n", s)
     parser = JMLParser()
     ast_document = parser.parse(s)
-    return _ast_to_plain(ast_document)
+    print("[DEBUG] Parsed AST Document:\n", ast_document)
+    data = _ast_to_plain(ast_document)
+    print("[DEBUG] Plain data:\n", data)
+    return data
 
 def load(fp: IO[str]) -> Dict[str, Any]:
     """
@@ -176,7 +186,7 @@ def round_trip_loads(s: str) -> DocumentNode:
     parser = JMLParser()
     ast = parser.parse(s)
     # If you have merges or other post-processing:
-    ast = _process_table_merges(ast)
+    # ast = ast.merge_documents(ast)
     return ast
 
 def round_trip_load(fp: IO[str]) -> DocumentNode:
@@ -205,10 +215,10 @@ def render(input_jml: str, context: dict = None) -> str:
     ast = round_trip_loads(input_jml)
 
     # 2) Evaluate expressions (if you have that functionality):
-    ast = _eval_ast_logical_expressions(ast, context)
+    # ast = _eval_ast_logical_expressions(ast, context)
 
     # 3) Process merges (if your language supports table merges):
-    ast = _process_table_merges(ast)
+    # ast = ast.merge_documents(ast)
 
     # 4) Unparse the result back to JML, preserving comments/format.
     return round_trip_dumps(ast)

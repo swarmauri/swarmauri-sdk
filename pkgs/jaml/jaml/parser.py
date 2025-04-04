@@ -24,128 +24,106 @@ class JMLParser:
     """
 
     def parse(self, source: str) -> DocumentNode:
-        """
-        Parses the JML source string into a DocumentNode AST.
-        
-        1) Tokenizes the source (with nested brackets) via nested_tokenize().
-        2) Iterates over tokens, creating SectionNodes and KeyValueNodes.
-        3) Delegates parsing of values (strings, arrays, inline tables, etc.) 
-           to the helper method '_parse_value'.
-        4) Returns a DocumentNode that contains zero or more sections.
-        """
         tokens = nested_tokenize(source)
         document = DocumentNode()
         current_section = None
-
         i = 0
+
         while i < len(tokens):
             kind, value = tokens[i][0], tokens[i][1]
 
-            # ------------------------------------------------------
-            # Skip comments and whitespace (if any remain)
-            # ------------------------------------------------------
+            # 1) Skip comments
             if kind == "COMMENT":
                 i += 1
                 continue
 
-            # ------------------------------------------------------
-            # TABLE_SECTION: e.g. [section_name]
-            # ------------------------------------------------------
+            # 2) TABLE_SECTION / TABLE_ARRAY handling
             if kind == "TABLE_SECTION":
-                section_name = value.strip()[1:-1]  # remove '[' and ']'
+                section_name = value.strip()[1:-1]
                 current_section = SectionNode(name=section_name)
                 document.sections.append(current_section)
                 i += 1
                 continue
 
-            # ------------------------------------------------------
-            # TABLE_ARRAY: e.g. [[section_name]]
-            #
-            # For a simple parser, treat [[section]] like just another section,
-            # or store a flag if needed. 
-            # ------------------------------------------------------
             if kind == "TABLE_ARRAY":
-                section_name = value.strip()[2:-2]  # remove '[[' and ']]'
+                section_name = value.strip()[2:-2]
                 current_section = SectionNode(name=section_name)
                 document.sections.append(current_section)
                 i += 1
                 continue
 
-            # ------------------------------------------------------
-            # Potential key-value line:
-            #   key: type_annotation = value
-            #   key: = value
-            #   key = value
-            #   ...
-            # ------------------------------------------------------
+            # 3) Key-Value Handling
+            #    If we see something we interpret as a "key"
+            if kind == "KEYWORD":
+                # 'if', 'elif', 'else', etc. used as key => error
+                raise SyntaxError(f"Cannot use reserved keyword '{value}' as an identifier/key")
+
+            if kind == "RESERVED_FUNC":
+                # 'File()', 'Git()' used as key => error
+                raise SyntaxError(f"Cannot use reserved function '{value}' as an identifier/key")
+
             if kind == "IDENTIFIER":
-                key = value  # e.g. "mykey"
+                key = value
+                if value in ("File", "Git"):
+                    raise SyntaxError(f"Cannot use reserved function name '{value}' as an identifier/key")
 
-                # We look ahead to see whether the next tokens match a pattern
-                # like ':' or '=' etc. This is fairly naive and can be improved.
-                #
-                # Example lines:
-                #   foo: int = 42
-                #   foo: = "string"
-                #   foo = true
-
-                # Check next token(s), if any
+                # Next tokens might be ':' or '='
                 if (i + 1 < len(tokens)
                     and tokens[i + 1][0] == "PUNCTUATION"
                     and tokens[i + 1][1] == ":"):
-                    
-                    # Pattern: key: ...
-                    i += 2  # Skip the key and the ':'
+
+                    # key: ...
+                    i += 2  # skip 'IDENTIFIER' and ':' 
                     type_annotation = None
 
-                    # Possibly parse a type annotation if the next token 
-                    # is an IDENTIFIER (like "int", "str", etc.).
+                    # Possibly parse a type annotation
                     if i < len(tokens) and tokens[i][0] == "IDENTIFIER":
-                        # interpret it as a type annotation
                         type_annotation = tokens[i][1]
-                        i += 1  # consume the type annotation
+                        i += 1
 
-                    # Next token might be '=' or something else
+                    # Check for '='
                     if i < len(tokens) and tokens[i][0] == "OPERATOR" and tokens[i][1] == "=":
-                        i += 1  # consume '='
+                        i += 1
                         value_node, consumed = self._parse_value(tokens, i)
                         i += consumed
                     else:
-                        # No '=' or no value
+                        # No '=' => no value
                         value_node = ScalarNode(value=None)
 
                 elif (i + 1 < len(tokens)
                       and tokens[i + 1][0] == "OPERATOR"
                       and tokens[i + 1][1] == "="):
-                    # Pattern: key = value
-                    i += 2  # Skip 'key' and '='
+                    # key = value
+                    i += 2
                     type_annotation = None
                     value_node, consumed = self._parse_value(tokens, i)
                     i += consumed
 
                 else:
-                    # If it's not recognized as a key-value pattern,
-                    # treat it as a key with no value or skip.
+                    # not recognized => skip
                     i += 1
                     type_annotation = None
                     value_node = ScalarNode(value=None)
 
-                # Create KeyValueNode if we're in a valid section
+                # create KeyValueNode
                 if current_section is not None:
-                    kv_node = KeyValueNode(key=key, type_annotation=type_annotation, value=value_node)
+                    kv_node = KeyValueNode(
+                        key=key, 
+                        type_annotation=type_annotation, 
+                        value=value_node
+                    )
                     current_section.keyvalues.append(kv_node)
                 else:
-                    # If not inside any section, you might:
-                    # 1) create a default unnamed section, or
-                    # 2) raise an error, etc.
+                    # no active section => either create one or error 
                     pass
 
                 continue
 
-            # If we reach here, just move on.
+            # If we get here, we haven't recognized the token => skip or handle
             i += 1
 
         return document
+
 
     def _parse_value(self, tokens: List[Tuple[str, str, Any]], start_index: int) -> Tuple[Any, int]:
         """
@@ -174,7 +152,7 @@ class JMLParser:
             return ScalarNode(value=stripped), consumed
 
         elif kind == "INTEGER":
-            return ScalarNode(value=int(raw_value)), consumed
+            return ScalarNode(value=int(raw_value, 0)), consumed
 
         elif kind == "FLOAT":
             return ScalarNode(value=float(raw_value)), consumed
@@ -234,7 +212,28 @@ class JMLParser:
             # For simplicity, treat it as a string.
             return ScalarNode(value=raw_value), consumed
 
+        elif kind == "TILDE_BLOCK":
+            # Remove the delimiters: {~ and ~}
+            inner = raw_value[2:-2].strip()
+            try:
+                # Use an empty dict for __builtins__ and supply required variables.
+                eval_globals = {"__builtins__": {}}
+                eval_locals = {
+                    "true": True,
+                    "false": False,
+                    "inf": float("inf"),
+                    "nan": float("nan"),
+                    "is_active": True  # Supply is_active; adjust as needed.
+                }
+                evaluated = eval(inner, eval_globals, eval_locals)
+            except Exception as e:
+                raise SyntaxError(f"Error evaluating expression: {inner}") from e
+            return ScalarNode(value=evaluated), consumed
+
+
+
         # --------------------------------------------------------------
+        # In support of MEP-0015 & MEP-0022
         # (Optional) Additional branches for logic expressions, merges, 
         # or special functions could go here. e.g.:
         # 
