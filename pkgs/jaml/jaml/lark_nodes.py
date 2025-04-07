@@ -1,100 +1,114 @@
-from lark import Lark, Transformer
 import json
+from lark import Transformer
 
 class ConfigTransformer(Transformer):
     def __init__(self):
         super().__init__()
-        # Top-level dictionary holding all sections
-        self.config = {}
-        # Keep track of the current nested dict
-        self.current_section_ref = self.config
-    
+        # Initialize with a default section.
+        self.data = {"__default__": {}}
+        # Current section pointer (starts at default).
+        self.current_section = self.data["__default__"]
+        self.in_tilde = False  # Flag to track if we're inside a tilde block
+
     def start(self, items):
-        # The final transformation result is in self.config
-        return self.config
+        # Return the complete configuration dictionary.
+        return self.data
 
     def section(self, items):
         """
-        Matches [ section_name ]
-        Items will be a single element (list of identifiers).
-        E.g. section_name might be ["config"] or ["config", "subsection"].
+        Processes a section header. If the header is produced by the section_name rule
+        (i.e. unquoted) then it will be a list of identifiers and we merge them into a nested
+        namespace. Otherwise, if it’s a quoted string, use it literally.
         """
-        section_parts = items[0]
-        
-        # Descend into nested dict structure
-        ref = self.config
-        for part in section_parts:
-            if part not in ref:
-                ref[part] = {}
-            ref = ref[part]
-        
-        # Update current section reference
-        self.current_section_ref = ref
-        return ref
+        raw_section = items[0]
+        if isinstance(raw_section, list):
+            # Unquoted section header: merge namespace.
+            parts = raw_section
+            d = self.data
+            for part in parts:
+                if part not in d:
+                    d[part] = {}
+                d = d[part]
+            self.current_section = d
+            return d
+        else:
+            # Quoted section header: use the literal string.
+            key = raw_section
+            if key not in self.data:
+                self.data[key] = {}
+            self.current_section = self.data[key]
+            return self.data[key]
+
+    def assignment(self, items):
+        # items[0] is the key, items[1] is the value.
+        key = items[0]
+        value = items[1]
+        self.current_section[key] = value
+        return {key: value}
 
     def section_name(self, items):
         """
         section_name: IDENTIFIER ("." IDENTIFIER)*
-        This rule returns a list of strings, e.g. ["config", "nested"].
+        Returns a list of strings, e.g. ["app", "settings"].
         """
-        # 'items' will be something like ["config", "nested"] if we see [config.nested]
         return items
 
-    def assignment(self, items):
-        """
-        assignment: IDENTIFIER (":" type_annotation)? "=" value
-        Depending on how Lark groups them, items could be:
-           [identifier, type_annotation, value]   # if the type_annotation is present
-        or
-           [identifier, value]                    # if there's no type_annotation
-        """
-        if len(items) == 3:
-            identifier, type_annot, val = items
-            self.current_section_ref[identifier] = {
-                "type": type_annot,
-                "value": val
-            }
-        else:
-            identifier, val = items
-            self.current_section_ref[identifier] = val
-        return None
-    
     def type_annotation(self, items):
-        """
-        type_annotation: TYPE
-        Usually just a single token (str, int, etc.)
-        """
+        # type_annotation: TYPE
         return items[0]
-    
+
     # ---------------------
     # Value and leaf rules
     # ---------------------
 
     def paren_expr(self, items):
-        # Convert all items to str before joining
         return "(" + " ".join(str(x) for x in items) + ")"
 
-
     def tilde_content(self, items):
-        # Recursively convert everything to a string
         def to_string(x):
             if isinstance(x, list):
                 return "".join(to_string(subx) for subx in x)
             elif hasattr(x, '__iter__') and not isinstance(x, str):
-                # In rare cases, if you return nested structures, flatten them
                 return "".join(to_string(subx) for subx in x)
             else:
                 return str(x)
-        
         return to_string(items)
 
-    # Treat all these terminal types as strings or raw values
+    def tilde_block(self, items):
+        """
+        Expects a tilde block defined as: TILDE_START tilde_content TILDE_END.
+        Uses the middle element as the content to evaluate.
+        """
+        was_in_tilde = self.in_tilde
+        self.in_tilde = True
+        if len(items) >= 3:
+            content = items[1]
+        else:
+            content = self.tilde_content(items)
+        self.in_tilde = was_in_tilde
+        context = {"true": True, "false": False}
+        try:
+            result = eval(content, {"__builtins__": {}}, context)
+            return result
+        except Exception:
+            return content
+
+    # Terminal transformations.
     def STRING(self, token):
-        return token.value
+        s = token.value
+        if getattr(self, "in_tilde", False):
+            # In tilde blocks, keep the original quoted string.
+            return s
+        # Outside tilde blocks, unquote the string.
+        if s.startswith("'''") or s.startswith('"""') or s.startswith("```"):
+            return s[3:-3]
+        if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
+            return s[1:-1]
+        return s
 
     def SCOPED_VAR(self, token):
         return token.value
-    
+
     def COMMENT(self, token):
         return token.value
 
@@ -102,9 +116,6 @@ class ConfigTransformer(Transformer):
         return float(token.value)
 
     def INTEGER(self, token):
-        # Could parse int(...) but watch for hex, oct, etc.
-        # For simplicity, store as string or do int(token, 0)
-        # (which parses 0x..., 0o..., etc.)
         return int(token.value, 0) if token.value not in ("inf", "nan", "+inf", "-inf") else token.value
 
     def BOOLEAN(self, token):
@@ -126,10 +137,40 @@ class ConfigTransformer(Transformer):
         return token.value
 
     def INLINE_TABLE(self, token):
-        return token.value
+        s = token.value.strip()
+        if s.startswith("{") and s.endswith("}"):
+            s = s[1:-1].strip()
+        result = {}
+        if not s:
+            return result
+        pairs = s.split(',')
+        for pair in pairs:
+            if '=' in pair:
+                key, val = pair.split('=', 1)
+                key = key.strip()
+                val = val.strip()
+                try:
+                    if '.' in val:
+                        converted = float(val)
+                    else:
+                        converted = int(val)
+                except ValueError:
+                    if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                        converted = val[1:-1]
+                    else:
+                        converted = val
+                result[key] = converted
+        return result
 
     def ARRAY(self, token):
-        return token.value
+        s = token.value.strip()
+        try:
+            result = json.loads(s)
+            if isinstance(result, list):
+                return result
+            return result
+        except Exception:
+            return s
 
     def IDENTIFIER(self, token):
         return token.value

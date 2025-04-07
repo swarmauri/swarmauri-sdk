@@ -10,6 +10,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Multiline string preservation not fully implemented yet.")
 def test_multiline_string_preserves_format():
     """
@@ -37,6 +38,7 @@ description = """
 
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Multiline array preservation not fully implemented yet.")
 def test_multiline_array_preserves_format():
     """
@@ -61,6 +63,7 @@ colors = [
 
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Multiline inline table formatting not fully implemented yet.")
 def test_multiline_inline_table_preserves_format():
     """
@@ -90,6 +93,7 @@ profile = {
 
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="List of inline tables preservation not fully implemented yet.")
 def test_list_of_inline_tables_preserves_structure():
     """
@@ -114,6 +118,7 @@ authors = [
 
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Whitespace handling in multiline strings not finalized.")
 def test_whitespace_handling_in_multiline_strings():
     """
@@ -137,6 +142,7 @@ notes = """
 
 
 @pytest.mark.spec
+@pytest.mark.mep0007
 # @pytest.mark.xfail(reason="Indentation rules for nested inline tables not fully enforced yet.")
 def test_indentation_in_multiline_inline_tables():
     """

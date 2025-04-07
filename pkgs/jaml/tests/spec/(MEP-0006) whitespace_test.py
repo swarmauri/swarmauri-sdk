@@ -9,6 +9,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Leading/trailing whitespace preservation not yet implemented.")
 def test_leading_trailing_whitespace_in_strings_preserved():
     """
@@ -30,6 +31,7 @@ name = "  Jeff  "
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Trailing whitespace after value not yet normalized/ignored as expected.")
 def test_trailing_whitespace_after_value_ignored():
     """
@@ -45,6 +47,7 @@ title = "Dev"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Whitespace normalization around assignment operator not yet implemented.")
 def test_whitespace_around_assignment_operator_normalized():
     """
@@ -66,6 +69,7 @@ key    =    "value"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Inline table whitespace preservation not fully implemented yet.")
 def test_inline_tables_whitespace_preserved_round_trip():
     """
@@ -90,6 +94,7 @@ profile = { name = "Alice", age = 30 }
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Multiline string whitespace preservation not fully implemented yet.")
 def test_multiline_string_leading_whitespace_preserved():
     """
@@ -115,6 +120,7 @@ description = \"\"\"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 # @pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error.")
 def test_unquoted_key_with_space_should_raise_syntax_error():
     """
@@ -129,6 +135,7 @@ my key = "value"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0006
 @pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
 def test_line_continuation_not_supported_yet():
     """

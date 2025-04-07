@@ -9,6 +9,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
 def test_primitive_type_annotations():
     """
@@ -37,6 +38,7 @@ missing_val: null = null
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="List annotation handling not fully implemented yet.")
 def test_list_annotation():
     """
@@ -57,6 +59,7 @@ colors: list = ["red", "green", "blue"]
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Inline table type annotations not fully preserved yet.")
 def test_table_annotation():
     """
@@ -75,6 +78,7 @@ point: table = { x = 10, y = 20 }
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Nested inline table type annotations not fully supported yet.")
 def test_nested_inline_table_annotation():
     """
@@ -96,6 +100,7 @@ user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str =
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Lists of inline tables annotations not fully implemented yet.")
 def test_table_arrays_and_lists_of_inline_tables():
     """
@@ -120,6 +125,7 @@ authors: list = [
 
 # @pytest.mark.xfail(reason="Type validation not implemented yet.")
 @pytest.mark.spec
+@pytest.mark.mep0009
 def test_value_does_not_match_annotation():
     """
     MEP-009:
@@ -137,6 +143,7 @@ wrong_type: int = "this is not an int"
 
 # @pytest.mark.xfail(reason="Strict type enforcement for nested complex types not yet implemented.")
 @pytest.mark.spec
+@pytest.mark.mep0009
 def test_nested_type_mismatch():
     """
     MEP-009:

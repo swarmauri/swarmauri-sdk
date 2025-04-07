@@ -1,6 +1,8 @@
 import os
 from typing import IO, Any, Dict
 
+from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
+
 # If you have helper modules for evaluating expressions or merges:
 # from ._eval import _eval_ast_logical_expressions
 
@@ -11,6 +13,9 @@ from .lark_nodes import ConfigTransformer
 
 from .unparser import JMLUnparser
 from .ast_nodes import DocumentNode
+
+
+
 
 # -------------------------------------
 # 1) File Extension Helper (optional)
@@ -53,14 +58,14 @@ def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     fp.write(dumps(obj))
 
 def loads(s: str) -> Dict[str, Any]:
-    """
-    Parse a JML string into a plain Python dictionary.
-    Returns native types (e.g. plain strings, ints, lists, dicts),
-    not AST nodes.
-    """
-    # parser = JMLParser()
-    ast_tree = parser.parse(s)
-    # Convert the AST to plain data using the bound method on DocumentNode.
+    try:
+        ast_tree = parser.parse(s)
+    except UnexpectedToken as e:
+        raise SyntaxError("UnexpectedToken") from e
+    except UnexpectedCharacters as e:
+        raise SyntaxError("UnexpectedCharacters") from e
+    except UnexpectedEOF as e:
+        raise SyntaxError("UnexpectedEOF") from e
     return ConfigTransformer().transform(ast_tree)
 
 def load(fp: IO[str]) -> Dict[str, Any]:

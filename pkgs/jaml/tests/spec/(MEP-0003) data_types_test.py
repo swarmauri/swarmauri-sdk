@@ -5,6 +5,7 @@ from pprint import pprint
 from jaml._tokenizer import tokenize, nested_tokenize
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until full data type parser is implemented")
 def test_string_scalar():
     # Test a simple string literal.
@@ -16,6 +17,7 @@ def test_string_scalar():
     assert "Hello, World!" in string_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until multiline string support is complete")
 def test_multiline_string():
     # Test that newlines are preserved in a string.
@@ -27,6 +29,7 @@ def test_multiline_string():
     assert "\n" in string_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until integer parsing is complete")
 def test_decimal_integer():
     source = 'answer = 42'
@@ -36,6 +39,7 @@ def test_decimal_integer():
     assert "42" in int_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until octal integer parsing is complete")
 def test_octal_integer():
     source = 'octal = 0o52'
@@ -45,6 +49,7 @@ def test_octal_integer():
     assert "0o52" in int_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until hexadecimal integer parsing is complete")
 def test_hexadecimal_integer():
     source = 'hex = 0x2A'
@@ -54,6 +59,7 @@ def test_hexadecimal_integer():
     assert "0x2A" in int_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until binary integer parsing is complete")
 def test_binary_integer():
     source = 'binary = 0b101010'
@@ -63,6 +69,7 @@ def test_binary_integer():
     assert "0b101010" in int_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until float parsing is complete")
 def test_standard_float():
     source = 'pi = 3.14'
@@ -72,6 +79,7 @@ def test_standard_float():
     assert "3.14" in float_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until special float values are parsed")
 def test_special_float():
     source = 'infinity = inf\nnot_a_number = nan'
@@ -84,6 +92,7 @@ def test_special_float():
     assert found_inf and found_nan
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until boolean parsing is complete")
 def test_boolean_literal():
     source = 'active = true\nvalid = false'
@@ -95,6 +104,7 @@ def test_boolean_literal():
     assert found_true and found_false
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until null parsing is complete")
 def test_null_literal():
     source = 'missing = null'
@@ -104,6 +114,7 @@ def test_null_literal():
     assert "null" in null_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until inline arrays are tokenized correctly")
 def test_inline_array():
     source = 'numbers = [1, 2, 3, 4]'
@@ -116,6 +127,7 @@ def test_inline_array():
     assert len(int_tokens) >= 1
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until multiline arrays are tokenized correctly")
 def test_multiline_array():
     source = '''
@@ -134,6 +146,7 @@ def test_multiline_array():
     assert len(comment_tokens) >= 1
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until inline tables are tokenized correctly")
 def test_inline_table():
     source = 'point = { x = 10, y = 20 }'
@@ -146,6 +159,7 @@ def test_inline_table():
     assert len(id_tokens) >= 1
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until standard table sections are tokenized correctly")
 def test_standard_table_section():
     source = "[section]\nkey = \"value\""
@@ -155,6 +169,7 @@ def test_standard_table_section():
     assert "section" in table_section_tokens[0][1]
 
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until table arrays are tokenized correctly")
 def test_table_array_header():
     source = "[[products]]\nname = \"Widget\""
@@ -165,6 +180,7 @@ def test_table_array_header():
 
 # Optionally, you can include a test for nested inline tables.
 @pytest.mark.spec
+@pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until nested inline tables are tokenized correctly")
 def test_nested_inline_table():
     source = 'user = { name = "Azzy", details = { age = 9, role = "admin" } }'

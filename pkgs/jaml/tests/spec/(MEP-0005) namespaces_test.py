@@ -9,6 +9,7 @@ from pprint import pprint
 from jaml import loads
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Namespace merging not yet implemented")
 def test_simple_namespace_merging():
     """
@@ -34,6 +35,7 @@ def test_simple_namespace_merging():
     assert result["app"]["paths"]["log"] == "/var/log/app.log"
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
 def test_conflicting_keys_last_key_wins():
     """
@@ -55,6 +57,7 @@ def test_conflicting_keys_last_key_wins():
     assert result["server"]["port"] == 8080
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Nested namespaces not yet implemented or tested")
 def test_nested_namespace():
     """
@@ -84,6 +87,7 @@ def test_nested_namespace():
     assert result["project"]["author"]["email"] == "john@example.com"
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 @pytest.mark.xfail(reason="Loading multiple files simultaneously is not supported.")
 def test_merge_across_multiple_sources():
     """
@@ -115,6 +119,7 @@ def test_merge_across_multiple_sources():
     assert result["database"]["credentials"]["user"] == "admin"
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 @pytest.mark.xfail(reason="Conflict warnings or detection not yet implemented")
 def test_conflicting_key_warning():
     """
@@ -136,18 +141,22 @@ def test_conflicting_key_warning():
     conflict_warnings = [w for w in warnings if "overwritten" in w.lower() and "level" in w]
     assert len(conflict_warnings) > 0
 
-def test_print_namespaces_for_debug():
+
+@pytest.mark.spec
+@pytest.mark.mep0005
+# @pytest.mark.xfail(reason="Conflict warnings or detection not yet implemented")
+def test_quoted_namespaces():
     """
-    Optional test with no xfail – used for manual debugging or inspection.
+    This test ensure that quoted keys are correctly handled
     """
     source = """
-    [service.api]
-    url = "http://example.com"
-    token = "abc123"
+    ["logging.app"]
+    url = "/"
+    
 
-    [service]
-    name = "ExampleService"
+    ["logging.config"]
+    level = "info"
     """
-    # We'll parse and just print the result.
     result = loads(source)
-    pprint(result)
+    assert result["logging.app"]["url"] == "/"
+    assert result["logging.config"]["level"] == "info"

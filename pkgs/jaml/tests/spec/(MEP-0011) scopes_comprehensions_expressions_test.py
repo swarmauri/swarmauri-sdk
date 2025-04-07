@@ -3,6 +3,7 @@ from jaml import loads, dumps
 
 # Test 1: Whitespace Preservation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Whitespace preservation not implemented")
 def test_whitespace_preservation():
     toml_str = """
@@ -17,6 +18,7 @@ name = "  Jeff  "
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Global scope evaluation not implemented")
 def test_global_scope_evaluation():
     toml_str = """
@@ -34,6 +36,7 @@ config = f"@{base}/config.toml"
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Self scope evaluation not implemented")
 def test_self_scope_evaluation():
     toml_str = """
@@ -52,6 +55,7 @@ greeting = f"Hello, %{name}!"
 
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
 def test_context_scope_deferred():
     toml_str = """
@@ -67,6 +71,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 
 # Test 5: F-String Interpolation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="F-string interpolation evaluation not implemented")
 def test_fstring_interpolation():
     toml_str = """
@@ -82,6 +87,7 @@ text = f"Hello, {name}!"
 
 # Test 6: Immediate Expression Evaluation using <{ ... }>
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Immediate expression evaluation not implemented")
 def test_immediate_expression():
     toml_str = """
@@ -97,6 +103,7 @@ config = <{ @{base} + '/config.toml' }>
 
 # Test 7: Folded Expression Evaluation using <( ... )>
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Folded expression evaluation not implemented")
 def test_folded_expression():
     toml_str = """
@@ -116,6 +123,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
 
 # Test 8: List Comprehension Evaluation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="List comprehension evaluation not implemented")
 def test_list_comprehension():
     toml_str = """
@@ -130,6 +138,7 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
 
 # Test 9: Dict Comprehension Evaluation
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
 def test_dict_comprehension():
     toml_str = """
@@ -144,6 +153,7 @@ dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
 
 # Test 10: Arithmetic Operations in Expressions
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
 def test_arithmetic_operations():
     toml_str = """
@@ -158,6 +168,7 @@ result = <{ 3 + 4 }>
 
 # Test 11: Conditional Logic in Expressions
 @pytest.mark.spec
+@pytest.mark.mep0011
 @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
 def test_conditional_logic():
     toml_str = """
@@ -169,3 +180,29 @@ status = f"{'Yes' if true else 'No'}"
     out = dumps(data)
     data_again = loads(out)
     assert data_again["cond"]["status"] == "Yes"
+
+# Is this really a type inference test? 
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
+def test_infer_expressions():
+    """
+    Ensures expressions (wrapped with <{ ... )>) are type-inferred from their result.
+    """
+    source = '''
+    [exprs]
+    # Arithmetic expression
+    sum_val = <{ 10 + 5 }>
+    # String concatenation
+    greeting = <{ "Hello, " + "World!" }>
+    # Boolean logic
+    combo = <{ true and false }>
+    '''
+    result = loads(source)
+    exprs = result["exprs"]
+    assert isinstance(exprs["sum_val"], int)
+    assert exprs["sum_val"] == 15
+    assert isinstance(exprs["greeting"], str)
+    assert exprs["greeting"] == "Hello, World!"
+    assert isinstance(exprs["combo"], bool)
+    assert exprs["combo"] is False

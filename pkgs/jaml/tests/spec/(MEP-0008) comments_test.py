@@ -10,6 +10,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Standalone comment preservation not yet implemented.")
 def test_standalone_comment_preserved():
     """
@@ -30,6 +31,7 @@ key = "value"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Inline comment preservation not yet implemented.")
 def test_inline_comment_preserved():
     """
@@ -48,6 +50,7 @@ greeting = "Hello, World!"  # Inline comment: greeting message
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
 def test_multiline_array_comments_preserved():
     """
@@ -73,6 +76,7 @@ colors = [
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Multiline inline table comment preservation not yet implemented.")
 def test_multiline_inline_table_comments_preserved():
     """
@@ -102,6 +106,7 @@ profile = {
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Comments within multiline arrays may not preserve exact spacing/newlines.")
 def test_multiline_arrays_with_comments_spacing():
     """
@@ -128,6 +133,7 @@ numbers = [
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 def test_multiline_arrays_comment_out_line():
     original = """\
 [settings]
@@ -153,6 +159,7 @@ numbers = [
 
 
 @pytest.mark.spec
+@pytest.mark.mep0008
 # @pytest.mark.xfail(reason="Leading/trailing whitespace around comments not fully handled yet.")
 def test_whitespace_around_comments():
     """
