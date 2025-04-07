@@ -40,10 +40,13 @@ class PreservedInlineTable(dict):
 class ConfigTransformer(Transformer):
     def __init__(self):
         super().__init__()
-        self.data = {"__default__": {}}
+        # Store normal data in __default__ or nested sections
+        self.data = {
+            "__default__": {},
+            "__comments__": []   # <--- new list for standalone comments
+        }
         self.current_section = self.data["__default__"]
         self.in_tilde = False
-        # self._context = ... # Must be set externally to have _slice_input work.
 
     def start(self, items):
         return self.data
@@ -65,10 +68,55 @@ class ConfigTransformer(Transformer):
             return self.data[raw_section]
 
     def assignment(self, items):
+        """
+        items typically:
+          [key, (possibly type_annotation?), '=', value, (inline_comment?)]
+        """
+        # First let's parse out the parts we care about:
         key = items[0]
-        value = items[1]
-        self.current_section[key] = value
+
+        # If we had an optional type_annotation in the grammar, handle or skip it
+        # but for brevity let's assume we ignore it or you handle it your usual way
+        #
+        # items might have '=' as a separate token, so watch out for that indexing.
+        # Or you can strip out punctuation in a separate rule. Example code:
+        idx_val = 2
+        if len(items) >= 2 and isinstance(items[1], str) and items[1].startswith(":"): 
+            # that was the type annotation, or you'd check the rule
+            # skip it for brevity
+            idx_val = 4  # adjust if your grammar includes punctuation tokens
+
+        value = items[idx_val]
+        
+        # Now check if there's an inline comment
+        inline_cmt = None
+        if len(items) > idx_val + 1:
+            # The last item might be an inline_comment node
+            last_item = items[idx_val + 1]
+            # If the grammar structure is inline_comment -> (WS_INLINE?, COMMENT),
+            # then 'last_item' might be a list. We'll try to parse it out:
+            if isinstance(last_item, list) and len(last_item) > 0:
+                # The actual COMMENT token might be last_item[-1]
+                maybe_cmt = last_item[-1]
+                if isinstance(maybe_cmt, str) and maybe_cmt.startswith("#"):
+                    inline_cmt = maybe_cmt
+            elif isinstance(last_item, str) and last_item.startswith("#"):
+                # If the inline_comment rule returns just the comment string
+                inline_cmt = last_item
+
+        # We store everything in the current section. 
+        # Instead of storing a raw value, store an object or tuple that includes the comment.
+        # For a quick hack, store a dict with "value" and "comment":
+        if inline_cmt:
+            self.current_section[key] = {
+                "_value": value,
+                "_inline_comment": inline_cmt,
+            }
+        else:
+            self.current_section[key] = value
+
         return {key: value}
+
 
     def section_name(self, items):
         return items
@@ -207,7 +255,12 @@ class ConfigTransformer(Transformer):
         return token.value
 
     def COMMENT(self, token):
-        return token.value
+        """
+        Whenever we see a standalone comment, push it into our __comments__ list.
+        """
+        comment_line = token.value  # e.g. "# This is a standalone comment"
+        self.data["__comments__"].append(comment_line)
+        return comment_line
 
     def FLOAT(self, token):
         return float(token.value)

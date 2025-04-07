@@ -209,7 +209,7 @@ def test_identifier_assigned_identifier():
     Should raise an error.
     """
     source = 'identifier = another_identifier'
-    with pytest.raises(SyntaxError, match="UnexpectedEOF"):
+    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
         _ = loads(source)
 
 @pytest.mark.spec

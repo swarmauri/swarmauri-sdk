@@ -4,13 +4,13 @@ jaml/unparser.py
 
 This module provides the JMLUnparser class, which converts a configuration
 object (a plain dict or similar) back into its textual representation
-according to the custom grammar.
+according to the custom grammar, preserving top-level comments
+and inline comments.
 """
 
 import json
 
 from .lark_nodes import PreservedArray, PreservedInlineTable
-
 
 class JMLUnparser:
     def __init__(self, config):
@@ -78,6 +78,7 @@ class JMLUnparser:
 
         # 8) Fallback for dictionaries => inline table
         elif isinstance(value, dict):
+            # If it's a "normal" dict, produce inline table syntax:
             items = []
             for k, v in value.items():
                 items.append(f"{k} = {self.format_value(v)}")
@@ -113,11 +114,11 @@ class JMLUnparser:
     def unparse_section(self, section_dict, section_path):
         """
         Convert a section (dict) to text. 
-        - If the key is a dict that is not a PreservedInlineTable,
-          and it appears to contain sub-sections, we recursively
-          turn it into a [section] block. 
-        - If it's recognized as a PreservedInlineTable, 
-          we keep it inline.
+         - If 'value' is a dict with sub-dicts, treat it as a nested section.
+         - Otherwise treat it as a direct assignment.
+         - If it's a 'PreservedInlineTable', do not break it up.
+         - If it's an 'inline comment' dict (with '_value' and '_inline_comment'), 
+           put the comment on the same line.
         """
         output = ""
         if section_path:
@@ -128,26 +129,42 @@ class JMLUnparser:
 
         # Separate top-level assignments from nested sections.
         for key, value in section_dict.items():
-            # We'll treat it as a nested section if it's a plain dict 
-            # containing sub-dicts (like a normal TOML table).
-            if isinstance(value, dict) and not isinstance(value, PreservedInlineTable):
-                # Heuristic: if any inner value is itself a dict, treat as nested
+            # Heuristic: if a plain dict has sub-dicts, treat as nested section
+            if (
+                isinstance(value, dict)
+                and not isinstance(value, PreservedInlineTable)
+                and "_value" not in value   # i.e. not an inline-comment structure
+            ):
                 if any(isinstance(v, dict) for v in value.values()):
                     nested_sections[key] = value
                 else:
-                    # Otherwise, treat as direct assignment (inline table fallback)
+                    # treat as direct assignment (inline table fallback)
                     assignments[key] = value
             else:
-                # Normal assignment
+                # Normal assignment (including inline comment or preserved table)
                 assignments[key] = value
 
-        # Output assignments.
+        # Output assignments, including inline comments on the same line
         for key, value in assignments.items():
-            output += f"{key} = {self.format_value(value)}\n"
+            # Detect the special "commented assignment" structure:
+            if (
+                isinstance(value, dict)
+                and "_value" in value
+                and "_inline_comment" in value
+            ):
+                # e.g. { "_value": "Hello, World!", "_inline_comment": "# inline stuff" }
+                val_str = self.format_value(value["_value"])
+                cmt_str = value["_inline_comment"]
+                # Put the comment on the same line:
+                output += f"{key} = {val_str}  {cmt_str}\n"
+            else:
+                # Normal approach
+                output += f"{key} = {self.format_value(value)}\n"
+
         if assignments:
             output += "\n"
 
-        # Recursively process truly nested sections.
+        # Recursively process nested sections
         for key, subsec in nested_sections.items():
             output += self.unparse_section(subsec, section_path + [key])
 
@@ -157,20 +174,37 @@ class JMLUnparser:
         output = ""
         config_data = self._get_config_data()
 
-        # Process default assignments (if any).
+        # 1) Dump any top-level standalone comments first
+        top_comments = config_data.get("__comments__", [])
+        for comment_line in top_comments:
+            output += comment_line + "\n"
+        if top_comments:
+            output += "\n"
+
+        # 2) Dump default assignments if any
         default_section = config_data.get("__default__", {})
         for key, value in default_section.items():
-            output += f"{key} = {self.format_value(value)}\n"
+            # Check if it's an inline-comment dict
+            if (
+                isinstance(value, dict)
+                and "_value" in value
+                and "_inline_comment" in value
+            ):
+                val_str = self.format_value(value["_value"])
+                cmt_str = value["_inline_comment"]
+                output += f"{key} = {val_str}  {cmt_str}\n"
+            else:
+                output += f"{key} = {self.format_value(value)}\n"
+
         if default_section:
             output += "\n"
 
-        # Process each top-level section.
+        # 3) Dump named sections
         for key, section in config_data.items():
-            if key == "__default__":
+            if key in ("__default__", "__comments__"):
                 continue
             output += self.unparse_section(section, [key])
 
-        # Remove trailing newlines
         return output.rstrip("\n")
 
     def __str__(self):

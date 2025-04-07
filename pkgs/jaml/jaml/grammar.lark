@@ -1,12 +1,17 @@
-start: (section | assignment | COMMENT)*
+%ignore /[ \t\r\n]+/
 
-assignment: IDENTIFIER (":" type_annotation)? "=" value
+start: (blank_line | COMMENT | section | assignment)*
+
+assignment: IDENTIFIER (":" type_annotation)? EQ value inline_comment?
+EQ: "="
+
+inline_comment: WS_INLINE COMMENT
+               | COMMENT           // if you allow no space before #
 
 type_annotation: TYPE
-
-// Define a dedicated token for type annotations.
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime"
 
+// A section header can appear
 section: "[" (section_name | STRING) "]"
 section_name: IDENTIFIER ("." IDENTIFIER)*
 
@@ -27,7 +32,17 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | array
       | OPERATOR
       | PUNCTUATION
-      | WHITESPACE
+
+
+// We define blank_line as purely spaces/tabs, followed by a newline
+blank_line: /[ \t]*\r?\n/
+
+// If you want to keep newlines as tokens, do so:
+NEWLINE: /\r?\n/  // might or might not be used explicitly
+
+// If you want to ignore purely horizontal spaces between tokens:
+%ignore HSPACES
+HSPACES: /[ \t]+/
 
 // --------------------------
 // Array Handling
@@ -107,6 +122,5 @@ PUNCTUATION: /:/
 // 21) WHITESPACE
 WHITESPACE: /\s+/
 
-// We can ignore general inline whitespace so it doesn't clutter parse trees:
-%ignore WS_INLINE
+// If you want to allow inline whitespace for inline_comment:
 WS_INLINE: /[ \t\r\n\f]+/
