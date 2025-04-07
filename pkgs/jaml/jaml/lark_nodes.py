@@ -3,6 +3,32 @@ from lark import Lark
 import json
 from lark import Transformer, Token, v_args
 
+class PreservedString(str):
+    def __new__(cls, value, original):
+        # Create a new string instance with the unquoted value
+        obj = super().__new__(cls, value)
+        obj.original = original  # store the original text with quotes
+        return obj
+
+    def __repr__(self):
+        return f"PreservedString(value={str(self)!r}, original={self.original!r})"
+
+
+class PreservedValue:
+    def __init__(self, value, comment=None):
+        self.value = value
+        self.comment = comment  # e.g. '  # Inline comment: greeting message'
+    
+    def __str__(self):
+        # When converting to string for round-trip output, append the comment if present.
+        if self.comment:
+            return f'{self.value}{self.comment}'
+        return str(self.value)
+    
+    def __repr__(self):
+        return f"PreservedValue(value={self.value!r}, comment={self.comment!r})"
+
+
 class PreservedArray:
     """
     Stores both the parsed items (list-like) AND the original bracketed text,
@@ -53,40 +79,33 @@ class ConfigTransformer(Transformer):
 
     def assignment(self, items):
         inline = None
-        # Handle different lengths:
         if len(items) == 2:
-            # [IDENTIFIER, value]
             key, value = items
         elif len(items) == 3:
-            # Could be either [IDENTIFIER, value, inline_comment] or [IDENTIFIER, type_annotation, value]
             if isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
                 key, value, inline = items
             else:
                 key, type_annotation, value = items
         elif len(items) == 4:
-            # [IDENTIFIER, type_annotation, value, inline_comment]
             key, type_annotation, value, inline = items
         else:
             raise ValueError("Unexpected structure in assignment: " + str(items))
 
-        # Unquote the value if needed
-        if isinstance(value, str) and (
+        # Only unquote if value is a plain string (not already preserved)
+        if not isinstance(value, PreservedString) and isinstance(value, str) and (
             (value.startswith("'") and value.endswith("'")) or 
             (value.startswith('"') and value.endswith('"'))
         ):
             value = value[1:-1]
 
-        # Store inline comment as part of the AST node.
-        # If there is an inline comment, we store a dict with keys "value" and "inline_comment".
         if inline is not None:
-            # Ensure inline comment is a string
             inline = str(inline)
-            self.current_section[key] = {"value": value, "inline_comment": inline}
+            self.current_section[key] = PreservedValue(value, inline)
         else:
             self.current_section[key] = value
 
-        # Return None so that parent rules do not aggregate extra data.
         return None
+
 
 
 
@@ -205,6 +224,25 @@ class ConfigTransformer(Transformer):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         return PreservedInlineTable(result, original_text)
 
+
+    # -----------------------------
+    # Comments
+    # -----------------------------
+    def comment_line(self, items):
+        # items: [COMMENT, NEWLINE]
+        comment_token = items[0]
+        # Only standalone comment lines should be added to __comments__
+        self.data["__comments__"].append(comment_token.value)
+        return comment_token.value
+
+    def inline_comment(self, items):
+        # This rule matches something like: /[ \t]+/ COMMENT
+        # Join all tokens (typically some whitespace and a COMMENT token)
+        comment = "".join(item.value if isinstance(item, Token) else str(item) for item in items)
+        # Do not add to __comments__; inline comments are attached to assignments.
+        return comment
+
+
     # -----------------------------
     # Preserved Array logic
     # -----------------------------
@@ -307,31 +345,17 @@ class ConfigTransformer(Transformer):
         s = token.value
         if self.in_tilde:
             return s
-        # Handle triple-quoted strings
         if s.startswith("'''") and s.endswith("'''"):
             inner = s[3:-3]
-            # If the inner content seems to be a triple-double-quoted string that lost one quote at each end,
-            # restore it by adding an extra double quote at the start and end.
-            if inner.startswith('""') and inner.endswith('""'):
-                return '"' + inner + '"'
-            return inner
+            return PreservedString(inner, s)
         if s.startswith('"""') and s.endswith('"""'):
-            return s[3:-3]
+            return PreservedString(s[3:-3], s)
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
-            return s[1:-1]
+            return PreservedString(s[1:-1], s)
         return s
-
 
     def SCOPED_VAR(self, token):
         return token.value
-
-    def COMMENT(self, token):
-        """
-        Whenever we see a standalone comment, push it into our __comments__ list.
-        """
-        comment_line = token.value  # e.g. "# This is a standalone comment"
-        self.data["__comments__"].append(comment_line)
-        return comment_line
 
     def FLOAT(self, token):
         return float(token.value)
