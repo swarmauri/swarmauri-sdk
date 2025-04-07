@@ -86,10 +86,13 @@ class ConfigTransformer(Transformer):
 
     def assignment(self, items):
         inline = None
+        type_annotation = None
+        
+        # Determine the structure based on number of items.
         if len(items) == 2:
             key, value = items
         elif len(items) == 3:
-            # Check if the last item is an inline comment dictionary.
+            # Determine if the third is an inline comment or type annotation.
             if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
                 key, value, inline = items
             elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
@@ -101,23 +104,30 @@ class ConfigTransformer(Transformer):
         else:
             raise ValueError("Unexpected structure in assignment: " + str(items))
 
-        # Only unquote if value is a plain string (not already preserved)
+        # Only unquote if value is a plain string
         if not isinstance(value, PreservedString) and isinstance(value, str) and (
             (value.startswith("'") and value.endswith("'")) or 
             (value.startswith('"') and value.endswith('"'))
         ):
             value = value[1:-1]
 
+        # Normalize inline comment if present.
         if inline is not None:
-            # If inline is a dictionary, extract the comment.
             if isinstance(inline, dict) and '_inline_comment' in inline:
                 inline = inline['_inline_comment']
             inline = str(inline)
-            self.current_section[key] = PreservedValue(value, inline)
+
+        # If a type annotation is provided, store a dict with both value and annotation.
+        if type_annotation:
+            self.current_section[key] = {
+                "_value": PreservedValue(value, inline) if inline else value,
+                "_annotation": type_annotation
+            }
         else:
-            self.current_section[key] = value
+            self.current_section[key] = PreservedValue(value, inline) if inline else value
 
         return None
+
 
 
 

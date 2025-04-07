@@ -79,42 +79,30 @@ class JMLUnparser:
 
 
     def format_list(self, lst):
-        """
-        Produce a bracketed, multiline representation for lists.
-        Example:
-            [
-              "red",
-              "green",
-              "blue"
-            ]
-        """
+        # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
+        if isinstance(lst, PreservedArray) and "\n" not in lst.original_text:
+            formatted_items = [self.format_value(item) for item in lst]
+            return f"[{', '.join(formatted_items)}]"
+        
+        # Otherwise, fall back to multi-line formatting.
         if not lst:
             return "[]"
-
+        
         lines = []
         for i, item in enumerate(lst):
-            if isinstance(item, Token) and item.type == "COMMENT":
-                lines.append(f"  {item.value}")
-            elif isinstance(item, str) and item.strip().startswith("#"):
-                lines.append(f"  {item}")
-            else:
-                item_str = self.format_value(item)
-                is_last = (i == len(lst) - 1)
-                line = f"  {item_str}" + ("," if not is_last else "")
-                lines.append(line)
+            item_str = self.format_value(item)
+            # Append a comma to every item except the last.
+            is_last = (i == len(lst) - 1)
+            line = f"{item_str}" + (", " if not is_last else "")
+            lines.append(line)
+        
+        inner = "".join(lines)
+        return f"[{inner}]"
 
-        inner = "\n".join(lines)
-        return f"[\n{inner}\n]"
+
+
 
     def unparse_section(self, section_dict, section_path):
-        """
-        Convert a section (dict) to text. 
-         - If a value is a dict with sub-dicts, treat it as a nested section.
-         - Otherwise treat it as a direct assignment.
-         - If it's a PreservedInlineTable, do not break it up.
-         - If it's an inline comment dict (with '_value' and '_inline_comment'), 
-           put the comment on the same line.
-        """
         output = ""
         if section_path:
             output += f"[{'.'.join(section_path)}]\n"
@@ -122,46 +110,36 @@ class JMLUnparser:
         assignments = {}
         nested_sections = {}
 
-        # Separate top-level assignments from nested sections.
         for key, value in section_dict.items():
-            # Heuristic: if a plain dict has sub-dicts, treat as nested section
-            if (
-                isinstance(value, dict)
-                and not isinstance(value, PreservedInlineTable)
-                and "_value" not in value   # i.e. not an inline-comment structure
-            ):
-                if any(isinstance(v, dict) for v in value.values()):
-                    nested_sections[key] = value
-                else:
-                    # treat as direct assignment (inline table fallback)
-                    assignments[key] = value
+            if isinstance(value, dict) and "_value" in value and "_annotation" in value:
+                # This is an annotated assignment.
+                assignments[key] = value
+            elif isinstance(value, dict) and any(isinstance(v, dict) for v in value.values()):
+                nested_sections[key] = value
             else:
-                # Normal assignment (including inline comment or preserved table)
                 assignments[key] = value
 
-        # Output assignments, including inline comments on the same line.
         for key, value in assignments.items():
-            # Detect the special "commented assignment" structure:
-            if (
-                isinstance(value, dict)
-                and "_value" in value
-                and "_inline_comment" in value
-            ):
-                # e.g. { "_value": "Hello, World!", "_inline_comment": "# inline stuff" }
+            if isinstance(value, dict) and "_value" in value and "_annotation" in value:
+                # Format annotated assignment.
                 val_str = self.format_value(value["_value"])
-                cmt_str = value["_inline_comment"]
-                output += f"{key} = {val_str}  {cmt_str}\n"
+                annot = value["_annotation"]
+                cmt_str = ""
+                # Optionally include the inline comment if it exists.
+                if isinstance(value["_value"], PreservedValue):
+                    cmt_str = value["_value"].comment
+                output += f"{key}: {annot} = {val_str}{cmt_str}\n"
             else:
                 output += f"{key} = {self.format_value(value)}\n"
 
         if assignments:
             output += "\n"
 
-        # Recursively process nested sections.
         for key, subsec in nested_sections.items():
             output += self.unparse_section(subsec, section_path + [key])
 
         return output
+
 
     def unparse(self):
         output = ""

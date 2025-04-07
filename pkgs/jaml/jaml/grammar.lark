@@ -15,7 +15,7 @@ assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment? NEWLINE?
 
 
 type_annotation: TYPE
-TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime"
+TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
 
 // A section header can appear
 section: "[" (section_name | STRING) "]"
