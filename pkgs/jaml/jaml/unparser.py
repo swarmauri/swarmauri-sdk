@@ -42,55 +42,41 @@ class JMLUnparser:
     def format_value(self, value):
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):
-            return f"{self.format_value(value.value)}{value.comment}"
-        
+            val_str = self.format_value(value.value)
+            # Only insert a separating space if the comment doesn't already start with whitespace.
+            if value.comment and not value.comment[0].isspace():
+                return f"{val_str} {value.comment}"
+            else:
+                return f"{val_str}{value.comment}"
         # 1) Already-preserved inline table?
         if isinstance(value, PreservedInlineTable):
-            return str(value)  # entire { ... } substring
-
+            return str(value)
         # 2) Already-preserved array?
         elif isinstance(value, PreservedArray):
-            return str(value)  # entire [ ... ] substring
-
+            return str(value)
         elif isinstance(value, PreservedString):
-            # Output the original quoted text as-is.
             return value.original
-
-        # 3) String
         elif isinstance(value, str):
             if "\n" in value:
-                # Format as a multiline string with triple quotes.
                 return f'"""{value}"""'
             else:
                 return f"\"{value}\""
-
-        # 4) Boolean
         elif isinstance(value, bool):
             return "true" if value else "false"
-
-        # 5) Null
         elif value is None:
             return "null"
-
-        # 6) Numeric
         elif isinstance(value, (int, float)):
             return str(value)
-
-        # 7) Fallback for lists
         elif isinstance(value, list):
             return self.format_list(value)
-
-        # 8) Fallback for dictionaries => inline table
         elif isinstance(value, dict):
-            # If it's a "normal" dict, produce inline table syntax:
             items = []
             for k, v in value.items():
                 items.append(f"{k} = {self.format_value(v)}")
             return "{" + ", ".join(items) + "}"
-
-        # Fallback
         else:
             return str(value)
+
 
     def format_list(self, lst):
         """

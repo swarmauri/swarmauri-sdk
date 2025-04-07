@@ -229,10 +229,9 @@ def test_whitespace_around_comments():
       but how about leading/trailing whitespace around them?
       Marked xfail if not yet implemented.
     """
-    original = """
-[demo]
-key = "value"   #   note the extra spaces before/after comment
-"""
+    original = """[demo]
+key = "value"  #   note the extra spaces before/after comment"""
+
     ast = round_trip_loads(original)
     serialized = round_trip_dumps(ast)
     # If the spec requires preserving that extra whitespace, we can do a direct substring check:
