@@ -40,15 +40,6 @@ class DeepInfraModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-
-    name: str = ""
-
-    type: Literal["DeepInfraModel"] = "DeepInfraModel"
-
-    timeout: float = 600.0
-
     def __init__(self, **data):
         """
         Initializes the DeepInfraModel instance with the provided API key

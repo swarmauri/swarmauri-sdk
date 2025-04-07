@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -29,11 +29,6 @@ class GroqModel(LLMBase):
     Allowed Models resources: https://console.groq.com/docs/models
     """
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-
-    type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
@@ -150,8 +145,11 @@ class GroqModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -198,8 +196,11 @@ class GroqModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
