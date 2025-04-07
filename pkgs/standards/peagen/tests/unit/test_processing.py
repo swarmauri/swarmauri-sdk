@@ -2,7 +2,7 @@ import os
 import tempfile
 from unittest.mock import ANY, MagicMock, mock_open, patch
 
-from peagen._Jinja2PromptTemplate import j2pt
+from swarmauri_prompt_j2prompttemplate import j2pt
 from peagen._processing import (
     _create_context,
     _process_file,
