@@ -1,5 +1,37 @@
+from importlib.resources import files, as_file
+from lark import Lark
 import json
 from lark import Transformer
+
+class PreservedArray:
+    def __init__(self, items, original_text):
+        self.items = items            # Parsed list of items
+        self.original_text = original_text  # Entire "[ ... ]" substring (including commas, newlines, etc.)
+
+    def __repr__(self):
+        return f"PreservedArray(items={self.items}, text={self.original_text!r})"
+
+    def __str__(self):
+        # Return the bracketed text exactly as originally parsed (including trailing commas).
+        return self.original_text
+
+class PreservedInlineTable(dict):
+    """
+    Subclass dict so that tests expecting a plain dict will pass.
+    We keep the original text for round-trip or debugging needs.
+    """
+    def __init__(self, data, original_text):
+        super().__init__(data)  # Initialize 'dict' with the parsed key-value pairs
+        self.original_text = original_text
+
+    def __repr__(self):
+        return f"PreservedInlineTable(data={dict(self)}, text={self.original_text!r})"
+
+    def __str__(self):
+        # Return the brace-delimited text exactly as originally parsed.
+        return self.original_text
+
+
 
 class ConfigTransformer(Transformer):
     def __init__(self):
@@ -9,6 +41,8 @@ class ConfigTransformer(Transformer):
         # Current section pointer (starts at default).
         self.current_section = self.data["__default__"]
         self.in_tilde = False  # Flag to track if we're inside a tilde block
+        # We'll assign self._context or self.input_text externally
+        # so _slice_input can find the entire input text.
 
     def start(self, items):
         # Return the complete configuration dictionary.
@@ -93,7 +127,106 @@ class ConfigTransformer(Transformer):
         except Exception:
             return content
 
-    # Terminal transformations.
+    # ----------------------
+    # Preserved Array logic
+    # ----------------------
+    def array(self, items):
+        """
+        With propagate_positions=True, self.meta.start_pos and self.meta.end_pos
+        should be valid. We'll slice the original input so we preserve newlines, indentation, etc.
+        """
+        array_values = []
+        if items:
+            # items[0] is array_content, which we can flatten or parse
+            array_values = items[0] if items[0] else []
+
+        # Retrieve the original "[ ... ]" text (including trailing comma, newlines, etc.)
+        start = self.meta.start_pos
+        end = self.meta.end_pos
+        original_text = self._slice_input(start, end)
+
+        # Return a PreservedArray that keeps both the parsed items and the original text.
+        return PreservedArray(array_values, original_text)
+
+    def array_content(self, items):
+        """
+        array_content: array_value ("," array_value)* ("," ws?)?
+        'items' is a list of array_value plus commas in between.
+        Filter out commas and return the actual values. 
+        (We still keep them in the original_text, so we lose no formatting.)
+        """
+        values = [i for i in items if i != ","]
+        return values
+
+    def array_value(self, items):
+        # 'items' is typically a list with one sub-value
+        return items[0]
+
+    # -----------------------------
+    # Preserved Inline Table logic
+    # -----------------------------
+    def INLINE_TABLE(self, token):
+        """
+        Capture the entire "{ ... }" substring, plus parse basic key=value pairs
+        into a dict (if you need programmatic access).
+        """
+        if hasattr(token, 'meta') and token.meta:
+            start = token.meta.start_pos
+            end = token.meta.end_pos
+            original_text = self._slice_input(start, end)
+        else:
+            original_text = token.value
+
+        # We'll still parse the content so we can store it in .data,
+        # but preserve the entire text for round-trip.
+        s = token.value.strip()
+        if s.startswith("{") and s.endswith("}"):
+            s = s[1:-1].strip()
+
+        result_dict = {}
+        if s:
+            pairs = s.split(',')
+            for pair in pairs:
+                if '=' in pair:
+                    key, val = pair.split('=', 1)
+                    key = key.strip()
+                    val = val.strip()
+                    try:
+                        if '.' in val:
+                            converted = float(val)
+                        else:
+                            converted = int(val)
+                    except ValueError:
+                        # If in quotes, remove them
+                        if (
+                            (val.startswith('"') and val.endswith('"'))
+                            or (val.startswith("'") and val.endswith("'"))
+                        ):
+                            converted = val[1:-1]
+                        else:
+                            converted = val
+                    result_dict[key] = converted
+
+        return PreservedInlineTable(result_dict, original_text)
+
+    def ARRAY(self, token):
+        """
+        A fallback if the grammar still defines ARRAY as a token (like /\[\s*.*?\s*\]/s).
+        Storing as a PreservedArray for consistency, if parseable by json.
+        """
+        s = token.value.strip()
+        try:
+            parsed = json.loads(s)
+            if isinstance(parsed, list):
+                original_text = token.value
+                return PreservedArray(parsed, original_text)
+            return parsed
+        except Exception:
+            return s
+
+    # -----------------------------------------------------
+    # Terminal transformations for other token types
+    # -----------------------------------------------------
     def STRING(self, token):
         s = token.value
         if getattr(self, "in_tilde", False):
@@ -116,10 +249,13 @@ class ConfigTransformer(Transformer):
         return float(token.value)
 
     def INTEGER(self, token):
-        return int(token.value, 0) if token.value not in ("inf", "nan", "+inf", "-inf") else token.value
+        val = token.value
+        if val in ("inf", "nan", "+inf", "-inf"):
+            return val
+        return int(val, 0)
 
     def BOOLEAN(self, token):
-        return token.value == "true"
+        return (token.value == "true")
 
     def NULL(self, token):
         return None
@@ -136,42 +272,6 @@ class ConfigTransformer(Transformer):
     def FOLDER_BLOCK(self, token):
         return token.value
 
-    def INLINE_TABLE(self, token):
-        s = token.value.strip()
-        if s.startswith("{") and s.endswith("}"):
-            s = s[1:-1].strip()
-        result = {}
-        if not s:
-            return result
-        pairs = s.split(',')
-        for pair in pairs:
-            if '=' in pair:
-                key, val = pair.split('=', 1)
-                key = key.strip()
-                val = val.strip()
-                try:
-                    if '.' in val:
-                        converted = float(val)
-                    else:
-                        converted = int(val)
-                except ValueError:
-                    if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                        converted = val[1:-1]
-                    else:
-                        converted = val
-                result[key] = converted
-        return result
-
-    def ARRAY(self, token):
-        s = token.value.strip()
-        try:
-            result = json.loads(s)
-            if isinstance(result, list):
-                return result
-            return result
-        except Exception:
-            return s
-
     def IDENTIFIER(self, token):
         return token.value
 
@@ -183,3 +283,15 @@ class ConfigTransformer(Transformer):
 
     def WHITESPACE(self, token):
         return token.value
+
+    # -----------------------------------------
+    # Utility for retrieving input substrings
+    # -----------------------------------------
+    def _slice_input(self, start, end):
+        """
+        Retrieve the exact substring from the original input text
+        using self._context.text.
+        Make sure that you set `self._context = parser` or store
+        the entire text on this transformer before calling transform().
+        """
+        return self._context.text[start:end]

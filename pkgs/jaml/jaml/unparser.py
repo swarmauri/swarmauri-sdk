@@ -1,91 +1,124 @@
 #!/usr/bin/env python3
 """
-unparser_class.py
+jaml/unparser.py
 
-This module defines the Unparser class, which converts a configuration dictionary back into
-its textual representation according to the custom grammar.
+This module provides the JMLUnparser class, which converts a configuration
+object (a plain dict or similar) back into its textual representation
+according to the custom grammar.
 """
 
 import json
 
 class JMLUnparser:
     def __init__(self, config):
-        """
-        Initialize the Unparser with a configuration object.
-        
-        :param config: The configuration data to unparse. This can be a dictionary or an object
-                       that wraps the configuration (e.g., a DocumentNode) with a `data` or `value` attribute.
-        """
         self.config = config
 
     def _get_config_data(self):
-        """
-        Retrieve the underlying configuration dictionary from the config attribute.
-        If config is a dict, return it. If config has a 'data' or 'value' attribute, return that.
-        """
         if isinstance(self.config, dict):
             return self.config
         elif hasattr(self.config, "data"):
             return self.config.data
         elif hasattr(self.config, "value"):
             return self.config.value
+        elif hasattr(self.config, "to_dict"):
+            return self.config.to_dict()
+        elif hasattr(self.config, "__dict__"):
+            return self.config.__dict__
         else:
             raise AttributeError("Configuration object does not have an expected dictionary interface.")
 
     def format_value(self, value):
         """
-        Format a scalar or compound value into a string that conforms to the configuration syntax.
-        Leading/trailing whitespace in strings is preserved.
+        Format a value according to the configuration syntax.
+        1) Strings with newlines -> triple-quoted.
+        2) Booleans -> 'true' / 'false'.
+        3) None -> 'null'.
+        4) int/float -> direct string conversion.
+        5) lists -> bracketed multiline array.
+        6) dict -> inline table (unchanged).
         """
+        # 1) Strings
         if isinstance(value, str):
-            # Quote strings with double quotes; preserve whitespace.
-            return f"\"{value}\""
+            if "\n" in value:
+                # Format as a multiline string with triple quotes.
+                return f'"""{value}"""'
+            else:
+                return f"\"{value}\""
+
+        # 2) Boolean
         elif isinstance(value, bool):
             return "true" if value else "false"
+
+        # 3) Null
         elif value is None:
             return "null"
+
+        # 4) Numeric
         elif isinstance(value, (int, float)):
             return str(value)
+
+        # 5) Lists => bracket-based multiline arrays
         elif isinstance(value, list):
-            return json.dumps(value)
+            return self.format_list(value)
+
+        # 6) Dictionaries => inline tables
         elif isinstance(value, dict):
-            # Format dictionaries as inline tables: { key = value, ... }
             items = []
             for k, v in value.items():
                 items.append(f"{k} = {self.format_value(v)}")
             return "{" + ", ".join(items) + "}"
+
+        # Fallback
         else:
             return str(value)
 
+    def format_list(self, lst):
+        """
+        Produce a bracketed, multiline representation for lists.
+        Example:
+            [
+              "red",
+              "green",
+              "blue"
+            ]
+        """
+        if not lst:
+            return "[]"
+
+        # We'll place each item on its own line, with commas after each except the last.
+        lines = []
+        for i, item in enumerate(lst):
+            # Format the item itself
+            item_str = self.format_value(item)
+            # Decide whether to add a comma
+            is_last = (i == len(lst) - 1)
+            line = f"  {item_str}" + ("," if not is_last else "")
+            lines.append(line)
+
+        inner = "\n".join(lines)
+        return f"[\n{inner}\n]"
+
     def unparse_section(self, section_dict, section_path):
-        """
-        Recursively unparse a section of the configuration.
-        
-        :param section_dict: The dictionary representing the section.
-        :param section_path: A list of section names leading to the current section.
-        :return: A string containing the unparsed section.
-        """
         output = ""
-        # Output the section header if section_path is not empty.
         if section_path:
             output += f"[{'.'.join(section_path)}]\n"
 
         assignments = {}
         nested_sections = {}
 
-        # Distinguish between assignments and nested sections.
+        # Separate assignments from nested sections.
         for key, value in section_dict.items():
             if isinstance(value, dict):
-                # If any inner value is a dict, treat this as a nested section.
+                # Heuristic: if any inner value is a dict, treat it as a nested section.
                 if any(isinstance(v, dict) for v in value.values()):
                     nested_sections[key] = value
                 else:
-                    # Depending on how inline tables are represented, this might need adjustment.
+                    # If inline tables are represented as dicts, you may adjust logic.
                     nested_sections[key] = value
             else:
                 assignments[key] = value
 
-        # Output assignment lines.
+        # Output assignments.
         for key, value in assignments.items():
             output += f"{key} = {self.format_value(value)}\n"
         if assignments:
@@ -97,27 +130,24 @@ class JMLUnparser:
         return output
 
     def unparse(self):
-        """
-        Unparse the entire configuration into its textual representation.
-        
-        :return: The unparsed configuration as a string.
-        """
         output = ""
         config_data = self._get_config_data()
 
-        # Process default assignments (those not contained in any section).
+        # Process default assignments (if any).
         default_section = config_data.get("__default__", {})
         for key, value in default_section.items():
             output += f"{key} = {self.format_value(value)}\n"
         if default_section:
             output += "\n"
 
-        # Process each top-level section (excluding "__default__").
+        # Process each top-level section.
         for key, section in config_data.items():
             if key == "__default__":
                 continue
             output += self.unparse_section(section, [key])
-        return output
+
+        # Remove any trailing newlines from the final output.
+        return output.rstrip("\n")
 
     def __str__(self):
         return self.unparse()

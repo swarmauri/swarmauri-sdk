@@ -131,12 +131,15 @@ def test_unquoted_key_with_space_should_raise_syntax_error():
 [invalid]
 my key = "value"
 """
-    loads(bad_toml)  # Expecting an exception -> this test will fail if no exception is raised.
+    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+        # We expect an error from our parser because 'if' / 'elif' are KEYWORD tokens
+        # that cannot appear on the left side of '='.
+        _ = loads(bad_toml)  # or round_trip_loads(source)
 
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-@pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
+# @pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
 def test_line_continuation_not_supported_yet():
     """
     MEP-006 Section 6.1 (Open Issues):

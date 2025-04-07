@@ -24,20 +24,33 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | TABLE_ARRAY
       | FOLDER_BLOCK
       | INLINE_TABLE
-      | ARRAY
+      | array
       | OPERATOR
       | PUNCTUATION
       | WHITESPACE
 
+// --------------------------
+// Array Handling
+// --------------------------
+?array: "[" array_content? "]"
+
+?array_content: array_value ("," array_value)* ("," ws?)?
+
+?array_value: value
+
+// A simple rule to capture whitespace explicitly (if you need it in the parse tree):
+ws: WHITESPACE
+
+// paren_expr
 paren_expr: "(" value+ ")"
 
+// tilde blocks
 tilde_block: TILDE_START tilde_content TILDE_END
 tilde_content: value*
 
 // ----------
 // Terminal Definitions
 // ----------
-
 TILDE_START: "<{"
 TILDE_END: "}>"
 
@@ -80,8 +93,7 @@ FOLDER_BLOCK: /\{\^.*?\^\}/s
 // 16) INLINE_TABLE
 INLINE_TABLE: /\{(?:[^{}~]|\{[^{}]*\})*\}/s
 
-// 17) ARRAY
-ARRAY: /\[\s*.*?\s*\]/s
+// (OLD) ARRAY token removed in favor of the rule-based array approach above.
 
 // 18) IDENTIFIER
 IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
@@ -95,5 +107,6 @@ PUNCTUATION: /:/
 // 21) WHITESPACE
 WHITESPACE: /\s+/
 
+// We can ignore general inline whitespace so it doesn't clutter parse trees:
 %ignore WS_INLINE
 WS_INLINE: /[ \t\r\n\f]+/
