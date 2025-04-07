@@ -182,8 +182,16 @@ class ConfigTransformer(Transformer):
     def inline_table(self, meta, children):
         result = {}
         for item in children:
-            # Process children that are inline_table_items or dicts
-            if hasattr(item, "data") and item.data == "inline_table_items":
+            if isinstance(item, list):
+                # Process list items (e.g. the output of inline_table_items)
+                for subitem in item:
+                    if isinstance(subitem, dict):
+                        result.update(subitem)
+                    elif hasattr(subitem, "data") and subitem.data == "inline_table_item":
+                        transformed = self.inline_table_item(subitem.children)
+                        if isinstance(transformed, dict):
+                            result.update(transformed)
+            elif hasattr(item, "data") and item.data == "inline_table_items":
                 for child in item.children:
                     if hasattr(child, "data") and child.data == "inline_table_item":
                         transformed = self.inline_table_item(child.children)

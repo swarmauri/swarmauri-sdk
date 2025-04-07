@@ -64,9 +64,10 @@ def loads(s: str) -> Dict[str, Any]:
     except UnexpectedEOF as e:
         raise SyntaxError("UnexpectedEOF") from e
 
-    data = ConfigTransformer().transform(ast_tree)
-    print(f"[DEBUG]: {data}")
-    return data
+    transformer = ConfigTransformer()
+    # Create a dummy context object with a 'text' attribute containing the original input.
+    transformer._context = type("Context", (), {"text": s})
+    return transformer.transform(ast_tree)
 
 
 def load(fp: IO[str]) -> Dict[str, Any]:
