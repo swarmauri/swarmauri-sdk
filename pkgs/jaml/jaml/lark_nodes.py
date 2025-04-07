@@ -2,11 +2,13 @@ from importlib.resources import files, as_file
 import json
 import re
 from lark import Lark, Transformer, Token, v_args
+from ._helpers import unquote, resolve_scoped_variable, evaluate_f_string
 
 class PreservedString(str):
     def __new__(cls, value, original):
         # Create a new string instance using the unquoted value.
         obj = super().__new__(cls, value)
+        obj.value = value
         obj.original = original  # store the original text, e.g. '"Hello, World!"'
         return obj
 
@@ -76,7 +78,7 @@ class ConfigTransformer(Transformer):
         # Store normal data in __default__ or nested sections
         self.data = {
             "__default__": {},
-            "__comments__": []   # <--- new list for standalone comments
+            "__comments__": [] 
         }
         self.current_section = self.data["__default__"]
         self.in_tilde = False
@@ -434,37 +436,14 @@ class ConfigTransformer(Transformer):
     # -----------------------------------------------------
     # String
     # -----------------------------------------------------
-    def unquote(self, s:str):
-        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
-            return s[1:-1]
-        return s
-
-    def evaluate_f_string(self, f_str, default_context):
-        # Remove the leading f and surrounding quotes.
-        inner = f_str[2:-1]
-
-        def repl(match):
-            var_name = match.group(1).strip()
-            value = default_context.get(var_name, match.group(0))
-            if hasattr(value, 'value'):
-                # Use the unquoted inner value.
-                return self.unquote(value.value)
-            elif isinstance(value, str):
-                return self.unquote(value)
-            return str(value)
-        
-        evaluated = re.sub(r'@{([^}]+)}', repl, inner)
-        return evaluated
-
 
     def STRING(self, token):
         s = token.value
-        # Check if this is an f-string
-        if s.startswith("f\"") or s.startswith("f'"):
-            # Use the __default__ scope from the AST
-            default_context = self.data.get("__default__", {})
-            return self.evaluate_f_string(s, default_context)
-        # Existing handling for other strings
+        # Check if the string (after stripping leading whitespace) starts with an f-prefix.
+        if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
+            evaluated = evaluate_f_string(s.lstrip(), self.data)
+            return evaluated
+        # Standard handling for triple-quoted strings.
         if s.startswith("'''") and s.endswith("'''"):
             inner = s[3:-3]
             return PreservedString(inner, s)
@@ -473,7 +452,6 @@ class ConfigTransformer(Transformer):
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
             return PreservedString(s[1:-1], s)
         return s
-
     # -----------------------------------------------------
     # Terminal transformations for other token types
     # -----------------------------------------------------
