@@ -30,8 +30,8 @@ This proposal specifies the precedence rules used by the lexer to recognize and 
 5. **INTEGER**  
 6. **BOOLEAN**  
 7. **NULL**  
-8. **KEYWORD**  
-9. **RESERVED_FUNC**  
+8. **RESERVED_FUNC**  
+9. **KEYWORD**  
 10. **TABLE_ARRAY**  
 11. **TABLE_SECTION**  
 12. **INLINE_TABLE**  

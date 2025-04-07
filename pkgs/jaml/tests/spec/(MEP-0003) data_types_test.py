@@ -169,9 +169,11 @@ def test_table_array_header():
 def test_nested_inline_table():
     source = 'user = { name = "Azzy", details = { age = 9, role = "admin" } }'
     tokens = nested_tokenize(source)
-    inline_table_tokens = [t for t in tokens if t[0] == "INLINE_TABLE"]
-    # Expect two inline tables: one outer, one nested for "details"
-    assert len(inline_table_tokens) >= 2
-    # Verify that the nested table (details) has been tokenized.
-    nested_details = [t for t in inline_table_tokens if "admin" in t[1]]
-    assert len(nested_details) == 1
+    # At the top-level, there's exactly 1 inline table (the outer).
+    outer_inline_table = [t for t in tokens if t[0] == "INLINE_TABLE"]
+    assert len(outer_inline_table) == 1, "Expected exactly one outer inline table"
+
+    # Now look *inside* that outer table's sub-tokens for the nested table.
+    _, _, sub_tokens = outer_inline_table[0]
+    nested_inline_table = [t for t in sub_tokens if t[0] == "INLINE_TABLE"]
+    assert len(nested_inline_table) == 1, "Expected exactly one nested inline table"

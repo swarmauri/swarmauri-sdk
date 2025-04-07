@@ -1,200 +1,125 @@
-# ast_nodes.py
-
 from dataclasses import dataclass, field
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 @dataclass
 class Node:
     """
-    Base class for all AST nodes. This allows for type hints and 
-    a common interface for shared functionality (if needed).
+    Base class for all AST nodes.
     """
-    pass
-
+    def to_plain(self) -> Any:
+        # Fallback conversion: simply use string representation.
+        return str(self)
 
 @dataclass
 class ScalarNode(Node):
     """
     Represents a single scalar value (string, int, float, bool, null, etc.).
-    
-    Attributes:
-        value: The underlying Python data (e.g., str, int, float, bool, None).
     """
     value: Any
 
+    def to_plain(self) -> Any:
+        return self.value
+
+@dataclass
+class CommentNode(Node):
+    comment: str
+
+    def to_plain(self) -> str:
+        return self.comment
 
 @dataclass
 class ArrayNode(Node):
     """
     Represents an array-like structure [ ... ] in JML.
-    
-    Attributes:
-        items: A list of Node objects that comprise the elements of the array.
     """
     items: List[Node] = field(default_factory=list)
 
+    def to_plain(self) -> Any:
+        return [item.to_plain() for item in self.items]
 
 @dataclass
 class TableNode(Node):
     """
     Represents an inline table { ... } in JML.
-    
-    Attributes:
-        keyvalues: A list of KeyValueNode objects representing the table's content.
     """
     keyvalues: List["KeyValueNode"] = field(default_factory=list)
 
+    def to_plain(self) -> Any:
+        return {kv.key: kv.value.to_plain() for kv in self.keyvalues}
 
 @dataclass
 class LogicExpressionNode(Node):
     """
-    Represents a logical expression or other evaluable expression in JML.
-    
-    Example: if x > 3 then "yes" else "no"
-    
-    Attributes:
-        expression: The raw expression string, which you could parse or evaluate later.
+    Represents a logical or evaluable expression in JML.
     """
     expression: str
 
+    def to_plain(self) -> Any:
+        return f"<Expression: {self.expression}>"
 
 @dataclass
 class KeyValueNode(Node):
-    """
-    Represents a single key-value pair in a JML section.
-    
-    Example of a typical line:
-        mykey: int = 42
-    
-    Attributes:
-        key: The string key, e.g. 'mykey'.
-        type_annotation: An optional string describing the data type (e.g. 'int', 'str'), if present.
-        value: A Node representing the value, which might be:
-            - ScalarNode (string, bool, number, etc.)
-            - ArrayNode
-            - TableNode
-            - LogicExpressionNode
-            - or any other Node type you define.
-    """
     key: str
     type_annotation: Optional[str] = None
     value: Optional[Node] = None
+    comment: Optional[str] = None  # New field for inline comment
+
+    def to_plain(self) -> Any:
+        return self.value.to_plain() if self.value is not None else None
 
 
 @dataclass
 class SectionNode(Node):
     """
-    Represents a named section [section_name].
-    A JML file can have multiple sections.
-
-    Attributes:
-        name: The section name (the text within [ ] or [[ ]]).
-        keyvalues: A list of KeyValueNode objects belonging to this section.
+    Represents a named section [section_name] in a JML file.
     """
     name: str
     keyvalues: List[KeyValueNode] = field(default_factory=list)
 
+    def to_plain(self) -> Dict[str, Any]:
+        # Convert all key-value pairs in this section to plain data.
+        return {kv.key: kv.to_plain() for kv in self.keyvalues}
 
 @dataclass
 class DocumentNode(Node):
-    """
-    Represents the entire JML document, composed of zero or more sections.
-    
-    Attributes:
-        sections: A list of SectionNode objects, each representing a [section].
-    """
+    preamble: List[CommentNode] = field(default_factory=list)
     sections: List[SectionNode] = field(default_factory=list)
 
-    def to_plain_data(self) -> dict:
-        """
-        Convert the AST into a plain dictionary (for non-round-trip usage).
-        This strips out comments, extra formatting, etc.
-        
-        For complex cases (nested tables, arrays, or merges), adjust accordingly.
-
-        Returns:
-            A dictionary that mirrors the structure of the JML content:
-            
-            {
-              'section_name': {
-                  'key': <scalar or nested structure>,
-                  ...
-              },
-              ...
-            }
-        """
-        plain = {}
-
+    def to_plain_data(self) -> Dict[str, Any]:
+        # Your existing conversion logic here.
+        plain: Dict[str, Any] = {}
+        # Note: preamble comments might not be needed for plain data,
+        # but they’re important for round-trip fidelity.
         for section in self.sections:
-            section_data = {}
-
-            for kv in section.keyvalues:
-                # Direct ScalarNode (e.g., int, str, bool, null)
-                if isinstance(kv.value, ScalarNode):
-                    section_data[kv.key] = kv.value.value
-
-                # ArrayNode
-                elif isinstance(kv.value, ArrayNode):
-                    # Convert each item in the array into a Python value
-                    array_values = []
-                    for item in kv.value.items:
-                        if isinstance(item, ScalarNode):
-                            array_values.append(item.value)
-                        elif isinstance(item, TableNode):
-                            array_values.append(self._table_to_dict(item))
-                        elif isinstance(item, ArrayNode):
-                            # Recursively handle nested arrays
-                            array_values.append(self._array_to_list(item))
-                        else:
-                            array_values.append(str(item))
-                    section_data[kv.key] = array_values
-
-                # TableNode
-                elif isinstance(kv.value, TableNode):
-                    section_data[kv.key] = self._table_to_dict(kv.value)
-
-                # LogicExpressionNode
-                elif isinstance(kv.value, LogicExpressionNode):
-                    # Option 1: store the expression string
-                    # Option 2: evaluate it now (if you have an evaluation context)
-                    section_data[kv.key] = f"<Expression: {kv.value.expression}>"
-
-                # Fallback for unknown node type
-                else:
-                    section_data[kv.key] = str(kv.value)
-
-            plain[section.name] = section_data
-
+            section_plain = section.to_plain()
+            parts = section.name.split('.')
+            current = plain
+            for part in parts[:-1]:
+                if part not in current or not isinstance(current[part], dict):
+                    current[part] = {}
+                current = current[part]
+            if parts[-1] in current and isinstance(current[parts[-1]], dict):
+                current[parts[-1]].update(section_plain)
+            else:
+                current[parts[-1]] = section_plain
         return plain
 
-    def _table_to_dict(self, table_node: TableNode) -> dict:
+    @classmethod
+    def from_plain_data(cls, plain: Dict[str, Any]) -> "DocumentNode":
         """
-        Helper to convert a TableNode into a Python dict.
+        Convert a plain Python dictionary into a DocumentNode AST.
+        This is used for non-round-trip dumps.
+        For simplicity, each top-level key becomes a section.
+        Extend this logic if you need to handle nested sections.
         """
-        result = {}
-        for kv in table_node.keyvalues:
-            if isinstance(kv.value, ScalarNode):
-                result[kv.key] = kv.value.value
-            elif isinstance(kv.value, TableNode):
-                result[kv.key] = self._table_to_dict(kv.value)
-            elif isinstance(kv.value, ArrayNode):
-                result[kv.key] = self._array_to_list(kv.value)
-            else:
-                result[kv.key] = str(kv.value)
-        return result
-
-    def _array_to_list(self, array_node: ArrayNode) -> list:
-        """
-        Helper to convert an ArrayNode into a plain Python list.
-        """
-        items = []
-        for item in array_node.items:
-            if isinstance(item, ScalarNode):
-                items.append(item.value)
-            elif isinstance(item, TableNode):
-                items.append(self._table_to_dict(item))
-            elif isinstance(item, ArrayNode):
-                items.append(self._array_to_list(item))
-            else:
-                items.append(str(item))
-        return items
+        document = cls()
+        for section_name, section_data in plain.items():
+            section = SectionNode(name=section_name)
+            for key, value in section_data.items():
+                # Wrap the value in a ScalarNode.
+                # (Extend this if you need to support nested arrays or tables.)
+                scalar = ScalarNode(value=value)
+                kv = KeyValueNode(key=key, value=scalar)
+                section.keyvalues.append(kv)
+            document.sections.append(section)
+        return document

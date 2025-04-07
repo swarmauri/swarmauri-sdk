@@ -1,24 +1,13 @@
-# api.py
-
 import os
 from typing import IO, Any, Dict
 
 # If you have helper modules for evaluating expressions or merges:
-from ._eval import _eval_ast_logical_expressions
-from ._helpers import _process_table_merges
+# from ._eval import _eval_ast_logical_expressions
 
 # Core JML modules
 from .parser import JMLParser
 from .unparser import JMLUnparser
-from .ast_nodes import (
-    DocumentNode,
-    SectionNode,
-    KeyValueNode,
-    ScalarNode,
-    ArrayNode,
-    TableNode,
-    LogicExpressionNode,
-)
+from .ast_nodes import DocumentNode
 
 # -------------------------------------
 # 1) File Extension Helper (optional)
@@ -36,98 +25,23 @@ def check_extension(filename: str) -> None:
         raise ValueError("Unsupported file extension. Allowed: .jml or .jaml")
 
 # -------------------------------------
-# 2) Non-Round-Trip Helpers
-# -------------------------------------
-
-def _ast_to_plain(ast: DocumentNode) -> Dict[str, Dict[str, Any]]:
-    """
-    Convert a DocumentNode AST into a plain Python dictionary.
-    This discards comments, merges, and formatting, preserving only the data.
-    """
-    return ast.to_plain_data()
-
-def _plain_to_ast(data: Dict[str, Dict[str, Any]]) -> DocumentNode:
-    """
-    Convert a plain Python dictionary into a minimal DocumentNode.
-    This is used for simple dumps().
-    """
-    document = DocumentNode()
-    for section_name, kv_pairs in data.items():
-        section_node = SectionNode(name=section_name)
-        for key, raw_value in kv_pairs.items():
-            value_node = _plain_value_to_ast_node(raw_value)
-            # Attempt a basic type_annotation
-            type_annotation = _guess_basic_type_annotation(raw_value)
-            kv_node = KeyValueNode(key=key, type_annotation=type_annotation, value=value_node)
-            section_node.keyvalues.append(kv_node)
-        document.sections.append(section_node)
-    return document
-
-def _plain_value_to_ast_node(value: Any):
-    """
-    Convert a Python scalar, list, or dict into an AST node:
-      - str, bool, int, float, None -> ScalarNode
-      - list -> ArrayNode
-      - dict -> TableNode
-    """
-    if isinstance(value, (str, bool, int, float)) or value is None:
-        return ScalarNode(value=value)
-    elif isinstance(value, list):
-        items = [_plain_value_to_ast_node(v) for v in value]
-        return ArrayNode(items=items)
-    elif isinstance(value, dict):
-        kv_nodes = []
-        for k, v in value.items():
-            val_node = _plain_value_to_ast_node(v)
-            kv_nodes.append(KeyValueNode(key=k, value=val_node))
-        return TableNode(keyvalues=kv_nodes)
-    else:
-        # Fallback: store as string
-        return ScalarNode(value=str(value))
-
-def _guess_basic_type_annotation(value: Any) -> str:
-    """
-    A naive guess of the type annotation for non-round-trip usage.
-    """
-    if isinstance(value, str):
-        return "str"
-    elif isinstance(value, bool):
-        return "bool"
-    elif isinstance(value, int):
-        return "int"
-    elif isinstance(value, float):
-        return "float"
-    elif value is None:
-        return "null"
-    elif isinstance(value, list):
-        return "list"
-    elif isinstance(value, dict):
-        return "table"
-    else:
-        return "unknown"
-
-def _plain_dumps(data: Dict[str, Dict[str, Any]]) -> str:
-    """
-    Create a minimal JML string for a plain dictionary:
-    
-        [section_name]
-        key: type = value
-    """
-    ast = _plain_to_ast(data)
-    # Use a custom unparser for minimal style, or just re-use the round-trip unparser
-    unparser = JMLUnparser(ast)
-    return unparser.unparse()
-
-# -------------------------------------
-# 3) Non-Round-Trip API
+# 2) Non-Round-Trip API
 # -------------------------------------
 
 def dumps(obj: Dict[str, Any]) -> str:
     """
     Serialize a plain Python dict into a minimal JML string (non-round-trip).
     Discards comments, merges, or advanced formatting.
+    
+    This implementation converts the plain dict to an AST by invoking the
+    bound class method `from_plain_data()` on DocumentNode, then unparses it.
+    Leading and trailing whitespace in string values is preserved.
     """
-    return _plain_dumps(obj)
+    # Convert the plain dictionary to an AST.
+    ast_document = DocumentNode.from_plain_data(obj)
+    # Unparse the AST back to a JML string.
+    unparser = JMLUnparser(ast_document)
+    return unparser.unparse()
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
@@ -137,21 +51,23 @@ def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
 
 def loads(s: str) -> Dict[str, Any]:
     """
-    Parse a JML string (non-round-trip), returning a plain Python dict of data.
-    This discards formatting and merges.
+    Parse a JML string into a plain Python dictionary.
+    Returns native types (e.g. plain strings, ints, lists, dicts),
+    not AST nodes.
     """
     parser = JMLParser()
     ast_document = parser.parse(s)
-    return _ast_to_plain(ast_document)
+    # Convert the AST to plain data using the bound method on DocumentNode.
+    return ast_document.to_plain_data()
 
 def load(fp: IO[str]) -> Dict[str, Any]:
     """
-    Parse JML content from a file-like object into a plain dict (non-round-trip).
+    Parse JML content from a file-like object into a plain dictionary.
     """
     return loads(fp.read())
 
 # -------------------------------------
-# 4) Round-Trip API
+# 3) Round-Trip API
 # -------------------------------------
 
 def round_trip_dumps(ast: DocumentNode) -> str:
@@ -174,10 +90,7 @@ def round_trip_loads(s: str) -> DocumentNode:
     for round-trip usage (including comments, merges, layout if your parser tracks them).
     """
     parser = JMLParser()
-    ast = parser.parse(s)
-    # If you have merges or other post-processing:
-    ast = _process_table_merges(ast)
-    return ast
+    return parser.parse(s)
 
 def round_trip_load(fp: IO[str]) -> DocumentNode:
     """
@@ -186,7 +99,7 @@ def round_trip_load(fp: IO[str]) -> DocumentNode:
     return round_trip_loads(fp.read())
 
 # -------------------------------------
-# 5) Render API (optional advanced usage)
+# 4) Render API (optional advanced usage)
 # -------------------------------------
 
 def render(input_jml: str, context: dict = None) -> str:
@@ -205,10 +118,10 @@ def render(input_jml: str, context: dict = None) -> str:
     ast = round_trip_loads(input_jml)
 
     # 2) Evaluate expressions (if you have that functionality):
-    ast = _eval_ast_logical_expressions(ast, context)
+    # ast = _eval_ast_logical_expressions(ast, context)
 
     # 3) Process merges (if your language supports table merges):
-    ast = _process_table_merges(ast)
+    # ast = ast.merge_documents(ast)
 
-    # 4) Unparse the result back to JML, preserving comments/format.
+    # 4) Unparse the result back to JML.
     return round_trip_dumps(ast)

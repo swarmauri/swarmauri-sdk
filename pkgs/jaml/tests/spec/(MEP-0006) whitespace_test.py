@@ -9,6 +9,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Leading/trailing whitespace preservation not yet implemented.")
 def test_leading_trailing_whitespace_in_strings_preserved():
     """
     MEP-006 Section 3.2:
@@ -16,19 +17,20 @@ def test_leading_trailing_whitespace_in_strings_preserved():
     """
     toml_str = """
 [settings]
-name = "  Azzy  "
+name = "  Jeff  "
 """
     data = loads(toml_str)
-    assert data["settings"]["name"] == "  Azzy  ", "Leading/trailing spaces should be preserved"
+    assert data["settings"]["name"] == "  Jeff  ", "Leading/trailing spaces should be preserved"
 
     # If you want to test round-trip:
     out = dumps(data)
     # parse again
     data_again = loads(out)
-    assert data_again["settings"]["name"] == "  Azzy  "
+    assert data_again["settings"]["name"] == "  Jeff  "
 
 
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Trailing whitespace after value not yet normalized/ignored as expected.")
 def test_trailing_whitespace_after_value_ignored():
     """
     MEP-006 Section 3.2:
@@ -43,6 +45,7 @@ title = "Dev"
 
 
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Whitespace normalization around assignment operator not yet implemented.")
 def test_whitespace_around_assignment_operator_normalized():
     """
     MEP-006 Section 3.3:
@@ -59,11 +62,11 @@ key    =    "value"
     # Excessive whitespace normalized to single space in the output
     out = dumps(data)
     # For example, might check if out has 'key = "value"' (one space).
-    # Adjust if your dumper outputs differently.
     assert 'key = "value"' in out, f"Expected normalized space around '='. Got: {out}"
 
 
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Inline table whitespace preservation not fully implemented yet.")
 def test_inline_tables_whitespace_preserved_round_trip():
     """
     MEP-006 Section 3.4:
@@ -81,11 +84,13 @@ profile = { name = "Alice", age = 30 }
     # If your unparser precisely preserves spacing, the strings should match.
     # Some implementations only preserve structure, not exact spacing.
     # Adjust accordingly. For strict tests:
+    
     assert "name = \"Alice\"" in reserialized
     assert "age = 30" in reserialized
 
 
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Multiline string whitespace preservation not fully implemented yet.")
 def test_multiline_string_leading_whitespace_preserved():
     """
     MEP-006 Section 3.5:
@@ -109,8 +114,8 @@ description = \"\"\"
     assert "  string with leading spaces" in desc
 
 
-@pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error")
 @pytest.mark.spec
+# @pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error.")
 def test_unquoted_key_with_space_should_raise_syntax_error():
     """
     MEP-006 Section 4:
@@ -123,8 +128,8 @@ my key = "value"
     loads(bad_toml)  # Expecting an exception -> this test will fail if no exception is raised.
 
 
-@pytest.mark.xfail(reason="Line continuation not implemented")
 @pytest.mark.spec
+@pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
 def test_line_continuation_not_supported_yet():
     """
     MEP-006 Section 6.1 (Open Issues):

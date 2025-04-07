@@ -28,10 +28,10 @@ The following identifiers are reserved and **cannot** be used as names for keys,
 - **Logical and Boolean Keywords:**  
   - `true`, `false`, `null`, `is`, `not`, `and`, `or`
 - **Control Flow Keywords:**  
-  - `if`, **`elif`**, `else`, `for`, `in`
+  - `if`, **`elif`**, `else`, `for`, `in`, `enumerate`
 - **Directive Keywords:**  
   - `include`
-- **Special Functions:**  
+- **Reserved Functions:** 
   - `File()`, `Git()`
 
 #### Keyword Usage
@@ -53,15 +53,15 @@ The following punctuation marks are reserved and **must not** be used as part of
 - **Arrow (`->`)** – Reserved for potential functional expressions.
 - **Semicolon (`;`)** – Reserved for future extensions.
 - **Tilde (`~`)** – Used for load-time expressions.
-- **At Symbol (`@`)** – Global scope indicator.
-- **Dollar Sign (`$`)** – Context scope indicator.
-- **Percent Sign (`%`)** – Self (table-local) scope indicator.
+- **At Symbol (`@`)** – Reserved for future use.
+- **Dollar Sign (`$`)** – Reserved for future use.
+- **Percent Sign (`%`)** – Reserved for future use.
 - **Less Than (`<`)** and **Greater Than (`>`)** – Used in comparisons.
 - **Exclamation Mark (`!`)** – For negation.
 - **Asterisk (`*`)** – For multiplication and comprehensions.
 - **Caret (`^`)** – Reserved for future use.
 - **Ampersand (`&`)** – Reserved for future use.
-- **Pipe (`|`)** – **Used as a pipeline operator** to chain operations.
+- **Pipe (`|`)** – Reserved for future use.
 - **Forward Slash (`/`)** – In path strings and division.
 - **Backslash (`\`)** – As an escape character in strings.
 
@@ -76,7 +76,6 @@ All bracket types are reserved to ensure unambiguous syntax:
 - **Nested Bracket Combinations:**  
   - Examples: `[{}]`, `{{}}`, `<(>)`, `([)])`, `<{>}`  
     These are reserved to avoid ambiguity.
-- **F-String Brackets (`f"{...}"`)** – For formatted string interpolation.
 
 #### Punctuation Usage
 - Any use of reserved punctuation or bracket combinations outside their valid syntax context (or within unquoted identifiers) will raise a syntax error.
@@ -114,11 +113,6 @@ Our markup language supports multiple string delimiters to handle both literal a
   ```toml
   path = `C:\Users\Name`
   ```
-- **F-Strings (`f"..."`):**  
-  For formatted strings with inline variable interpolation.
-  ```toml
-  configPath = f"${base}/config.toml"
-  ```
 
 #### String Quotation Guidelines
 - Mixing different string delimiters in one literal is not allowed.
@@ -150,35 +144,15 @@ Our markup language supports multiple string delimiters to handle both literal a
 - **Logical OR:** `or`
 - **Logical NOT:** `not`
 
-#### 3.4.4. Pipeline Operator
-- Chains operations together in a readable sequence:
-  ```toml
-  result = ~( data | transform | filter )
-  ```
-
-#### 3.4.5. Conditional (Ternary) Operator
+#### 3.4.4. Conditional (Ternary) Operator
 - Allows inline conditional expressions:
   ```toml
-  status = ~( "Active" if is_active else "Inactive" )
+  status = ~( "Active" if "Active" else "Inactive" )
   ```
 
-#### 3.4.6. String Concatenation and Interpolation
-- **Concatenation:** Using the `+` operator.
-- **Interpolation:** Via f-string syntax:
-  ```toml
-  full_path = f"${base}/docs"
-  ```
-
-#### 3.4.7. Membership Operators
+#### 3.4.5. Membership Operators
 - **Membership:** `in`
 - **Non-membership:** `not in`
-
-#### 3.4.8. Merge Operator
-- Used for table or inline table merging:
-  ```toml
-  [production]
-  << = default_config
-  ```
 
 ---
 
@@ -198,22 +172,15 @@ Our markup language supports multiple string delimiters to handle both literal a
 
 ## 4. Examples
 
-### Example 1: Pipeline Operation
-
-```toml
-[processing]
-output = ~( data | sanitize | format )
-```
-
-### Example 2: Valid Use of Reserved Keywords and Conditional Expression
+### Example 1: Valid Use of Reserved Keywords and Conditional Expression
 
 ```toml
 [config]
 is_active = true
-status = ~( "Running" if is_active else "Stopped" )
+status = ~( "Running" if "Active" else "Stopped" )
 ```
 
-### Example 3: Reserved Function Usage
+### Example 2: Reserved Function Usage
 
 ```toml
 [dependencies]
@@ -221,22 +188,21 @@ source = File("requirements.txt")
 version = Git("https://repo.git", tag="v1.0")
 ```
 
-### Example 4: Membership and Merge Operators
+### Example 3: Membership
 
 ```toml
 [settings]
-allowed = ~( "admin" in user.roles )
-merged_config = default << user_override
+allowed = ~( "admin" in ["admin"] )
 ```
 
-### Example 5: Invalid Use of Reserved Punctuation
+### Example 4: Invalid Use of Reserved Punctuation
 
 ```toml
 [invalid]
 some:key = "value"  # Syntax error: Colon used incorrectly in key name
 ```
 
-### Example 6: Invalid Use of Reserved Keyword
+### Example 5: Invalid Use of Reserved Keyword
 
 ```toml
 [config]

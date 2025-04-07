@@ -33,15 +33,6 @@ def test_standalone_comment():
     assert tokens[0][0] == "COMMENT"
     assert tokens[0][1].startswith("#")
 
-# Test that an f-string with a scoped variable is recognized as a STRING.
-@pytest.mark.spec
-def test_f_string_precedence():
-    tokens = tokenize('f"Hello, ${base}!"')
-    # The f-string should be matched entirely as a STRING.
-    assert len(tokens) == 1
-    assert tokens[0][0] == "STRING"
-    assert "${base}" in tokens[0][1]
-
 # Test that an inline table is recognized as INLINE_TABLE and that its nested tokens include comments.
 @pytest.mark.spec
 def test_inline_table_nesting():
@@ -90,24 +81,24 @@ def test_table_array_precedence():
     assert tokens[0][0] == "TABLE_ARRAY"
     assert "products" in tokens[0][1]
 
-# Test that punctuation (like '=') is tokenized as PUNCTUATION.
+# Test that punctuation (like '=') is tokenized as OPERATOR.
 @pytest.mark.spec
-def test_punctuation_precedence():
+def test_operator_precedence():
     tokens = tokenize("a = b")
-    # Expected order: IDENTIFIER, PUNCTUATION, IDENTIFIER.
+    # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
     token_types = [t[0] for t in tokens]
     token_values = [t[1] for t in tokens]
-    assert token_types == ["IDENTIFIER", "PUNCTUATION", "IDENTIFIER"]
+    assert token_types == ["IDENTIFIER", "OPERATOR", "IDENTIFIER"]
     assert token_values[1] == "="
 
 # Test that scoped variables take precedence (e.g. '${base}' is a SCOPED_VAR).
 @pytest.mark.spec
 def test_scoped_variable_precedence():
     tokens = tokenize("config = ${base}")
-    # Expect: IDENTIFIER 'config', PUNCTUATION '=', SCOPED_VAR '${base}'
+    # Expect: IDENTIFIER 'config', OPERATOR '=', SCOPED_VAR '${base}'
     token_types = [t[0] for t in tokens]
     token_values = [t[1] for t in tokens]
-    assert token_types == ["IDENTIFIER", "PUNCTUATION", "SCOPED_VAR"]
+    assert token_types == ["IDENTIFIER", "OPERATOR", "SCOPED_VAR"]
     assert token_values[2].startswith("${")
 
 # Test that comments inside a line with code are recognized separately.

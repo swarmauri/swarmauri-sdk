@@ -4,7 +4,7 @@ import re
 # Regex for Reserved Keywords
 # ---------------------------
 def regex_keywords():
-    pattern = r'\b(?:is|not|and|or|if|elif|else|for|in|include)\b'
+    pattern = r'\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include)\b'
     return re.compile(pattern)
 
 # ---------------------------
@@ -32,8 +32,18 @@ def regex_null():
 # Regex for Identifiers
 # ---------------------------
 def regex_identifier():
-    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+    pattern = r'\b[a-zA-Z_][a-zA-Z0-9_-]*\b'
     return re.compile(pattern)
+
+def regex_illegal_identifier():
+    # This regex matches identifiers that include at least one disallowed special character.
+    # We add a negative lookahead to avoid matching tokens that begin with an f-string literal.
+    pattern = r'\b(?!f(?=["\']))[a-zA-Z_][a-zA-Z0-9_-]*[!@#$%^&*()+={}\[\]|\\:;"\'<>,.?/][a-zA-Z0-9_-]*\b'
+    return re.compile(pattern)
+
+def regex_illegal_special_char():
+    pattern = r'(?<![\[{(])!([^)\]}]*?(?=[\[{(]|$)|(?=[\]}\)]))'
+    return re.compile(pattern, re.DOTALL)
 
 # ---------------------------
 # Regex for Numeric Types: Integers
@@ -106,15 +116,27 @@ def regex_array():
 # Regex for Inline Tables (including Multiline)
 # ---------------------------
 def regex_inline_table():
-    pattern = r'\{\s*.*?\s*\}'
+    # Handles one level of nesting: { ... { ... } ... }
+    # by allowing either "normal" non-brace characters
+    # or a complete nested { ... } segment inside.
+    pattern = r'\{(?:[^{}]|\{[^{}]*\})*\}'
     return re.compile(pattern, re.DOTALL)
 
 # ---------------------------
 # Regex for Standard Table Sections (header lines)
 # ---------------------------
 def regex_table_section():
-    pattern = r'\[[^\]\n]+\]'
+    # Allow letters, digits, underscores, hyphens, and dots.
+    pattern = r'\[[A-Za-z0-9_.\-]+\]'
     return re.compile(pattern)
+
+# ---------------------------
+# (MEP-0028) Placeholder Regex for Conditional Table Sections 
+# ---------------------------
+def regex_conditional_table_section():
+    # e.g., only letters/digits/hyphens/underscores allowed in the name,
+    # no commas or spaces.
+    pass
 
 # ---------------------------
 # Regex for Table Arrays (header lines)
@@ -127,14 +149,14 @@ def regex_table_array():
 # Regex for Operators
 # ---------------------------
 def regex_operator():
-    pattern = r'(\*\*|==|!=|>=|<=|->|<<|\+|-|\*|/|%|>|<|\|)'
+    pattern = r'(\*\*|==|!=|>=|<=|=|->|<<|\+|-|\*|/|%|>|<|\|)'
     return re.compile(pattern)
 
 # ---------------------------
 # Regex for Punctuation
 # ---------------------------
 def regex_punctuation():
-    pattern = r'[:\.,;~@$=%!<>\!\*\^&/\\]'
+    pattern = r'[{}:\.,;~!\!\*\^&/\\()\]]'
     return re.compile(pattern)
 
 # ---------------------------
