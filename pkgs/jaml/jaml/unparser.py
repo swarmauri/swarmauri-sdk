@@ -9,6 +9,9 @@ according to the custom grammar.
 
 import json
 
+from .lark_nodes import PreservedArray, PreservedInlineTable
+
+
 class JMLUnparser:
     def __init__(self, config):
         self.config = config
@@ -25,43 +28,55 @@ class JMLUnparser:
         elif hasattr(self.config, "__dict__"):
             return self.config.__dict__
         else:
-            raise AttributeError("Configuration object does not have an expected dictionary interface.")
+            raise AttributeError(
+                "Configuration object does not have an expected dictionary interface."
+            )
 
     def format_value(self, value):
         """
         Format a value according to the configuration syntax.
-        1) Strings with newlines -> triple-quoted.
-        2) Booleans -> 'true' / 'false'.
-        3) None -> 'null'.
-        4) int/float -> direct string conversion.
-        5) lists -> bracketed multiline array.
-        6) dict -> inline table (unchanged).
+        1) If it's a PreservedInlineTable -> return verbatim original text.
+        2) If it's a PreservedArray -> return verbatim original text.
+        3) Strings with newlines -> triple-quoted.
+        4) Booleans -> 'true'/'false'.
+        5) None -> 'null'.
+        6) int/float -> direct string conversion.
+        7) lists -> bracketed multiline array (fallback).
+        8) dict -> inline table (fallback).
         """
-        # 1) Strings
-        if isinstance(value, str):
+        # 1) Already-preserved inline table?
+        if isinstance(value, PreservedInlineTable):
+            return str(value)  # entire { ... } substring
+
+        # 2) Already-preserved array?
+        elif isinstance(value, PreservedArray):
+            return str(value)  # entire [ ... ] substring
+
+        # 3) String
+        elif isinstance(value, str):
             if "\n" in value:
                 # Format as a multiline string with triple quotes.
                 return f'"""{value}"""'
             else:
                 return f"\"{value}\""
 
-        # 2) Boolean
+        # 4) Boolean
         elif isinstance(value, bool):
             return "true" if value else "false"
 
-        # 3) Null
+        # 5) Null
         elif value is None:
             return "null"
 
-        # 4) Numeric
+        # 6) Numeric
         elif isinstance(value, (int, float)):
             return str(value)
 
-        # 5) Lists => bracket-based multiline arrays
+        # 7) Fallback for lists
         elif isinstance(value, list):
             return self.format_list(value)
 
-        # 6) Dictionaries => inline tables
+        # 8) Fallback for dictionaries => inline table
         elif isinstance(value, dict):
             items = []
             for k, v in value.items():
@@ -85,12 +100,9 @@ class JMLUnparser:
         if not lst:
             return "[]"
 
-        # We'll place each item on its own line, with commas after each except the last.
         lines = []
         for i, item in enumerate(lst):
-            # Format the item itself
             item_str = self.format_value(item)
-            # Decide whether to add a comma
             is_last = (i == len(lst) - 1)
             line = f"  {item_str}" + ("," if not is_last else "")
             lines.append(line)
@@ -99,6 +111,14 @@ class JMLUnparser:
         return f"[\n{inner}\n]"
 
     def unparse_section(self, section_dict, section_path):
+        """
+        Convert a section (dict) to text. 
+        - If the key is a dict that is not a PreservedInlineTable,
+          and it appears to contain sub-sections, we recursively
+          turn it into a [section] block. 
+        - If it's recognized as a PreservedInlineTable, 
+          we keep it inline.
+        """
         output = ""
         if section_path:
             output += f"[{'.'.join(section_path)}]\n"
@@ -106,16 +126,19 @@ class JMLUnparser:
         assignments = {}
         nested_sections = {}
 
-        # Separate assignments from nested sections.
+        # Separate top-level assignments from nested sections.
         for key, value in section_dict.items():
-            if isinstance(value, dict):
-                # Heuristic: if any inner value is a dict, treat it as a nested section.
+            # We'll treat it as a nested section if it's a plain dict 
+            # containing sub-dicts (like a normal TOML table).
+            if isinstance(value, dict) and not isinstance(value, PreservedInlineTable):
+                # Heuristic: if any inner value is itself a dict, treat as nested
                 if any(isinstance(v, dict) for v in value.values()):
                     nested_sections[key] = value
                 else:
-                    # If inline tables are represented as dicts, you may adjust logic.
-                    nested_sections[key] = value
+                    # Otherwise, treat as direct assignment (inline table fallback)
+                    assignments[key] = value
             else:
+                # Normal assignment
                 assignments[key] = value
 
         # Output assignments.
@@ -124,9 +147,10 @@ class JMLUnparser:
         if assignments:
             output += "\n"
 
-        # Recursively process nested sections.
+        # Recursively process truly nested sections.
         for key, subsec in nested_sections.items():
             output += self.unparse_section(subsec, section_path + [key])
+
         return output
 
     def unparse(self):
@@ -146,7 +170,7 @@ class JMLUnparser:
                 continue
             output += self.unparse_section(section, [key])
 
-        # Remove any trailing newlines from the final output.
+        # Remove trailing newlines
         return output.rstrip("\n")
 
     def __str__(self):
