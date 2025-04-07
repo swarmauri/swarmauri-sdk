@@ -2,7 +2,41 @@ from importlib.resources import files, as_file
 import json
 import re
 from lark import Lark, Transformer, Token, v_args
-from ._helpers import unquote, resolve_scoped_variable, evaluate_f_string
+from ._helpers import (
+    unquote, 
+    resolve_scoped_variable, 
+    evaluate_f_string, 
+    evaluate_immediate_expression
+)  
+
+class DeferredExpression:
+    def __init__(self, expr, local_env=None):
+        self.expr = expr  # The raw inner text, e.g. "%{base} + '/config.toml'"
+        self.local_env = local_env or {}
+    def evaluate(self, global_env):
+        # Combine the local environment stored with this expression with the global environment.
+        env = {}
+        env.update(global_env)
+        env.update(self.local_env)
+        # Substitute self-scope markers (e.g. %{...}) in self.expr.
+        substituted = evaluate_immediate_expression(self.expr, {}, env)
+        try:
+            return eval(substituted, {"__builtins__": {}}, {"true": True, "false": False})
+        except Exception:
+            return self.expr
+    def __str__(self):
+        # When converting to string for dumping, output with delimiters.
+        return f"<{{ {self.expr} }}>"
+    def __repr__(self):
+        return f"DeferredExpression({self.expr!r}, local_env={self.local_env!r})"
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.expr == other
+        if isinstance(other, DeferredExpression):
+            return self.expr == other.expr and self.local_env == other.local_env
+        return False
+
+
 
 class PreservedString(str):
     def __new__(cls, value, original):
@@ -172,19 +206,37 @@ class ConfigTransformer(Transformer):
                 return str(x)
         return to_string(items)
 
-    def tilde_block(self, items):
+    @v_args(meta=True)
+    def tilde_block(self, meta, items):
         was_in_tilde = self.in_tilde
         self.in_tilde = True
-        if len(items) >= 3:
-            content = items[1]
-        else:
-            content = self.tilde_content(items)
+        # Assume we capture the entire expression using meta information.
+        # For example, get the original text from self._slice_input(meta.start_pos, meta.end_pos)
+        # Here we'll assume that items[0] holds the entire expression text.
+        # (You may need to adjust to your actual AST.)
+        full_text = self._slice_input(meta.start_pos, meta.end_pos)
         self.in_tilde = was_in_tilde
-        context = {"true": True, "false": False}
-        try:
-            return eval(content, {"__builtins__": {}}, context)
-        except Exception:
-            return content
+        # Check the delimiter: immediate expressions start with "<{"
+        if full_text.lstrip().startswith("<{"):
+            # Strip off the delimiters and surrounding whitespace.
+            inner_expr = full_text.lstrip()[2:-2].strip()
+            # Defer evaluation by wrapping in DeferredExpression,
+            # storing the current section as the local environment.
+            return DeferredExpression(inner_expr, local_env=self.current_section.copy())
+        elif full_text.lstrip().startswith("<("):
+            # For folded expressions (<( ... )>), evaluate as much as possible immediately.
+            content = full_text.lstrip()[2:-2].strip()
+            if isinstance(content, str) and '%{' in content:
+                content = evaluate_immediate_expression(content, self.data, self.current_section)
+            context = {"true": True, "false": False}
+            try:
+                result = eval(content, {"__builtins__": {}}, context)
+                return result
+            except Exception:
+                return content
+        else:
+            return self.tilde_content(items)
+
 
     def inline_assignment(self, items):
         """
@@ -453,7 +505,7 @@ class ConfigTransformer(Transformer):
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
             return PreservedString(s[1:-1], s)
         return s
-        
+
     # -----------------------------------------------------
     # Terminal transformations for other token types
     # -----------------------------------------------------

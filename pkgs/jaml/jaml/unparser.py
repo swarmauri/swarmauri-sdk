@@ -14,7 +14,8 @@ from .lark_nodes import (
     PreservedString, 
     PreservedValue, 
     PreservedArray, 
-    PreservedInlineTable 
+    PreservedInlineTable,
+    DeferredExpression
 )
 
 from lark import Token
@@ -40,6 +41,8 @@ class JMLUnparser:
             )
 
     def format_value(self, value):
+        if isinstance(value, DeferredExpression):
+            return f"<{{ {value.expr} }}>"
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):
             val_str = self.format_value(value.value)

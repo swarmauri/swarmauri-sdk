@@ -20,6 +20,27 @@ def resolve_scoped_variable(var_name, data):
             return None
     return current
 
+
+def evaluate_immediate_expression(expr, global_data, local_data):
+    """
+    Substitute all occurrences of %{var} in expr using values from local_data.
+    Return a valid Python expression as a string.
+    """
+    pattern = re.compile(r'%{([^}]+)}')
+    def repl(match):
+        var_name = match.group(1).strip()
+        value = local_data.get(var_name, match.group(0))
+        if value is None:
+            return match.group(0)
+        # Use repr() so the substituted value becomes a proper Python literal.
+        if hasattr(value, 'value'):
+            return repr(unquote(value.value))
+        elif isinstance(value, str):
+            return repr(unquote(value))
+        return str(value)
+    return re.sub(pattern, repl, expr)
+
+
 def evaluate_f_string(f_str, global_data, local_data):
     """
     Evaluate an f-string by substituting interpolations.
@@ -62,3 +83,5 @@ def evaluate_f_string(f_str, global_data, local_data):
 
     evaluated = re.sub(pattern, repl, inner)
     return evaluated
+
+

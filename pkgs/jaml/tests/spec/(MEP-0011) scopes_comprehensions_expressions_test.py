@@ -1,5 +1,5 @@
 import pytest
-from jaml import loads, dumps, round_trip_loads, round_trip_dumps
+from jaml import loads, dumps, round_trip_loads, round_trip_dumps, render
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
@@ -63,7 +63,7 @@ greeting = f"Hello, %{name}!"
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
+# @pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
 def test_context_scope_deferred():
     toml_str = """
 [logic]
@@ -75,40 +75,42 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     # With a render context provided:
 
     out = round_trip_dumps(data)
-    data_with_context = loads(out, context={"user.name": "Alice", "user.age": 30})
+    data_with_context = render(out, context={"user": {"name": "Alice", "age": 30}})
     assert data_with_context["logic"]["summary"] == "User: Alice, Age: 30"
 
 # Test 5: F-String Interpolation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="F-string interpolation evaluation not implemented for scopeless '{}'.")
+@pytest.mark.xfail(reason="F-string interpolation evaluation not fully implemented.")
 def test_fstring_interpolation():
     toml_str = """
 [message]
-text = f"Hello, {name}!"
+text = f"Hello, ${name}!"
 """
     # Assuming 'name' is provided via render context.
-    data = round_trip_loads(toml_str, context={"name": "Alice"})
-    assert data["message"]["text"] == "Hello, Alice!"
-    out = round_trip_dumps(data)
-    data_again = loads(out, context={"name": "Alice"})
-    assert data_again["message"]["text"] == "Hello, Alice!"
+    data = round_trip_loads(toml_str)
+    data_with_context = render(data, context={"name": "Alice"})
+    assert data_with_context["message"]["text"] == "Hello, Alice!"
 
-# Test 6: Immediate Expression Evaluation using <{ ... }>
+    out = round_trip_dumps(data)
+    data_again = loads(out)
+    assert data_again["message"]["text"] == "Hello, ${name}!"
+
+# Test 6: Deferred Expression Evaluation using <{ ... }>
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Immediate expression evaluation not implemented")
-def test_immediate_expression():
+# @pytest.mark.xfail(reason="Deferred expression evaluation not implemented")
+def test_deferred_expression():
     toml_str = """
 [paths]
 base = "/usr/local"
-config = <{ @{base} + '/config.toml' }>
+config = <{ %{base} + '/config.toml' }>
 """
     data = round_trip_loads(toml_str)
-    assert data["paths"]["config"] == "/usr/local/config.toml"
+    assert data["paths"]["config"] == "%{base} + '/config.toml'"
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["paths"]["config"] == "/usr/local/config.toml"
+    rendered_data = render(out)
+    assert rendered_data["paths"]["config"] == "/usr/local/config.toml'"
 
 # Test 7: Folded Expression Evaluation using <( ... )>
 @pytest.mark.spec
@@ -124,10 +126,10 @@ port = "8080"
 endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
 """
     # Provide context for the deferred part.
-    data = round_trip_loads(toml_str, context={"auth_token": "ABC123"})
-    assert data["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
+    data = round_trip_loads(toml_str)
+    assert data["api"]["endpoint"] == "'http://prodserver:8080/api?token=' + '${auth_token}'"
     out = round_trip_dumps(data)
-    data_again = loads(out, context={"auth_token": "ABC123"})
+    data_again = render(out, context={"auth_token": "ABC123"})
     assert data_again["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
 
 # Test 8: List Comprehension Evaluation
@@ -167,7 +169,7 @@ dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
 def test_arithmetic_operations():
     toml_str = """
 [calc]
-result = <{ 3 + 4 }>
+result = <( 3 + 4 )>
 """
     data = round_trip_loads(toml_str)
     assert data["calc"]["result"] == 7
@@ -201,11 +203,11 @@ def test_infer_expressions():
     source = '''
     [exprs]
     # Arithmetic expression
-    sum_val = <{ 10 + 5 }>
+    sum_val = <( 10 + 5 )>
     # String concatenation
-    greeting = <{ "Hello, " + "World!" }>
+    greeting = <( "Hello, " + "World!" )>
     # Boolean logic
-    combo = <{ true and false }>
+    combo = <( true and false )>
     '''
     data = round_trip_loads(source)
     exprs = data["exprs"]

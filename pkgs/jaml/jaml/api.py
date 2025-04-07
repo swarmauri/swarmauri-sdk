@@ -10,6 +10,8 @@ from .lark_parser import parser
 from .lark_nodes import ConfigTransformer
 
 from .unparser import JMLUnparser
+from ._render import substitute_context_in_ast
+from ._defer import substitute_deferred
 # Removed reference to the old ast_nodes.DocumentNode
 
 
@@ -124,24 +126,9 @@ def round_trip_load(fp: IO[str]) -> Any:
 # 4) Render API (optional advanced usage)
 # -------------------------------------
 
-def render(input_jml: str, context: dict = None) -> str:
+def render(text, context={}):
     """
-    Render a JML string by processing merges, logic expressions, or other dynamic features,
-    while preserving as much original formatting as possible.
-    
-    :param input_jml: The JML text to process.
-    :param context: Optional dictionary of variables for logic expressions.
-    :return: The transformed JML string.
+    Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
-    if context is None:
-        context = {}
-
-    # 1) Parse into an AST (round-trip mode) using the lark parser.
-    ast = round_trip_loads(input_jml)
-
-    # 2) (Optional) Evaluate expressions or process merges here.
-    # e.g., ast = _eval_ast_logical_expressions(ast, context)
-    # e.g., ast = ast.merge_documents(ast)
-
-    # 3) Unparse the result back to JML.
-    return round_trip_dumps(ast)
+    ast = loads(text)
+    return substitute_deferred(ast, context)
