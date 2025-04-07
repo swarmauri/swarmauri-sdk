@@ -11,21 +11,22 @@ from ._helpers import (
 
 class DeferredExpression:
     def __init__(self, expr, local_env=None):
-        self.expr = expr  # The raw inner text, e.g. "%{base} + '/config.toml'"
+        self.expr = expr  # For example: "%{base} + '/config.toml'"
         self.local_env = local_env or {}
     def evaluate(self, global_env):
-        # Combine the local environment stored with this expression with the global environment.
+        # Merge the global environment with the local environment.
         env = {}
         env.update(global_env)
         env.update(self.local_env)
-        # Substitute self-scope markers (e.g. %{...}) in self.expr.
+        # Substitute self-scope markers using evaluate_immediate_expression.
         substituted = evaluate_immediate_expression(self.expr, {}, env)
         try:
+            # Evaluate the resulting Python expression in a restricted environment.
             return eval(substituted, {"__builtins__": {}}, {"true": True, "false": False})
         except Exception:
             return self.expr
     def __str__(self):
-        # When converting to string for dumping, output with delimiters.
+        # When dumping, output the deferred expression with its delimiters.
         return f"<{{ {self.expr} }}>"
     def __repr__(self):
         return f"DeferredExpression({self.expr!r}, local_env={self.local_env!r})"
@@ -35,6 +36,7 @@ class DeferredExpression:
         if isinstance(other, DeferredExpression):
             return self.expr == other.expr and self.local_env == other.local_env
         return False
+
 
 
 

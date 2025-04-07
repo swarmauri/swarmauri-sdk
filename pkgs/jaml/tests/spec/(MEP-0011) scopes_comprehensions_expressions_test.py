@@ -110,7 +110,7 @@ config = <{ %{base} + '/config.toml' }>
     assert data["paths"]["config"] == "%{base} + '/config.toml'"
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["paths"]["config"] == "/usr/local/config.toml'"
+    assert rendered_data["paths"]["config"] == "/usr/local/config.toml"
 
 # Test 7: Folded Expression Evaluation using <( ... )>
 @pytest.mark.spec
