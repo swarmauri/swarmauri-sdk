@@ -441,7 +441,8 @@ class ConfigTransformer(Transformer):
         s = token.value
         # Check if the string (after stripping leading whitespace) starts with an f-prefix.
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
-            evaluated = evaluate_f_string(s.lstrip(), self.data)
+            # Evaluate the f-string using both global and local contexts.
+            evaluated = evaluate_f_string(s.lstrip(), self.data, self.current_section)
             return evaluated
         # Standard handling for triple-quoted strings.
         if s.startswith("'''") and s.endswith("'''"):
@@ -452,6 +453,7 @@ class ConfigTransformer(Transformer):
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
             return PreservedString(s[1:-1], s)
         return s
+        
     # -----------------------------------------------------
     # Terminal transformations for other token types
     # -----------------------------------------------------

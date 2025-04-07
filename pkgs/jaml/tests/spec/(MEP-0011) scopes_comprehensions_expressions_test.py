@@ -44,7 +44,7 @@ url = f"@{path.base}/config.toml"
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Self scope evaluation not implemented")
+# @pytest.mark.xfail(reason="Self scope evaluation not implemented")
 def test_self_scope_evaluation():
     toml_str = """
 [globals]
@@ -81,7 +81,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 # Test 5: F-String Interpolation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="F-string interpolation evaluation not implemented")
+@pytest.mark.xfail(reason="F-string interpolation evaluation not implemented for scopeless '{}'.")
 def test_fstring_interpolation():
     toml_str = """
 [message]
