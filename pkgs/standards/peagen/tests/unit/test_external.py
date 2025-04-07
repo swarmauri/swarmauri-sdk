@@ -84,7 +84,9 @@ class TestCallExternalAgent:
         """Setup mocks for external dependencies."""
         with (
             patch("swarmauri.agents.QAAgent.QAAgent") as mock_qa_agent,
-            patch("swarmauri.messages.SystemMessage.SystemMessage") as mock_system_message,
+            patch(
+                "swarmauri.messages.SystemMessage.SystemMessage"
+            ) as mock_system_message,
             patch("peagen.GenericLLM.GenericLLM") as mock_generic_llm,
             patch("peagen._external._config", {"truncate": True}),
             patch.dict(os.environ, {}, clear=True),
@@ -156,7 +158,7 @@ class TestCallExternalAgent:
             "max_tokens": 1000,
         }
 
-        result = call_external_agent(prompt, agent_env)
+        call_external_agent(prompt, agent_env)
 
         # Verify the LLM was created with the special LlamaCpp parameters
         mock_dependencies["generic_llm"].return_value.get_llm.assert_called_with(
