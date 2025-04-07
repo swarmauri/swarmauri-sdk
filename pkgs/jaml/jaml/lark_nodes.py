@@ -32,21 +32,24 @@ class PreservedValue:
     def __repr__(self):
         return f"PreservedValue(value={self.value!r}, comment={self.comment!r})"
 
-
-class PreservedArray:
+class PreservedArray(list):
     """
-    Stores both the parsed items (list-like) AND the original bracketed text,
-    to allow data access *and* perfect round-trip.
+    Stores both the parsed items (as a list) and the original bracketed text,
+    allowing both list access and perfect round-trip.
     """
     def __init__(self, items, original_text):
-        self.items = items
-        self.original_text = original_text  # entire "[ ... ]" substring
+        super().__init__(items)
+        self.original_text = original_text  # the entire "[ ... ]" text
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return list(self) == other
+        return super().__eq__(other)
 
     def __repr__(self):
-        return f"PreservedArray(items={self.items}, text={self.original_text!r})"
+        return f"PreservedArray({list(self)!r}, text={self.original_text!r})"
 
     def __str__(self):
-        # Return the bracketed text exactly as originally parsed.
         return self.original_text
 
 
@@ -250,22 +253,28 @@ class ConfigTransformer(Transformer):
         com = items[1].value
         return {"_inline_comment": ws + com}
 
-
     # -----------------------------
     # Preserved Array logic
     # -----------------------------
-    def array(self, items):
-        """Store entire bracketed substring so we keep newlines, trailing commas, etc."""
-        if items:
-            # items[0] is array_content
-            array_values = items[0] if items[0] else []
-        else:
-            array_values = []
-
-        start = self.meta.start_pos
-        end = self.meta.end_pos
+    @v_args(meta=True)
+    def array(self, meta, items):
+        # Filter out items that are just newlines or whitespace.
+        array_values = []
+        for item in items:
+            # Skip items that are strings and empty or only whitespace.
+            if isinstance(item, str) and item.strip() == "":
+                continue
+            # If the item is already a list (from array_content), use it.
+            if isinstance(item, list):
+                array_values = item
+            else:
+                array_values.append(item)
+        start = meta.start_pos
+        end = meta.end_pos
         original_text = self._slice_input(start, end)
         return PreservedArray(array_values, original_text)
+
+
 
     def array_content(self, items):
         def is_ignorable(x):
@@ -275,11 +284,9 @@ class ConfigTransformer(Transformer):
                 return True
             if isinstance(x, Token) and x.type in ("WHITESPACE", "NEWLINE"):
                 return True
-            # Ignore standalone comment lines (they start with "#")
-            if isinstance(x, str) and x.strip().startswith("#"):
-                return True
             return False
 
+        # Do not filter out comment lines—preserve them in the array
         return [x for x in items if x != "," and not is_ignorable(x)]
 
     def array_item(self, items):

@@ -56,7 +56,8 @@ def loads(s: str) -> Dict[str, Any]:
     """
     try:
         ast_tree = parser.parse(s)
-        print(f"[DEBUG]: {ast_tree}")
+        from pprint import pformat
+        print(f"[DEBUG]: {pformat(ast_tree)}")
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
     except UnexpectedCharacters as e:

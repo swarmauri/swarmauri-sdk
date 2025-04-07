@@ -12,7 +12,6 @@ comment_line: COMMENT NEWLINE
 blank_line: NEWLINE
 
 assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment? NEWLINE?
-inline_comment: INLINE_WS COMMENT
 
 
 type_annotation: TYPE
@@ -46,13 +45,18 @@ HSPACES: /[ \t]+/
 // --------------------------
 // Array Handling
 // --------------------------
-?array: "[" array_content? "]"
+?array: "[" NEWLINE* array_content? "]"
 
-?array_content: (NEWLINE | comment_line)* array_item (ws? "," ws? ((NEWLINE | comment_line)* array_item))* (ws? "," ws?)? (NEWLINE | comment_line)*
+?array_content: NEWLINE* array_item (ws? "," ws? (NEWLINE* array_item))* (ws? "," ws?)? NEWLINE*
 
-?array_item: value inline_comment?
+?array_item: pre_item_comments? value inline_comment? post_item_comments?
 
-
+// --------------------------
+// Comment Handling
+// --------------------------
+pre_item_comments: (COMMENT NEWLINE)+
+inline_comment: INLINE_WS COMMENT
+post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
 
 // --------------------------
 // Inline Table Handling

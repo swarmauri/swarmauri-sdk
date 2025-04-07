@@ -58,10 +58,73 @@ def test_multiline_array_comments_preserved():
       Comments may appear among array elements. 
       Ensure they are preserved during round-trip.
     """
+    original = """[settings]
+colors = [
+  "blue"    # Accent color
+]"""
+    ast = round_trip_loads(original)
+    serialized = round_trip_dumps(ast)
+    # Check that each inline comment is preserved for each element
+    assert original in serialized
+    assert "# Accent color" in serialized
+
+@pytest.mark.spec
+@pytest.mark.mep0008
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+def test_multiline_array_comment_out_preserved():
+    """
+    MEP-008:
+      Comments may appear among array elements. 
+      Ensure they are preserved during round-trip.
+    """
+    original = """[settings]
+colors = [
+  # "green"
+  "blue"    # Accent color
+]"""
+    ast = round_trip_loads(original)
+    serialized = round_trip_dumps(ast)
+    # Check that each inline comment is preserved for each element
+    assert original in serialized
+    assert '# "green"' in serialized
+    assert "# Accent color" in serialized
+
+
+@pytest.mark.spec
+@pytest.mark.mep0008
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+def test_multiline_array_comment_out_preserved_comma():
+    """
+    MEP-008:
+      Comments may appear among array elements. 
+      Ensure they are preserved during round-trip.
+    """
+    original = """[settings]
+colors = [
+  # "green",
+  "blue"    # Accent color
+]"""
+    ast = round_trip_loads(original)
+    serialized = round_trip_dumps(ast)
+    # Check that each inline comment is preserved for each element
+    assert original in serialized
+    assert '# "green"' in serialized
+    assert "# Accent color" in serialized
+
+
+@pytest.mark.spec
+@pytest.mark.mep0008
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+def test_multiline_array_comments_preserved_comma():
+    """
+    MEP-008:
+      Comments may appear among array elements. 
+      Ensure they are preserved during round-trip.
+    """
     original = """
 [settings]
 colors = [
-  "red",    # Primary color
+  "red",    # Primary Color
   # "green",
   "blue"    # Accent color
 ]
@@ -71,7 +134,7 @@ colors = [
     # Check that each inline comment is preserved for each element
     assert original in serialized
     assert "# Primary color" in serialized
-    assert "# Secondary color" in serialized
+    assert '# "green"' in serialized
     assert "# Accent color" in serialized
 
 

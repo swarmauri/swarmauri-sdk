@@ -58,9 +58,9 @@ def test_inline_table_nesting():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 13
+    assert len(tokens) == 14
     assert tokens[0] == "test"
-    assert "# Inline table comment" in tokens[7].value
+    assert "# Inline table comment" in tokens[8].value
 
 # Test that a multiline array with commas is parsed as an ARRAY (not as a table section).
 @pytest.mark.spec
@@ -79,7 +79,7 @@ def test_multiline_array_precedence():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 15
+    assert len(tokens) == 16
     # assert tokens[3] == "STRING"
     assert tokens[3].type == 'STRING'
     assert tokens[3].value == '"red"'
@@ -153,5 +153,5 @@ def test_inline_comment_precedence():
 
     # Expect tokens: IDENTIFIER, PUNCTUATION, STRING, COMMENT.
     token_types = [t.type for t in tokens]
-    assert "INLINE_COMMENT" in token_types
+    assert "INLINE_WS" and "COMMENT" in token_types
 

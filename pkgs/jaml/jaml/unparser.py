@@ -17,6 +17,8 @@ from .lark_nodes import (
     PreservedInlineTable 
 )
 
+from lark import Token
+
 class JMLUnparser:
     def __init__(self, config):
         self.config = config
@@ -106,10 +108,15 @@ class JMLUnparser:
 
         lines = []
         for i, item in enumerate(lst):
-            item_str = self.format_value(item)
-            is_last = (i == len(lst) - 1)
-            line = f"  {item_str}" + ("," if not is_last else "")
-            lines.append(line)
+            if isinstance(item, Token) and item.type == "COMMENT":
+                 lines.append(f"  {item.value}")
+            elif isinstance(item, str) and item.strip().startswith("#"):
+                lines.append(f"  {item}")
+            else:
+                item_str = self.format_value(item)
+                is_last = (i == len(lst) - 1)
+                line = f"  {item_str}" + ("," if not is_last else "")
+                lines.append(line)
 
         inner = "\n".join(lines)
         return f"[\n{inner}\n]"
