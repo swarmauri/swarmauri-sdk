@@ -21,7 +21,9 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 section: "[" (section_name | STRING) "]"
 section_name: IDENTIFIER ("." IDENTIFIER)*
 
-?value: paren_expr
+?value: array
+      | inline_table
+      | paren_expr
       | tilde_block
       | STRING
       | SCOPED_VAR
@@ -34,9 +36,8 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | KEYWORD
       | TABLE_ARRAY
       | FOLDER_BLOCK
-      | inline_table
-      | array
       | OPERATOR
+
 
 // If you want to ignore purely horizontal spaces between tokens:
 %ignore HSPACES
@@ -45,7 +46,10 @@ HSPACES: /[ \t]+/
 // --------------------------
 // Array Handling
 // --------------------------
-?array: "[" NEWLINE* array_content? "]"
+LBRACK: "["
+RBRACK: "]"
+
+?array: LBRACK NEWLINE* array_content? RBRACK
 
 ?array_content: NEWLINE* array_item (ws? "," ws? (NEWLINE* array_item))* (ws? "," ws?)? NEWLINE*
 

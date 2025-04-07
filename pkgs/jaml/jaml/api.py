@@ -3,6 +3,8 @@ from typing import IO, Any, Dict
 
 from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
+from pprint import pformat
+
 # Using the lark parser and transformer modules:
 from .lark_parser import parser
 from .lark_nodes import ConfigTransformer
@@ -56,8 +58,8 @@ def loads(s: str) -> Dict[str, Any]:
     """
     try:
         ast_tree = parser.parse(s)
-        from pprint import pformat
-        print(f"[DEBUG]: {pformat(ast_tree)}")
+        print("[DEBUG]: ")
+        print(pformat(ast_tree))
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
     except UnexpectedCharacters as e:
@@ -90,8 +92,8 @@ def round_trip_dumps(ast: Any) -> str:
     """
     # Transform the AST to a plain dict if needed.
     ast = ConfigTransformer().transform(ast)
-    from pprint import pformat
-    print(f"[DEBUG]: {pformat(ast)}")
+    print("[DEBUG]: ")
+    print(pformat(ast))
     unparser = JMLUnparser(ast)
     return unparser.unparse()
 

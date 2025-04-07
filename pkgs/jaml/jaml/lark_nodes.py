@@ -268,21 +268,22 @@ class ConfigTransformer(Transformer):
     # -----------------------------
     @v_args(meta=True)
     def array(self, meta, items):
-        # Filter out items that are just newlines or whitespace.
         array_values = []
         for item in items:
-            # Skip items that are strings and empty or only whitespace.
+            # Ignore tokens for array delimiters and whitespace/newlines.
+            if isinstance(item, Token) and item.type in ("LBRACK", "RBRACK", "NEWLINE", "WHITESPACE"):
+                continue
+            # Also ignore plain strings that are empty/whitespace.
             if isinstance(item, str) and item.strip() == "":
                 continue
-            # If the item is already a list (from array_content), use it.
+            # If the item is a list, extend the values.
             if isinstance(item, list):
-                array_values = item
+                array_values.extend(item)
             else:
                 array_values.append(item)
-        start = meta.start_pos
-        end = meta.end_pos
-        original_text = self._slice_input(start, end)
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
         return PreservedArray(array_values, original_text)
+
 
 
 

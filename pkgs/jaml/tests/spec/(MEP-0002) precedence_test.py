@@ -79,10 +79,10 @@ def test_multiline_array_precedence():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 16
+    assert len(tokens) == 18
     # assert tokens[3] == "STRING"
-    assert tokens[3].type == 'STRING'
-    assert tokens[3].value == '"red"'
+    assert tokens[4].type == 'STRING'
+    assert tokens[4].value == '"red"'
 
 # Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
 @pytest.mark.spec
