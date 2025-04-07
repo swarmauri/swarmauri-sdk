@@ -64,11 +64,9 @@ post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
 
 inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
 inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
-
-inline_table_item: inline_assignment | comment_line
-
+inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
+                  | comment_line
 inline_assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment?
-
 
 
 // A simple rule to capture whitespace explicitly (if you need it in the parse tree):

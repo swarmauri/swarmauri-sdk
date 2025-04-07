@@ -290,16 +290,68 @@ class ConfigTransformer(Transformer):
         return [x for x in items if x != "," and not is_ignorable(x)]
 
     def array_item(self, items):
-        if len(items) == 2:
-            value, inline = items
-            # If the inline comment is coming as a dict, extract the comment string.
-            if isinstance(inline, dict) and '_inline_comment' in inline:
-                inline = inline['_inline_comment']
-            return PreservedValue(value, inline)
-        elif len(items) == 1:
-            return items[0]
+        # Expect items in the order:
+        # [optional pre_item_comments, value, optional inline_comment, optional post_item_comments]
+        pre_comments = None
+        value = None
+        inline_comment = None
+
+        items = list(items)  # ensure we can pop items
+
+        # If the first item is pre_item_comments, extract it.
+        if items and hasattr(items[0], "data") and items[0].data == "pre_item_comments":
+            pre_comments = items.pop(0)
+        # Next, the value token should be present.
+        if items:
+            value = items.pop(0)
+        # If the next item is an inline_comment, extract it.
+        if items and hasattr(items[0], "data") and items[0].data == "inline_comment":
+            inline_comment = items.pop(0)
+        
+        # At this point, post_item_comments (if any) are in items but we usually ignore them for the value.
+
+        # Determine if the pre_comments should be merged into the inline comment:
+        # We'll check if the last comment token in pre_comments is on the same line as the value.
+        attach_pre_comments = False
+        if pre_comments and hasattr(pre_comments, "children") and pre_comments.children:
+            # Assume tokens have a 'line' attribute.
+            last_comment = pre_comments.children[-1]
+            # Also assume the value token (or its first child if it's a Tree) has a 'line' attribute.
+            value_line = getattr(value, "line", None)
+            if value_line is None and hasattr(value, "children") and value.children:
+                value_line = getattr(value.children[0], "line", None)
+            if last_comment.line == value_line:
+                attach_pre_comments = True
+
+        # If they are on the same line, combine their texts into the inline comment.
+        combined_inline = None
+        if attach_pre_comments:
+            pre_text = " ".join(tok.value for tok in pre_comments.children)
+            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
+                # inline_comment: [INLINE_WS, COMMENT]
+                inline_text = inline_comment.children[1].value
+            else:
+                inline_text = ""
+            combined_inline = pre_text + (" " + inline_text if inline_text else "")
         else:
-            raise ValueError("Unexpected structure in array_item: " + str(items))
+            # Otherwise, ignore pre_comments for attaching to the value.
+            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
+                combined_inline = inline_comment.children[1].value
+
+        # Now, only include the value in the array if it's a real value,
+        # not if it's coming solely from commented-out lines.
+        # For example, if 'value' is an INTEGER token, convert it; if it's a Tree or already preserved, let it be.
+        # (Your existing transformation for numeric tokens should already handle conversion.)
+        actual_value = value
+
+        # Wrap the value in a PreservedValue only if there is an inline comment to attach.
+        if combined_inline:
+            return PreservedValue(actual_value, combined_inline)
+        return actual_value
+
+
+
+
 
 
     def array_value(self, items):

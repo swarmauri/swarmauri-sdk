@@ -92,7 +92,6 @@ class JMLUnparser:
         else:
             return str(value)
 
-
     def format_list(self, lst):
         """
         Produce a bracketed, multiline representation for lists.
@@ -109,7 +108,7 @@ class JMLUnparser:
         lines = []
         for i, item in enumerate(lst):
             if isinstance(item, Token) and item.type == "COMMENT":
-                 lines.append(f"  {item.value}")
+                lines.append(f"  {item.value}")
             elif isinstance(item, str) and item.strip().startswith("#"):
                 lines.append(f"  {item}")
             else:
@@ -124,10 +123,10 @@ class JMLUnparser:
     def unparse_section(self, section_dict, section_path):
         """
         Convert a section (dict) to text. 
-         - If 'value' is a dict with sub-dicts, treat it as a nested section.
+         - If a value is a dict with sub-dicts, treat it as a nested section.
          - Otherwise treat it as a direct assignment.
-         - If it's a 'PreservedInlineTable', do not break it up.
-         - If it's an 'inline comment' dict (with '_value' and '_inline_comment'), 
+         - If it's a PreservedInlineTable, do not break it up.
+         - If it's an inline comment dict (with '_value' and '_inline_comment'), 
            put the comment on the same line.
         """
         output = ""
@@ -154,7 +153,7 @@ class JMLUnparser:
                 # Normal assignment (including inline comment or preserved table)
                 assignments[key] = value
 
-        # Output assignments, including inline comments on the same line
+        # Output assignments, including inline comments on the same line.
         for key, value in assignments.items():
             # Detect the special "commented assignment" structure:
             if (
@@ -165,16 +164,14 @@ class JMLUnparser:
                 # e.g. { "_value": "Hello, World!", "_inline_comment": "# inline stuff" }
                 val_str = self.format_value(value["_value"])
                 cmt_str = value["_inline_comment"]
-                # Put the comment on the same line:
                 output += f"{key} = {val_str}  {cmt_str}\n"
             else:
-                # Normal approach
                 output += f"{key} = {self.format_value(value)}\n"
 
         if assignments:
             output += "\n"
 
-        # Recursively process nested sections
+        # Recursively process nested sections.
         for key, subsec in nested_sections.items():
             output += self.unparse_section(subsec, section_path + [key])
 
@@ -184,17 +181,17 @@ class JMLUnparser:
         output = ""
         config_data = self._get_config_data()
 
-        # 1) Dump any top-level standalone comments first
+        # 1) Dump any top-level standalone comments first.
         top_comments = config_data.get("__comments__", [])
         for comment_line in top_comments:
             output += comment_line + "\n"
         if top_comments:
             output += "\n"
 
-        # 2) Dump default assignments if any
+        # 2) Dump default assignments if any.
         default_section = config_data.get("__default__", {})
         for key, value in default_section.items():
-            # Check if it's an inline-comment dict
+            # Check if it's an inline-comment dict.
             if (
                 isinstance(value, dict)
                 and "_value" in value
@@ -209,13 +206,16 @@ class JMLUnparser:
         if default_section:
             output += "\n"
 
-        # 3) Dump named sections
+        # 3) Dump named sections.
         for key, section in config_data.items():
             if key in ("__default__", "__comments__"):
                 continue
             output += self.unparse_section(section, [key])
 
-        return output.rstrip("\n")
+        # Ensure the final output has a leading and trailing newline.
+        final_output = output.rstrip("\n")
+        final_output = "\n" + final_output + "\n"
+        return final_output
 
     def __str__(self):
         return self.unparse()

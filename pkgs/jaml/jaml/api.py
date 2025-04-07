@@ -90,7 +90,8 @@ def round_trip_dumps(ast: Any) -> str:
     """
     # Transform the AST to a plain dict if needed.
     ast = ConfigTransformer().transform(ast)
-    print(f"[DEBUG]: {ast}")
+    from pprint import pformat
+    print(f"[DEBUG]: {pformat(ast)}")
     unparser = JMLUnparser(ast)
     return unparser.unparse()
 
