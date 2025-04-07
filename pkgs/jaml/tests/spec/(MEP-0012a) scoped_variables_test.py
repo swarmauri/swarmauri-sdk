@@ -7,13 +7,13 @@ from jaml import (
     render
 )
 
-from jaml._tokenizer import tokenize
+from jaml import parser
 
 
 # Test that an f-string with a scoped variable is recognized as a STRING.
 @pytest.mark.spec
 def test_f_string_precedence():
-    tokens = tokenize('f"Hello, ${base}!"')
+    tokens = parse.parse('f"Hello, ${base}!"')
     # The f-string should be matched entirely as a STRING.
     assert len(tokens) == 1
     assert tokens[0][0] == "STRING"

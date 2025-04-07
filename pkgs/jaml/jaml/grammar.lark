@@ -47,17 +47,18 @@ HSPACES: /[ \t]+/
 // --------------------------
 ?array: "[" array_content? "]"
 
-?array_content: (array_item | comment_line) ("," (array_item | comment_line))* ("," ws?)?
+?array_content: (NEWLINE | comment_line)* array_item (ws? "," ws? ((NEWLINE | comment_line)* array_item))* (ws? "," ws?)? (NEWLINE | comment_line)*
+
 ?array_item: value inline_comment?
+
 
 
 // --------------------------
 // Inline Table Handling
 // --------------------------
 
-inline_table: "{" NEWLINE? inline_table_items? NEWLINE? "}"
-
-inline_table_items: inline_table_item ("," NEWLINE? inline_table_item)* ("," ws?)?
+inline_table: "{" ws? inline_table_items? ws? "}"
+inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
 
 inline_table_item: inline_assignment | comment_line
 

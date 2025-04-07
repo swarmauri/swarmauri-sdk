@@ -1,7 +1,7 @@
 from importlib.resources import files, as_file
 from lark import Lark
 import json
-from lark import Transformer
+from lark import Transformer, Token
 
 class PreservedArray:
     """
@@ -52,26 +52,42 @@ class ConfigTransformer(Transformer):
         return self.data
 
     def assignment(self, items):
-        # parse the items to figure out key and value
+        inline = None
+        # Handle different lengths:
         if len(items) == 2:
+            # [IDENTIFIER, value]
             key, value = items
         elif len(items) == 3:
-            key, type_annotation, value = items
+            # Could be either [IDENTIFIER, value, inline_comment] or [IDENTIFIER, type_annotation, value]
+            if isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
+                key, value, inline = items
+            else:
+                key, type_annotation, value = items
+        elif len(items) == 4:
+            # [IDENTIFIER, type_annotation, value, inline_comment]
+            key, type_annotation, value, inline = items
         else:
             raise ValueError("Unexpected structure in assignment: " + str(items))
 
-        # Unquote if needed ...
+        # Unquote the value if needed
         if isinstance(value, str) and (
             (value.startswith("'") and value.endswith("'")) or 
             (value.startswith('"') and value.endswith('"'))
         ):
             value = value[1:-1]
 
-        # Directly store into the current_section:
-        self.current_section[key] = value
+        # Store inline comment as part of the AST node.
+        # If there is an inline comment, we store a dict with keys "value" and "inline_comment".
+        if inline is not None:
+            # Ensure inline comment is a string
+            inline = str(inline)
+            self.current_section[key] = {"value": value, "inline_comment": inline}
+        else:
+            self.current_section[key] = value
 
-        # Return nothing or None so the parent rule doesn't think there's extra data
+        # Return None so that parent rules do not aggregate extra data.
         return None
+
 
 
     def section(self, items):
@@ -127,6 +143,73 @@ class ConfigTransformer(Transformer):
         except Exception:
             return content
 
+    def inline_assignment(self, items):
+        """
+        Transforms an inline assignment (e.g. x = 10) into a dictionary.
+        Handles optional type annotations.
+        """
+        if len(items) == 2:
+            key, value = items
+        elif len(items) == 3:
+            key, type_annotation, value = items
+        else:
+            raise ValueError("Unexpected structure in inline_assignment: " + str(items))
+        return { key: value }
+
+    def inline_table_item(self, items):
+        """
+        Unwrap the inline table item.
+        Typically, an inline_table_item wraps an inline_assignment.
+        """
+        # Assuming there's a single child (the inline_assignment or a comment)
+        return items[0]
+
+    def inline_table_items(self, items):
+        """
+        Process the children of the inline_table_items rule.
+        Filter out whitespace nodes.
+        """
+        def is_ignorable(x):
+            if hasattr(x, "data") and x.data == "ws":
+                return True
+            if isinstance(x, str) and x.strip() == "":
+                return True
+            return False
+
+        return [x for x in items if not is_ignorable(x)]
+
+    def inline_table(self, items):
+        result = {}
+        for item in items:
+            # Skip whitespace nodes
+            if hasattr(item, "data") and item.data == "ws":
+                continue
+            # If item is a list (e.g. already transformed inline_table_items), iterate its elements.
+            if isinstance(item, list):
+                for subitem in item:
+                    if isinstance(subitem, dict):
+                        result.update(subitem)
+                    elif hasattr(subitem, "data") and subitem.data == "inline_table_item":
+                        transformed = self.inline_table_item(subitem.children)
+                        if isinstance(transformed, dict):
+                            result.update(transformed)
+            elif hasattr(item, "data") and item.data == "inline_table_items":
+                for child in item.children:
+                    if hasattr(child, "data") and child.data == "inline_table_item":
+                        transformed = self.inline_table_item(child.children)
+                        if isinstance(transformed, dict):
+                            result.update(transformed)
+                    elif isinstance(child, dict):
+                        result.update(child)
+            elif isinstance(item, dict):
+                result.update(item)
+        return result
+
+
+
+
+
+        
     # -----------------------------
     # Preserved Array logic
     # -----------------------------
@@ -144,8 +227,19 @@ class ConfigTransformer(Transformer):
         return PreservedArray(array_values, original_text)
 
     def array_content(self, items):
-        # Filter out ',' tokens so we get only the array values
-        return [x for x in items if x != ","]
+        def is_ignorable(x):
+            # You might get tokens, strings, or Trees.
+            # If it's a Tree with data "ws" (or if it's a token whose value is only whitespace), ignore it.
+            if hasattr(x, "data") and x.data == "ws":
+                return True
+            if isinstance(x, str) and x.strip() == "":
+                return True
+            if isinstance(x, Token) and x.type in ("WHITESPACE", "NEWLINE"):
+                return True
+            return False
+        # Also filter out commas.
+        return [x for x in items if x != "," and not is_ignorable(x)]
+
 
     def array_value(self, items):
         # Typically a list with one element

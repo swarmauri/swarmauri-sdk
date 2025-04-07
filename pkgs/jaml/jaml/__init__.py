@@ -16,13 +16,4 @@ from .api import (
     check_extension,
     render,
 )
-
-from .ast_nodes import (
-    DocumentNode,
-    SectionNode,
-    KeyValueNode,
-    ScalarNode,
-    ArrayNode,
-    TableNode,
-    LogicExpressionNode,
-)
+from .lark_parser import parser
