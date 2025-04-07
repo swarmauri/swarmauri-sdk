@@ -3,7 +3,7 @@ from typing import IO, Any, Dict
 
 from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
-from pprint import pformat
+from pprint import pprint
 
 # Using the lark parser and transformer modules:
 from .lark_parser import parser
@@ -57,9 +57,9 @@ def loads(s: str) -> Dict[str, Any]:
     Parse a JML string into a plain Python dictionary.
     """
     try:
-        ast_tree = parser.parse(s)
+        ast = parser.parse(s)
         print("[DEBUG]: ")
-        print(pformat(ast_tree))
+        pprint(ast)
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
     except UnexpectedCharacters as e:
@@ -70,7 +70,7 @@ def loads(s: str) -> Dict[str, Any]:
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    return transformer.transform(ast_tree)
+    return transformer.transform(ast)
 
 
 def load(fp: IO[str]) -> Dict[str, Any]:
@@ -93,7 +93,7 @@ def round_trip_dumps(ast: Any) -> str:
     # Transform the AST to a plain dict if needed.
     ast = ConfigTransformer().transform(ast)
     print("[DEBUG]: ")
-    print(pformat(ast))
+    pprint(ast)
     unparser = JMLUnparser(ast)
     return unparser.unparse()
 

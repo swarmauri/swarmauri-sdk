@@ -1,7 +1,7 @@
 from importlib.resources import files, as_file
-from lark import Lark
 import json
-from lark import Transformer, Token, v_args
+import re
+from lark import Lark, Transformer, Token, v_args
 
 class PreservedString(str):
     def __new__(cls, value, original):
@@ -429,13 +429,42 @@ class ConfigTransformer(Transformer):
         except Exception:
             return s
 
+
+
     # -----------------------------------------------------
-    # Terminal transformations for other token types
+    # String
     # -----------------------------------------------------
+    def unquote(self, s:str):
+        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+            return s[1:-1]
+        return s
+
+    def evaluate_f_string(self, f_str, default_context):
+        # Remove the leading f and surrounding quotes.
+        inner = f_str[2:-1]
+
+        def repl(match):
+            var_name = match.group(1).strip()
+            value = default_context.get(var_name, match.group(0))
+            if hasattr(value, 'value'):
+                # Use the unquoted inner value.
+                return self.unquote(value.value)
+            elif isinstance(value, str):
+                return self.unquote(value)
+            return str(value)
+        
+        evaluated = re.sub(r'@{([^}]+)}', repl, inner)
+        return evaluated
+
+
     def STRING(self, token):
         s = token.value
-        if self.in_tilde:
-            return s
+        # Check if this is an f-string
+        if s.startswith("f\"") or s.startswith("f'"):
+            # Use the __default__ scope from the AST
+            default_context = self.data.get("__default__", {})
+            return self.evaluate_f_string(s, default_context)
+        # Existing handling for other strings
         if s.startswith("'''") and s.endswith("'''"):
             inner = s[3:-3]
             return PreservedString(inner, s)
@@ -445,6 +474,9 @@ class ConfigTransformer(Transformer):
             return PreservedString(s[1:-1], s)
         return s
 
+    # -----------------------------------------------------
+    # Terminal transformations for other token types
+    # -----------------------------------------------------
 
     def SCOPED_VAR(self, token):
         return token.value

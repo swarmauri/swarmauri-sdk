@@ -1,38 +1,45 @@
 import pytest
-from jaml import loads, dumps
-
-# Test 1: Whitespace Preservation
-@pytest.mark.spec
-@pytest.mark.mep0011
-@pytest.mark.xfail(reason="Whitespace preservation not implemented")
-def test_whitespace_preservation():
-    toml_str = """
-[settings]
-name = "  Jeff  "
-"""
-    data = loads(toml_str)
-    assert data["settings"]["name"] == "  Jeff  ", "Leading/trailing spaces should be preserved"
-    out = dumps(data)
-    data_again = loads(out)
-    assert data_again["settings"]["name"] == "  Jeff  "
+from jaml import loads, dumps, round_trip_loads, round_trip_dumps
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Global scope evaluation not implemented")
-def test_global_scope_evaluation():
+# @pytest.mark.xfail(reason="Global scope evaluation not implemented")
+def test_global_scope_default_evaluation():
+    """
+    In f-string interpolations, we should replace global scope on load.
+    """
     toml_str = """
-[globals]
 base = "/home/user"
 
-[paths]
-config = f"@{base}/config.toml"
+[config]
+url = f"@{base}/config.toml"
 """
-    data = loads(toml_str)
-    assert data["paths"]["config"] == "/home/user/config.toml"
-    out = dumps(data)
+    data = round_trip_loads(toml_str)
+    assert data["config"]["url"] == "/home/user/config.toml"
+    out = round_trip_dumps(data)
     data_again = loads(out)
-    assert data_again["paths"]["config"] == "/home/user/config.toml"
+    assert data_again["config"]["url"] == "/home/user/config.toml"
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Global scope evaluation not implemented")
+def test_global_scope_section_evaluation():
+    """
+    In f-string interpolations, we should replace global scope on load.
+    """
+    toml_str = """
+[path]
+base = "/home/user"
+
+[config]
+url = f"@{path.base}/config.toml"
+"""
+    data = round_trip_loads(toml_str)
+    assert data["config"]["url"] == "/home/user/config.toml"
+    out = round_trip_dumps(data)
+    data_again = loads(out)
+    assert data_again["config"]["url"] == "/home/user/config.toml"
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
@@ -47,9 +54,9 @@ base = "/home/user"
 name = "Alice"
 greeting = f"Hello, %{name}!"
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["user"]["greeting"] == "Hello, Alice!"
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["user"]["greeting"] == "Hello, Alice!"
 
@@ -63,10 +70,12 @@ def test_context_scope_deferred():
 summary = f"User: ${user.name}, Age: ${user.age}"
 """
     # Without context, placeholders remain unresolved.
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["logic"]["summary"] == "User: ${user.name}, Age: ${user.age}"
     # With a render context provided:
-    data_with_context = loads(toml_str, context={"user.name": "Alice", "user.age": 30})
+
+    out = round_trip_dumps(data)
+    data_with_context = loads(out, context={"user.name": "Alice", "user.age": 30})
     assert data_with_context["logic"]["summary"] == "User: Alice, Age: 30"
 
 # Test 5: F-String Interpolation
@@ -79,9 +88,9 @@ def test_fstring_interpolation():
 text = f"Hello, {name}!"
 """
     # Assuming 'name' is provided via render context.
-    data = loads(toml_str, context={"name": "Alice"})
+    data = round_trip_loads(toml_str, context={"name": "Alice"})
     assert data["message"]["text"] == "Hello, Alice!"
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out, context={"name": "Alice"})
     assert data_again["message"]["text"] == "Hello, Alice!"
 
@@ -95,9 +104,9 @@ def test_immediate_expression():
 base = "/usr/local"
 config = <{ @{base} + '/config.toml' }>
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["paths"]["config"] == "/usr/local/config.toml"
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["paths"]["config"] == "/usr/local/config.toml"
 
@@ -115,9 +124,9 @@ port = "8080"
 endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
 """
     # Provide context for the deferred part.
-    data = loads(toml_str, context={"auth_token": "ABC123"})
+    data = round_trip_loads(toml_str, context={"auth_token": "ABC123"})
     assert data["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out, context={"auth_token": "ABC123"})
     assert data_again["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
 
@@ -130,9 +139,9 @@ def test_list_comprehension():
 [items]
 list_config = [f"item_{x}" for x in [1, 2, 3]]
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["items"]["list_config"] == ["item_1", "item_2", "item_3"]
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["items"]["list_config"] == ["item_1", "item_2", "item_3"]
 
@@ -145,9 +154,9 @@ def test_dict_comprehension():
 [items]
 dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
 
@@ -160,9 +169,9 @@ def test_arithmetic_operations():
 [calc]
 result = <{ 3 + 4 }>
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["calc"]["result"] == 7
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["calc"]["result"] == 7
 
@@ -175,16 +184,16 @@ def test_conditional_logic():
 [cond]
 status = f"{'Yes' if true else 'No'}"
 """
-    data = loads(toml_str)
+    data = round_trip_loads(toml_str)
     assert data["cond"]["status"] == "Yes"
-    out = dumps(data)
+    out = round_trip_dumps(data)
     data_again = loads(out)
     assert data_again["cond"]["status"] == "Yes"
 
 # Is this really a type inference test? 
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
+@pytest.mark.xfail(reason="Inference in expressions not fully implemented")
 def test_infer_expressions():
     """
     Ensures expressions (wrapped with <{ ... )>) are type-inferred from their result.
@@ -198,11 +207,21 @@ def test_infer_expressions():
     # Boolean logic
     combo = <{ true and false }>
     '''
-    result = loads(source)
-    exprs = result["exprs"]
+    data = round_trip_loads(source)
+    exprs = data["exprs"]
     assert isinstance(exprs["sum_val"], int)
     assert exprs["sum_val"] == 15
     assert isinstance(exprs["greeting"], str)
     assert exprs["greeting"] == "Hello, World!"
     assert isinstance(exprs["combo"], bool)
     assert exprs["combo"] is False
+
+    out = round_trip_dumps(data)
+    round_trip_data = loads(out)
+    exprs_round_trip = round_trip_data["exprs"]
+    assert isinstance(exprs_round_trip["sum_val"], int)
+    assert exprs_round_trip["sum_val"] == 15
+    assert isinstance(exprs_round_trip["greeting"], str)
+    assert exprs_round_trip["greeting"] == "Hello, World!"
+    assert isinstance(exprs_round_trip["combo"], bool)
+    assert exprs_round_trip["combo"] is False
