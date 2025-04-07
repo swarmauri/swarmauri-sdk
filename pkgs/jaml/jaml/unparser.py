@@ -10,7 +10,12 @@ and inline comments.
 
 import json
 
-from .lark_nodes import PreservedString, PreservedArray, PreservedInlineTable
+from .lark_nodes import ( 
+    PreservedString, 
+    PreservedValue, 
+    PreservedArray, 
+    PreservedInlineTable 
+)
 
 class JMLUnparser:
     def __init__(self, config):
@@ -33,17 +38,10 @@ class JMLUnparser:
             )
 
     def format_value(self, value):
-        """
-        Format a value according to the configuration syntax.
-        1) If it's a PreservedInlineTable -> return verbatim original text.
-        2) If it's a PreservedArray -> return verbatim original text.
-        3) Strings with newlines -> triple-quoted.
-        4) Booleans -> 'true'/'false'.
-        5) None -> 'null'.
-        6) int/float -> direct string conversion.
-        7) lists -> bracketed multiline array (fallback).
-        8) dict -> inline table (fallback).
-        """
+        # 0) If the value is a PreservedValue, format its inner value and append its comment.
+        if isinstance(value, PreservedValue):
+            return f"{self.format_value(value.value)}{value.comment}"
+        
         # 1) Already-preserved inline table?
         if isinstance(value, PreservedInlineTable):
             return str(value)  # entire { ... } substring
@@ -91,6 +89,7 @@ class JMLUnparser:
         # Fallback
         else:
             return str(value)
+
 
     def format_list(self, lst):
         """

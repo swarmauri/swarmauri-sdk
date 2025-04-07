@@ -86,7 +86,10 @@ class ConfigTransformer(Transformer):
         if len(items) == 2:
             key, value = items
         elif len(items) == 3:
-            if isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
+            # Check if the last item is an inline comment dictionary.
+            if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
+                key, value, inline = items
+            elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
                 key, value, inline = items
             else:
                 key, type_annotation, value = items
@@ -103,13 +106,15 @@ class ConfigTransformer(Transformer):
             value = value[1:-1]
 
         if inline is not None:
+            # If inline is a dictionary, extract the comment.
+            if isinstance(inline, dict) and '_inline_comment' in inline:
+                inline = inline['_inline_comment']
             inline = str(inline)
             self.current_section[key] = PreservedValue(value, inline)
         else:
             self.current_section[key] = value
 
         return None
-
 
 
 
@@ -228,23 +233,22 @@ class ConfigTransformer(Transformer):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         return PreservedInlineTable(result, original_text)
 
-
     # -----------------------------
     # Comments
     # -----------------------------
     def comment_line(self, items):
-        # items: [COMMENT, NEWLINE]
         comment_token = items[0]
-        # Only standalone comment lines should be added to __comments__
-        self.data["__comments__"].append(comment_token.value)
+        # Only add a standalone comment if it begins at the start of the line.
+        if hasattr(comment_token, "column") and comment_token.column == 1:
+            self.data["__comments__"].append(comment_token.value)
         return comment_token.value
 
+
     def inline_comment(self, items):
-        # This rule matches something like: /[ \t]+/ COMMENT
-        # Join all tokens (typically some whitespace and a COMMENT token)
-        comment = "".join(item.value if isinstance(item, Token) else str(item) for item in items)
-        # Do not add to __comments__; inline comments are attached to assignments.
-        return comment
+        # items[0] is the INLINE_WS token, items[1] is the COMMENT token.
+        ws = items[0].value
+        com = items[1].value
+        return {"_inline_comment": ws + com}
 
 
     # -----------------------------
@@ -279,9 +283,11 @@ class ConfigTransformer(Transformer):
         return [x for x in items if x != "," and not is_ignorable(x)]
 
     def array_item(self, items):
-        # If there's an inline comment, wrap the value.
         if len(items) == 2:
             value, inline = items
+            # If the inline comment is coming as a dict, extract the comment string.
+            if isinstance(inline, dict) and '_inline_comment' in inline:
+                inline = inline['_inline_comment']
             return PreservedValue(value, inline)
         elif len(items) == 1:
             return items[0]

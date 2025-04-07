@@ -1,4 +1,4 @@
-%ignore /[ \t]+/  // only ignore horizontal spaces
+
 NEWLINE: /\r?\n/  // we treat each newline as a token
 
 // 2) Now define lines
@@ -12,7 +12,8 @@ comment_line: COMMENT NEWLINE
 blank_line: NEWLINE
 
 assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment? NEWLINE?
-inline_comment: /[ \t]+/ COMMENT  // If you want a space required before #, etc.
+inline_comment: INLINE_WS COMMENT
+
 
 type_annotation: TYPE
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime"
@@ -93,6 +94,8 @@ SCOPED_VAR: /[@%$]\{[^}]+\}/
 // 5) COMMENT
 COMMENT.1: /\#[^\n]*/
 
+INLINE_COMMENT: /[ \t]+#[^\n]*/
+
 // 6) FLOAT
 FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
 
@@ -130,4 +133,4 @@ OPERATOR: /\*\*|==|!=|>=|<=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
 WHITESPACE: /\s+/
 
 // If you want to allow inline whitespace for inline_comment:
-WS_INLINE: /[ \t\r\n\f]+/
+INLINE_WS: /[ \t]+/

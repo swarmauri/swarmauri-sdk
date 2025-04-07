@@ -25,9 +25,9 @@ def test_standalone_comment_preserved():
 key = "value"
 """
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # Check that the standalone comment is still present exactly
-    assert "# This is a standalone comment at the top of the file" in reserialized
+    assert "# This is a standalone comment at the top of the file" in serialized
 
 
 @pytest.mark.spec
@@ -44,9 +44,9 @@ def test_inline_comment_preserved():
 greeting = "Hello, World!"  # Inline comment: greeting message
 """
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # Check that the inline comment is present on the same line
-    assert 'greeting = "Hello, World!"  # Inline comment: greeting message' in reserialized
+    assert 'greeting = "Hello, World!"  # Inline comment: greeting message' in serialized
 
 
 @pytest.mark.spec
@@ -62,17 +62,17 @@ def test_multiline_array_comments_preserved():
 [settings]
 colors = [
   "red",    # Primary color
-  "green",  # Secondary color
+  # "green",
   "blue"    # Accent color
 ]
 """
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # Check that each inline comment is preserved for each element
-    assert original in reserialized
-    assert "# Primary color" in reserialized
-    assert "# Secondary color" in reserialized
-    assert "# Accent color" in reserialized
+    assert original in serialized
+    assert "# Primary color" in serialized
+    assert "# Secondary color" in serialized
+    assert "# Accent color" in serialized
 
 
 @pytest.mark.spec
@@ -96,13 +96,13 @@ profile = {
 }
 '''
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # Check that the two inline comments remain
-    assert original in reserialized
-    assert "# User's name" in reserialized
-    assert "# User's email" in reserialized
+    assert original in serialized
+    assert "# User's name" in serialized
+    assert "# User's email" in serialized
     # Also verify the triple-quoted block still contains the # as text
-    assert "# This '#' is inside the triple-quoted string" in reserialized
+    assert "# This '#' is inside the triple-quoted string" in serialized
 
 
 @pytest.mark.spec
@@ -123,13 +123,13 @@ numbers = [
 ]
 """
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
-    assert original in reserialized
-    assert "# first" in reserialized
-    assert "# second" in reserialized
-    assert "# third" in reserialized
+    assert original in serialized
+    assert "# first" in serialized
+    assert "# second" in serialized
+    assert "# third" in serialized
 
 
 @pytest.mark.spec
@@ -149,13 +149,13 @@ numbers = [
     assert 3 in result["settings"]["numbers"]
 
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
-    assert original in reserialized
-    assert "# first" in reserialized
-    assert "# 2" in reserialized
-    assert "# third" in reserialized
+    assert original in serialized
+    assert "# first" in serialized
+    assert "# 2" in serialized
+    assert "# third" in serialized
 
 
 @pytest.mark.spec
@@ -173,6 +173,6 @@ def test_whitespace_around_comments():
 key = "value"   #   note the extra spaces before/after comment
 """
     ast = round_trip_loads(original)
-    reserialized = round_trip_dumps(ast)
+    serialized = round_trip_dumps(ast)
     # If the spec requires preserving that extra whitespace, we can do a direct substring check:
-    assert 'key = "value"  #   note the extra spaces before' in reserialized
+    assert 'key = "value"  #   note the extra spaces before' in serialized

@@ -150,7 +150,7 @@ def test_multiline_array():
     '''
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 16
+    assert len([t for t in tokens]) == 15
 
 @pytest.mark.spec
 @pytest.mark.mep0003
