@@ -14,6 +14,7 @@ from jaml import (
 
 @pytest.mark.spec
 @pytest.mark.unit
+@pytest.mark.mep0001
 def test_reserved_keywords():
     """
     Tests that MEP-001 reserved keywords (e.g., 'if', 'elif', etc.)
@@ -29,6 +30,7 @@ def test_reserved_keywords():
 
 @pytest.mark.spec
 @pytest.mark.unit
+@pytest.mark.mep0001
 def test_reserved_functions():
     """
     MEP-001 states that 'File()' and 'Git()' are reserved for special usage.
@@ -41,6 +43,7 @@ def test_reserved_functions():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_reserved_punctuation():
     """
     Verifies that reserved punctuation (like ':' or '=') cannot be part of unquoted keys.
@@ -52,6 +55,7 @@ def test_reserved_punctuation():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_trailing_punctuation_allowed():
     """
     Verifies that reserved punctuation (like ':' or '=') is allowed.
@@ -61,6 +65,7 @@ def test_trailing_punctuation_allowed():
     _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_single_quote_string():
     source = "single = 'Hello, World!'"
     data = loads(source)
@@ -68,6 +73,7 @@ def test_single_quote_string():
     assert data["__default__"]["single"] == "Hello, World!"
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_triple_single_quote_string():
     # The JML source uses triple-single quotes to enclose a triple-double-quoted string.
     # The inner value should be: """One\nTwo\nThree"""
@@ -77,6 +83,7 @@ def test_triple_single_quote_string():
     assert data["__default__"]["triple_single"] == expected
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_triple_double_quote_string():
     # The JML source contains a triple-double quoted string with embedded newlines.
     source = 'triple_double = """Line1\nLine2\nLine3"""'
@@ -85,6 +92,7 @@ def test_triple_double_quote_string():
     assert data["__default__"]["triple_double"] == expected
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_raw_backticks_string():
     # The JML source uses backticks to represent a raw string.
     source = "raw_backticks = `C:/Users/Name`"
@@ -95,6 +103,7 @@ def test_raw_backticks_string():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_arithmetic_operators():
     """
     Tests arithmetic operators: +, -, *, /, %, **
@@ -107,6 +116,7 @@ def test_arithmetic_operators():
 
 ## this test case should be moved to another MEP spec test
 @pytest.mark.spec
+@pytest.mark.mep0001
 # @pytest.mark.xfail(reason="Spec not fully implemented – pipeline operator not fully enforced")
 def test_pipeline_operator():
     """
@@ -121,6 +131,7 @@ def test_pipeline_operator():
 
 ## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_conditional_ternary_operator():
     """
     Tests the inline conditional operator: "Active" if cond else "Inactive"
@@ -131,6 +142,7 @@ def test_conditional_ternary_operator():
 
 ## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_membership_operators():
     """
     Tests membership 'in' and 'not in'
@@ -140,6 +152,7 @@ def test_membership_operators():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 # @pytest.mark.xfail(reason="Spec not fully implemented – merge operator not recognized yet.")
 def test_merge_operator():
     """
@@ -154,6 +167,7 @@ merged_config = default << user_override
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_invalid_use_of_colon():
     """
     Confirms that using a colon as part of a key name triggers a syntax error.
@@ -164,6 +178,7 @@ def test_invalid_use_of_colon():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_keyword_as_identifier():
     """
     Attempts to use a reserved keyword (e.g. 'if') as a variable name.
@@ -176,6 +191,7 @@ def test_keyword_as_identifier():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_reserved_function_as_var():
     """
     Verifies reservation of 'File()' or 'Git()' as normal identifiers or variables.
@@ -186,6 +202,7 @@ def test_reserved_function_as_var():
         _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_identifier_assigned_identifier():
     """
     Verifies that an identifier cannot be assigned to an identifier.
@@ -196,6 +213,7 @@ def test_identifier_assigned_identifier():
         _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_underscored_identifier():
     """
     Verifies that an identifier cannot be assigned to an identifier.
@@ -205,6 +223,7 @@ def test_underscored_identifier():
     _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_unmatched_brackets():
     """
     Expect a syntax error when bracket pairs are mismatched or incomplete.
@@ -217,6 +236,7 @@ def test_unmatched_brackets():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_invalid_mismatched_quotes():
     """
     Confirms that mismatched quotes trigger a syntax error.
@@ -226,6 +246,7 @@ def test_invalid_mismatched_quotes():
         _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_invalid_enclosed_special_character_identifier():
     """
     Expect a syntax error when an invalid special character is used.
@@ -235,6 +256,7 @@ def test_invalid_enclosed_special_character_identifier():
         _ = loads(source)
 
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_invalid_prefix_special_character_identifier():
     """
     Expect a syntax error when an invalid special character is used.
@@ -244,6 +266,7 @@ def test_invalid_prefix_special_character_identifier():
         _ = loads(source)
         
 @pytest.mark.spec
+@pytest.mark.mep0001
 def test_invalid_special_character_identifier():
     """
     Expect a syntax error when an invalid special character is used.

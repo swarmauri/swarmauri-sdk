@@ -1,0 +1,100 @@
+?start: (section | assignment)*
+
+assignment: IDENTIFIER (":" type_annotation)? "=" value
+
+type_annotation: TYPE
+
+// Define a dedicated token for type annotations.
+TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime"
+
+section: "[" section_name "]"
+section_name: IDENTIFIER ("." IDENTIFIER)*
+
+?value: paren_expr
+      | tilde_block
+      | STRING
+      | SCOPED_VAR
+      | COMMENT
+      | FLOAT
+      | INTEGER
+      | BOOLEAN
+      | NULL
+      | RESERVED_FUNC
+      | KEYWORD
+      | TABLE_ARRAY
+      | FOLDER_BLOCK
+      | INLINE_TABLE
+      | ARRAY
+      | IDENTIFIER
+      | OPERATOR
+      | PUNCTUATION
+      | WHITESPACE
+
+paren_expr: "(" value+ ")"
+
+tilde_block: TILDE_START tilde_content TILDE_END
+tilde_content: value*
+
+// ----------
+// Terminal Definitions
+// ----------
+
+TILDE_START: "<{"
+TILDE_END: "}>"
+
+// 3) STRING
+STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`)/s
+
+// 4) SCOPED_VAR
+SCOPED_VAR: /[@%$]\{[^}]+\}/
+
+// 5) COMMENT
+COMMENT: /\#[^\n]*/
+
+// 6) FLOAT
+FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
+
+// 7) INTEGER
+INTEGER: /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\d*)/
+
+// 8) BOOLEAN
+BOOLEAN: /(true|false)\b/
+
+// 9) NULL
+NULL: /null\b/
+
+// 10) RESERVED_FUNC
+RESERVED_FUNC: /(File\(\)|Git\(\))\b/
+
+// 11) KEYWORD
+KEYWORD: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include)\b/
+
+// 12) TABLE_ARRAY
+TABLE_ARRAY: /\[\[[^\]\n]+\]\]/
+
+// 13) TABLE_SECTION
+TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
+
+// 15) FOLDER_BLOCK
+FOLDER_BLOCK: /\{\^.*?\^\}/s
+
+// 16) INLINE_TABLE
+INLINE_TABLE: /\{(?:[^{}~]|\{[^{}]*\})*\}/s
+
+// 17) ARRAY
+ARRAY: /\[\s*.*?\s*\]/s
+
+// 18) IDENTIFIER
+IDENTIFIER: /\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
+
+// 19) OPERATOR
+OPERATOR: /\*\*|==|!=|>=|<=|=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
+
+// 20) PUNCTUATION
+PUNCTUATION: /:/
+
+// 21) WHITESPACE
+WHITESPACE: /\s+/
+
+%ignore WS_INLINE
+WS_INLINE: /[ \t\r\n\f]+/

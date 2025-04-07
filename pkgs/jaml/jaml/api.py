@@ -5,7 +5,10 @@ from typing import IO, Any, Dict
 # from ._eval import _eval_ast_logical_expressions
 
 # Core JML modules
-from .parser import JMLParser
+# from .parser import JMLParser
+from .lark_parser import parser
+from .lark_nodes import ConfigTransformer
+
 from .unparser import JMLUnparser
 from .ast_nodes import DocumentNode
 
@@ -55,10 +58,10 @@ def loads(s: str) -> Dict[str, Any]:
     Returns native types (e.g. plain strings, ints, lists, dicts),
     not AST nodes.
     """
-    parser = JMLParser()
-    ast_document = parser.parse(s)
+    # parser = JMLParser()
+    ast_tree = parser.parse(s)
     # Convert the AST to plain data using the bound method on DocumentNode.
-    return ast_document.to_plain_data()
+    return ConfigTransformer().transform(ast_tree)
 
 def load(fp: IO[str]) -> Dict[str, Any]:
     """
@@ -89,7 +92,7 @@ def round_trip_loads(s: str) -> DocumentNode:
     Parse a JML string into a DocumentNode AST, preserving all data
     for round-trip usage (including comments, merges, layout if your parser tracks them).
     """
-    parser = JMLParser()
+    # parser = JMLParser()
     return parser.parse(s)
 
 def round_trip_load(fp: IO[str]) -> DocumentNode:
