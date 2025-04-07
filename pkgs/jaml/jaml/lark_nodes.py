@@ -1,7 +1,7 @@
 from importlib.resources import files, as_file
 from lark import Lark
 import json
-from lark import Transformer, Token
+from lark import Transformer, Token, v_args
 
 class PreservedArray:
     """
@@ -178,22 +178,12 @@ class ConfigTransformer(Transformer):
 
         return [x for x in items if not is_ignorable(x)]
 
-    def inline_table(self, items):
+    @v_args(meta=True)
+    def inline_table(self, meta, children):
         result = {}
-        for item in items:
-            # Skip whitespace nodes
-            if hasattr(item, "data") and item.data == "ws":
-                continue
-            # If item is a list (e.g. already transformed inline_table_items), iterate its elements.
-            if isinstance(item, list):
-                for subitem in item:
-                    if isinstance(subitem, dict):
-                        result.update(subitem)
-                    elif hasattr(subitem, "data") and subitem.data == "inline_table_item":
-                        transformed = self.inline_table_item(subitem.children)
-                        if isinstance(transformed, dict):
-                            result.update(transformed)
-            elif hasattr(item, "data") and item.data == "inline_table_items":
+        for item in children:
+            # Process children that are inline_table_items or dicts
+            if hasattr(item, "data") and item.data == "inline_table_items":
                 for child in item.children:
                     if hasattr(child, "data") and child.data == "inline_table_item":
                         transformed = self.inline_table_item(child.children)
@@ -203,13 +193,10 @@ class ConfigTransformer(Transformer):
                         result.update(child)
             elif isinstance(item, dict):
                 result.update(item)
-        return result
+        # Use meta.start_pos and meta.end_pos to capture the original text
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        return PreservedInlineTable(result, original_text)
 
-
-
-
-
-        
     # -----------------------------
     # Preserved Array logic
     # -----------------------------

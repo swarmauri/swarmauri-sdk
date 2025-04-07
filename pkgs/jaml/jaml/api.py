@@ -100,11 +100,12 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
     fp.write(round_trip_dumps(ast))
 
 
-def round_trip_loads(s: str) -> Any:
-    """
-    Parse a JML string into an AST, preserving all data for round-trip usage.
-    """
-    return parser.parse(s)
+def round_trip_loads(s: str):
+    tree = parser.parse(s)
+    transformer = ConfigTransformer()
+    # Create a dummy context object with a 'text' attribute containing the original input.
+    transformer._context = type("Context", (), {"text": s})
+    return transformer.transform(tree)
 
 
 def round_trip_load(fp: IO[str]) -> Any:

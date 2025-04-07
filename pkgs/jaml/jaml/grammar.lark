@@ -57,7 +57,7 @@ HSPACES: /[ \t]+/
 // Inline Table Handling
 // --------------------------
 
-inline_table: "{" ws? inline_table_items? ws? "}"
+inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
 inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
 
 inline_table_item: inline_assignment | comment_line
