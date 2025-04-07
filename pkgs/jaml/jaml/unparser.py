@@ -10,7 +10,7 @@ and inline comments.
 
 import json
 
-from .lark_nodes import PreservedArray, PreservedInlineTable
+from .lark_nodes import PreservedString, PreservedArray, PreservedInlineTable
 
 class JMLUnparser:
     def __init__(self, config):
@@ -51,6 +51,10 @@ class JMLUnparser:
         # 2) Already-preserved array?
         elif isinstance(value, PreservedArray):
             return str(value)  # entire [ ... ] substring
+
+        elif isinstance(value, PreservedString):
+            # Output the original quoted text as-is.
+            return value.original
 
         # 3) String
         elif isinstance(value, str):

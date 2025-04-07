@@ -5,13 +5,17 @@ from lark import Transformer, Token, v_args
 
 class PreservedString(str):
     def __new__(cls, value, original):
-        # Create a new string instance with the unquoted value
+        # Create a new string instance using the unquoted value.
         obj = super().__new__(cls, value)
-        obj.original = original  # store the original text with quotes
+        obj.original = original  # store the original text, e.g. '"Hello, World!"'
         return obj
 
+    def __str__(self):
+        # When converting to string for round-trip output, return the original quoted text.
+        return self.original
+
     def __repr__(self):
-        return f"PreservedString(value={str(self)!r}, original={self.original!r})"
+        return f"PreservedString(value={super().__str__()!r}, original={self.original!r})"
 
 
 class PreservedValue:
@@ -261,17 +265,28 @@ class ConfigTransformer(Transformer):
 
     def array_content(self, items):
         def is_ignorable(x):
-            # You might get tokens, strings, or Trees.
-            # If it's a Tree with data "ws" (or if it's a token whose value is only whitespace), ignore it.
             if hasattr(x, "data") and x.data == "ws":
                 return True
             if isinstance(x, str) and x.strip() == "":
                 return True
             if isinstance(x, Token) and x.type in ("WHITESPACE", "NEWLINE"):
                 return True
+            # Ignore standalone comment lines (they start with "#")
+            if isinstance(x, str) and x.strip().startswith("#"):
+                return True
             return False
-        # Also filter out commas.
+
         return [x for x in items if x != "," and not is_ignorable(x)]
+
+    def array_item(self, items):
+        # If there's an inline comment, wrap the value.
+        if len(items) == 2:
+            value, inline = items
+            return PreservedValue(value, inline)
+        elif len(items) == 1:
+            return items[0]
+        else:
+            raise ValueError("Unexpected structure in array_item: " + str(items))
 
 
     def array_value(self, items):
@@ -353,6 +368,7 @@ class ConfigTransformer(Transformer):
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
             return PreservedString(s[1:-1], s)
         return s
+
 
     def SCOPED_VAR(self, token):
         return token.value
