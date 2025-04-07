@@ -200,7 +200,6 @@ class JMLUnparser:
 
         # Ensure the final output has a leading and trailing newline.
         final_output = output.rstrip("\n")
-        final_output = "\n" + final_output + "\n"
         return final_output
 
     def __str__(self):

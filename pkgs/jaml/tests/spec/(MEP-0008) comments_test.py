@@ -144,8 +144,7 @@ def test_multiline_inline_table_comments_preserved():
     MEP-008:
       Comments in multiline inline tables should also be preserved.
     """
-    original = '''
-[user]
+    original = '''[user]
 profile = {
   name = "Alice",               # User's name
   email = "alice@example.com",  # User's email
@@ -154,8 +153,7 @@ profile = {
   She loves coding.
   # This '#' is inside the triple-quoted string, so it's not a comment
   """
-}
-'''
+}'''
     ast = round_trip_loads(original)
     serialized = round_trip_dumps(ast)
     # Check that the two inline comments remain
@@ -175,14 +173,12 @@ def test_multiline_arrays_with_comments_spacing():
       Check if exact spacing/newlines around comments in multiline arrays 
       is preserved. Marked xfail until fully implemented.
     """
-    original = """\
-[settings]
+    original = """[settings]
 numbers = [
   1,  # first
   2,  # second
   3   # third
-]
-"""
+]"""
     ast = round_trip_loads(original)
     serialized = round_trip_dumps(ast)
     # We expect spacing/newlines around the comments to match the original 
@@ -196,14 +192,12 @@ numbers = [
 @pytest.mark.spec
 @pytest.mark.mep0008
 def test_multiline_arrays_comment_out_line():
-    original = """\
-[settings]
+    original = """[settings]
 numbers = [
   1,  # first
   # 2,  
   3   # third
-]
-"""
+]"""
     result = loads(original)
     assert 1 in result["settings"]["numbers"]
     assert 2 not in result["settings"]["numbers"]
