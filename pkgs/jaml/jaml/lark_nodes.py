@@ -51,6 +51,29 @@ class ConfigTransformer(Transformer):
     def start(self, items):
         return self.data
 
+    def assignment(self, items):
+        # parse the items to figure out key and value
+        if len(items) == 2:
+            key, value = items
+        elif len(items) == 3:
+            key, type_annotation, value = items
+        else:
+            raise ValueError("Unexpected structure in assignment: " + str(items))
+
+        # Unquote if needed ...
+        if isinstance(value, str) and (
+            (value.startswith("'") and value.endswith("'")) or 
+            (value.startswith('"') and value.endswith('"'))
+        ):
+            value = value[1:-1]
+
+        # Directly store into the current_section:
+        self.current_section[key] = value
+
+        # Return nothing or None so the parent rule doesn't think there's extra data
+        return None
+
+
     def section(self, items):
         raw_section = items[0]
         if isinstance(raw_section, list):
@@ -66,56 +89,6 @@ class ConfigTransformer(Transformer):
                 self.data[raw_section] = {}
             self.current_section = self.data[raw_section]
             return self.data[raw_section]
-
-    def assignment(self, items):
-        """
-        items typically:
-          [key, (possibly type_annotation?), '=', value, (inline_comment?)]
-        """
-        # First let's parse out the parts we care about:
-        key = items[0]
-
-        # If we had an optional type_annotation in the grammar, handle or skip it
-        # but for brevity let's assume we ignore it or you handle it your usual way
-        #
-        # items might have '=' as a separate token, so watch out for that indexing.
-        # Or you can strip out punctuation in a separate rule. Example code:
-        idx_val = 2
-        if len(items) >= 2 and isinstance(items[1], str) and items[1].startswith(":"): 
-            # that was the type annotation, or you'd check the rule
-            # skip it for brevity
-            idx_val = 4  # adjust if your grammar includes punctuation tokens
-
-        value = items[idx_val]
-        
-        # Now check if there's an inline comment
-        inline_cmt = None
-        if len(items) > idx_val + 1:
-            # The last item might be an inline_comment node
-            last_item = items[idx_val + 1]
-            # If the grammar structure is inline_comment -> (WS_INLINE?, COMMENT),
-            # then 'last_item' might be a list. We'll try to parse it out:
-            if isinstance(last_item, list) and len(last_item) > 0:
-                # The actual COMMENT token might be last_item[-1]
-                maybe_cmt = last_item[-1]
-                if isinstance(maybe_cmt, str) and maybe_cmt.startswith("#"):
-                    inline_cmt = maybe_cmt
-            elif isinstance(last_item, str) and last_item.startswith("#"):
-                # If the inline_comment rule returns just the comment string
-                inline_cmt = last_item
-
-        # We store everything in the current section. 
-        # Instead of storing a raw value, store an object or tuple that includes the comment.
-        # For a quick hack, store a dict with "value" and "comment":
-        if inline_cmt:
-            self.current_section[key] = {
-                "_value": value,
-                "_inline_comment": inline_cmt,
-            }
-        else:
-            self.current_section[key] = value
-
-        return {key: value}
 
 
     def section_name(self, items):
@@ -245,11 +218,20 @@ class ConfigTransformer(Transformer):
         s = token.value
         if self.in_tilde:
             return s
-        if s.startswith("'''") or s.startswith('"""') or s.startswith("```"):
+        # Handle triple-quoted strings
+        if s.startswith("'''") and s.endswith("'''"):
+            inner = s[3:-3]
+            # If the inner content seems to be a triple-double-quoted string that lost one quote at each end,
+            # restore it by adding an extra double quote at the start and end.
+            if inner.startswith('""') and inner.endswith('""'):
+                return '"' + inner + '"'
+            return inner
+        if s.startswith('"""') and s.endswith('"""'):
             return s[3:-3]
         if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
             return s[1:-1]
         return s
+
 
     def SCOPED_VAR(self, token):
         return token.value

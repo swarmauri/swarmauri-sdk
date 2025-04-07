@@ -56,6 +56,7 @@ def loads(s: str) -> Dict[str, Any]:
     """
     try:
         ast_tree = parser.parse(s)
+        print(f"[DEBUG]: {ast_tree}")
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
     except UnexpectedCharacters as e:
@@ -63,7 +64,9 @@ def loads(s: str) -> Dict[str, Any]:
     except UnexpectedEOF as e:
         raise SyntaxError("UnexpectedEOF") from e
 
-    return ConfigTransformer().transform(ast_tree)
+    data = ConfigTransformer().transform(ast_tree)
+    print(f"[DEBUG]: {data}")
+    return data
 
 
 def load(fp: IO[str]) -> Dict[str, Any]:
@@ -71,7 +74,6 @@ def load(fp: IO[str]) -> Dict[str, Any]:
     Parse JML content from a file-like object into a plain dictionary.
     """
     return loads(fp.read())
-
 
 # -------------------------------------
 # 3) Round-Trip API
@@ -86,6 +88,7 @@ def round_trip_dumps(ast: Any) -> str:
     """
     # Transform the AST to a plain dict if needed.
     ast = ConfigTransformer().transform(ast)
+    print(f"[DEBUG]: {ast}")
     unparser = JMLUnparser(ast)
     return unparser.unparse()
 

@@ -1,12 +1,18 @@
-%ignore /[ \t\r\n]+/
+%ignore /[ \t]+/  // only ignore horizontal spaces
+NEWLINE: /\r?\n/  // we treat each newline as a token
 
-start: (blank_line | COMMENT | section | assignment)*
+// 2) Now define lines
+start: line*
+line: comment_line
+    | blank_line
+    | section
+    | assignment
 
-assignment: IDENTIFIER (":" type_annotation)? EQ value inline_comment?
-EQ: "="
+comment_line: COMMENT NEWLINE
+blank_line: NEWLINE
 
-inline_comment: WS_INLINE COMMENT
-               | COMMENT           // if you allow no space before #
+assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment? NEWLINE?
+inline_comment: /[ \t]+/ COMMENT  // If you want a space required before #, etc.
 
 type_annotation: TYPE
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime"
@@ -28,17 +34,9 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | KEYWORD
       | TABLE_ARRAY
       | FOLDER_BLOCK
-      | INLINE_TABLE
+      | inline_table
       | array
       | OPERATOR
-      | PUNCTUATION
-
-
-// We define blank_line as purely spaces/tabs, followed by a newline
-blank_line: /[ \t]*\r?\n/
-
-// If you want to keep newlines as tokens, do so:
-NEWLINE: /\r?\n/  // might or might not be used explicitly
 
 // If you want to ignore purely horizontal spaces between tokens:
 %ignore HSPACES
@@ -49,23 +47,39 @@ HSPACES: /[ \t]+/
 // --------------------------
 ?array: "[" array_content? "]"
 
-?array_content: array_value ("," array_value)* ("," ws?)?
+?array_content: (array_item | comment_line) ("," (array_item | comment_line))* ("," ws?)?
+?array_item: value inline_comment?
 
-?array_value: value
+
+// --------------------------
+// Inline Table Handling
+// --------------------------
+
+inline_table: "{" NEWLINE? inline_table_items? NEWLINE? "}"
+
+inline_table_items: inline_table_item ("," NEWLINE? inline_table_item)* ("," ws?)?
+
+inline_table_item: inline_assignment | comment_line
+
+inline_assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment?
+
+
 
 // A simple rule to capture whitespace explicitly (if you need it in the parse tree):
 ws: WHITESPACE
 
-// paren_expr
-paren_expr: "(" value+ ")"
+// --------------------------
+// Expressions
+// --------------------------
 
-// tilde blocks
+paren_expr: "(" value+ ")"
 tilde_block: TILDE_START tilde_content TILDE_END
 tilde_content: value*
 
 // ----------
 // Terminal Definitions
 // ----------
+
 TILDE_START: "<{"
 TILDE_END: "}>"
 
@@ -76,7 +90,7 @@ STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\
 SCOPED_VAR: /[@%$]\{[^}]+\}/
 
 // 5) COMMENT
-COMMENT: /\#[^\n]*/
+COMMENT.1: /\#[^\n]*/
 
 // 6) FLOAT
 FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
@@ -105,19 +119,11 @@ TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
 // 15) FOLDER_BLOCK
 FOLDER_BLOCK: /\{\^.*?\^\}/s
 
-// 16) INLINE_TABLE
-INLINE_TABLE: /\{(?:[^{}~]|\{[^{}]*\})*\}/s
-
-// (OLD) ARRAY token removed in favor of the rule-based array approach above.
-
 // 18) IDENTIFIER
 IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
 
 // 19) OPERATOR
-OPERATOR: /\*\*|==|!=|>=|<=|=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
-
-// 20) PUNCTUATION
-PUNCTUATION: /:/
+OPERATOR: /\*\*|==|!=|>=|<=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
 
 // 21) WHITESPACE
 WHITESPACE: /\s+/

@@ -61,7 +61,7 @@ def test_trailing_punctuation_allowed():
     Verifies that reserved punctuation (like ':' or '=') is allowed.
     e.g. some: key = 1
     """
-    source = "some: str = 1"
+    source = "some: int = 1"
     _ = loads(source)
 
 @pytest.mark.spec
