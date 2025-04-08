@@ -18,9 +18,11 @@ dependencies = [
     "jinja2",
     "inflect",
     "typer",
+    "colorama",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+    "swarmauri",
 ]
 
 

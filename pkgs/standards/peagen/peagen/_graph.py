@@ -1,6 +1,6 @@
 import heapq
-from typing import List, Dict, Any
 from collections import defaultdict
+from typing import Any, Dict, List
 
 
 def _build_forward_graph(payload: List[Dict[str, Any]]):
@@ -22,7 +22,7 @@ def _build_forward_graph(payload: List[Dict[str, Any]]):
     # Build edges: (dep -> file)
     for entry in payload:
         file_node = entry["RENDERED_FILE_NAME"]
-        extras = entry.get("EXTRAS", [])
+        extras = entry.get("EXTRAS", {})
         deps = extras.get("DEPENDENCIES", [])
         if deps:
             for dep in deps:
@@ -122,8 +122,11 @@ def _transitive_dependency_sort(
     if target_file not in all_nodes:
         raise ValueError(f"File '{target_file}' not found in payload.")
 
-    # Get all files that eventually lead to target_file (and target_file itself)
-    dep_set = _get_transitive_dependencies(target_file, forward_graph)
+    # Build the reverse graph
+    reverse_graph = _build_reverse_graph(forward_graph)
+
+    # Get all files that target_file depends on (and target_file itself)
+    dep_set = _get_transitive_dependencies(target_file, reverse_graph)
 
     # Filter payload to just those in dep_set
     sub_payload = [rec for rec in payload if rec["RENDERED_FILE_NAME"] in dep_set]

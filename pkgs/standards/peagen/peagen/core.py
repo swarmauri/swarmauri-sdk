@@ -53,7 +53,7 @@ class Peagen(ComponentBase):
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    additional_package_dirs: List[Path] = Field(exclude=True, default=list)
+    additional_package_dirs: List[Path] = Field(exclude=True, default_factory=list)  # Changed from default=list
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
