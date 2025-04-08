@@ -101,6 +101,9 @@ text = f"Hello, ${name}!"
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Deferred expression evaluation not implemented")
 def test_deferred_expression():
+    """
+    Validates deferred (ie: literal) expressions
+    """
     toml_str = """
 [paths]
 base = "/usr/local"
@@ -116,7 +119,10 @@ config = <{ %{base} + '/config.toml' }>
 @pytest.mark.spec
 @pytest.mark.mep0011
 @pytest.mark.xfail(reason="Folded expression evaluation not implemented")
-def test_folded_expression():
+def test_immediate_expression():
+    """
+    Validates immediate (ie: folded) expressions
+    """
     toml_str = """
 [server]
 host = "prodserver"
@@ -135,7 +141,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
 # Test 8: List Comprehension Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="List comprehension evaluation not implemented")
+# @pytest.mark.xfail(reason="List comprehension evaluation not implemented")
 def test_list_comprehension():
     toml_str = """
 [items]
@@ -150,7 +156,7 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
 # Test 9: Dict Comprehension Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
+# @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
 def test_dict_comprehension():
     toml_str = """
 [items]
@@ -166,6 +172,20 @@ dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
 @pytest.mark.spec
 @pytest.mark.mep0011
 @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
+def test_deferred_arithmetic_operations():
+    toml_str = """
+[calc]
+result = <{ 3 + 4 }>
+"""
+    data = round_trip_loads(toml_str)
+    assert data["calc"]["result"] == "3 + 4"
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["calc"]["result"] == 7
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+@pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
 def test_arithmetic_operations():
     toml_str = """
 [calc]
@@ -174,8 +194,8 @@ result = <( 3 + 4 )>
     data = round_trip_loads(toml_str)
     assert data["calc"]["result"] == 7
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["calc"]["result"] == 7
+    rendered_data = render(out)
+    assert rendered_data["calc"]["result"] == 7
 
 # Test 11: Conditional Logic in Expressions
 @pytest.mark.spec

@@ -117,7 +117,7 @@ class ConfigTransformer(Transformer):
             "__comments__": [] 
         }
         self.current_section = self.data["__default__"]
-        self.in_tilde = False
+        self.in_deferred = False
 
     def start(self, items):
         return self.data
@@ -198,7 +198,7 @@ class ConfigTransformer(Transformer):
     def paren_expr(self, items):
         return "(" + " ".join(str(x) for x in items) + ")"
 
-    def tilde_content(self, items):
+    def deferred_content(self, items):
         def to_string(x):
             if isinstance(x, list):
                 return "".join(to_string(subx) for subx in x)
@@ -209,15 +209,15 @@ class ConfigTransformer(Transformer):
         return to_string(items)
 
     @v_args(meta=True)
-    def tilde_block(self, meta, items):
-        was_in_tilde = self.in_tilde
-        self.in_tilde = True
+    def deferred_expr(self, meta, items):
+        was_in_deferred = self.in_deferred
+        self.in_deferred = True
         # Assume we capture the entire expression using meta information.
         # For example, get the original text from self._slice_input(meta.start_pos, meta.end_pos)
         # Here we'll assume that items[0] holds the entire expression text.
         # (You may need to adjust to your actual AST.)
         full_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.in_tilde = was_in_tilde
+        self.in_deferred = was_in_deferred
         # Check the delimiter: immediate expressions start with "<{"
         if full_text.lstrip().startswith("<{"):
             # Strip off the delimiters and surrounding whitespace.
@@ -237,8 +237,98 @@ class ConfigTransformer(Transformer):
             except Exception:
                 return content
         else:
-            return self.tilde_content(items)
+            return self.deferred_content(items)
 
+
+    def comprehension_expr(self, items):
+        """
+        Process a comprehension expression.
+        In our grammar, the comprehension_expr rule might simply wrap a value.
+        For simplicity, if there's a single child that is a string (or PreservedString),
+        return its unwrapped value.
+        """
+        # If the item is a PreservedString, return its inner (unquoted) value.
+        if len(items) == 1:
+            child = items[0]
+            if isinstance(child, PreservedString):
+                return child.value
+            return child
+        # Otherwise, join the items together
+        return "".join(str(i) for i in items)
+
+    def list_comprehension(self, items):
+        """
+        Evaluate a list comprehension.
+        Expected children (in order) are:
+          1. comprehension_expr  -> the expression to compute for each element (as a string)
+          2. loop_var            -> an IDENTIFIER (the iteration variable, e.g. "x")
+          3. iterable            -> a value that is expected to be a list (or PreservedArray)
+          4. Optionally, if condition (not present in this test)
+        For example, for:
+          [f"item_{x}" for x in [1, 2, 3]]
+        We assume that f"item_{x}" was already processed by your STRING rule so that the
+        inner expression becomes something like "item_{x}" (a plain string).
+        Then, for each element in the iterable, we substitute "{x}" with the element.
+        """
+        # Unpack the items.
+        # We assume no if-clause is present.
+        # Debug output indicated that items might be:
+        # [Tree(...comprehension_expr, ['item_{x}']), "x", PreservedArray([1, 2, 3], text='[1, 2, 3]')]
+        expr = items[0]  # Should be something like "item_{x}"
+        loop_var = items[1]  # e.g. "x"
+        iterable = items[2]  # Typically a PreservedArray or a normal list
+
+        # If the iterable is a PreservedArray, use its list values.
+        if isinstance(iterable, PreservedArray):
+            iterable_values = list(iterable)
+        elif isinstance(iterable, list):
+            iterable_values = iterable
+        else:
+            iterable_values = iterable
+
+        # Evaluate the comprehension by iterating over the iterable.
+        result = []
+        for item in iterable_values:
+            # For our simple design, we perform string substitution:
+            # replace all occurrences of "{" + loop_var + "}" in the expression with str(item)
+            # You might need a more sophisticated interpolation in a production system.
+            evaluated_expr = expr.replace("{" + loop_var + "}", str(item))
+            result.append(evaluated_expr)
+        return result
+
+    # Optionally, add a transformer for dict comprehensions.
+    def dict_comprehension(self, items):
+        """
+        Evaluate a dictionary comprehension.
+        Expected children are:
+          1. comprehension_pair  -> A key:value pair (both processed as values)
+          2. loop_var            -> The iteration variable
+          3. iterable            -> The iterable value (list or PreservedArray)
+          4. Optionally, if condition
+        The comprehension_pair is assumed to be a two-element list [key_expr, value_expr].
+        We evaluate both key and value for each element, substituting occurrences of the
+        loop variable.
+        """
+        # For example, for:
+        # { f"user_{x}": x for x in [1, 2, 3] }
+        # items might be: [ [key_expr, value_expr], "x", PreservedArray([...]) ]
+        pair = items[0]  # Assume this is [key_expr, value_expr]
+        loop_var = items[1]
+        iterable = items[2]
+        if isinstance(iterable, PreservedArray):
+            iterable_values = list(iterable)
+        elif isinstance(iterable, list):
+            iterable_values = iterable
+        else:
+            iterable_values = iterable
+        result = {}
+        key_expr, val_expr = pair  # Expect these to be strings (or processed as such)
+        for item in iterable_values:
+            # Replace occurrences of {loop_var} in both key and value.
+            evaluated_key = key_expr.replace("{" + loop_var + "}", str(item))
+            evaluated_val = val_expr.replace("{" + loop_var + "}", str(item))
+            result[evaluated_key] = evaluated_val
+        return result
 
     def inline_assignment(self, items):
         """

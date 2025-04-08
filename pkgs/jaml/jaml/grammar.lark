@@ -21,10 +21,11 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 section: "[" (section_name | STRING) "]"
 section_name: IDENTIFIER ("." IDENTIFIER)*
 
-?value: array
+?value: comprehension
+      | array
       | inline_table
       | paren_expr
-      | tilde_block
+      | deferred_expr
       | STRING
       | SCOPED_VAR
       | COMMENT
@@ -37,7 +38,6 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | TABLE_ARRAY
       | FOLDER_BLOCK
       | OPERATOR
-
 
 // If you want to ignore purely horizontal spaces between tokens:
 %ignore HSPACES
@@ -73,7 +73,23 @@ inline_table_item: pre_item_comments? inline_assignment inline_comment? post_ite
 inline_assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment?
 
 
-// A simple rule to capture whitespace explicitly (if you need it in the parse tree):
+// --------------------------
+// Comprehension Handling
+// --------------------------
+?comprehension: list_comprehension
+              | dict_comprehension
+
+// List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
+list_comprehension: "[" NEWLINE* comprehension_expr "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "]"
+comprehension_expr: value
+
+// Dict comprehension (e.g., { f"user_{x}": x for x in [1, 2, 3] })
+dict_comprehension: "{" NEWLINE* comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
+comprehension_pair: value ":" value
+
+// --------------------------
+// Whitespace Handling
+// --------------------------
 ws: WHITESPACE
 
 // --------------------------
@@ -81,15 +97,14 @@ ws: WHITESPACE
 // --------------------------
 
 paren_expr: "(" value+ ")"
-tilde_block: TILDE_START tilde_content TILDE_END
-tilde_content: value*
+deferred_expr: DEFERRED_START deferred_content DEFERRED_END
+deferred_content: value*
+DEFERRED_START: "<{"
+DEFERRED_END: "}>"
 
 // ----------
 // Terminal Definitions
 // ----------
-
-TILDE_START: "<{"
-TILDE_END: "}>"
 
 // 3) STRING
 STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`)/s
