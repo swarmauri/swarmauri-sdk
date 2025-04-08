@@ -191,7 +191,7 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
 # Test 10: Arithmetic Operations in Expressions
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
+# @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
 def test_deferred_arithmetic_operations():
     toml_str = """
 [calc]
@@ -205,7 +205,7 @@ result = <{ 3 + 4 }>
 
 @pytest.mark.spec
 @pytest.mark.mep0011
-@pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
+# @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
 def test_arithmetic_operations():
     toml_str = """
 [calc]

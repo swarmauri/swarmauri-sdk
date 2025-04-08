@@ -26,6 +26,7 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
                  | inline_table
                  | paren_expr
                  | deferred_expr
+                 | folded_expr
                  | STRING
                  | SCOPED_VAR
                  | COMMENT
@@ -53,6 +54,7 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | inline_table
       | paren_expr
       | deferred_expr
+      | folded_expr
       | STRING
       | SCOPED_VAR
       | COMMENT
@@ -132,6 +134,10 @@ deferred_content: value*
 DEFERRED_START: "<{"
 DEFERRED_END: "}>"
 
+folded_expr: FOLDED_START folded_content FOLDED_END
+folded_content: value*
+FOLDED_START: "<("
+FOLDED_END: ")>"
 // ----------
 // Terminal Definitions
 // ----------
