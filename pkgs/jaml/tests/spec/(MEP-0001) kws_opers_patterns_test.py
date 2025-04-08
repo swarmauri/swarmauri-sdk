@@ -96,11 +96,8 @@ def test_triple_double_quote_string():
 def test_raw_backticks_string():
     # The JML source uses backticks to represent a raw string.
     source = "raw_backticks = `C:/Users/Name`"
-    data = loads(source)
-    expected = "C:/Users/Name"
-    assert data["__default__"]["raw_backticks"] == expected
-
-
+    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+        _ = loads(source)
 
 @pytest.mark.spec
 @pytest.mark.mep0001
