@@ -19,8 +19,7 @@ from typing import Any, Dict, Optional
 import colorama
 from colorama import Fore, Style
 from pydantic import FilePath
-
-from ._Jinja2PromptTemplate import j2pt
+from swarmauri_prompt_j2prompttemplate import j2pt
 
 # Initialize colorama for auto-resetting colors
 colorama.init(autoreset=True)

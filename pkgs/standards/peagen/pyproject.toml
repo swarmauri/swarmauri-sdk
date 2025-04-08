@@ -23,6 +23,7 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "swarmauri",
+    "swarmauri_prompt_j2prompttemplate",
 ]
 
 

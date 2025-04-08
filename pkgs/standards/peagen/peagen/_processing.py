@@ -10,12 +10,14 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
-from colorama import Fore, Style
-from typing import Dict, Any, List, Optional
 from pprint import pformat
+from typing import Any, Dict, List, Optional
+
+from colorama import Fore, Style
+from swarmauri_prompt_j2prompttemplate import j2pt
+
 from ._config import _config
 from ._rendering import _render_copy_template, _render_generate_template
-from ._Jinja2PromptTemplate import j2pt
 
 
 def _save_file(
