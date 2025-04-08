@@ -84,4 +84,42 @@ def evaluate_f_string(f_str, global_data, local_data):
     evaluated = re.sub(pattern, repl, inner)
     return evaluated
 
+def evaluate_f_string_interpolation(f_str, env):
+    """
+    Evaluate a simple f-string (e.g. f"key_{x}") by substituting any
+    occurrences of {var} with the corresponding value from env.
+    Assumes f_str starts with f" or f'.
+    """
+    # Remove the leading f and the surrounding quotes.
+    quote_char = f_str[1]
+    inner = f_str[2:-1]  # for example: 'key_{x}'
+    
+    def repl(match):
+        var_name = match.group(1).strip()
+        return str(env.get(var_name, match.group(0)))
+    
+    return re.sub(r'\{([^}]+)\}', repl, inner)
 
+
+def evaluate_comprehension(expr_node, env):
+    """
+    Evaluate an arithmetic expression from a comprehension.
+    If expr_node is a Tree (for example, an arithmetic expression), 
+    join its children into a string (with spaces) and evaluate it.
+    If it is not a Tree, assume it is already a literal value.
+    """
+    from lark import Tree, Token
+    if isinstance(expr_node, Tree):
+        # Join the string representations of the children.
+        expr_str = " ".join(str(child) for child in expr_node.children)
+        try:
+            # Evaluate using the provided environment.
+            return eval(expr_str, {"__builtins__": {}}, env)
+        except Exception as e:
+            # Fallback: return the raw expression string if evaluation fails.
+            return expr_str
+    elif isinstance(expr_node, Token):
+        return expr_node.value
+    else:
+        # Otherwise, assume it's already a computed value.
+        return expr_node

@@ -156,6 +156,7 @@ def test_multiline_array():
 @pytest.mark.mep0003
 # @pytest.mark.xfail(reason="Expected failure until inline tables are parser.parsed correctly")
 def test_inline_table():
+    # source = 'point = { x = 10, y = 20 }'
     source = 'point = { x = 10, y = 20 }'
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]

@@ -11,7 +11,7 @@ line: comment_line
 comment_line: COMMENT NEWLINE
 blank_line: NEWLINE
 
-assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment? NEWLINE?
+assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
 
 
 type_annotation: TYPE
@@ -20,6 +20,33 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 // A section header can appear
 section: "[" (section_name | STRING) "]"
 section_name: IDENTIFIER ("." IDENTIFIER)*
+
+?assignment_value: comprehension
+                 | array
+                 | inline_table
+                 | paren_expr
+                 | deferred_expr
+                 | STRING
+                 | SCOPED_VAR
+                 | COMMENT
+                 | FLOAT
+                 | INTEGER
+                 | BOOLEAN
+                 | NULL
+                 | RESERVED_FUNC
+                 | KEYWORD
+                 | TABLE_ARRAY
+                 | FOLDER_BLOCK
+                 | OPERATOR
+
+?expr_item: IDENTIFIER
+          | FLOAT
+          | INTEGER
+          | STRING
+          | SCOPED_VAR
+          | paren_expr
+
+?arithmetic: expr_item (OPERATOR expr_item)*
 
 ?value: comprehension
       | array
@@ -70,7 +97,7 @@ inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* 
 inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
 inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
                   | comment_line
-inline_assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment?
+inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
 
 
 // --------------------------
@@ -81,11 +108,14 @@ inline_assignment: IDENTIFIER (":" type_annotation)? "=" value inline_comment?
 
 // List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
 list_comprehension: "[" NEWLINE* comprehension_expr "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "]"
-comprehension_expr: value
+comprehension_expr: arithmetic
 
 // Dict comprehension (e.g., { f"user_{x}": x for x in [1, 2, 3] })
 dict_comprehension: "{" NEWLINE* comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
-comprehension_pair: value ":" value
+comprehension_pair: arithmetic (COLON | EQ) arithmetic
+
+COLON: ":"
+EQ: "="
 
 // --------------------------
 // Whitespace Handling

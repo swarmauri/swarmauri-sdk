@@ -15,7 +15,8 @@ from .lark_nodes import (
     PreservedValue, 
     PreservedArray, 
     PreservedInlineTable,
-    DeferredExpression
+    DeferredExpression,
+    DeferredComprehension
 )
 
 from lark import Token
@@ -43,10 +44,15 @@ class JMLUnparser:
     def format_value(self, value):
         if isinstance(value, DeferredExpression):
             return f"<{{ {value.expr} }}>"
+
+        # New branch for DeferredComprehension:
+        if isinstance(value, DeferredComprehension):
+            # Re-wrap it in curly braces.
+            return "{" + value.text + "}"
+        
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):
             val_str = self.format_value(value.value)
-            # Only insert a separating space if the comment doesn't already start with whitespace.
             if value.comment and not value.comment[0].isspace():
                 return f"{val_str} {value.comment}"
             else:
@@ -79,6 +85,7 @@ class JMLUnparser:
             return "{" + ", ".join(items) + "}"
         else:
             return str(value)
+
 
 
     def format_list(self, lst):

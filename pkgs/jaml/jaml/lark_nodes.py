@@ -6,8 +6,9 @@ from ._helpers import (
     unquote, 
     resolve_scoped_variable, 
     evaluate_f_string, 
-    evaluate_immediate_expression
-)  
+    evaluate_f_string_interpolation,
+    evaluate_immediate_expression,
+    evaluate_comprehension)  
 
 class DeferredExpression:
     def __init__(self, expr, local_env=None):
@@ -38,6 +39,40 @@ class DeferredExpression:
         return False
 
 
+class DeferredComprehension:
+    def __init__(self, text):
+        self.text = text  # The raw inner text of the comprehension, without outer braces.
+    def evaluate(self, env):
+        pattern = r'^(f["\'].*?["\'])\s*(?::|=)\s*(.*?)\s+for\s+(\w+)\s+in\s+(.*)$'
+        m = re.match(pattern, self.text)
+        if not m:
+            return self.text
+        key_expr_str, val_expr_str, loop_var, iterable_str = m.groups()
+        try:
+            iterable = eval(iterable_str, {"__builtins__": {}}, env)
+        except Exception:
+            return self.text
+        result = {}
+        for item in iterable:
+            local_env = { loop_var: item }
+            key = evaluate_f_string_interpolation(key_expr_str, local_env)
+            try:
+                value = eval(val_expr_str, {"__builtins__": {}}, local_env)
+            except Exception:
+                value = val_expr_str
+            result[key] = value
+        return result
+    def __str__(self):
+        # When dumping, re-wrap in braces.
+        return "{" + self.text + "}"
+    def __repr__(self):
+        return f"DeferredComprehension({self.text!r})"
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.text == other
+        if isinstance(other, DeferredComprehension):
+            return self.text == other.text
+        return False
 
 
 class PreservedString(str):
@@ -297,51 +332,62 @@ class ConfigTransformer(Transformer):
         return result
 
     # Optionally, add a transformer for dict comprehensions.
-    def dict_comprehension(self, items):
+    @v_args(meta=True)
+    def dict_comprehension(self, meta, items):
         """
-        Evaluate a dictionary comprehension.
-        Expected children are:
-          1. comprehension_pair  -> A key:value pair (both processed as values)
-          2. loop_var            -> The iteration variable
-          3. iterable            -> The iterable value (list or PreservedArray)
-          4. Optionally, if condition
-        The comprehension_pair is assumed to be a two-element list [key_expr, value_expr].
-        We evaluate both key and value for each element, substituting occurrences of the
-        loop variable.
+        Instead of immediately evaluating the dict comprehension, capture its raw text.
+        For an input like:
+          dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
+        the raw text inside the outer braces is:
+          f"key_{x}" : x * 2 for x in [1, 2, 3]
         """
-        # For example, for:
-        # { f"user_{x}": x for x in [1, 2, 3] }
-        # items might be: [ [key_expr, value_expr], "x", PreservedArray([...]) ]
-        pair = items[0]  # Assume this is [key_expr, value_expr]
-        loop_var = items[1]
-        iterable = items[2]
-        if isinstance(iterable, PreservedArray):
-            iterable_values = list(iterable)
-        elif isinstance(iterable, list):
-            iterable_values = iterable
+        # Use meta.start_pos and meta.end_pos to capture the original substring.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        # Remove the outer braces.
+        if original_text.startswith("{") and original_text.endswith("}"):
+            inner_text = original_text[1:-1].strip()
         else:
-            iterable_values = iterable
-        result = {}
-        key_expr, val_expr = pair  # Expect these to be strings (or processed as such)
-        for item in iterable_values:
-            # Replace occurrences of {loop_var} in both key and value.
-            evaluated_key = key_expr.replace("{" + loop_var + "}", str(item))
-            evaluated_val = val_expr.replace("{" + loop_var + "}", str(item))
-            result[evaluated_key] = evaluated_val
-        return result
+            inner_text = original_text
+        return DeferredComprehension(inner_text)
+
+
+
 
     def inline_assignment(self, items):
         """
-        Transforms an inline assignment (e.g. x = 10) into a dictionary.
-        Handles optional type annotations.
+        Transforms an inline assignment (e.g. x = 10 or x: type = 10) into a dictionary.
+        Handles optional type annotations. Supports both forms:
+          - Without a colon: e.g. x = 10
+          - With a colon: e.g. x: type = 10
         """
-        if len(items) == 2:
-            key, value = items
-        elif len(items) == 3:
-            key, type_annotation, value = items
+        # If the second item is a COLON token, then we expect the structure:
+        # [IDENTIFIER, COLON, type_annotation, value, (optional inline_comment)]
+        if len(items) >= 4 and isinstance(items[1], Token) and items[1].type == "COLON":
+            key = items[0]
+            type_annotation = items[2]
+            value = items[3]
+            inline = items[4] if len(items) > 4 else None
         else:
-            raise ValueError("Unexpected structure in inline_assignment: " + str(items))
+            # Otherwise, use the old cases.
+            if len(items) == 2:
+                key, value = items
+                inline = None
+            elif len(items) == 3:
+                # Determine if the third is inline comment or a type annotation.
+                if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
+                    key, value, inline = items
+                elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
+                    key, value, inline = items
+                else:
+                    key, type_annotation, value = items
+                    inline = None
+            elif len(items) == 4:
+                key, type_annotation, value, inline = items
+            else:
+                raise ValueError("Unexpected structure in inline_assignment: " + str(items))
+        
         return { key: value }
+
 
     def inline_table_item(self, items):
         """

@@ -157,16 +157,36 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
-def test_dict_comprehension():
+def test_dict_dot_notation_comprehension():
+    """
+    Comprehensions should defer evaluation
+    """
     toml_str = """
 [items]
-dict_config = {f"key_{x}": x * 2 for x in [1, 2, 3]}
+dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
 """
     data = round_trip_loads(toml_str)
-    assert data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    assert data["items"]["dict_config"] == 'f"key_{x}" : x * 2 for x in [1, 2, 3]'
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    rendered_data = render(out)
+    assert rendered_data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
+def test_dict_assignment_comprehension():
+    """
+    Comprehensions should defer evaluation
+    """
+    toml_str = """
+[items]
+dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
+"""
+    data = round_trip_loads(toml_str)
+    assert data["items"]["dict_config"] == 'f"key_{x}" = x * 2 for x in [1, 2, 3]'
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
 
 # Test 10: Arithmetic Operations in Expressions
 @pytest.mark.spec
