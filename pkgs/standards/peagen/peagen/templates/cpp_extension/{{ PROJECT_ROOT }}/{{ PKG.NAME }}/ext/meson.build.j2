@@ -1,0 +1,14 @@
+# C++ extension module
+cpp_extension = py3.extension_module(
+  '{{ PKG.NAME }}_cpp',
+  'cpp_module.cpp',
+  include_directories: [
+    include_directories('.'),
+    incdir_numpy,
+  ],
+  dependencies: [
+    dependency('threads'),
+    # Add any other C++ dependencies here
+  ],
+  install: true,
+)

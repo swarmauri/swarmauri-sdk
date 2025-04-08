@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "meson-python>=0.15.0"]
+build-backend = "meson_python.backend"
+
+[project]
+name = "{{ PKG.NAME }}"
+version = "0.1.0"
+description = "{{ PKG.DESCRIPTION }}"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [
+    {name = "Jacob Stewart", email = "jacob@swarmauri.com"}
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Development Status :: 3 - Alpha"
+]
+
+dependencies = [
+    "numpy>=1.22.0",
+    # Add other dependencies here
+    {% if PKG.PACKAGE_REQUIRES %}
+    {% for required in PKG.PACKAGE_REQUIRES %}
+    "{{ required.NAME }}{{ required.VERSION }}",
+    {% endfor %}
+    {% endif %}
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[tool.uv]
+# Standard uv configuration
+package-management = true
+pip = true
+python-version = ">=3.10,<3.13"
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"

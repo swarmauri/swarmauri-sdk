@@ -1,0 +1,26 @@
+"""{{ PKG.NAME }} - {{ PKG.DESCRIPTION }}"""
+
+try:
+    from . import {{ PKG.NAME }}_cpp
+except ImportError:
+    raise ImportError(
+        "Failed to import C++ extension module. "
+        "The package may not be properly installed or compiled."
+    )
+
+from .py_module import PyClass
+
+__all__ = ["PyClass", "{{ PKG.NAME }}_cpp"]
+
+try:
+    # For Python 3.8 and newer
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # For older Python versions
+    from importlib_metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("{{ PKG.NAME }}")
+except PackageNotFoundError:
+    # If the package is not installed (for example, during development)
+    __version__ = "0.0.0"
