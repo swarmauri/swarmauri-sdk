@@ -206,7 +206,7 @@ result = <{ 3 + 4 }>
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
-def test_arithmetic_operations():
+def test_folded_arithmetic_operations():
     toml_str = """
 [calc]
 result = <( 3 + 4 )>

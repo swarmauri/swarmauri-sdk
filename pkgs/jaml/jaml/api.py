@@ -108,11 +108,13 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
 
 
 def round_trip_loads(s: str):
-    tree = parser.parse(s)
+    ast = parser.parse(s)
+    print("[DEBUG]: ")
+    pprint(ast)
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    return transformer.transform(tree)
+    return transformer.transform(ast)
 
 
 def round_trip_load(fp: IO[str]) -> Any:
@@ -131,4 +133,6 @@ def render(text, context={}):
     Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
     ast = loads(text)
+    print("[DEBUG]: ")
+    pprint(ast)
     return substitute_deferred(ast, context)

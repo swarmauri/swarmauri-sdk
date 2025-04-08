@@ -274,6 +274,45 @@ class ConfigTransformer(Transformer):
         else:
             return self.deferred_content(items)
 
+    @v_args(meta=True)
+    def folded_expr(self, meta, items):
+        # Obtain the entire original text for the folded expression.
+        full_text = self._slice_input(meta.start_pos, meta.end_pos).strip()
+        
+        # Ensure it starts with the folded expression start delimiter "<(" and ends with ")>"
+        if full_text.startswith("<(") and full_text.endswith(")>"):
+            # Remove the delimiters.
+            inner_expr = full_text[2:-2].strip()
+        else:
+            # Fallback: try to join children tokens
+            inner_expr = " ".join(child.value if hasattr(child, "value") else str(child)
+                                  for child in items)
+            inner_expr = inner_expr.strip()
+        
+        # OPTIONAL: If you need variable interpolation similar to f-string behavior,
+        # you might call a helper similar to evaluate_immediate_expression.
+        # For example:
+        # inner_expr = evaluate_immediate_expression(inner_expr, self.data, self.current_section)
+        
+        # Prepare the evaluation context (global and local environments).
+        # You can merge self.data (global env) with self.current_section (local env) if needed.
+        eval_context = {}
+        eval_context.update(self.data)
+        eval_context.update(self.current_section)
+        # Also include any constants you may require.
+        eval_context.update({"true": True, "false": False})
+        
+        try:
+            # Evaluate the expression in the restricted environment.
+            result = eval(inner_expr, {"__builtins__": {}}, eval_context)
+            return result
+        except Exception as exc:
+            # Optionally log the error, then return the inner expression or raise.
+            # print("Folded expr eval failed:", exc)
+            return inner_expr
+
+
+
 
     def comprehension_expr(self, items):
         """

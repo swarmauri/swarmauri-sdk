@@ -135,7 +135,7 @@ DEFERRED_START: "<{"
 DEFERRED_END: "}>"
 
 folded_expr: FOLDED_START folded_content FOLDED_END
-folded_content: value*
+folded_content: value+
 FOLDED_START: "<("
 FOLDED_END: ")>"
 // ----------
