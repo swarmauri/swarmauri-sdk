@@ -1,9 +1,10 @@
 
 # MEP-0022: F-String Interpolation
-**Author:** [Your Name/Group]  
+**Author:** Jacob Stewart
 **Status:** Draft  
 **Created:** April 04, 2025  
-**Target Language:** [Your Markup Language Name]
+**Target Language:** TBD
+
 
 ## Abstract
 This proposal introduces f-string interpolation with embedded conditional logic using `{}` brackets as a mechanism for dynamic string generation within the markup language. F-strings provide a readable way to embed expressions and variables, while conditional logic within `{}` allows for inline decision-making, producing string values or null. This enhances the language’s templating capabilities without requiring external processing.

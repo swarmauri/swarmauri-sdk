@@ -1,8 +1,10 @@
 # MEP-0011: Scoped Variables, Comprehensions, and Expressions
-
+**Author:** Jacob Stewart
 **Status:** Draft  
 **Created:** April 04, 2025  
-**Target Language:** [Your Markup Language Name]
+**Target Language:** TBD
+
+
 
 ---
 
