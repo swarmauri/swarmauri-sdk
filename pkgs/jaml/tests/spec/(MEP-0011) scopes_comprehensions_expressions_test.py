@@ -40,8 +40,8 @@ url = f"@{path.base}/config.toml"
     data = round_trip_loads(sample)
     assert data["config"]["url"] == 'f"@{path.base}/config.toml"'
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["config"]["url"] == "/home/user/config.toml"
+    rendered_data = render(out)
+    assert rendered_data["config"]["url"] == "/home/user/config.toml"
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec

@@ -3212,9 +3212,11 @@ name = "peagen"
 version = "0.1.2.dev5"
 source = { editable = "standards/peagen" }
 dependencies = [
+    { name = "colorama" },
     { name = "inflect" },
     { name = "jinja2" },
     { name = "python-dotenv" },
+    { name = "swarmauri" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -3237,9 +3239,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "colorama" },
     { name = "inflect" },
     { name = "jinja2" },
     { name = "python-dotenv" },
+    { name = "swarmauri", editable = "swarmauri" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },

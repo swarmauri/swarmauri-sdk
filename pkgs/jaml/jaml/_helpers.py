@@ -59,18 +59,12 @@ def evaluate_f_string(f_str, global_data, local_data):
     def repl(match):
         scope_marker = match.group(1)
         var_name = match.group(2).strip()
-        if scope_marker == '@':
+        if scope_marker == '@' or '%':
             # For unscoped globals, if there is no dot, look in __default__.
             if '.' in var_name:
                 value = resolve_scoped_variable(var_name, global_data)
             else:
-                value = global_data.get("__default__", {}).get(var_name, match.group(0))
-        elif scope_marker == '%':
-            # For self-scope, use the local context.
-            if '.' in var_name:
-                value = resolve_scoped_variable(var_name, local_data)
-            else:
-                value = local_data.get(var_name, match.group(0))
+                value = global_data.get(var_name, match.group(0))
         else:
             value = match.group(0)
         if value is None:

@@ -148,10 +148,9 @@ class ConfigTransformer(Transformer):
         super().__init__()
         # Store normal data in __default__ or nested sections
         self.data = {
-            "__default__": {},
             "__comments__": [] 
         }
-        self.current_section = self.data["__default__"]
+        self.current_section = self.data
         self.in_deferred = False
 
     def start(self, items):
@@ -219,6 +218,7 @@ class ConfigTransformer(Transformer):
                 self.data[raw_section] = {}
             self.current_section = self.data[raw_section]
             return self.data[raw_section]
+
 
 
     def section_name(self, items):
@@ -670,9 +670,9 @@ class ConfigTransformer(Transformer):
         s = token.value
         # Check if the string (after stripping leading whitespace) starts with an f-prefix.
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
-            # Evaluate the f-string using both global and local contexts.
-            evaluated = evaluate_f_string(s.lstrip(), self.data, self.current_section)
-            return evaluated
+            # Preserve the f-string instead of evaluating it
+            return PreservedString(s.lstrip(), s)
+        
         # Standard handling for triple-quoted strings.
         if s.startswith("'''") and s.endswith("'''"):
             inner = s[3:-3]

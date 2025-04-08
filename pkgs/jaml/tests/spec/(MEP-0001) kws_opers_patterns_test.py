@@ -70,7 +70,7 @@ def test_single_quote_string():
     source = "single = 'Hello, World!'"
     data = loads(source)
     # Expect that the value has been unquoted correctly.
-    assert data["__default__"]["single"] == "Hello, World!"
+    assert data["single"] == "Hello, World!"
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -80,7 +80,7 @@ def test_triple_single_quote_string():
     source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
     expected = '"""One\nTwo\nThree"""'
-    assert data["__default__"]["triple_single"] == expected
+    assert data["triple_single"] == expected
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -89,7 +89,7 @@ def test_triple_double_quote_string():
     source = 'triple_double = """Line1\nLine2\nLine3"""'
     data = loads(source)
     expected = "Line1\nLine2\nLine3"
-    assert data["__default__"]["triple_double"] == expected
+    assert data["triple_double"] == expected
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -98,7 +98,7 @@ def test_raw_backticks_string():
     source = "raw_backticks = `C:/Users/Name`"
     data = loads(source)
     expected = "C:/Users/Name"
-    assert data["__default__"]["raw_backticks"] == expected
+    assert data["raw_backticks"] == expected
 
 
 

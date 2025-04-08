@@ -162,33 +162,21 @@ class JMLUnparser:
         if top_comments:
             output += "\n"
 
-        # 2) Dump default assignments if any.
-        default_section = config_data.get("__default__", {})
-        for key, value in default_section.items():
-            # Check if it's an inline-comment dict.
-            if (
-                isinstance(value, dict)
-                and "_value" in value
-                and "_inline_comment" in value
-            ):
-                val_str = self.format_value(value["_value"])
-                cmt_str = value["_inline_comment"]
-                output += f"{key} = {val_str}  {cmt_str}\n"
+        # 2) Go through all top-level keys (skipping __comments__)
+        for key, value in config_data.items():
+            if key == "__comments__":
+                continue
+
+            # If the value is a dict => it's a "section"
+            if isinstance(value, dict):
+                output += self.unparse_section(value, [key])
             else:
+                # It's a simple assignment at top level
                 output += f"{key} = {self.format_value(value)}\n"
 
-        if default_section:
-            output += "\n"
-
-        # 3) Dump named sections.
-        for key, section in config_data.items():
-            if key in ("__default__", "__comments__"):
-                continue
-            output += self.unparse_section(section, [key])
-
-        # Ensure the final output has a leading and trailing newline.
         final_output = output.rstrip("\n")
         return final_output
+
 
     def __str__(self):
         return self.unparse()
