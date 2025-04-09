@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "meson-python>=0.15.0"]
-build-backend = "meson_python.backend"
+requires = ["meson-python", "ninja", "pybind11"]
+build-backend = "mesonpy"
 
 [project]
 name = "{{ PKG.NAME }}"
@@ -23,8 +23,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "numpy>=1.22.0",
-    # Add other dependencies here
+    # Dependencies
+    <!-- include additional dependencies here -->
     {% if PKG.PACKAGE_REQUIRES %}
     {% for required in PKG.PACKAGE_REQUIRES %}
     "{{ required.NAME }}{{ required.VERSION }}",
@@ -33,18 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "mypy>=1.0.0",
-]
-
-[tool.uv]
-# Standard uv configuration
-package-management = true
-pip = true
-python-version = ">=3.10,<3.13"
+dev = ["pytest", "uv"]
 
 [tool.pytest.ini_options]
 markers = [

@@ -1,14 +1,26 @@
-# C++ extension module
-cpp_extension = py3.extension_module(
-  '{{ PKG.NAME }}_cpp',
-  'cpp_module.cpp',
-  include_directories: [
-    include_directories('.'),
-    incdir_numpy,
-  ],
-  dependencies: [
-    dependency('threads'),
-    # Add any other C++ dependencies here
-  ],
+py = import('python')
+pybind11 = dependency('pybind11')
+
+# Define the C++ standard and compiler options
+cpp_args = [
+  '-std=c++17',
+  '-Wall',
+  '-Wextra',
+  '-Wpedantic',
+]
+
+# Include all C++ modules in the package
+cpp_modules = [
+  {%- for MOD in PKG.MODULES %}
+  '{{ PKG.NAME }}/{{ MOD.NAME }}.cpp',
+  {%- endfor %}
+]
+
+# Create the Python extension module
+py.extension_module(
+  '{{ PKG.NAME }}',
+  cpp_modules,
+  dependencies: [pybind11],
+  cpp_args: cpp_args,
   install: true,
 )

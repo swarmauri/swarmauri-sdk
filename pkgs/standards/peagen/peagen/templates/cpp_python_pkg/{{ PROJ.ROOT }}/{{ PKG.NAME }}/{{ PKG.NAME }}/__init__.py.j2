@@ -1,22 +1,18 @@
-"""{{ PKG.NAME }} - {{ PKG.DESCRIPTION }}"""
+{%- for mod in PKG.MODULES -%}
+from .{{ mod.NAME }} import {{ mod.NAME }}
+{%- endfor %}
 
-try:
-    from . import {{ PKG.NAME }}_cpp
-except ImportError:
-    raise ImportError(
-        "Failed to import C++ extension module. "
-        "The package may not be properly installed or compiled."
-    )
-
-from .py_module import PyClass
-
-__all__ = ["{{ PKG.NAME }}_cpp"]
+__all__ = [
+{%- for mod in PKG.MODULES %}
+    "{{ mod.NAME }}"{%- if not loop.last %},{%- endif %}
+{%- endfor %}
+]
 
 try:
     # For Python 3.8 and newer
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
-    # For older Python versions
+    # For older Python versions, use the backport
     from importlib_metadata import version, PackageNotFoundError
 
 try:
