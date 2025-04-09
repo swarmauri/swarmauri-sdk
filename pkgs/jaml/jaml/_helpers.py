@@ -23,15 +23,18 @@ def resolve_scoped_variable(var_name, data):
 
 def evaluate_immediate_expression(expr, global_data, local_data):
     """
-    Replace all occurrences of:
-      - %{var} with the repr() (string literal) of local_data[var],
-      - @{var} with the repr() of global_data[var] (using dotted notation if needed),
-      - ${...} with a string literal of the original placeholder (so it is preserved).
-      
-    The resulting expression (a valid Python expression as a string) is then ready to be
-    eval'ed in a restricted environment.
+    Substitute placeholders in a folded (immediate) expression so that arithmetic,
+    string concatenation, and boolean operations can be evaluated.
+
+    This function performs three passes:
+      1. Replace all occurrences of %{var} with the repr() of local_data[var].
+      2. Replace all occurrences of @{var} (supporting dotted names) with the repr() of global_data[var].
+      3. Replace all occurrences of ${...} with a quoted version (so that the placeholder remains 
+         in the evaluated result).
+
+    The returned string is a valid Python expression ready to be evaluated.
     """
-    # First, replace self-scope markers %{...} using local_data.
+    # 1) Replace self-scope markers (%{...}):
     pattern_local = re.compile(r'%{([^}]+)}')
     def repl_local(match):
         var_name = match.group(1).strip()
@@ -44,11 +47,12 @@ def evaluate_immediate_expression(expr, global_data, local_data):
             return repr(unquote(value))
         return str(value)
     expr = re.sub(pattern_local, repl_local, expr)
-
-    # Next, replace global markers @{...} using global_data.
+    
+    # 2) Replace global markers (@{...}):
     pattern_global = re.compile(r'@{([^}]+)}')
     def repl_global(match):
         var_name = match.group(1).strip()
+        # Use dotted lookup if needed.
         if '.' in var_name:
             value = resolve_scoped_variable(var_name, global_data)
         else:
@@ -61,17 +65,15 @@ def evaluate_immediate_expression(expr, global_data, local_data):
             return repr(unquote(value))
         return str(value)
     expr = re.sub(pattern_global, repl_global, expr)
-
-    # Finally, replace context markers ${...} with a quoted version (so they remain literals).
+    
+    # 3) Replace context markers (${...}) with a quoted version so they remain unresolved.
     pattern_context = re.compile(r'\$\{([^}]+)\}')
     def repl_context(match):
         placeholder = match.group(0)  # e.g. "${auth_token}"
-        # Wrap the placeholder in repr to preserve it as a string literal.
         return repr(placeholder)
     expr = re.sub(pattern_context, repl_context, expr)
-
+    
     return expr
-
 
 def evaluate_f_string(f_str, global_data, local_data):
     """
