@@ -20,7 +20,6 @@
   MODULE_NAME: null
   EXTRAS:
     DEPENDENCIES: []
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Defines the license for package {{ PKG.NAME }}."
     DESCRIPTION: "This file contains the license for package {{ PKG.NAME }}."
 
@@ -35,10 +34,9 @@
     DEPENDENCIES:
       {#- Loop over modules to include their main file as dependencies #}
       {%- for MOD in PKG.MODULES %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
       {%- endfor %}
         - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Specifies package metadata and dependencies for {{ PKG.NAME }}."
     DESCRIPTION: "Configuration for package {{ PKG.NAME }} with C++ extensions using Meson build system."
     REQUIREMENTS:
@@ -59,7 +57,6 @@
       {%- for MOD in PKG.MODULES %}
       - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
       {%- endfor %}
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Main Meson build configuration."
     DESCRIPTION: "Configures the C++ build environment for Python extensions."
     REQUIREMENTS:
@@ -77,10 +74,9 @@
     DEPENDENCIES:
         - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
       {%- for MOD in PKG.MODULES %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
       {%- endfor %}
         - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml"
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Documents package {{ PKG.NAME }}."
     DESCRIPTION: "{{ PKG.EXTRAS.DESCRIPTION }}"
     REQUIREMENTS:
@@ -93,6 +89,54 @@
 # -------------------------
 # C++ Extension Files
 # -------------------------
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
+    DESCRIPTION: "This file makes the directory a Python package."
+    DEPENDENCIES: []
+
+{% for MOD in PKG.MODULES %}
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES: []
+    PURPOSE: "C++ extension module implementation."
+    DESCRIPTION: "Provides C++ functionality to be called from Python."
+    REQUIREMENTS:
+      - "Must use Python C API correctly."
+      - "Must define at least one example function."
+      - "Should properly initialize NumPy API."
+      - "Must handle Python object reference counting correctly."
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES:
+      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
+    PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
+    DESCRIPTION: "Tests for module {{ MOD.NAME }} and its C++ functionality."
+    REQUIREMENTS:
+      - "Must use pytest."
+      - "Must use @pytest.mark.unit decorator to mark test cases."
+      - "Where applicable use pytest fixtures and parameterize."
+      - "Should test the C++ extension functionality through the Python interface."
+{% endfor %}
 
 - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/meson.build.j2{% endraw %}"
   RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/meson.build"
@@ -106,81 +150,11 @@
       {%- for MOD in PKG.MODULES %}
       - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
       {%- endfor %}
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Configure C++ extension module build."
     DESCRIPTION: "Meson build configuration for the C++ extension module."
     REQUIREMENTS:
       - "Must properly configure the C++ extension module for Python."
       - "Must include necessary dependencies for C++ compilation."
-
-{% for MOD in PKG.MODULES %}
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "{{ MOD.NAME }}"
-  EXTRAS:
-    DEPENDENCIES: []
-    TEMPLATE_SET: "cpp_python_pkg"
-    PURPOSE: "C++ extension module implementation."
-    DESCRIPTION: "Provides C++ functionality to be called from Python."
-    REQUIREMENTS:
-      - "Must use Python C API correctly."
-      - "Must define at least one example function."
-      - "Should properly initialize NumPy API."
-      - "Must handle Python object reference counting correctly."
-{% endfor %}
-
-# -------------------------
-# Package Test Files
-# -------------------------
-
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ PKG.NAME }}.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ PKG.NAME }}.py"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: null
-  EXTRAS:
-    DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-    {%- for MOD in PKG.MODULES %}
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
-    {%- endfor %}
-    TEMPLATE_SET: "cpp_python_pkg"
-    PURPOSE: "Unit tests for {{ PKG.NAME }}."
-    DESCRIPTION: "Tests for both Python and C++ functionality."
-    REQUIREMENTS:
-      - "Must use pytest."
-      - "Must use @pytest.mark.unit decorator to mark test cases."
-      - "Must test both Python interface and C++ extension functionality."
-      - "Should include NumPy array tests."
-
-{% for MOD in PKG.MODULES %}
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: "{{ MOD.NAME }}"
-  EXTRAS:
-    DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.cpp"
-    TEMPLATE_SET: "cpp_python_pkg"
-    PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
-    DESCRIPTION: "Tests for module {{ MOD.NAME }} and its C++ functionality."
-    REQUIREMENTS:
-      - "Must use pytest."
-      - "Must use @pytest.mark.unit decorator to mark test cases."
-      - "Where applicable use pytest fixtures and parameterize."
-      - "Should test the C++ extension functionality through the Python interface."
-{% endfor %}
 
 # -------------------------
 # Integration Test Files
@@ -196,7 +170,6 @@
   EXTRAS:
     DEPENDENCIES:
       - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-    TEMPLATE_SET: "cpp_python_pkg"
     PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
     DESCRIPTION: "Ensures that the __init__.py in the source folder loads correctly with C++ extensions."
     REQUIREMENTS:

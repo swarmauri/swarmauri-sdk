@@ -1,81 +1,10 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
-
-<p align="center">
-    <a href="https://pypi.org/project/{{ PKG.NAME }}/">
-        <img src="https://img.shields.io/pypi/dm/{{ PKG.NAME }}" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJECT_ROOT }}/{{ PKG.NAME }}">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/{{PROJECT_ROOT}}/{{ PKG.NAME }}&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-</p>
-
-# {{ PKG.NAME }}
-
-{{ PKG.DESCRIPTION }}
+# `{{ PKG.NAME }}`
 
 ## Installation
 
-This package includes C++ extensions and requires a C++ compiler to be installed on your system.
+<!-- Please provide detailed installation instructions here. -->
 
-```bash
-# Install the latest release from PyPI
-pip install {{ PKG.NAME }}
+## Usage 
 
-# Install with development dependencies
-pip install {{ PKG.NAME }}[dev]
+<!-- Please provide detailed usage examples and explanations here. -->
 
-# Install from source
-git clone https://github.com/swarmauri/swarmauri-sdk.git
-cd swarmauri-sdk/pkgs/{{ PROJECT_ROOT }}/{{ PKG.NAME }}
-pip install -e .
-```
-
-## Building from Source
-
-This package uses Meson as a build system. To build from source:
-
-```bash
-# Setup the build directory
-meson setup builddir
-cd builddir
-
-# Build the package
-meson compile
-
-# Install the built package
-meson install
-```
-
-## Usage
-
-```python
-import {{ PKG.NAME }}
-
-# Use the Python interface
-obj = {{ PKG.NAME }}.PyClass()
-result = obj.process_string("Hello, world!")
-print(result)  # Outputs: Processed: Hello, world!
-
-# Work with NumPy arrays
-import numpy as np
-arr = np.array([1, 2, 3])
-processed = obj.example_numpy_function(arr)
-print(processed)  # Outputs: [2 4 6]
-```
-
-## Development
-
-### Prerequisites
-
-- Python 3.10+
-- C++ compiler (GCC, Clang, or MSVC)
-- Meson build system
-- NumPy
-
-### Testing
-
-```bash
-pytest
-```
-
-## License
-
-Apache-2.0
