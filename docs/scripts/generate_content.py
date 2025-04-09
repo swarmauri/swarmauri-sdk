@@ -3,8 +3,11 @@ import pkgutil
 import importlib
 import inspect
 import yaml
+import re
+from typing import Dict, List
 
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
+
 
 def ensure_home_page(docs_dir: str):
     """
@@ -20,10 +23,12 @@ def ensure_home_page(docs_dir: str):
     else:
         print(f"Home page already exists at {home_file_path}")
 
+
 def generate_docs(package_name: str, output_dir: str) -> dict:
     """
-    Generate MkDocs-friendly Markdown files for each module and class in 'package_name',
+    Generate MkDocs-friendly Markdown files for each class in 'package_name',
     storing them under 'output_dir'. Return a dict describing modules -> list of classes.
+    This function skips generating module-level documentation files.
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -35,7 +40,9 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
 
     # Ensure it's a proper package
     if not hasattr(root_package, "__path__"):
-        raise ValueError(f"'{package_name}' is not a package or has no __path__ attribute.")
+        raise ValueError(
+            f"'{package_name}' is not a package or has no __path__ attribute."
+        )
 
     package_path = root_package.__path__
 
@@ -50,10 +57,10 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
         except ImportError:
             continue
 
-        # Convert "swarmauri_core.some_module" -> "swarmauri_core/some_module.md"
+        # Convert "swarmauri_core.some_module" -> "swarmauri_core/some_module"
         relative_path = module_name.replace(".", "/")
-        doc_file_path = os.path.join(output_dir, f"{relative_path}.md")
-        os.makedirs(os.path.dirname(doc_file_path), exist_ok=True)
+        module_dir = os.path.join(output_dir, os.path.dirname(relative_path))
+        os.makedirs(module_dir, exist_ok=True)
 
         # Gather all classes actually defined in this module
         classes = [
@@ -63,27 +70,12 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
         ]
         class_names = [cls_name for cls_name, _ in classes]
 
-        # ---- Write the module Markdown file ----
-        with open(doc_file_path, "w", encoding="utf-8") as md_file:
-            md_file.write(f"# Documentation for `{module_name}`\n\n")
-            md_file.write(f"::: {module_name}\n")
-            md_file.write("    options.extra:\n")
-            md_file.write("      show_submodules: false\n")
-            md_file.write("      show_inheritance: false\n")
-            # Exclude children so we don't double-document classes
-            md_file.write("      filters:\n")
-            md_file.write("        - '!.*'  # exclude everything but the module docstring\n\n")
+        # Skip generating module-level documentation files
+        # We only generate class documentation files
 
-            if class_names:
-                md_file.write("## Classes\n\n")
-                for cls_name in class_names:
-                    # Link to a separate class doc
-                    md_file.write(f"- [`{cls_name}`]({cls_name}.md)\n")
-                md_file.write("\n")
-        
         # ---- Write separate files for each class ----
         for cls_name, _ in classes:
-            class_file_path = os.path.join(os.path.dirname(doc_file_path), f"{cls_name}.md")
+            class_file_path = os.path.join(module_dir, f"{cls_name}.md")
             with open(class_file_path, "w", encoding="utf-8") as cls_md_file:
                 cls_md_file.write(f"# Class `{module_name}.{cls_name}`\n\n")
                 cls_md_file.write(f"::: {module_name}.{cls_name}\n")
@@ -95,112 +87,238 @@ def generate_docs(package_name: str, output_dir: str) -> dict:
     return module_classes_map
 
 
-def build_nav(
+def build_nav_for_api_docs(
     package_name: str,
     module_classes_map: dict,
-    docs_dir: str,
     local_output_dir: str,
     top_label: str = "core",
-    home_page: str = "index.md"
+    home_page: str = "index.md",
 ) -> list:
     """
-    Return a nav structure that looks like:
+    Return a nav structure that fits under the API Documentation section:
 
-    nav:
-      - core:
-        - Home: index.md
-        - ClassOne: path/to/ClassOne.md
-        - ClassTwo: path/to/ClassTwo.md
+    - API Documentation:
+      - api/index.md
+      - Top Label:
+        - Home: api/top_label/index.md
+        - Agents:
+          - QAAgent: api/top_label/package_name/agents/QAAgent.md
+          - RagAgent: api/top_label/package_name/agents/RagAgent.md
+        - Chains:
+          - CallableChain: api/top_label/package_name/chains/CallableChain.md
         ...
+
+    This function organizes classes by module category (agents, chains, etc.)
     """
-    # Sort the modules for stable output
-    sorted_modules = sorted(module_classes_map.keys())
+    # Start with the index page
+    top_label_items = [
+        {"Home": os.path.join(local_output_dir, top_label.lower(), home_page)}
+    ]
 
-    # We'll build a single top-level list containing one dictionary: { core: [...] }.
-    # 1) Start with "Home" => index.md
-    core_items = [{"Home": os.path.join(
-                local_output_dir,
-                home_page
-            )}]
+    # Group modules by their category
+    category_map = {}
 
-    # 2) For each module, add each class to the nav at the same level
-    for module_name in sorted_modules:
-        class_names = sorted(module_classes_map[module_name])
-        for cls_name in class_names:
-            # E.g. "src/swarmauri_core/ComponentBase/ComponentBase.md"
-            if len(module_name.split('.')) > 2:
-                print(module_name)
-                module_name = '/'.join(module_name.split('.')[:2])
-                class_md_path = os.path.join(
-                    local_output_dir,
-                    module_name,
-                    f"{cls_name}.md"
-                )
-            else:
-                module_name = '/'.join(module_name.split('.')[:1])
-                class_md_path = os.path.join(
-                    local_output_dir,
-                    module_name,
-                    f"{cls_name}.md"
-                )
-            
-            core_items.append({cls_name: class_md_path})
+    # First pass: extract all module categories
+    for full_module_name in module_classes_map.keys():
+        # Skip modules with no classes
+        if not module_classes_map[full_module_name]:
+            continue
 
-    # Wrap everything under the top_label (e.g. "core")
-    return [{top_label: core_items}]
+        # Parse the module path to extract the category
+        parts = full_module_name.split(".")
 
-def write_nav_to_mkdocs_yml(mkdocs_yml_path: str, new_nav: list, replace_nav: bool = True):
+        # We need at least package.category format
+        if len(parts) < 2:
+            continue
+
+        # For modules like "swarmauri_standard.agents.QAAgent", category is "agents"
+        # For modules like "swarmauri_standard.agents", category is also "agents"
+        if len(parts) == 2:
+            category = parts[1]  # package.category
+        else:
+            # For deeper modules, we want to use the folder name as the category
+            # e.g., "swarmauri_standard.agents.submodule" -> "agents"
+            category = parts[1]
+
+        # Format the category name nicely
+        # Convert snake_case to Title Case (e.g., "tool_llms" -> "Tool Llms")
+        display_category = category.replace("_", " ").title()
+
+        # Initialize category if not exists
+        if display_category not in category_map:
+            category_map[display_category] = []
+
+        # Get the class names for this module
+        for class_name in module_classes_map[full_module_name]:
+            # In generate_docs, class files are created as:
+            # module_dir = os.path.join(output_dir, os.path.dirname(relative_path))
+            # class_file_path = os.path.join(module_dir, f"{cls_name}.md")
+
+            # So we need to recreate that path structure
+            module_dirname = os.path.dirname(full_module_name.replace(".", "/"))
+
+            # Build the correct path to the class documentation file
+            class_path = os.path.join(
+                local_output_dir, top_label.lower(), module_dirname, f"{class_name}.md"
+            )
+
+            # Add the class and path to the category
+            category_map[display_category].append({class_name: class_path})
+
+    # Add each category to the navigation
+    for category, items in sorted(category_map.items()):
+        # Sort items by class name and deduplicate
+        seen_classes = set()
+        unique_sorted_items = []
+
+        for item in sorted(items, key=lambda x: list(x.keys())[0]):
+            class_name = list(item.keys())[0]
+            if class_name not in seen_classes:
+                seen_classes.add(class_name)
+                unique_sorted_items.append(item)
+
+        top_label_items.append({category: unique_sorted_items})
+
+    # Return the structure for this top_label
+    return [{top_label: top_label_items}]
+
+
+def load_mkdocs_yml_safely(mkdocs_yml_path: str):
     """
-    Load mkdocs.yml and either replace or append to the existing 'nav' key with new_nav.
-    :param replace_nav: If True, we replace the entire nav with 'new_nav'.
-                       If False, we extend the existing nav by appending 'new_nav'.
+    Load the mkdocs.yml file safely, handling custom Python tags.
     """
     if not os.path.isfile(mkdocs_yml_path):
         raise FileNotFoundError(f"Could not find mkdocs.yml at '{mkdocs_yml_path}'")
 
+    # Read the file content
     with open(mkdocs_yml_path, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
+        content = f.read()
+
+    # Replace Python tags with placeholders
+    pattern = r"!!python/name:([^\s]+)"
+    placeholders = {}
+
+    def replace_tag(match):
+        tag = match.group(0)
+        placeholder = f"__PYTHON_TAG_{len(placeholders)}__"
+        placeholders[placeholder] = tag
+        return placeholder
+
+    modified_content = re.sub(pattern, replace_tag, content)
+
+    # Load the modified content
+    config = yaml.safe_load(modified_content)
+
+    return config, placeholders
+
+
+def save_mkdocs_yml_safely(mkdocs_yml_path: str, config: dict, placeholders: dict):
+    """
+    Save the mkdocs.yml file, restoring custom Python tags.
+    """
+    # Convert config to YAML
+    content = yaml.safe_dump(config, sort_keys=False)
+
+    # Restore Python tags
+    for placeholder, tag in placeholders.items():
+        content = content.replace(f"'{placeholder}'", tag)
+
+    # Write the file
+    with open(mkdocs_yml_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+
+def update_api_docs_nav(mkdocs_yml_path: str, new_section: list):
+    """
+    Update the API Documentation section in mkdocs.yml with the new section.
+    If the section already exists, it will be replaced.
+    """
+    # Load the config safely
+    config, placeholders = load_mkdocs_yml_safely(mkdocs_yml_path)
 
     if "nav" not in config:
         config["nav"] = []
 
-    if replace_nav:
-        # Overwrite
-        config["nav"] = new_nav
-    else:
-        # Append
-        config["nav"].extend(new_nav)
+    # Find the API Documentation section
+    api_docs_index = None
+    for i, section in enumerate(config["nav"]):
+        if isinstance(section, dict) and "API Documentation" in section:
+            api_docs_index = i
+            break
 
-    with open(mkdocs_yml_path, "w", encoding="utf-8") as f:
-        yaml.safe_dump(config, f, sort_keys=False)
+    if api_docs_index is None:
+        # If API Documentation section doesn't exist, create it
+        config["nav"].append({"API Documentation": ["api/index.md"]})
+        api_docs_index = len(config["nav"]) - 1
+
+    # Get the current API Documentation section
+    api_docs_section = config["nav"][api_docs_index]["API Documentation"]
+
+    # Check if the top_label already exists in the API Documentation section
+    top_label = list(new_section[0].keys())[0]  # Get the top_label from the new section
+    top_label_index = None
+
+    for i, item in enumerate(api_docs_section):
+        if isinstance(item, dict) and top_label in item:
+            top_label_index = i
+            break
+
+    if top_label_index is not None:
+        # Replace the existing top_label section
+        api_docs_section[top_label_index] = new_section[0]
+    else:
+        # Add the new top_label section
+        api_docs_section.append(new_section[0])
+
+    # Update the config
+    config["nav"][api_docs_index]["API Documentation"] = api_docs_section
+
+    # Save the config safely
+    save_mkdocs_yml_safely(mkdocs_yml_path, config, placeholders)
 
 
 def generate(
     package_name: str,
     docs_dir: str,
-    local_output_dir: str,
+    api_output_dir: str,
     mkdocs_yml_path: str,
-    top_label: str = "core",
+    top_label: str,
     home_page: str = "index.md",
-    replace_nav: bool = False,
 ):
     """
-    1) Ensure there's a Home: index.md
+    1) Ensure there's a Home: index.md for the top_label
     2) Generate doc files for the given package.
-    3) Build a nav structure under 'top_label' (e.g., "core"), with "Home" as the first item.
-    4) Write that nav into mkdocs.yml (either replacing or appending).
+    3) Build a nav structure under 'API Documentation' -> 'top_label'
+    4) Update the API Documentation section in mkdocs.yml
     """
-    # Step 1: Ensure Home page
-    home_page_dir = os.path.join(docs_dir, package_name)
-    home_page_file_path = os.path.join(package_name, home_page)
-    ensure_home_page(home_page_dir)
-    
+    # Step 1: Ensure Home page for the top_label
+    top_label_dir = os.path.join(docs_dir, api_output_dir, top_label.lower())
+    ensure_home_page(top_label_dir)
 
     # Step 2: Generate doc files
-    module_classes_map = generate_docs(package_name, docs_dir)
+    # Place the package documentation in a subdirectory matching the package name
+    output_dir = os.path.join(docs_dir, api_output_dir, top_label.lower())
+    module_classes_map = generate_docs(package_name, output_dir)
 
-    # Step 3: Build a nav structure
-    new_nav_structure = build_nav(package_name, module_classes_map, docs_dir, local_output_dir, top_label, home_page_file_path)
+    # Step 3: Build a nav structure for API Documentation
+    new_section = build_nav_for_api_docs(
+        package_name, module_classes_map, api_output_dir, top_label, home_page
+    )
 
-    # Step 4: Write to mkdocs.yml
-    write_nav_to_mkdocs_yml(mkdocs_yml_path, new_nav_structure, replace_nav=replace_nav)
+    # Step 4: Update the API Documentation section in mkdocs.yml
+    update_api_docs_nav(mkdocs_yml_path, new_section)
+
+    print(
+        f"Documentation for {package_name} has been generated and added to the API Documentation section."
+    )
+
+
+if __name__ == "__main__":
+    # Example usage
+    generate(
+        package_name="swarmauri_base",
+        docs_dir="docs/docs",
+        api_output_dir="api",
+        mkdocs_yml_path="docs/mkdocs.yml",
+        top_label="Base",
+    )
