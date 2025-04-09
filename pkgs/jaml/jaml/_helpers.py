@@ -23,48 +23,88 @@ def resolve_scoped_variable(var_name, data):
 
 def evaluate_immediate_expression(expr, global_data, local_data):
     """
-    Substitute all occurrences of %{var} in expr using values from local_data.
-    Return a valid Python expression as a string.
+    Replace all occurrences of:
+      - %{var} with the repr() (string literal) of local_data[var],
+      - @{var} with the repr() of global_data[var] (using dotted notation if needed),
+      - ${...} with a string literal of the original placeholder (so it is preserved).
+      
+    The resulting expression (a valid Python expression as a string) is then ready to be
+    eval'ed in a restricted environment.
     """
-    pattern = re.compile(r'%{([^}]+)}')
-    def repl(match):
+    # First, replace self-scope markers %{...} using local_data.
+    pattern_local = re.compile(r'%{([^}]+)}')
+    def repl_local(match):
         var_name = match.group(1).strip()
         value = local_data.get(var_name, match.group(0))
         if value is None:
             return match.group(0)
-        # Use repr() so the substituted value becomes a proper Python literal.
         if hasattr(value, 'value'):
             return repr(unquote(value.value))
         elif isinstance(value, str):
             return repr(unquote(value))
         return str(value)
-    return re.sub(pattern, repl, expr)
+    expr = re.sub(pattern_local, repl_local, expr)
+
+    # Next, replace global markers @{...} using global_data.
+    pattern_global = re.compile(r'@{([^}]+)}')
+    def repl_global(match):
+        var_name = match.group(1).strip()
+        if '.' in var_name:
+            value = resolve_scoped_variable(var_name, global_data)
+        else:
+            value = global_data.get(var_name, match.group(0))
+        if value is None:
+            return match.group(0)
+        if hasattr(value, 'value'):
+            return repr(unquote(value.value))
+        elif isinstance(value, str):
+            return repr(unquote(value))
+        return str(value)
+    expr = re.sub(pattern_global, repl_global, expr)
+
+    # Finally, replace context markers ${...} with a quoted version (so they remain literals).
+    pattern_context = re.compile(r'\$\{([^}]+)\}')
+    def repl_context(match):
+        placeholder = match.group(0)  # e.g. "${auth_token}"
+        # Wrap the placeholder in repr to preserve it as a string literal.
+        return repr(placeholder)
+    expr = re.sub(pattern_context, repl_context, expr)
+
+    return expr
 
 
 def evaluate_f_string(f_str, global_data, local_data):
     """
     Evaluate an f-string by substituting interpolations.
-    This function supports two kinds of markers:
-      - Global markers: @{...} (using global_data, with dotted names resolved in global_data)
-      - Self/local markers: %{...} (using local_data, with dotted names resolved in local_data)
+    
+    This function supports three kinds of markers:
+      - Global markers: @{...} (looked up in global_data; supports dotted names)
+      - Self/local markers: %{...} (looked up in local_data; supports dotted names)
+      - Context markers: ${...} (looked up in global_data)
       
-    f_str is assumed to start with f" or f'
+    f_str is assumed to start with f" or f'.
     """
     # Remove the leading f and surrounding quotes.
     inner = f_str[2:-1]
 
-    # This regex now captures a scope marker (@ or %) and the variable name.
+    # First pass: Process markers for global (@) and self/local (%) substitutions.
     pattern = re.compile(r'([@%]){([^}]+)}')
-    
+
     def repl(match):
         scope_marker = match.group(1)
         var_name = match.group(2).strip()
-        if scope_marker == '@' or '%':
-            # For unscoped globals, if there is no dot, look in __default__.
+        if scope_marker == '@':
+            # Global lookup: if the name is dotted, do a nested lookup.
             if '.' in var_name:
                 value = resolve_scoped_variable(var_name, global_data)
             else:
                 value = global_data.get(var_name, match.group(0))
+        elif scope_marker == '%':
+            # Self/local lookup: use local_data.
+            if '.' in var_name:
+                value = resolve_scoped_variable(var_name, local_data)
+            else:
+                value = local_data.get(var_name, match.group(0))
         else:
             value = match.group(0)
         if value is None:
@@ -76,6 +116,22 @@ def evaluate_f_string(f_str, global_data, local_data):
         return str(value)
 
     evaluated = re.sub(pattern, repl, inner)
+
+    # Second pass: Process context markers of the form ${...} using the global_data.
+    context_pattern = re.compile(r'\$\{([^}]+)\}')
+
+    def context_repl(match):
+        var_name = match.group(1).strip()
+        value = resolve_scoped_variable(var_name, global_data)
+        if value is None:
+            return match.group(0)
+        if hasattr(value, 'value'):
+            return unquote(value.value)
+        elif isinstance(value, str):
+            return unquote(value)
+        return str(value)
+
+    evaluated = re.sub(context_pattern, context_repl, evaluated)
     return evaluated
 
 def evaluate_f_string_interpolation(f_str, env):

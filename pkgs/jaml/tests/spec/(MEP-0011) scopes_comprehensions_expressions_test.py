@@ -59,8 +59,8 @@ greeting = f"Hello, %{name}!"
     data = round_trip_loads(sample)
     assert data["user"]["greeting"] == 'f"Hello, %{name}!"'
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["user"]["greeting"] == "Hello, Alice!"
+    rendered_data = render(out)
+    assert rendered_data["user"]["greeting"] == "Hello, Alice!"
 
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
@@ -77,8 +77,8 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     # With a render context provided:
 
     out = round_trip_dumps(data)
-    data_with_context = render(out, context={"user": {"name": "Alice", "age": 30}})
-    assert data_with_context["logic"]["summary"] == "User: Alice, Age: 30"
+    rendered_data = render(out, context={"user": {"name": "Alice", "age": 30}})
+    assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
 
 # Test 5: F-String Interpolation
 @pytest.mark.spec
@@ -92,11 +92,11 @@ text = f"Hello, ${name}!"
     # Assuming 'name' is provided via render context.
     data = round_trip_loads(sample)
     out = round_trip_dumps(data)
-    data_with_context = render(out, context={"name": "Alice"})
-    assert data_with_context["message"]["text"] == "Hello, Alice!"
+    rendered_data = render(out, context={"name": "Alice"})
+    assert rendered_data["message"]["text"] == "Hello, Alice!"
 
     data_again = loads(out)
-    assert data_again["message"]["text"] == "Hello, ${name}!"
+    assert data_again["message"]["text"] == 'f"Hello, ${name}!"'
 
 # Test 6: Deferred Expression Evaluation using <{ ... }>
 @pytest.mark.spec
@@ -223,16 +223,46 @@ result = <( 3 + 4 )>
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
-def test_conditional_logic():
+def test_fstring_conditional_logic():
     sample = """
 [cond]
 status = f"{'Yes' if true else 'No'}"
 """
     data = round_trip_loads(sample)
+    assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["cond"]["status"] == "Yes"
+
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
+def test_deferred_conditional_logic():
+    sample = """
+[cond]
+status = <{'Yes' if true else 'No'}>
+"""
+    data = round_trip_loads(sample)
+    assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["cond"]["status"] == "Yes"
+
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
+def test_immediate_conditional_logic():
+    sample = """
+[cond]
+status = <('Yes' if true else 'No')>
+"""
+    data = round_trip_loads(sample)
     assert data["cond"]["status"] == "Yes"
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["cond"]["status"] == "Yes"
+    rendered_data = render(out)
+    assert rendered_data["cond"]["status"] == "Yes"
 
 # Is this really a type inference test? 
 @pytest.mark.spec

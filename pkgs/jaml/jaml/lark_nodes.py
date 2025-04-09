@@ -334,41 +334,59 @@ class ConfigTransformer(Transformer):
         """
         Evaluate a list comprehension.
         Expected children (in order) are:
-          1. comprehension_expr  -> the expression to compute for each element (as a string)
+          1. comprehension_expr  -> the expression to compute for each element,
+                                    e.g. an f-string like f"item_{x}"
           2. loop_var            -> an IDENTIFIER (the iteration variable, e.g. "x")
           3. iterable            -> a value that is expected to be a list (or PreservedArray)
-          4. Optionally, if condition (not present in this test)
+        
         For example, for:
           [f"item_{x}" for x in [1, 2, 3]]
-        We assume that f"item_{x}" was already processed by your STRING rule so that the
-        inner expression becomes something like "item_{x}" (a plain string).
-        Then, for each element in the iterable, we substitute "{x}" with the element.
+        If the comprehension expression is an f-string, it is evaluated for each item,
+        using the iteration variable as a self-scope.
         """
         # Unpack the items.
-        # We assume no if-clause is present.
-        # Debug output indicated that items might be:
-        # [Tree(...comprehension_expr, ['item_{x}']), "x", PreservedArray([1, 2, 3], text='[1, 2, 3]')]
-        expr = items[0]  # Should be something like "item_{x}"
-        loop_var = items[1]  # e.g. "x"
-        iterable = items[2]  # Typically a PreservedArray or a normal list
+        expr = items[0]       # e.g. f-string or plain string
+        loop_var = items[1]   # e.g. "x"
+        iterable = items[2]   # Typically a PreservedArray or a list
 
-        # If the iterable is a PreservedArray, use its list values.
-        if isinstance(iterable, PreservedArray):
+        # Resolve the iterable into its basic list-of-values form.
+        if hasattr(iterable, 'original_text'):
             iterable_values = list(iterable)
         elif isinstance(iterable, list):
             iterable_values = iterable
         else:
             iterable_values = iterable
 
-        # Evaluate the comprehension by iterating over the iterable.
         result = []
-        for item in iterable_values:
-            # For our simple design, we perform string substitution:
-            # replace all occurrences of "{" + loop_var + "}" in the expression with str(item)
-            # You might need a more sophisticated interpolation in a production system.
-            evaluated_expr = expr.replace("{" + loop_var + "}", str(item))
-            result.append(evaluated_expr)
+
+        # Determine if the expression is an f-string.
+        # We assume that if 'expr' is a PreservedString, its 'original' attribute holds the literal.
+        is_f_string = False
+        if hasattr(expr, 'original'):
+            lit = expr.original.lstrip()
+            if lit.startswith('f"') or lit.startswith("f'"):
+                is_f_string = True
+        elif isinstance(expr, str):
+            lit = expr.lstrip()
+            if lit.startswith('f"') or lit.startswith("f'"):
+                is_f_string = True
+
+        # For each item, either evaluate the f-string using the loop variable binding,
+        # or perform a simple replacement.
+        if is_f_string:
+            for item in iterable_values:
+                env = { loop_var: item }
+                # Use the original f-string text.
+                source = expr.original if hasattr(expr, 'original') else expr
+                evaluated_expr = evaluate_f_string_interpolation(source, env)
+                result.append(evaluated_expr)
+        else:
+            for item in iterable_values:
+                evaluated_expr = expr.replace("{" + loop_var + "}", str(item))
+                result.append(evaluated_expr)
+
         return result
+
 
     # Optionally, add a transformer for dict comprehensions.
     @v_args(meta=True)
