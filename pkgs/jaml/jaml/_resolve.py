@@ -69,9 +69,9 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
 
     elif isinstance(node, PreservedString):
         # check f-string prefix
-        stripped = node.original.lstrip()
+        stripped = node.origin.lstrip()
         if stripped.startswith("f\"") or stripped.startswith("f'"):
-            return _maybe_resolve_fstring(node.original, global_env, local_env)
+            return _maybe_resolve_fstring(node.origin, global_env, local_env)
         else:
             return node.value
 
@@ -182,7 +182,7 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
     # Fallback if the content_tree is missing.
     if not hasattr(node, 'content_tree') or node.content_tree is None:
         print("[DEBUG] No content_tree found, using original")
-        folded_literal = node.original
+        folded_literal = node.origin
         stripped = folded_literal.strip()
         if not (stripped.startswith("<(") and stripped.endswith(")>")):
             node.resolved = folded_literal
@@ -197,7 +197,7 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
             if isinstance(result, str) and '${' in result:
                 result = 'f"' + result + '"'
             node.resolved = result
-            # Do not update node.original when result is not a string.
+            # Do not update node.origin when result is not a string.
             return result
         except Exception as e:
             print("[DEBUG] Exception during fallback safe_eval:", e)
@@ -215,8 +215,8 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
         if isinstance(token, (int, float)):
             return str(token)
         # If the token object has an 'original' attribute, use that.
-        if hasattr(token, 'original'):
-            return token.original
+        if hasattr(token, 'origin'):
+            return token.origin
         # If the token is a string:
         if isinstance(token, str):
             if token.startswith('@{') or token.startswith('%{'):
@@ -247,6 +247,7 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
             result = eval(compile(expr_string, "<string>", "eval"), {}, {})
         else:
             print("[DEBUG] Expression is non-arithmetic. Using safe_eval().")
+            print(expr_string)
             result = safe_eval(expr_string)
         
         print("[DEBUG] Evaluation result:", result)
@@ -257,7 +258,7 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
             print("[DEBUG] Adjusted result to f-string:", result)
             
         node.resolved = result
-        # For arithmetic (non-string) results, do NOT update node.original.
+        # For arithmetic (non-string) results, do NOT update node.origin.
         # This preserves the original folded expression for potential round-trip needs.
         return result
     except Exception as e:

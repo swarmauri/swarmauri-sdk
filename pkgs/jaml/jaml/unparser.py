@@ -61,8 +61,8 @@ class JMLUnparser:
         # New branch for DeferredDictComprehension:
         if isinstance(value, DeferredDictComprehension):
             if self.debug:
-                print("[DEBUG UNPARSER] Value is DeferredDictComprehension. Returning original:", value.original)
-            return value.original
+                print("[DEBUG UNPARSER] Value is DeferredDictComprehension. Returning origin:", value.origin)
+            return value.origin
         
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):
@@ -77,11 +77,11 @@ class JMLUnparser:
         if isinstance(value, PreservedInlineTable):
             if self.debug:
                 print("[DEBUG UNPARSER] Value is a PreservedInlineTable.")
-            # For single-line inline tables, simply return the original text.
-            if "\n" not in value.original:
+            # For single-line inline tables, simply return the origin text.
+            if "\n" not in value.origin:
                 if self.debug:
-                    print("[DEBUG UNPARSER] Inline table is single-line. Returning original:", value.original)
-                return value.original
+                    print("[DEBUG UNPARSER] Inline table is single-line. Returning origin:", value.origin)
+                return value.origin
             else:
                 if self.debug:
                     print("[DEBUG UNPARSER] Inline table is multiline. Proceeding to reformat.")
@@ -93,8 +93,8 @@ class JMLUnparser:
             return str(value)
         elif isinstance(value, PreservedString):
             if self.debug:
-                print("[DEBUG UNPARSER] Value is a PreservedString. Returning original:", value.original)
-            return value.original
+                print("[DEBUG UNPARSER] Value is a PreservedString. Returning origin:", value.origin)
+            return value.origin
         elif isinstance(value, str):
             if self.debug:
                 print("[DEBUG UNPARSER] Value is a plain string.")
@@ -148,8 +148,8 @@ class JMLUnparser:
     def format_list(self, lst):
         if self.debug:
             print("[DEBUG UNPARSER] Entering format_list with list:", lst)
-        # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
-        if isinstance(lst, PreservedArray) and "\n" not in lst.original:
+        # If we have a PreservedArray and the origin text is a single line, reserialize it in one line.
+        if isinstance(lst, PreservedArray) and "\n" not in lst.origin:
             formatted_items = [self.format_value(item) for item in lst]
             result = f"[{', '.join(formatted_items)}]"
             if self.debug:
@@ -180,8 +180,8 @@ class JMLUnparser:
     def unparse_inline_table(self, inline_table):
         if self.debug:
             print("[DEBUG UNPARSER] Entering unparse_inline_table with inline_table:", inline_table)
-        # Use the stored text (or fallback to original) to preserve comment layout.
-        text = getattr(inline_table, "text", inline_table.original)
+        # Use the stored text (or fallback to origin) to preserve comment layout.
+        text = getattr(inline_table, "text", inline_table.origin)
         text = text.strip()
         if self.debug:
             print("[DEBUG UNPARSER] Inline table text after strip:", text)
@@ -274,7 +274,7 @@ class JMLUnparser:
         # Recurse into nested sections.
         for key, subsec in nested_sections.items():
             # If the nested section is a multiline inline table, expand it as its own section.
-            if isinstance(subsec, PreservedInlineTable) and "\n" in subsec.original:
+            if isinstance(subsec, PreservedInlineTable) and "\n" in subsec.origin:
                 new_path = section_path + [key]
                 header = f"[{'.'.join(new_path)}]\n"
                 inline_sec = self.unparse_inline_table(subsec) + "\n\n"
@@ -300,7 +300,7 @@ class JMLUnparser:
                     print("[DEBUG UNPARSER] Collapsing section further for key:", only_key)
                 return self._collapse_section(section_path + [only_key], val)
             # Collapse if it is a multiline inline table.
-            elif isinstance(val, PreservedInlineTable) and "\n" in val.original:
+            elif isinstance(val, PreservedInlineTable) and "\n" in val.origin:
                 if self.debug:
                     print("[DEBUG UNPARSER] Collapsing section to inline table for key:", only_key)
                 return section_path + [only_key], val

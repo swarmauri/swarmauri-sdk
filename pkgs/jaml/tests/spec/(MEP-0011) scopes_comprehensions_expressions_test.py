@@ -58,7 +58,7 @@ url = f"@{paths.base}/config.toml"
     print("[DEBUG]:")
     print(data)
 
-    data["config"]["url"].original = 'f"@{paths.alt}/config.toml"'
+    data["config"]["url"].origin = 'f"@{paths.alt}/config.toml"'
     print("[DEBUG]:")
     print(data)
 
@@ -93,7 +93,7 @@ greeting = f"Hello, %{name}!"
     print("[DEBUG]:")
     print(data)
 
-    data["user"]["greeting"].original = 'f"Hello, %{altname}!"'
+    data["user"]["greeting"].origin = 'f"Hello, %{altname}!"'
     print("[DEBUG]:")
     print(data)
 
@@ -102,7 +102,7 @@ greeting = f"Hello, %{name}!"
     print(resolved_config)
     assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
-    out = round_trip_dumps(data)
+    out  = round_trip_dumps(data)
     rendered_data = render(out)
     print("[DEBUG]:")
     print(rendered_data)
@@ -197,7 +197,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     print(data)
     assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
 
-    data["api"]["endpoint"].original = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data["api"]["endpoint"].origin = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
     print("[DEBUG]:")
     print(data)
 
@@ -226,7 +226,7 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     print(data)
     assert data["items"]["list_config"] == '[f"item_{x}" for x in [1, 2, 3]]'
 
-    data["items"]["list_config"].original = '[f"item_{x}" for x in [5, 10, 15]]'
+    data["items"]["list_config"].origin = '[f"item_{x}" for x in [5, 10, 15]]'
     print("[DEBUG]:")
     print(data)
 
@@ -258,7 +258,7 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
     print(data)
     assert data["items"]["dict_config"] == '{f"key_{x}" : x * 2 for x in [1, 2, 3]}'
 
-    data["items"]["dict_config"].original = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
+    data["items"]["dict_config"].origin = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")
     print(data)
 
@@ -288,7 +288,7 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
     data = round_trip_loads(sample)
     assert data["items"]["dict_config"] == '{f"key_{x}" = x * 2 for x in [1, 2, 3]}'
 
-    data["items"]["dict_config"].original = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
+    data["items"]["dict_config"].origin = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")
     print(data)
 
@@ -314,7 +314,7 @@ result = <( 3 + 4 )>
     print(data)
     assert data["calc"]["result"] == '<( 3 + 4 )>'
 
-    data["calc"]["result"].original = '<( 7 + 4 )>'
+    data["calc"]["result"].origin = '<( 7 + 4 )>'
     print("[DEBUG]:")
     print(data)
 
@@ -354,8 +354,8 @@ result = <( 3 + 4 )>
     assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
     assert data["calc"]["result"] == '<( 3 + 4 )>'
 
-    data["api"]["endpoint"].original = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
-    data["calc"]["result"].original = '<( 7 + 4 )>'
+    data["api"]["endpoint"].origin = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data["calc"]["result"].origin = '<( 7 + 4 )>'
     print("[DEBUG]:")
     print(data)
 
@@ -387,7 +387,7 @@ status = f"{'Yes' if true else 'No'}"
     assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
 
 
-    data["cond"]["status"].original = '''f"{'Yes' if false else 'No'}"'''
+    data["cond"]["status"].origin = '''f"{'Yes' if false else 'No'}"'''
     print("[DEBUG]:")
     print(data)
 
@@ -414,7 +414,7 @@ status = <('Yes' if true else 'No')>"""
     print(data)
     assert data["cond"]["status"] == "<('Yes' if true else 'No')>"
 
-    data["cond"]["status"].original = "<('Yes' if false else 'No')>"
+    data["cond"]["status"].origin = "<('Yes' if false else 'No')>"
     print("[DEBUG]:")
     print(data)
 

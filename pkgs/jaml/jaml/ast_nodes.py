@@ -20,12 +20,12 @@ class FoldedExpressionNode:
         self.content_tree = content_tree  # This is the parse subtree from folded_content
 
     @property
-    def original(self) -> str:
+    def origin(self) -> str:
         """Getter for the original text."""
         return self._original
 
-    @original.setter
-    def original(self, new_text):
+    @origin.setter
+    def origin(self, new_text):
         """
         Setter for the original text.
         Whenever the original text is updated, re-parse it to update the content_tree.
@@ -56,7 +56,7 @@ class FoldedExpressionNode:
         return self._original
 
     def __repr__(self):
-        return f"FoldedExpressionNode(original={self._original!r}, content_tree={self.content_tree!r})"
+        return f"FoldedExpressionNode(origin={self._original!r}, content_tree={self.content_tree!r})"
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -89,11 +89,11 @@ class DeferredListComprehension:
         self.text = text
 
     @property
-    def original(self):
+    def origin(self):
         return self.text
 
-    @original.setter
-    def original(self, value):
+    @origin.setter
+    def origin(self, value):
         self.text = value
 
     @property
@@ -142,27 +142,27 @@ class DeferredListComprehension:
 
 class DeferredDictComprehension:
     def __init__(self, text):
-        self.original_text = text  # The raw inner text, or full text including braces
+        self.origin_text = text  # The raw inner text, or full text including braces
 
     @property
-    def original(self):
-        return self.original_text
+    def origin(self):
+        return self.origin_text
 
-    @original.setter
-    def original(self, value):
-        self.original_text = value
+    @origin.setter
+    def origin(self, value):
+        self.origin_text = value
 
     def evaluate(self, env):
-        # (Your existing implementation that uses self.original_text.)
+        # (Your existing implementation that uses self.origin_text.)
         pattern = r'^(f["\'].*?["\'])\s*(?::|=)\s*(.*?)\s+for\s+(\w+)\s+in\s+(.*)$'
-        m = re.match(pattern, self.original_text.strip().strip('{}'))
+        m = re.match(pattern, self.origin_text.strip().strip('{}'))
         if not m:
-            return self.original_text
+            return self.origin_text
         key_expr_str, val_expr_str, loop_var, iterable_str = m.groups()
         try:
             iterable = eval(iterable_str, {"__builtins__": {}}, env)
         except Exception:
-            return self.original_text
+            return self.origin_text
         result = {}
         for item in iterable:
             local_env = {loop_var: item}
@@ -174,14 +174,14 @@ class DeferredDictComprehension:
             result[key] = value
         return result
     def __str__(self):
-        return "{" + self.original_text + "}"
+        return "{" + self.origin_text + "}"
     def __repr__(self):
-        return f"DeferredDictComprehension({self.original_text!r})"
+        return f"DeferredDictComprehension({self.origin_text!r})"
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.original_text == other
+            return self.origin_text == other
         if isinstance(other, DeferredDictComprehension):
-            return self.original_text == other.original_text
+            return self.origin_text == other.origin_text
         return False
 
 
@@ -190,15 +190,15 @@ class PreservedString(str):
         # Create a new string instance using the unquoted value.
         obj = super().__new__(cls, value)
         obj.value = value
-        obj.original = original  # store the original text, e.g. '"Hello, World!"'
+        obj.origin = original  # store the original text, e.g. '"Hello, World!"'
         return obj
 
     def __str__(self):
         # When converting to string for round-trip output, return the original quoted text.
-        return self.original
+        return self.origin
 
     def __repr__(self):
-        return f"PreservedString(value={super().__str__()!r}, original={self.original!r})"
+        return f"PreservedString(value={super().__str__()!r}, origin={self.origin!r})"
 
     def __reduce_ex__(self, protocol):
         """
@@ -207,7 +207,7 @@ class PreservedString(str):
         """
         return (
             self.__class__,
-            (self.value, self.original)  # The args we pass to __new__
+            (self.value, self.origin)  # The args we pass to __new__
         )
 
 class PreservedValue:
@@ -231,7 +231,7 @@ class PreservedArray(list):
     """
     def __init__(self, items, original_text):
         super().__init__(items)
-        self.original = original_text  # the entire "[ ... ]" text
+        self.origin = original_text  # the entire "[ ... ]" text
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -239,10 +239,10 @@ class PreservedArray(list):
         return super().__eq__(other)
 
     def __repr__(self):
-        return f"PreservedArray({list(self)!r}, text={self.original!r})"
+        return f"PreservedArray({list(self)!r}, text={self.origin!r})"
 
     def __str__(self):
-        return self.original
+        return self.origin
 
 
 class PreservedInlineTable(dict):
@@ -252,12 +252,12 @@ class PreservedInlineTable(dict):
     """
     def __init__(self, data, original_text):
         super().__init__(data)  # parse dict content
-        self.original = original_text
+        self.origin = original_text
 
     def __repr__(self):
-        return f"PreservedInlineTable(data={dict(self)}, text={self.original!r})"
+        return f"PreservedInlineTable(data={dict(self)}, text={self.origin!r})"
 
     def __str__(self):
         # Return the brace-delimited text exactly as originally parsed.
-        return self.original
+        return self.origin
 

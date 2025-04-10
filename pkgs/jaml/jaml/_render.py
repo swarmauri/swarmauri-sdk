@@ -34,13 +34,13 @@ def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, An
     # Otherwise, if node.resolved is a string and it does not look like a folded expression, return it.
     # (This might be the case for f-string substitutions that are not numeric.)
     if hasattr(node, 'resolved') and isinstance(node.resolved, str):
-        # Optionally, check if the node.original still starts with "<(".
-        if not node.original.strip().startswith("<("):
+        # Optionally, check if the node.origin still starts with "<(".
+        if not node.origin.strip().startswith("<("):
             print("[DEBUG RENDER] Returning cached string resolution:", node.resolved)
             return node.resolved
 
     # Otherwise, process as before.
-    folded_literal = node.original.strip()
+    folded_literal = node.origin.strip()
     if not (folded_literal.startswith("<(") and folded_literal.endswith(")>")):
         return folded_literal
 
@@ -52,8 +52,8 @@ def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, An
             return ""
         if isinstance(token, (int, float)):
             return str(token)
-        if hasattr(token, 'original'):
-            return token.original
+        if hasattr(token, 'origin'):
+            return token.origin
         if isinstance(token, str):
             if token.startswith('@{') or token.startswith('%{'):
                 substituted_val = _substitute_vars(token, env)
@@ -234,7 +234,7 @@ def substitute_deferred(ast_node, env):
         return result
 
     elif isinstance(ast_node, PreservedString):
-        s = ast_node.original
+        s = ast_node.origin
         print("[DEBUG SUB_DEFERRED] Processing PreservedString:", s)
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
             print("[DEBUG SUB_DEFERRED] Detected f-string in PreservedString:", s)

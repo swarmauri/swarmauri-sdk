@@ -84,8 +84,6 @@ def test_round_trip_loads_valid():
     # Assuming that the AST is a dict-like structure and should contain a 'rootDir' key.
     assert isinstance(ast, dict), "The AST should be a dictionary."
     assert "rootDir" in ast, "AST should contain 'rootDir' key."
-    # Optionally, ensure some structure from the file blocks is present.
-    # For instance, one could check for a key related to file blocks if defined by the transformer.
     
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
@@ -95,14 +93,24 @@ def test_update_root_dir():
     """
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
-    ast = round_trip_loads(JML_INPUT)
-    # Update the rootDir value from "src" to "source"
-    ast["rootDir"] = "source"
-    resolved_ast = resolve(ast)
-    dumped_text = round_trip_dumps(resolved_ast)
-    rendered_output = render(dumped_text, context=BASE_CONTEXT)
-    # Verify that the update is reflected in file paths (e.g., "source/auth" should appear instead of "src/auth")
-    assert "source/auth" in rendered_output, "Updated rootDir not reflected in file paths."
+    data = round_trip_loads(JML_INPUT)
+    assert data["rootDir"] == "src"
+
+    resolved_config = resolve(data)
+    assert resolved_config["rootDir"] == "src"
+
+    out = round_trip_dumps(data)
+    rendered_data = render(JML_INPUT, context=BASE_CONTEXT)
+    final_out = round_trip_dumps(rendered_data)
+    
+    assert resolved_config["rootDir"] == "src"
+    assert "source/auth" in final_out
+
+    rendered_data = render(out, context=BASE_CONTEXT)
+    final_out = round_trip_dumps(rendered_data)
+    
+    assert resolved_config["rootDir"] == "src"
+    assert "source/auth" in final_out
 
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
@@ -113,16 +121,20 @@ def test_update_context_env():
     Validate that updating the external context (env from 'prod' to 'dev')
     causes the config file's environment to be updated in the rendered output.
     """
-    ast = round_trip_loads(JML_INPUT)
-    resolved_ast = resolve(ast)
-    dumped_text = round_trip_dumps(resolved_ast)
-    # Update the environment value in the context.
+    data = round_trip_loads(JML_INPUT)
+    
+    resolved_config = resolve(data)
+
+    out = round_trip_dumps(data)
     new_context = dict(BASE_CONTEXT)
     new_context["env"] = "dev"
-    rendered_output = render(dumped_text, context=new_context)
-    # Check that the config block now has extras with "env" set to "dev".
-    assert '"env" = "dev"' in rendered_output, "Updated env value not reflected in config extras."
+    rendered_data = render(JML_INPUT, context=new_context)
+    final_out = round_trip_dumps(rendered_data)
+    assert '"env" = "dev"' in final_out
 
+    rendered_data = render(out, context=new_context)
+    final_out = round_trip_dumps(rendered_data)
+    assert '"env" = "dev"' in final_out
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
@@ -132,12 +144,27 @@ def test_update_module_extras():
     Validate that updating a module's 'extras' (changing the owner for the login module)
     is reflected in the rendered output.
     """
-    ast = round_trip_loads(JML_INPUT)
+    data = round_trip_loads(JML_INPUT)
     # Update the context to change the owner in the login module from "teamA" to "teamX".
     new_context = deepcopy(BASE_CONTEXT)
     new_context["packages"][0]["modules"][0]["extras"]["owner"] = "teamX"
-    resolved_ast = resolve(ast)
-    dumped_text = round_trip_dumps(resolved_ast)
-    rendered_output = render(dumped_text, context=new_context)
-    # Check that the rendered output now contains the updated owner value.
-    assert '"owner" = "teamX"' in rendered_output, "Updated module extras not reflected in rendered output."
+
+    resolved_config = resolve(data)
+    out = round_trip_dumps(data)
+
+    rendered_data = render(JML_INPUT, context=new_context)
+    final_out = round_trip_dumps(rendered_data)
+
+    assert """[[file.auth.signup.config]]
+name = "signup.yaml"
+path = "src/auth/config/signup.yaml"
+type = "yaml"
+extras = { "env" = "prod" }""" in final_out
+
+    assert '"env" = "dev"' in final_out
+    assert '"owner" = "teamX"' in final_out
+
+    rendered_data = render(out, context=new_context)
+    final_out = round_trip_dumps(rendered_data)
+    assert '"env" = "dev"' in final_out
+    assert '"owner" = "teamX"' in final_out

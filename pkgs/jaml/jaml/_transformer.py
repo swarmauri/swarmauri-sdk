@@ -136,6 +136,41 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"Created FoldedExpressionNode: {node}")
         return node
 
+    def string_component(self, items):
+        # items can be a STRING or a SCOPED_VAR.
+        # For simplicity, we assume they come in as tokens.
+        token = items[0]
+        if token[0] == "STRING":
+            # Remove outer quotes, etc., if needed.
+            # Here, simply return the token value.
+            return token[1].strip('"').strip("'")
+        elif token[0] == "SCOPED_VAR":
+            # You might have a function to resolve the scoped variable from context.
+            # For this example, we simply return the variable markup unchanged.
+            return token[1]
+        return token
+
+    def concat_expr(self, items):
+        # Each item should already be a string from string_component.
+        # Join them together.
+        parts = []
+        for child in items:
+            if isinstance(child, str):
+                parts.append(child)
+            else:
+                # If it’s a tree or something else, convert to string.
+                parts.append(str(child))
+        return "".join(parts)
+
+    def pair_expr(self, items):
+        # Expecting: key, operator, value.
+        # Our operator (EQ or COLON) is a token; we ignore it for the pair value.
+        key = items[0]
+        value = items[2]  # items[1] is the operator token.
+        # Return a tuple or a dict entry, depending on your needs.
+        return (key, value)
+
+
     def comprehension_expr(self, items):
         self.debug_print(f"comprehension_expr() called with items: {items}")
         if len(items) == 1:
