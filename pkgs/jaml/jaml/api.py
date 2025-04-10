@@ -100,7 +100,10 @@ def round_trip_dumps(ast: Any) -> str:
     print("[DEBUG]: ")
     pprint(ast)
     unparser = JMLUnparser(ast)
-    return unparser.unparse()
+    dumped = unparser.unparse()
+    print("[DEBUG]: ")
+    pprint(dumped)
+    return dumped
 
 
 def round_trip_dump(ast: Any, fp: IO[str]) -> None:

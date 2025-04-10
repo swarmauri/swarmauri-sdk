@@ -55,9 +55,15 @@ class JMLUnparser:
                 return f"{val_str}{value.comment}"
         # 1) Already-preserved inline table?
         if isinstance(value, PreservedInlineTable):
-            return str(value)
+            # For single-line inline tables, preserve the original text.
+            # Multiline inline tables are handled as nested sections in unparse_section.
+            if "\n" not in value.original:
+                return value.original
+            else:
+                # Fall through so that multiline inline tables get expanded.
+                pass
         # 2) Already-preserved array?
-        elif isinstance(value, PreservedArray):
+        if isinstance(value, PreservedArray):
             return str(value)
         elif isinstance(value, PreservedString):
             return value.original
@@ -84,7 +90,7 @@ class JMLUnparser:
 
     def format_list(self, lst):
         # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
-        if isinstance(lst, PreservedArray) and "\n" not in lst.original_text:
+        if isinstance(lst, PreservedArray) and "\n" not in lst.original:
             formatted_items = [self.format_value(item) for item in lst]
             return f"[{', '.join(formatted_items)}]"
         
@@ -103,11 +109,43 @@ class JMLUnparser:
         inner = "".join(lines)
         return f"[{inner}]"
 
+    def unparse_inline_table(self, inline_table):
+        """
+        Unparse a multiline inline table by extracting its inner assignments
+        from the preserved text. This method removes the enclosing curly braces,
+        drops any trailing commas, and (in the collapsed form) strips extra indentation.
+        """
+        # Use the stored text (or fallback to original) so that comment layout is preserved.
+        text = getattr(inline_table, "text", inline_table.original)
+        text = text.strip()
+        # Remove outer braces if present.
+        if text.startswith("{") and text.endswith("}"):
+            inner = text[1:-1].strip()
+        else:
+            inner = text
+
+        lines = inner.splitlines()
+        processed_lines = []
+        for line in lines:
+            # First strip all indentation.
+            line = line.strip()
+            # Remove any trailing commas while preserving inline comments.
+            if line.endswith(","):
+                line = line[:-1].rstrip()
+            if line:
+                processed_lines.append(line)
+        return "\n".join(processed_lines)
+
     def unparse_section(self, section_dict, section_path):
         output = ""
         # Print the section header if we have a valid path.
         if section_path:
             output += f"[{'.'.join(section_path)}]\n"
+
+        # If the collapsed section is not a dict (e.g. a multiline inline table), unparse it directly.
+        if not isinstance(section_dict, dict):
+            output += self.unparse_inline_table(section_dict) + "\n"
+            return output
 
         assignments = {}
         nested_sections = {}
@@ -117,7 +155,7 @@ class JMLUnparser:
                 # This is an annotated assignment.
                 assignments[key] = value
             elif isinstance(value, dict):
-                # Treat all plain dicts as nested sections.
+                # Treat plain dicts (that are not inline tables) as nested sections.
                 nested_sections[key] = value
             else:
                 assignments[key] = value
@@ -141,25 +179,32 @@ class JMLUnparser:
 
         # Recurse into nested sections.
         for key, subsec in nested_sections.items():
-            collapsed_path, collapsed_section = self._collapse_section(section_path + [key], subsec)
-            output += self.unparse_section(collapsed_section, collapsed_path)
-
+            # If the nested section is a multiline inline table, expand it as its own section.
+            if isinstance(subsec, PreservedInlineTable) and "\n" in subsec.original:
+                new_path = section_path + [key]
+                output += f"[{'.'.join(new_path)}]\n"
+                output += self.unparse_inline_table(subsec) + "\n\n"
+            else:
+                collapsed_path, collapsed_section = self._collapse_section(section_path + [key], subsec)
+                output += self.unparse_section(collapsed_section, collapsed_path)
         return output
 
     def _collapse_section(self, section_path, section_dict):
         """
         Recursively collapse nested sections if there is exactly one key in the
-        current dictionary and its value is a plain dictionary (i.e. not an annotated assignment).
+        current dictionary and its value is a plain dictionary or a multiline inline table.
         This will merge the keys into a single dotted header.
         """
         if isinstance(section_dict, dict) and len(section_dict) == 1:
             only_key = list(section_dict.keys())[0]
             val = section_dict[only_key]
-            # Ensure we are not collapsing an annotated assignment.
+            # Allow collapsing if the value is a plain dict (without annotated assignments)...
             if isinstance(val, dict) and not ("_value" in val and "_annotation" in val):
                 return self._collapse_section(section_path + [only_key], val)
+            # ...or if it is a multiline inline table.
+            elif isinstance(val, PreservedInlineTable) and "\n" in val.original:
+                return section_path + [only_key], val
         return section_path, section_dict
-
 
     def unparse(self):
         output = ""
@@ -187,7 +232,6 @@ class JMLUnparser:
 
         final_output = output.rstrip("\n")
         return final_output
-
 
     def __str__(self):
         return self.unparse()

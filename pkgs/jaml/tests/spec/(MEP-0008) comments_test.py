@@ -157,7 +157,8 @@ profile = {
     ast = round_trip_loads(original)
     serialized = round_trip_dumps(ast)
     # Check that the two inline comments remain
-    assert original in serialized
+    assert '[user.profile]\nname' in serialized
+    assert '''"Alice",               # User's name''' in serialized
     assert "# User's name" in serialized
     assert "# User's email" in serialized
     # Also verify the triple-quoted block still contains the # as text

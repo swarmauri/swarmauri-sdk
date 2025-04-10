@@ -231,7 +231,7 @@ class PreservedArray(list):
     """
     def __init__(self, items, original_text):
         super().__init__(items)
-        self.original_text = original_text  # the entire "[ ... ]" text
+        self.original = original_text  # the entire "[ ... ]" text
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -239,10 +239,10 @@ class PreservedArray(list):
         return super().__eq__(other)
 
     def __repr__(self):
-        return f"PreservedArray({list(self)!r}, text={self.original_text!r})"
+        return f"PreservedArray({list(self)!r}, text={self.original!r})"
 
     def __str__(self):
-        return self.original_text
+        return self.original
 
 
 class PreservedInlineTable(dict):
@@ -252,12 +252,12 @@ class PreservedInlineTable(dict):
     """
     def __init__(self, data, original_text):
         super().__init__(data)  # parse dict content
-        self.original_text = original_text
+        self.original = original_text
 
     def __repr__(self):
-        return f"PreservedInlineTable(data={dict(self)}, text={self.original_text!r})"
+        return f"PreservedInlineTable(data={dict(self)}, text={self.original!r})"
 
     def __str__(self):
         # Return the brace-delimited text exactly as originally parsed.
-        return self.original_text
+        return self.original
 
