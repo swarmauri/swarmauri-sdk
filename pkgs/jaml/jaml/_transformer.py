@@ -11,7 +11,17 @@ from .ast_nodes import (
     PreservedInlineTable,
     DeferredDictComprehension,
     DeferredListComprehension,
-    FoldedExpressionNode
+    FoldedExpressionNode,
+    TableArrayComprehensionHeader,
+    TableArrayHeader,
+    TableArraySectionNode,
+    StringExpr,
+    ComprehensionClauses,
+    ComprehensionClause,
+    DottedExpr,
+    PairExpr,
+    AliasClause,
+    InClause
 )
 
 class ConfigTransformer(Transformer):
@@ -112,9 +122,99 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"type_annotation() called with items: {items}")
         return items[0]
 
+
+    # --------------------------
+    # Keyword leaf transformations
+    # --------------------------
+    @v_args(meta=True)
+    def AS(self, meta):
+        """
+        Transformer for the 'AS' token.
+        
+        This method captures the original text span using meta information
+        and returns an AliasClause node that wraps the AS keyword.
+        """
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"AS() called. original_text: {original_text}")
+        return AliasClause(keyword="as", original=original_text)
+
+    @v_args(meta=True)
+    def IN(self, meta):
+        """
+        Transformer for the 'IN' token.
+        
+        This method captures the original text span using meta information,
+        then creates and returns an InClause AST node.
+        """
+        # Use _slice_input to capture the original text for this token.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"IN() called. original_text: {original_text}")
+        # Create and return our dedicated AST node.
+        return InClause(keyword="in", original=original_text)
+
+
+
     # --------------------------
     # Simple leaf transformations
     # --------------------------
+
+    @v_args(meta=True)
+    def pair_expr(self, meta, items):
+        """
+        Processes a pair_expr production.
+        
+        Expected grammar (simplified):
+          pair_expr: (string_expr | IDENTIFIER)
+                     (HSPACES? (EQ | COLON) HSPACES? (string_expr | IDENTIFIER))
+                     
+        This method uses meta information and self._slice_input() to capture the original text.
+        It then extracts the left-hand side and right-hand side, ignoring the operator token,
+        and returns a PairExpr AST node.
+        """
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"pair_expr(): original_text = {original_text}")
+        self.debug_print(f"pair_expr(): raw items = {items}")
+        
+        # We expect items to be something like [left, operator, right]
+        if len(items) < 3:
+            raise ValueError("pair_expr(): Expected at least three items (left, operator, right)")
+        
+        left = items[0]
+        # Items[1] is the operator, which we ignore (assuming it is either EQ or COLON).
+        right = items[2]
+        
+        self.debug_print(f"pair_expr(): left = {left}, right = {right}")
+        
+        return PairExpr(key=left, value=right, original=original_text)
+
+
+    @v_args(meta=True)
+    def dotted_expr(self, meta, items):
+        """
+        Processes a dotted_expr production, which is defined as an IDENTIFIER
+        optionally followed by one or more '.' IDENTIFIER sequences.
+        
+        This method:
+          - Uses meta information to capture the original text.
+          - Joins the individual IDENTIFIER items with '.'.
+          - Returns a DottedExpr AST node.
+        """
+        # Capture the full original text (for round-trip fidelity).
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"dotted_expr(): original_text = {original_text}")
+        self.debug_print(f"dotted_expr(): raw items = {items}")
+        
+        # The items should be a list of identifiers and literal dots.
+        # We join their string values to get a full dotted string.
+        # Assuming that each item is already transformed to a string or token value.
+        # You could also process tokens directly if needed.
+        dotted_value = ".".join(str(item) for item in items)
+        self.debug_print(f"dotted_expr(): joined value = {dotted_value}")
+        
+        # Create and return our AST node for dotted expressions.
+        return DottedExpr(dotted_value, original_text)
+
+
     def paren_expr(self, items):
         result = "(" + " ".join(str(x) for x in items) + ")"
         self.debug_print(f"paren_expr() result: {result}")
@@ -149,6 +249,118 @@ class ConfigTransformer(Transformer):
             # For this example, we simply return the variable markup unchanged.
             return token[1]
         return token
+
+    @v_args(meta=True)
+    def comprehension_clause(self, meta, items):
+        """
+        Processes a comprehension_clause production.
+        
+        Expected grammar (simplified):
+          comprehension_clause: FOR <loop_vars> IN <iterable> (IF <condition> ...)? NEWLINE*
+          
+        This transformer uses meta data (via _slice_input) to capture the original text.
+        
+        It splits the items into three parts:
+          - loop_vars: tokens/nodes between FOR and IN.
+          - iterable: the expression after IN and before any IF.
+          - conditions: all tokens/nodes after IF (if any).
+          
+        Returns an instance of ComprehensionClause.
+        """
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"comprehension_clause(): original_text = {original_text}")
+        self.debug_print(f"comprehension_clause(): raw items = {items}")
+        
+        # Use a simple mode switch to classify items.
+        loop_vars = []
+        iterable = None
+        conditions = []
+        mode = "expect_for"  # start expecting "for"
+        
+        for item in items:
+            # Convert Token objects to their string value.
+            if isinstance(item, Token):
+                token_val = item.value.strip()
+            else:
+                token_val = item  # For already transformed nodes
+          
+            # First token should be "for"
+            if mode == "expect_for":
+                if isinstance(item, str) and token_val.lower() == "for":
+                    mode = "vars"
+                else:
+                    # If "for" is not explicitly present (unexpected) log debug.
+                    self.debug_print("comprehension_clause(): Missing 'for' keyword, item: " + str(item))
+                continue
+
+            # Switch to iterable when we encounter the keyword "in"
+            if mode == "vars" and isinstance(item, str) and token_val.lower() == "in":
+                mode = "iterable"
+                continue
+
+            # Switch to conditions when we encounter "if"
+            if mode == "iterable" and isinstance(item, str) and token_val.lower() == "if":
+                mode = "conditions"
+                continue
+
+            # Now collect based on the current mode.
+            if mode == "vars":
+                loop_vars.append(item)
+            elif mode == "iterable":
+                # If iterable is already set, combine (with a space)
+                if iterable is None:
+                    iterable = item
+                else:
+                    iterable = f"{iterable} {item}"
+            elif mode == "conditions":
+                conditions.append(item)
+            else:
+                self.debug_print("comprehension_clause(): Unhandled mode, item: " + str(item))
+
+        self.debug_print(f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}")
+        
+        return ComprehensionClause(loop_vars, iterable, conditions, original_text)
+
+
+
+    @v_args(meta=True)
+    def comprehension_clauses(self, meta, items):
+        """
+        Processes the comprehension_clauses production which gathers one or more
+        comprehension_clause nodes. This method captures the original text using
+        meta (via self._slice_input) and packages the list of clauses into a dedicated
+        AST node.
+        
+        Grammar reference:
+          comprehension_clauses: comprehension_clause+
+        """
+        # Capture the full original text for the comprehension clauses.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"comprehension_clauses(): original_text = {original_text}")
+        self.debug_print(f"comprehension_clauses(): items = {items}")
+        
+        # Create and return an instance of our AST node.
+        return ComprehensionClauses(clauses=items, original=original_text)
+
+
+    @v_args(meta=True)
+    def string_expr(self, meta, items):
+        """
+        Processes a string_expr production which is defined as:
+          (STRING | SCOPED_VAR) (HSPACES? "+" HSPACES? (STRING | SCOPED_VAR))*
+        This method extracts the original input text using meta info (via self._slice_input)
+        and constructs a StringExpr AST node containing all the components.
+        """
+        # Capture the full original text for this expression.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        
+        # Debug output.
+        self.debug_print(f"string_expr(): original_text = {original_text}")
+        self.debug_print(f"string_expr(): items = {items}")
+        
+        # Return a new StringExpr node with the parsed parts and original text.
+        return StringExpr(parts=items, original=original_text)
+
 
     def concat_expr(self, items):
         # Each item should already be a string from string_component.
@@ -193,6 +405,92 @@ class ConfigTransformer(Transformer):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         self.debug_print(f"Dict comprehension original text: {original_text}")
         return DeferredDictComprehension(original_text)
+
+    @v_args(meta=True)
+    def table_array_comprehension(self, meta, items):
+        """
+        Processes a table_array_comprehension production.
+        
+        The rule (from the grammar) is:
+          table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
+        
+        This method:
+          - Uses meta and _slice_input to capture the original text.
+          - Expects that items[0] is the comprehension expression and
+            items[1] (or the subsequent items combined) represents the comprehension clauses.
+          - Returns an instance of TableArrayComprehensionHeader.
+        """
+        # Capture the full original text for round-trip fidelity.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        self.debug_print(f"table_array_comprehension(): original_text = {original_text}")
+
+        # Filter out ignorable whitespace tokens if they were not automatically ignored.
+        meaningful_items = [item for item in items if not (isinstance(item, Token) and item.type in ("NEWLINE", "WHITESPACE"))]
+
+        if not meaningful_items:
+            raise ValueError("No meaningful items in table_array_comprehension")
+        
+        # The first item should be the comprehension expression.
+        header_expr = meaningful_items[0]
+        self.debug_print(f"table_array_comprehension(): header_expr = {header_expr}")
+
+        # The remainder is expected to capture the comprehension clauses;
+        # if there's more than one item, join them (or you can wrap the list as needed).
+        clauses = None
+        if len(meaningful_items) > 1:
+            # If your transformer already groups comprehension_clauses,
+            # then typically meaningful_items[1] holds that grouping.
+            clauses = meaningful_items[1]
+            self.debug_print(f"table_array_comprehension(): clauses = {clauses}")
+        
+        # Return our unique AST node for table_array_comprehension.
+        return TableArrayComprehensionHeader(header_expr, clauses, original_text)
+
+
+    @v_args(meta=True)
+    def table_array_header(self, meta, items):
+        """
+        Process a table_array_header production.
+        
+        This rule covers alternatives:
+          - section_name
+          - STRING
+          - list_comprehension
+          - table_array_comprehension
+        
+        We use meta to slice out the original text for round-trip fidelity.
+        The transformer returns a TableArrayHeader AST node.
+        """
+        # Use _slice_input to capture the original text spanned by this rule.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        
+        # items will contain the one alternative that matches.
+        # Typically, we expect one item.
+        header_expr = items[0] if items else None
+
+        # Optionally log debugging information.
+        if self.debug:
+            self.debug_print(f"table_array_header() extracted original: {original_text} and header_expr: {header_expr}")
+
+        # Create and return our AST node.
+        return TableArrayHeader(header_expr, original_text)
+
+
+
+    @v_args(meta=True)
+    def table_array_section(self, meta, items):
+        self.debug_print(f"table_array_section() called with meta: {meta} and items: {items}")
+        # Capture the full original source for round-trip fidelity.
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        
+        # In our grammar, items[0] is the header, items[1:] is the content.
+        header = items[0]  # processed via table_array_header transformer
+        body = items[1:] if len(items) > 1 else []
+        
+        # Return a dedicated AST node for table array sections.
+        return TableArraySectionNode(header=header, body=body, original=original_text)
+
+
 
     def inline_assignment(self, items):
         self.debug_print(f"inline_assignment() called with items: {items}")

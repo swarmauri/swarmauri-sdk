@@ -45,6 +45,7 @@ def _build_global_env(ast: dict) -> Dict[str, Any]:
 
 
 def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, Any]) -> Any:
+    print(f"[DEBUG RESOLVE]: Starting resolution on {node} with global: '{global_env}' and local_env: '{local_env}'")
     if isinstance(node, dict):
         return _resolve_dict(node, global_env, local_env)
 

@@ -45,7 +45,7 @@ def dumps(obj: Dict[str, Any]) -> str:
     """
     unparser = JMLUnparser(obj)
     dumped = unparser.unparse()
-    print("[DEBUG]: ")
+    print("[DEBUG API]: ")
     pprint(dumped)
     return dumped
 
@@ -63,7 +63,7 @@ def loads(s: str) -> Dict[str, Any]:
     """
     try:
         ast = parser.parse(s)
-        print("[DEBUG]: ")
+        print("[DEBUG API]: ")
         pprint(ast)
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
@@ -97,11 +97,11 @@ def round_trip_dumps(ast: Any) -> str:
     """
     # Transform the AST to a plain dict if needed.
     ast = ConfigTransformer().transform(ast)
-    print("[DEBUG]: ")
+    print("[DEBUG API]: ")
     pprint(ast)
     unparser = JMLUnparser(ast)
     dumped = unparser.unparse()
-    print("[DEBUG]: ")
+    print("[DEBUG API]: ")
     pprint(dumped)
     return dumped
 
@@ -115,7 +115,7 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
 
 def round_trip_loads(s: str):
     ast = parser.parse(s)
-    print("[DEBUG]: ")
+    print("[DEBUG API]: ")
     pprint(ast)
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
@@ -166,7 +166,7 @@ def render(text, context={}):
     # Also inject the booleans
     env["true"] = True
     env["false"] = False
-    print("[DEBUG]: ")
+    print("[DEBUG API]: ")
     pprint(ast)
     return substitute_deferred(ast, env)
 

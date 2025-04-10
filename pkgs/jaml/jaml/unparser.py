@@ -214,13 +214,13 @@ class JMLUnparser:
         if self.debug:
             print("[DEBUG UNPARSER] Entering unparse_section with section_path:", section_path)
             print("[DEBUG UNPARSER] Section dictionary keys:", list(section_dict.keys()) if isinstance(section_dict, dict) else section_dict)
-        output = ""
-        # Print the section header if we have a valid path.
-        if section_path:
+
+        # Build the header based on whether the section is flagged as a table array.
+        if isinstance(section_dict, dict) and section_dict.get("__is_table_array__"):
+            header = f"[[{'.'.join(section_path)}]]\n"
+        else:
             header = f"[{'.'.join(section_path)}]\n"
-            output += header
-            if self.debug:
-                print("[DEBUG UNPARSER] Section header added:", header.strip())
+        output = header
 
         # If the collapsed section isn't a dict (for example, it's already a multiline inline table),
         # unparse it directly.
@@ -231,6 +231,7 @@ class JMLUnparser:
             output += inline_result
             return output
 
+        # Process assignments and nested sections in section_dict
         assignments = {}
         nested_sections = {}
 
@@ -251,11 +252,9 @@ class JMLUnparser:
         # Output assignments first.
         for key, value in assignments.items():
             if isinstance(value, dict) and "_value" in value and "_annotation" in value:
-                # Format annotated assignment.
                 val_str = self.format_value(value["_value"])
                 annot = value["_annotation"]
                 cmt_str = ""
-                # Optionally include the inline comment if it exists.
                 if isinstance(value["_value"], PreservedValue):
                     cmt_str = value["_value"].comment
                 line = f"{key}: {annot} = {val_str}{cmt_str}\n"
@@ -267,13 +266,11 @@ class JMLUnparser:
                 output += line
                 if self.debug:
                     print("[DEBUG UNPARSER] Formatted assignment:", line.strip())
-
         if assignments:
             output += "\n"
-
+            
         # Recurse into nested sections.
         for key, subsec in nested_sections.items():
-            # If the nested section is a multiline inline table, expand it as its own section.
             if isinstance(subsec, PreservedInlineTable) and "\n" in subsec.origin:
                 new_path = section_path + [key]
                 header = f"[{'.'.join(new_path)}]\n"
@@ -287,6 +284,7 @@ class JMLUnparser:
                     print("[DEBUG UNPARSER] Collapsed section for key:", key, "to path:", collapsed_path)
                 output += self.unparse_section(collapsed_section, collapsed_path)
         return output
+
 
     def _collapse_section(self, section_path, section_dict):
         if self.debug:
@@ -311,42 +309,163 @@ class JMLUnparser:
     def unparse(self):
         if self.debug:
             print("[DEBUG UNPARSER] Starting unparse process.")
-        output = ""
+
+        output_lines = []
         config_data = self._get_config_data()
         if self.debug:
             print("[DEBUG UNPARSER] Retrieved config data:", config_data)
 
-        # 1) Dump any top-level standalone comments first.
+        # 1) Dump top-level standalone comments first.
         top_comments = config_data.get("__comments__", [])
         if self.debug:
             print("[DEBUG UNPARSER] Top-level comments found:", top_comments)
         for comment_line in top_comments:
-            output += comment_line + "\n"
+            output_lines.append(comment_line)
         if top_comments:
-            output += "\n"
+            output_lines.append("")  # add an extra newline after comments
 
-        # 2) Go through all top-level keys (skipping __comments__).
+        # 2) Process all top-level keys (skipping __comments__).
         for key, value in config_data.items():
             if key == "__comments__":
                 continue
             if self.debug:
                 print("[DEBUG UNPARSER] Unparsing top-level key:", key)
-            # If the value is a dict, attempt to collapse nested sections into a single header.
+
+            # If the value is a dictionary then it represents a section.
             if isinstance(value, dict):
+                # Collapse nested sections (if applicable) before unparsing.
                 collapsed_path, collapsed_section = self._collapse_section([key], value)
                 if self.debug:
                     print("[DEBUG UNPARSER] Collapsed top-level section for key:", key, "to path:", collapsed_path)
-                output += self.unparse_section(collapsed_section, collapsed_path)
+                # Unparse the section using unparse_section.
+                section_text = self.unparse_section(collapsed_section, collapsed_path)
+                output_lines.append(section_text)
             else:
-                line = f"{key} = {self.format_value(value)}\n"
-                output += line
+                # Otherwise, treat it as a top-level assignment.
+                # Use unparse_node() on the value if it is an AST node; if not, use format_value().
+                if hasattr(value, "unparse"):
+                    # In case the node itself has an unparse method.
+                    line_value = value.unparse()
+                elif hasattr(value, "__class__") and str(value.__class__).find(".ast_nodes") != -1:
+                    line_value = self.unparse_node(value)
+                else:
+                    line_value = self.format_value(value)
+                line = f"{key} = {line_value}"
+                output_lines.append(line)
                 if self.debug:
-                    print("[DEBUG UNPARSER] Formatted top-level assignment:", line.strip())
+                    print("[DEBUG UNPARSER] Formatted top-level assignment:", line)
 
-        final_output = output.rstrip("\n")
+        final_output = "\n".join(output_lines).rstrip("\n")
         if self.debug:
             print("[DEBUG UNPARSER] Final unparsed output:", final_output)
         return final_output
 
+
     def __str__(self):
         return self.unparse()
+
+    def unparse_node(self, node):
+            """
+            Recursively convert AST nodes back into their DSL textual representation.
+            Handles the following node types:
+                1. TableArrayHeader
+                2. TableArrayComprehensionHeader
+                3. StringExpr
+                4. ComprehensionClauses
+                5. ComprehensionClause
+                6. DottedExpr
+                7. PairExpr
+                8. AliasClause   (AS)
+                9. InClause      (IN)
+            If the node is not one of these types, it falls back on str(node).
+            """
+            # 1. TableArrayHeader: usually a static header or computed header for table arrays.
+            from .ast_nodes import (
+                TableArrayHeader,
+                TableArraySectionNode,
+                TableArrayComprehensionHeader,
+                StringExpr,
+                ComprehensionClauses,
+                ComprehensionClause,
+                DottedExpr,
+                PairExpr,
+                AliasClause,
+                InClause,
+            )
+
+            if isinstance(node, TableArraySectionNode):
+                # Produce the header using double brackets.
+                header_str = self.unparse_node(node.header)  # unparse header expression
+                # Unparse the body (assuming each child is an assignment or nested section)
+                body_str = "\n".join(self.unparse_node(child) for child in node.body)
+                return f"[[{header_str}]]\n{body_str}"
+
+            if isinstance(node, TableArrayHeader):
+                # For table array headers, we want to output using double brackets.
+                # If the node has an original string (and no modifications), use it;
+                # otherwise, reconstruct from its header expression.
+                if hasattr(node, "original") and node.original:
+                    return node.original
+                else:
+                    # Otherwise, compute the header value (wrapped in [[ ]]).
+                    return "[[" + self.unparse_node(node.header_expr) + "]]"
+            
+            # 2. TableArrayComprehensionHeader: similar to TableArrayHeader, but may include additional comprehension details.
+            elif isinstance(node, TableArrayComprehensionHeader):
+                # If round-trip fidelity is desired, output the original text.
+                if hasattr(node, "original") and node.original:
+                    return node.original
+                else:
+                    # Otherwise, reconstruct using both header_expr and clauses.
+                    header_part = self.unparse_node(node.header_expr)
+                    clauses_part = self.unparse_node(node.clauses)
+                    return "[[" + header_part + " " + clauses_part + "]]"
+            
+            # 3. StringExpr: a concatenated string expression from multiple components.
+            elif isinstance(node, StringExpr):
+                # If the node carries the original slice and no modifications are done,
+                # return the original. Otherwise, join the parts.
+                if hasattr(node, "original") and node.original:
+                    return node.original
+                else:
+                    # Join all parts by invoking unparse_node recursively.
+                    return "".join(self.unparse_node(part) for part in node.parts)
+            
+            # 4. ComprehensionClauses: a group of comprehension_clause nodes.
+            elif isinstance(node, ComprehensionClauses):
+                # Join the unparsed representation of each clause with a space.
+                return " ".join(self.unparse_node(clause) for clause in node.clauses)
+            
+            # 5. ComprehensionClause: one clause in a comprehension.
+            elif isinstance(node, ComprehensionClause):
+                # Build a string with the form:
+                # "for <loop_vars> in <iterable> [if <conditions>]"
+                loop_vars_str = " ".join(self.unparse_node(var) for var in node.loop_vars)
+                iterable_str = self.unparse_node(node.iterable)
+                if node.conditions:
+                    conditions_str = " ".join(self.unparse_node(cond) for cond in node.conditions)
+                    return f"for {loop_vars_str} in {iterable_str} if {conditions_str}"
+                else:
+                    return f"for {loop_vars_str} in {iterable_str}"
+            
+            # 6. DottedExpr: returns the computed dotted value.
+            elif isinstance(node, DottedExpr):
+                return node.dotted_value
+            
+            # 7. PairExpr: a key-value pair.
+            elif isinstance(node, PairExpr):
+                key_str = self.unparse_node(node.key)
+                value_str = self.unparse_node(node.value)
+                return f"{key_str} = {value_str}"
+            
+            # 8. AliasClause (AS): output the alias keyword.
+            elif isinstance(node, AliasClause):
+                return node.original  # or node.keyword if you prefer.
+            
+            # 9. InClause (IN): output the literal "in".
+            elif isinstance(node, InClause):
+                return node.original
+            
+            # Fallback: if the node is a raw token or already a plain value, return its string representation.
+            else:
+                return str(node)

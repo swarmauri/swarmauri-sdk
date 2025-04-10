@@ -140,9 +140,16 @@ def test_update_module_extras():
     Validate that updating a module's 'extras' (changing the owner for the login module)
     is reflected in the rendered output.
     """
+    print('-'*10, '\n[TEST]: STARTING RT LOAD\n')
+
     data = round_trip_loads(JML_INPUT)
+
+    print('-'*10, f'\n[TEST]: \n{data}\n')
     assert data["rootDir"] == "src"
     print('\n\n\n', data["rootDir"], type(data["rootDir"]), '\n\n')
+
+    print('-'*10, '\n[TEST]: STARTING RESOLUTION\n')
+    
     data["rootDir"].origin = '"new_src"'
     resolved_config = resolve(data)
     assert resolved_config["rootDir"] == '"new_src"'
@@ -151,11 +158,14 @@ def test_update_module_extras():
     new_context = deepcopy(BASE_CONTEXT)
     new_context["packages"][0]["modules"][0]["extras"]["owner"] = "teamX"
 
-
+    print('-'*10, '\n[TEST]: STARTING FIRST DUMP\n')
     out = round_trip_dumps(data)
+    print('\n\n\n\n[DUMP]:', out,'\n\n---\n\n\n')
+    print('-'*10, '\n[TEST]: STARTING RENDER\n')
     rendered_data = render(out, context=new_context)
     assert rendered_data["rootDir"] == "new_src"
 
+    print('-'*10, '\n[TEST]: STARTING FINAL DUMP\n')
     final_out = round_trip_dumps(rendered_data)
 
     assert """[[file.auth.signup.config]]

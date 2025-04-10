@@ -7,6 +7,246 @@ from ._helpers import (
     evaluate_comprehension
 )  
 
+class InClause:
+    """
+    Represents an 'in' clause keyword in a comprehension.
+    
+    Attributes:
+      keyword: The literal keyword (expected to be "in").
+      original: The original raw text for this token, for round-trip fidelity.
+    """
+    def __init__(self, keyword, original):
+        self.keyword = keyword
+        self.origin = original
+
+    def __str__(self):
+        # Return the original text to preserve formatting.
+        return self.origin
+
+    def __repr__(self):
+        return f"InClause(keyword={self.keyword!r}, origin={self.origin!r})"
+
+
+class AliasClause:
+    """
+    Represents the alias keyword in a comprehension clause.
+    
+    This node is created from an "AS" occurrence and is intended to be used
+    in comprehension clauses where an alias is specified (e.g. "for x as %{x}")
+    
+    Attributes:
+      keyword: The literal keyword value (expected to be "as").
+      original: The original raw text for this keyword (for round-trip fidelity).
+    """
+    def __init__(self, keyword, original):
+        self.keyword = keyword
+        self.origin = original
+
+    def __str__(self):
+        # For resolution or unparse, returning the original text is useful.
+        return self.origin
+
+    def __repr__(self):
+        return f"AliasClause(keyword={self.keyword!r}, original={self.origin!r})"
+
+
+class PairExpr:
+    """
+    Represents a key-value pair expression (e.g. "k = v" or "k : v").
+    
+    Attributes:
+      key: The left-hand side of the expression (a string_expr, IDENTIFIER, or computed node).
+      value: The right-hand side expression.
+      original: The exact original text for this pair expression for round-trip purposes.
+    """
+    def __init__(self, key, value, original):
+        self.key = key
+        self.value = value
+        self.origin = original
+
+    def __str__(self):
+        # For evaluation or debugging, it could output in a key = value form.
+        return f"{self.key} = {self.value}"
+
+    def __repr__(self):
+        return f"PairExpr(key={self.key!r}, value={self.value!r}, origin={self.origin!r})"
+
+
+class DottedExpr:
+    """
+    Represents a dotted expression, e.g. "package.active".
+    
+    Attributes:
+      dotted_value: The full computed string (e.g., "package.active").
+      original: The original raw text as captured from the input.
+    """
+    def __init__(self, dotted_value, original):
+        self.dotted_value = dotted_value
+        self.origin = original
+
+    def __str__(self):
+        # Returning the computed dotted value can be useful for evaluation.
+        return self.dotted_value
+
+    def __repr__(self):
+        return f"DottedExpr(dotted_value={self.dotted_value!r}, origin={self.origin!r})"
+
+
+class ComprehensionClause:
+    """
+    Represents a single comprehension clause extracted from a comprehension expression.
+    
+    For example, in a comprehension such as:
+    
+       for package as %{package} in @{packages} if package.active
+    
+    It stores:
+      - loop_vars: the list of loop variable expressions (which might include constructs like
+                   'package' or 'package as %{package}').
+      - iterable: the expression yielding an iterable (e.g. '@{packages}').
+      - conditions: any condition parts (e.g. 'package.active').
+      - original: the original text slice for this clause (for round-trip and debugging).
+    """
+    def __init__(self, loop_vars, iterable, conditions, original):
+        self.loop_vars = loop_vars
+        self.iterable = iterable
+        self.conditions = conditions
+        self.origin = original
+
+    def __str__(self):
+        # Produce a readable string representation.
+        vars_str = " ".join(str(v) for v in self.loop_vars) if self.loop_vars else ""
+        iter_str = str(self.iterable) if self.iterable else ""
+        cond_str = " ".join(str(c) for c in self.conditions) if self.conditions else ""
+        result = f"for {vars_str} in {iter_str}"
+        if cond_str:
+            result += " if " + cond_str
+        return result
+
+    def __repr__(self):
+        return (f"ComprehensionClause(loop_vars={self.loop_vars!r}, "
+                f"iterable={self.iterable!r}, conditions={self.conditions!r}, "
+                f"origin={self.origin!r})")
+
+
+class ComprehensionClauses:
+    """
+    Represents a group of comprehension_clause nodes produced by the comprehension_clauses rule.
+    
+    Attributes:
+      clauses: A list of comprehension_clause AST nodes.
+      original: The raw original text for the comprehension clauses (as captured by meta).
+    """
+    def __init__(self, clauses, original):
+        self.clauses = clauses
+        self.origin = original
+
+    def __str__(self):
+        # Optionally, join the string representations of each clause.
+        return " ".join(str(clause) for clause in self.clauses)
+
+    def __repr__(self):
+        return f"ComprehensionClauses(clauses={self.clauses!r}, origin={self.origin!r})"
+
+
+class StringExpr:
+    """
+    Represents a concatenated string expression composed of one or more components
+    (which may be literals (PreservedString) or scoped variables).
+    
+    Attributes:
+      parts: A list of components (results from STRING, SCOPED_VAR, etc.) that are to be concatenated.
+      original: The raw text of the string expression, as extracted from the source (for round-trip purposes).
+    """
+    def __init__(self, parts, original):
+        self.parts = parts
+        self.origin = original
+
+    def __str__(self):
+        # For debugging or resolution purposes, we may choose to join the parts.
+        # Here we join their string representation.
+        return "".join(str(part) for part in self.parts)
+
+    def __repr__(self):
+        return f"StringExpr(parts={self.parts!r}, origin={self.origin!r})"
+
+
+class TableArraySectionNode:
+    """
+    Represents a table array section as defined by double brackets [[ ... ]].
+    
+    Attributes:
+      header: The header expression (which may be computed by a comprehension)
+              that determines the key for the table array.
+      body: A list of child nodes corresponding to the table array content.
+      original: The exact original text (slice from the input) that produced this section.
+    """
+    def __init__(self, header, body, original):
+        self.header = header
+        self.body = body  # Typically a list of assignment nodes and/or nested sections.
+        self.origin = original
+
+    def __str__(self):
+        # For round-trip, if no modifications have been made, you could return the original.
+        # Otherwise, you could reconstruct it. Here, we reconstruct it with double brackets.
+        header_str = str(self.header)  # assume header unparse produces a computed header string.
+        # Reconstruct the body by joining each unparsed line (this assumes your unparse_node handles each child).
+        body_str = "\n".join(str(item) for item in self.body)
+        return f"[[{header_str}]]\n{body_str}"
+
+    def __repr__(self):
+        return (f"TableArraySectionNode(header={self.header!r}, "
+                f"body={self.body!r}, origin={self.origin!r})")
+
+
+class TableArrayComprehensionHeader:
+    """
+    Represents a computed header for a table array section.
+    
+    This node is produced from the `table_array_comprehension` rule
+    and is distinct from the DeferredListComprehension because it supports
+    the "as" syntax or other extra constructs that may be present.
+    
+    Attributes:
+      header_expr: The initial comprehension expression (e.g. a string_expr or computed value).
+      clauses: The comprehension clauses (may include "for ... as ..." parts)
+      original: The full original text for the header (preserved for round-trip).
+    """
+    def __init__(self, header_expr, clauses, original):
+        self.header_expr = header_expr
+        self.clauses = clauses
+        self.origin = original
+
+    def __str__(self):
+        # For debugging, you might return the original text.
+        return self.origin
+
+    def __repr__(self):
+        return (f"TableArrayComprehensionHeader(header_expr={self.header_expr!r}, "
+                f"clauses={self.clauses!r}, origin={self.origin!r})")
+
+
+class TableArrayHeader:
+    """
+    Represents the header for a table array section.
+    
+    Attributes:
+      header_expr: The computed header expression (e.g. a section name, a STRING,
+                   or a comprehension node) parsed from the table_array_header.
+      original: The original text for the header, as sliced from the source input.
+    """
+    def __init__(self, header_expr, original):
+        self.header_expr = header_expr
+        self._origin = original
+
+    def __str__(self):
+        # When converting to string, return the original text
+        return self._origin
+
+    def __repr__(self):
+        return f"TableArrayHeader(header_expr={self.header_expr!r}, origin={self._origin!r})"
+
+
 class FoldedExpressionNode:
     """
     Represents a folded (immediate) expression from the config,
