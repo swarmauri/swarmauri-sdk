@@ -4,7 +4,6 @@ from ._helpers import (
     resolve_scoped_variable, 
     evaluate_f_string, 
     evaluate_f_string_interpolation,
-    evaluate_immediate_expression,
     evaluate_comprehension
 )  
 
@@ -139,41 +138,6 @@ class DeferredListComprehension:
         return False
 
 
-class DeferredExpression:
-    def __init__(self, expr, local_env=None, original_text=None):
-        self.expr = expr  # e.g., "'Yes' if true else 'No'"
-        self.local_env = local_env or {}
-        self.original = original_text  # e.g., "<{'Yes' if true else 'No'}>"
-
-    def evaluate(self, global_env):
-        env = {}
-        env.update(global_env)
-        env.update(self.local_env)
-
-        substituted = evaluate_immediate_expression(self.expr, {}, env)
-        try:
-            return eval(substituted, {"__builtins__": {}}, {"true": True, "false": False})
-        except Exception:
-            return self.expr
-
-    def __str__(self):
-        # Return the exact text for round-trip 
-        return self.original or f"<{{ {self.expr} }}>"
-
-    def __repr__(self):
-        return f"DeferredExpression(expr={self.expr!r}, local_env={self.local_env!r}, original={self.original!r})"
-
-    def __eq__(self, other):
-        if isinstance(other, str):
-            # Compare with original literal
-            return (self.original == other) if self.original else (f"<{{ {self.expr} }}>" == other)
-        if isinstance(other, DeferredExpression):
-            return (
-                self.expr == other.expr 
-                and self.local_env == other.local_env 
-                and self.original == other.original
-            )
-        return False
 
 
 class DeferredDictComprehension:

@@ -11,7 +11,6 @@ from .ast_nodes import (
     PreservedInlineTable,
     DeferredDictComprehension,
     DeferredListComprehension,
-    DeferredExpression,
     FoldedExpressionNode
     )
 
@@ -105,49 +104,7 @@ class ConfigTransformer(Transformer):
     def paren_expr(self, items):
         return "(" + " ".join(str(x) for x in items) + ")"
 
-    def deferred_content(self, items):
-        def to_string(x):
-            if isinstance(x, list):
-                return "".join(to_string(subx) for subx in x)
-            elif hasattr(x, '__iter__') and not isinstance(x, str):
-                return "".join(to_string(subx) for subx in x)
-            else:
-                return str(x)
-        return to_string(items)
-
-    @v_args(meta=True)
-    def deferred_expr(self, meta, items):
-        # Capture the entire literal substring
-        full_text = self._slice_input(meta.start_pos, meta.end_pos)
-
-        # If it starts with `<{`, proceed with a deferred expression:
-        if full_text.lstrip().startswith("<{"):
-            # e.g. "<{'Yes' if true else 'No'}>"
-            # strip away <{  }>
-            inner_expr = full_text.lstrip()[2:-2].strip()
-
-            # Instead of forcibly wrapping in f"..." if there's ' if ', remove that hack.
-            # We'll keep the expression exactly as is to pass your test.
-
-            return DeferredExpression(
-                expr=inner_expr,
-                local_env=self.current_section.copy(),
-                original_text=full_text
-            )
-
-        elif full_text.lstrip().startswith("<("):
-            # This branch is for folded expressions, can be handled as before
-            content = full_text.lstrip()[2:-2].strip()
-            context = {"true": True, "false": False}
-            try:
-                result = eval(content, {"__builtins__": {}}, context)
-                return result
-            except Exception:
-                return content
-        else:
-            # fallback or else-case
-            return self.deferred_content(items)
-
+ 
 
     @v_args(meta=True)
     def folded_expr(self, meta, items):

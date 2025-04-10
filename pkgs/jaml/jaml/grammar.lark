@@ -26,7 +26,6 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
                  | array
                  | inline_table
                  | paren_expr
-                 | deferred_expr
                  | folded_expr
                  | STRING
                  | SCOPED_VAR
@@ -54,7 +53,6 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | array
       | inline_table
       | paren_expr
-      | deferred_expr
       | folded_expr
       | STRING
       | SCOPED_VAR
@@ -130,10 +128,6 @@ ws: WHITESPACE
 // --------------------------
 
 paren_expr: "(" value+ ")"
-deferred_expr: DEFERRED_START deferred_content DEFERRED_END
-deferred_content: value*
-DEFERRED_START: "<{"
-DEFERRED_END: "}>"
 
 folded_expr: FOLDED_START folded_content FOLDED_END
 folded_content: value+

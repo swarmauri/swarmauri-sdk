@@ -23,69 +23,6 @@ def resolve_scoped_variable(var_name, data):
             return None
     return current
 
-def evaluate_immediate_expression(expr, global_data, local_data):
-    """
-    Process an expression from a folded (immediate) evaluation.
-    
-    This function makes three passes:
-      1. It replaces all occurrences of %{var} with the repr() of the corresponding value from local_data.
-      2. It replaces all occurrences of @{var} (supporting dotted names) with the repr() of the corresponding value from global_data.
-      3. It replaces all occurrences of ${...} with a quoted string so that these placeholders remain unresolved.
-    
-    Finally, it evaluates the resulting Python expression in a restricted environment.
-    
-    Examples:
-      "b" + "c"           -> "bc"
-      "value" + "${var}"   -> "value" + "${var}"  (left unresolved, so that later f-string interpolation can occur)
-      2 + 3               -> 5
-      true and X == X     -> evaluates with Python booleans (assuming X is defined in context)
-    """
-    # 1) Replace self-scope markers (%{...}) using local_data.
-    def repl_local(match):
-        var_name = match.group(1).strip()
-        value = local_data.get(var_name)
-        if value is None:
-            return match.group(0)
-        if hasattr(value, 'value'):
-            return repr(unquote(value.value))
-        elif isinstance(value, str):
-            return repr(unquote(value))
-        return str(value)
-    
-    expr = re.sub(r'%{([^}]+)}', repl_local, expr)
-    
-    # 2) Replace global markers (@{...}) using global_data (supporting dotted names).
-    def repl_global(match):
-        var_name = match.group(1).strip()
-        if '.' in var_name:
-            value = resolve_scoped_variable(var_name, global_data)
-        else:
-            value = global_data.get(var_name)
-        if value is None:
-            return match.group(0)
-        if hasattr(value, 'value'):
-            return repr(unquote(value.value))
-        elif isinstance(value, str):
-            return repr(unquote(value))
-        return str(value)
-    
-    expr = re.sub(r'@{([^}]+)}', repl_global, expr)
-    
-    # 3) Replace context markers (${...}) by quoting them, so they remain in the final string.
-    def repl_context(match):
-        placeholder = match.group(0)  # e.g. "${auth_token}"
-        return repr(placeholder)
-    
-    expr = re.sub(r'\$\{([^}]+)\}', repl_context, expr)
-    
-    # Now, evaluate the resulting expression in a safe environment.
-    safe_globals = {"__builtins__": {}, "true": True, "false": False}
-    try:
-        result = eval(expr, safe_globals, {})
-    except Exception as e:
-        # In case evaluation fails, return the substituted expression.
-        result = expr
-    return result
 
 
 

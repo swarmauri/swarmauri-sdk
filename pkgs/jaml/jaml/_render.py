@@ -1,7 +1,6 @@
 from typing import Dict, Any
 import re
 from .ast_nodes import (
-    DeferredExpression, 
     PreservedString, 
     DeferredDictComprehension,
     DeferredListComprehension, 
@@ -199,7 +198,7 @@ def substitute_deferred(ast_node, env):
         env = merged
         print("[DEBUG SUB_DEFERRED] Merged environment for top-level dict:", env)
 
-    if isinstance(ast_node, (DeferredExpression, DeferredDictComprehension, DeferredListComprehension)):
+    if isinstance(ast_node, (DeferredDictComprehension, DeferredListComprehension)):
         print("[DEBUG SUB_DEFERRED] Evaluating deferred expression/comprehension for node:", ast_node)
         result = ast_node.evaluate(env)
         print("[DEBUG SUB_DEFERRED] Deferred expression evaluated to:", result)

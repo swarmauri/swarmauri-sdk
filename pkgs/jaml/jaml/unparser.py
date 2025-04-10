@@ -16,7 +16,6 @@ from .ast_nodes import (
     PreservedValue, 
     PreservedArray, 
     PreservedInlineTable,
-    DeferredExpression,
     DeferredDictComprehension
 )
 
@@ -42,9 +41,6 @@ class JMLUnparser:
             )
 
     def format_value(self, value):
-        if isinstance(value, DeferredExpression):
-            return f"<{{ {value.expr} }}>"
-
         # New branch for DeferredDictComprehension:
         if isinstance(value, DeferredDictComprehension):
             # Re-wrap it in curly braces.
