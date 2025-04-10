@@ -130,7 +130,6 @@ def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: di
         quote_char = inner[0]
         inner = inner[1:-1]
         print(f"[DEBUG] After removing surrounding {quote_char} quotes, inner:", inner)
-    
 
     # Remove the surrounding quotes (if the inner string starts with a quote).
     if inner.startswith('{') or inner.startswith("}"):

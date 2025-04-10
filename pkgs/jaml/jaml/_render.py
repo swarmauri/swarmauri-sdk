@@ -107,57 +107,68 @@ def _substitute_vars(expr: str, env: Dict[str, Any], quote_strings: bool = True)
     If quote_strings is True, then any substituted string value will be returned in its
     Python-quoted representation (using repr).
     """
+    print("[DEBUG SUB] Starting substitution in expression:", expr)
+
     def _extract_value(x: Any) -> Any:
         # Local import to avoid circular dependency.
         from .ast_nodes import PreservedString
         if isinstance(x, PreservedString):
+            print("[DEBUG SUB] Extracting value from PreservedString:", x.value)
             return x.value
         return x
 
     # Replace dynamic placeholders: ${...}
     def repl_dynamic(m):
         var = m.group(1).strip()
+        print("[DEBUG SUB] Found dynamic placeholder for variable:", var)
         keys = var.split('.')
         val = env
         for key in keys:
             if isinstance(val, dict) and key in val:
                 val = val[key]
             else:
+                print("[DEBUG SUB] Dynamic variable not found; leaving placeholder:", m.group(0))
                 return f"${{{var}}}"  # leave as-is if not found
         val = _extract_value(val)
-        if quote_strings and isinstance(val, str):
-            return repr(val)
-        return str(val)
+        substituted_val = repr(val) if quote_strings and isinstance(val, str) else str(val)
+        print("[DEBUG SUB] Dynamic placeholder substituted to:", substituted_val)
+        return substituted_val
 
     result = re.sub(r'\$\{([^}]+)\}', repl_dynamic, expr)
+    print("[DEBUG SUB] After dynamic substitution:", result)
 
     # Replace local references: %{var}
     def repl_local(m):
         var = m.group(1).strip()
+        print("[DEBUG SUB] Found local variable reference:", var)
         if var in env:
             val = _extract_value(env.get(var))
-            if quote_strings and isinstance(val, str):
-                return repr(val)
-            return str(val)
+            substituted_val = repr(val) if quote_strings and isinstance(val, str) else str(val)
+            print("[DEBUG SUB] Local reference substituted to:", substituted_val)
+            return substituted_val
+        print("[DEBUG SUB] Local variable not found; leaving placeholder:", m.group(0))
         return f"%{{{var}}}"
     result = re.sub(r'%\{([^}]+)\}', repl_local, result)
+    print("[DEBUG SUB] After local substitution:", result)
 
     # Replace global references: @{var} or dotted names.
     def repl_global(m):
         var = m.group(1).strip()
+        print("[DEBUG SUB] Found global variable reference:", var)
         keys = var.split('.')
         val = env
         for key in keys:
             if isinstance(val, dict) and key in val:
                 val = val[key]
             else:
+                print("[DEBUG SUB] Global variable not found; leaving placeholder:", m.group(0))
                 return f"@{{{var}}}"
         val = _extract_value(val)
-        if quote_strings and isinstance(val, str):
-            return repr(val)
-        return str(val)
+        substituted_val = repr(val) if quote_strings and isinstance(val, str) else str(val)
+        print("[DEBUG SUB] Global reference substituted to:", substituted_val)
+        return substituted_val
     result = re.sub(r'@\{([^}]+)\}', repl_global, result)
-
+    print("[DEBUG SUB] Final substitution result:", result)
     return result
 
 
@@ -172,6 +183,7 @@ def substitute_deferred(ast_node, env):
     - For f-string (PreservedString) nodes, evaluate the string using the current environment for both
       global (@ markers) and self-scope (% markers) lookups.
     """
+    print("[DEBUG SUB_DEFERRED] Processing node of type:", type(ast_node), "with env:", env)
     # If no environment is provided at the top level and ast_node is a dict,
     # merge top-level keys (skipping control keys) into the environment.
     if isinstance(env, dict) and not env and isinstance(ast_node, dict):
@@ -185,25 +197,26 @@ def substitute_deferred(ast_node, env):
             else:
                 merged[k] = v
         env = merged
+        print("[DEBUG SUB_DEFERRED] Merged environment for top-level dict:", env)
 
     if isinstance(ast_node, (DeferredExpression, DeferredDictComprehension, DeferredListComprehension)):
-        return ast_node.evaluate(env)
+        print("[DEBUG SUB_DEFERRED] Evaluating deferred expression/comprehension for node:", ast_node)
+        result = ast_node.evaluate(env)
+        print("[DEBUG SUB_DEFERRED] Deferred expression evaluated to:", result)
+        return result
 
     elif isinstance(ast_node, FoldedExpressionNode):
-        # Evaluate the folded expression using the environment,
-        # returning a final string with both static and dynamic placeholders replaced.
-        # If you only want partial sub for static references, you can do that, 
-        # but MEP-0011 typically wants final dynamic placeholders replaced if context is given.
-
-        return _render_folded_expression_node(ast_node, env)
+        print("[DEBUG SUB_DEFERRED] Processing FoldedExpressionNode:", ast_node)
+        result = _render_folded_expression_node(ast_node, env)
+        print("[DEBUG SUB_DEFERRED] FoldedExpressionNode rendered to:", result)
+        return result
         
     elif isinstance(ast_node, dict):
         # Build a local environment for this section.
         local_env = {}
-        # Start with parent's environment.
         if isinstance(env, dict):
             local_env.update(env)
-        # Then update with the current section's assignments.
+        print("[DEBUG SUB_DEFERRED] Processing dict node with local_env:", local_env)
         for k, v in ast_node.items():
             if k == "__comments__":
                 continue
@@ -211,38 +224,56 @@ def substitute_deferred(ast_node, env):
                 local_env[k] = v["_annotation"]
             else:
                 local_env[k] = v
-        # Recurse into each key using the local environment.
-        return { k: substitute_deferred(v, local_env) for k, v in ast_node.items() }
+        result = { k: substitute_deferred(v, local_env) for k, v in ast_node.items() }
+        print("[DEBUG SUB_DEFERRED] Finished processing dict node; result:", result)
+        return result
 
     elif isinstance(ast_node, list):
-        return [substitute_deferred(item, env) for item in ast_node]
+        print("[DEBUG SUB_DEFERRED] Processing list node with env:", env)
+        result = [substitute_deferred(item, env) for item in ast_node]
+        print("[DEBUG SUB_DEFERRED] Finished processing list node; result:", result)
+        return result
 
     elif isinstance(ast_node, PreservedString):
         s = ast_node.original
+        print("[DEBUG SUB_DEFERRED] Processing PreservedString:", s)
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
-            # For f-strings, use evaluate_f_string with the current environment for both global and local lookups.
+            print("[DEBUG SUB_DEFERRED] Detected f-string in PreservedString:", s)
+            
             from ._helpers import evaluate_f_string
-            return evaluate_f_string(s.lstrip(), env, env)
+            result = evaluate_f_string(s.lstrip(), env, env)
+            print("[DEBUG SUB_DEFERRED] evaluate_f_string result:", result)
+            return result
         else:
             # Replace ${...} placeholders in the unquoted value.
             s = ast_node.value
-            return re.sub(
+            result = re.sub(
                 r'\$\{([^}]+)\}',
                 lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
                 s
             )
+            print("[DEBUG SUB_DEFERRED] Processed PreservedString without f-prefix; result:", result)
+            return result
+
     elif isinstance(ast_node, str):
+        print("[DEBUG SUB_DEFERRED] Processing string node:", ast_node)
         if ast_node.lstrip().startswith("f\"") or ast_node.lstrip().startswith("f'"):
+            print("[DEBUG SUB_DEFERRED] Detected f-string in plain string:", ast_node)
+
             from ._helpers import evaluate_f_string
-            return evaluate_f_string(ast_node.lstrip(), env, env)
+            result = evaluate_f_string(ast_node.lstrip(), env, env)
+            print("[DEBUG SUB_DEFERRED] evaluate_f_string result for string node:", result)
+            return result
         else:
-            return re.sub(
+            result = re.sub(
                 r'\$\{([^}]+)\}',
                 lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
                 ast_node
             )
+            print("[DEBUG SUB_DEFERRED] Processed plain string; result:", result)
+            return result
+
     else:
+        print("[DEBUG SUB_DEFERRED] Returning node as-is:", ast_node)
         return ast_node
-
-
 

@@ -1,6 +1,8 @@
 import re
 from typing import Dict, Any
 
+from ._eval import safe_eval
+
 def unquote(s):
     if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
         return s[1:-1]
@@ -20,7 +22,6 @@ def resolve_scoped_variable(var_name, data):
         else:
             return None
     return current
-
 
 def evaluate_immediate_expression(expr, global_data, local_data):
     """
@@ -86,34 +87,66 @@ def evaluate_immediate_expression(expr, global_data, local_data):
         result = expr
     return result
 
+
+
 def evaluate_f_string(f_str, global_data, local_data):
     """
-    Evaluate an f-string by substituting interpolations.
-    
-    This function supports three kinds of markers:
+    Evaluate an f-string by first evaluating its inner Python expression then
+    substituting interpolations.
+
+    Supports three kinds of markers:
       - Global markers: @{...} (looked up in global_data; supports dotted names)
       - Self/local markers: %{...} (looked up in local_data; supports dotted names)
       - Context markers: ${...} (looked up in global_data)
       
     f_str is assumed to start with f" or f'.
     """
-    # Remove the leading f and surrounding quotes.
-    inner = f_str[2:-1]
+    print("[DEBUG EVAL_F_STRING] Original f-string:", f_str)
+    
+    # Verify f-string starts with f" or f'
+    if not (f_str.startswith('f"') or f_str.startswith("f'")):
+        print("[DEBUG EVAL_F_STRING] Not an f-string; returning as-is.")
+        return f_str
 
-    # First pass: Process markers for global (@) and self/local (%) substitutions.
+    # Remove the leading 'f' and surrounding quotes.
+    inner = f_str[1:].lstrip()
+    if inner and inner[0] in ('"', "'"):
+        quote_char = inner[0]
+        if inner.endswith(quote_char):
+            inner = inner[1:-1]
+        else:
+            inner = inner[1:]
+    print("[DEBUG EVAL_F_STRING] After removing f prefix and quotes, inner:", inner)
+    
+    # If the entire inner expression is wrapped in curly braces, remove them.
+    inner_strip = inner.strip()
+    if inner_strip.startswith("{") and inner_strip.endswith("}"):
+        inner = inner_strip[1:-1].strip()
+    print("[DEBUG EVAL_F_STRING] After removing surrounding curly braces, inner:", inner)
+    
+    # Attempt to evaluate the expression using safe_eval.
+    try:
+        evaluated = safe_eval(inner)
+        print("[DEBUG EVAL_F_STRING] safe_eval result:", evaluated)
+        result = str(evaluated)
+    except Exception as e:
+        print("[DEBUG EVAL_F_STRING] safe_eval failed with exception:", e)
+        result = inner  # fallback to the raw inner expression if evaluation fails
+
+    # Now perform the first pass of substitutions on the evaluated result.
+    # This pass processes global (@) and local (%) markers.
     pattern = re.compile(r'([@%]){([^}]+)}')
-
     def repl(match):
         scope_marker = match.group(1)
         var_name = match.group(2).strip()
         if scope_marker == '@':
-            # Global lookup: if the name is dotted, do a nested lookup.
+            # Global lookup: support dotted names.
             if '.' in var_name:
                 value = resolve_scoped_variable(var_name, global_data)
             else:
                 value = global_data.get(var_name, match.group(0))
         elif scope_marker == '%':
-            # Self/local lookup: use local_data.
+            # Self/local lookup.
             if '.' in var_name:
                 value = resolve_scoped_variable(var_name, local_data)
             else:
@@ -127,12 +160,11 @@ def evaluate_f_string(f_str, global_data, local_data):
         elif isinstance(value, str):
             return unquote(value)
         return str(value)
-
-    evaluated = re.sub(pattern, repl, inner)
-
-    # Second pass: Process context markers of the form ${...} using the global_data.
+    evaluated_sub = re.sub(pattern, repl, result)
+    print("[DEBUG EVAL_F_STRING] After first pass substitution:", evaluated_sub)
+    
+    # Second pass: Process context markers ${...} using global_data.
     context_pattern = re.compile(r'\$\{([^}]+)\}')
-
     def context_repl(match):
         var_name = match.group(1).strip()
         value = resolve_scoped_variable(var_name, global_data)
@@ -143,9 +175,11 @@ def evaluate_f_string(f_str, global_data, local_data):
         elif isinstance(value, str):
             return unquote(value)
         return str(value)
+    evaluated_sub = re.sub(context_pattern, context_repl, evaluated_sub)
+    print("[DEBUG EVAL_F_STRING] Final evaluated f-string after context substitution:", evaluated_sub)
+    
+    return evaluated_sub
 
-    evaluated = re.sub(context_pattern, context_repl, evaluated)
-    return evaluated
 
 def evaluate_f_string_interpolation(f_str, env):
     """
