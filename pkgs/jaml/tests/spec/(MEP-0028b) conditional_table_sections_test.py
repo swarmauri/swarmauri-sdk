@@ -11,39 +11,39 @@ from jaml import (
 # The input JML content (as a multi-line string)
 JML_INPUT = r'''
 rootDir = "src"
-packages = $ctx.packages
+packages = ${ctx.packages}
 
-[[file.{package.name}.{module.name}.source
-  for package as %package in @packages if package.active
-  for module as %module in package.modules if module.enabled]]
-name = %module.name + ".py"
-path = @rootDir + "/" + %package.name + "/" + %name
+[[f"file.{package.name}.{module.name}.source" 
+  for package as %{package} in @{packages} if package.active
+  for module as %{module} in @{package.modules} if module.enabled]]
+name = %{module.name} + ".py"
+path = @{rootDir} + "/" + %{package.name} + "/" + %{name}
 type = "python"
-extras = ["k" = v for k, v in %module.extras.items if k != "secret"] else {}
+extras = [k = v for k, v in %{module.extras.items} if k != "secret"] 
 
-[[file.{package.name}.{module.name}.test
-  for package as %package in @packages if package.active
-  for module as %module in package.modules if module.enabled if module.isTest]]
-name = %module.name + "_test.py"
-path = @rootDir + "/" + %package.name + "/tests/" + %name
+[[ f"file.{package.name}.{module.name}.test"
+  for package as %{package} in @{packages} if package.active
+  for module as %{module} in @{package.modules} if module.enabled if module.isTest ]]
+name = %{module.name} + "_test.py"
+path = @{rootDir} + "/" + %{package.name} + "/tests/" + %{name}
 type = "python"
-extras = { "testFramework" = "pytest", "tests" = [%module.tests] }
+extras = { testFramework = "pytest", tests = %{module.tests} }
 
-[[file.{package.name}.{module.name}.readme
-  for package as %package in @packages if package.active
-  for module as %module in package.modules if module.enabled]]
-name = "README_" + %module.name + ".md"
-path = @rootDir + "/" + %package.name + "/README_" + %name
+[[f"file.{package.name}.{module.name}.readme"
+  for package as %{package} in @{packages} if package.active
+  for module as %{module} in @{package.modules} if module.enabled]]
+name = "README_" + %{module.name} + ".md"
+path = @{rootDir} + "/" + %{package.name} + "/README_" + %{name}
 type = "markdown"
-extras = ["k" = v for k, v in %module.extras.items if k in ["owner", "desc"]] else { "desc" = "Module docs" }
+extras = [k = v for k, v in %{module.extras.items} if k in ["owner", "desc"]] 
 
-[[file.{package.name}.{module.name}.config
-  for package as %package in @packages if package.active
-  for module as %module in package.modules if module.enabled]]
-name = %module.name + ".yaml"
-path = @rootDir + "/" + %package.name + "/config/" + %name
+[[f"file.{package.name}.{module.name}.config"
+  for package as %{package} in @{packages} if package.active
+  for module as %{module} in @{package.modules} if module.enabled]]
+name = %{module.name} + ".yaml"
+path = @{rootDir} + "/" + %{package.name} + "/config/" + %{name}
 type = "yaml"
-extras = { "env" = $ctx.env }
+extras = { env = ${ctx.env} }
 '''
 
 # The base external context used during rendering.
@@ -73,7 +73,7 @@ BASE_CONTEXT = {
 }
 
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028
 def test_round_trip_loads_valid():
@@ -88,7 +88,7 @@ def test_round_trip_loads_valid():
     # For instance, one could check for a key related to file blocks if defined by the transformer.
     
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028
 def test_update_root_dir():
@@ -105,7 +105,7 @@ def test_update_root_dir():
     assert "source/auth" in rendered_output, "Updated rootDir not reflected in file paths."
 
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028
 def test_update_context_env():
@@ -124,7 +124,7 @@ def test_update_context_env():
     assert '"env" = "dev"' in rendered_output, "Updated env value not reflected in config extras."
 
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028
 def test_update_module_extras():

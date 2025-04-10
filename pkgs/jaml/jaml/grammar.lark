@@ -6,6 +6,7 @@ start: line*
 line: comment_line
     | blank_line
     | section
+    | table_array_section    
     | assignment
     | folded_expr
 
@@ -14,15 +15,24 @@ blank_line: NEWLINE
 
 assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
 
+concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
+
+string_component: STRING | SCOPED_VAR
 
 type_annotation: TYPE
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
 
 // A section header can appear
-section: "[" (section_name | STRING) "]"
-section_name: IDENTIFIER ("." IDENTIFIER)*
+section: "[" (section_name | STRING) "]" NEWLINE?
+section_name: IDENTIFIER ("." IDENTIFIER)* 
 
-?assignment_value: comprehension
+table_array_section: "[[" table_array_header "]]" NEWLINE? table_array_content?
+table_array_header: section_name | STRING | list_comprehension | table_array_comprehension
+table_array_content: line*
+table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
+
+?assignment_value: concat_expr
+                 | comprehension
                  | array
                  | inline_table
                  | paren_expr
@@ -37,7 +47,6 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
                  | RESERVED_FUNC
                  | KEYWORD
                  | TABLE_ARRAY
-                 | FOLDER_BLOCK
                  | OPERATOR
 
 ?expr_item: IDENTIFIER
@@ -64,7 +73,6 @@ section_name: IDENTIFIER ("." IDENTIFIER)*
       | RESERVED_FUNC
       | KEYWORD
       | TABLE_ARRAY
-      | FOLDER_BLOCK
       | OPERATOR
 
 // If you want to ignore purely horizontal spaces between tokens:
@@ -107,9 +115,19 @@ inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
 ?comprehension: list_comprehension
               | dict_comprehension
 
+
+string_expr: (STRING | SCOPED_VAR) (HSPACES? "+" HSPACES? (STRING | SCOPED_VAR))*
+pair_expr: (string_expr|IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr|IDENTIFIER))
+?comprehension_expr: pair_expr | string_expr | expr_item
+
+
 // List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
-list_comprehension: "[" NEWLINE* comprehension_expr "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "]"
-comprehension_expr: arithmetic
+list_comprehension: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
+comprehension_clauses: comprehension_clause+ 
+comprehension_clause: FOR (dotted_expr | dotted_expr (AS SCOPED_VAR) | dotted_expr "," dotted_expr )? IN value (IF comp_expr OPERATOR? comp_expr?)* (IN value)? NEWLINE*
+
+?comp_expr: dotted_expr | value
+dotted_expr: IDENTIFIER ("." IDENTIFIER)*
 
 // Dict comprehension (e.g., { f"user_{x}": x for x in [1, 2, 3] })
 dict_comprehension: "{" NEWLINE* comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
@@ -164,6 +182,12 @@ NULL: /null\b/
 RESERVED_FUNC: /(File\(\)|Git\(\))\b/
 
 // 11) KEYWORD
+FOR: "for"
+AS: "as"
+IN: "in"
+IF: "if"
+ELSE: "else"
+
 KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as)\b/
 
 // 12) TABLE_ARRAY
@@ -172,8 +196,7 @@ TABLE_ARRAY: /\[\[[^\]\n]+\]\]/
 // 13) TABLE_SECTION
 TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
 
-// 15) FOLDER_BLOCK
-FOLDER_BLOCK: /\{\^.*?\^\}/s
+
 
 // 18) IDENTIFIER
 IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
