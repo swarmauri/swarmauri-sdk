@@ -14,6 +14,7 @@ from .ast_nodes import (
     DeferredExpression,
     FoldedExpressionNode
     )
+
 class ConfigTransformer(Transformer):
     def __init__(self):
         super().__init__()

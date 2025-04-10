@@ -8,41 +8,64 @@ from ._helpers import (
     evaluate_comprehension
 )  
 
-
 class FoldedExpressionNode:
     """
     Represents a folded (immediate) expression from the config,
-    preserving the original bracketed text for round-trip
-    and optional later evaluation in the resolve step.
+    preserving the original bracketed text for round-trip and optional later
+    evaluation in the resolve step.
     """
 
     def __init__(self, original_text: str, content_tree):
-        self.original = original_text
+        # Store original in a private variable.
+        self._original = original_text
         self.content_tree = content_tree  # This is the parse subtree from folded_content
+
+    @property
+    def original(self) -> str:
+        """Getter for the original text."""
+        return self._original
+
+    @original.setter
+    def original(self, new_text: str):
+        """
+        Setter for the original text.
+        Whenever the original text is updated, re-parse it to update the content_tree.
+        """
+        self._original = new_text
+        self.content_tree = self._parse_original(new_text)
+
+    def _parse_original(self, text: str):
+        try:
+            import ast
+            from ._transformer import ConfigTransformer
+            from .lark_parser import parser
+            return parser.parse(text)
+        except Exception as e:
+            raise ValueError(f"Unable to parse and transform folded expression: {text} due to '{e}'") from e
 
     def __str__(self):
         """
-        When converting to string (e.g. for debug prints),
+        When converting to a string (e.g. for debug prints),
         return the bracketed text exactly as read from the file.
         """
-        return self.original
+        return self._original
 
     def __repr__(self):
-        return f"FoldedExpressionNode(original={self.original!r}, content_tree={self.content_tree!r})"
+        return f"FoldedExpressionNode(original={self._original!r}, content_tree={self.content_tree!r})"
 
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.original == other
+            return self._original == other
         if isinstance(other, FoldedExpressionNode):
-            return self.original == other.original
+            return self._original == other._original
         return False
 
     def get_inner_expression(self) -> str:
         """
-        If you need to parse out the inside expression for resolution,
-        strip off the leading '<(' and trailing ')>'.
+        Parses out the inner expression for resolution by stripping off the
+        leading '<(' and trailing ')>'.
         """
-        text = self.original.strip()
+        text = self._original.strip()
         if text.startswith("<(") and text.endswith(")>"):
             return text[2:-2].strip()
         return text

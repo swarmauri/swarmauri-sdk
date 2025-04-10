@@ -204,7 +204,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["api"]["endpoint"] == "http://devserver:8080/api?token=${auth_token}"
+    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
 
     out = round_trip_dumps(data)
     rendered_data = render(out, context={"auth_token": "ABC123"})
@@ -362,7 +362,7 @@ result = <( 3 + 4 )>
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["api"]["endpoint"] == "http://devserver:8080/api?token=${auth_token}"
+    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
     assert resolved_config["calc"]["result"] == 11
 
     out = round_trip_dumps(data)

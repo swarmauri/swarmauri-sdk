@@ -172,28 +172,95 @@ def safe_eval(expr: str) -> any:
     tree = ast.parse(expr, mode='eval')
     return _eval(tree)
 
-def _resolve_folded_expression_node(node, global_env, local_env) -> any:
-    # (cache logic omitted for brevity)
-    folded_literal = node.original
-    stripped = folded_literal.strip()
-    if not (stripped.startswith("<(") and stripped.endswith(")>")):
-        node.resolved = folded_literal
-        return folded_literal
+import re
 
-    inner = stripped[2:-2].strip()
-    # Here we want quoted strings for safe evaluation.
-    substituted = _substitute_vars(inner, global_env, local_env, quote_strings=True)
-    
-    # Wrap any remaining dynamic placeholders in quotes
-    substituted_fixed = re.sub(r'(\$\{\s*[^}]+\})', r'"\1"', substituted)
-    
+import re
+
+def _resolve_folded_expression_node(node, global_env, local_env) -> any:
+    """
+    For a FoldedExpressionNode, perform variable substitution and try to
+    evaluate the entire expression using its parsed content_tree.
+
+    The process is as follows:
+      - Walk the content_tree and rebuild the expression string, applying:
+          * Variable substitution (for tokens like @{...} or %{...})
+          * Wrapping dynamic placeholders (${...}) in quotes.
+          * Skipping tokens that represent the outer delimiters ("<(" and ")>")
+      - Evaluate the rebuilt expression with safe_eval().
+      - If the result is a string that still contains a dynamic placeholder,
+        assume it must be an f-string and prefix it appropriately.
+      - Cache the evaluated result in node.resolved.
+    """
+    # Return a cached resolution if it exists.
+    if hasattr(node, 'resolved'):
+        return node.resolved
+
+    # If for some reason the content_tree is missing, fall back to using node.original.
+    if not hasattr(node, 'content_tree') or node.content_tree is None:
+        folded_literal = node.original
+        stripped = folded_literal.strip()
+        if not (stripped.startswith("<(") and stripped.endswith(")>")):
+            node.resolved = folded_literal
+            return folded_literal
+
+        inner = stripped[2:-2].strip()
+        substituted = _substitute_vars(inner, global_env, local_env, quote_strings=True)
+        substituted_fixed = re.sub(r'(\$\{\s*[^}]+\})', r'"\1"', substituted)
+        try:
+            result = safe_eval(substituted_fixed)
+            if isinstance(result, str) and '${' in result:
+                result = 'f"' + result + '"'
+            node.resolved = result
+            if not isinstance(result, str):
+                node.original = result
+            return result
+        except Exception as e:
+            node.resolved = substituted_fixed
+            return substituted_fixed
+
+    # Helper function to convert each token from the content tree into its expression form.
+    def token_to_expr(token):
+        # Skip tokens that are simply the outer delimiters.
+        if isinstance(token, str) and token.strip() in ("<(", ")>"):
+            return ""
+        # If token is a numeric literal, return its string representation.
+        if isinstance(token, (int, float)):
+            return str(token)
+        # If the token object has an 'original' attribute, use that.
+        if hasattr(token, 'original'):
+            return token.original
+        # If the token is a string, check whether it is a variable or dynamic placeholder.
+        if isinstance(token, str):
+            if token.startswith('@{') or token.startswith('%{'):
+                return _substitute_vars(token, global_env, local_env, quote_strings=True)
+            elif token.startswith('${'):
+                return '"' + token + '"'
+            else:
+                return token
+        # If the token is a subtree (nested expression), recursively process its children.
+        if hasattr(token, 'children'):
+            return " ".join(token_to_expr(child) for child in token.children)
+        # Fallback: convert the token to string.
+        return str(token)
+
+    # Rebuild the evaluable expression from the content tree.
+    expr_string = " ".join(token_to_expr(t) for t in node.content_tree.children).strip()
+
     try:
-        result = safe_eval(substituted_fixed)
+        # Evaluate the expression using safe_eval.
+        result = safe_eval(expr_string)
+        # If the evaluated result is a string that still contains dynamic placeholders,
+        # assume an f-string is required.
+        if isinstance(result, str) and '${' in result:
+            result = 'f"' + result + '"'
         node.resolved = result
+        # For non-string results, update the original.
+        if not isinstance(result, str):
+            node.original = result
         return result
     except Exception as e:
-        node.resolved = substituted_fixed
-        return substituted_fixed
+        node.resolved = expr_string
+        return expr_string
 
 
 def _substitute_vars(expr: str, global_env: dict, local_env: dict, quote_strings: bool = True) -> str:
