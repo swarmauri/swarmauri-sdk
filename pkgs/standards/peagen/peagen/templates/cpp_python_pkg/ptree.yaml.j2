@@ -111,13 +111,16 @@
   MODULE_NAME: "{{ MOD.NAME }}"
   EXTRAS:
     DEPENDENCIES: []
-    PURPOSE: "C++ extension module implementation."
-    DESCRIPTION: "Provides C++ functionality to be called from Python."
+    PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+    DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
     REQUIREMENTS:
-      - "Must use Python C API correctly."
-      - "Must define at least one example function."
-      - "Should properly initialize NumPy API."
-      - "Must handle Python object reference counting correctly."
+      - "Implement the functionality for module {{ MOD.NAME }}."
+      - "Must include the necessary C++ headers."
+    {%- if MOD.EXTRAS.REQUIREMENTS %}
+    {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+      - "{{ req }}"
+    {%- endfor %}
+    {%- endif %}
 
 - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
   RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
