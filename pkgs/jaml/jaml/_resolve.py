@@ -110,69 +110,136 @@ def _resolve_dict(dct: dict, global_env: Dict[str, Any], parent_local_env: Dict[
 # 4) Expression Handling
 ########################################
 
-def _maybe_resolve_fstring(fstring_literal: str, global_env: Dict[str, Any],
-                           local_env: Dict[str, Any]) -> str:
-    if _has_dynamic_placeholder(fstring_literal):
+def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: dict) -> str:
+    # If there are dynamic ${...} placeholders, simply return the original.
+    if re.search(r"\$\{\s*[^}]+\}", fstring_literal):
         return fstring_literal
-    # strip leading f
+    
+    # Remove the "f" prefix and surrounding quotes.
     inner = fstring_literal.lstrip()[1:]
     if inner.startswith('"') or inner.startswith("'"):
         inner = inner[1:-1]
-    return _substitute_vars(inner, global_env, local_env)
+    
+    # For f-string resolution, do not add extra quotes.
+    return _substitute_vars(inner, global_env, local_env, quote_strings=False)
 
-def _resolve_folded_expression_node(node, global_env, local_env) -> str:
+import re
+import ast
+import operator as op
+
+import re
+import ast
+import operator as op
+
+def safe_eval(expr: str) -> any:
     """
-    For a FoldedExpressionNode, parse out the inside text, do partial substitution
-    for @{} / %{} references, but keep ${} placeholders.
+    Safely evaluate a simple arithmetic or string concatenation expression.
+    Only allows a fixed set of binary and unary operations and literals.
     """
+    allowed_operators = {
+        ast.Add: op.add,
+        ast.Sub: op.sub,
+        ast.Mult: op.mul,
+        ast.Div: op.truediv,
+        ast.FloorDiv: op.floordiv,
+        ast.Mod: op.mod,
+        ast.Pow: op.pow,
+    }
+    
+    def _eval(node):
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        elif isinstance(node, ast.Constant):  # Python 3.8+
+            return node.value
+        elif isinstance(node, ast.BinOp):
+            left = _eval(node.left)
+            right = _eval(node.right)
+            op_type = type(node.op)
+            if op_type not in allowed_operators:
+                raise ValueError(f"Unsupported operator: {op_type.__name__}")
+            return allowed_operators[op_type](left, right)
+        elif isinstance(node, ast.UnaryOp):
+            operand = _eval(node.operand)
+            if isinstance(node.op, ast.UAdd):
+                return +operand
+            elif isinstance(node.op, ast.USub):
+                return -operand
+            else:
+                raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+        else:
+            raise ValueError(f"Unsupported expression element: {node}")
+    
+    tree = ast.parse(expr, mode='eval')
+    return _eval(tree)
+
+def _resolve_folded_expression_node(node, global_env, local_env) -> any:
+    # (cache logic omitted for brevity)
     folded_literal = node.original
-    # e.g. <( "http://" + @{server.host} + ... )>
     stripped = folded_literal.strip()
     if not (stripped.startswith("<(") and stripped.endswith(")>")):
-        return folded_literal  # fallback or partial
+        node.resolved = folded_literal
+        return folded_literal
+
     inner = stripped[2:-2].strip()
+    # Here we want quoted strings for safe evaluation.
+    substituted = _substitute_vars(inner, global_env, local_env, quote_strings=True)
+    
+    # Wrap any remaining dynamic placeholders in quotes
+    substituted_fixed = re.sub(r'(\$\{\s*[^}]+\})', r'"\1"', substituted)
+    
+    try:
+        result = safe_eval(substituted_fixed)
+        node.resolved = result
+        return result
+    except Exception as e:
+        node.resolved = substituted_fixed
+        return substituted_fixed
 
-    # split on '+' at top-level
-    parts = [p.strip() for p in inner.split('+')]
-    resolved_parts = []
-    for part in parts:
-        # if part is a quoted literal
-        if (part.startswith('"') and part.endswith('"')) or (part.startswith("'") and part.endswith("'")):
-            # remove the quotes
-            resolved_parts.append(part[1:-1])
-        else:
-            # static substitution
-            substituted = _substitute_vars(part, global_env, local_env)
-            resolved_parts.append(substituted)
-    final_str = "".join(resolved_parts)
-    return final_str
 
-def _has_dynamic_placeholder(s: str) -> bool:
-    return bool(re.search(r"\$\{\s*[^}]+\}", s))
-
-def _substitute_vars(expr: str, global_env: Dict[str, Any], local_env: Dict[str, Any]) -> str:
-    # local references: %{var}
+def _substitute_vars(expr: str, global_env: dict, local_env: dict, quote_strings: bool = True) -> str:
+    """
+    Replace local (%{var}) and global (@{var}) references.
+    
+    If quote_strings is True, any substituted string value will be returned in its
+    Python-quoted representation (via repr) so that when evaluating the expression,
+    it will be treated as a literal. If False (as for f-string processing), the raw value is used.
+    """
     def repl_local(m):
         var = m.group(1).strip()
         if local_env and var in local_env:
-            return str(local_env[var])
+            value = local_env[var]
+            if quote_strings and isinstance(value, str):
+                return repr(value)
+            return str(value)
         return f"%{{{var}}}"
+    
     tmp = re.sub(r'%\{([^}]+)\}', repl_local, expr)
 
-    # global references: @{var} or dotted
     def repl_global(m):
         var = m.group(1).strip()
         if '.' in var:
-            # e.g. path.base
             section, key = var.split('.', 1)
             sect_val = global_env.get(section)
             if isinstance(sect_val, dict) and key in sect_val:
-                return str(sect_val[key])
+                value = sect_val[key]
+                if quote_strings and isinstance(value, str):
+                    return repr(value)
+                return str(value)
         if var in global_env:
-            return str(global_env[var])
+            value = global_env[var]
+            if quote_strings and isinstance(value, str):
+                return repr(value)
+            return str(value)
         return f"@{{{var}}}"
+    
     replaced = re.sub(r'@\{([^}]+)\}', repl_global, tmp)
     return replaced
+
+
+
+
+def _has_dynamic_placeholder(s: str) -> bool:
+    return bool(re.search(r"\$\{\s*[^}]+\}", s))
 
 ########################################
 # 5) Utility

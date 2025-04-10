@@ -207,10 +207,10 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     assert resolved_config["api"]["endpoint"] == "http://devserver:8080/api?token=${auth_token}"
 
     out = round_trip_dumps(data)
-    data_again = render(out, context={"auth_token": "ABC123"})
+    rendered_data = render(out, context={"auth_token": "ABC123"})
     print("[DEBUG]:")
-    print(data_again)
-    assert data_again["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+    print(rendered_data)
+    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
 
 # Test 8: List Comprehension Evaluation
 @pytest.mark.spec
@@ -368,7 +368,7 @@ result = <( 3 + 4 )>
     out = round_trip_dumps(data)
     rendered_data = render(out, context={"auth_token": "ABC123"})
     print("[DEBUG]:")
-    print(data_again)
+    print(rendered_data)
     assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
     assert rendered_data["calc"]["result"] == 11
 
