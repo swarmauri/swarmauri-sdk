@@ -8,7 +8,7 @@ from typing import Dict, Any
 from copy import deepcopy
 import re
 
-from .lark_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode
+from .lark_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode, DeferredListComprehension
 
 #######################################
 # 1) Public Entry Point
@@ -56,6 +56,14 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
         if local_env:
             env.update(local_env)
         return node.evaluate(env)
+
+    elif isinstance(node, DeferredListComprehension):
+        env = {}
+        env.update(global_env)
+        if local_env:
+            env.update(local_env)
+        return node.evaluate(env)
+
 
     elif isinstance(node, PreservedString):
         # check f-string prefix

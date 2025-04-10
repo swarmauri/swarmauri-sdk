@@ -71,11 +71,11 @@ class DeferredListComprehension:
         self.text = text
 
     @property
-    def original_text(self):
+    def original(self):
         return self.text
 
-    @original_text.setter
-    def original_text(self, value):
+    @original.setter
+    def original(self, value):
         self.text = value
 
     @property
