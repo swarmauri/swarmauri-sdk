@@ -128,7 +128,7 @@ def test_add_metadata_to_bare_type():
 
     assert get_origin(result) == Annotated
     args = get_args(result)
-    assert args[0] == int
+    assert args[0] is int
     assert args[1] == metadata
 
 
@@ -143,7 +143,7 @@ def test_add_metadata_to_annotated_type():
 
     assert get_origin(result) == Annotated
     args = get_args(result)
-    assert args[0] == str
+    assert args[0] is str
     assert len(args) == 4
     assert isinstance(args[1], CustomMetadata)
     assert args[1].value == "first"
