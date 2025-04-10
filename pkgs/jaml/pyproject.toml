@@ -43,6 +43,7 @@ markers = [
     "mep0012: MEP-0012 Specification Tests",
     "mep0013: MEP-0013 Specification Tests",
     "mep0014: MEP-0014 Specification Tests",
+    "mep0028: MEP-0028 Specification Tests",
 ]
 timeout = 300
 log_cli = true
