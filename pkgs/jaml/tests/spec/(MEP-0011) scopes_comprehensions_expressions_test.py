@@ -327,6 +327,51 @@ result = <( 3 + 4 )>
     rendered_data = render(out)
     assert rendered_data["calc"]["result"] == 11
 
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="expression evaluation not implemented")
+def test_string_and_arithmetic_expressions():
+    """
+    Validates expressions
+    """
+    sample = """
+[server]
+host = "prodserver"
+port = "8080"
+devhost = "devserver"
+
+[api]
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+
+[calc]
+result = <( 3 + 4 )>
+"""
+    # Provide context for the deferred part.
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    assert data["calc"]["result"] == '<( 3 + 4 )>'
+
+    data["api"]["endpoint"].original = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data["calc"]["result"].original = '<( 7 + 4 )>'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["api"]["endpoint"] == "http://devserver:8080/api?token=${auth_token}"
+    assert resolved_config["calc"]["result"] == 11
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out, context={"auth_token": "ABC123"})
+    print("[DEBUG]:")
+    print(data_again)
+    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+    assert rendered_data["calc"]["result"] == 11
+
 # Test 11: Conditional Logic in Expressions
 @pytest.mark.spec
 @pytest.mark.mep0011
