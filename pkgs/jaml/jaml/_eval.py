@@ -134,6 +134,9 @@ def safe_eval(expr: str) -> any:
             return [_eval(elt) for elt in node.elts]
         elif isinstance(node, ast.Tuple):
             return tuple(_eval(elt) for elt in node.elts)
+        elif isinstance(node, ast.Set):
+            # New support for set literals.
+            return {_eval(elt) for elt in node.elts}
         elif isinstance(node, ast.GeneratorExp):
             # Support simple generator expressions.
             if len(node.generators) != 1:

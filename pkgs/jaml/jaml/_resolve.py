@@ -113,28 +113,46 @@ def _resolve_dict(dct: dict, global_env: Dict[str, Any], parent_local_env: Dict[
 ########################################
 
 def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: dict) -> str:
+    print("[DEBUG] Entering _maybe_resolve_fstring")
+    print("[DEBUG] Input fstring_literal:", fstring_literal)
+    
     # If there are dynamic ${...} placeholders, simply return the original.
     if re.search(r"\$\{\s*[^}]+\}", fstring_literal):
+        print("[DEBUG] Found dynamic ${...} placeholder, returning original string.")
         return fstring_literal
     
-    # Remove the "f" prefix and surrounding quotes.
+    # Remove the "f" prefix and surrounding whitespace.
     inner = fstring_literal.lstrip()[1:]
-    if inner.startswith('"') or inner.startswith("'"):
-        inner = inner[1:-1]
+    print("[DEBUG] After stripping 'f' prefix, inner:", inner)
     
-    # Check that the string starts with f" or f'
+    # Remove the surrounding quotes (if the inner string starts with a quote).
+    if inner.startswith('"') or inner.startswith("'"):
+        quote_char = inner[0]
+        inner = inner[1:-1]
+        print(f"[DEBUG] After removing surrounding {quote_char} quotes, inner:", inner)
+    
+
+    # Remove the surrounding quotes (if the inner string starts with a quote).
+    if inner.startswith('{') or inner.startswith("}"):
+        quote_char = inner[0]
+        inner = inner[1:-1]
+        print(f"[DEBUG] After removing surrounding {quote_char} quotes, inner:", inner)
+
+    # Check if the string itself starts with an extra f-string indicator (f" or f')
     if inner.startswith('f"') or inner.startswith("f'"):
+        print("[DEBUG] Inner string starts with an additional f-string indicator, stripping it off.")
         inner = inner[2:-1]
+        print("[DEBUG] After removing extra f-string indicator, inner:", inner)
 
     try:
-        # Try to evaluate the inner expression using safe_eval.
+        print("[DEBUG] Attempting to evaluate inner expression with safe_eval:", inner)
         evaluated = safe_eval(inner)
+        print("[DEBUG] Evaluation successful, evaluated value:", evaluated)
         # Return the evaluated value as a string if it's not already a string.
-        # (If you want to support non-string f-string results, you might want to return evaluated directly.)
         return str(evaluated)
     except Exception as e:
-        # If evaluation fails, fall back to using variable substitution without quoting.
-        # (This is a fallback; ideally, the expression should evaluate.)
+        print("[DEBUG] safe_eval raised an exception:", e)
+        print("[DEBUG] Falling back to _substitute_vars with inner:", inner)
         return _substitute_vars(inner, global_env, local_env, quote_strings=False)
 
 
