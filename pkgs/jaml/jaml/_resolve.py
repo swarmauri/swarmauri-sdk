@@ -7,7 +7,8 @@ Handles global/local references, folded expressions, and partial evaluation.
 from typing import Dict, Any
 from copy import deepcopy
 import re
-
+import ast
+import operator as op
 from .ast_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode, DeferredListComprehension
 
 #######################################
@@ -123,13 +124,7 @@ def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: di
     # For f-string resolution, do not add extra quotes.
     return _substitute_vars(inner, global_env, local_env, quote_strings=False)
 
-import re
-import ast
-import operator as op
 
-import re
-import ast
-import operator as op
 
 def safe_eval(expr: str) -> any:
     """
@@ -144,6 +139,8 @@ def safe_eval(expr: str) -> any:
         ast.FloorDiv: op.floordiv,
         ast.Mod: op.mod,
         ast.Pow: op.pow,
+        "true": True,
+        "false": False
     }
     
     def _eval(node):
@@ -151,6 +148,8 @@ def safe_eval(expr: str) -> any:
             return _eval(node.body)
         elif isinstance(node, ast.Constant):  # Python 3.8+
             return node.value
+        elif isinstance(node, ast.Name):  # Python 3.8+
+            return f"{node.name}"
         elif isinstance(node, ast.BinOp):
             left = _eval(node.left)
             right = _eval(node.right)
@@ -172,10 +171,6 @@ def safe_eval(expr: str) -> any:
     tree = ast.parse(expr, mode='eval')
     return _eval(tree)
 
-import re
-
-import re
-
 def _resolve_folded_expression_node(node, global_env, local_env) -> any:
     """
     For a FoldedExpressionNode, perform variable substitution and try to
@@ -186,17 +181,21 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
           * Variable substitution (for tokens like @{...} or %{...})
           * Wrapping dynamic placeholders (${...}) in quotes.
           * Skipping tokens that represent the outer delimiters ("<(" and ")>")
-      - Evaluate the rebuilt expression with safe_eval().
+      - If the rebuilt expression appears to be purely arithmetic,
+        evaluate it directly with eval().
+      - Otherwise, try to evaluate the expression with safe_eval().
       - If the result is a string that still contains a dynamic placeholder,
         assume it must be an f-string and prefix it appropriately.
       - Cache the evaluated result in node.resolved.
     """
     # Return a cached resolution if it exists.
     if hasattr(node, 'resolved'):
+        print("[DEBUG] Returning cached resolution:", node.resolved)
         return node.resolved
 
-    # If for some reason the content_tree is missing, fall back to using node.original.
+    # Fallback if the content_tree is missing.
     if not hasattr(node, 'content_tree') or node.content_tree is None:
+        print("[DEBUG] No content_tree found, using original")
         folded_literal = node.original
         stripped = folded_literal.strip()
         if not (stripped.startswith("<(") and stripped.endswith(")>")):
@@ -208,20 +207,23 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
         substituted_fixed = re.sub(r'(\$\{\s*[^}]+\})', r'"\1"', substituted)
         try:
             result = safe_eval(substituted_fixed)
+            print("[DEBUG] Fallback safe_eval result:", result)
             if isinstance(result, str) and '${' in result:
                 result = 'f"' + result + '"'
             node.resolved = result
-            if not isinstance(result, str):
-                node.original = result
+            # Do not update node.original when result is not a string.
             return result
         except Exception as e:
+            print("[DEBUG] Exception during fallback safe_eval:", e)
             node.resolved = substituted_fixed
             return substituted_fixed
 
-    # Helper function to convert each token from the content tree into its expression form.
+    # Helper: Convert each token from the content tree into its expression form.
     def token_to_expr(token):
-        # Skip tokens that are simply the outer delimiters.
+        print("[DEBUG] Processing token:", token)
+        # Skip tokens representing the outer delimiters.
         if isinstance(token, str) and token.strip() in ("<(", ")>"):
+            print("[DEBUG] Skipping delimiter token:", token)
             return ""
         # If token is a numeric literal, return its string representation.
         if isinstance(token, (int, float)):
@@ -229,36 +231,51 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
         # If the token object has an 'original' attribute, use that.
         if hasattr(token, 'original'):
             return token.original
-        # If the token is a string, check whether it is a variable or dynamic placeholder.
+        # If the token is a string:
         if isinstance(token, str):
             if token.startswith('@{') or token.startswith('%{'):
-                return _substitute_vars(token, global_env, local_env, quote_strings=True)
+                substituted_val = _substitute_vars(token, global_env, local_env, quote_strings=True)
+                print("[DEBUG] Variable token substituted to:", substituted_val)
+                return substituted_val
             elif token.startswith('${'):
-                return '"' + token + '"'
+                wrapped = '"' + token + '"'
+                print("[DEBUG] Dynamic placeholder token wrapped to:", wrapped)
+                return wrapped
             else:
                 return token
-        # If the token is a subtree (nested expression), recursively process its children.
+        # If token is a subtree (nested expression), recursively process its children.
         if hasattr(token, 'children'):
             return " ".join(token_to_expr(child) for child in token.children)
-        # Fallback: convert the token to string.
+        # Fallback: simply convert token to string.
         return str(token)
 
-    # Rebuild the evaluable expression from the content tree.
+    # Rebuild the inner expression from the content tree.
     expr_string = " ".join(token_to_expr(t) for t in node.content_tree.children).strip()
-
+    print("[DEBUG] Rebuilt expression string:", expr_string)
+    
     try:
-        # Evaluate the expression using safe_eval.
-        result = safe_eval(expr_string)
-        # If the evaluated result is a string that still contains dynamic placeholders,
-        # assume an f-string is required.
+        # If the expression looks purely arithmetic (only digits, operators,
+        # whitespace, parentheses, or a period), then directly evaluate using eval().
+        if re.fullmatch(r'[\d\s+\-*/().]+', expr_string):
+            print("[DEBUG] Expression appears arithmetic. Using eval().")
+            result = eval(compile(expr_string, "<string>", "eval"), {}, {})
+        else:
+            print("[DEBUG] Expression is non-arithmetic. Using safe_eval().")
+            result = safe_eval(expr_string)
+        
+        print("[DEBUG] Evaluation result:", result)
+        
+        # If the evaluated result is a string with dynamic placeholders, convert to f-string.
         if isinstance(result, str) and '${' in result:
             result = 'f"' + result + '"'
+            print("[DEBUG] Adjusted result to f-string:", result)
+            
         node.resolved = result
-        # For non-string results, update the original.
-        if not isinstance(result, str):
-            node.original = result
+        # For arithmetic (non-string) results, do NOT update node.original.
+        # This preserves the original folded expression for potential round-trip needs.
         return result
     except Exception as e:
+        print("[DEBUG] Exception during evaluation:", e)
         node.resolved = expr_string
         return expr_string
 

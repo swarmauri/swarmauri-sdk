@@ -26,18 +26,24 @@ class FoldedExpressionNode:
         return self._original
 
     @original.setter
-    def original(self, new_text: str):
+    def original(self, new_text):
         """
         Setter for the original text.
         Whenever the original text is updated, re-parse it to update the content_tree.
+        Only update if new_text is a string.
         """
+        if not isinstance(new_text, str):
+            # If it's not a string (for example, an arithmetic result), leave self._original unchanged.
+            return
         self._original = new_text
         self.content_tree = self._parse_original(new_text)
 
     def _parse_original(self, text: str):
+        """
+        Parses the given folded expression text into a content tree.
+        Strips off the '<(' and ')>' delimiters before invoking the parser.
+        """
         try:
-            import ast
-            from ._transformer import ConfigTransformer
             from .lark_parser import parser
             return parser.parse(text)
         except Exception as e:
@@ -65,10 +71,10 @@ class FoldedExpressionNode:
         Parses out the inner expression for resolution by stripping off the
         leading '<(' and trailing ')>'.
         """
-        text = self._original.strip()
-        if text.startswith("<(") and text.endswith(")>"):
-            return text[2:-2].strip()
-        return text
+        stripped = self._original.strip()
+        if stripped.startswith("<(") and stripped.endswith(")>"):
+            return stripped[2:-2].strip()
+        return stripped
 
 
 class DeferredListComprehension:

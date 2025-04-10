@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import re
 from .ast_nodes import (
     DeferredExpression, 
@@ -6,7 +7,160 @@ from .ast_nodes import (
     DeferredListComprehension, 
     FoldedExpressionNode
 )
-from ._helpers import resolve_scoped_variable, _render_folded_expression_node
+from ._helpers import resolve_scoped_variable
+
+
+
+from .ast_nodes import FoldedExpressionNode
+from ._resolve import safe_eval  # or import safe_eval as defined in resolve.py
+
+def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, Any]) -> Any:
+    """
+    Process a FoldedExpressionNode at render time. This function does everything
+    that resolve.py does (i.e. rebuilding and evaluating the inner expression) and then
+    finally substitutes dynamic placeholders using the render-time environment.
+    
+    The difference from resolve.py is that here we finally resolve context-scoped variables.
+    
+    If a node has already been resolved to a non-string (e.g. an arithmetic result),
+    return that value immediately.
+    """
+    print("[DEBUG RENDER] Rendering FoldedExpressionNode:", node)
+    
+    # If the node has a cached resolution that is not a string, return it immediately.
+    if hasattr(node, 'resolved') and not isinstance(node.resolved, str):
+        print("[DEBUG RENDER] Returning non-string cached resolution:", node.resolved)
+        return node.resolved
+
+    # Otherwise, if node.resolved is a string and it does not look like a folded expression, return it.
+    # (This might be the case for f-string substitutions that are not numeric.)
+    if hasattr(node, 'resolved') and isinstance(node.resolved, str):
+        # Optionally, check if the node.original still starts with "<(".
+        if not node.original.strip().startswith("<("):
+            print("[DEBUG RENDER] Returning cached string resolution:", node.resolved)
+            return node.resolved
+
+    # Otherwise, process as before.
+    folded_literal = node.original.strip()
+    if not (folded_literal.startswith("<(") and folded_literal.endswith(")>")):
+        return folded_literal
+
+    def token_to_expr(token):
+        print("[DEBUG RENDER] Processing token:", token)
+        # Skip tokens representing the outer delimiters.
+        if isinstance(token, str) and token.strip() in ("<(", ")>"):
+            print("[DEBUG RENDER] Skipping delimiter token:", token)
+            return ""
+        if isinstance(token, (int, float)):
+            return str(token)
+        if hasattr(token, 'original'):
+            return token.original
+        if isinstance(token, str):
+            if token.startswith('@{') or token.startswith('%{'):
+                substituted_val = _substitute_vars(token, env)
+                print("[DEBUG RENDER] Variable token substituted to:", substituted_val)
+                return substituted_val
+            elif token.startswith('${'):
+                substituted_val = _substitute_vars(token, env)
+                print("[DEBUG RENDER] Dynamic placeholder token substituted to:", substituted_val)
+                return substituted_val
+            else:
+                return token
+        if hasattr(token, 'children'):
+            return " ".join(token_to_expr(child) for child in token.children)
+        return str(token)
+
+    expr_string = " ".join(token_to_expr(t) for t in node.content_tree.children).strip()
+    print("[DEBUG RENDER] Rebuilt expression string:", expr_string)
+
+    try:
+        if re.fullmatch(r'[\d\s+\-*/().]+', expr_string):
+            print("[DEBUG RENDER] Expression appears arithmetic. Using eval().")
+            result = eval(compile(expr_string, "<string>", "eval"), {}, {})
+        else:
+            print("[DEBUG RENDER] Expression is non-arithmetic. Using safe_eval().")
+            result = safe_eval(expr_string)
+        print("[DEBUG RENDER] Evaluation result:", result)
+    except Exception as e:
+        print("[DEBUG RENDER] Exception during evaluation:", e)
+        result = expr_string
+
+    # Finally, perform dynamic placeholder substitution on the result (if it is a string).
+    if isinstance(result, str):
+        final_result = _substitute_vars(result, env)
+    else:
+        final_result = result
+
+    print("[DEBUG RENDER] Final rendered result:", final_result)
+    node.resolved = final_result  # Cache for later use.
+    return final_result
+
+def _substitute_vars(expr: str, env: Dict[str, Any], quote_strings: bool = True) -> str:
+    """
+    Replace occurrences of:
+      - ${var} with the value from env (support dotted references)
+      - @{var} (or dotted names) similarly,
+      - and %{var} likewise.
+    Uses _extract_value to ensure that if a variable is a PreservedString,
+    its unquoted value is returned.
+    
+    If quote_strings is True, then any substituted string value will be returned in its
+    Python-quoted representation (using repr).
+    """
+    def _extract_value(x: Any) -> Any:
+        # Local import to avoid circular dependency.
+        from .ast_nodes import PreservedString
+        if isinstance(x, PreservedString):
+            return x.value
+        return x
+
+    # Replace dynamic placeholders: ${...}
+    def repl_dynamic(m):
+        var = m.group(1).strip()
+        keys = var.split('.')
+        val = env
+        for key in keys:
+            if isinstance(val, dict) and key in val:
+                val = val[key]
+            else:
+                return f"${{{var}}}"  # leave as-is if not found
+        val = _extract_value(val)
+        if quote_strings and isinstance(val, str):
+            return repr(val)
+        return str(val)
+
+    result = re.sub(r'\$\{([^}]+)\}', repl_dynamic, expr)
+
+    # Replace local references: %{var}
+    def repl_local(m):
+        var = m.group(1).strip()
+        if var in env:
+            val = _extract_value(env.get(var))
+            if quote_strings and isinstance(val, str):
+                return repr(val)
+            return str(val)
+        return f"%{{{var}}}"
+    result = re.sub(r'%\{([^}]+)\}', repl_local, result)
+
+    # Replace global references: @{var} or dotted names.
+    def repl_global(m):
+        var = m.group(1).strip()
+        keys = var.split('.')
+        val = env
+        for key in keys:
+            if isinstance(val, dict) and key in val:
+                val = val[key]
+            else:
+                return f"@{{{var}}}"
+        val = _extract_value(val)
+        if quote_strings and isinstance(val, str):
+            return repr(val)
+        return str(val)
+    result = re.sub(r'@\{([^}]+)\}', repl_global, result)
+
+    return result
+
+
 
 def substitute_deferred(ast_node, env):
     """
@@ -89,3 +243,6 @@ def substitute_deferred(ast_node, env):
             )
     else:
         return ast_node
+
+
+
