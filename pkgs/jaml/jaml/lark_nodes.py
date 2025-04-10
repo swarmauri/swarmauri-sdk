@@ -10,11 +10,58 @@ from ._helpers import (
     evaluate_immediate_expression,
     evaluate_comprehension)  
 
+class FoldedExpressionNode:
+    """
+    Represents a folded (immediate) expression from the config,
+    preserving the original bracketed text for round-trip
+    and optional later evaluation in the resolve step.
+    """
+
+    def __init__(self, original_text: str):
+        """
+        :param original_text: The entire string including delimiters, e.g.
+                              '<( "http://" + @{server.host} + ":" + @{server.port} + ... )>'
+        """
+        self.original = original_text
+
+    def __str__(self):
+        """
+        When converting to string (e.g. for debug prints),
+        return the bracketed text exactly as read from the file.
+        """
+        return self.original
+
+    def __repr__(self):
+        return f"FoldedExpressionNode({self.original!r})"
+
+    def __eq__(self, other):
+        """
+        For test assertions, compare either to another FoldedExpressionNode or a raw string.
+        MEP-0011 tests typically do something like:
+            assert node == '<( ... )>'
+        so let's handle that gracefully.
+        """
+        if isinstance(other, str):
+            return self.original == other
+        if isinstance(other, FoldedExpressionNode):
+            return self.original == other.original
+        return False
+
+    def get_inner_expression(self) -> str:
+        """
+        If you need to parse out the inside expression for resolution,
+        strip off the leading '<(' and trailing ')>'.
+        """
+        text = self.original.strip()
+        if text.startswith("<(") and text.endswith(")>"):
+            return text[2:-2].strip()
+        return text
+
 class DeferredExpression:
     def __init__(self, expr, local_env=None, original_text=None):
         self.expr = expr  # e.g., "'Yes' if true else 'No'"
         self.local_env = local_env or {}
-        self.original_text = original_text  # e.g., "<{'Yes' if true else 'No'}>"
+        self.original = original_text  # e.g., "<{'Yes' if true else 'No'}>"
 
     def evaluate(self, global_env):
         env = {}
@@ -29,20 +76,20 @@ class DeferredExpression:
 
     def __str__(self):
         # Return the exact text for round-trip 
-        return self.original_text or f"<{{ {self.expr} }}>"
+        return self.original or f"<{{ {self.expr} }}>"
 
     def __repr__(self):
-        return f"DeferredExpression(expr={self.expr!r}, local_env={self.local_env!r}, original_text={self.original_text!r})"
+        return f"DeferredExpression(expr={self.expr!r}, local_env={self.local_env!r}, original={self.original!r})"
 
     def __eq__(self, other):
         if isinstance(other, str):
             # Compare with original literal
-            return (self.original_text == other) if self.original_text else (f"<{{ {self.expr} }}>" == other)
+            return (self.original == other) if self.original else (f"<{{ {self.expr} }}>" == other)
         if isinstance(other, DeferredExpression):
             return (
                 self.expr == other.expr 
                 and self.local_env == other.local_env 
-                and self.original_text == other.original_text
+                and self.original == other.original
             )
         return False
 
@@ -97,7 +144,7 @@ class PreservedString(str):
 
     def __repr__(self):
         return f"PreservedString(value={super().__str__()!r}, original={self.original!r})"
-        
+
     def __reduce_ex__(self, protocol):
         """
         Tells pickle/deepcopy how to re-create a PreservedString instance.
@@ -296,40 +343,21 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def folded_expr(self, meta, items):
+        """
+        Called when the parser sees a folded expression rule, e.g. <( ... )>.
+        Instead of evaluating it, we preserve it in a FoldedExpressionNode.
+        """
         # Obtain the entire original text for the folded expression.
-        full_text = self._slice_input(meta.start_pos, meta.end_pos).strip()
-        
-        # Ensure it starts with the folded expression start delimiter "<(" and ends with ")>"
-        if full_text.startswith("<(") and full_text.endswith(")>"):
-            # Remove the delimiters.
-            inner_expr = full_text[2:-2].strip()
-        else:
-            # Fallback: try to join children tokens
-            inner_expr = " ".join(child.value if hasattr(child, "value") else str(child)
-                                  for child in items)
-            inner_expr = inner_expr.strip()
-        
-        # OPTIONAL: If you need variable interpolation similar to f-string behavior,
-        # you might call a helper similar to evaluate_immediate_expression.
-        # For example:
-        # inner_expr = evaluate_immediate_expression(inner_expr, self.data, self.current_section)
-        
-        # Prepare the evaluation context (global and local environments).
-        # You can merge self.data (global env) with self.current_section (local env) if needed.
-        eval_context = {}
-        eval_context.update(self.data)
-        eval_context.update(self.current_section)
-        # Also include any constants you may require.
-        eval_context.update({"true": True, "false": False})
-        
-        try:
-            # Evaluate the expression in the restricted environment.
-            result = eval(inner_expr, {"__builtins__": {}}, eval_context)
-            return result
-        except Exception as exc:
-            # Optionally log the error, then return the inner expression or raise.
-            # print("Folded expr eval failed:", exc)
-            return inner_expr
+        full_text = self._slice_input(meta.start_pos, meta.end_pos)
+
+        # Guarantee it starts with "<(" and ends with ")>" if you want to be safe:
+        # or just trust your grammar that it's valid.
+        # e.g. if not (full_text.startswith("<(") and full_text.endswith(")>")):
+        #     # fallback, or partial parse
+
+        # Now simply return a FoldedExpressionNode. 
+        return FoldedExpressionNode(full_text)
+
 
 
 

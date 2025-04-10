@@ -1,6 +1,6 @@
 import re
-from .lark_nodes import DeferredExpression, PreservedString, DeferredComprehension
-from ._helpers import resolve_scoped_variable
+from .lark_nodes import DeferredExpression, PreservedString, DeferredComprehension, FoldedExpressionNode
+from ._helpers import resolve_scoped_variable, _render_folded_expression_node
 
 def substitute_deferred(ast_node, env):
     """
@@ -28,6 +28,14 @@ def substitute_deferred(ast_node, env):
 
     if isinstance(ast_node, (DeferredExpression, DeferredComprehension)):
         return ast_node.evaluate(env)
+
+    elif isinstance(ast_node, FoldedExpressionNode):
+        # Evaluate the folded expression using the environment,
+        # returning a final string with both static and dynamic placeholders replaced.
+        # If you only want partial sub for static references, you can do that, 
+        # but MEP-0011 typically wants final dynamic placeholders replaced if context is given.
+
+        return _render_folded_expression_node(ast_node, env)
         
     elif isinstance(ast_node, dict):
         # Build a local environment for this section.
@@ -45,8 +53,10 @@ def substitute_deferred(ast_node, env):
                 local_env[k] = v
         # Recurse into each key using the local environment.
         return { k: substitute_deferred(v, local_env) for k, v in ast_node.items() }
+
     elif isinstance(ast_node, list):
         return [substitute_deferred(item, env) for item in ast_node]
+
     elif isinstance(ast_node, PreservedString):
         s = ast_node.original
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):

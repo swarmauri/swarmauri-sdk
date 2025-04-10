@@ -1,284 +1,173 @@
 """
 _resolve.py
 
-Implements 'resolve_ast' for MEP-0011b, transforming an AST by evaluating
-all static expressions based on built-in global/local scope references.
-Context references (${...}) remain intact for the render phase.
-
-Usage:
-    from ._resolve import resolve_ast
-
-    optimized_ast = resolve_ast(original_ast)
+Handles global/local references, folded expressions, and partial evaluation. 
 """
+
 from typing import Dict, Any
 from copy import deepcopy
-from .lark_nodes import PreservedString
+import re
 
-# If you have custom node classes, import them here:
-# from .lark_nodes import FoldedExpression, PreservedString, ...
-# from ._helpers import evaluate_immediate_expression, ...
+from .lark_nodes import PreservedString, DeferredComprehension, FoldedExpressionNode
 
 #######################################
-# 1) Entry Point
+# 1) Public Entry Point
 #######################################
 
-def resolve_ast(ast):
-    """
-    Recursively walk the AST, replacing static expressions with their computed values,
-    while leaving dynamic references untouched.
-
-    :param ast: The AST produced by the load/parse phase (e.g. round_trip_loads()).
-    :return: A new AST (or possibly updated in-place) with static expressions resolved.
-    """
-    # We make a deep copy to avoid mutating the original AST if you prefer immutability:
+def resolve_ast(ast: dict) -> dict:
     ast_copy = deepcopy(ast)
-
-    # First, gather a top-level 'global' environment from the AST if relevant.
     global_env = _build_global_env(ast_copy)
-
-    # Recursively traverse and resolve:
-    resolved = _resolve_node(ast_copy, global_env, local_scopes={})
-    return resolved
+    return _resolve_node(ast_copy, global_env, local_env=None)
 
 
-#######################################
-# 2) Build Global Environment
-#######################################
-
-def _build_global_env(ast):
+def _build_global_env(ast: dict) -> Dict[str, Any]:
     global_env = {}
+    # top-level static assignments
     for k, v in ast.items():
-        # Skip internal keys like __comments__, or sub-sections
         if k.startswith("__"):
             continue
-        if _is_static_value(v):
-            if isinstance(v, PreservedString):
-                global_env[k] = v.value
-            else:
-                global_env[k] = v
+        if not isinstance(v, dict) and _is_static_value(v):
+            global_env[k] = _extract_value(v)
+    # also gather per-section
+    for k, v in ast.items():
+        if k.startswith("__"):
+            continue
+        if isinstance(v, dict):
+            section_env = {}
+            for subk, subv in v.items():
+                if not subk.startswith("__") and _is_static_value(subv):
+                    section_env[subk] = _extract_value(subv)
+            if section_env:
+                global_env[k] = section_env
     return global_env
 
 
-
-#######################################
-# 3) Recursive Resolution
-#######################################
-
-def _resolve_node(node, env, local_scopes):
-    """
-    Recursively resolve a node in the AST using the given environment (env).
-    local_scopes: a stack or dictionary used for handling nested sections.
-
-    :param node:  The current part of the AST (dict, list, expression object, etc).
-    :param env:   The environment with global + local definitions so far.
-    :param local_scopes: helps track local scope if you nest sections.
-    :return: A resolved version of the node.
-    """
-
-    # 1) If node is a dictionary, handle sections/assignments.
+def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, Any]) -> Any:
     if isinstance(node, dict):
-        return _resolve_dict(node, env, local_scopes)
-
-    # 2) If node is a list, resolve each element.
+        return _resolve_dict(node, global_env, local_env)
     elif isinstance(node, list):
-        return [_resolve_node(item, env, local_scopes) for item in node]
-
-    # 3) If node is an expression object (Folded, etc).
-    elif _is_folded_expression(node):
-        return _resolve_folded_expression(node, env)
-
-    # 4) If node is an unquoted literal or some other structure:
-    #    We can check if it references a static or dynamic variable,
-    #    or is purely a string/integer/etc.
-    elif _requires_partial_eval(node):
-        return _partial_eval(node, env)
-
+        return [_resolve_node(item, global_env, local_env) for item in node]
+    elif isinstance(node, DeferredComprehension):
+        return node.evaluate(global_env)
     elif isinstance(node, PreservedString):
-        # If it starts with f" or f', attempt to resolve references:
-        if node.original.lstrip().startswith("f\"") or node.original.lstrip().startswith("f'"):
-            # This is an f-string
-            resolved_str = _maybe_resolve_fstring(node.original, env)
-            # If it has no dynamic placeholders left, that’s our final string
-            return resolved_str
-
+        # check f-string prefix
+        stripped = node.original.lstrip()
+        if stripped.startswith("f\"") or stripped.startswith("f'"):
+            return _maybe_resolve_fstring(node.original, global_env, local_env)
+        else:
+            return node.value
+    elif isinstance(node, str):
+        # if a plain string starts with f", treat it as an f-string
+        sstr = node.lstrip()
+        if sstr.startswith("f\"") or sstr.startswith("f'"):
+            return _maybe_resolve_fstring(node, global_env, local_env)
+        else:
+            return node
+    elif isinstance(node, FoldedExpressionNode):
+        # new branch for folded expressions
+        return _resolve_folded_expression_node(node, global_env, local_env)
     else:
-        # The node is presumably a literal or already computed value
         return node
 
 
-def _resolve_dict(dct, env, local_scopes):
-    """
-    Resolve a dictionary that might represent a section or an assignment map.
-
-    If your AST structure uses special keys for sections, you'd detect that here.
-    Then you can build local environments for each section, etc.
-    """
-    # Potentially check if this dict is a "section"
-    # e.g. if dct.get("__section_name__") or something like that
-    local_env = env.copy()  # shallow copy
-
-    # If you store local assignments in the same dictionary, gather them to local_env
-    # for k, v in dct.items():
-    #     if is_local_assignment(k, v):
-    #         # Evaluate if it's purely static or store as local_env
-    #         pass
-
-    resolved_dict = {}
+def _resolve_dict(dct: dict, global_env: Dict[str, Any], parent_local_env: Dict[str, Any]) -> dict:
+    section_local_env = dict(parent_local_env or {})
+    # if named section
+    if "__section__" in dct:
+        for k, v in dct.items():
+            if not k.startswith("__") and _is_static_value(v):
+                section_local_env[k] = _extract_value(v)
+    resolved = {}
     for k, v in dct.items():
-        # If the item is a section name or a special comment key, handle accordingly
         if k.startswith("__"):
-            resolved_dict[k] = v
+            resolved[k] = v
             continue
+        rv = _resolve_node(v, global_env, section_local_env)
+        resolved[k] = rv
+        if _is_static_value(rv):
+            section_local_env[k] = _extract_value(rv)
+    return resolved
 
-        # Otherwise, recursively resolve
-        resolved_val = _resolve_node(v, local_env, local_scopes)
-        resolved_dict[k] = resolved_val
+########################################
+# 4) Expression Handling
+########################################
 
-        # If we consider this an assignment that belongs to local_env, we might do:
-        # if _is_static_value(resolved_val):
-        #     local_env[k] = resolved_val
+def _maybe_resolve_fstring(fstring_literal: str, global_env: Dict[str, Any],
+                           local_env: Dict[str, Any]) -> str:
+    if _has_dynamic_placeholder(fstring_literal):
+        return fstring_literal
+    # strip leading f
+    inner = fstring_literal.lstrip()[1:]
+    if inner.startswith('"') or inner.startswith("'"):
+        inner = inner[1:-1]
+    return _substitute_vars(inner, global_env, local_env)
 
-    return resolved_dict
-
-#######################################
-# 4) Evaluating Expressions
-#######################################
-
-def _is_folded_expression(node):
+def _resolve_folded_expression_node(node, global_env, local_env) -> str:
     """
-    Detect if the node is a 'FoldedExpression' object or similar.
-    You might check:
-      isinstance(node, FoldedExpression)
-      or node.__class__.__name__ == "FoldedExpression"
+    For a FoldedExpressionNode, parse out the inside text, do partial substitution
+    for @{} / %{} references, but keep ${} placeholders.
     """
-    # Example:
-    # return hasattr(node, 'is_folded_expr') and node.is_folded_expr
-    return False
+    folded_literal = node.original
+    # e.g. <( "http://" + @{server.host} + ... )>
+    stripped = folded_literal.strip()
+    if not (stripped.startswith("<(") and stripped.endswith(")>")):
+        return folded_literal  # fallback or partial
+    inner = stripped[2:-2].strip()
 
+    # split on '+' at top-level
+    parts = [p.strip() for p in inner.split('+')]
+    resolved_parts = []
+    for part in parts:
+        # if part is a quoted literal
+        if (part.startswith('"') and part.endswith('"')) or (part.startswith("'") and part.endswith("'")):
+            # remove the quotes
+            resolved_parts.append(part[1:-1])
+        else:
+            # static substitution
+            substituted = _substitute_vars(part, global_env, local_env)
+            resolved_parts.append(substituted)
+    final_str = "".join(resolved_parts)
+    return final_str
 
-def _resolve_folded_expression(expr, env):
-    """
-    If expr is a purely static expression referencing only env variables, evaluate it.
-    If it references context placeholders, partially evaluate the static parts and keep placeholders.
-    """
-    # 1) Extract the expression string, e.g. expr.inner_text
-    expression_str = expr.expr  # or however you store it
+def _has_dynamic_placeholder(s: str) -> bool:
+    return bool(re.search(r"\$\{\s*[^}]+\}", s))
 
-    # 2) Check if it references ${...} or not
-    if _references_context(expression_str):
-        # partial evaluation logic
-        return _partial_fold(expr, env)
-    else:
-        # full static evaluation
-        try:
-            # e.g. parse the expression into Python, or use custom evaluate_immediate_expression
-            substituted = _substitute_static_vars(expression_str, env)
-            result = eval(substituted, {"__builtins__": {}}, {"true": True, "false": False})
-            return result
-        except Exception:
-            # fallback, or keep as is
-            return expr
+def _substitute_vars(expr: str, global_env: Dict[str, Any], local_env: Dict[str, Any]) -> str:
+    # local references: %{var}
+    def repl_local(m):
+        var = m.group(1).strip()
+        if local_env and var in local_env:
+            return str(local_env[var])
+        return f"%{{{var}}}"
+    tmp = re.sub(r'%\{([^}]+)\}', repl_local, expr)
 
-def _references_context(expression_str):
-    """
-    Return True if the expression has a ${...} reference or
-    anything that is dynamic.
-    """
-    import re
-    return bool(re.search(r"\$\{\s*[^}]+\}", expression_str))
+    # global references: @{var} or dotted
+    def repl_global(m):
+        var = m.group(1).strip()
+        if '.' in var:
+            # e.g. path.base
+            section, key = var.split('.', 1)
+            sect_val = global_env.get(section)
+            if isinstance(sect_val, dict) and key in sect_val:
+                return str(sect_val[key])
+        if var in global_env:
+            return str(global_env[var])
+        return f"@{{{var}}}"
+    replaced = re.sub(r'@\{([^}]+)\}', repl_global, tmp)
+    return replaced
 
-def _partial_fold(expr, env):
-    """
-    If an expression is partly static and partly dynamic, evaluate
-    what we can, fold the rest into an f-string or similar mechanism.
-    """
-    # Possibly do partial string parsing. If your code is simpler, you might
-    # do minimal partial resolution and return a new expression object.
-    return expr  # placeholder, or produce new partially resolved object
+########################################
+# 5) Utility
+########################################
 
-def _substitute_static_vars(expression_str, env):
-    """
-    Replace occurrences of @{var} or %{var} in expression_str using env.
-    """
-    # This is project-specific. A naive approach with regex:
-    import re
-
-    def repl(m):
-        var_name = m.group(1)
-        return str(env.get(var_name, f"@{{{var_name}}}"))  # fallback to original text if not found
-
-    # Example for matching @ or % with a pattern like: @{something}
-    # Adjust for your actual grammar
-    expression_str = re.sub(r'[@%]\{([^}]+)\}', repl, expression_str)
-    return expression_str
-
-#######################################
-# 5) Partial Eval + Helpers
-#######################################
-
-def _requires_partial_eval(node):
-    """
-    Return True if 'node' is some kind of intermediate expression
-    that might need partial evaluation (like a string referencing @ or %).
-    """
-    # This depends on your structure. If node is a string containing
-    # references, or an object with markers, you'd detect it here.
-    return False
-
-def _partial_eval(node, env):
-    """
-    Evaluate the static portion, keep dynamic references intact.
-    Possibly fold into an f-string.
-    """
-    # Implementation details vary heavily on your grammar
-    return node
-
-def _is_static_value(x):
-    """
-    Return True if x is a literal or a PreservedString with no context placeholders.
-    """
+def _is_static_value(x: Any) -> bool:
     if isinstance(x, PreservedString):
-        # if we detect ${ in the string, it's not purely static
-        if "${" in x.value:
-            return False
-        return True
+        return "${" not in x.value
     if isinstance(x, str):
-        if "${" in x:
-            return False
-        return True
+        return "${" not in x
     return isinstance(x, (int, float, bool, type(None)))
 
-
-
-def _maybe_resolve_fstring(fstring_value: str, env: Dict[str, Any]) -> str:
-    """
-    If `fstring_value` references only static global/local variables (@{ or %{ }),
-    fully substitute them using `env`. Return the final plain string if successful.
-    If there's a dynamic placeholder (${...}), keep it partially resolved or skip.
-    """
-    # 1) Check if there's any dynamic placeholder ${...}:
-    import re
-    has_context = re.search(r"\$\{\s*[^}]+\}", fstring_value)
-    if has_context:
-        # We'll skip full resolution here, might do partial
-        return fstring_value  # or partially evaluate
-
-    # 2) If no ${...}, let's do a direct substitution for @% variables:
-    # For example, f"@{base}/config.toml" -> "/home/user/config.toml"
-    # then we can remove the leading f" and trailing "
-    # but you likely store it as e.g. fstring_value = 'f"@{base}/config.toml"'
-    # so parse out the actual content inside quotes:
-    inner_str = fstring_value.lstrip()[1:]  # remove leading f
-    if inner_str.startswith('"') or inner_str.startswith("'"):
-        inner_str = inner_str[1:-1]  # remove surrounding quotes
-
-    # Replace @% references:
-    def repl(m):
-        var_name = m.group(1)
-        return str(env.get(var_name, f"@{{{var_name}}}"))
-
-    # Regex to match @{something} or %{something}
-    replaced = re.sub(r'[@%]\{([^}]+)\}', repl, inner_str)
-
-    # Now replaced is e.g. "/home/user/config.toml"
-    return replaced
+def _extract_value(x: Any) -> Any:
+    if isinstance(x, PreservedString):
+        return x.value
+    return x

@@ -1,5 +1,6 @@
 import pytest
 from jaml import loads, dumps, round_trip_loads, round_trip_dumps, resolve, render
+from jaml.lark_nodes import PreservedString
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
@@ -11,22 +12,30 @@ def test_global_scope_default_evaluation():
     """
     sample = """
 base = "/home/user"
+alt = "/home/alt"
 
 [config]
 url = f"@{base}/config.toml"
 """
     data = round_trip_loads(sample)
     assert data["config"]["url"] == 'f"@{base}/config.toml"'
-    out = round_trip_dumps(data)
     print("[DEBUG]:")
-    print(out)
+    print(data)
+
+    data["config"]["url"] = PreservedString(value='f"@{alt}/config.toml"', original='f"@{alt}/config.toml"')
+    print("[DEBUG]:")
+    print(data)
+
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["config"]["url"] == "/home/user/config.toml"
+    assert resolved_config["config"]["url"] == "/home/alt/config.toml"
 
+    out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["config"]["url"] == "/home/user/config.toml"
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -36,23 +45,33 @@ def test_global_scope_section_evaluation():
     In f-string interpolations, we should replace global scope on load.
     """
     sample = """
-[path]
+[paths]
 base = "/home/user"
+alt = "/home/alt"
 
 [config]
-url = f"@{path.base}/config.toml"
+url = f"@{paths.base}/config.toml"
 """
     data = round_trip_loads(sample)
-    assert data["config"]["url"] == 'f"@{path.base}/config.toml"'
-    out = round_trip_dumps(data)
+    assert data["config"]["url"] == 'f"@{paths.base}/config.toml"'
+    print("[DEBUG]:")
+    print(data)
+
+    data["config"]["url"].original = 'f"@{paths.alt}/config.toml"'
+    print("[DEBUG]:")
+    print(data)
+
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["config"]["url"] == "/home/user/config.toml"
+    assert resolved_config["config"]["url"] == "/home/alt/config.toml"
 
+    out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["config"]["url"] == "/home/user/config.toml"
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
@@ -65,19 +84,28 @@ base = "/home/user"
 
 [user]
 name = "Alice"
+altname = "Bob"
 greeting = f"Hello, %{name}!"
 """
     data = round_trip_loads(sample)
     assert data["user"]["greeting"] == 'f"Hello, %{name}!"'
-    out = round_trip_dumps(data)
+    print("[DEBUG]:")
+    print(data)
+
+    data["user"]["greeting"].original = 'f"Hello, %{altname}!"'
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["user"]["greeting"] == "Hello, Alice!"
+    assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
+    out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["user"]["greeting"] == "Hello, Alice!"
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["user"]["greeting"] == "Hello, Bob!"
 
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
@@ -146,35 +174,42 @@ text = f"Hello, ${name}!"
 #     rendered_data = render(out)
 #     assert rendered_data["paths"]["config"] == "/usr/local/config.toml"
 
-# Test 7: Folded Expression Evaluation using <( ... )>
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="Folded expression evaluation not implemented")
-def test_immediate_expression():
+# @pytest.mark.xfail(reason="expression evaluation not implemented")
+def test_expression():
     """
-    Validates immediate (ie: folded) expressions
+    Validates expressions
     """
     sample = """
 [server]
 host = "prodserver"
 port = "8080"
+devhost = "devserver"
 
 [api]
 endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
 """
     # Provide context for the deferred part.
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+
+    data["api"]["endpoint"].original = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["api"]["endpoint"] == "http://prodserver:8080/api?token=${auth_token}"
-
+    assert resolved_config["api"]["endpoint"] == "http://devserver:8080/api?token=${auth_token}"
 
     out = round_trip_dumps(data)
     data_again = render(out, context={"auth_token": "ABC123"})
-    assert data_again["api"]["endpoint"] == "http://prodserver:8080/api?token=ABC123"
+    print("[DEBUG]:")
+    print(data_again)
+    assert data_again["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
 
 # Test 8: List Comprehension Evaluation
 @pytest.mark.spec
@@ -322,7 +357,7 @@ status = f"{'Yes' if true else 'No'}"
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
-def test_immediate_conditional_logic():
+def test_conditional_logic():
     sample = """[cond]
 status = <('Yes' if true else 'No')>"""
     data = round_trip_loads(sample)

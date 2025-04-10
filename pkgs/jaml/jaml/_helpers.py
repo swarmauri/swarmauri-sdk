@@ -1,4 +1,5 @@
 import re
+from typing import Dict, Any
 
 def unquote(s):
     if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
@@ -185,3 +186,83 @@ def evaluate_comprehension(expr_node, env):
     else:
         # Otherwise, assume it's already a computed value.
         return expr_node
+
+
+def _render_folded_expression_node(node, env: Dict[str, Any]) -> str:
+    """
+    Process a FoldedExpressionNode at render time: substitute global, local,
+    and dynamic placeholders, and return the final plain string.
+    """
+    folded_literal = node.original.strip()
+    if not (folded_literal.startswith("<(") and folded_literal.endswith(")>")):
+        return folded_literal
+    
+    # Extract the inner expression (without the delimiters)
+    inner_expr = folded_literal[2:-2].strip()
+    
+    # Split the expression on '+' operators (simple split)
+    parts = [p.strip() for p in inner_expr.split('+')]
+    resolved_parts = []
+    for part in parts:
+        # If part is a quoted literal, remove quotes.
+        if (part.startswith('"') and part.endswith('"')) or (part.startswith("'") and part.endswith("'")):
+            literal = part[1:-1]
+            substituted = _substitute_vars(literal, env)
+            resolved_parts.append(substituted)
+        else:
+            substituted = _substitute_vars(part, env)
+            resolved_parts.append(substituted)
+    final_str = "".join(resolved_parts)
+    return final_str
+
+def _substitute_vars(expr: str, env: Dict[str, Any]) -> str:
+    """
+    Replace occurrences of:
+      - ${var} with the value from env (support dotted references)
+      - @{var} (or dotted names) similarly,
+      - and %{var} likewise.
+    Uses _extract_value to ensure that if a variable is a PreservedString,
+    its unquoted value is returned.
+    """
+    def _extract_value(x: Any) -> Any:
+        # Local import to avoid circular dependency.
+        from .lark_nodes import PreservedString
+        if isinstance(x, PreservedString):
+            return x.value
+        return x
+
+    # Replace dynamic placeholders: ${...}
+    def repl_dynamic(m):
+        var = m.group(1).strip()
+        keys = var.split('.')
+        val = env
+        for key in keys:
+            if isinstance(val, dict) and key in val:
+                val = val[key]
+            else:
+                return f"${{{var}}}"  # leave as-is if not found
+        return str(_extract_value(val))
+    result = re.sub(r'\$\{([^}]+)\}', repl_dynamic, expr)
+
+    # Replace local references: %{var}
+    def repl_local(m):
+        var = m.group(1).strip()
+        if var in env:
+            return str(_extract_value(env.get(var)))
+        return f"%{{{var}}}"
+    result = re.sub(r'%\{([^}]+)\}', repl_local, result)
+
+    # Replace global references: @{var} or dotted names
+    def repl_global(m):
+        var = m.group(1).strip()
+        keys = var.split('.')
+        val = env
+        for key in keys:
+            if isinstance(val, dict) and key in val:
+                val = val[key]
+            else:
+                return f"@{{{var}}}"
+        return str(_extract_value(val))
+    result = re.sub(r'@\{([^}]+)\}', repl_global, result)
+
+    return result
