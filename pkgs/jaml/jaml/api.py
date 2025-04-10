@@ -44,7 +44,10 @@ def dumps(obj: Dict[str, Any]) -> str:
     Leading and trailing whitespace in string values is preserved.
     """
     unparser = JMLUnparser(obj)
-    return unparser.unparse()
+    dumped = unparser.unparse()
+    print("[DEBUG]: ")
+    pprint(dumped)
+    return dumped
 
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:

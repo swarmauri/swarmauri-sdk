@@ -82,8 +82,6 @@ class JMLUnparser:
         else:
             return str(value)
 
-
-
     def format_list(self, lst):
         # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
         if isinstance(lst, PreservedArray) and "\n" not in lst.original_text:
@@ -105,11 +103,9 @@ class JMLUnparser:
         inner = "".join(lines)
         return f"[{inner}]"
 
-
-
-
     def unparse_section(self, section_dict, section_path):
         output = ""
+        # Print the section header if we have a valid path.
         if section_path:
             output += f"[{'.'.join(section_path)}]\n"
 
@@ -120,11 +116,13 @@ class JMLUnparser:
             if isinstance(value, dict) and "_value" in value and "_annotation" in value:
                 # This is an annotated assignment.
                 assignments[key] = value
-            elif isinstance(value, dict) and any(isinstance(v, dict) for v in value.values()):
+            elif isinstance(value, dict):
+                # Treat all plain dicts as nested sections.
                 nested_sections[key] = value
             else:
                 assignments[key] = value
 
+        # Output assignments first.
         for key, value in assignments.items():
             if isinstance(value, dict) and "_value" in value and "_annotation" in value:
                 # Format annotated assignment.
@@ -141,10 +139,26 @@ class JMLUnparser:
         if assignments:
             output += "\n"
 
+        # Recurse into nested sections.
         for key, subsec in nested_sections.items():
-            output += self.unparse_section(subsec, section_path + [key])
+            collapsed_path, collapsed_section = self._collapse_section(section_path + [key], subsec)
+            output += self.unparse_section(collapsed_section, collapsed_path)
 
         return output
+
+    def _collapse_section(self, section_path, section_dict):
+        """
+        Recursively collapse nested sections if there is exactly one key in the
+        current dictionary and its value is a plain dictionary (i.e. not an annotated assignment).
+        This will merge the keys into a single dotted header.
+        """
+        if isinstance(section_dict, dict) and len(section_dict) == 1:
+            only_key = list(section_dict.keys())[0]
+            val = section_dict[only_key]
+            # Ensure we are not collapsing an annotated assignment.
+            if isinstance(val, dict) and not ("_value" in val and "_annotation" in val):
+                return self._collapse_section(section_path + [only_key], val)
+        return section_path, section_dict
 
 
     def unparse(self):
@@ -163,11 +177,12 @@ class JMLUnparser:
             if key == "__comments__":
                 continue
 
-            # If the value is a dict => it's a "section"
+            # If the value is a dict, attempt to collapse nested sections into a single header.
             if isinstance(value, dict):
-                output += self.unparse_section(value, [key])
+                collapsed_path, collapsed_section = self._collapse_section([key], value)
+                output += self.unparse_section(collapsed_section, collapsed_path)
             else:
-                # It's a simple assignment at top level
+                # It's a simple assignment at top level.
                 output += f"{key} = {self.format_value(value)}\n"
 
         final_output = output.rstrip("\n")

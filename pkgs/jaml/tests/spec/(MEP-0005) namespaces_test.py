@@ -6,7 +6,7 @@ from pprint import pprint
 # 2) Merges tables by namespace (dotted keys),
 # 3) Returns a nested dictionary reflecting the final merged state.
 # In practice, you'd import such a function from your parser/merger module.
-from jaml import loads
+from jaml import loads, dumps
 
 @pytest.mark.spec
 @pytest.mark.mep0005
@@ -160,3 +160,33 @@ def test_quoted_namespaces():
     result = loads(source)
     assert result["logging.app"]["url"] == "/"
     assert result["logging.config"]["level"] == "info"
+
+# @pytest.mark.xfail(reason="Table preservation is not yet implemented")
+@pytest.mark.spec
+@pytest.mark.mep0005
+def test_toml_table_preservation():
+    toml_input = '''[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"'''
+    # Parse the TOML input.
+    parsed = loads(toml_input)
+    # Dump the parsed structure back to TOML.
+    dumped = dumps(parsed)
+    # Assert that the output contains the original table headers.
+    assert toml_input == dumped
