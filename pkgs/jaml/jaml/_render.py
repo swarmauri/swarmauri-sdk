@@ -182,7 +182,17 @@ def substitute_deferred(ast_node, env):
     - For f-string (PreservedString) nodes, evaluate the string using the current environment for both
       global (@ markers) and self-scope (% markers) lookups.
     """
-    print("[DEBUG SUB_DEFERRED] Processing node of type:", type(ast_node), "with env:", env)
+    print("[DEBUG RENDER] Processing node of type:", type(ast_node), "with env:", env)
+
+
+    # Unwrap annotated assignment nodes:
+    if isinstance(ast_node, dict):
+        keys = set(ast_node.keys())
+        if keys == {"_annotation", "_value"}:
+            # Return the annotation value as the final substituted value.
+            print("[DEBUG RENDER] Unwrapping annotated node:", ast_node)
+            return ast_node["_annotation"]
+
     # If no environment is provided at the top level and ast_node is a dict,
     # merge top-level keys (skipping control keys) into the environment.
     if isinstance(env, dict) and not env and isinstance(ast_node, dict):
@@ -196,18 +206,18 @@ def substitute_deferred(ast_node, env):
             else:
                 merged[k] = v
         env = merged
-        print("[DEBUG SUB_DEFERRED] Merged environment for top-level dict:", env)
+        print("[DEBUG RENDER] Merged environment for top-level dict:", env)
 
     if isinstance(ast_node, (DeferredDictComprehension, DeferredListComprehension)):
-        print("[DEBUG SUB_DEFERRED] Evaluating deferred expression/comprehension for node:", ast_node)
+        print("[DEBUG RENDER] Evaluating deferred expression/comprehension for node:", ast_node)
         result = ast_node.evaluate(env)
-        print("[DEBUG SUB_DEFERRED] Deferred expression evaluated to:", result)
+        print("[DEBUG RENDER] Deferred expression evaluated to:", result)
         return result
 
     elif isinstance(ast_node, FoldedExpressionNode):
-        print("[DEBUG SUB_DEFERRED] Processing FoldedExpressionNode:", ast_node)
+        print("[DEBUG RENDER] Processing FoldedExpressionNode:", ast_node)
         result = _render_folded_expression_node(ast_node, env)
-        print("[DEBUG SUB_DEFERRED] FoldedExpressionNode rendered to:", result)
+        print("[DEBUG RENDER] FoldedExpressionNode rendered to:", result)
         return result
         
     elif isinstance(ast_node, dict):
@@ -215,7 +225,7 @@ def substitute_deferred(ast_node, env):
         local_env = {}
         if isinstance(env, dict):
             local_env.update(env)
-        print("[DEBUG SUB_DEFERRED] Processing dict node with local_env:", local_env)
+        print("[DEBUG RENDER] Processing dict node with local_env:", local_env)
         for k, v in ast_node.items():
             if k == "__comments__":
                 continue
@@ -224,24 +234,24 @@ def substitute_deferred(ast_node, env):
             else:
                 local_env[k] = v
         result = { k: substitute_deferred(v, local_env) for k, v in ast_node.items() }
-        print("[DEBUG SUB_DEFERRED] Finished processing dict node; result:", result)
+        print("[DEBUG RENDER] Finished processing dict node; result:", result)
         return result
 
     elif isinstance(ast_node, list):
-        print("[DEBUG SUB_DEFERRED] Processing list node with env:", env)
+        print("[DEBUG RENDER] Processing list node with env:", env)
         result = [substitute_deferred(item, env) for item in ast_node]
-        print("[DEBUG SUB_DEFERRED] Finished processing list node; result:", result)
+        print("[DEBUG RENDER] Finished processing list node; result:", result)
         return result
 
     elif isinstance(ast_node, PreservedString):
         s = ast_node.origin
-        print("[DEBUG SUB_DEFERRED] Processing PreservedString:", s)
+        print("[DEBUG RENDER] Processing PreservedString:", s)
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
-            print("[DEBUG SUB_DEFERRED] Detected f-string in PreservedString:", s)
-            
+            print("[DEBUG RENDER] Detected f-string in PreservedString:", s)
+
             from ._helpers import evaluate_f_string
             result = evaluate_f_string(s.lstrip(), env, env)
-            print("[DEBUG SUB_DEFERRED] evaluate_f_string result:", result)
+            print("[DEBUG RENDER] evaluate_f_string result:", result)
             return result
         else:
             # Replace ${...} placeholders in the unquoted value.
@@ -251,17 +261,17 @@ def substitute_deferred(ast_node, env):
                 lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
                 s
             )
-            print("[DEBUG SUB_DEFERRED] Processed PreservedString without f-prefix; result:", result)
+            print("[DEBUG RENDER] Processed PreservedString without f-prefix; result:", result)
             return result
 
     elif isinstance(ast_node, str):
-        print("[DEBUG SUB_DEFERRED] Processing string node:", ast_node)
+        print("[DEBUG RENDER] Processing string node:", ast_node)
         if ast_node.lstrip().startswith("f\"") or ast_node.lstrip().startswith("f'"):
-            print("[DEBUG SUB_DEFERRED] Detected f-string in plain string:", ast_node)
+            print("[DEBUG RENDER] Detected f-string in plain string:", ast_node)
 
             from ._helpers import evaluate_f_string
             result = evaluate_f_string(ast_node.lstrip(), env, env)
-            print("[DEBUG SUB_DEFERRED] evaluate_f_string result for string node:", result)
+            print("[DEBUG RENDER] evaluate_f_string result for string node:", result)
             return result
         else:
             result = re.sub(
@@ -269,10 +279,10 @@ def substitute_deferred(ast_node, env):
                 lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
                 ast_node
             )
-            print("[DEBUG SUB_DEFERRED] Processed plain string; result:", result)
+            print("[DEBUG RENDER] Processed plain string; result:", result)
             return result
 
     else:
-        print("[DEBUG SUB_DEFERRED] Returning node as-is:", ast_node)
+        print("[DEBUG RENDER] Returning node as-is:", ast_node)
         return ast_node
 

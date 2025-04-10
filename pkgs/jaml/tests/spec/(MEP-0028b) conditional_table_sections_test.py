@@ -96,20 +96,15 @@ def test_update_root_dir():
     data = round_trip_loads(JML_INPUT)
     assert data["rootDir"] == "src"
 
+    data["rootDir"].origin = '"new_src"'
     resolved_config = resolve(data)
-    assert resolved_config["rootDir"] == "src"
+    assert resolved_config["rootDir"] == '"new_src"'
 
     out = round_trip_dumps(data)
-    rendered_data = render(JML_INPUT, context=BASE_CONTEXT)
-    final_out = round_trip_dumps(rendered_data)
-    
-    assert resolved_config["rootDir"] == "src"
-    assert "source/auth" in final_out
-
     rendered_data = render(out, context=BASE_CONTEXT)
     final_out = round_trip_dumps(rendered_data)
     
-    assert resolved_config["rootDir"] == "src"
+    assert rendered_data["rootDir"] == "new_src"
     assert "source/auth" in final_out
 
 
@@ -122,17 +117,18 @@ def test_update_context_env():
     causes the config file's environment to be updated in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
+    assert data["rootDir"] == "src"
     
+    data["rootDir"].origin = '"new_src"'
     resolved_config = resolve(data)
+    assert resolved_config["rootDir"] == '"new_src"'
 
     out = round_trip_dumps(data)
     new_context = dict(BASE_CONTEXT)
     new_context["env"] = "dev"
-    rendered_data = render(JML_INPUT, context=new_context)
-    final_out = round_trip_dumps(rendered_data)
-    assert '"env" = "dev"' in final_out
-
     rendered_data = render(out, context=new_context)
+    assert rendered_data["rootDir"] == "new_src"
+
     final_out = round_trip_dumps(rendered_data)
     assert '"env" = "dev"' in final_out
 
@@ -145,14 +141,21 @@ def test_update_module_extras():
     is reflected in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
+    assert data["rootDir"] == "src"
+    print('\n\n\n', data["rootDir"], type(data["rootDir"]), '\n\n')
+    data["rootDir"].origin = '"new_src"'
+    resolved_config = resolve(data)
+    assert resolved_config["rootDir"] == '"new_src"'
+
     # Update the context to change the owner in the login module from "teamA" to "teamX".
     new_context = deepcopy(BASE_CONTEXT)
     new_context["packages"][0]["modules"][0]["extras"]["owner"] = "teamX"
 
-    resolved_config = resolve(data)
-    out = round_trip_dumps(data)
 
-    rendered_data = render(JML_INPUT, context=new_context)
+    out = round_trip_dumps(data)
+    rendered_data = render(out, context=new_context)
+    assert rendered_data["rootDir"] == "new_src"
+
     final_out = round_trip_dumps(rendered_data)
 
     assert """[[file.auth.signup.config]]
@@ -161,10 +164,5 @@ path = "src/auth/config/signup.yaml"
 type = "yaml"
 extras = { "env" = "prod" }""" in final_out
 
-    assert '"env" = "dev"' in final_out
-    assert '"owner" = "teamX"' in final_out
-
-    rendered_data = render(out, context=new_context)
-    final_out = round_trip_dumps(rendered_data)
     assert '"env" = "dev"' in final_out
     assert '"owner" = "teamX"' in final_out

@@ -23,7 +23,7 @@ type_annotation: TYPE
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
 
 // A section header can appear
-section: "[" (section_name | STRING) "]" NEWLINE?
+section: "[" (section_name | STRING | comprehension_expr) "]" NEWLINE?
 section_name: IDENTIFIER ("." IDENTIFIER)* 
 
 table_array_section: "[[" table_array_header "]]" NEWLINE? table_array_content?

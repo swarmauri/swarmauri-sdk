@@ -113,45 +113,45 @@ def _resolve_dict(dct: dict, global_env: Dict[str, Any], parent_local_env: Dict[
 ########################################
 
 def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: dict) -> str:
-    print("[DEBUG] Entering _maybe_resolve_fstring")
-    print("[DEBUG] Input fstring_literal:", fstring_literal)
+    print("[DEBUG RESOLVE] Entering _maybe_resolve_fstring")
+    print("[DEBUG RESOLVE] Input fstring_literal:", fstring_literal)
     
     # If there are dynamic ${...} placeholders, simply return the original.
     if re.search(r"\$\{\s*[^}]+\}", fstring_literal):
-        print("[DEBUG] Found dynamic ${...} placeholder, returning original string.")
+        print("[DEBUG RESOLVE] Found dynamic ${...} placeholder, returning original string.")
         return fstring_literal
     
     # Remove the "f" prefix and surrounding whitespace.
     inner = fstring_literal.lstrip()[1:]
-    print("[DEBUG] After stripping 'f' prefix, inner:", inner)
+    print("[DEBUG RESOLVE] After stripping 'f' prefix, inner:", inner)
     
     # Remove the surrounding quotes (if the inner string starts with a quote).
     if inner.startswith('"') or inner.startswith("'"):
         quote_char = inner[0]
         inner = inner[1:-1]
-        print(f"[DEBUG] After removing surrounding {quote_char} quotes, inner:", inner)
+        print(f"[DEBUG RESOLVE] After removing surrounding {quote_char} quotes, inner:", inner)
 
     # Remove the surrounding quotes (if the inner string starts with a quote).
     if inner.startswith('{') or inner.startswith("}"):
         quote_char = inner[0]
         inner = inner[1:-1]
-        print(f"[DEBUG] After removing surrounding {quote_char} quotes, inner:", inner)
+        print(f"[DEBUG RESOLVE] After removing surrounding {quote_char} quotes, inner:", inner)
 
     # Check if the string itself starts with an extra f-string indicator (f" or f')
     if inner.startswith('f"') or inner.startswith("f'"):
-        print("[DEBUG] Inner string starts with an additional f-string indicator, stripping it off.")
+        print("[DEBUG RESOLVE] Inner string starts with an additional f-string indicator, stripping it off.")
         inner = inner[2:-1]
-        print("[DEBUG] After removing extra f-string indicator, inner:", inner)
+        print("[DEBUG RESOLVE] After removing extra f-string indicator, inner:", inner)
 
     try:
-        print("[DEBUG] Attempting to evaluate inner expression with safe_eval:", inner)
+        print("[DEBUG RESOLVE] Attempting to evaluate inner expression with safe_eval:", inner)
         evaluated = safe_eval(inner)
-        print("[DEBUG] Evaluation successful, evaluated value:", evaluated)
+        print("[DEBUG RESOLVE] Evaluation successful, evaluated value:", evaluated)
         # Return the evaluated value as a string if it's not already a string.
         return str(evaluated)
     except Exception as e:
-        print("[DEBUG] safe_eval raised an exception:", e)
-        print("[DEBUG] Falling back to _substitute_vars with inner:", inner)
+        print("[DEBUG RESOLVE] safe_eval raised an exception:", e)
+        print("[DEBUG RESOLVE] Falling back to _substitute_vars with inner:", inner)
         return _substitute_vars(inner, global_env, local_env, quote_strings=False)
 
 
@@ -176,12 +176,12 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
     """
     # Return a cached resolution if it exists.
     if hasattr(node, 'resolved'):
-        print("[DEBUG] Returning cached resolution:", node.resolved)
+        print("[DEBUG RESOLVE] Returning cached resolution:", node.resolved)
         return node.resolved
 
     # Fallback if the content_tree is missing.
     if not hasattr(node, 'content_tree') or node.content_tree is None:
-        print("[DEBUG] No content_tree found, using original")
+        print("[DEBUG RESOLVE] No content_tree found, using original")
         folded_literal = node.origin
         stripped = folded_literal.strip()
         if not (stripped.startswith("<(") and stripped.endswith(")>")):
@@ -193,23 +193,23 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
         substituted_fixed = re.sub(r'(\$\{\s*[^}]+\})', r'"\1"', substituted)
         try:
             result = safe_eval(substituted_fixed)
-            print("[DEBUG] Fallback safe_eval result:", result)
+            print("[DEBUG RESOLVE] Fallback safe_eval result:", result)
             if isinstance(result, str) and '${' in result:
                 result = 'f"' + result + '"'
             node.resolved = result
             # Do not update node.origin when result is not a string.
             return result
         except Exception as e:
-            print("[DEBUG] Exception during fallback safe_eval:", e)
+            print("[DEBUG RESOLVE] Exception during fallback safe_eval:", e)
             node.resolved = substituted_fixed
             return substituted_fixed
 
     # Helper: Convert each token from the content tree into its expression form.
     def token_to_expr(token):
-        print("[DEBUG] Processing token:", token)
+        print("[DEBUG RESOLVE] Processing token:", token)
         # Skip tokens representing the outer delimiters.
         if isinstance(token, str) and token.strip() in ("<(", ")>"):
-            print("[DEBUG] Skipping delimiter token:", token)
+            print("[DEBUG RESOLVE] Skipping delimiter token:", token)
             return ""
         # If token is a numeric literal, return its string representation.
         if isinstance(token, (int, float)):
@@ -221,11 +221,11 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
         if isinstance(token, str):
             if token.startswith('@{') or token.startswith('%{'):
                 substituted_val = _substitute_vars(token, global_env, local_env, quote_strings=True)
-                print("[DEBUG] Variable token substituted to:", substituted_val)
+                print("[DEBUG RESOLVE] Variable token substituted to:", substituted_val)
                 return substituted_val
             elif token.startswith('${'):
                 wrapped = '"' + token + '"'
-                print("[DEBUG] Dynamic placeholder token wrapped to:", wrapped)
+                print("[DEBUG RESOLVE] Dynamic placeholder token wrapped to:", wrapped)
                 return wrapped
             else:
                 return token
@@ -237,32 +237,32 @@ def _resolve_folded_expression_node(node, global_env, local_env) -> any:
 
     # Rebuild the inner expression from the content tree.
     expr_string = " ".join(token_to_expr(t) for t in node.content_tree.children).strip()
-    print("[DEBUG] Rebuilt expression string:", expr_string)
+    print("[DEBUG RESOLVE] Rebuilt expression string:", expr_string)
     
     try:
         # If the expression looks purely arithmetic (only digits, operators,
         # whitespace, parentheses, or a period), then directly evaluate using eval().
         if re.fullmatch(r'[\d\s+\-*/().]+', expr_string):
-            print("[DEBUG] Expression appears arithmetic. Using eval().")
+            print("[DEBUG RESOLVE] Expression appears arithmetic. Using eval().")
             result = eval(compile(expr_string, "<string>", "eval"), {}, {})
         else:
-            print("[DEBUG] Expression is non-arithmetic. Using safe_eval().")
+            print("[DEBUG RESOLVE] Expression is non-arithmetic. Using safe_eval().")
             print(expr_string)
             result = safe_eval(expr_string)
         
-        print("[DEBUG] Evaluation result:", result)
+        print("[DEBUG RESOLVE] Evaluation result:", result)
         
         # If the evaluated result is a string with dynamic placeholders, convert to f-string.
         if isinstance(result, str) and '${' in result:
             result = 'f"' + result + '"'
-            print("[DEBUG] Adjusted result to f-string:", result)
+            print("[DEBUG RESOLVE] Adjusted result to f-string:", result)
             
         node.resolved = result
         # For arithmetic (non-string) results, do NOT update node.origin.
         # This preserves the original folded expression for potential round-trip needs.
         return result
     except Exception as e:
-        print("[DEBUG] Exception during evaluation:", e)
+        print("[DEBUG RESOLVE] Exception during evaluation:", e)
         node.resolved = expr_string
         return expr_string
 

@@ -190,15 +190,24 @@ class PreservedString(str):
         # Create a new string instance using the unquoted value.
         obj = super().__new__(cls, value)
         obj.value = value
-        obj.origin = original  # store the original text, e.g. '"Hello, World!"'
+        obj._origin = original  # store the original text, e.g. '"Hello, World!"'
         return obj
 
+    @property
+    def origin(self):
+        return f"{self._origin}"
+
+    @origin.setter
+    def origin(self, value):
+        self.value = value
+        self._origin = value
+ 
     def __str__(self):
         # When converting to string for round-trip output, return the original quoted text.
-        return self.origin
+        return self._origin
 
     def __repr__(self):
-        return f"PreservedString(value={super().__str__()!r}, origin={self.origin!r})"
+        return f"PreservedString(value={super().__str__()!r}, origin={self._origin!r})"
 
     def __reduce_ex__(self, protocol):
         """
@@ -207,7 +216,7 @@ class PreservedString(str):
         """
         return (
             self.__class__,
-            (self.value, self.origin)  # The args we pass to __new__
+            (self.value, self._origin)  # The args we pass to __new__
         )
 
 class PreservedValue:
