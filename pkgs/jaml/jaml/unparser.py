@@ -48,7 +48,7 @@ class JMLUnparser:
         # New branch for DeferredComprehension:
         if isinstance(value, DeferredComprehension):
             # Re-wrap it in curly braces.
-            return "{" + value.text + "}"
+            return "{" + value.value + "}"
         
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):

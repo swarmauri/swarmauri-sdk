@@ -96,20 +96,30 @@ class DeferredExpression:
 
 class DeferredComprehension:
     def __init__(self, text):
-        self.text = text  # The raw inner text of the comprehension, without outer braces.
+        self.original_text = text  # The raw inner text, or full text including braces
+        
+    @property
+    def original(self):
+        return self.original_text
+
+    @original.setter
+    def original(self, value):
+        self.original_text = value
+
     def evaluate(self, env):
+        # (Your existing implementation that uses self.original_text.)
         pattern = r'^(f["\'].*?["\'])\s*(?::|=)\s*(.*?)\s+for\s+(\w+)\s+in\s+(.*)$'
-        m = re.match(pattern, self.text)
+        m = re.match(pattern, self.original_text.strip().strip('{}'))
         if not m:
-            return self.text
+            return self.original_text
         key_expr_str, val_expr_str, loop_var, iterable_str = m.groups()
         try:
             iterable = eval(iterable_str, {"__builtins__": {}}, env)
         except Exception:
-            return self.text
+            return self.original_text
         result = {}
         for item in iterable:
-            local_env = { loop_var: item }
+            local_env = {loop_var: item}
             key = evaluate_f_string_interpolation(key_expr_str, local_env)
             try:
                 value = eval(val_expr_str, {"__builtins__": {}}, local_env)
@@ -118,15 +128,14 @@ class DeferredComprehension:
             result[key] = value
         return result
     def __str__(self):
-        # When dumping, re-wrap in braces.
-        return "{" + self.text + "}"
+        return "{" + self.original_text + "}"
     def __repr__(self):
-        return f"DeferredComprehension({self.text!r})"
+        return f"DeferredComprehension({self.original_text!r})"
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.text == other
+            return self.original_text == other
         if isinstance(other, DeferredComprehension):
-            return self.text == other.text
+            return self.original_text == other.original_text
         return False
 
 
@@ -378,82 +387,44 @@ class ConfigTransformer(Transformer):
         # Otherwise, join the items together
         return "".join(str(i) for i in items)
 
-    def list_comprehension(self, items):
+    @v_args(meta=True)
+    def list_comprehension(self, meta, items):
         """
-        Evaluate a list comprehension.
-        Expected children (in order) are:
-          1. comprehension_expr  -> the expression to compute for each element,
-                                    e.g. an f-string like f"item_{x}"
-          2. loop_var            -> an IDENTIFIER (the iteration variable, e.g. "x")
-          3. iterable            -> a value that is expected to be a list (or PreservedArray)
+        Transforms a list comprehension into a DeferredComprehension node.
         
-        For example, for:
+        Instead of immediately evaluating:
           [f"item_{x}" for x in [1, 2, 3]]
-        If the comprehension expression is an f-string, it is evaluated for each item,
-        using the iteration variable as a self-scope.
+        we capture the original raw text of the comprehension (including the enclosing square brackets)
+        and wrap it in a DeferredComprehension node. This ensures that:
+          - After round_trip_loads, the value equals the raw string:
+                '[f"item_{x}" for x in [1, 2, 3]]'
+          - In the resolve or render phase, the DeferredComprehension's evaluate() method
+            will be called to produce the computed list (e.g. ["item_1", "item_2", "item_3"]).
         """
-        # Unpack the items.
-        expr = items[0]       # e.g. f-string or plain string
-        loop_var = items[1]   # e.g. "x"
-        iterable = items[2]   # Typically a PreservedArray or a list
+        # Obtain the entire original text (including brackets, etc.)
+        original_text = self._slice_input(meta.start_pos, meta.end_pos)
+        # Return a DeferredComprehension node containing the raw text.
+        return DeferredComprehension(original_text)
 
-        # Resolve the iterable into its basic list-of-values form.
-        if hasattr(iterable, 'original_text'):
-            iterable_values = list(iterable)
-        elif isinstance(iterable, list):
-            iterable_values = iterable
-        else:
-            iterable_values = iterable
-
-        result = []
-
-        # Determine if the expression is an f-string.
-        # We assume that if 'expr' is a PreservedString, its 'original' attribute holds the literal.
-        is_f_string = False
-        if hasattr(expr, 'original'):
-            lit = expr.original.lstrip()
-            if lit.startswith('f"') or lit.startswith("f'"):
-                is_f_string = True
-        elif isinstance(expr, str):
-            lit = expr.lstrip()
-            if lit.startswith('f"') or lit.startswith("f'"):
-                is_f_string = True
-
-        # For each item, either evaluate the f-string using the loop variable binding,
-        # or perform a simple replacement.
-        if is_f_string:
-            for item in iterable_values:
-                env = { loop_var: item }
-                # Use the original f-string text.
-                source = expr.original if hasattr(expr, 'original') else expr
-                evaluated_expr = evaluate_f_string_interpolation(source, env)
-                result.append(evaluated_expr)
-        else:
-            for item in iterable_values:
-                evaluated_expr = expr.replace("{" + loop_var + "}", str(item))
-                result.append(evaluated_expr)
-
-        return result
 
 
     # Optionally, add a transformer for dict comprehensions.
     @v_args(meta=True)
     def dict_comprehension(self, meta, items):
         """
-        Instead of immediately evaluating the dict comprehension, capture its raw text.
+        Process a dict comprehension.
+        Instead of immediately evaluating, capture its raw text.
         For an input like:
           dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
-        the raw text inside the outer braces is:
-          f"key_{x}" : x * 2 for x in [1, 2, 3]
+        we capture the full text including the outer braces,
+        so that round_trip_loads produces:
+          '{f"key_{x}" : x * 2 for x in [1, 2, 3]}'
         """
         # Use meta.start_pos and meta.end_pos to capture the original substring.
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        # Remove the outer braces.
-        if original_text.startswith("{") and original_text.endswith("}"):
-            inner_text = original_text[1:-1].strip()
-        else:
-            inner_text = original_text
-        return DeferredComprehension(inner_text)
+        # Do not remove the outer braces: return the full original text.
+        return DeferredComprehension(original_text)
+
 
 
 

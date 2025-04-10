@@ -221,16 +221,25 @@ def test_list_comprehension():
 list_config = [f"item_{x}" for x in [1, 2, 3]]
 """
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["items"]["list_config"] == '[f"item_{x}" for x in [1, 2, 3]]'
+
+
+    data["items"]["list_config"].original = '[f"item_{x}" for x in [5, 10, 15]]'
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["list_config"] == ["item_1", "item_2", "item_3"]
+    assert resolved_config["items"]["list_config"] == ["item_5", "item_10", "item_15"]
 
     out = round_trip_dumps(data)
-    data_again = loads(out)
-    assert data_again["items"]["list_config"] == ["item_1", "item_2", "item_3"]
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["items"]["list_config"] == ["item_5", "item_10", "item_15"]
 
 # Test 9: Dict Comprehension Evaluation
 @pytest.mark.spec
@@ -245,17 +254,25 @@ def test_dict_dot_notation_comprehension():
 dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
 """
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["items"]["dict_config"] == '{f"key_{x}" : x * 2 for x in [1, 2, 3]}'
+
+    data["items"]["dict_config"].original = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
 
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -271,29 +288,18 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
     data = round_trip_loads(sample)
     assert data["items"]["dict_config"] == '{f"key_{x}" = x * 2 for x in [1, 2, 3]}'
 
+    data["items"]["dict_config"].original = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
+    print("[DEBUG]:")
+    print(data)
+
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
+    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["items"]["dict_config"] == {"key_1": 2, "key_2": 4, "key_3": 6}
-
-# Test 10: Arithmetic Operations in Expressions
-# @pytest.mark.spec
-# @pytest.mark.mep0011
-# # @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
-# def test_deferred_arithmetic_operations():
-#     sample = """
-# [calc]
-# result = <{ 3 + 4 }>
-# """
-#     data = round_trip_loads(sample)
-#     assert data["calc"]["result"] == "3 + 4"
-#     out = round_trip_dumps(data)
-#     rendered_data = render(out)
-#     assert rendered_data["calc"]["result"] == 7
+    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
 @pytest.mark.spec
 @pytest.mark.mep0011

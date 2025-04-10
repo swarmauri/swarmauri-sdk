@@ -45,10 +45,18 @@ def _build_global_env(ast: dict) -> Dict[str, Any]:
 def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, Any]) -> Any:
     if isinstance(node, dict):
         return _resolve_dict(node, global_env, local_env)
+
     elif isinstance(node, list):
         return [_resolve_node(item, global_env, local_env) for item in node]
+
     elif isinstance(node, DeferredComprehension):
-        return node.evaluate(global_env)
+        # Evaluate deferred comprehensions using the merged environment.
+        env = {}
+        env.update(global_env)
+        if local_env:
+            env.update(local_env)
+        return node.evaluate(env)
+
     elif isinstance(node, PreservedString):
         # check f-string prefix
         stripped = node.original.lstrip()
@@ -56,6 +64,7 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
             return _maybe_resolve_fstring(node.original, global_env, local_env)
         else:
             return node.value
+
     elif isinstance(node, str):
         # if a plain string starts with f", treat it as an f-string
         sstr = node.lstrip()
@@ -63,6 +72,7 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
             return _maybe_resolve_fstring(node, global_env, local_env)
         else:
             return node
+
     elif isinstance(node, FoldedExpressionNode):
         # new branch for folded expressions
         return _resolve_folded_expression_node(node, global_env, local_env)
