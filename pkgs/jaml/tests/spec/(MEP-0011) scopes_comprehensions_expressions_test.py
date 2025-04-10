@@ -387,7 +387,7 @@ status = f"{'Yes' if true else 'No'}"
     assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
 
 
-    data["cond"]["status"].original == '''f"{'Yes' if false else 'No'}"'''
+    data["cond"]["status"].original = '''f"{'Yes' if false else 'No'}"'''
     print("[DEBUG]:")
     print(data)
 
@@ -414,7 +414,7 @@ status = <('Yes' if true else 'No')>"""
     print(data)
     assert data["cond"]["status"] == "<('Yes' if true else 'No')>"
 
-    data["cond"]["status"].original == "<('Yes' if false else 'No')>"
+    data["cond"]["status"].original = "<('Yes' if false else 'No')>"
     print("[DEBUG]:")
     print(data)
 

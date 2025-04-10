@@ -21,7 +21,7 @@ def safe_eval(expr: str) -> any:
         ast.Div: op.truediv,
         ast.FloorDiv: op.floordiv,
         ast.Mod: op.mod,
-        ast.Pow: op.pow,
+        ast.Pow: op.pow
     }
     # Allowed boolean operators.
     allowed_boolops = {ast.And, ast.Or}
@@ -33,6 +33,9 @@ def safe_eval(expr: str) -> any:
     # Whitelisted functions.
     allowed_functions = {
         "enumerate": enumerate,
+        "false": False,
+        "true": True,
+        "null": None
         # Additional allowed functions can be added here.
     }
     
