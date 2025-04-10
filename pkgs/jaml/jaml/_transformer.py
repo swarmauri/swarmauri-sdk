@@ -350,8 +350,7 @@ class ConfigTransformer(Transformer):
             if isinstance(item, list):
                 array_values.extend(item)
             else:
-                array_value
-                s.append(item)
+                array_values.append(item)
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         return PreservedArray(array_values, original_text)
 

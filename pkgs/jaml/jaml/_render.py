@@ -12,7 +12,7 @@ from ._helpers import resolve_scoped_variable
 
 
 from .ast_nodes import FoldedExpressionNode
-from ._resolve import safe_eval  # or import safe_eval as defined in resolve.py
+from ._eval import safe_eval  # or import safe_eval as defined in resolve.py
 
 def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, Any]) -> Any:
     """

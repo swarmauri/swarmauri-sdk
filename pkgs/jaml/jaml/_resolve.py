@@ -10,6 +10,7 @@ import re
 import ast
 import operator as op
 from .ast_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode, DeferredListComprehension
+from ._eval import safe_eval
 
 #######################################
 # 1) Public Entry Point
@@ -121,55 +122,23 @@ def _maybe_resolve_fstring(fstring_literal: str, global_env: dict, local_env: di
     if inner.startswith('"') or inner.startswith("'"):
         inner = inner[1:-1]
     
-    # For f-string resolution, do not add extra quotes.
-    return _substitute_vars(inner, global_env, local_env, quote_strings=False)
+    # Check that the string starts with f" or f'
+    if inner.startswith('f"') or inner.startswith("f'"):
+        inner = inner[2:-1]
+
+    try:
+        # Try to evaluate the inner expression using safe_eval.
+        evaluated = safe_eval(inner)
+        # Return the evaluated value as a string if it's not already a string.
+        # (If you want to support non-string f-string results, you might want to return evaluated directly.)
+        return str(evaluated)
+    except Exception as e:
+        # If evaluation fails, fall back to using variable substitution without quoting.
+        # (This is a fallback; ideally, the expression should evaluate.)
+        return _substitute_vars(inner, global_env, local_env, quote_strings=False)
 
 
 
-def safe_eval(expr: str) -> any:
-    """
-    Safely evaluate a simple arithmetic or string concatenation expression.
-    Only allows a fixed set of binary and unary operations and literals.
-    """
-    allowed_operators = {
-        ast.Add: op.add,
-        ast.Sub: op.sub,
-        ast.Mult: op.mul,
-        ast.Div: op.truediv,
-        ast.FloorDiv: op.floordiv,
-        ast.Mod: op.mod,
-        ast.Pow: op.pow,
-        "true": True,
-        "false": False
-    }
-    
-    def _eval(node):
-        if isinstance(node, ast.Expression):
-            return _eval(node.body)
-        elif isinstance(node, ast.Constant):  # Python 3.8+
-            return node.value
-        elif isinstance(node, ast.Name):  # Python 3.8+
-            return f"{node.name}"
-        elif isinstance(node, ast.BinOp):
-            left = _eval(node.left)
-            right = _eval(node.right)
-            op_type = type(node.op)
-            if op_type not in allowed_operators:
-                raise ValueError(f"Unsupported operator: {op_type.__name__}")
-            return allowed_operators[op_type](left, right)
-        elif isinstance(node, ast.UnaryOp):
-            operand = _eval(node.operand)
-            if isinstance(node.op, ast.UAdd):
-                return +operand
-            elif isinstance(node.op, ast.USub):
-                return -operand
-            else:
-                raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
-        else:
-            raise ValueError(f"Unsupported expression element: {node}")
-    
-    tree = ast.parse(expr, mode='eval')
-    return _eval(tree)
 
 def _resolve_folded_expression_node(node, global_env, local_env) -> any:
     """
