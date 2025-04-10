@@ -21,19 +21,34 @@ from .ast_nodes import (
 
 
 class JMLUnparser:
-    def __init__(self, config):
+    def __init__(self, config, debug=False):
         self.config = config
+        self.debug = debug
+        if self.debug:
+            print("[DEBUG UNPARSER] JMLUnparser initialized with config type:", type(config))
 
     def _get_config_data(self):
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering _get_config_data with config type:", type(self.config))
         if isinstance(self.config, dict):
+            if self.debug:
+                print("[DEBUG UNPARSER] Config is a dict.")
             return self.config
         elif hasattr(self.config, "data"):
+            if self.debug:
+                print("[DEBUG UNPARSER] Config has attribute 'data'.")
             return self.config.data
         elif hasattr(self.config, "value"):
+            if self.debug:
+                print("[DEBUG UNPARSER] Config has attribute 'value'.")
             return self.config.value
         elif hasattr(self.config, "to_dict"):
+            if self.debug:
+                print("[DEBUG UNPARSER] Config has method 'to_dict'.")
             return self.config.to_dict()
         elif hasattr(self.config, "__dict__"):
+            if self.debug:
+                print("[DEBUG UNPARSER] Config has __dict__ attribute.")
             return self.config.__dict__
         else:
             raise AttributeError(
@@ -41,110 +56,179 @@ class JMLUnparser:
             )
 
     def format_value(self, value):
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering format_value with value:", repr(value), "of type:", type(value))
         # New branch for DeferredDictComprehension:
         if isinstance(value, DeferredDictComprehension):
-            # Re-wrap it in curly braces.
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is DeferredDictComprehension. Returning original:", value.original)
             return value.original
         
         # 0) If the value is a PreservedValue, format its inner value and append its comment.
         if isinstance(value, PreservedValue):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a PreservedValue. Formatting inner value.")
             val_str = self.format_value(value.value)
-            if value.comment and not value.comment[0].isspace():
-                return f"{val_str} {value.comment}"
-            else:
-                return f"{val_str}{value.comment}"
+            result = f"{val_str} {value.comment}" if value.comment and not value.comment[0].isspace() else f"{val_str}{value.comment}"
+            if self.debug:
+                print("[DEBUG UNPARSER] Formatted PreservedValue result:", result)
+            return result
         # 1) Already-preserved inline table?
         if isinstance(value, PreservedInlineTable):
-            # For single-line inline tables, preserve the original text.
-            # Multiline inline tables are handled as nested sections in unparse_section.
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a PreservedInlineTable.")
+            # For single-line inline tables, simply return the original text.
             if "\n" not in value.original:
+                if self.debug:
+                    print("[DEBUG UNPARSER] Inline table is single-line. Returning original:", value.original)
                 return value.original
             else:
+                if self.debug:
+                    print("[DEBUG UNPARSER] Inline table is multiline. Proceeding to reformat.")
                 # Fall through so that multiline inline tables get expanded.
-                pass
         # 2) Already-preserved array?
         if isinstance(value, PreservedArray):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a PreservedArray. Returning str(value):", str(value))
             return str(value)
         elif isinstance(value, PreservedString):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a PreservedString. Returning original:", value.original)
             return value.original
         elif isinstance(value, str):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a plain string.")
             if "\n" in value:
-                return f'"""{value}"""'
+                result = f'"""{value}"""'
+                if self.debug:
+                    print("[DEBUG UNPARSER] String contains newline. Returning triple-quoted string:", result)
+                return result
             else:
-                return f"\"{value}\""
+                result = f"\"{value}\""
+                if self.debug:
+                    print("[DEBUG UNPARSER] String is single-line. Returning quoted string:", result)
+                return result
         elif isinstance(value, bool):
-            return "true" if value else "false"
+            result = "true" if value else "false"
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a boolean. Returning:", result)
+            return result
         elif value is None:
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is None. Returning 'null'")
             return "null"
         elif isinstance(value, (int, float)):
-            return str(value)
+            result = str(value)
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is numeric. Returning:", result)
+            return result
         elif isinstance(value, list):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a list. Calling format_list.")
             return self.format_list(value)
         elif isinstance(value, dict):
+            if self.debug:
+                print("[DEBUG UNPARSER] Value is a dict. Formatting as inline table.")
             items = []
             for k, v in value.items():
-                items.append(f"{k} = {self.format_value(v)}")
-            return "{" + ", ".join(items) + "}"
+                formatted_item = f"{k} = {self.format_value(v)}"
+                if self.debug:
+                    print(f"[DEBUG UNPARSER] Formatted dict item: {formatted_item}")
+                items.append(formatted_item)
+            result = "{" + ", ".join(items) + "}"
+            if self.debug:
+                print("[DEBUG UNPARSER] Formatted dict result:", result)
+            return result
         else:
-            return str(value)
+            result = str(value)
+            if self.debug:
+                print("[DEBUG UNPARSER] Falling back to str(value):", result)
+            return result
 
     def format_list(self, lst):
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering format_list with list:", lst)
         # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
         if isinstance(lst, PreservedArray) and "\n" not in lst.original:
             formatted_items = [self.format_value(item) for item in lst]
-            return f"[{', '.join(formatted_items)}]"
+            result = f"[{', '.join(formatted_items)}]"
+            if self.debug:
+                print("[DEBUG UNPARSER] PreservedArray single-line formatting result:", result)
+            return result
         
         # Otherwise, fall back to multi-line formatting.
         if not lst:
+            if self.debug:
+                print("[DEBUG UNPARSER] List is empty. Returning []")
             return "[]"
         
         lines = []
         for i, item in enumerate(lst):
             item_str = self.format_value(item)
-            # Append a comma to every item except the last.
             is_last = (i == len(lst) - 1)
             line = f"{item_str}" + (", " if not is_last else "")
+            if self.debug:
+                print(f"[DEBUG UNPARSER] Formatted list item {i}: {line}")
             lines.append(line)
         
         inner = "".join(lines)
-        return f"[{inner}]"
+        result = f"[{inner}]"
+        if self.debug:
+            print("[DEBUG UNPARSER] Final formatted list result:", result)
+        return result
 
     def unparse_inline_table(self, inline_table):
-        """
-        Unparse a multiline inline table by extracting its inner assignments
-        from the preserved text. This method removes the enclosing curly braces,
-        drops any trailing commas, and (in the collapsed form) strips extra indentation.
-        """
-        # Use the stored text (or fallback to original) so that comment layout is preserved.
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering unparse_inline_table with inline_table:", inline_table)
+        # Use the stored text (or fallback to original) to preserve comment layout.
         text = getattr(inline_table, "text", inline_table.original)
         text = text.strip()
+        if self.debug:
+            print("[DEBUG UNPARSER] Inline table text after strip:", text)
         # Remove outer braces if present.
         if text.startswith("{") and text.endswith("}"):
             inner = text[1:-1].strip()
+            if self.debug:
+                print("[DEBUG UNPARSER] Removed outer braces. Inner text:", inner)
         else:
             inner = text
 
         lines = inner.splitlines()
         processed_lines = []
         for line in lines:
-            # First strip all indentation.
+            orig_line = line
             line = line.strip()
-            # Remove any trailing commas while preserving inline comments.
+            # Remove trailing commas while keeping inline comments.
             if line.endswith(","):
                 line = line[:-1].rstrip()
             if line:
                 processed_lines.append(line)
-        return "\n".join(processed_lines)
+            if self.debug:
+                print(f"[DEBUG UNPARSER] Processed line: Original: '{orig_line}' -> Processed: '{line}'")
+        result = "\n".join(processed_lines)
+        if self.debug:
+            print("[DEBUG UNPARSER] Final unparsed inline table result:", result)
+        return result
 
     def unparse_section(self, section_dict, section_path):
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering unparse_section with section_path:", section_path)
+            print("[DEBUG UNPARSER] Section dictionary keys:", list(section_dict.keys()) if isinstance(section_dict, dict) else section_dict)
         output = ""
         # Print the section header if we have a valid path.
         if section_path:
-            output += f"[{'.'.join(section_path)}]\n"
+            header = f"[{'.'.join(section_path)}]\n"
+            output += header
+            if self.debug:
+                print("[DEBUG UNPARSER] Section header added:", header.strip())
 
-        # If the collapsed section is not a dict (e.g. a multiline inline table), unparse it directly.
+        # If the collapsed section isn't a dict (for example, it's already a multiline inline table),
+        # unparse it directly.
         if not isinstance(section_dict, dict):
-            output += self.unparse_inline_table(section_dict) + "\n"
+            inline_result = self.unparse_inline_table(section_dict) + "\n"
+            if self.debug:
+                print("[DEBUG UNPARSER] Collapsed section is not a dict. Inline table result:", inline_result.strip())
+            output += inline_result
             return output
 
         assignments = {}
@@ -160,6 +244,10 @@ class JMLUnparser:
             else:
                 assignments[key] = value
 
+        if self.debug:
+            print("[DEBUG UNPARSER] Assignments keys:", list(assignments.keys()))
+            print("[DEBUG UNPARSER] Nested sections keys:", list(nested_sections.keys()))
+
         # Output assignments first.
         for key, value in assignments.items():
             if isinstance(value, dict) and "_value" in value and "_annotation" in value:
@@ -170,9 +258,15 @@ class JMLUnparser:
                 # Optionally include the inline comment if it exists.
                 if isinstance(value["_value"], PreservedValue):
                     cmt_str = value["_value"].comment
-                output += f"{key}: {annot} = {val_str}{cmt_str}\n"
+                line = f"{key}: {annot} = {val_str}{cmt_str}\n"
+                output += line
+                if self.debug:
+                    print("[DEBUG UNPARSER] Formatted annotated assignment:", line.strip())
             else:
-                output += f"{key} = {self.format_value(value)}\n"
+                line = f"{key} = {self.format_value(value)}\n"
+                output += line
+                if self.debug:
+                    print("[DEBUG UNPARSER] Formatted assignment:", line.strip())
 
         if assignments:
             output += "\n"
@@ -182,55 +276,76 @@ class JMLUnparser:
             # If the nested section is a multiline inline table, expand it as its own section.
             if isinstance(subsec, PreservedInlineTable) and "\n" in subsec.original:
                 new_path = section_path + [key]
-                output += f"[{'.'.join(new_path)}]\n"
-                output += self.unparse_inline_table(subsec) + "\n\n"
+                header = f"[{'.'.join(new_path)}]\n"
+                inline_sec = self.unparse_inline_table(subsec) + "\n\n"
+                output += header + inline_sec
+                if self.debug:
+                    print("[DEBUG UNPARSER] Expanded nested multiline inline table for key:", key)
             else:
                 collapsed_path, collapsed_section = self._collapse_section(section_path + [key], subsec)
+                if self.debug:
+                    print("[DEBUG UNPARSER] Collapsed section for key:", key, "to path:", collapsed_path)
                 output += self.unparse_section(collapsed_section, collapsed_path)
         return output
 
     def _collapse_section(self, section_path, section_dict):
-        """
-        Recursively collapse nested sections if there is exactly one key in the
-        current dictionary and its value is a plain dictionary or a multiline inline table.
-        This will merge the keys into a single dotted header.
-        """
+        if self.debug:
+            print("[DEBUG UNPARSER] Entering _collapse_section with path:", section_path, "and section_dict keys:", list(section_dict.keys()) if isinstance(section_dict, dict) else section_dict)
         if isinstance(section_dict, dict) and len(section_dict) == 1:
             only_key = list(section_dict.keys())[0]
             val = section_dict[only_key]
-            # Allow collapsing if the value is a plain dict (without annotated assignments)...
+            # Collapse if the value is a plain dict.
             if isinstance(val, dict) and not ("_value" in val and "_annotation" in val):
+                if self.debug:
+                    print("[DEBUG UNPARSER] Collapsing section further for key:", only_key)
                 return self._collapse_section(section_path + [only_key], val)
-            # ...or if it is a multiline inline table.
+            # Collapse if it is a multiline inline table.
             elif isinstance(val, PreservedInlineTable) and "\n" in val.original:
+                if self.debug:
+                    print("[DEBUG UNPARSER] Collapsing section to inline table for key:", only_key)
                 return section_path + [only_key], val
+        if self.debug:
+            print("[DEBUG UNPARSER] No further collapse for path:", section_path)
         return section_path, section_dict
 
     def unparse(self):
+        if self.debug:
+            print("[DEBUG UNPARSER] Starting unparse process.")
         output = ""
         config_data = self._get_config_data()
+        if self.debug:
+            print("[DEBUG UNPARSER] Retrieved config data:", config_data)
 
         # 1) Dump any top-level standalone comments first.
         top_comments = config_data.get("__comments__", [])
+        if self.debug:
+            print("[DEBUG UNPARSER] Top-level comments found:", top_comments)
         for comment_line in top_comments:
             output += comment_line + "\n"
         if top_comments:
             output += "\n"
 
-        # 2) Go through all top-level keys (skipping __comments__)
+        # 2) Go through all top-level keys (skipping __comments__).
         for key, value in config_data.items():
             if key == "__comments__":
                 continue
-
+            if self.debug:
+                print("[DEBUG UNPARSER] Unparsing top-level key:", key)
             # If the value is a dict, attempt to collapse nested sections into a single header.
             if isinstance(value, dict):
                 collapsed_path, collapsed_section = self._collapse_section([key], value)
+                if self.debug:
+                    print("[DEBUG UNPARSER] Collapsed top-level section for key:", key, "to path:", collapsed_path)
                 output += self.unparse_section(collapsed_section, collapsed_path)
             else:
-                # It's a simple assignment at top level.
-                output += f"{key} = {self.format_value(value)}\n"
+                line = f"{key} = {self.format_value(value)}\n"
+                output += line
+                if self.debug:
+                    print("[DEBUG UNPARSER] Formatted top-level assignment:", line.strip())
 
         final_output = output.rstrip("\n")
+        if self.debug:
+            print("[DEBUG UNPARSER] Final unparsed output:", final_output)
         return final_output
 
     def __str__(self):
