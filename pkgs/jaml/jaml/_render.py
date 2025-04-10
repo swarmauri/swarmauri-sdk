@@ -1,5 +1,11 @@
 import re
-from .lark_nodes import DeferredExpression, PreservedString, DeferredDictComprehension, DeferredListComprehension, FoldedExpressionNode
+from .ast_nodes import (
+    DeferredExpression, 
+    PreservedString, 
+    DeferredDictComprehension,
+    DeferredListComprehension, 
+    FoldedExpressionNode
+)
 from ._helpers import resolve_scoped_variable, _render_folded_expression_node
 
 def substitute_deferred(ast_node, env):

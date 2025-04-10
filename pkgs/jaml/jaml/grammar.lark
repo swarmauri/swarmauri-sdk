@@ -7,6 +7,7 @@ line: comment_line
     | blank_line
     | section
     | assignment
+    | folded_expr
 
 comment_line: COMMENT NEWLINE
 blank_line: NEWLINE

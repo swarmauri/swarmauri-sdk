@@ -1,6 +1,5 @@
 import pytest
 from jaml import loads, dumps, round_trip_loads, round_trip_dumps, resolve, render
-from jaml.lark_nodes import PreservedString
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
@@ -21,6 +20,8 @@ url = f"@{base}/config.toml"
     assert data["config"]["url"] == 'f"@{base}/config.toml"'
     print("[DEBUG]:")
     print(data)
+
+    from jaml.ast_nodes import PreservedString
 
     data["config"]["url"] = PreservedString(value='f"@{alt}/config.toml"', original='f"@{alt}/config.toml"')
     print("[DEBUG]:")
@@ -225,7 +226,6 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     print(data)
     assert data["items"]["list_config"] == '[f"item_{x}" for x in [1, 2, 3]]'
 
-
     data["items"]["list_config"].original = '[f"item_{x}" for x in [5, 10, 15]]'
     print("[DEBUG]:")
     print(data)
@@ -310,16 +310,22 @@ def test_folded_arithmetic_operations():
 result = <( 3 + 4 )>
 """
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["calc"]["result"] == '<( 3 + 4 )>'
+
+    data["calc"]["result"].original = '<( 7 + 4 )>'
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["calc"]["result"] == 7
+    assert resolved_config["calc"]["result"] == 11
 
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["calc"]["result"] == 7
+    assert rendered_data["calc"]["result"] == 11
 
 # Test 11: Conditional Logic in Expressions
 @pytest.mark.spec
@@ -331,33 +337,25 @@ def test_fstring_conditional_logic():
 status = f"{'Yes' if true else 'No'}"
 """
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
+
+
+    data["cond"]["status"].original == '''f"{'Yes' if false else 'No'}"'''
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["cond"]["status"] == "Yes"
+    assert resolved_config["cond"]["status"] == "No"
 
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["cond"]["status"] == "Yes"
-
-
-# @pytest.mark.spec
-# @pytest.mark.mep0011
-# # @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
-# def test_deferred_conditional_logic():
-#     sample = """[cond]
-# status = <{ 'Yes' if true else 'No' }>"""
-#     data = round_trip_loads(sample)
-#     print("[DEBUG]:")
-#     print(f"{data["cond"]["status"]}")
-#     assert data["cond"]["status"] == "<{ 'Yes' if true else 'No' }>"
-#     out = round_trip_dumps(data)
-#     assert sample == out
-#     rendered_data = render(out)
-#     print(f"{rendered_data["cond"]["status"]}")
-#     assert rendered_data["cond"]["status"] == "Yes"
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["cond"]["status"] == "No"
 
 
 @pytest.mark.spec
@@ -367,16 +365,24 @@ def test_conditional_logic():
     sample = """[cond]
 status = <('Yes' if true else 'No')>"""
     data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
     assert data["cond"]["status"] == "<('Yes' if true else 'No')>"
+
+    data["cond"]["status"].original == "<('Yes' if false else 'No')>"
+    print("[DEBUG]:")
+    print(data)
 
     resolved_config = resolve(data)
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["cond"]["status"] == "Yes"
+    assert resolved_config["cond"]["status"] == "No"
 
     out = round_trip_dumps(data)
     rendered_data = render(out)
-    assert rendered_data["cond"]["status"] == "Yes"
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["cond"]["status"] == "No"
 
 # Is this really a type inference test? 
 @pytest.mark.spec

@@ -8,7 +8,7 @@ from typing import Dict, Any
 from copy import deepcopy
 import re
 
-from .lark_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode, DeferredListComprehension
+from .ast_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode, DeferredListComprehension
 
 #######################################
 # 1) Public Entry Point

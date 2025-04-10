@@ -9,8 +9,9 @@ and inline comments.
 """
 
 import json
+from lark import Token
 
-from .lark_nodes import ( 
+from .ast_nodes import ( 
     PreservedString, 
     PreservedValue, 
     PreservedArray, 
@@ -19,7 +20,6 @@ from .lark_nodes import (
     DeferredDictComprehension
 )
 
-from lark import Token
 
 class JMLUnparser:
     def __init__(self, config):

@@ -226,7 +226,7 @@ def _substitute_vars(expr: str, env: Dict[str, Any]) -> str:
     """
     def _extract_value(x: Any) -> Any:
         # Local import to avoid circular dependency.
-        from .lark_nodes import PreservedString
+        from .ast_nodes import PreservedString
         if isinstance(x, PreservedString):
             return x.value
         return x

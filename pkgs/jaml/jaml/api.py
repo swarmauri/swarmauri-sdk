@@ -7,11 +7,12 @@ from pprint import pprint
 
 # Using the lark parser and transformer modules:
 from .lark_parser import parser
-from .lark_nodes import ConfigTransformer
+from ._transformer import ConfigTransformer
+
+from ._resolve import resolve_ast
+from ._render import substitute_deferred
 
 from .unparser import JMLUnparser
-from ._defer import substitute_deferred
-from ._resolve import resolve_ast
 
 
 # -------------------------------------
