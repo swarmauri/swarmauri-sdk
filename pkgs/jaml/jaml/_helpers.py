@@ -23,22 +23,25 @@ def resolve_scoped_variable(var_name, data):
 
 def evaluate_immediate_expression(expr, global_data, local_data):
     """
-    Substitute placeholders in a folded (immediate) expression so that arithmetic,
-    string concatenation, and boolean operations can be evaluated.
-
-    This function performs three passes:
-      1. Replace all occurrences of %{var} with the repr() of local_data[var].
-      2. Replace all occurrences of @{var} (supporting dotted names) with the repr() of global_data[var].
-      3. Replace all occurrences of ${...} with a quoted version (so that the placeholder remains 
-         in the evaluated result).
-
-    The returned string is a valid Python expression ready to be evaluated.
+    Process an expression from a folded (immediate) evaluation.
+    
+    This function makes three passes:
+      1. It replaces all occurrences of %{var} with the repr() of the corresponding value from local_data.
+      2. It replaces all occurrences of @{var} (supporting dotted names) with the repr() of the corresponding value from global_data.
+      3. It replaces all occurrences of ${...} with a quoted string so that these placeholders remain unresolved.
+    
+    Finally, it evaluates the resulting Python expression in a restricted environment.
+    
+    Examples:
+      "b" + "c"           -> "bc"
+      "value" + "${var}"   -> "value" + "${var}"  (left unresolved, so that later f-string interpolation can occur)
+      2 + 3               -> 5
+      true and X == X     -> evaluates with Python booleans (assuming X is defined in context)
     """
-    # 1) Replace self-scope markers (%{...}):
-    pattern_local = re.compile(r'%{([^}]+)}')
+    # 1) Replace self-scope markers (%{...}) using local_data.
     def repl_local(match):
         var_name = match.group(1).strip()
-        value = local_data.get(var_name, match.group(0))
+        value = local_data.get(var_name)
         if value is None:
             return match.group(0)
         if hasattr(value, 'value'):
@@ -46,17 +49,16 @@ def evaluate_immediate_expression(expr, global_data, local_data):
         elif isinstance(value, str):
             return repr(unquote(value))
         return str(value)
-    expr = re.sub(pattern_local, repl_local, expr)
     
-    # 2) Replace global markers (@{...}):
-    pattern_global = re.compile(r'@{([^}]+)}')
+    expr = re.sub(r'%{([^}]+)}', repl_local, expr)
+    
+    # 2) Replace global markers (@{...}) using global_data (supporting dotted names).
     def repl_global(match):
         var_name = match.group(1).strip()
-        # Use dotted lookup if needed.
         if '.' in var_name:
             value = resolve_scoped_variable(var_name, global_data)
         else:
-            value = global_data.get(var_name, match.group(0))
+            value = global_data.get(var_name)
         if value is None:
             return match.group(0)
         if hasattr(value, 'value'):
@@ -64,16 +66,24 @@ def evaluate_immediate_expression(expr, global_data, local_data):
         elif isinstance(value, str):
             return repr(unquote(value))
         return str(value)
-    expr = re.sub(pattern_global, repl_global, expr)
     
-    # 3) Replace context markers (${...}) with a quoted version so they remain unresolved.
-    pattern_context = re.compile(r'\$\{([^}]+)\}')
+    expr = re.sub(r'@{([^}]+)}', repl_global, expr)
+    
+    # 3) Replace context markers (${...}) by quoting them, so they remain in the final string.
     def repl_context(match):
         placeholder = match.group(0)  # e.g. "${auth_token}"
         return repr(placeholder)
-    expr = re.sub(pattern_context, repl_context, expr)
     
-    return expr
+    expr = re.sub(r'\$\{([^}]+)\}', repl_context, expr)
+    
+    # Now, evaluate the resulting expression in a safe environment.
+    safe_globals = {"__builtins__": {}, "true": True, "false": False}
+    try:
+        result = eval(expr, safe_globals, {})
+    except Exception as e:
+        # In case evaluation fails, return the substituted expression.
+        result = expr
+    return result
 
 def evaluate_f_string(f_str, global_data, local_data):
     """

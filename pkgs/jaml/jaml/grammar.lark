@@ -169,7 +169,7 @@ NULL: /null\b/
 RESERVED_FUNC: /(File\(\)|Git\(\))\b/
 
 // 11) KEYWORD
-KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include)\b/
+KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as)\b/
 
 // 12) TABLE_ARRAY
 TABLE_ARRAY: /\[\[[^\]\n]+\]\]/

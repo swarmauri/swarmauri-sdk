@@ -28,10 +28,10 @@ config = f"@{base}/config.toml"
     reserialized = round_trip_dumps(ast)
 
     # The line should still contain "@{base}" reference
-    assert "config = f\"@{base}/config.toml\"" in reserialized
+    assert 'config = f"@{base}/config.toml"' in reserialized
 
     # Render final output
-    rendered = render(toml_str, context={})
+    rendered = render(reserialized, context={})
     # Expect the global variable `base` to be replaced
     assert "/home/user/config.toml" in rendered, \
         "Global scope variable not correctly resolved in final output."
@@ -53,7 +53,7 @@ name = "LocalName"
 greeting = f"Hello, %{name}!"
 """
     # Render or parse -> re-serialize
-    rendered = render(toml_str, context={})
+    rendered = render(toml_str)
     # Since local scope overrides global, we expect "Hello, LocalName!"
     assert "Hello, LocalName!" in rendered, \
         "Local/self variable did not override global variable as specified."

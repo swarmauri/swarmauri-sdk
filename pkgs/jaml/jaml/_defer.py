@@ -28,6 +28,7 @@ def substitute_deferred(ast_node, env):
 
     if isinstance(ast_node, (DeferredExpression, DeferredComprehension)):
         return ast_node.evaluate(env)
+        
     elif isinstance(ast_node, dict):
         # Build a local environment for this section.
         local_env = {}

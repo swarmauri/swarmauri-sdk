@@ -10,9 +10,8 @@ from .lark_parser import parser
 from .lark_nodes import ConfigTransformer
 
 from .unparser import JMLUnparser
-from ._render import substitute_context_in_ast
 from ._defer import substitute_deferred
-# Removed reference to the old ast_nodes.DocumentNode
+from ._resolve import resolve_ast
 
 
 # -------------------------------------
@@ -123,6 +122,28 @@ def round_trip_load(fp: IO[str]) -> Any:
     """
     return round_trip_loads(fp.read())
 
+# -------------------------------------
+# 3) Resolve API
+# -------------------------------------
+
+def resolve(ast: Any) -> Any:
+    """
+    Partially evaluate all purely static expressions in the given AST, leaving 
+    only those placeholders that rely on dynamic context (i.e. ${...}) for the 
+    final render step.
+
+    This does not accept an external environment or context — all static data 
+    must already exist within the AST (e.g., from global/local assignments).
+    The returned AST can then be:
+
+      1) Dumped to text via round_trip_dumps(ast),
+      2) Passed to render() (after converting to text) to finalize dynamic placeholders.
+
+    :param ast: The AST produced by round_trip_loads() or similar.
+    :return: A new AST (or updated in-place, depending on your implementation)
+             with static expressions evaluated.
+    """
+    return resolve_ast(ast)
 
 # -------------------------------------
 # 4) Render API (optional advanced usage)
@@ -133,6 +154,12 @@ def render(text, context={}):
     Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
     ast = loads(text)
+    env = {}
+    env.update(context)
+    # Also inject the booleans
+    env["true"] = True
+    env["false"] = False
     print("[DEBUG]: ")
     pprint(ast)
-    return substitute_deferred(ast, context)
+    return substitute_deferred(ast, env)
+

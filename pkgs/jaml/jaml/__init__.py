@@ -14,6 +14,7 @@ from .api import (
     round_trip_load,
     round_trip_loads,
     check_extension,
+    resolve,
     render,
 )
 from .lark_parser import parser

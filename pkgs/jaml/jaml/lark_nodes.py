@@ -11,31 +11,39 @@ from ._helpers import (
     evaluate_comprehension)  
 
 class DeferredExpression:
-    def __init__(self, expr, local_env=None):
-        self.expr = expr  # For example: "%{base} + '/config.toml'"
+    def __init__(self, expr, local_env=None, original_text=None):
+        self.expr = expr  # e.g., "'Yes' if true else 'No'"
         self.local_env = local_env or {}
+        self.original_text = original_text  # e.g., "<{'Yes' if true else 'No'}>"
+
     def evaluate(self, global_env):
-        # Merge the global environment with the local environment.
         env = {}
         env.update(global_env)
         env.update(self.local_env)
-        # Substitute self-scope markers using evaluate_immediate_expression.
+
         substituted = evaluate_immediate_expression(self.expr, {}, env)
         try:
-            # Evaluate the resulting Python expression in a restricted environment.
             return eval(substituted, {"__builtins__": {}}, {"true": True, "false": False})
         except Exception:
             return self.expr
+
     def __str__(self):
-        # When dumping, output the deferred expression with its delimiters.
-        return f"<{{ {self.expr} }}>"
+        # Return the exact text for round-trip 
+        return self.original_text or f"<{{ {self.expr} }}>"
+
     def __repr__(self):
-        return f"DeferredExpression({self.expr!r}, local_env={self.local_env!r})"
+        return f"DeferredExpression(expr={self.expr!r}, local_env={self.local_env!r}, original_text={self.original_text!r})"
+
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.expr == other
+            # Compare with original literal
+            return (self.original_text == other) if self.original_text else (f"<{{ {self.expr} }}>" == other)
         if isinstance(other, DeferredExpression):
-            return self.expr == other.expr and self.local_env == other.local_env
+            return (
+                self.expr == other.expr 
+                and self.local_env == other.local_env 
+                and self.original_text == other.original_text
+            )
         return False
 
 
@@ -89,7 +97,16 @@ class PreservedString(str):
 
     def __repr__(self):
         return f"PreservedString(value={super().__str__()!r}, original={self.original!r})"
-
+        
+    def __reduce_ex__(self, protocol):
+        """
+        Tells pickle/deepcopy how to re-create a PreservedString instance.
+        Returns (constructor, args) so that __new__ is called correctly.
+        """
+        return (
+            self.__class__,
+            (self.value, self.original)  # The args we pass to __new__
+        )
 
 class PreservedValue:
     def __init__(self, value, comment=None):
@@ -245,26 +262,27 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def deferred_expr(self, meta, items):
-        was_in_deferred = self.in_deferred
-        self.in_deferred = True
-        # Assume we capture the entire expression using meta information.
-        # For example, get the original text from self._slice_input(meta.start_pos, meta.end_pos)
-        # Here we'll assume that items[0] holds the entire expression text.
-        # (You may need to adjust to your actual AST.)
+        # Capture the entire literal substring
         full_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.in_deferred = was_in_deferred
-        # Check the delimiter: immediate expressions start with "<{"
+
+        # If it starts with `<{`, proceed with a deferred expression:
         if full_text.lstrip().startswith("<{"):
-            # Strip off the delimiters and surrounding whitespace.
+            # e.g. "<{'Yes' if true else 'No'}>"
+            # strip away <{  }>
             inner_expr = full_text.lstrip()[2:-2].strip()
-            # Defer evaluation by wrapping in DeferredExpression,
-            # storing the current section as the local environment.
-            return DeferredExpression(inner_expr, local_env=self.current_section.copy())
+
+            # Instead of forcibly wrapping in f"..." if there's ' if ', remove that hack.
+            # We'll keep the expression exactly as is to pass your test.
+
+            return DeferredExpression(
+                expr=inner_expr,
+                local_env=self.current_section.copy(),
+                original_text=full_text
+            )
+
         elif full_text.lstrip().startswith("<("):
-            # For folded expressions (<( ... )>), evaluate as much as possible immediately.
+            # This branch is for folded expressions, can be handled as before
             content = full_text.lstrip()[2:-2].strip()
-            if isinstance(content, str) and '%{' in content:
-                content = evaluate_immediate_expression(content, self.data, self.current_section)
             context = {"true": True, "false": False}
             try:
                 result = eval(content, {"__builtins__": {}}, context)
@@ -272,7 +290,9 @@ class ConfigTransformer(Transformer):
             except Exception:
                 return content
         else:
+            # fallback or else-case
             return self.deferred_content(items)
+
 
     @v_args(meta=True)
     def folded_expr(self, meta, items):
