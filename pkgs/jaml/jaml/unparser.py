@@ -16,7 +16,7 @@ from .lark_nodes import (
     PreservedArray, 
     PreservedInlineTable,
     DeferredExpression,
-    DeferredComprehension
+    DeferredDictComprehension
 )
 
 from lark import Token
@@ -45,8 +45,8 @@ class JMLUnparser:
         if isinstance(value, DeferredExpression):
             return f"<{{ {value.expr} }}>"
 
-        # New branch for DeferredComprehension:
-        if isinstance(value, DeferredComprehension):
+        # New branch for DeferredDictComprehension:
+        if isinstance(value, DeferredDictComprehension):
             # Re-wrap it in curly braces.
             return value.original
         

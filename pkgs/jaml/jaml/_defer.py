@@ -1,5 +1,5 @@
 import re
-from .lark_nodes import DeferredExpression, PreservedString, DeferredComprehension, FoldedExpressionNode
+from .lark_nodes import DeferredExpression, PreservedString, DeferredDictComprehension, FoldedExpressionNode
 from ._helpers import resolve_scoped_variable, _render_folded_expression_node
 
 def substitute_deferred(ast_node, env):
@@ -26,7 +26,7 @@ def substitute_deferred(ast_node, env):
                 merged[k] = v
         env = merged
 
-    if isinstance(ast_node, (DeferredExpression, DeferredComprehension)):
+    if isinstance(ast_node, (DeferredExpression, DeferredDictComprehension)):
         return ast_node.evaluate(env)
 
     elif isinstance(ast_node, FoldedExpressionNode):

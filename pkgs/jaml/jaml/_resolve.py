@@ -8,7 +8,7 @@ from typing import Dict, Any
 from copy import deepcopy
 import re
 
-from .lark_nodes import PreservedString, DeferredComprehension, FoldedExpressionNode
+from .lark_nodes import PreservedString, DeferredDictComprehension, FoldedExpressionNode
 
 #######################################
 # 1) Public Entry Point
@@ -49,7 +49,7 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
     elif isinstance(node, list):
         return [_resolve_node(item, global_env, local_env) for item in node]
 
-    elif isinstance(node, DeferredComprehension):
+    elif isinstance(node, DeferredDictComprehension):
         # Evaluate deferred comprehensions using the merged environment.
         env = {}
         env.update(global_env)

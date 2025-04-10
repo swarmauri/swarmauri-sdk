@@ -57,6 +57,69 @@ class FoldedExpressionNode:
             return text[2:-2].strip()
         return text
 
+
+class DeferredListComprehension:
+    """
+    Represents a deferred list comprehension.
+    It preserves the original raw text (including square brackets)
+    so that after round-trip loads, the original text is maintained.
+    Its evaluate(env) method computes the list given an environment.
+    """
+    def __init__(self, text):
+        # text should be the entire raw text including the square brackets,
+        # e.g., '[f"item_{x}" for x in [1, 2, 3]]'
+        self.text = text
+
+    @property
+    def original_text(self):
+        return self.text
+
+    @original_text.setter
+    def original_text(self, value):
+        self.text = value
+
+    @property
+    def value(self):
+        return self.text
+
+    def evaluate(self, env):
+        """
+        Evaluate the deferred list comprehension.
+        Expected syntax: [f"item_{x}" for x in [1, 2, 3]]
+        The method uses a regex to capture the f-string expression, loop variable, and iterable expression.
+        It then evaluates the f-string expression for each element of the iterable.
+        """
+        pattern = r'^\[\s*(f["\'].*?["\'])\s+for\s+(\w+)\s+in\s+(.*)\s*\]$'
+        m = re.match(pattern, self.text.strip())
+        if not m:
+            return self.text
+        expr_str, loop_var, iterable_str = m.groups()
+        try:
+            iterable = eval(iterable_str, {"__builtins__": {}}, env)
+        except Exception:
+            return self.text
+        result = []
+        for item in iterable:
+            local_env = {loop_var: item}
+            # Evaluate the f-string expression via the interpolation helper.
+            value = evaluate_f_string_interpolation(expr_str, local_env)
+            result.append(value)
+        return result
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return f"DeferredListComprehension({self.text!r})"
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.text == other
+        if isinstance(other, DeferredListComprehension):
+            return self.text == other.text
+        return False
+
+
 class DeferredExpression:
     def __init__(self, expr, local_env=None, original_text=None):
         self.expr = expr  # e.g., "'Yes' if true else 'No'"
@@ -94,10 +157,10 @@ class DeferredExpression:
         return False
 
 
-class DeferredComprehension:
+class DeferredDictComprehension:
     def __init__(self, text):
         self.original_text = text  # The raw inner text, or full text including braces
-        
+
     @property
     def original(self):
         return self.original_text
@@ -130,11 +193,11 @@ class DeferredComprehension:
     def __str__(self):
         return "{" + self.original_text + "}"
     def __repr__(self):
-        return f"DeferredComprehension({self.original_text!r})"
+        return f"DeferredDictComprehension({self.original_text!r})"
     def __eq__(self, other):
         if isinstance(other, str):
             return self.original_text == other
-        if isinstance(other, DeferredComprehension):
+        if isinstance(other, DeferredDictComprehension):
             return self.original_text == other.original_text
         return False
 
@@ -390,21 +453,21 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def list_comprehension(self, meta, items):
         """
-        Transforms a list comprehension into a DeferredComprehension node.
+        Transforms a list comprehension into a DeferredDictComprehension node.
         
         Instead of immediately evaluating:
           [f"item_{x}" for x in [1, 2, 3]]
         we capture the original raw text of the comprehension (including the enclosing square brackets)
-        and wrap it in a DeferredComprehension node. This ensures that:
+        and wrap it in a DeferredDictComprehension node. This ensures that:
           - After round_trip_loads, the value equals the raw string:
                 '[f"item_{x}" for x in [1, 2, 3]]'
-          - In the resolve or render phase, the DeferredComprehension's evaluate() method
+          - In the resolve or render phase, the DeferredDictComprehension's evaluate() method
             will be called to produce the computed list (e.g. ["item_1", "item_2", "item_3"]).
         """
         # Obtain the entire original text (including brackets, etc.)
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        # Return a DeferredComprehension node containing the raw text.
-        return DeferredComprehension(original_text)
+        # Return a DeferredDictComprehension node containing the raw text.
+        return DeferredListComprehension(original_text)
 
 
 
@@ -423,7 +486,7 @@ class ConfigTransformer(Transformer):
         # Use meta.start_pos and meta.end_pos to capture the original substring.
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         # Do not remove the outer braces: return the full original text.
-        return DeferredComprehension(original_text)
+        return DeferredDictComprehension(original_text)
 
 
 
