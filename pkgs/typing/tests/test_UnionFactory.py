@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated, Any, Union, get_args, get_origin
 
 from swarmauri_typing.UnionFactory import UnionFactory, UnionFactoryMetadata
@@ -142,12 +141,10 @@ def test_add_metadata_to_annotated_type():
     # Add another metadata to existing Annotated type
     result = factory._add_metadata(base_type, new_metadata)
 
-    logging.info(f"Result: {result}")
-
     assert get_origin(result) == Annotated
     args = get_args(result)
     assert args[0] == str
-    assert len(args) == 4  # base type + 2 metadata items
+    assert len(args) == 4
     assert isinstance(args[1], CustomMetadata)
     assert args[1].value == "first"
     assert isinstance(args[2], CustomMetadata)
