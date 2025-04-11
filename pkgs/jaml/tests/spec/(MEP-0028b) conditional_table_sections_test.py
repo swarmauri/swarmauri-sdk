@@ -11,7 +11,7 @@ from jaml import (
 # The input JML content (as a multi-line string)
 JML_INPUT = r'''
 rootDir = "src"
-packages = ${ctx.packages}
+packages = ${packages}
 
 [[f"file.{package.name}.{module.name}.source" 
   for package as %{package} in @{packages} if package.active
@@ -43,7 +43,7 @@ extras = [k = v for k, v in %{module.extras.items} if k in ["owner", "desc"]]
 name = %{module.name} + ".yaml"
 path = @{rootDir} + "/" + %{package.name} + "/config/" + %{name}
 type = "yaml"
-extras = { env = ${ctx.env} }
+extras = { env = ${env} }
 '''
 
 # The base external context used during rendering.
@@ -167,6 +167,7 @@ def test_update_module_extras():
 
     print('-'*10, '\n[TEST]: STARTING FINAL DUMP\n')
     final_out = round_trip_dumps(rendered_data)
+    print('\n\n\n\n[FINAL DUMP]:', final_out,'\n\n---\n\n\n')
 
     assert """[[file.auth.signup.config]]
 name = "signup.yaml"
