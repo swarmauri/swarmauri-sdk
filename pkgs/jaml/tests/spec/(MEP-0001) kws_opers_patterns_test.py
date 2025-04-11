@@ -137,7 +137,7 @@ def test_conditional_ternary_operator():
     Tests the inline conditional operator: "Active" if cond else "Inactive"
     If your grammar doesn't allow it, we expect a SyntaxError or partial parse.
     """
-    source = 'status = <{ "Active" if "Active" else "Inactive" }>'
+    source = 'status = <( "Active" if "Active" else "Inactive" )>'
     _ = loads(source)
 
 ## currently MEP-001 defines if and else, but not {~ ~} and {^ ^} or comprehensions
@@ -147,7 +147,7 @@ def test_membership_operators():
     """
     Tests membership 'in' and 'not in'
     """
-    source = 'allowed = <{ "admin" in ["admin"] }>'
+    source = 'allowed = <( "admin" in ["admin"] )>'
     _ = loads(source)
 
 

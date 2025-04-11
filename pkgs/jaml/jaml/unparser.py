@@ -2,181 +2,277 @@
 """
 jaml/unparser.py
 
-This module provides the JMLUnparser class, which converts a configuration
-object (a plain dict or similar) back into its textual representation
-according to the custom grammar, preserving top-level comments
-and inline comments.
+Re‑serialises an in‑memory config produced by the JAML parser back to text,
+**preserving comments, inline‑comments, and comprehension‑based
+table‑array headers**.
+
+Highlights
+----------
+* Correctly emits `[[ … ]]` blocks (even when the header is a comprehension)
+  instead of turning them into bogus assignments.
+* Preserves every comment captured by the parser:
+  * top‑level comments (`config_dict["__comments__"]`)
+  * per‑section comments   (`section_dict["__comments__"]`)
+  * inline comments wrapped in `PreservedValue`.
 """
 
-import json
+from __future__ import annotations
 
-from .lark_nodes import ( 
-    PreservedString, 
-    PreservedValue, 
-    PreservedArray, 
+from typing import Any, List, Tuple
+
+from .ast_nodes import (
+    # “wrapper” nodes that keep original text
+    PreservedString,
+    PreservedValue,
+    PreservedArray,
     PreservedInlineTable,
-    DeferredExpression,
-    DeferredComprehension
+    DeferredDictComprehension,
+    # table‑array helpers
+    TableArrayHeader,
+    TableArrayComprehensionHeader,
+    TableArraySectionNode,
+    # misc AST helpers
+    StringExpr,
+    ComprehensionClauses,
+    ComprehensionClause,
+    DottedExpr,
+    PairExpr,
+    AliasClause,
+    InClause,
 )
 
-from lark import Token
 
+# --------------------------------------------------------------------------- #
+# Main unparser
+# --------------------------------------------------------------------------- #
 class JMLUnparser:
-    def __init__(self, config):
-        self.config = config
+    """Convert a parsed configuration back into DSL text."""
 
-    def _get_config_data(self):
+    # ------------------------------------------------------------------ #
+    # ctor / utilities
+    # ------------------------------------------------------------------ #
+    def __init__(self, config: Any, debug: bool = False) -> None:
+        self.config = config
+        self.debug = debug
+        if self.debug:
+            print("[DEBUG] JMLUnparser initialised with", type(config))
+
+    def _get_config_data(self) -> dict:
+        """Extract a dict representation from common container shapes."""
         if isinstance(self.config, dict):
             return self.config
-        elif hasattr(self.config, "data"):
-            return self.config.data
-        elif hasattr(self.config, "value"):
-            return self.config.value
-        elif hasattr(self.config, "to_dict"):
-            return self.config.to_dict()
-        elif hasattr(self.config, "__dict__"):
-            return self.config.__dict__
-        else:
-            raise AttributeError(
-                "Configuration object does not have an expected dictionary interface."
-            )
+        for attr in ("data", "value", "to_dict", "__dict__"):
+            if hasattr(self.config, attr):
+                candidate = getattr(self.config, attr)
+                return candidate() if callable(candidate) else candidate
+        raise TypeError("Unsupported config container – cannot obtain mapping.")
 
-    def format_value(self, value):
-        if isinstance(value, DeferredExpression):
-            return f"<{{ {value.expr} }}>"
+    # ------------------------------------------------------------------ #
+    # scalar / collection formatting
+    # ------------------------------------------------------------------ #
+    def format_value(self, val: Any) -> str:  # noqa: C901
+        """Return *val* as DSL text, preserving wrappers and comments."""
+        # ---------- wrappers ----------
+        if isinstance(val, DeferredDictComprehension):
+            return val.origin
+        if isinstance(val, PreservedValue):
+            return f"{self.format_value(val.value)}{val.comment or ''}"
+        if isinstance(val, PreservedInlineTable):
+            return val.origin if "\n" not in val.origin else self._expand_inline_table(val)
+        if isinstance(val, PreservedArray):
+            return val.origin
+        if isinstance(val, PreservedString):
+            return val.origin
 
-        # New branch for DeferredComprehension:
-        if isinstance(value, DeferredComprehension):
-            # Re-wrap it in curly braces.
-            return "{" + value.text + "}"
-        
-        # 0) If the value is a PreservedValue, format its inner value and append its comment.
-        if isinstance(value, PreservedValue):
-            val_str = self.format_value(value.value)
-            if value.comment and not value.comment[0].isspace():
-                return f"{val_str} {value.comment}"
-            else:
-                return f"{val_str}{value.comment}"
-        # 1) Already-preserved inline table?
-        if isinstance(value, PreservedInlineTable):
-            return str(value)
-        # 2) Already-preserved array?
-        elif isinstance(value, PreservedArray):
-            return str(value)
-        elif isinstance(value, PreservedString):
-            return value.original
-        elif isinstance(value, str):
-            if "\n" in value:
-                return f'"""{value}"""'
-            else:
-                return f"\"{value}\""
-        elif isinstance(value, bool):
-            return "true" if value else "false"
-        elif value is None:
+        # ---------- primitives ----------
+        if isinstance(val, str):
+            return f'"{val}"' if "\n" not in val else f'"""{val}"""'
+        if isinstance(val, bool):
+            return "true" if val else "false"
+        if val is None:
             return "null"
-        elif isinstance(value, (int, float)):
-            return str(value)
-        elif isinstance(value, list):
-            return self.format_list(value)
-        elif isinstance(value, dict):
-            items = []
-            for k, v in value.items():
-                items.append(f"{k} = {self.format_value(v)}")
-            return "{" + ", ".join(items) + "}"
-        else:
-            return str(value)
+        if isinstance(val, (int, float)):
+            return str(val)
 
+        # ---------- collections ----------
+        if isinstance(val, list):
+            return f"[{', '.join(self.format_value(v) for v in val)}]"
+        if isinstance(val, dict):
+            inner = ", ".join(f"{k} = {self.format_value(v)}" for k, v in val.items())
+            return f"{{{inner}}}"
 
+        # ---------- fallback ----------
+        return str(val)
 
-    def format_list(self, lst):
-        # If we have a PreservedArray and the original text is a single line, reserialize it in one line.
-        if isinstance(lst, PreservedArray) and "\n" not in lst.original_text:
-            formatted_items = [self.format_value(item) for item in lst]
-            return f"[{', '.join(formatted_items)}]"
-        
-        # Otherwise, fall back to multi-line formatting.
-        if not lst:
-            return "[]"
-        
-        lines = []
-        for i, item in enumerate(lst):
-            item_str = self.format_value(item)
-            # Append a comma to every item except the last.
-            is_last = (i == len(lst) - 1)
-            line = f"{item_str}" + (", " if not is_last else "")
-            lines.append(line)
-        
-        inner = "".join(lines)
-        return f"[{inner}]"
+    # ------------------------------------------------------------------ #
+    # inline‑table pretty printing (multiline)
+    # ------------------------------------------------------------------ #
+    def _expand_inline_table(self, tbl: PreservedInlineTable) -> str:
+        text = tbl.origin.strip()
+        inner = text[1:-1].strip() if text.startswith("{") and text.endswith("}") else text
+        lines = [ln.rstrip(",").strip() for ln in inner.splitlines() if ln.strip()]
+        return "\n".join(lines)
 
+    # ------------------------------------------------------------------ #
+    # AST node -> text
+    # ------------------------------------------------------------------ #
+    def unparse_node(self, node: Any) -> str:  # noqa: C901
+        """Turn helper AST nodes back into text."""
+        # 1) full table‑array section
+        if isinstance(node, TableArraySectionNode):
+            header_txt = f"[[{self.unparse_node(node.header)}]]"
+            body_lines: List[str] = []
 
+            # comments stored on the node?
+            if hasattr(node, "__comments__"):
+                body_lines.extend(getattr(node, "__comments__"))  # type: ignore[arg-type]
 
+            # children (assignments / subsections / stray comments)
+            for child in (node.body or []):
+                if child is None:
+                    continue
+                if isinstance(child, str) and child.lstrip().startswith("#"):
+                    body_lines.append(child)
+                elif hasattr(child, "unparse"):
+                    body_lines.append(child.unparse())  # type: ignore[attr-defined]
+                else:
+                    body_lines.append(self.unparse_node(child))
 
-    def unparse_section(self, section_dict, section_path):
-        output = ""
-        if section_path:
-            output += f"[{'.'.join(section_path)}]\n"
+            return "\n".join([header_txt] + body_lines)
 
-        assignments = {}
-        nested_sections = {}
+        # 2) header objects
+        if isinstance(node, (TableArrayHeader, TableArrayComprehensionHeader)):
+            return node.origin
 
-        for key, value in section_dict.items():
-            if isinstance(value, dict) and "_value" in value and "_annotation" in value:
-                # This is an annotated assignment.
-                assignments[key] = value
-            elif isinstance(value, dict) and any(isinstance(v, dict) for v in value.values()):
-                nested_sections[key] = value
-            else:
-                assignments[key] = value
+        # 3) simple helpers
+        if isinstance(node, StringExpr):
+            return node.origin
+        if isinstance(node, DottedExpr):
+            return node.dotted_value
+        if isinstance(node, PairExpr):
+            return f"{self.unparse_node(node.key)} = {self.unparse_node(node.value)}"
+        if isinstance(node, (AliasClause, InClause)):
+            return node.origin
 
-        for key, value in assignments.items():
-            if isinstance(value, dict) and "_value" in value and "_annotation" in value:
-                # Format annotated assignment.
-                val_str = self.format_value(value["_value"])
-                annot = value["_annotation"]
-                cmt_str = ""
-                # Optionally include the inline comment if it exists.
-                if isinstance(value["_value"], PreservedValue):
-                    cmt_str = value["_value"].comment
-                output += f"{key}: {annot} = {val_str}{cmt_str}\n"
-            else:
-                output += f"{key} = {self.format_value(value)}\n"
+        # 4) comprehension helpers
+        if isinstance(node, ComprehensionClause):
+            vars_ = " ".join(self.unparse_node(v) for v in node.loop_vars)
+            iterable = self.unparse_node(node.iterable)
+            cond = (
+                " if " + " ".join(self.unparse_node(c) for c in node.conditions)
+                if node.conditions
+                else ""
+            )
+            return f"for {vars_} in {iterable}{cond}"
+        if isinstance(node, ComprehensionClauses):
+            return " ".join(self.unparse_node(c) for c in node.clauses)
 
-        if assignments:
-            output += "\n"
+        # fallback
+        return str(node)
 
-        for key, subsec in nested_sections.items():
-            output += self.unparse_section(subsec, section_path + [key])
+    # ------------------------------------------------------------------ #
+    # section helpers
+    # ------------------------------------------------------------------ #
+    def _collapse_section(self, path: List[str], sect: Any) -> Tuple[List[str], Any]:
+        """
+        Collapse chains of single‑key subsections to produce the compact
+        `[a.b.c]` syntax.
+        """
+        if isinstance(sect, dict) and len(sect) == 1:
+            (only_key, val), = sect.items()
+            if isinstance(val, dict) and not {"_value", "_annotation"} <= val.keys():
+                return self._collapse_section(path + [only_key], val)
+            if isinstance(val, PreservedInlineTable) and "\n" in val.origin:
+                return path + [only_key], val
+        return path, sect
 
-        return output
+    def _emit_section(
+        self,
+        sect: Any,
+        path: List[str],
+    ) -> str:
+        """Serialise a `[section]` (or collapsed inline‑table)."""
+        # inline‑table collapsed leaf
+        if not isinstance(sect, dict):
+            header = f"[{'.'.join(path)}]"
+            return f"{header}\n{self._expand_inline_table(sect)}\n"
 
+        lines: List[str] = [f"[{'.'.join(path)}]"]
 
-    def unparse(self):
-        output = ""
-        config_data = self._get_config_data()
+        # comments inside the section
+        for cmt in sect.get("__comments__", []):
+            lines.append(cmt)
 
-        # 1) Dump any top-level standalone comments first.
-        top_comments = config_data.get("__comments__", [])
-        for comment_line in top_comments:
-            output += comment_line + "\n"
-        if top_comments:
-            output += "\n"
+        # assignments
+        for k, v in sect.items():
+            if k == "__comments__":
+                continue
+            if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
+                val_txt = self.format_value(v["_value"])
+                lines.append(f"{k}: {v['_annotation']} = {val_txt}")
+            elif not isinstance(v, dict):
+                if isinstance(k, TableArrayHeader):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
+                elif isinstance(k, TableArraySectionNode):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
+                else:
+                    print('==>', k, v, type(k), type(v))
+                    lines.append(f"{k} = {self.format_value(v)}")
 
-        # 2) Go through all top-level keys (skipping __comments__)
-        for key, value in config_data.items():
+        if len(lines) > 1:
+            lines.append("")  # blank line before subsections
+
+        # nested subsections
+        for k, v in sect.items():
+            if isinstance(v, dict):
+                sub_path, collapsed = self._collapse_section(path + [k], v)
+                lines.append(self._emit_section(collapsed, sub_path))
+
+        return "\n".join(lines).rstrip("\n")
+    # ------------------------------------------------------------------ #
+    # public API
+    # ------------------------------------------------------------------ #
+    def unparse(self) -> str:
+        """Return the full DSL text."""
+        out: List[str] = []
+        data = self._get_config_data()
+
+        # ---------- top‑level comments ----------
+        for cmt in data.get("__comments__", []):
+            out.append(cmt)
+        if data.get("__comments__"):
+            out.append("")
+
+        # ---------- iterate keys ----------
+        for key, value in data.items():
             if key == "__comments__":
                 continue
 
-            # If the value is a dict => it's a "section"
+            # ---- table‑array bucket ----
+            if isinstance(key, (TableArrayHeader, TableArrayComprehensionHeader)) and isinstance(value, list):
+                for section_node in value:
+                    out.append(self.unparse_node(section_node))
+                continue
+
+            # ---- normal sections ----
             if isinstance(value, dict):
-                output += self.unparse_section(value, [key])
+                path, collapsed = self._collapse_section([key], value)
+                out.append(self._emit_section(collapsed, path))
+                continue
+
+            # ---- plain assignment ----
+            if hasattr(value, "unparse"):
+                rhs = value.unparse()  # type: ignore[attr-defined]
+            elif value.__class__.__module__.endswith(".ast_nodes"):
+                rhs = self.unparse_node(value)
             else:
-                # It's a simple assignment at top level
-                output += f"{key} = {self.format_value(value)}\n"
+                rhs = self.format_value(value)
+            out.append(f"{key} = {rhs}")
 
-        final_output = output.rstrip("\n")
-        return final_output
+        return "\n".join(out).rstrip("\n")
 
-
-    def __str__(self):
+    # Convenience
+    def __str__(self) -> str:  # pragma: no cover
         return self.unparse()

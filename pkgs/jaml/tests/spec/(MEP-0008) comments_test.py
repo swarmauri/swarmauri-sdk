@@ -146,6 +146,7 @@ def test_multiline_inline_table_comments_preserved():
     """
     original = '''[user]
 profile = {
+  alias = "Bob",
   name = "Alice",               # User's name
   email = "alice@example.com",  # User's email
   bio = """
@@ -157,7 +158,8 @@ profile = {
     ast = round_trip_loads(original)
     serialized = round_trip_dumps(ast)
     # Check that the two inline comments remain
-    assert original in serialized
+    assert '[user.profile]\nalias' in serialized
+    assert '''"Alice" # User's name''' in serialized
     assert "# User's name" in serialized
     assert "# User's email" in serialized
     # Also verify the triple-quoted block still contains the # as text

@@ -100,7 +100,7 @@ def test_table_section_precedence():
 # Test that a table array header is recognized as TABLE_ARRAY.
 @pytest.mark.spec
 @pytest.mark.mep0002
-@pytest.mark.xfail(reason="support for table arrays not fully supported.")
+# @pytest.mark.xfail(reason="support for table arrays not fully supported.")
 def test_table_array_precedence():
     sample = "[[products]]"
     tree = parser.parse(sample)

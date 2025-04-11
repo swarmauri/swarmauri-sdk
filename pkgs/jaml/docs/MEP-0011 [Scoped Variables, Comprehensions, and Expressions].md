@@ -10,7 +10,7 @@
 
 ## 1. Abstract
 
-This proposal defines a unified system for handling variable scoping, dynamic string interpolation, list and dict comprehensions, and expressions in our markup language. It introduces three distinct variable scopes, two forms of string interpolation (f-string and concatenation), and two expression syntaxes—immediate expressions and folded expressions. Both forms are evaluated during load time, with one important exception: any sub-expression that references a context variable (using the `${...}` syntax) is deferred and evaluated only during render time.
+This proposal defines a unified system for handling variable scoping, dynamic string interpolation, list and dict comprehensions, and expressions in our markup language. It introduces three distinct variable scopes, two forms of string interpolation (f-string and concatenation), and two expression syntaxes—deferred expressions and folded expressions. Both forms are evaluated during load time, with one important exception: any sub-expression that references a context variable (using the `${...}` syntax) is deferred and evaluated only during render time.
 
 ---
 
@@ -114,10 +114,10 @@ Inline comprehensions facilitate dynamic generation of lists and dictionaries:
 
 Expressions allow for immediate, load-time computation of configuration values.
 
-- **Immediate Expressions (`<{ ... }>`):**  
-  These are evaluated entirely during load time. They may include arithmetic, string concatenation, and logical operations.  
-  **Note:** Any reference to a context variable (`${...}`) within an immediate expression is deferred and will be evaluated only during render time.
-  
+- **Deferred Expressions (`<{ ... }>`):**  
+  Evaluations are deferred entirely during load time. They may include arithmetic, string concatenation, and logical operations.  
+  **Note:** Any reference to a scoped variable (`@{...}`, `%{...}`, `${...}`) within an deferred expression is deferred and will be evaluated only during render time.
+
   **Example:**
   
   ```toml
@@ -169,15 +169,15 @@ Folded expressions provide a more readable alternative when constructing complex
   ```
 
 - **Context vs. Load-Time Evaluation:**  
-  All expressions (both `<{ ... }>` and `<( ... )>`) are processed at load time; however, any component referencing a context variable (`${...}`) is deferred until render time.
+  Folded expressions (`<( ... )>`) are processed at load time; however, any component referencing a context variable (`${...}`) is deferred until render time.
 
 ### 3.7. Load Time vs. Render Time
 
 - **Load Time:**  
-  Immediate expressions (`<{ ... }>` and `<( ... )>`) are evaluated during the configuration file’s load phase. All references to global (`@{...}`) and self (`%{...}`) variables are computed then.
+  Folded expressions (`<( ... )>`) are evaluated during the configuration file’s load phase. All references to global (`@{...}`) and self (`%{...}`) variables are computed then.
 
 - **Render Time:**  
-  Any portion of an expression that references a context variable (`${...}`) is deferred. During rendering, the external context is used to resolve these variables and complete the final value.
+  Deferred expressions (`<{ ... }>`) are evaluated during the configuration file's render phase. Additionally, any portion of an expression that references a context variable (`${...}`) is deferred until render time. During rendering, the external context is used to resolve these variables and complete the final value.
 
 ### 3.8. Error Handling
 
@@ -185,7 +185,7 @@ Folded expressions provide a more readable alternative when constructing complex
   References to undefined global or table-local variables within immediate or folded expressions must produce clear, descriptive parse-time errors.
 
 - **Disallowed Context Usage:**  
-  Immediate expressions should not improperly embed context variables. If found, only the context parts are deferred while static parts are computed; any misuse should generate an error.
+  Folded expressions should not improperly embed context variables. If found, only the context parts are deferred while static parts are computed; any misuse should generate an error.
 
 - **Syntax Errors:**  
   Any syntax errors (e.g., unmatched brackets, incorrect conditional syntax) should trigger informative error messages indicating the nature and location of the error.

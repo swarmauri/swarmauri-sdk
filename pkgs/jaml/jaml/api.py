@@ -7,12 +7,12 @@ from pprint import pprint
 
 # Using the lark parser and transformer modules:
 from .lark_parser import parser
-from .lark_nodes import ConfigTransformer
+from ._transformer import ConfigTransformer
+
+from ._resolve import resolve_ast
+from ._render import substitute_deferred
 
 from .unparser import JMLUnparser
-from ._render import substitute_context_in_ast
-from ._defer import substitute_deferred
-# Removed reference to the old ast_nodes.DocumentNode
 
 
 # -------------------------------------
@@ -44,7 +44,10 @@ def dumps(obj: Dict[str, Any]) -> str:
     Leading and trailing whitespace in string values is preserved.
     """
     unparser = JMLUnparser(obj)
-    return unparser.unparse()
+    dumped = unparser.unparse()
+    print("[DEBUG API]: ")
+    pprint(dumped)
+    return dumped
 
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
@@ -60,7 +63,7 @@ def loads(s: str) -> Dict[str, Any]:
     """
     try:
         ast = parser.parse(s)
-        print("[DEBUG]: ")
+        print("[DEBUG API]: ")
         pprint(ast)
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
@@ -93,11 +96,14 @@ def round_trip_dumps(ast: Any) -> str:
     If the provided AST is not a plain dictionary, transform it using the ConfigTransformer.
     """
     # Transform the AST to a plain dict if needed.
-    ast = ConfigTransformer().transform(ast)
-    print("[DEBUG]: ")
-    pprint(ast)
+    # ast = ConfigTransformer().transform(ast)
+    # print("[DEBUG API]: ")
+    # pprint(ast)
     unparser = JMLUnparser(ast)
-    return unparser.unparse()
+    dumped = unparser.unparse()
+    print("[DEBUG RT_DUMPS API]: ")
+    pprint(dumped)
+    return dumped
 
 
 def round_trip_dump(ast: Any, fp: IO[str]) -> None:
@@ -109,12 +115,15 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
 
 def round_trip_loads(s: str):
     ast = parser.parse(s)
-    print("[DEBUG]: ")
+    print("[DEBUG RT_LOADS API]: ")
     pprint(ast)
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    return transformer.transform(ast)
+    transformed = transformer.transform(ast)
+    print("[DEBUG RT_LOADS API - Post Transform]: ")
+    pprint(transformed)
+    return transformed
 
 
 def round_trip_load(fp: IO[str]) -> Any:
@@ -123,6 +132,28 @@ def round_trip_load(fp: IO[str]) -> Any:
     """
     return round_trip_loads(fp.read())
 
+# -------------------------------------
+# 3) Resolve API
+# -------------------------------------
+
+def resolve(ast: Any) -> Any:
+    """
+    Partially evaluate all purely static expressions in the given AST, leaving 
+    only those placeholders that rely on dynamic context (i.e. ${...}) for the 
+    final render step.
+
+    This does not accept an external environment or context — all static data 
+    must already exist within the AST (e.g., from global/local assignments).
+    The returned AST can then be:
+
+      1) Dumped to text via round_trip_dumps(ast),
+      2) Passed to render() (after converting to text) to finalize dynamic placeholders.
+
+    :param ast: The AST produced by round_trip_loads() or similar.
+    :return: A new AST (or updated in-place, depending on your implementation)
+             with static expressions evaluated.
+    """
+    return resolve_ast(ast)
 
 # -------------------------------------
 # 4) Render API (optional advanced usage)
@@ -133,6 +164,12 @@ def render(text, context={}):
     Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
     ast = loads(text)
-    print("[DEBUG]: ")
+    env = {}
+    env.update(context)
+    # Also inject the booleans
+    env["true"] = True
+    env["false"] = False
+    print("[DEBUG RENDER API]: ")
     pprint(ast)
-    return substitute_deferred(ast, context)
+    return substitute_deferred(ast, env)
+
