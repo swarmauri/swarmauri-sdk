@@ -1,0 +1,72 @@
+PROJECTS:
+  - NAME: "RapidSimilarity"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "cpp_python_pkg"
+    EXTRAS:
+      REQUIREMENTS:
+        - "Provide fast and memory-efficient implementations of common similarity and distance metrics."
+        - "Optimize performance for large-scale data, suitable for AI/ML applications requiring real-time similarity calculations."
+        - "Easy integration with popular Python data science libraries, including NumPy and pandas."
+
+    PACKAGES:
+      #-----------------------------------------------------
+      # 1) VectorMetrics
+      #-----------------------------------------------------
+      - NAME: "VectorMetrics"
+        EXTRAS:
+          AUTHORS:
+            - "Michael Nwogha"
+          PURPOSE: "Implement optimized vector similarity and distance metrics for Python."
+          DESCRIPTION: "A suite of fast, memory-efficient implementations of vector similarity and distance metrics (cosine, Euclidean, Manhattan) optimized in C++ for Python usage."
+          REQUIREMENTS:
+            - "Efficient calculation of similarity metrics for large NumPy arrays."
+            - "Minimize memory overhead and optimize computation speed."
+            - "Thread-safe and parallelizable implementations for large-scale vector datasets."
+
+        MODULES:
+          - NAME: "cosine"
+            EXTRAS:
+              PURPOSE: "Provide optimized cosine similarity calculation."
+              DESCRIPTION: "High-performance cosine similarity computation between vectors or matrices."
+              REQUIREMENTS:
+                - "Support batched similarity computations between large matrices."
+                - "Optimize data access for CPU cache efficiency."
+                - "Provide both sparse and dense vector support."
+                - "Thread-safe implementation for concurrent operations."
+              DEPENDENCIES:
+                - "numpy"
+
+          - NAME: "euclidean"
+            EXTRAS:
+              PURPOSE: "Provide optimized Euclidean distance calculation."
+              DESCRIPTION: "Fast calculation of Euclidean distances optimized for batch operations and real-time computation."
+              REQUIREMENTS:
+                - "Support efficient batch processing for large-scale vectors."
+                - "Use SIMD instructions for performance optimization."
+                - "Implement memory-efficient computation for large datasets."
+              DEPENDENCIES:
+                - "numpy"
+
+          - NAME: "manhattan"
+            EXTRAS:
+              PURPOSE: "Implement optimized Manhattan (L1) distance calculation."
+              DESCRIPTION: "Efficient Manhattan distance computation suitable for high-dimensional and large-scale vector data."
+              REQUIREMENTS:
+                - "Fast batch processing for large vector arrays."
+                - "Optimize computation for minimal memory usage and high-speed access."
+                - "Provide thread-safe parallel computations."
+              DEPENDENCIES:
+                - "numpy"
+
+          - NAME: "metrics_io"
+            EXTRAS:
+              PURPOSE: "Efficient data loading and preparation utilities for similarity metrics."
+              DESCRIPTION: "Fast utilities for loading, saving, and preprocessing vector data with minimal overhead."
+              REQUIREMENTS:
+                - "Support zero-copy data transfer between Python (NumPy, pandas) and internal C++ structures."
+                - "Efficiently handle large datasets, including memory-mapped file support."
+                - "Provide optimized preprocessing functions (normalization, scaling) commonly needed before similarity calculations."
+                - "Support incremental loading and streaming for datasets larger than memory."
+              DEPENDENCIES:
+                - "numpy"
+                - "pandas"

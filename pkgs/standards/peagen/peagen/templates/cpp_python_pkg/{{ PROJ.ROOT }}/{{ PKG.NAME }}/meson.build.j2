@@ -1,0 +1,13 @@
+project('{{ PKG.NAME }}', 'cpp',
+  version : '0.1.0',
+  default_options : ['cpp_std=c++17'],
+)
+
+py_mod = import('python').find_installation('python3')
+
+pybind11_dep = dependency('pybind11', method: 'pkg-config', required: false)
+if not pybind11_dep.found()
+    pybind11_dep = dependency('pybind11', fallback : ['pybind11', 'pybind11_dep'])
+endif
+
+subdir('src')
