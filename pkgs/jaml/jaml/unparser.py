@@ -214,6 +214,9 @@ class JMLUnparser:
                 if isinstance(k, TableArrayHeader):
                     print('====>', k, v, type(k), type(v))
                     lines.append(f"[[{k}]]")
+                elif isinstance(k, TableArraySectionNode):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
                 else:
                     print('==>', k, v, type(k), type(v))
                     lines.append(f"{k} = {self.format_value(v)}")
