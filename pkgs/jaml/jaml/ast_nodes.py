@@ -192,7 +192,7 @@ class TableArraySectionNode:
         header_str = str(self.header)  # assume header unparse produces a computed header string.
         # Reconstruct the body by joining each unparsed line (this assumes your unparse_node handles each child).
         body_str = "\n".join(str(item) for item in self.body)
-        return f"[[{header_str}]]\n{body_str}"
+        return f"{header_str}"
 
     def __repr__(self):
         return (f"TableArraySectionNode(header={self.header!r}, "
@@ -225,26 +225,66 @@ class TableArrayComprehensionHeader:
         return (f"TableArrayComprehensionHeader(header_expr={self.header_expr!r}, "
                 f"clauses={self.clauses!r}, origin={self.origin!r})")
 
+    def __hash__(self):
+        return hash(self.origin)
+
+    # Delegate common string methods so code like
+    # `key.startswith("[[")` keeps working.
+    def startswith(self, *args, **kwargs):
+        return self.origin.startswith(*args, **kwargs)
+
+    def endswith(self, *args, **kwargs):
+        return self.origin.endswith(*args, **kwargs)
+
+    # Generic fallback: delegate any unknown attribute that exists
+    # on `str` to the underlying text.
+    def __getattr__(self, name):
+        if hasattr(str, name):
+            return getattr(self.origin, name)
+        raise AttributeError(name)
 
 class TableArrayHeader:
     """
-    Represents the header for a table array section.
-    
-    Attributes:
-      header_expr: The computed header expression (e.g. a section name, a STRING,
-                   or a comprehension node) parsed from the table_array_header.
-      original: The original text for the header, as sliced from the source input.
+    The unevaluated header of a `[[ … ]]` table‑array.
+    `origin` is the exact slice from the source file.
     """
+
     def __init__(self, header_expr, original):
         self.header_expr = header_expr
-        self._origin = original
+        self.origin = original   # textual form, e.g. 'f"file.{pkg}.{mod}" …'
 
+    # –––––––––––––––––––––––––––––––––––––––––––––––––
+    # Make the object behave like a read‑only string
+    # –––––––––––––––––––––––––––––––––––––––––––––––––
     def __str__(self):
-        # When converting to string, return the original text
-        return self._origin
+        return f"{self.header_expr}"
 
     def __repr__(self):
-        return f"TableArrayHeader(header_expr={self.header_expr!r}, origin={self._origin!r})"
+        return f"TableArrayHeader({self.origin!r})"
+
+    # Dict key requirements
+    def __eq__(self, other):
+        if isinstance(other, TableArrayHeader):
+            return self.origin == other.origin
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(self.origin)
+
+    # Delegate common string methods so code like
+    # `key.startswith("[[")` keeps working.
+    def startswith(self, *args, **kwargs):
+        return self.origin.startswith(*args, **kwargs)
+
+    def endswith(self, *args, **kwargs):
+        return self.origin.endswith(*args, **kwargs)
+
+    # Generic fallback: delegate any unknown attribute that exists
+    # on `str` to the underlying text.
+    def __getattr__(self, name):
+        if hasattr(str, name):
+            return getattr(self.origin, name)
+        raise AttributeError(name)
 
 
 class FoldedExpressionNode:

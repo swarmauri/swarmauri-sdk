@@ -479,16 +479,21 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def table_array_section(self, meta, items):
-        self.debug_print(f"table_array_section() called with meta: {meta} and items: {items}")
-        # Capture the full original source for round-trip fidelity.
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        
-        # In our grammar, items[0] is the header, items[1:] is the content.
-        header = items[0]  # processed via table_array_header transformer
-        body = items[1:] if len(items) > 1 else []
-        
-        # Return a dedicated AST node for table array sections.
-        return TableArraySectionNode(header=header, body=body, original=original_text)
+
+        header = items[0]                     # TableArrayHeader
+        body   = items[1:] if len(items) > 1 else []
+
+        node = TableArraySectionNode(
+            header=header,
+            body=body,
+            original=original_text,
+        )
+
+        # NEW – persist it so it survives the round‑trip
+        self._store_table_array(header, node)
+
+        return node
 
 
 
@@ -827,3 +832,17 @@ class ConfigTransformer(Transformer):
         # Debug print for slicing input
         self.debug_print(f"_slice_input() called with start: {start}, end: {end}")
         return self._context.text[start:end]
+
+    def _store_table_array(self, header: TableArrayHeader,
+                           node: TableArraySectionNode):
+        """
+        Insert a `TableArraySectionNode` into the dict that is currently
+        being populated (`self.current_section`).
+
+        The *key* is whatever object came out of `table_array_header`
+        (string, `PreservedString`, `TableArrayComprehensionHeader`, …).
+        We do **not** coerce it to str, because we want to preserve
+        unevaluated comprehension headers for the resolve/render phase.
+        """
+        bucket = self.current_section.setdefault(header, [])
+        bucket.append(node)
