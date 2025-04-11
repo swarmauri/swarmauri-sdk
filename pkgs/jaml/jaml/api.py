@@ -96,12 +96,12 @@ def round_trip_dumps(ast: Any) -> str:
     If the provided AST is not a plain dictionary, transform it using the ConfigTransformer.
     """
     # Transform the AST to a plain dict if needed.
-    ast = ConfigTransformer().transform(ast)
-    print("[DEBUG API]: ")
-    pprint(ast)
+    # ast = ConfigTransformer().transform(ast)
+    # print("[DEBUG API]: ")
+    # pprint(ast)
     unparser = JMLUnparser(ast)
     dumped = unparser.unparse()
-    print("[DEBUG API]: ")
+    print("[DEBUG RT_DUMPS API]: ")
     pprint(dumped)
     return dumped
 
@@ -115,12 +115,15 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
 
 def round_trip_loads(s: str):
     ast = parser.parse(s)
-    print("[DEBUG API]: ")
+    print("[DEBUG RT_LOADS API]: ")
     pprint(ast)
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    return transformer.transform(ast)
+    transformed = transformer.transform(ast)
+    print("[DEBUG RT_LOADS API - Post Transform]: ")
+    pprint(transformed)
+    return transformed
 
 
 def round_trip_load(fp: IO[str]) -> Any:

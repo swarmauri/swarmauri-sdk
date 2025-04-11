@@ -301,9 +301,8 @@ class TableArrayHeader:
     def __hash__(self):
         return hash(self.origin)
 
-    def startswith(self, *args, **kwargs):
-        # Delegate string method to the resolved header if available.
-        return (self.resolved if self.resolved is not None else self.origin).startswith(*args, **kwargs)
+    def startswith(self, prefix, *args, **kwargs):
+            return str(self).startswith(prefix, *args, **kwargs)
 
     def endswith(self, *args, **kwargs):
         return (self.resolved if self.resolved is not None else self.origin).endswith(*args, **kwargs)

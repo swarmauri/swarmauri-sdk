@@ -186,6 +186,9 @@ def test_update_module_extras():
     print('-'*10, '\n[TEST]: STARTING RT LOAD\n')
 
     data = round_trip_loads(JML_INPUT)
+    print('-'*10, '\n[TEST]: STARTING FIRST DUMP\n')
+    round_trip_dumps(data)
+
 
     print('-'*10, f'\n[TEST]: \n{data}\n')
     assert data["rootDir"] == "src"
@@ -201,7 +204,7 @@ def test_update_module_extras():
     new_context = deepcopy(BASE_CONTEXT)
     new_context["packages"][0]["modules"][0]["extras"]["owner"] = "teamX"
 
-    print('-'*10, '\n[TEST]: STARTING FIRST DUMP\n')
+    print('-'*10, '\n[TEST]: STARTING SECOND DUMP\n')
     out = round_trip_dumps(data)
     print('\n\n\n\n[DUMP]:', out,'\n\n---\n\n\n')
     print('-'*10, '\n[TEST]: STARTING RENDER\n')

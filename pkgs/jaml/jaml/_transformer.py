@@ -50,12 +50,11 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"assignment() called with items: {items}")
         inline = None
         type_annotation = None
-        
+
         # Determine the structure based on number of items.
         if len(items) == 2:
             key, value = items
         elif len(items) == 3:
-            # Determine if the third is an inline comment or type annotation.
             if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
                 key, value, inline = items
             elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
@@ -69,7 +68,6 @@ class ConfigTransformer(Transformer):
 
         self.debug_print(f"In assignment: key={key}, type_annotation={type_annotation}, value={value}, inline={inline}")
         
-        # Only unquote if value is a plain string
         if not isinstance(value, PreservedString) and isinstance(value, str) and (
             (value.startswith("'") and value.endswith("'")) or 
             (value.startswith('"') and value.endswith('"'))
@@ -77,24 +75,29 @@ class ConfigTransformer(Transformer):
             self.debug_print("Unquoting value")
             value = value[1:-1]
 
-        # Normalize inline comment if present.
         if inline is not None:
             if isinstance(inline, dict) and '_inline_comment' in inline:
                 inline = inline['_inline_comment']
             inline = str(inline)
         
-        # If a type annotation is provided, store a dict with both value and annotation.
         if type_annotation:
-            self.current_section[key] = {
-                "_value": PreservedValue(value, inline) if inline else value,
-                "_annotation": type_annotation
-            }
-            self.debug_print(f"Stored assignment with type annotation for key: {key}")
+            result = {"_value": PreservedValue(value, inline) if inline else value,
+                      "_annotation": type_annotation}
         else:
-            self.current_section[key] = PreservedValue(value, inline) if inline else value
+            result = PreservedValue(value, inline) if inline else value
+
+        # If we're inside a table array header, write the assignment to its dedicated inline dict.
+        if hasattr(self, "_current_inline_assignments") and self._current_inline_assignments is not None:
+            self._current_inline_assignments[key] = result
+            self.debug_print(f"Stored inline assignment for key '{key}' in table array block")
+        else:
+            self.current_section[key] = result
             self.debug_print(f"Stored assignment for key: {key}")
 
-        return None
+        # Return the (key, value) pair for completeness.
+        return key, value
+
+
 
     def section(self, items):
         self.debug_print(f"section() called with items: {items}")
@@ -452,31 +455,72 @@ class ConfigTransformer(Transformer):
     def table_array_header(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         self.debug_print(f"table_array_header() extracted original: {original_text} and items: {items}")
-        # Assume items[0] is the header expression (could be static, computed, etc.)
-        header_expr = items[0] if items else None
-        # Return an instance of TableArrayHeader – a dedicated AST node.
-        return TableArrayHeader(header_expr, original_text)
 
-
+        # Aggregate all header parts.
+        header_parts = []
+        for item in items:
+            # If an inline assignment token is present, convert it.
+            if isinstance(item, tuple):
+                key, value = item
+                header_parts.append(f"{key} = {value}")
+            else:
+                header_parts.append(str(item))
+        aggregated_header_expr = " ".join(header_parts)
+        
+        # Create the TableArrayHeader node.
+        header_node = TableArrayHeader(aggregated_header_expr, original_text)
+        
+        # *** NEW STEP ***
+        # Set up the inline assignment context *before* any inline assignments are processed.
+        # (This should be set as early as possible so assignment() can deposit its results here.)
+        self._current_inline_assignments = {}
+        self._current_table_array_header = header_node
+        
+        return header_node
 
 
     @v_args(meta=True)
     def table_array_section(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-
-        header = items[0]                     # TableArrayHeader
-        body   = items[1:] if len(items) > 1 else []
-
+        
+        # The first item is the header of the table array section.
+        header = items[0]
+        
+        # (Assumption: assignment() calls processed after the header have now deposited
+        # their inline assignments into self._current_inline_assignments.)
+        
+        # Attach the collected inline assignments to the header.
+        if not hasattr(header, "inline_assignments"):
+            header.inline_assignments = {}
+        if hasattr(self, "_current_inline_assignments") and self._current_inline_assignments is not None:
+            header.inline_assignments.update(self._current_inline_assignments)
+        
+        # Now, also gather any assignment() return values that might have been returned as items.
+        # (This is for assignments not captured via our context, if any.)
+        body_dict = {}
+        for child in items[1:]:
+            if isinstance(child, tuple):
+                key, value = child
+                body_dict[key] = value
+        # Optionally, merge the inline assignments into the body.
+        body_dict.update(header.inline_assignments)
+        
         node = TableArraySectionNode(
             header=header,
-            body=body,
+            body=body_dict,
             original=original_text,
         )
-
-        # NEW – persist it so it survives the round‑trip
+        
+        # Store the node so that it survives the round-trip.
         self._store_table_array(header, node)
-
+        
+        # Clear our inline context now that we’re done.
+        self._current_inline_assignments = None
+        self._current_table_array_header = None
+        
         return node
+
+
 
 
 
