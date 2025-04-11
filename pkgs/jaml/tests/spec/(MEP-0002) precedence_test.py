@@ -1,14 +1,17 @@
 import pytest
+from lark import Token
 from pprint import pprint
 
 # Import the tokenization functions.
-from jaml._tokenizer import tokenize, nested_tokenize
+from jaml import parser
 
 # Test that keywords are recognized before identifiers.
 @pytest.mark.spec
+@pytest.mark.mep0002
+@pytest.mark.xfail(reason="should fail due to syntax error")
 def test_keyword_precedence():
     # "if" is a reserved keyword.
-    tokens = tokenize("if condition")
+    tokens = parser.parse("if condition")
     # Expected: KEYWORD "if", IDENTIFIER "condition"
     token_types = [t[0] for t in tokens]
     token_values = [t[1] for t in tokens]
@@ -16,109 +19,139 @@ def test_keyword_precedence():
     assert token_values[0] == "if"
     assert token_values[1] == "condition"
 
-# Test that a string containing a hash is tokenized entirely as a STRING.
+# Test that a string containing a hash is parsed entirely as a STRING.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_string_with_hash():
-    tokens = tokenize('"Hello, # world"')
-    # Should be one STRING token; the inner '#' is part of the string.
-    assert len(tokens) == 1
-    assert tokens[0][0] == "STRING"
-    assert "# world" in tokens[0][1]
+    sample = 'test = "Hello, # world"'
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
 
-# Test that a standalone comment is tokenized as a COMMENT.
+    assert len(tokens) == 2
+    assert "Hello, # world" in tokens[1].value
+
+# Test that a standalone comment is parsed as a COMMENT.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_standalone_comment():
-    tokens = tokenize("# This is a comment\n")
-    assert len(tokens) == 1
-    assert tokens[0][0] == "COMMENT"
-    assert tokens[0][1].startswith("#")
+    sample = "# This is a comment\n"
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
+
+    assert len(tokens) == 2
+    assert tokens[0].startswith("#")
+    assert tokens[0] == "# This is a comment"
 
 # Test that an inline table is recognized as INLINE_TABLE and that its nested tokens include comments.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_inline_table_nesting():
-    sample = '{ key1 = "value1"  # Inline table comment\n , key2 = "value2" }'
-    tokens = nested_tokenize(sample)
-    # Expect one INLINE_TABLE token with nested tokens.
-    assert len(tokens) == 1
-    typ, original, sub_tokens = tokens[0]
-    assert typ == "INLINE_TABLE"
-    # Check that one of the sub-tokens is a COMMENT.
-    comment_tokens = [t for t in sub_tokens if t[0] == "COMMENT"]
-    assert len(comment_tokens) >= 1
+    sample = 'test = { key0 = "value0", key1 = "value1"  # Inline table comment\n , key2 = "value2" }'
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
+    for tok in tokens:
+        print(f"[DEBUG]: {tok}")
 
-# Test that a multiline array with commas is tokenized as an ARRAY (not as a table section).
+    assert len(tokens) == 14
+    assert tokens[0] == "test"
+    assert "# Inline table comment" in tokens[8].value
+
+# Test that a multiline array with commas is parsed as an ARRAY (not as a table section).
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_multiline_array_precedence():
     sample = '''
-    [
+    test = [
       "red",    # Primary color
       "green",  # Secondary color
       "blue"    # Accent color
     ]
     '''
-    tokens = nested_tokenize(sample)
-    # Expect the bracketed construct to be an ARRAY.
-    array_tokens = [t for t in tokens if t[0] == "ARRAY"]
-    assert len(array_tokens) == 1
-    # Check nested tokens for comments.
-    sub_tokens = array_tokens[0][2]
-    comment_tokens = [st for st in sub_tokens if st[0] == "COMMENT"]
-    assert len(comment_tokens) >= 1
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    for tok in tokens:
+        print(f"[DEBUG]: {tok}")
+
+    assert len(tokens) == 18
+    # assert tokens[3] == "STRING"
+    assert tokens[4].type == 'STRING'
+    assert tokens[4].value == '"red"'
 
 # Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_table_section_precedence():
-    tokens = tokenize("[globals]")
+    sample = "[globals]"
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
+
     assert len(tokens) == 1
-    assert tokens[0][0] == "TABLE_SECTION"
-    assert "globals" in tokens[0][1]
+    assert "globals" in tokens
 
 # Test that a table array header is recognized as TABLE_ARRAY.
 @pytest.mark.spec
+@pytest.mark.mep0002
+# @pytest.mark.xfail(reason="support for table arrays not fully supported.")
 def test_table_array_precedence():
-    tokens = tokenize("[[products]]")
-    assert len(tokens) == 1
-    assert tokens[0][0] == "TABLE_ARRAY"
-    assert "products" in tokens[0][1]
+    sample = "[[products]]"
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
 
-# Test that punctuation (like '=') is tokenized as OPERATOR.
+    assert len(tokens) == 1
+    assert "products" in tokens[0]
+
+# Test that punctuation (like '=') is parsed as OPERATOR.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_operator_precedence():
-    tokens = tokenize("a = b")
+    sample = "test = 42"
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
+
     # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
-    token_types = [t[0] for t in tokens]
-    token_values = [t[1] for t in tokens]
-    assert token_types == ["IDENTIFIER", "OPERATOR", "IDENTIFIER"]
-    assert token_values[1] == "="
+    token_types = [t.type for t in tokens]
+    token_values = [t.value for t in tokens]
+    assert token_types == ["IDENTIFIER", "INTEGER"]
 
 # Test that scoped variables take precedence (e.g. '${base}' is a SCOPED_VAR).
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_scoped_variable_precedence():
-    tokens = tokenize("config = ${base}")
-    # Expect: IDENTIFIER 'config', OPERATOR '=', SCOPED_VAR '${base}'
-    token_types = [t[0] for t in tokens]
-    token_values = [t[1] for t in tokens]
-    assert token_types == ["IDENTIFIER", "OPERATOR", "SCOPED_VAR"]
-    assert token_values[2].startswith("${")
+    sample = "config = ${base}"
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
+
+    token_types = [t.type for t in tokens]
+    token_values = [t.value for t in tokens]
+    assert token_types == ["IDENTIFIER", "SCOPED_VAR"]
+    assert token_values[1].startswith("${")
 
 # Test that comments inside a line with code are recognized separately.
 @pytest.mark.spec
+@pytest.mark.mep0002
 def test_inline_comment_precedence():
     sample = 'name = "Alice"  # User name'
-    tokens = tokenize(sample)
-    # Expect tokens: IDENTIFIER, PUNCTUATION, STRING, COMMENT.
-    token_types = [t[0] for t in tokens]
-    assert "COMMENT" in token_types
+    tree = parser.parse(sample)
+    print(f"[DEBUG]: {tree}")
+    tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
+    print(f"[DEBUG]: {tokens}")
 
-# Optionally, you can print the token stream for visual inspection.
-@pytest.mark.spec
-def test_print_tokens_for_inspection():
-    sample = '''
-    # Header comment
-    [globals]
-    base = "/home/user"
-    '''
-    tokens = tokenize(sample)
-    # This test doesn't assert anything; it's for manual inspection.
-    pprint(tokens)
+    # Expect tokens: IDENTIFIER, PUNCTUATION, STRING, COMMENT.
+    token_types = [t.type for t in tokens]
+    assert "INLINE_WS" and "COMMENT" in token_types
 

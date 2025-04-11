@@ -9,6 +9,7 @@ from jaml import (
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0010
 # @pytest.mark.xfail(reason="Hyphenated section name round-trip preservation not fully implemented yet.")
 def test_hyphenated_section_name_round_trip():
     """
@@ -28,6 +29,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0010
 # @pytest.mark.xfail(reason="Hyphenated key name without annotation preservation not fully implemented yet.")
 def test_hyphenated_key_name_no_annotation():
     """
@@ -50,6 +52,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0010
 # @pytest.mark.xfail(reason="Hyphenated key name with annotation preservation not fully implemented yet.")
 def test_hyphenated_key_name_with_annotation():
     """
@@ -70,6 +73,7 @@ build-backend: str = "poetry.core.masonry.api"
 
 
 @pytest.mark.spec
+@pytest.mark.mep0010
 # @pytest.mark.xfail(reason="Combined hyphenated section and key names preservation not fully implemented yet.")
 def test_hyphenated_section_and_key_names_together():
     """
@@ -93,6 +97,7 @@ additional-requires = ["something>=1.2.3"]
 
 # @pytest.mark.xfail(reason="Case-preservation for hyphenated identifiers not fully implemented.")
 @pytest.mark.spec
+@pytest.mark.mep0010
 def test_case_preservation_for_hyphenated_identifiers():
     """
     MEP-010 Open Issue:

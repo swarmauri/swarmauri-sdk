@@ -13,7 +13,9 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-
+dependencies = [
+    "lark",
+]
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
 markers = [
@@ -27,6 +29,21 @@ markers = [
     "acceptance: Acceptance tests",
     "spec: Specification conformance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "mep0001: MEP-0001 Specification Tests",
+    "mep0002: MEP-0002 Specification Tests",
+    "mep0003: MEP-0003 Specification Tests",
+    "mep0004: MEP-0004 Specification Tests",
+    "mep0005: MEP-0005 Specification Tests",
+    "mep0006: MEP-0006 Specification Tests",
+    "mep0007: MEP-0007 Specification Tests",
+    "mep0008: MEP-0008 Specification Tests",
+    "mep0009: MEP-0009 Specification Tests",
+    "mep0010: MEP-0010 Specification Tests",
+    "mep0011: MEP-0011 Specification Tests",
+    "mep0012: MEP-0012 Specification Tests",
+    "mep0013: MEP-0013 Specification Tests",
+    "mep0014: MEP-0014 Specification Tests",
+    "mep0028: MEP-0028 Specification Tests",
 ]
 timeout = 300
 log_cli = true

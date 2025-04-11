@@ -1,0 +1,211 @@
+
+NEWLINE: /\r?\n/  // we treat each newline as a token
+
+// 2) Now define lines
+start: line*
+line: comment_line
+    | blank_line
+    | section
+    | table_array_section    
+    | assignment
+    | folded_expr
+
+comment_line: COMMENT NEWLINE
+blank_line: NEWLINE
+
+assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
+
+concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
+
+string_component: STRING | SCOPED_VAR
+
+type_annotation: TYPE
+TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
+
+// A section header can appear
+section: "[" (section_name | STRING | comprehension_expr) "]" NEWLINE?
+section_name: IDENTIFIER ("." IDENTIFIER)* 
+
+table_array_section: "[[" table_array_header "]]" NEWLINE? table_array_content?
+table_array_header: section_name | STRING | list_comprehension | table_array_comprehension
+table_array_content: line*
+table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
+
+?assignment_value: concat_expr
+                 | comprehension
+                 | array
+                 | inline_table
+                 | paren_expr
+                 | folded_expr
+                 | STRING
+                 | SCOPED_VAR
+                 | COMMENT
+                 | FLOAT
+                 | INTEGER
+                 | BOOLEAN
+                 | NULL
+                 | RESERVED_FUNC
+                 | KEYWORD
+                 | TABLE_ARRAY
+                 | OPERATOR
+
+?expr_item: IDENTIFIER
+          | FLOAT
+          | INTEGER
+          | STRING
+          | SCOPED_VAR
+          | paren_expr
+
+?arithmetic: expr_item (OPERATOR expr_item)*
+
+?value: comprehension
+      | array
+      | inline_table
+      | paren_expr
+      | folded_expr
+      | STRING
+      | SCOPED_VAR
+      | COMMENT
+      | FLOAT
+      | INTEGER
+      | BOOLEAN
+      | NULL
+      | RESERVED_FUNC
+      | KEYWORD
+      | TABLE_ARRAY
+      | OPERATOR
+
+// If you want to ignore purely horizontal spaces between tokens:
+%ignore HSPACES
+HSPACES: /[ \t]+/
+
+// --------------------------
+// Array Handling
+// --------------------------
+LBRACK: "["
+RBRACK: "]"
+
+?array: LBRACK NEWLINE* array_content? RBRACK
+
+?array_content: NEWLINE* array_item (ws? "," ws? (NEWLINE* array_item))* (ws? "," ws?)? NEWLINE*
+
+?array_item: pre_item_comments? value inline_comment? post_item_comments?
+
+// --------------------------
+// Comment Handling
+// --------------------------
+pre_item_comments: (COMMENT NEWLINE)+
+inline_comment: INLINE_WS COMMENT
+post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
+
+// --------------------------
+// Inline Table Handling
+// --------------------------
+
+inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
+inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
+inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
+                  | comment_line
+inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
+
+
+// --------------------------
+// Comprehension Handling
+// --------------------------
+?comprehension: list_comprehension
+              | dict_comprehension
+
+
+string_expr: (STRING | SCOPED_VAR) (HSPACES? "+" HSPACES? (STRING | SCOPED_VAR))*
+pair_expr: (string_expr|IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr|IDENTIFIER))
+?comprehension_expr: pair_expr | string_expr | expr_item
+
+
+// List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
+list_comprehension: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
+comprehension_clauses: comprehension_clause+ 
+comprehension_clause: FOR (dotted_expr | dotted_expr (AS SCOPED_VAR) | dotted_expr "," dotted_expr )? IN value (IF comp_expr OPERATOR? comp_expr?)* (IN value)? NEWLINE*
+
+?comp_expr: dotted_expr | value
+dotted_expr: IDENTIFIER ("." IDENTIFIER)*
+
+// Dict comprehension (e.g., { f"user_{x}": x for x in [1, 2, 3] })
+dict_comprehension: "{" NEWLINE* comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
+comprehension_pair: arithmetic (COLON | EQ) arithmetic
+
+COLON: ":"
+EQ: "="
+
+// --------------------------
+// Whitespace Handling
+// --------------------------
+ws: WHITESPACE
+
+// --------------------------
+// Expressions
+// --------------------------
+
+paren_expr: "(" value+ ")"
+
+folded_expr: FOLDED_START folded_content FOLDED_END
+folded_content: value+
+FOLDED_START: "<("
+FOLDED_END: ")>"
+// ----------
+// Terminal Definitions
+// ----------
+
+// 3) STRING
+STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`)/s
+
+// 4) SCOPED_VAR
+SCOPED_VAR: /[@%$]\{[^}]+\}/
+
+// 5) COMMENT
+COMMENT.1: /\#[^\n]*/
+
+INLINE_COMMENT: /[ \t]+#[^\n]*/
+
+// 6) FLOAT
+FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
+
+// 7) INTEGER
+INTEGER: /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\d*)/
+
+// 8) BOOLEAN
+BOOLEAN: /(true|false)\b/
+
+// 9) NULL
+NULL: /null\b/
+
+// 10) RESERVED_FUNC
+RESERVED_FUNC: /(File\(\)|Git\(\))\b/
+
+// 11) KEYWORD
+FOR: "for"
+AS: "as"
+IN: "in"
+IF: "if"
+ELSE: "else"
+
+KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as)\b/
+
+// 12) TABLE_ARRAY
+TABLE_ARRAY: /\[\[[^\]\n]+\]\]/
+
+// 13) TABLE_SECTION
+TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
+
+
+
+// 18) IDENTIFIER
+IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
+
+// 19) OPERATOR
+OPERATOR: /\*\*|==|!=|>=|<=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
+
+// 21) WHITESPACE
+WHITESPACE: /\s+/
+
+// If you want to allow inline whitespace for inline_comment:
+INLINE_WS: /[ \t]+/

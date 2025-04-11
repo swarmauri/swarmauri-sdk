@@ -1,136 +1,461 @@
 import pytest
+from jaml import loads, dumps, round_trip_loads, round_trip_dumps, resolve, render
 
-# Note: The following tests assume the existence of an evaluation engine for MEP-0011.
-# Since the evaluation engine is not implemented, all tests are marked as xfail.
+# Test 2: Global Scope Evaluation
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Global scope evaluation not implemented")
+def test_global_scope_default_evaluation():
+    """
+    In f-string interpolations, we should replace global scope on load.
+    """
+    sample = """
+base = "/home/user"
+alt = "/home/alt"
+
+[config]
+url = f"@{base}/config.toml"
+"""
+    data = round_trip_loads(sample)
+    assert data["config"]["url"] == 'f"@{base}/config.toml"'
+    print("[DEBUG]:")
+    print(data)
+
+    from jaml.ast_nodes import PreservedString
+
+    data["config"]["url"] = PreservedString(value='f"@{alt}/config.toml"', original='f"@{alt}/config.toml"')
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["config"]["url"] == "/home/alt/config.toml"
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Global scope evaluation not implemented")
-def test_global_scope_evaluation():
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Global scope evaluation not implemented")
+def test_global_scope_section_evaluation():
     """
-    Verify that a global scope variable using the @{...} syntax is correctly resolved.
+    In f-string interpolations, we should replace global scope on load.
     """
-    # Hypothetical expression and globals configuration.
-    expr = "@{base}"
-    globals_dict = {"base": "/home/user"}
-    # Expected behavior: the evaluator returns the value "/home/user".
-    result = "/home/user"  # Placeholder for evaluate_scoped_variable(expr, globals_dict)
-    assert result == "/home/user"
+    sample = """
+[paths]
+base = "/home/user"
+alt = "/home/alt"
+
+[config]
+url = f"@{paths.base}/config.toml"
+"""
+    data = round_trip_loads(sample)
+    assert data["config"]["url"] == 'f"@{paths.base}/config.toml"'
+    print("[DEBUG]:")
+    print(data)
+
+    data["config"]["url"].origin = 'f"@{paths.alt}/config.toml"'
+    print("[DEBUG]:")
+    print(data)
 
 
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["config"]["url"] == "/home/alt/config.toml"
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["config"]["url"] == "/home/alt/config.toml"
+
+# Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Self (local) scope evaluation not implemented")
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Self scope evaluation not implemented")
 def test_self_scope_evaluation():
-    """
-    Verify that a self (table-local) variable using the %{...} syntax is correctly resolved.
-    """
-    expr = "%{name}"
-    local_dict = {"name": "Alice"}
-    # Expected behavior: the evaluator returns "Alice".
-    result = "Alice"  # Placeholder for evaluate_scoped_variable(expr, local=local_dict)
-    assert result == "Alice"
+    sample = """
+[globals]
+base = "/home/user"
 
+[user]
+name = "Alice"
+altname = "Bob"
+greeting = f"Hello, %{name}!"
+"""
+    data = round_trip_loads(sample)
+    assert data["user"]["greeting"] == 'f"Hello, %{name}!"'
+    print("[DEBUG]:")
+    print(data)
 
+    data["user"]["greeting"].origin = 'f"Hello, %{altname}!"'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["user"]["greeting"] == "Hello, Bob!"
+
+    out  = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["user"]["greeting"] == "Hello, Bob!"
+
+# Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
 def test_context_scope_deferred():
-    """
-    Verify that a context scope variable (${...}) remains deferred at load time 
-    and is only evaluated during render time.
-    """
-    expr = "${user.age}"
-    context = {"user.age": 30}
-    # At load time, the context variable should remain unresolved.
-    load_time_result = "${user.age}"  # Placeholder for load_time evaluation
-    # At render time, the evaluator should return 30.
-    render_time_result = 30  # Placeholder for render_time evaluation
-    assert render_time_result == 30
+    sample = """
+[logic]
+summary = f"User: ${user.name}, Age: ${user.age}"
+"""
+    # Without context, placeholders remain unresolved.
+    data = round_trip_loads(sample)
+    assert data["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+    # With a render context provided:
 
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
 
+    out = round_trip_dumps(data)
+    rendered_data = render(out, context={"user": {"name": "Alice", "age": 30}})
+    assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
+
+# Test 5: F-String Interpolation
 @pytest.mark.spec
-@pytest.mark.xfail(reason="F-string interpolation evaluation not implemented")
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="F-string interpolation evaluation not fully implemented.")
 def test_fstring_interpolation():
-    """
-    Verify that f-string interpolation correctly embeds variables within strings.
-    """
-    expr = 'f"Hello, {name}!"'
-    local_dict = {"name": "Alice"}
-    # Expected behavior: interpolation yields "Hello, Alice!".
-    result = "Hello, Alice!"  # Placeholder for render_fstring(expr, local_dict)
-    assert result == "Hello, Alice!"
+    sample = """
+[message]
+text = f"Hello, ${name}!"
+"""
+    # Assuming 'name' is provided via render context.
+    data = round_trip_loads(sample)
+    out = round_trip_dumps(data)
 
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["message"]["text"] == 'f"Hello, ${name}!"'
+
+
+    rendered_data = render(out, context={"name": "Alice"})
+    assert rendered_data["message"]["text"] == "Hello, Alice!"
+
+    data_again = loads(out)
+    assert data_again["message"]["text"] == 'f"Hello, ${name}!"'
+
+# # Test 6: Deferred Expression Evaluation using <{ ... }>
+# @pytest.mark.spec
+# @pytest.mark.mep0011
+# # @pytest.mark.xfail(reason="Deferred expression evaluation not implemented")
+# def test_deferred_expression():
+#     """
+#     Validates deferred (ie: literal) expressions
+#     """
+#     sample = """
+# [paths]
+# base = "/usr/local"
+# config = <{ %{base} + '/config.toml' }>
+# """
+#     data = round_trip_loads(sample)
+#     assert data["paths"]["config"] == "%{base} + '/config.toml'"
+#     out = round_trip_dumps(data)
+#     rendered_data = render(out)
+#     assert rendered_data["paths"]["config"] == "/usr/local/config.toml"
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Immediate expression evaluation using <{ ... }> not implemented")
-def test_immediate_expression():
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="expression evaluation not implemented")
+def test_expression():
     """
-    Verify that an immediate expression (<{ ... }>) is evaluated at load time.
+    Validates expressions
     """
-    expr = "<{ '/usr/local' + '/config.toml' }>"
-    # Expected behavior: the expression evaluates to "/usr/local/config.toml".
-    result = "/usr/local/config.toml"  # Placeholder for evaluate_expression(expr)
-    assert result == "/usr/local/config.toml"
+    sample = """
+[server]
+host = "prodserver"
+port = "8080"
+devhost = "devserver"
 
+[api]
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+"""
+    # Provide context for the deferred part.
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
 
+    data["api"]["endpoint"].origin = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out, context={"auth_token": "ABC123"})
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+
+# Test 8: List Comprehension Evaluation
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Folded expression evaluation using <( ... )> not implemented")
-def test_folded_expression():
-    """
-    Verify that a folded expression (<( ... )>) evaluates static parts at load time
-    and defers context variable resolution to render time.
-    """
-    expr = "<( 'http://' + 'prodserver' + ':' + '8080' + '/api?token=' + ${auth_token} )>"
-    context = {"auth_token": "ABC123"}
-    # Expected behavior:
-    #   - Load time: static parts are resolved.
-    #   - Render time: context variable 'auth_token' is injected.
-    result = "http://prodserver:8080/api?token=ABC123"  # Placeholder for full evaluation
-    assert result == "http://prodserver:8080/api?token=ABC123"
-
-
-@pytest.mark.spec
-@pytest.mark.xfail(reason="List comprehension evaluation not implemented")
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="List comprehension evaluation not implemented")
 def test_list_comprehension():
+    sample = """
+[items]
+list_config = [f"item_{x}" for x in [1, 2, 3]]
+"""
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["items"]["list_config"] == '[f"item_{x}" for x in [1, 2, 3]]'
+
+    data["items"]["list_config"].origin = '[f"item_{x}" for x in [5, 10, 15]]'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["items"]["list_config"] == ["item_5", "item_10", "item_15"]
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["items"]["list_config"] == ["item_5", "item_10", "item_15"]
+
+# Test 9: Dict Comprehension Evaluation
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
+def test_dict_dot_notation_comprehension():
     """
-    Verify that a list comprehension produces the expected list.
+    Comprehensions should defer evaluation
     """
-    expr = '[f"item_{x}" for x in [1, 2, 3]]'
-    # Expected behavior: the list comprehension evaluates to ["item_1", "item_2", "item_3"].
-    result = ["item_1", "item_2", "item_3"]  # Placeholder for evaluate_comprehension(expr)
-    assert result == ["item_1", "item_2", "item_3"]
+    sample = """
+[items]
+dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
+"""
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["items"]["dict_config"] == '{f"key_{x}" : x * 2 for x in [1, 2, 3]}'
+
+    data["items"]["dict_config"].origin = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
+def test_dict_assignment_comprehension():
+    """
+    Comprehensions should defer evaluation
+    """
+    sample = """
+[items]
+dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
+"""
+    data = round_trip_loads(sample)
+    assert data["items"]["dict_config"] == '{f"key_{x}" = x * 2 for x in [1, 2, 3]}'
+
+    data["items"]["dict_config"].origin = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
+
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
+def test_folded_arithmetic_operations():
+    sample = """
+[calc]
+result = <( 3 + 4 )>
+"""
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["calc"]["result"] == '<( 3 + 4 )>'
+
+    data["calc"]["result"].origin = '<( 7 + 4 )>'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["calc"]["result"] == 11
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    assert rendered_data["calc"]["result"] == 11
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Dict comprehension evaluation not implemented")
-def test_dict_comprehension():
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="expression evaluation not implemented")
+def test_string_and_arithmetic_expressions():
     """
-    Verify that a dict comprehension produces the expected dictionary.
+    Validates expressions
     """
-    expr = '{f"user_{n}": f"ID-{i}" for i, n in enumerate(["alice", "bob"])}'
-    # Expected behavior: the dict comprehension evaluates to:
-    #   {"user_alice": "ID-0", "user_bob": "ID-1"}
-    result = {"user_alice": "ID-0", "user_bob": "ID-1"}  # Placeholder for evaluate_comprehension(expr)
-    assert result == {"user_alice": "ID-0", "user_bob": "ID-1"}
+    sample = """
+[server]
+host = "prodserver"
+port = "8080"
+devhost = "devserver"
+
+[api]
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+
+[calc]
+result = <( 3 + 4 )>
+"""
+    # Provide context for the deferred part.
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    assert data["calc"]["result"] == '<( 3 + 4 )>'
+
+    data["api"]["endpoint"].origin = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data["calc"]["result"].origin = '<( 7 + 4 )>'
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
+    assert resolved_config["calc"]["result"] == 11
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out, context={"auth_token": "ABC123"})
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+    assert rendered_data["calc"]["result"] == 11
+
+# Test 11: Conditional Logic in Expressions
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
+def test_fstring_conditional_logic():
+    sample = """
+[cond]
+status = f"{'Yes' if true else 'No'}"
+"""
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["cond"]["status"] == '''f"{'Yes' if true else 'No'}"'''
+
+
+    data["cond"]["status"].origin = '''f"{'Yes' if false else 'No'}"'''
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["cond"]["status"] == "No"
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["cond"]["status"] == "No"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
-def test_arithmetic_operations():
-    """
-    Verify that arithmetic operations within expressions are computed correctly.
-    """
-    expr = "<{ 3 + 4 }>"
-    # Expected behavior: the arithmetic expression evaluates to 7.
-    result = 7  # Placeholder for evaluate_expression(expr)
-    assert result == 7
-
-
-@pytest.mark.spec
-@pytest.mark.xfail(reason="Conditional logic in expressions not implemented")
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Conditional logic evaluation not implemented")
 def test_conditional_logic():
+    sample = """[cond]
+status = <('Yes' if true else 'No')>"""
+    data = round_trip_loads(sample)
+    print("[DEBUG]:")
+    print(data)
+    assert data["cond"]["status"] == "<('Yes' if true else 'No')>"
+
+    data["cond"]["status"].origin = "<('Yes' if false else 'No')>"
+    print("[DEBUG]:")
+    print(data)
+
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+    assert resolved_config["cond"]["status"] == "No"
+
+    out = round_trip_dumps(data)
+    rendered_data = render(out)
+    print("[DEBUG]:")
+    print(rendered_data)
+    assert rendered_data["cond"]["status"] == "No"
+
+# Is this really a type inference test? 
+@pytest.mark.spec
+@pytest.mark.mep0011
+# @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
+def test_infer_expressions():
     """
-    Verify that conditional (ternary-like) expressions are evaluated correctly.
+    Ensures expressions (wrapped with <{ ... )>) are type-inferred from their result.
     """
-    expr = 'f"{ \'Yes\' if true else \'No\' }"'
-    # Expected behavior: the condition evaluates to true, so the expression yields "Yes".
-    result = "Yes"  # Placeholder for render_fstring(expr)
-    assert result == "Yes"
+    source = '''
+    [exprs]
+    # Arithmetic expression
+    sum_val = <( 10 + 5 )>
+    # String concatenation
+    greeting = <( "Hello, " + "World!" )>
+    # Boolean logic
+    combo = <( true and false )>
+    '''
+    data = round_trip_loads(source)
+    resolved_config = resolve(data)
+    print("[DEBUG]:")
+    print(resolved_config)
+
+
+    exprs = resolved_config["exprs"]
+    assert isinstance(exprs["sum_val"], int)
+    assert exprs["sum_val"] == 15
+    assert isinstance(exprs["greeting"], str)
+    assert exprs["greeting"] == "Hello, World!"
+    assert isinstance(exprs["combo"], bool)
+    assert exprs["combo"] is False

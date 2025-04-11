@@ -1,165 +1,278 @@
-# unparser.py
-import json
+#!/usr/bin/env python3
+"""
+jaml/unparser.py
+
+Re‑serialises an in‑memory config produced by the JAML parser back to text,
+**preserving comments, inline‑comments, and comprehension‑based
+table‑array headers**.
+
+Highlights
+----------
+* Correctly emits `[[ … ]]` blocks (even when the header is a comprehension)
+  instead of turning them into bogus assignments.
+* Preserves every comment captured by the parser:
+  * top‑level comments (`config_dict["__comments__"]`)
+  * per‑section comments   (`section_dict["__comments__"]`)
+  * inline comments wrapped in `PreservedValue`.
+"""
+
+from __future__ import annotations
+
+from typing import Any, List, Tuple
 
 from .ast_nodes import (
-    DocumentNode,
-    SectionNode,
-    KeyValueNode,
-    ScalarNode,
-    ArrayNode,
-    TableNode,
-    LogicExpressionNode
+    # “wrapper” nodes that keep original text
+    PreservedString,
+    PreservedValue,
+    PreservedArray,
+    PreservedInlineTable,
+    DeferredDictComprehension,
+    # table‑array helpers
+    TableArrayHeader,
+    TableArrayComprehensionHeader,
+    TableArraySectionNode,
+    # misc AST helpers
+    StringExpr,
+    ComprehensionClauses,
+    ComprehensionClause,
+    DottedExpr,
+    PairExpr,
+    AliasClause,
+    InClause,
 )
 
 
+# --------------------------------------------------------------------------- #
+# Main unparser
+# --------------------------------------------------------------------------- #
 class JMLUnparser:
-    """
-    Converts a DocumentNode AST back into a JML-formatted string.
-    
-    Usage Example:
-        unparser = JMLUnparser(document_node)
-        jml_output = unparser.unparse()
-    """
+    """Convert a parsed configuration back into DSL text."""
 
-    def __init__(self, ast: DocumentNode):
-        """
-        Initialize the unparser with an AST (DocumentNode).
-        """
-        self.ast = ast
+    # ------------------------------------------------------------------ #
+    # ctor / utilities
+    # ------------------------------------------------------------------ #
+    def __init__(self, config: Any, debug: bool = False) -> None:
+        self.config = config
+        self.debug = debug
+        if self.debug:
+            print("[DEBUG] JMLUnparser initialised with", type(config))
 
+    def _get_config_data(self) -> dict:
+        """Extract a dict representation from common container shapes."""
+        if isinstance(self.config, dict):
+            return self.config
+        for attr in ("data", "value", "to_dict", "__dict__"):
+            if hasattr(self.config, attr):
+                candidate = getattr(self.config, attr)
+                return candidate() if callable(candidate) else candidate
+        raise TypeError("Unsupported config container – cannot obtain mapping.")
+
+    # ------------------------------------------------------------------ #
+    # scalar / collection formatting
+    # ------------------------------------------------------------------ #
+    def format_value(self, val: Any) -> str:  # noqa: C901
+        """Return *val* as DSL text, preserving wrappers and comments."""
+        # ---------- wrappers ----------
+        if isinstance(val, DeferredDictComprehension):
+            return val.origin
+        if isinstance(val, PreservedValue):
+            return f"{self.format_value(val.value)}{val.comment or ''}"
+        if isinstance(val, PreservedInlineTable):
+            return val.origin if "\n" not in val.origin else self._expand_inline_table(val)
+        if isinstance(val, PreservedArray):
+            return val.origin
+        if isinstance(val, PreservedString):
+            return val.origin
+
+        # ---------- primitives ----------
+        if isinstance(val, str):
+            return f'"{val}"' if "\n" not in val else f'"""{val}"""'
+        if isinstance(val, bool):
+            return "true" if val else "false"
+        if val is None:
+            return "null"
+        if isinstance(val, (int, float)):
+            return str(val)
+
+        # ---------- collections ----------
+        if isinstance(val, list):
+            return f"[{', '.join(self.format_value(v) for v in val)}]"
+        if isinstance(val, dict):
+            inner = ", ".join(f"{k} = {self.format_value(v)}" for k, v in val.items())
+            return f"{{{inner}}}"
+
+        # ---------- fallback ----------
+        return str(val)
+
+    # ------------------------------------------------------------------ #
+    # inline‑table pretty printing (multiline)
+    # ------------------------------------------------------------------ #
+    def _expand_inline_table(self, tbl: PreservedInlineTable) -> str:
+        text = tbl.origin.strip()
+        inner = text[1:-1].strip() if text.startswith("{") and text.endswith("}") else text
+        lines = [ln.rstrip(",").strip() for ln in inner.splitlines() if ln.strip()]
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------ #
+    # AST node -> text
+    # ------------------------------------------------------------------ #
+    def unparse_node(self, node: Any) -> str:  # noqa: C901
+        """Turn helper AST nodes back into text."""
+        # 1) full table‑array section
+        if isinstance(node, TableArraySectionNode):
+            header_txt = f"[[{self.unparse_node(node.header)}]]"
+            body_lines: List[str] = []
+
+            # comments stored on the node?
+            if hasattr(node, "__comments__"):
+                body_lines.extend(getattr(node, "__comments__"))  # type: ignore[arg-type]
+
+            # children (assignments / subsections / stray comments)
+            for child in (node.body or []):
+                if child is None:
+                    continue
+                if isinstance(child, str) and child.lstrip().startswith("#"):
+                    body_lines.append(child)
+                elif hasattr(child, "unparse"):
+                    body_lines.append(child.unparse())  # type: ignore[attr-defined]
+                else:
+                    body_lines.append(self.unparse_node(child))
+
+            return "\n".join([header_txt] + body_lines)
+
+        # 2) header objects
+        if isinstance(node, (TableArrayHeader, TableArrayComprehensionHeader)):
+            return node.origin
+
+        # 3) simple helpers
+        if isinstance(node, StringExpr):
+            return node.origin
+        if isinstance(node, DottedExpr):
+            return node.dotted_value
+        if isinstance(node, PairExpr):
+            return f"{self.unparse_node(node.key)} = {self.unparse_node(node.value)}"
+        if isinstance(node, (AliasClause, InClause)):
+            return node.origin
+
+        # 4) comprehension helpers
+        if isinstance(node, ComprehensionClause):
+            vars_ = " ".join(self.unparse_node(v) for v in node.loop_vars)
+            iterable = self.unparse_node(node.iterable)
+            cond = (
+                " if " + " ".join(self.unparse_node(c) for c in node.conditions)
+                if node.conditions
+                else ""
+            )
+            return f"for {vars_} in {iterable}{cond}"
+        if isinstance(node, ComprehensionClauses):
+            return " ".join(self.unparse_node(c) for c in node.clauses)
+
+        # fallback
+        return str(node)
+
+    # ------------------------------------------------------------------ #
+    # section helpers
+    # ------------------------------------------------------------------ #
+    def _collapse_section(self, path: List[str], sect: Any) -> Tuple[List[str], Any]:
+        """
+        Collapse chains of single‑key subsections to produce the compact
+        `[a.b.c]` syntax.
+        """
+        if isinstance(sect, dict) and len(sect) == 1:
+            (only_key, val), = sect.items()
+            if isinstance(val, dict) and not {"_value", "_annotation"} <= val.keys():
+                return self._collapse_section(path + [only_key], val)
+            if isinstance(val, PreservedInlineTable) and "\n" in val.origin:
+                return path + [only_key], val
+        return path, sect
+
+    def _emit_section(
+        self,
+        sect: Any,
+        path: List[str],
+    ) -> str:
+        """Serialise a `[section]` (or collapsed inline‑table)."""
+        # inline‑table collapsed leaf
+        if not isinstance(sect, dict):
+            header = f"[{'.'.join(path)}]"
+            return f"{header}\n{self._expand_inline_table(sect)}\n"
+
+        lines: List[str] = [f"[{'.'.join(path)}]"]
+
+        # comments inside the section
+        for cmt in sect.get("__comments__", []):
+            lines.append(cmt)
+
+        # assignments
+        for k, v in sect.items():
+            if k == "__comments__":
+                continue
+            if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
+                val_txt = self.format_value(v["_value"])
+                lines.append(f"{k}: {v['_annotation']} = {val_txt}")
+            elif not isinstance(v, dict):
+                if isinstance(k, TableArrayHeader):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
+                elif isinstance(k, TableArraySectionNode):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
+                else:
+                    print('==>', k, v, type(k), type(v))
+                    lines.append(f"{k} = {self.format_value(v)}")
+
+        if len(lines) > 1:
+            lines.append("")  # blank line before subsections
+
+        # nested subsections
+        for k, v in sect.items():
+            if isinstance(v, dict):
+                sub_path, collapsed = self._collapse_section(path + [k], v)
+                lines.append(self._emit_section(collapsed, sub_path))
+
+        return "\n".join(lines).rstrip("\n")
+    # ------------------------------------------------------------------ #
+    # public API
+    # ------------------------------------------------------------------ #
     def unparse(self) -> str:
-        lines = []
-        # Emit preamble comments (standalone comments before any section)
-        if hasattr(self.ast, "preamble") and self.ast.preamble:
-            for comment in self.ast.preamble:
-                # Emit the comment exactly as captured (including the "#")
-                lines.append(comment.comment)
-            lines.append("")  # Blank line after preamble comments
+        """Return the full DSL text."""
+        out: List[str] = []
+        data = self._get_config_data()
 
-        for section in self.ast.sections:
-            lines.append(f"[{section.name}]")
-            # Instead of printing section.comments as separate lines,
-            # collect them so they can be merged into key–value lines.
-            inline_comments = []
-            if hasattr(section, "comments") and section.comments:
-                inline_comments.extend(comment.comment for comment in section.comments)
-            for kv in section.keyvalues:
-                # Use the dedicated key–value unparser to generate the line.
-                line = self._unparse_keyvalue(kv, inline_comments)
-                lines.append(line)
-            lines.append("")  # Blank line between sections
+        # ---------- top‑level comments ----------
+        for cmt in data.get("__comments__", []):
+            out.append(cmt)
+        if data.get("__comments__"):
+            out.append("")
 
-        result = "\n".join(lines)
-        if not result.startswith("\n"):
-            result = "\n" + result
-        if not result.endswith("\n"):
-            result = result + "\n"
-        return result
+        # ---------- iterate keys ----------
+        for key, value in data.items():
+            if key == "__comments__":
+                continue
 
-    def _unparse_keyvalue(self, kv: KeyValueNode, inline_comments=None) -> str:
-        """
-        Convert a single KeyValueNode to a string while preserving inline comments,
-        including the exact whitespace between the closing quote and the comment marker.
-        
-        Produces output like:
-            key = value  # Inline comment: greeting message
-        or, if a type annotation exists:
-            key: type_annotation = value  # Inline comment: greeting message
-        """
-        # Build the key-value portion.
-        value_str = self._unparse_node(kv.value)
-        if kv.type_annotation:
-            kv_line = f"{kv.key}: {kv.type_annotation} = {value_str}"
-        else:
-            kv_line = f"{kv.key} = {value_str}"
-        
-        # Use the key–value node's inline comment if present,
-        # otherwise try to merge a comment from the section.
-        comment_text = kv.comment
-        if not comment_text and inline_comments:
-            comment_text = inline_comments.pop(0)
-        
-        if comment_text:
-            # Count the number of leading spaces in the comment.
-            leading_spaces = len(comment_text) - len(comment_text.lstrip(" "))
-            # If there are fewer than 2 leading spaces, ensure exactly 2.
-            if leading_spaces < 2:
-                comment_text = "  " + comment_text.lstrip(" ")
-            # If there are 2 or more, leave them as captured.
-            kv_line += comment_text
-        return kv_line
+            # ---- table‑array bucket ----
+            if isinstance(key, (TableArrayHeader, TableArrayComprehensionHeader)) and isinstance(value, list):
+                for section_node in value:
+                    out.append(self.unparse_node(section_node))
+                continue
 
+            # ---- normal sections ----
+            if isinstance(value, dict):
+                path, collapsed = self._collapse_section([key], value)
+                out.append(self._emit_section(collapsed, path))
+                continue
 
-    def _unparse_node(self, node):
-        # For string scalar nodes, use the raw text if available.
-        if isinstance(node, ScalarNode) and isinstance(node.value, str):
-            if hasattr(node, "raw"):
-                return node.raw
+            # ---- plain assignment ----
+            if hasattr(value, "unparse"):
+                rhs = value.unparse()  # type: ignore[attr-defined]
+            elif value.__class__.__module__.endswith(".ast_nodes"):
+                rhs = self.unparse_node(value)
             else:
-                return json.dumps(node.value)
-        elif isinstance(node, ArrayNode):
-            # Use the raw representation if it contains newlines.
-            if hasattr(node, "raw") and "\n" in node.raw:
-                return node.raw
-            else:
-                return self._unparse_array(node)
-        elif isinstance(node, TableNode):
-            if hasattr(node, "raw"):
-                return node.raw
-            parts = []
-            for kv in node.keyvalues:
-                parts.append(f"{kv.key} = {self._unparse_node(kv.value)}")
-            return "{ " + ", ".join(parts) + " }"
-        elif isinstance(node, LogicExpressionNode):
-            return "{~ " + node.expression + " ~}"
-        elif isinstance(node, ScalarNode):
-            if isinstance(node.value, bool):
-                return "true" if node.value else "false"
-            elif node.value is None:
-                return "null"
-            else:
-                return str(node.value)
+                rhs = self.format_value(value)
+            out.append(f"{key} = {rhs}")
 
-        else:
-            return str(node.to_plain())
+        return "\n".join(out).rstrip("\n")
 
-    def _unparse_array(self, array_node: ArrayNode) -> str:
-        items_str = [self._unparse_node(item) for item in array_node.items]
-        return f"[{', '.join(items_str)}]"
-
-    def _unparse_table(self, table_node: TableNode) -> str:
-        """
-        Convert a TableNode into JML inline table syntax:
-          { key1 = val1, key2 = val2 }
-        """
-        pairs = []
-        for kv in table_node.keyvalues:
-            pairs.append(f"{kv.key} = {self._unparse_node(kv.value)}")
-        return "{ " + ", ".join(pairs) + " }"
-
-    def _guess_type_annotation(self, node) -> str:
-        """
-        Guess the type of a node if type_annotation is missing.
-        """
-        if isinstance(node, ScalarNode):
-            val = node.value
-            if isinstance(val, str):
-                return "str"
-            elif isinstance(val, bool):
-                return "bool"
-            elif isinstance(val, int):
-                return "int"
-            elif isinstance(val, float):
-                return "float"
-            elif val is None:
-                return "null"
-            else:
-                return "unknown"
-        elif isinstance(node, ArrayNode):
-            return "list"
-        elif isinstance(node, TableNode):
-            return "table"
-        elif isinstance(node, LogicExpressionNode):
-            return "expr"
-        else:
-            return "unknown"
+    # Convenience
+    def __str__(self) -> str:  # pragma: no cover
+        return self.unparse()

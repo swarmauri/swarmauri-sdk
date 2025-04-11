@@ -1799,6 +1799,9 @@ wheels = [
 name = "jaml"
 version = "0.1.0.dev8"
 source = { editable = "jaml" }
+dependencies = [
+    { name = "lark" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -1815,6 +1818,7 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "lark" }]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2139,6 +2143,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/ce/3f144716a9f2cbf42aa86ebc8b085a184be25c80aa453eea17c294d239c1/language_data-1.3.0.tar.gz", hash = "sha256:7600ef8aa39555145d06c89f0c324bf7dab834ea0b0a439d8243762e3ebad7ec", size = 5129310 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/e9/5a5ffd9b286db82be70d677d0a91e4d58f7912bb8dd026ddeeb4abe70679/language_data-1.3.0-py3-none-any.whl", hash = "sha256:e2ee943551b5ae5f89cd0e801d1fc3835bb0ef5b7e9c3a4e8e17b2b214548fbf", size = 5385760 },
+]
+
+[[package]]
+name = "lark"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/60/bc7622aefb2aee1c0b4ba23c1446d3e30225c8770b38d7aedbfb65ca9d5a/lark-1.2.2.tar.gz", hash = "sha256:ca807d0162cd16cef15a8feecb862d7319e7a09bdb13aef927968e45040fed80", size = 252132 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/00/d90b10b962b4277f5e64a78b6609968859ff86889f5b898c1a778c06ec00/lark-1.2.2-py3-none-any.whl", hash = "sha256:c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c", size = 111036 },
 ]
 
 [[package]]
@@ -3199,9 +3212,11 @@ name = "peagen"
 version = "0.1.2.dev5"
 source = { editable = "standards/peagen" }
 dependencies = [
+    { name = "colorama" },
     { name = "inflect" },
     { name = "jinja2" },
     { name = "python-dotenv" },
+    { name = "swarmauri" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -3224,9 +3239,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "colorama" },
     { name = "inflect" },
     { name = "jinja2" },
     { name = "python-dotenv" },
+    { name = "swarmauri", editable = "swarmauri" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },

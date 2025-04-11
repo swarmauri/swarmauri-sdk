@@ -1,13 +1,19 @@
 import os
 from typing import IO, Any, Dict
 
-# If you have helper modules for evaluating expressions or merges:
-# from ._eval import _eval_ast_logical_expressions
+from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
-# Core JML modules
-from .parser import JMLParser
+from pprint import pprint
+
+# Using the lark parser and transformer modules:
+from .lark_parser import parser
+from ._transformer import ConfigTransformer
+
+from ._resolve import resolve_ast
+from ._render import substitute_deferred
+
 from .unparser import JMLUnparser
-from .ast_nodes import DocumentNode
+
 
 # -------------------------------------
 # 1) File Extension Helper (optional)
@@ -24,6 +30,7 @@ def check_extension(filename: str) -> None:
     if ext not in ('.jml', '.jaml'):
         raise ValueError("Unsupported file extension. Allowed: .jml or .jaml")
 
+
 # -------------------------------------
 # 2) Non-Round-Trip API
 # -------------------------------------
@@ -33,15 +40,15 @@ def dumps(obj: Dict[str, Any]) -> str:
     Serialize a plain Python dict into a minimal JML string (non-round-trip).
     Discards comments, merges, or advanced formatting.
     
-    This implementation converts the plain dict to an AST by invoking the
-    bound class method `from_plain_data()` on DocumentNode, then unparses it.
+    This implementation directly unparses the plain dict using JMLUnparser.
     Leading and trailing whitespace in string values is preserved.
     """
-    # Convert the plain dictionary to an AST.
-    ast_document = DocumentNode.from_plain_data(obj)
-    # Unparse the AST back to a JML string.
-    unparser = JMLUnparser(ast_document)
-    return unparser.unparse()
+    unparser = JMLUnparser(obj)
+    dumped = unparser.unparse()
+    print("[DEBUG API]: ")
+    pprint(dumped)
+    return dumped
+
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
@@ -49,16 +56,27 @@ def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
     fp.write(dumps(obj))
 
+
 def loads(s: str) -> Dict[str, Any]:
     """
     Parse a JML string into a plain Python dictionary.
-    Returns native types (e.g. plain strings, ints, lists, dicts),
-    not AST nodes.
     """
-    parser = JMLParser()
-    ast_document = parser.parse(s)
-    # Convert the AST to plain data using the bound method on DocumentNode.
-    return ast_document.to_plain_data()
+    try:
+        ast = parser.parse(s)
+        print("[DEBUG API]: ")
+        pprint(ast)
+    except UnexpectedToken as e:
+        raise SyntaxError("UnexpectedToken") from e
+    except UnexpectedCharacters as e:
+        raise SyntaxError("UnexpectedCharacters") from e
+    except UnexpectedEOF as e:
+        raise SyntaxError("UnexpectedEOF") from e
+
+    transformer = ConfigTransformer()
+    # Create a dummy context object with a 'text' attribute containing the original input.
+    transformer._context = type("Context", (), {"text": s})
+    return transformer.transform(ast)
+
 
 def load(fp: IO[str]) -> Dict[str, Any]:
     """
@@ -70,58 +88,88 @@ def load(fp: IO[str]) -> Dict[str, Any]:
 # 3) Round-Trip API
 # -------------------------------------
 
-def round_trip_dumps(ast: DocumentNode) -> str:
+def round_trip_dumps(ast: Any) -> str:
     """
-    Serialize a DocumentNode AST back to a JML-formatted string,
-    preserving layout, comments, merges, etc. (as far as your unparser allows).
-    """
-    unparser = JMLUnparser(ast)
-    return unparser.unparse()
+    Serialize an AST (as constructed by the lark parser) back to a JML-formatted string,
+    preserving layout, comments, merges, etc. (as far as the unparser supports it).
 
-def round_trip_dump(ast: DocumentNode, fp: IO[str]) -> None:
+    If the provided AST is not a plain dictionary, transform it using the ConfigTransformer.
     """
-    Serialize a DocumentNode AST into JML, writing to a file-like object (round-trip).
+    # Transform the AST to a plain dict if needed.
+    # ast = ConfigTransformer().transform(ast)
+    # print("[DEBUG API]: ")
+    # pprint(ast)
+    unparser = JMLUnparser(ast)
+    dumped = unparser.unparse()
+    print("[DEBUG RT_DUMPS API]: ")
+    pprint(dumped)
+    return dumped
+
+
+def round_trip_dump(ast: Any, fp: IO[str]) -> None:
+    """
+    Serialize an AST into JML, writing to a file-like object (round-trip).
     """
     fp.write(round_trip_dumps(ast))
 
-def round_trip_loads(s: str) -> DocumentNode:
-    """
-    Parse a JML string into a DocumentNode AST, preserving all data
-    for round-trip usage (including comments, merges, layout if your parser tracks them).
-    """
-    parser = JMLParser()
-    return parser.parse(s)
 
-def round_trip_load(fp: IO[str]) -> DocumentNode:
+def round_trip_loads(s: str):
+    ast = parser.parse(s)
+    print("[DEBUG RT_LOADS API]: ")
+    pprint(ast)
+    transformer = ConfigTransformer()
+    # Create a dummy context object with a 'text' attribute containing the original input.
+    transformer._context = type("Context", (), {"text": s})
+    transformed = transformer.transform(ast)
+    print("[DEBUG RT_LOADS API - Post Transform]: ")
+    pprint(transformed)
+    return transformed
+
+
+def round_trip_load(fp: IO[str]) -> Any:
     """
-    Parse JML content from a file-like object into a DocumentNode AST, preserving round-trip data.
+    Parse JML content from a file-like object into an AST, preserving round-trip data.
     """
     return round_trip_loads(fp.read())
+
+# -------------------------------------
+# 3) Resolve API
+# -------------------------------------
+
+def resolve(ast: Any) -> Any:
+    """
+    Partially evaluate all purely static expressions in the given AST, leaving 
+    only those placeholders that rely on dynamic context (i.e. ${...}) for the 
+    final render step.
+
+    This does not accept an external environment or context — all static data 
+    must already exist within the AST (e.g., from global/local assignments).
+    The returned AST can then be:
+
+      1) Dumped to text via round_trip_dumps(ast),
+      2) Passed to render() (after converting to text) to finalize dynamic placeholders.
+
+    :param ast: The AST produced by round_trip_loads() or similar.
+    :return: A new AST (or updated in-place, depending on your implementation)
+             with static expressions evaluated.
+    """
+    return resolve_ast(ast)
 
 # -------------------------------------
 # 4) Render API (optional advanced usage)
 # -------------------------------------
 
-def render(input_jml: str, context: dict = None) -> str:
+def render(text, context={}):
     """
-    Render a JML string by processing merges, logic expressions, or other dynamic features,
-    while preserving as much original formatting as possible.
-    
-    :param input_jml: The JML text to process.
-    :param context: Optional dictionary of variables for logic expressions.
-    :return: The transformed JML string.
+    Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
-    if context is None:
-        context = {}
+    ast = loads(text)
+    env = {}
+    env.update(context)
+    # Also inject the booleans
+    env["true"] = True
+    env["false"] = False
+    print("[DEBUG RENDER API]: ")
+    pprint(ast)
+    return substitute_deferred(ast, env)
 
-    # 1) Parse into an AST (round-trip mode).
-    ast = round_trip_loads(input_jml)
-
-    # 2) Evaluate expressions (if you have that functionality):
-    # ast = _eval_ast_logical_expressions(ast, context)
-
-    # 3) Process merges (if your language supports table merges):
-    # ast = ast.merge_documents(ast)
-
-    # 4) Unparse the result back to JML.
-    return round_trip_dumps(ast)
