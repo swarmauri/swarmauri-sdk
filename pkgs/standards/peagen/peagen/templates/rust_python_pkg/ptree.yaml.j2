@@ -154,27 +154,6 @@
 {% endfor %}
 
 # -------------------------
-# Rust Source Files
-# -------------------------
-
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/lib.rs.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/lib.rs"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: null
-  EXTRAS:
-    PURPOSE: "Implements Rust code for {{ PKG.NAME }} Python extension."
-    DESCRIPTION: "Rust implementation of performance-critical functionality."
-    REQUIREMENTS:
-      - "Must use PyO3 to create Python bindings"
-      - "Must implement all required Rust functions"
-      - "Must handle Python types conversion properly"
-      - "Must include proper error handling"
-      - "Must use #[pymodule] and #[pyfunction] macros"
-
-# -------------------------
 # Package-Level Tests
 # -------------------------
 
