@@ -252,17 +252,47 @@ class TableArrayHeader:
     def __init__(self, header_expr, original):
         self.header_expr = header_expr
         self.origin = original   # textual form, e.g. 'f"file.{pkg}.{mod}" …'
+        self.resolved = None
 
-    # –––––––––––––––––––––––––––––––––––––––––––––––––
-    # Make the object behave like a read‑only string
-    # –––––––––––––––––––––––––––––––––––––––––––––––––
+    def evaluate(self, env):
+        """
+        Evaluate the header expression in the given environment.
+        If the header is written as an f-string (starting with f" or f'),
+        use evaluate_f_string to process it. Otherwise, perform basic placeholder
+        substitution (for ${…} patterns) using resolve_scoped_variable.
+        
+        The result is cached in self.resolved.
+        """
+        if self.resolved is not None:
+            return self.resolved
+
+        header_expr = self.header_expr.strip()
+
+        # Check if it's an f-string expression.
+        if header_expr.startswith("f\"") or header_expr.startswith("f'"):
+            from ._helpers import evaluate_f_string
+            result = evaluate_f_string(header_expr, env, env)
+        else:
+            # Otherwise, perform placeholder substitution for ${...} patterns.
+            import re
+            from ._helpers import resolve_scoped_variable
+            def repl(m):
+                var = m.group(1).strip()
+                value = resolve_scoped_variable(var, env)
+                return str(value) if value is not None else m.group(0)
+            result = re.sub(r'\$\{([^}]+)\}', repl, header_expr)
+
+        self.resolved = result
+        return result
+
     def __str__(self):
-        return f"{self.header_expr}"
+        # When converting to string, return the resolved header if available,
+        # otherwise fall back to the original source slice.
+        return self.resolved if self.resolved is not None else self.origin
 
     def __repr__(self):
         return f"TableArrayHeader({self.origin!r})"
 
-    # Dict key requirements
     def __eq__(self, other):
         if isinstance(other, TableArrayHeader):
             return self.origin == other.origin
@@ -271,20 +301,19 @@ class TableArrayHeader:
     def __hash__(self):
         return hash(self.origin)
 
-    # Delegate common string methods so code like
-    # `key.startswith("[[")` keeps working.
     def startswith(self, *args, **kwargs):
-        return self.origin.startswith(*args, **kwargs)
+        # Delegate string method to the resolved header if available.
+        return (self.resolved if self.resolved is not None else self.origin).startswith(*args, **kwargs)
 
     def endswith(self, *args, **kwargs):
-        return self.origin.endswith(*args, **kwargs)
+        return (self.resolved if self.resolved is not None else self.origin).endswith(*args, **kwargs)
 
-    # Generic fallback: delegate any unknown attribute that exists
-    # on `str` to the underlying text.
-    def __getattr__(self, name):
-        if hasattr(str, name):
-            return getattr(self.origin, name)
-        raise AttributeError(name)
+    # def __getattr__(self, name):
+    #     # Fallback: delegate any unknown attribute to the underlying string value.
+    #     value = self.resolved if self.resolved is not None else self.origin
+    #     if hasattr(value, name):
+    #         return getattr(value, name)
+    #     raise AttributeError(name)
 
 
 class FoldedExpressionNode:

@@ -15,6 +15,7 @@ from .ast_nodes import (
     TableArrayComprehensionHeader,
     TableArrayHeader,
     TableArraySectionNode,
+    # TableHeader,
     StringExpr,
     ComprehensionClauses,
     ComprehensionClause,
@@ -449,31 +450,13 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def table_array_header(self, meta, items):
-        """
-        Process a table_array_header production.
-        
-        This rule covers alternatives:
-          - section_name
-          - STRING
-          - list_comprehension
-          - table_array_comprehension
-        
-        We use meta to slice out the original text for round-trip fidelity.
-        The transformer returns a TableArrayHeader AST node.
-        """
-        # Use _slice_input to capture the original text spanned by this rule.
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        
-        # items will contain the one alternative that matches.
-        # Typically, we expect one item.
+        self.debug_print(f"table_array_header() extracted original: {original_text} and items: {items}")
+        # Assume items[0] is the header expression (could be static, computed, etc.)
         header_expr = items[0] if items else None
-
-        # Optionally log debugging information.
-        if self.debug:
-            self.debug_print(f"table_array_header() extracted original: {original_text} and header_expr: {header_expr}")
-
-        # Create and return our AST node.
+        # Return an instance of TableArrayHeader – a dedicated AST node.
         return TableArrayHeader(header_expr, original_text)
+
 
 
 

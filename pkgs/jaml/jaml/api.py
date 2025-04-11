@@ -166,7 +166,7 @@ def render(text, context={}):
     # Also inject the booleans
     env["true"] = True
     env["false"] = False
-    print("[DEBUG API]: ")
+    print("[DEBUG RENDER API]: ")
     pprint(ast)
     return substitute_deferred(ast, env)
 

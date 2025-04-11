@@ -72,6 +72,49 @@ BASE_CONTEXT = {
     ],
 }
 
+expected_result = r'''
+[[file.auth.login.source]]
+name = "login.py"
+path = "src/auth/login.py"
+type = "python"
+extras = { "owner" = "teamA" }
+
+[[file.auth.login.test]]
+name = "login_test.py"
+path = "src/auth/tests/login_test.py"
+type = "python"
+extras = { "testFramework" = "pytest", "tests" = ["test_login", "test_auth"] }
+
+[[file.auth.login.readme]]
+name = "README_login.md"
+path = "src/auth/README_login.md"
+type = "markdown"
+extras = { "owner" = "teamA" }
+
+[[file.auth.login.config]]
+name = "login.yaml"
+path = "src/auth/config/login.yaml"
+type = "yaml"
+extras = { "env" = "prod" }
+
+[[file.auth.signup.source]]
+name = "signup.py"
+path = "src/auth/signup.py"
+type = "python"
+extras = { "owner" = "teamB" }
+
+[[file.auth.signup.readme]]
+name = "README_signup.md"
+path = "src/auth/README_signup.md"
+type = "markdown"
+extras = { "owner" = "teamB" }
+
+[[file.auth.signup.config]]
+name = "signup.yaml"
+path = "src/auth/config/signup.yaml"
+type = "yaml"
+extras = { "env" = "prod" }
+'''
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
@@ -168,6 +211,8 @@ def test_update_module_extras():
     print('-'*10, '\n[TEST]: STARTING FINAL DUMP\n')
     final_out = round_trip_dumps(rendered_data)
     print('\n\n\n\n[FINAL DUMP]:', final_out,'\n\n---\n\n\n')
+
+    assert final_out == expected_result
 
     assert """[[file.auth.signup.config]]
 name = "signup.yaml"

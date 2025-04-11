@@ -211,7 +211,12 @@ class JMLUnparser:
                 val_txt = self.format_value(v["_value"])
                 lines.append(f"{k}: {v['_annotation']} = {val_txt}")
             elif not isinstance(v, dict):
-                lines.append(f"{k} = {self.format_value(v)}")
+                if isinstance(k, TableArrayHeader):
+                    print('====>', k, v, type(k), type(v))
+                    lines.append(f"[[{k}]]")
+                else:
+                    print('==>', k, v, type(k), type(v))
+                    lines.append(f"{k} = {self.format_value(v)}")
 
         if len(lines) > 1:
             lines.append("")  # blank line before subsections
@@ -222,8 +227,7 @@ class JMLUnparser:
                 sub_path, collapsed = self._collapse_section(path + [k], v)
                 lines.append(self._emit_section(collapsed, sub_path))
 
-        return "\n".join(lines).rstrip("\n") + "\n"
-
+        return "\n".join(lines).rstrip("\n")
     # ------------------------------------------------------------------ #
     # public API
     # ------------------------------------------------------------------ #

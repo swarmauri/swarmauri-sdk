@@ -7,9 +7,6 @@ from .ast_nodes import (
     FoldedExpressionNode
 )
 from ._helpers import resolve_scoped_variable
-
-
-
 from .ast_nodes import FoldedExpressionNode
 from ._eval import safe_eval  # or import safe_eval as defined in resolve.py
 
@@ -31,18 +28,19 @@ def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, An
         print("[DEBUG RENDER] Returning non-string cached resolution:", node.resolved)
         return node.resolved
 
-    # Otherwise, if node.resolved is a string and it does not look like a folded expression, return it.
-    # (This might be the case for f-string substitutions that are not numeric.)
+    # If the node has a cached resolution that is a string and its origin
+    # does not appear to be a folded expression, return it.
     if hasattr(node, 'resolved') and isinstance(node.resolved, str):
-        # Optionally, check if the node.origin still starts with "<(".
         if not node.origin.strip().startswith("<("):
             print("[DEBUG RENDER] Returning cached string resolution:", node.resolved)
             return node.resolved
 
-    # Otherwise, process as before.
     folded_literal = node.origin.strip()
+    # If the origin is not wrapped with the folded markers, substitute its placeholders.
     if not (folded_literal.startswith("<(") and folded_literal.endswith(")>")):
-        return folded_literal
+        substituted_literal = _substitute_vars(folded_literal, env)
+        print("[DEBUG RENDER] Folded literal without delimiters after substitution:", substituted_literal)
+        return substituted_literal
 
     def token_to_expr(token):
         print("[DEBUG RENDER] Processing token:", token)
@@ -84,7 +82,7 @@ def _render_folded_expression_node(node: FoldedExpressionNode, env: Dict[str, An
         print("[DEBUG RENDER] Exception during evaluation:", e)
         result = expr_string
 
-    # Finally, perform dynamic placeholder substitution on the result (if it is a string).
+    # Perform dynamic placeholder substitution on the result (if it is a string).
     if isinstance(result, str):
         final_result = _substitute_vars(result, env)
     else:
@@ -107,9 +105,9 @@ def _substitute_vars(expr: str, env: Dict[str, Any], quote_strings: bool = True)
     Python-quoted representation (using repr).
     """
     print("[DEBUG SUB] Starting substitution in expression:", expr)
+    print("[DEBUG SUB] Using env:", env)
 
     def _extract_value(x: Any) -> Any:
-        # Local import to avoid circular dependency.
         from .ast_nodes import PreservedString
         if isinstance(x, PreservedString):
             print("[DEBUG SUB] Extracting value from PreservedString:", x.value)
@@ -127,7 +125,7 @@ def _substitute_vars(expr: str, env: Dict[str, Any], quote_strings: bool = True)
                 val = val[key]
             else:
                 print("[DEBUG SUB] Dynamic variable not found; leaving placeholder:", m.group(0))
-                return f"${{{var}}}"  # leave as-is if not found
+                return f"${{{var}}}"
         val = _extract_value(val)
         substituted_val = repr(val) if quote_strings and isinstance(val, str) else str(val)
         print("[DEBUG SUB] Dynamic placeholder substituted to:", substituted_val)
@@ -170,8 +168,6 @@ def _substitute_vars(expr: str, env: Dict[str, Any], quote_strings: bool = True)
     print("[DEBUG SUB] Final substitution result:", result)
     return result
 
-
-
 def substitute_deferred(ast_node, env):
     """
     Recursively traverse the AST to replace deferred expressions and f-string placeholders.
@@ -184,12 +180,10 @@ def substitute_deferred(ast_node, env):
     """
     print("[DEBUG RENDER] Processing node of type:", type(ast_node), "with env:", env)
 
-
     # Unwrap annotated assignment nodes:
     if isinstance(ast_node, dict):
         keys = set(ast_node.keys())
         if keys == {"_annotation", "_value"}:
-            # Return the annotation value as the final substituted value.
             print("[DEBUG RENDER] Unwrapping annotated node:", ast_node)
             return ast_node["_annotation"]
 
@@ -248,19 +242,13 @@ def substitute_deferred(ast_node, env):
         print("[DEBUG RENDER] Processing PreservedString:", s)
         if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
             print("[DEBUG RENDER] Detected f-string in PreservedString:", s)
-
             from ._helpers import evaluate_f_string
             result = evaluate_f_string(s.lstrip(), env, env)
             print("[DEBUG RENDER] evaluate_f_string result:", result)
             return result
         else:
-            # Replace ${...} placeholders in the unquoted value.
             s = ast_node.value
-            result = re.sub(
-                r'\$\{([^}]+)\}',
-                lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
-                s
-            )
+            result = _substitute_vars(s, env)
             print("[DEBUG RENDER] Processed PreservedString without f-prefix; result:", result)
             return result
 
@@ -268,21 +256,15 @@ def substitute_deferred(ast_node, env):
         print("[DEBUG RENDER] Processing string node:", ast_node)
         if ast_node.lstrip().startswith("f\"") or ast_node.lstrip().startswith("f'"):
             print("[DEBUG RENDER] Detected f-string in plain string:", ast_node)
-
             from ._helpers import evaluate_f_string
             result = evaluate_f_string(ast_node.lstrip(), env, env)
             print("[DEBUG RENDER] evaluate_f_string result for string node:", result)
             return result
         else:
-            result = re.sub(
-                r'\$\{([^}]+)\}',
-                lambda m: str(resolve_scoped_variable(m.group(1).strip(), env) or m.group(0)),
-                ast_node
-            )
-            print("[DEBUG RENDER] Processed plain string; result:", result)
+            result = _substitute_vars(ast_node, env)
+            print("[DEBUG RENDER] Processed plain string with substitution; result:", result)
             return result
 
     else:
         print("[DEBUG RENDER] Returning node as-is:", ast_node)
         return ast_node
-
