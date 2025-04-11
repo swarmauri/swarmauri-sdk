@@ -1,0 +1,23 @@
+[package]
+name = "FastTokenizer"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jacob Stewart <jacob@swarmauri.com>"]
+description = ""
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/FastTokenizer/"
+
+[lib]
+name = "FastTokenizer_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true
