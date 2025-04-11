@@ -1,27 +1,49 @@
+[build-system]
+requires = ["meson-python", "ninja", "pybind11"]
+build-backend = "mesonpy"
+
 [project]
 name = "{{ PKG.NAME }}"
-version = "0.6.2.dev1"
+version = "0.1.0"
 description = "{{ PKG.DESCRIPTION }}"
-authors = ["Jacob Stewart <jacob@swarmauri.com>"]
-license = "Apache-2.0"
 readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [
+    {name = "Jacob Stewart", email = "jacob@swarmauri.com"}
+]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.11", 
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Development Status :: 3 - Alpha"
 ]
-keywords = []
-python-requires = ">=3.10,<3.13"
 
-[dependencies]
-# Dependencies
-<!-- include additional dependencies here -->
-{% if PKG.PACKAGE_REQUIRES %}
-{% for required in PACKAGE_REQUIRES %}
-{{ required.NAME }} = "{{ required.VERSION }}"
-{% endfor %}
-{% endif %}
+dependencies = [
+    # Dependencies
+    <!-- include additional dependencies here -->
+    {% if PKG.PACKAGE_REQUIRES %}
+    {% for required in PKG.PACKAGE_REQUIRES %}
+    "{{ required.NAME }}{{ required.VERSION }}",
+    {% endfor %}
+    {% endif %}
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "uv"]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"

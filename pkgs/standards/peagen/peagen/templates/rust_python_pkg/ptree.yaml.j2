@@ -53,7 +53,6 @@
       {%- for MOD in PKG.MODULES %}
         - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.rs"
       {%- endfor %}
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
     PURPOSE: "Specifies Python project metadata and dependencies for {{ PKG.NAME }}."
     DESCRIPTION: "Configuration for Python package {{ PKG.NAME }} with Rust extensions."
     REQUIREMENTS:
@@ -72,7 +71,6 @@
   MODULE_NAME: null
   EXTRAS:
     DEPENDENCIES:
-        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
       {%- for MOD in PKG.MODULES %}
         - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.rs"
       {%- endfor %}
@@ -91,21 +89,6 @@
 # -------------------------
 # Rust Source Files
 # -------------------------
-
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: null
-  EXTRAS:
-    PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
-    DESCRIPTION: "This file makes the directory a Python package and imports the Rust extension."
-    DEPENDENCIES: []
-    REQUIREMENTS:
-      - "Must import the Rust extension module"
-      - "Must expose the Rust functions through the Python API"
 
 {% for MOD in PKG.MODULES %}
 - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.rs.j2{% endraw %}"
@@ -143,7 +126,7 @@
   MODULE_NAME: "{{ MOD.NAME }}"
   EXTRAS:
     DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.py"
+      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/{{ MOD.NAME }}.rs"
     PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
     DESCRIPTION: "Tests for module {{ MOD.NAME }}."
     REQUIREMENTS:
@@ -166,32 +149,11 @@
   MODULE_NAME: "None"
   EXTRAS:
     PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
-    DESCRIPTION: "Ensures that the __init__.py in the source folder loads correctly."
     REQUIREMENTS:
       - "Must use pytest"
       - "Must use @pytest.mark.i9n decorator to mark test cases"
       - "Where applicable use pytest fixtures"
       - "Should test that the Rust extension loads correctly"
-    DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test___init__.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test___init__.py"
-  PROCESS_TYPE: "GENERATE"
-  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
-  PROJECT_NAME: "{{ PROJ.NAME }}"
-  PACKAGE_NAME: "{{ PKG.NAME }}"
-  MODULE_NAME: null
-  EXTRAS:
-    PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
-    DESCRIPTION: "Ensures that the __init__.py in the source folder loads correctly."
-    REQUIREMENTS:
-      - "Must use pytest"
-      - "Must use @pytest.mark.unit decorator to mark test cases"
-      - "Where applicable use pytest fixtures"
-    DEPENDENCIES:
-      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/__init__.py"
-
 {%- endfor %}
 
 # =====================================================
