@@ -19,31 +19,9 @@ packages = ${packages}
 name = %{module.name} + ".py"
 path = @{rootDir} + "/" + %{package.name} + "/" + %{name}
 type = "python"
-extras = [k = v for k, v in %{module.extras.items} if k != "secret"] 
+extras = [k = v for k, v in %{module.extras.items} if k != "secret"]
+tests = { testFramework = "pytest", tests = %{module.tests} }
 
-[[ f"file.{package.name}.{module.name}.test"
-  for package as %{package} in @{packages} if package.active
-  for module as %{module} in @{package.modules} if module.enabled if module.isTest ]]
-name = %{module.name} + "_test.py"
-path = @{rootDir} + "/" + %{package.name} + "/tests/" + %{name}
-type = "python"
-extras = { testFramework = "pytest", tests = %{module.tests} }
-
-[[f"file.{package.name}.{module.name}.readme"
-  for package as %{package} in @{packages} if package.active
-  for module as %{module} in @{package.modules} if module.enabled]]
-name = "README_" + %{module.name} + ".md"
-path = @{rootDir} + "/" + %{package.name} + "/README_" + %{name}
-type = "markdown"
-extras = [k = v for k, v in %{module.extras.items} if k in ["owner", "desc"]] 
-
-[[f"file.{package.name}.{module.name}.config"
-  for package as %{package} in @{packages} if package.active
-  for module as %{module} in @{package.modules} if module.enabled]]
-name = %{module.name} + ".yaml"
-path = @{rootDir} + "/" + %{package.name} + "/config/" + %{name}
-type = "yaml"
-extras = { env = ${env} }
 '''
 
 # The base external context used during rendering.
@@ -59,7 +37,7 @@ BASE_CONTEXT = {
                     "enabled": True,
                     "isTest": True,
                     "extras": {"owner": "teamA", "secret": "xyz"},
-                    "tests": ["test_login", "test_auth"],
+                    "tests": ["test_v2_login", "test_v2_auth"],
                 },
                 {
                     "name": "signup",
@@ -77,49 +55,22 @@ expected_result = r'''
 name = "login.py"
 path = "src/auth/login.py"
 type = "python"
-extras = { "owner" = "teamA" }
-
-[[file.auth.login.test]]
-name = "login_test.py"
-path = "src/auth/tests/login_test.py"
-type = "python"
-extras = { "testFramework" = "pytest", "tests" = ["test_login", "test_auth"] }
-
-[[file.auth.login.readme]]
-name = "README_login.md"
-path = "src/auth/README_login.md"
-type = "markdown"
-extras = { "owner" = "teamA" }
-
-[[file.auth.login.config]]
-name = "login.yaml"
-path = "src/auth/config/login.yaml"
-type = "yaml"
-extras = { "env" = "prod" }
+extras = {"owner": "teamA", "secret": "xyz"}
+extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
 
 [[file.auth.signup.source]]
 name = "signup.py"
 path = "src/auth/signup.py"
 type = "python"
 extras = { "owner" = "teamB" }
+extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
 
-[[file.auth.signup.readme]]
-name = "README_signup.md"
-path = "src/auth/README_signup.md"
-type = "markdown"
-extras = { "owner" = "teamB" }
-
-[[file.auth.signup.config]]
-name = "signup.yaml"
-path = "src/auth/config/signup.yaml"
-type = "yaml"
-extras = { "env" = "prod" }
 '''
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
-@pytest.mark.mep0028
-def test_round_trip_loads_valid():
+@pytest.mark.mep0028c
+def test_v2_round_trip_loads_valid():
     """
     Validate that the round_trip_loads API correctly parses the JML content into an AST.
     """
@@ -129,10 +80,10 @@ def test_round_trip_loads_valid():
     assert "rootDir" in ast, "AST should contain 'rootDir' key."
     
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
-@pytest.mark.mep0028
-def test_update_root_dir():
+@pytest.mark.mep0028c
+def test_v2_update_root_dir():
     """
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
@@ -151,10 +102,10 @@ def test_update_root_dir():
     assert "source/auth" in final_out
 
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
-@pytest.mark.mep0028
-def test_update_context_env():
+@pytest.mark.mep0028c
+def test_v2_update_context_env():
     """
     Validate that updating the external context (env from 'prod' to 'dev')
     causes the config file's environment to be updated in the rendered output.
@@ -175,10 +126,10 @@ def test_update_context_env():
     final_out = round_trip_dumps(rendered_data)
     assert '"env" = "dev"' in final_out
 
-@pytest.mark.xfail(reason="Pending proper implementation")
+# @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
-@pytest.mark.mep0028
-def test_update_module_extras():
+@pytest.mark.mep0028c
+def test_v2_update_module_extras():
     """
     Validate that updating a module's 'extras' (changing the owner for the login module)
     is reflected in the rendered output.

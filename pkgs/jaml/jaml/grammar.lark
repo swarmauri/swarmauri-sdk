@@ -1,8 +1,40 @@
+///////////////////////////////////////////////////////////
+// Organized Grammar File
+//
+// This grammar defines the language constructs for our DSL.
+// The file is organized into the following sections:
+//   1. Global Tokens and Whitespace
+//   2. Line and Statement Structure
+//   3. Assignment and Expression Definitions
+//   4. Array Handling
+//   5. Inline Table Handling
+//   6. Comment Handling
+//   7. Comprehension Handling
+//   8. Parenthesized and Folded Expressions
+//   9. Terminal Definitions (Strings, Numbers, Identifiers, etc.)
+//
+///////////////////////////////////////////////////////////
 
-NEWLINE: /\r?\n/  // we treat each newline as a token
+//////////////////////////////
+// 1. Global Tokens & Whitespace
+//////////////////////////////
 
-// 2) Now define lines
+NEWLINE: /\r?\n/  // Each newline is treated as a token
+
+%ignore HSPACES
+HSPACES: /[ \t]+/
+
+ws: WHITESPACE
+WHITESPACE: /\s+/
+
+INLINE_WS: /[ \t]+/  // For inline comments
+
+//////////////////////////////
+// 2. Line and Statement Structure
+//////////////////////////////
+
 start: line*
+
 line: comment_line
     | blank_line
     | section
@@ -13,24 +45,29 @@ line: comment_line
 comment_line: COMMENT NEWLINE
 blank_line: NEWLINE
 
-assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
-
-concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
-
-string_component: STRING | SCOPED_VAR
-
-type_annotation: TYPE
-TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
-
-// A section header can appear
+// Section headers can appear:
 section: "[" (section_name | STRING | comprehension_expr) "]" NEWLINE?
 section_name: IDENTIFIER ("." IDENTIFIER)* 
 
+// Table array section
 table_array_section: "[[" table_array_header "]]" NEWLINE? table_array_content?
 table_array_header: section_name | STRING | list_comprehension | table_array_comprehension
 table_array_content: line*
 table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
 
+//////////////////////////////
+// 3. Assignment and Expression Definitions
+//////////////////////////////
+
+assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
+
+concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
+string_component: STRING | SCOPED_VAR
+
+type_annotation: TYPE
+TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
+
+// The assignment_value can be one of many types
 ?assignment_value: concat_expr
                  | comprehension
                  | array
@@ -49,6 +86,7 @@ table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension
                  | TABLE_ARRAY
                  | OPERATOR
 
+// Basic expression items and arithmetic
 ?expr_item: IDENTIFIER
           | FLOAT
           | INTEGER
@@ -75,51 +113,49 @@ table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension
       | TABLE_ARRAY
       | OPERATOR
 
-// If you want to ignore purely horizontal spaces between tokens:
-%ignore HSPACES
-HSPACES: /[ \t]+/
+//////////////////////////////
+// 4. Array Handling
+//////////////////////////////
 
-// --------------------------
-// Array Handling
-// --------------------------
 LBRACK: "["
 RBRACK: "]"
 
 ?array: LBRACK NEWLINE* array_content? RBRACK
 
 ?array_content: NEWLINE* array_item (ws? "," ws? (NEWLINE* array_item))* (ws? "," ws?)? NEWLINE*
-
 ?array_item: pre_item_comments? value inline_comment? post_item_comments?
 
-// --------------------------
-// Comment Handling
-// --------------------------
+//////////////////////////////
+// 5. Inline Table Handling
+//////////////////////////////
+
+inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
+inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
+
+inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
+                  | comment_line
+
+inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
+
+//////////////////////////////
+// 6. Comment Handling
+//////////////////////////////
+
 pre_item_comments: (COMMENT NEWLINE)+
 inline_comment: INLINE_WS COMMENT
 post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
 
-// --------------------------
-// Inline Table Handling
-// --------------------------
+//////////////////////////////
+// 7. Comprehension Handling
+//////////////////////////////
 
-inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
-inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
-inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
-                  | comment_line
-inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
-
-
-// --------------------------
-// Comprehension Handling
-// --------------------------
 ?comprehension: list_comprehension
               | dict_comprehension
 
-
+// String expression for concatenation in comprehensions
 string_expr: (STRING | SCOPED_VAR) (HSPACES? "+" HSPACES? (STRING | SCOPED_VAR))*
-pair_expr: (string_expr|IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr|IDENTIFIER))
+pair_expr: (string_expr | IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr | IDENTIFIER))
 ?comprehension_expr: pair_expr | string_expr | expr_item
-
 
 // List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
 list_comprehension: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
@@ -136,14 +172,9 @@ comprehension_pair: arithmetic (COLON | EQ) arithmetic
 COLON: ":"
 EQ: "="
 
-// --------------------------
-// Whitespace Handling
-// --------------------------
-ws: WHITESPACE
-
-// --------------------------
-// Expressions
-// --------------------------
+//////////////////////////////
+// 8. Parenthesized and Folded Expressions
+//////////////////////////////
 
 paren_expr: "(" value+ ")"
 
@@ -151,37 +182,33 @@ folded_expr: FOLDED_START folded_content FOLDED_END
 folded_content: value+
 FOLDED_START: "<("
 FOLDED_END: ")>"
-// ----------
-// Terminal Definitions
-// ----------
 
-// 3) STRING
+//////////////////////////////
+// 9. Terminal Definitions
+//////////////////////////////
+
+// STRING: Supports various quoting styles (single, double, triple, backticks).
 STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`)/s
 
-// 4) SCOPED_VAR
+// Scoped variable expressions (e.g., @{var})
 SCOPED_VAR: /[@%$]\{[^}]+\}/
 
-// 5) COMMENT
+// Comment tokens
 COMMENT.1: /\#[^\n]*/
-
 INLINE_COMMENT: /[ \t]+#[^\n]*/
 
-// 6) FLOAT
+// Number tokens
 FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
-
-// 7) INTEGER
 INTEGER: /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\d*)/
 
-// 8) BOOLEAN
+// Boolean and null values
 BOOLEAN: /(true|false)\b/
-
-// 9) NULL
 NULL: /null\b/
 
-// 10) RESERVED_FUNC
+// Reserved function calls
 RESERVED_FUNC: /(File\(\)|Git\(\))\b/
 
-// 11) KEYWORD
+// Keywords
 FOR: "for"
 AS: "as"
 IN: "in"
@@ -190,22 +217,12 @@ ELSE: "else"
 
 KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as)\b/
 
-// 12) TABLE_ARRAY
+// Table array and section tokens
 TABLE_ARRAY: /\[\[[^\]\n]+\]\]/
-
-// 13) TABLE_SECTION
 TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
 
-
-
-// 18) IDENTIFIER
+// Identifier: Disallow reserved keywords and special names
 IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
 
-// 19) OPERATOR
+// Operators: Including arithmetic and comparison operators
 OPERATOR: /\*\*|==|!=|>=|<=|->|<<|\+|-|\*|\/|%|>|<(?!{)/
-
-// 21) WHITESPACE
-WHITESPACE: /\s+/
-
-// If you want to allow inline whitespace for inline_comment:
-INLINE_WS: /[ \t]+/

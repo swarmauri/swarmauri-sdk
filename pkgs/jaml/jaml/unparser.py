@@ -208,6 +208,7 @@ class JMLUnparser:
             if k == "__comments__":
                 continue
             if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
+                print('+++==>', k, v, type(k), type(v))
                 val_txt = self.format_value(v["_value"])
                 lines.append(f"{k}: {v['_annotation']} = {val_txt}")
             elif not isinstance(v, dict):
@@ -227,6 +228,7 @@ class JMLUnparser:
         # nested subsections
         for k, v in sect.items():
             if isinstance(v, dict):
+                print('---->', k, v, type(k), type(v))
                 sub_path, collapsed = self._collapse_section(path + [k], v)
                 lines.append(self._emit_section(collapsed, sub_path))
 
