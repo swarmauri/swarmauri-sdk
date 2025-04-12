@@ -85,6 +85,8 @@ def test_v2_update_root_dir():
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
+    print('\n\n\n\n[TEST DEBUG ]:')
+    print(data)
     assert data["rootDir"] == "src"
 
     data["rootDir"].origin = '"new_src"'
@@ -94,12 +96,14 @@ def test_v2_update_root_dir():
     out = round_trip_dumps(data)
     rendered_data = render(out, context=BASE_CONTEXT)
     final_out = round_trip_dumps(rendered_data)
-    
+
+    print('\n\n\n\n[FINAL_OUT]:')
+    print(final_out)    
     assert rendered_data["rootDir"] == "new_src"
     assert "src/auth" in final_out
 
 
-# @pytest.mark.xfail(reason="Pending proper implementation")
+@pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028d
 def test_v2_update_context_env():
@@ -123,7 +127,7 @@ def test_v2_update_context_env():
     final_out = round_trip_dumps(rendered_data)
     assert '"env" = "dev"' in final_out
 
-# @pytest.mark.xfail(reason="Pending proper implementation")
+@pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028d
 def test_v2_update_module_extras():

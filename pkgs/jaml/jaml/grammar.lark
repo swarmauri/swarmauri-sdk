@@ -59,7 +59,7 @@ header_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clau
 // 3. Assignment and Expression Definitions
 //////////////////////////////
 
-assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? NEWLINE?
+assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? 
 
 concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
 string_component: STRING | SCOPED_VAR
