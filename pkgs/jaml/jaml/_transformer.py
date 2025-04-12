@@ -196,49 +196,62 @@ class ConfigTransformer(Transformer):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
         self.debug_print(f"comprehension_clause(): original_text = {original_text}")
         self.debug_print(f"comprehension_clause(): raw items = {items}")
+
+        # Initialize components
         loop_vars = []
         iterable = None
         conditions = []
-        mode = "expect_for"
-        current_var = None
-        for item in items:
-            if isinstance(item, Token):
-                token_val = item.value.strip().lower()
+
+        # Process the parse tree
+        i = 0
+        # Skip FOR
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
+            i += 1
+
+        # Handle loop_vars
+        if i < len(items) and hasattr(items[i], "data") and items[i].data == "loop_vars":
+            loop_vars_tree = items[i]
+            for loop_var in loop_vars_tree.children:
+                if hasattr(loop_var, "data") and loop_var.data == "loop_var":
+                    var_items = loop_var.children
+                    dotted_expr = var_items[0]
+                    alias = None
+                    if len(var_items) > 1 and isinstance(var_items[1], AliasClause):
+                        alias = var_items[1]
+                    loop_vars.append((dotted_expr, alias) if alias else dotted_expr)
+            i += 1
+
+        # Handle IN and iterable
+        if i < len(items) and isinstance(items[i], InClause):
+            i += 1
+            if i < len(items):
+                # The iterable could be a SCOPED_VAR, STRING, or other value
+                iterable = items[i]
+                i += 1
+
+        # Handle IF conditions
+        while i < len(items):
+            if isinstance(items[i], Token) and items[i].type == "IF":
+                i += 1
+                if i < len(items) and hasattr(items[i], "data") and items[i].data == "comprehension_condition":
+                    condition = []
+                    condition_items = items[i].children
+                    condition.append(condition_items[0])  # First comp_expr
+                    if len(condition_items) > 1:
+                        condition.append(condition_items[1])  # OPERATOR
+                        condition.append(condition_items[2])  # Second comp_expr
+                    conditions.append(condition)
+                    i += 1
             else:
-                token_val = item
-            if mode == "expect_for":
-                if isinstance(item, str) and token_val == "for":
-                    mode = "vars"
-                continue
-            if mode == "vars":
-                if isinstance(item, str) and token_val == "in":
-                    mode = "iterable"
-                elif isinstance(item, AliasClause):
-                    if current_var is not None:
-                        loop_vars.append((current_var, item))
-                        current_var = None
-                    else:
-                        self.debug_print("comprehension_clause(): Alias without preceding variable")
-                elif isinstance(item, tuple):
-                    loop_vars.append(item)
-                else:
-                    if current_var is not None:
-                        loop_vars.append(current_var)
-                    current_var = item
-                continue
-            if mode == "iterable":
-                if isinstance(item, str) and token_val == "if":
-                    mode = "conditions"
-                else:
-                    iterable = item
-                continue
-            if mode == "conditions":
-                conditions.append(item)
-        if current_var is not None:
-            loop_vars.append(current_var)
+                i += 1  # Skip unexpected items (e.g., NEWLINE)
+
         self.debug_print(f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}")
-        return ComprehensionClause(loop_vars, iterable, conditions, original_text)
-        
+        return ComprehensionClause(
+            loop_vars=loop_vars,
+            iterable=iterable,
+            conditions=conditions,
+            original=original_text
+        )
     @v_args(meta=True)
     def comprehension_clauses(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)

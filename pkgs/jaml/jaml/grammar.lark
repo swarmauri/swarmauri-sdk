@@ -160,7 +160,11 @@ pair_expr: (string_expr | IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_ex
 // List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
 list_comprehension: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
 comprehension_clauses: comprehension_clause+ 
-comprehension_clause: FOR (dotted_expr | dotted_expr alias_clause? | dotted_expr "," dotted_expr )? IN value (IF comp_expr OPERATOR? comp_expr?)* (IN value)? NEWLINE*
+comprehension_clause: FOR loop_vars IN value (IF comprehension_condition)* NEWLINE*
+
+loop_vars: loop_var ("," loop_var)*
+loop_var: dotted_expr alias_clause?
+comprehension_condition: comp_expr (OPERATOR comp_expr)?
 
 alias_clause: AS SCOPED_VAR
 

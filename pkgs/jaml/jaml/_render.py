@@ -30,14 +30,21 @@ def substitute_deferred(ast_node, env, context=None):
             print("[DEBUG RENDER] No clauses in ComprehensionHeader")
             return result
         header_expr = ast_node.header_expr
-        # Iterate over clauses
+
         def evaluate_clauses(clauses, index, env):
             if index >= len(clauses.clauses):
                 # Base case: evaluate header and create table
                 try:
-                    header_val = evaluate_f_string(str(header_expr), global_data=env, local_data=env, context=context)
+                    # Ensure header_expr can use aliases
+                    header_val = evaluate_f_string(
+                        str(header_expr),
+                        global_data=env,
+                        local_data=env,
+                        context=context
+                    )
+                    print("[DEBUG RENDER] Header value:", header_val)
                     table = {"__header__": header_val}
-                    # Add alias KV pairs
+                    # Add alias KV pairs to the section
                     for alias in ast_node.aliases:
                         table[alias] = env.get(alias)
                     # Merge existing assignments
@@ -47,35 +54,55 @@ def substitute_deferred(ast_node, env, context=None):
                 except Exception as e:
                     print("[DEBUG RENDER] Failed to evaluate header:", e)
                 return
+
             clause = clauses.clauses[index]
             # Evaluate iterable
             iterable = substitute_deferred(clause.iterable, env, context)
+            print("[DEBUG RENDER] Iterable resolved to:", iterable)
+            if not isinstance(iterable, (list, tuple)):
+                print("[DEBUG RENDER] Warning: Iterable is not a sequence:", iterable)
+                iterable = [iterable] if iterable else []
+
             # Iterate over items
             for item in iterable:
                 # Set loop variables
                 for var in clause.loop_vars:
                     if isinstance(var, tuple) and len(var) == 2:
                         var_name, alias_clause = var
-                        env[str(var_name)] = item
-                        alias_name = re.match(r'[@%$]\{([^}]+)\}', alias_clause.scoped_var).group(1)
-                        env[alias_name] = item
+                        var_name = str(var_name)
+                        env[var_name] = item
+                        # Extract alias name (e.g., 'package' from '%{package}')
+                        alias_match = re.match(r'[@%$]\{([^}]+)\}', alias_clause.scoped_var)
+                        if alias_match:
+                            alias_name = alias_match.group(1)
+                            env[alias_name] = item
+                            print("[DEBUG RENDER] Set alias:", alias_name, "=", item)
+                        else:
+                            print("[DEBUG RENDER] Warning: Malformed alias:", alias_clause.scoped_var)
                     else:
                         env[str(var)] = item
+                        print("[DEBUG RENDER] Set loop var:", str(var), "=", item)
+
                 # Evaluate conditions
                 conditions_pass = True
                 for cond in clause.conditions:
+                    # Handle conditions as lists (e.g., [DottedExpr, Operator, DottedExpr])
                     try:
-                        cond_val = safe_eval(str(cond), local_env=env)
+                        cond_str = " ".join(str(c) for c in cond if not isinstance(c, Token) or c.type != "NEWLINE")
+                        cond_val = safe_eval(cond_str, local_env=env)
+                        print("[DEBUG RENDER] Condition", cond_str, "=", cond_val)
                         if not cond_val:
                             conditions_pass = False
                             break
                     except Exception as e:
-                        print("[DEBUG RENDER] Failed to evaluate condition:", e)
+                        print("[DEBUG RENDER] Failed to evaluate condition:", cond, "Error:", e)
                         conditions_pass = False
                         break
                 if conditions_pass:
                     evaluate_clauses(clauses, index + 1, env.copy())
+
         evaluate_clauses(clauses, 0, local_env)
+        print("[DEBUG RENDER] ComprehensionHeader result:", result)
         return result
 
     if isinstance(ast_node, FoldedExpressionNode):
@@ -206,16 +233,23 @@ def _substitute_vars(expr: str, env: Dict[str, Any], context: Dict[str, Any] = N
             val = context if context is not None else {}
         else:
             val = env
+        current = val
+        print('\n\nCurrent:','\n'*2, current, '\n\n', keys, '\n'*2, '-'*10)
         for key in keys:
-            if isinstance(val, dict) and key in val:
-                val = val[key]
-            elif isinstance(val, (list, tuple)) and key.isdigit():
-                val = val[int(key)]
-            else:
-                print("[DEBUG SUB] Failed to resolve:", f"{prefix}{{{var}}}")
+            try:
+                if isinstance(current, dict):
+                    current = current[key]
+                elif isinstance(current, (list, tuple)) and key.isdigit():
+                    current = current[int(key)]
+                else:
+                    print("[DEBUG SUB] Failed to resolve:", f"{prefix}{{{var}}}")
+                    return f"{prefix}{{{var}}}"
+            except (KeyError, IndexError, TypeError):
+                print("[DEBUG SUB] Resolution error for:", f"{prefix}{{{var}}}")
                 return f"{prefix}{{{var}}}"
-        val = _extract_value(val)
-        return repr(val) if quote_strings and isinstance(val, str) else val
+        current = _extract_value(current)
+        print("[DEBUG SUB] Resolved", f"{prefix}{{{var}}}", "to:", current)
+        return repr(current) if quote_strings and isinstance(current, str) else current
 
     if not expr.strip():
         return ""
@@ -238,6 +272,7 @@ def _substitute_vars(expr: str, env: Dict[str, Any], context: Dict[str, Any] = N
     if '/' in expr:
         expr = expr.replace(" / ", "/").strip("'").strip('"')
     
+    print("[DEBUG SUB] Final substituted expr:", expr)
     return expr
 
 def extract_header_env(header, env):
