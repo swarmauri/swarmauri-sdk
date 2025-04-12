@@ -11,7 +11,7 @@ from .ast_nodes import (
     DeferredDictComprehension,
     DeferredListComprehension,
     FoldedExpressionNode,
-    TableArrayComprehensionHeader,
+    ComprehensionHeader,
     TableArrayHeader,
     TableArraySectionNode,
     StringExpr,
@@ -51,7 +51,6 @@ class ConfigTransformer(Transformer):
         inline = None
         type_annotation = None
 
-        # Determine structure based on number of items.
         if len(items) == 2:
             key, value = items
         elif len(items) == 3:
@@ -66,55 +65,58 @@ class ConfigTransformer(Transformer):
         else:
             raise ValueError("Unexpected structure in assignment: " + str(items))
 
-        self.debug_print(f"In assignment: key={key}, type_annotation={type_annotation}, value={value}, inline={inline}")
-        
-        # Unquote the value if needed.
+        # Check for empty or whitespace-only value
+        if isinstance(value, str) and value.strip() == "":
+            self.debug_print(f"Skipping empty or whitespace-only assignment for key: {key}")
+            return key, None  # Or raise an error
+
+        if isinstance(value, PreservedString) and value.value.strip() == "":
+            self.debug_print(f"Skipping empty PreservedString for key: {key}")
+            return key, None
+
+        # Unquote value if needed
         if not isinstance(value, PreservedString) and isinstance(value, str) and (
             (value.startswith("'") and value.endswith("'")) or 
             (value.startswith('"') and value.endswith('"'))
         ):
-            self.debug_print("Unquoting value")
             value = value[1:-1]
 
-        # Normalize inline comment if present.
-        if inline is not None:
-            if isinstance(inline, dict) and '_inline_comment' in inline:
-                inline = inline['_inline_comment']
-            inline = str(inline)
-        
+        if inline and isinstance(inline, dict) and '_inline_comment' in inline:
+            inline = inline['_inline_comment']
+        inline = str(inline) if inline else None
+
         if type_annotation:
             result = {"_value": PreservedValue(value, inline) if inline else value,
                       "_annotation": type_annotation}
         else:
             result = PreservedValue(value, inline) if inline else value
 
-        # ★ NEW: If a table array header is active, attach this assignment under that header.
         if self._current_ta_header is not None:
-            self.current_section[self._current_ta_header] = result
-            self.debug_print(f"Stored assignment for key '{self._current_ta_header}' under table array header.")
+            table_name = str(self._current_ta_header).split('=')[0].strip()
+            if table_name not in self.current_section:
+                self.current_section[table_name] = []
+            if not self.current_section[table_name]:
+                self.current_section[table_name].append({})
+            self.current_section[table_name][-1][key] = result
         else:
             self.current_section[key] = result
-            self.debug_print(f"Stored assignment for key: {key}")
 
-        # Return tuple for any parent rules.
         return key, value
 
     def section(self, items):
-        self.debug_print(f"section() called with items: {items}")
         raw_section = items[0]
         if isinstance(raw_section, list):
             d = self.data
-            for part in raw_section:
+            for part in raw_section[:-1]:
                 d = d.setdefault(part, {})
-                self.debug_print(f"Processing nested section: {part} -> {d}")
-            self.current_section = d
-            return d
+            raw_section = raw_section[-1]
+            d[raw_section] = {}
+            self.current_section = d[raw_section]
         else:
-            if raw_section not in self.data:
-                self.data[raw_section] = {}
-                self.debug_print(f"Creating new section: {raw_section}")
+            self.data[raw_section] = {}
             self.current_section = self.data[raw_section]
-            return self.data[raw_section]
+        self._current_ta_header = None
+        return self.current_section
 
     def section_name(self, items):
         self.debug_print(f"section_name() called with items: {items}")
@@ -276,44 +278,14 @@ class ConfigTransformer(Transformer):
 
 
     @v_args(meta=True)
-    def table_array_comprehension(self, meta, items):
-        """
-        Processes a table_array_comprehension production.
-        
-        The rule (from the grammar) is:
-          table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
-        
-        This method:
-          - Uses meta and _slice_input to capture the original text.
-          - Expects that items[0] is the comprehension expression and
-            items[1] (or the subsequent items combined) represents the comprehension clauses.
-          - Returns an instance of TableArrayComprehensionHeader.
-        """
-        # Capture the full original text for round-trip fidelity.
+    def header_comprehension(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"table_array_comprehension(): original_text = {original_text}")
-
-        # Filter out ignorable whitespace tokens if they were not automatically ignored.
         meaningful_items = [item for item in items if not (isinstance(item, Token) and item.type in ("NEWLINE", "WHITESPACE"))]
-
-        if not meaningful_items:
-            raise ValueError("No meaningful items in table_array_comprehension")
-        
-        # The first item should be the comprehension expression.
         header_expr = meaningful_items[0]
-        self.debug_print(f"table_array_comprehension(): header_expr = {header_expr}")
-
-        # The remainder is expected to capture the comprehension clauses;
-        # if there's more than one item, join them (or you can wrap the list as needed).
-        clauses = None
-        if len(meaningful_items) > 1:
-            # If your transformer already groups comprehension_clauses,
-            # then typically meaningful_items[1] holds that grouping.
-            clauses = meaningful_items[1]
-            self.debug_print(f"table_array_comprehension(): clauses = {clauses}")
-        
-        # Return our unique AST node for table_array_comprehension.
-        return TableArrayComprehensionHeader(header_expr, clauses, original_text)
+        clauses = meaningful_items[1] if len(meaningful_items) > 1 else None
+        node = ComprehensionHeader(header_expr, clauses, original_text)
+        node.table_name = original_text.strip('[]')  # Store original for key
+        return node
 
     # --------------------------------------------------------------------------
     # Updated table array header rule.
@@ -345,32 +317,30 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def table_array_section(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        # First item is the table array header.
         header = items[0]
-        # Signal that assignments now belong to the table array header.
-        self._current_ta_header = header
-
-        # Collect any assignments (returned as tuples) following the header.
         body_dict = {}
         for child in items[1:]:
             if isinstance(child, tuple):
                 key, value = child
                 body_dict[key] = value
-        
-        # Merge in any inline assignments already attached to the header.
         if hasattr(header, "inline_assignments"):
             body_dict.update(header.inline_assignments)
-        
-        # Now nest these assignments under the table array header key in the global section.
-        self.current_section[str(header)] = body_dict
-
+        # Resolve header to a string key
+        table_name = header.table_name if hasattr(header, 'table_name') else str(header).split('=')[0].strip()
+        if isinstance(header, (ComprehensionHeader, TableArrayHeader)):
+            # Use original text for comprehension headers
+            table_name = header.original.strip('[]') if isinstance(header, ComprehensionHeader) else table_name
+        if table_name not in self.current_section:
+            self.current_section[table_name] = []
         node = TableArraySectionNode(
             header=header,
             body=body_dict,
             original=original_text,
         )
+        self.current_section[table_name].append(node)
+        self.current_section = self.data  # Reset to root for global context
+        self._current_ta_header = None
         return node
-
 
     def inline_assignment(self, items):
         self.debug_print(f"inline_assignment() called with items: {items}")

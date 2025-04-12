@@ -46,14 +46,14 @@ comment_line: COMMENT NEWLINE
 blank_line: NEWLINE
 
 // Section headers can appear:
-section: "[" (section_name | STRING | comprehension_expr) "]" NEWLINE?
+section: "[" (section_name | STRING | header_comprehension) "]" NEWLINE?
 section_name: IDENTIFIER ("." IDENTIFIER)* 
 
 // Table array section
-table_array_section: "[[" table_array_header "]]" NEWLINE? table_array_content?
-table_array_header: section_name | STRING | list_comprehension | table_array_comprehension
-table_array_content: line*
-table_array_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
+table_array_section: "[[" table_array_header "]]" (NEWLINE table_array_content)?
+table_array_header: section_name | STRING | list_comprehension | header_comprehension
+table_array_content: line+
+header_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
 
 //////////////////////////////
 // 3. Assignment and Expression Definitions

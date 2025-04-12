@@ -199,7 +199,7 @@ class TableArraySectionNode:
                 f"body={self.body!r}, origin={self.origin!r})")
 
 
-class TableArrayComprehensionHeader:
+class ComprehensionHeader:
     """
     Represents a computed header for a table array section.
     
@@ -222,7 +222,7 @@ class TableArrayComprehensionHeader:
         return self.origin
 
     def __repr__(self):
-        return (f"TableArrayComprehensionHeader(header_expr={self.header_expr!r}, "
+        return (f"ComprehensionHeader(header_expr={self.header_expr!r}, "
                 f"clauses={self.clauses!r}, origin={self.origin!r})")
 
     def __hash__(self):
@@ -385,58 +385,46 @@ class FoldedExpressionNode:
 
 
 class DeferredListComprehension:
-    """
-    Represents a deferred list comprehension.
-    It preserves the original raw text (including square brackets)
-    so that after round-trip loads, the original text is maintained.
-    Its evaluate(env) method computes the list given an environment.
-    """
-    def __init__(self, text):
-        # text should be the entire raw text including the square brackets,
-        # e.g., '[f"item_{x}" for x in [1, 2, 3]]'
-        self.text = text
-
-    @property
-    def origin(self):
-        return self.text
-
-    @origin.setter
-    def origin(self, value):
-        self.text = value
-
-    @property
-    def value(self):
-        return self.text
-
+    def __init__(self, original_text):
+        self.origin = original_text
+        self.resolved = None
     def evaluate(self, env):
-        """
-        Evaluate the deferred list comprehension.
-        Expected syntax: [f"item_{x}" for x in [1, 2, 3]]
-        The method uses a regex to capture the f-string expression, loop variable, and iterable expression.
-        It then evaluates the f-string expression for each element of the iterable.
-        """
-        pattern = r'^\[\s*(f["\'].*?["\'])\s+for\s+(\w+)\s+in\s+(.*)\s*\]$'
-        m = re.match(pattern, self.text.strip())
-        if not m:
-            return self.text
-        expr_str, loop_var, iterable_str = m.groups()
+        if self.resolved is not None:
+            return self.resolved
+        print("[DEBUG EVAL] Evaluating DeferredListComprehension:", self.origin)
         try:
-            iterable = eval(iterable_str, {"__builtins__": {}}, env)
-        except Exception:
-            return self.text
-        result = []
-        for item in iterable:
-            local_env = {loop_var: item}
-            # Evaluate the f-string expression via the interpolation helper.
-            value = evaluate_f_string_interpolation(expr_str, local_env)
-            result.append(value)
-        return result
+            # Extract comprehension parts (simplified)
+            match = re.match(r'\[(.*?) for (.*?) in (.*?)(?: if (.*))?\]', self.origin)
+            if not match:
+                raise ValueError(f"Invalid comprehension: {self.origin}")
+            expr, var, iterable, condition = match.groups()
+            # Resolve iterable
+            iterable_val = _substitute_vars(iterable, env, quote_strings=False)
+            iterable_val = safe_eval(iterable_val, env=env) if isinstance(iterable_val, str) else iterable_val
+            if not isinstance(iterable_val, (list, tuple, set)):
+                raise ValueError(f"Iterable not a sequence: {iterable_val}")
+            result = []
+            for item in iterable_val:
+                local_env = env.copy()
+                local_env[var.strip()] = item
+                # Apply condition
+                if condition and not safe_eval(condition, env=local_env):
+                    continue
+                # Evaluate expression
+                val = _substitute_vars(expr, local_env, quote_strings=False)
+                val = safe_eval(val, env=local_env) if isinstance(val, str) else val
+                result.append(val)
+            self.resolved = result
+            return result
+        except Exception as e:
+            print("[DEBUG EVAL] Comprehension evaluation failed:", e)
+            return self.origin  # Fallback
 
     def __str__(self):
-        return self.text
+        return self.origin
 
     def __repr__(self):
-        return f"DeferredListComprehension({self.text!r})"
+        return f"DeferredListComprehension({self.origin!r})"
 
     def __eq__(self, other):
         if isinstance(other, str):

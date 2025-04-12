@@ -20,7 +20,7 @@ name = %{module.name} + ".py"
 path = @{rootDir} + "/" + %{package.name} + "/" + %{name}
 type = "python"
 extras = [k = v for k, v in %{module.extras.items} if k != "secret"]
-tests = { testFramework = "pytest", tests = %{module.tests} }
+test_conf = { testFramework = "pytest", tests = %{module.tests} }
 
 '''
 
@@ -99,7 +99,7 @@ def test_v2_update_root_dir():
     final_out = round_trip_dumps(rendered_data)
     
     assert rendered_data["rootDir"] == "new_src"
-    assert "source/auth" in final_out
+    assert "src/auth" in final_out
 
 
 # @pytest.mark.xfail(reason="Pending proper implementation")

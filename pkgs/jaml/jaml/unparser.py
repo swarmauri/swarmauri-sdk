@@ -29,7 +29,7 @@ from .ast_nodes import (
     DeferredDictComprehension,
     # table‑array helpers
     TableArrayHeader,
-    TableArrayComprehensionHeader,
+    ComprehensionHeader,
     TableArraySectionNode,
     # misc AST helpers
     StringExpr,
@@ -141,7 +141,7 @@ class JMLUnparser:
             return "\n".join([header_txt] + body_lines)
 
         # 2) header objects
-        if isinstance(node, (TableArrayHeader, TableArrayComprehensionHeader)):
+        if isinstance(node, (TableArrayHeader, ComprehensionHeader)):
             return node.origin
 
         # 3) simple helpers
@@ -173,18 +173,15 @@ class JMLUnparser:
     # ------------------------------------------------------------------ #
     # section helpers
     # ------------------------------------------------------------------ #
-    def _collapse_section(self, path: List[str], sect: Any) -> Tuple[List[str], Any]:
-        """
-        Collapse chains of single‑key subsections to produce the compact
-        `[a.b.c]` syntax.
-        """
+    def _collapse_section(self, path: List[Any], sect: Any) -> Tuple[List[str], Any]:
+        str_path = [item.origin.strip('[]') if isinstance(item, (TableArrayHeader, ComprehensionHeader)) else str(item) for item in path]
         if isinstance(sect, dict) and len(sect) == 1:
             (only_key, val), = sect.items()
             if isinstance(val, dict) and not {"_value", "_annotation"} <= val.keys():
-                return self._collapse_section(path + [only_key], val)
+                return self._collapse_section(str_path + [only_key], val)
             if isinstance(val, PreservedInlineTable) and "\n" in val.origin:
-                return path + [only_key], val
-        return path, sect
+                return str_path + [only_key], val
+        return str_path, sect
 
     def _emit_section(
         self,
@@ -233,46 +230,71 @@ class JMLUnparser:
                 lines.append(self._emit_section(collapsed, sub_path))
 
         return "\n".join(lines).rstrip("\n")
+
+    def _emit_section(self, sect: Any, path: List[Any]) -> str:
+        # Convert path elements to strings
+        str_path = []
+        for item in path:
+            if isinstance(item, (TableArrayHeader, ComprehensionHeader)):
+                str_path.append(item.origin.strip('[]') if hasattr(item, 'origin') else str(item))
+            else:
+                str_path.append(str(item))
+        if not isinstance(sect, dict):
+            header = f"[{'.'.join(str_path)}]"
+            return f"{header}\n{self._expand_inline_table(sect)}\n"
+        lines: List[str] = [f"[{'.'.join(str_path)}]"]
+        for cmt in sect.get("__comments__", []):
+            lines.append(cmt)
+        for k, v in sect.items():
+            if k == "__comments__":
+                continue
+            if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
+                val_txt = self.format_value(v["_value"])
+                lines.append(f"{k}: {v['_annotation']} = {val_txt}")
+            elif not isinstance(v, dict):
+                lines.append(f"{k} = {self.format_value(v)}")
+        if len(lines) > 1:
+            lines.append("")
+        for k, v in sect.items():
+            if isinstance(v, dict) and not {"_value", "_annotation"} <= v.keys():
+                sub_path, collapsed = self._collapse_section([k], v)
+                lines.append(self._emit_section(collapsed, str_path + sub_path))
+        return "\n".join(lines).rstrip("\n")
     # ------------------------------------------------------------------ #
     # public API
     # ------------------------------------------------------------------ #
-    def unparse(self) -> str:
-        """Return the full DSL text."""
+    def unparse(self):
         out: List[str] = []
         data = self._get_config_data()
-
-        # ---------- top‑level comments ----------
         for cmt in data.get("__comments__", []):
             out.append(cmt)
         if data.get("__comments__"):
             out.append("")
-
-        # ---------- iterate keys ----------
         for key, value in data.items():
             if key == "__comments__":
                 continue
-
-            # ---- table‑array bucket ----
-            if isinstance(key, (TableArrayHeader, TableArrayComprehensionHeader)) and isinstance(value, list):
-                for section_node in value:
-                    out.append(self.unparse_node(section_node))
+            if isinstance(value, list) and all(isinstance(v, (dict, TableArraySectionNode)) for v in value):
+                for section in value:
+                    if isinstance(section, TableArraySectionNode):
+                        out.append(self.unparse_node(section))
+                    else:
+                        key_str = key.origin.strip('[]') if isinstance(key, (TableArrayHeader, ComprehensionHeader)) else key
+                        lines = [f"[[{key_str}]]"]
+                        for k, v in section.items():
+                            if isinstance(v, dict) and {"_value", "_annotation"} <= v.keys():
+                                lines.append(f"{k}: {v['_annotation']} = {self.format_value(v['_value'])}")
+                            else:
+                                lines.append(f"{k} = {self.format_value(v)}")
+                        out.append("\n".join(lines))
+                out.append("")
                 continue
-
-            # ---- normal sections ----
             if isinstance(value, dict):
                 path, collapsed = self._collapse_section([key], value)
                 out.append(self._emit_section(collapsed, path))
+                out.append("")
                 continue
-
-            # ---- plain assignment ----
-            if hasattr(value, "unparse"):
-                rhs = value.unparse()  # type: ignore[attr-defined]
-            elif value.__class__.__module__.endswith(".ast_nodes"):
-                rhs = self.unparse_node(value)
-            else:
-                rhs = self.format_value(value)
+            rhs = self.format_value(value) if not hasattr(value, "unparse") else value.unparse()
             out.append(f"{key} = {rhs}")
-
         return "\n".join(out).rstrip("\n")
 
     # Convenience
