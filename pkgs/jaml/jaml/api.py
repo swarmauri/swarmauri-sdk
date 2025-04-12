@@ -164,12 +164,7 @@ def render(text, context={}):
     Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
     """
     ast = loads(text)
-    env = {}
-    env.update(context)
-    # Also inject the booleans
-    env["true"] = True
-    env["false"] = False
     print("[DEBUG RENDER API]: ")
     pprint(ast)
-    return substitute_deferred(ast, env)
+    return substitute_deferred(ast, env={}, context=context)
 

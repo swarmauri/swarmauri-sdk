@@ -67,7 +67,6 @@ def _resolve_node(node: Any, global_env: Dict[str, Any], local_env: Dict[str, An
             env.update(local_env)
         return node.evaluate(env)
 
-
     elif isinstance(node, PreservedString):
         # check f-string prefix
         stripped = node.origin.lstrip()

@@ -135,7 +135,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 @pytest.mark.spec
 @pytest.mark.mep0011
 # @pytest.mark.xfail(reason="F-string interpolation evaluation not fully implemented.")
-def test_fstring_interpolation():
+def test_context_f_string():
     sample = """
 [message]
 text = f"Hello, ${name}!"

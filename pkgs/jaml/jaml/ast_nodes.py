@@ -3,9 +3,10 @@ from ._helpers import (
     unquote, 
     resolve_scoped_variable, 
     evaluate_f_string, 
-    evaluate_f_string_interpolation,
     evaluate_comprehension
 )  
+
+from ._eval import safe_eval
 
 class InClause:
     """
@@ -384,41 +385,57 @@ class FoldedExpressionNode:
         return stripped
 
 
+
 class DeferredListComprehension:
     def __init__(self, original_text):
         self.origin = original_text
         self.resolved = None
-    def evaluate(self, env):
+
+    def evaluate(self, env, context=None):
         if self.resolved is not None:
+            print("[DEBUG EVAL] Returning cached result:", self.resolved)
             return self.resolved
+
         print("[DEBUG EVAL] Evaluating DeferredListComprehension:", self.origin)
         try:
-            # Extract comprehension parts (simplified)
-            match = re.match(r'\[(.*?) for (.*?) in (.*?)(?: if (.*))?\]', self.origin)
+            # Parse comprehension: [expr for var in iterable if condition]
+            match = re.match(r'\[(.*?)\s+for\s+([^\s]+)\s+in\s+([^]]*?\])(?:\s+if\s+(.+))?\s*\]', self.origin)
             if not match:
                 raise ValueError(f"Invalid comprehension: {self.origin}")
+
             expr, var, iterable, condition = match.groups()
-            # Resolve iterable
-            iterable_val = _substitute_vars(iterable, env, quote_strings=False)
-            iterable_val = safe_eval(iterable_val, env=env) if isinstance(iterable_val, str) else iterable_val
+            print("[DEBUG EVAL] Parsed: expr=%s, var=%s, iterable=%s, condition=%s" % (expr, var, iterable, condition))
+
+            # Evaluate iterable
+            iterable_val = safe_eval(iterable, local_env={})
             if not isinstance(iterable_val, (list, tuple, set)):
                 raise ValueError(f"Iterable not a sequence: {iterable_val}")
+
             result = []
             for item in iterable_val:
-                local_env = env.copy()
+                local_env = env.copy() if isinstance(env, dict) else {}
                 local_env[var.strip()] = item
+
                 # Apply condition
-                if condition and not safe_eval(condition, env=local_env):
-                    continue
+                if condition:
+                    condition_val = safe_eval(condition, local_env=local_env)
+                    if not condition_val:
+                        continue
+
                 # Evaluate expression
-                val = _substitute_vars(expr, local_env, quote_strings=False)
-                val = safe_eval(val, env=local_env) if isinstance(val, str) else val
+                if expr.strip().startswith(("f'", 'f"')):
+                    val = evaluate_f_string(expr.strip(), global_data=env, local_data=local_env, context=context)
+                else:
+                    val = safe_eval(expr, local_env=local_env) if isinstance(expr, str) else expr
+
                 result.append(val)
+
             self.resolved = result
+            print("[DEBUG EVAL] Evaluated to:", result)
             return result
         except Exception as e:
             print("[DEBUG EVAL] Comprehension evaluation failed:", e)
-            return self.origin  # Fallback
+            raise  # Raise to catch in tests
 
     def __str__(self):
         return self.origin
@@ -428,56 +445,83 @@ class DeferredListComprehension:
 
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.text == other
+            return self.origin == other
         if isinstance(other, DeferredListComprehension):
-            return self.text == other.text
+            return self.origin == other.origin
         return False
-
-
 
 
 class DeferredDictComprehension:
     def __init__(self, text):
-        self.origin_text = text  # The raw inner text, or full text including braces
+        self.origin = text
+        self.resolved = None
 
-    @property
-    def origin(self):
-        return self.origin_text
+    def evaluate(self, env, context=None):
+        if self.resolved is not None:
+            print("[DEBUG EVAL] Returning cached result:", self.resolved)
+            return self.resolved
 
-    @origin.setter
-    def origin(self, value):
-        self.origin_text = value
-
-    def evaluate(self, env):
-        # (Your existing implementation that uses self.origin_text.)
-        pattern = r'^(f["\'].*?["\'])\s*(?::|=)\s*(.*?)\s+for\s+(\w+)\s+in\s+(.*)$'
-        m = re.match(pattern, self.origin_text.strip().strip('{}'))
-        if not m:
-            return self.origin_text
-        key_expr_str, val_expr_str, loop_var, iterable_str = m.groups()
+        print("[DEBUG EVAL] Evaluating DeferredDictComprehension:", self.origin)
         try:
-            iterable = eval(iterable_str, {"__builtins__": {}}, env)
-        except Exception:
-            return self.origin_text
-        result = {}
-        for item in iterable:
-            local_env = {loop_var: item}
-            key = evaluate_f_string_interpolation(key_expr_str, local_env)
-            try:
-                value = eval(val_expr_str, {"__builtins__": {}}, local_env)
-            except Exception:
-                value = val_expr_str
-            result[key] = value
-        return result
+            # Parse comprehension: {key_expr: val_expr for var in iterable}
+            pattern = r'^(f["\'].*?["\']|[^\s:]+)\s*(?::|=)\s*(.*?)\s+for\s+(\w+)\s+in\s+([^]]*?\])(?:\s+if\s+(.+))?\s*$'
+            m = re.match(pattern, self.origin.strip().strip('{}'))
+            if not m:
+                print("[DEBUG EVAL] Invalid dict comprehension:", self.origin)
+                return self.origin
+
+            key_expr_str, val_expr_str, loop_var, iterable_str, condition = m.groups()
+            print("[DEBUG EVAL] Parsed: key=%s, val=%s, var=%s, iterable=%s, condition=%s" % (
+                key_expr_str, val_expr_str, loop_var, iterable_str, condition))
+
+            # Evaluate iterable
+            iterable = safe_eval(iterable_str, local_env={})
+            if not isinstance(iterable, (list, tuple, set)):
+                raise ValueError(f"Iterable not a sequence: {iterable}")
+
+            result = {}
+            for item in iterable:
+                local_env = env.copy() if isinstance(env, dict) else {}
+                local_env[loop_var] = item
+
+                # Apply condition
+                if condition:
+                    condition_val = safe_eval(condition, local_env=local_env)
+                    if not condition_val:
+                        continue
+
+                # Evaluate key
+                if key_expr_str.strip().startswith(("f'", 'f"')):
+                    key = evaluate_f_string(key_expr_str.strip(), global_data=env, local_data=local_env, context=context)
+                else:
+                    key = safe_eval(key_expr_str, local_env=local_env) if isinstance(key_expr_str, str) else key_expr_str
+
+                # Evaluate value
+                if val_expr_str.strip().startswith(("f'", 'f"')):
+                    value = evaluate_f_string(val_expr_str.strip(), global_data=env, local_data=local_env, context=context)
+                else:
+                    value = safe_eval(val_expr_str, local_env=local_env) if isinstance(val_expr_str, str) else val_expr_str
+
+                result[key] = value
+
+            self.resolved = result
+            print("[DEBUG EVAL] Evaluated to:", result)
+            return result
+        except Exception as e:
+            print("[DEBUG EVAL] Comprehension evaluation failed:", e)
+            raise
+
     def __str__(self):
-        return "{" + self.origin_text + "}"
+        return "{" + self.origin + "}"
+
     def __repr__(self):
-        return f"DeferredDictComprehension({self.origin_text!r})"
+        return f"DeferredDictComprehension({self.origin!r})"
+
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.origin_text == other
+            return self.origin == other
         if isinstance(other, DeferredDictComprehension):
-            return self.origin_text == other.origin_text
+            return self.origin == other.origin
         return False
 
 

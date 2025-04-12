@@ -19,7 +19,6 @@ packages = ${packages}
 name = %{module.name} + ".py"
 path = @{rootDir} + "/" + %{package.name} + "/" + %{name}
 type = "python"
-extras = [k = v for k, v in %{module.extras.items} if k != "secret"]
 test_conf = { testFramework = "pytest", tests = %{module.tests} }
 
 '''
@@ -55,15 +54,13 @@ expected_result = r'''
 name = "login.py"
 path = "src/auth/login.py"
 type = "python"
-extras = {"owner": "teamA", "secret": "xyz"}
-extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
+test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
 
 [file.auth.signup.source]
 name = "signup.py"
 path = "src/auth/signup.py"
 type = "python"
-extras = { "owner" = "teamB" }
-extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
+test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source", "test_v2_auth"] }
 
 '''
 

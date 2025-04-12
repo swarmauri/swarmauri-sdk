@@ -1,19 +1,9 @@
+from typing import Dict, Any
 import ast
 import operator as op
 
-def safe_eval(expr: str) -> any:
-    """
-    Safely evaluate a simple arithmetic or string concatenation expression.
-    Now supports additional constructs including:
-      - Conditional (if/else) expressions
-      - Boolean operations (and, or)
-      - Comparisons (including in, is)
-      - Function calls (limited to whitelisted functions, e.g. enumerate)
-      - List and tuple literals, and basic comprehensions.
-    
-    Only a fixed set of binary and unary operations, comparisons, and functions are allowed.
-    """
-    # Allowed binary operators.
+def safe_eval(expr: str, local_env: Dict[str, Any] = None) -> any:
+    local_env = local_env or {}
     allowed_operators = {
         ast.Add: op.add,
         ast.Sub: op.sub,
@@ -23,29 +13,26 @@ def safe_eval(expr: str) -> any:
         ast.Mod: op.mod,
         ast.Pow: op.pow
     }
-    # Allowed boolean operators.
     allowed_boolops = {ast.And, ast.Or}
-    # Allowed comparison operators.
     allowed_cmpops = {
         ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
         ast.In, ast.NotIn, ast.Is, ast.IsNot,
     }
-    # Whitelisted functions.
     allowed_functions = {
         "enumerate": enumerate,
         "false": False,
         "true": True,
         "null": None
-        # Additional allowed functions can be added here.
     }
-    
+
     def _eval(node):
         if isinstance(node, ast.Expression):
             return _eval(node.body)
-        elif isinstance(node, ast.Constant):  # Python 3.8+
+        elif isinstance(node, ast.Constant):
             return node.value
         elif isinstance(node, ast.Name):
-            # Allow names only if they are whitelisted functions.
+            if node.id in local_env:
+                return local_env[node.id]
             if node.id in allowed_functions:
                 return allowed_functions[node.id]
             raise ValueError(f"Name not allowed: {node.id}")
@@ -62,8 +49,7 @@ def safe_eval(expr: str) -> any:
                 return +operand
             elif isinstance(node.op, ast.USub):
                 return -operand
-            else:
-                raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+            raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
         elif isinstance(node, ast.BoolOp):
             if type(node.op) not in allowed_boolops:
                 raise ValueError(f"Unsupported boolean operator: {type(node.op).__name__}")
@@ -121,8 +107,6 @@ def safe_eval(expr: str) -> any:
                 elif op_type is ast.IsNot:
                     if not (left is not right):
                         return False
-                else:
-                    raise ValueError(f"Unsupported comparison operator: {op_type.__name__}")
                 left = right
             return True
         elif isinstance(node, ast.Call):
@@ -135,10 +119,8 @@ def safe_eval(expr: str) -> any:
         elif isinstance(node, ast.Tuple):
             return tuple(_eval(elt) for elt in node.elts)
         elif isinstance(node, ast.Set):
-            # New support for set literals.
             return {_eval(elt) for elt in node.elts}
         elif isinstance(node, ast.GeneratorExp):
-            # Support simple generator expressions.
             if len(node.generators) != 1:
                 raise ValueError("Only single generator expressions supported")
             comp = node.generators[0]
@@ -146,33 +128,27 @@ def safe_eval(expr: str) -> any:
             result = []
             for item in iter_val:
                 if isinstance(comp.target, ast.Name):
-                    local_env = {comp.target.id: item}
+                    local_env[comp.target.id] = item
                 else:
                     raise ValueError("Unsupported comprehension target")
-                if comp.ifs and not all(_eval_with_env(if_node, local_env) for if_node in comp.ifs):
+                if comp.ifs and not all(_eval(if_node) for if_node in comp.ifs):
                     continue
-                result.append(_eval_with_env(node.elt, local_env))
-            # If all elements are strings, join them (for string concatenation) 
-            # otherwise, return the list.
+                result.append(_eval(node.elt))
             if all(isinstance(x, str) for x in result):
                 return "".join(result)
             return result
         elif isinstance(node, ast.Subscript):
             value = _eval(node.value)
-            # For Python <3.9, slices are wrapped in an ast.Index node.
-            if isinstance(node.slice, ast.Index):
+            if isinstance(node.slice, ast.Index):  # Python <3.9
                 slice_val = _eval(node.slice.value)
             else:
                 slice_val = _eval(node.slice)
             return value[slice_val]
-        else:
-            raise ValueError(f"Unsupported expression element: {node}")
-    
-    def _eval_with_env(node, local_env):
-        # If a Name node is encountered, check local_env first.
-        if isinstance(node, ast.Name) and node.id in local_env:
-            return local_env[node.id]
-        return _eval(node)
-    
-    tree = ast.parse(expr, mode='eval')
-    return _eval(tree)
+        raise ValueError(f"Unsupported expression element: {type(node).__name__}")
+
+    try:
+        tree = ast.parse(expr, mode='eval')
+        return _eval(tree)
+    except Exception as e:
+        print("[DEBUG SAFE_EVAL] Evaluation failed:", e)
+        raise
