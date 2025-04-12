@@ -3,8 +3,6 @@ from typing import IO, Any, Dict
 
 from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
-from pprint import pprint
-
 # Using the lark parser and transformer modules:
 from .lark_parser import parser
 from ._transformer import ConfigTransformer
@@ -102,7 +100,7 @@ def round_trip_dumps(ast: Any) -> str:
     unparser = JMLUnparser(ast)
     dumped = unparser.unparse()
     print("[DEBUG RT_DUMPS API]: ")
-    pprint(dumped)
+    print(dumped)
     return dumped
 
 

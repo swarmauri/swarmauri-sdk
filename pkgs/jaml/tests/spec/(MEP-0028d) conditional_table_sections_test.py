@@ -85,8 +85,8 @@ def test_v2_update_root_dir():
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
-    print('\n\n\n\n[TEST DEBUG ]:')
-    print(data)
+    print('\n\n[TEST DEBUG]:')
+    print(data,'\n\n')
     assert data["rootDir"] == "src"
 
     data["rootDir"].origin = '"new_src"'
