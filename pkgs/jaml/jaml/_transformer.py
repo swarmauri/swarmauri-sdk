@@ -127,10 +127,15 @@ class ConfigTransformer(Transformer):
         return items[0]
 
     @v_args(meta=True)
-    def AS(self, meta):
+    def alias_clause(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"AS() called. original_text: {original_text}")
-        return AliasClause(keyword="as", original=original_text)
+        self.debug_print(f"alias_clause(): original_text = {original_text}")
+        if len(items) != 2:
+            raise ValueError(f"Expected AS SCOPED_VAR, got {items}")
+        as_keyword, scoped_var = items
+        if as_keyword.lower() != "as":
+            raise ValueError(f"Expected 'as' keyword, got {as_keyword}")
+        return AliasClause(keyword="as", scoped_var=scoped_var, original=original_text)
 
     @v_args(meta=True)
     def IN(self, meta):
@@ -195,37 +200,45 @@ class ConfigTransformer(Transformer):
         iterable = None
         conditions = []
         mode = "expect_for"
+        current_var = None
         for item in items:
             if isinstance(item, Token):
-                token_val = item.value.strip()
+                token_val = item.value.strip().lower()
             else:
                 token_val = item
             if mode == "expect_for":
-                if isinstance(item, str) and token_val.lower() == "for":
+                if isinstance(item, str) and token_val == "for":
                     mode = "vars"
-                else:
-                    self.debug_print("comprehension_clause(): Missing 'for' keyword, item: " + str(item))
-                continue
-            if mode == "vars" and isinstance(item, str) and token_val.lower() == "in":
-                mode = "iterable"
-                continue
-            if mode == "iterable" and isinstance(item, str) and token_val.lower() == "if":
-                mode = "conditions"
                 continue
             if mode == "vars":
-                loop_vars.append(item)
-            elif mode == "iterable":
-                if iterable is None:
-                    iterable = item
+                if isinstance(item, str) and token_val == "in":
+                    mode = "iterable"
+                elif isinstance(item, AliasClause):
+                    if current_var is not None:
+                        loop_vars.append((current_var, item))
+                        current_var = None
+                    else:
+                        self.debug_print("comprehension_clause(): Alias without preceding variable")
+                elif isinstance(item, tuple):
+                    loop_vars.append(item)
                 else:
-                    iterable = f"{iterable} {item}"
-            elif mode == "conditions":
+                    if current_var is not None:
+                        loop_vars.append(current_var)
+                    current_var = item
+                continue
+            if mode == "iterable":
+                if isinstance(item, str) and token_val == "if":
+                    mode = "conditions"
+                else:
+                    iterable = item
+                continue
+            if mode == "conditions":
                 conditions.append(item)
-            else:
-                self.debug_print("comprehension_clause(): Unhandled mode, item: " + str(item))
+        if current_var is not None:
+            loop_vars.append(current_var)
         self.debug_print(f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}")
         return ComprehensionClause(loop_vars, iterable, conditions, original_text)
-
+        
     @v_args(meta=True)
     def comprehension_clauses(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
@@ -276,7 +289,6 @@ class ConfigTransformer(Transformer):
         self.debug_print(f"dict_comprehension() called with meta: {meta} and items: {items}")
         return DeferredDictComprehension(original_text)
 
-
     @v_args(meta=True)
     def header_comprehension(self, meta, items):
         original_text = self._slice_input(meta.start_pos, meta.end_pos)
@@ -284,7 +296,21 @@ class ConfigTransformer(Transformer):
         header_expr = meaningful_items[0]
         clauses = meaningful_items[1] if len(meaningful_items) > 1 else None
         node = ComprehensionHeader(header_expr, clauses, original_text)
-        node.table_name = original_text.strip('[]')  # Store original for key
+        node.table_name = original_text.strip('[]')
+        # Extract aliases for rendering
+        node.aliases = []
+        if clauses:
+            for clause in clauses.clauses:
+                for var in clause.loop_vars:
+                    if isinstance(var, tuple) and len(var) == 2 and isinstance(var[1], AliasClause):
+                        # Extract alias name from scoped_var (e.g., "%{package}" → "package")
+                        scoped_var = var[1].scoped_var
+                        match = re.match(r'[@%$]\{([^}]+)\}', scoped_var)
+                        if match:
+                            alias_name = match.group(1)
+                            node.aliases.append(alias_name)
+                        else:
+                            self.debug_print(f"Warning: Malformed scoped_var in {scoped_var}")
         return node
 
     # --------------------------------------------------------------------------
@@ -329,7 +355,7 @@ class ConfigTransformer(Transformer):
         table_name = header.table_name if hasattr(header, 'table_name') else str(header).split('=')[0].strip()
         if isinstance(header, (ComprehensionHeader, TableArrayHeader)):
             # Use original text for comprehension headers
-            table_name = header.original.strip('[]') if isinstance(header, ComprehensionHeader) else table_name
+            table_name = header.origin.strip('[]') if isinstance(header, ComprehensionHeader) else table_name
         if table_name not in self.current_section:
             self.current_section[table_name] = []
         node = TableArraySectionNode(
@@ -639,7 +665,3 @@ class ConfigTransformer(Transformer):
     def _slice_input(self, start, end):
         self.debug_print(f"_slice_input() called with start: {start}, end: {end}")
         return self._context.text[start:end]
-
-    def _store_table_array(self, header, node):
-        bucket = self.current_section.setdefault(str(header), [])
-        bucket.append(node)

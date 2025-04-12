@@ -52,13 +52,13 @@ BASE_CONTEXT = {
 expected_result = r'''
 [file.auth.login.source]
 name = "login.py"
-path = "src/auth/login.py"
+path = "new_src/auth/login.py"
 type = "python"
 test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
 
 [file.auth.signup.source]
 name = "signup.py"
-path = "src/auth/signup.py"
+path = "new_src/auth/signup.py"
 type = "python"
 test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source", "test_v2_auth"] }
 
@@ -100,7 +100,7 @@ def test_v2_update_root_dir():
     print('\n\n\n\n[FINAL_OUT]:')
     print(final_out)    
     assert rendered_data["rootDir"] == "new_src"
-    assert "src/auth" in final_out
+    assert "new_src/auth" in final_out
 
 
 @pytest.mark.xfail(reason="Pending proper implementation")

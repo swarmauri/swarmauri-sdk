@@ -10,9 +10,7 @@ from .ast_nodes import (
     ComprehensionHeader
 )
 from ._helpers import resolve_scoped_variable, evaluate_f_string
-from .ast_nodes import FoldedExpressionNode
-from ._eval import safe_eval  # or import safe_eval as defined in resolve.py
-
+from ._eval import safe_eval
 
 def substitute_deferred(ast_node, env, context=None):
     print("[DEBUG RENDER] Processing node of type:", type(ast_node))
@@ -23,10 +21,67 @@ def substitute_deferred(ast_node, env, context=None):
     if isinstance(ast_node, (DeferredDictComprehension, DeferredListComprehension)):
         return ast_node.evaluate(env, context=context)
 
-    elif isinstance(ast_node, FoldedExpressionNode):
+    if isinstance(ast_node, ComprehensionHeader):
+        print("[DEBUG RENDER] Evaluating ComprehensionHeader:", ast_node)
+        local_env = env.copy() if isinstance(env, dict) else {}
+        result = {}
+        clauses = ast_node.clauses
+        if not clauses:
+            print("[DEBUG RENDER] No clauses in ComprehensionHeader")
+            return result
+        header_expr = ast_node.header_expr
+        # Iterate over clauses
+        def evaluate_clauses(clauses, index, env):
+            if index >= len(clauses.clauses):
+                # Base case: evaluate header and create table
+                try:
+                    header_val = evaluate_f_string(str(header_expr), global_data=env, local_data=env, context=context)
+                    table = {"__header__": header_val}
+                    # Add alias KV pairs
+                    for alias in ast_node.aliases:
+                        table[alias] = env.get(alias)
+                    # Merge existing assignments
+                    if header_val in env:
+                        table.update(substitute_deferred(env[header_val], env, context))
+                    result[header_val] = table
+                except Exception as e:
+                    print("[DEBUG RENDER] Failed to evaluate header:", e)
+                return
+            clause = clauses.clauses[index]
+            # Evaluate iterable
+            iterable = substitute_deferred(clause.iterable, env, context)
+            # Iterate over items
+            for item in iterable:
+                # Set loop variables
+                for var in clause.loop_vars:
+                    if isinstance(var, tuple) and len(var) == 2:
+                        var_name, alias_clause = var
+                        env[str(var_name)] = item
+                        alias_name = re.match(r'[@%$]\{([^}]+)\}', alias_clause.scoped_var).group(1)
+                        env[alias_name] = item
+                    else:
+                        env[str(var)] = item
+                # Evaluate conditions
+                conditions_pass = True
+                for cond in clause.conditions:
+                    try:
+                        cond_val = safe_eval(str(cond), local_env=env)
+                        if not cond_val:
+                            conditions_pass = False
+                            break
+                    except Exception as e:
+                        print("[DEBUG RENDER] Failed to evaluate condition:", e)
+                        conditions_pass = False
+                        break
+                if conditions_pass:
+                    evaluate_clauses(clauses, index + 1, env.copy())
+        evaluate_clauses(clauses, 0, local_env)
+        return result
+
+    if isinstance(ast_node, FoldedExpressionNode):
         return _render_folded_expression_node(ast_node, env, context=context)
 
-    elif isinstance(ast_node, dict):
+    if isinstance(ast_node, dict):
         local_env = env.copy() if isinstance(env, dict) else {}
         for k, v in ast_node.items():
             if k == "__comments__":
@@ -39,7 +94,7 @@ def substitute_deferred(ast_node, env, context=None):
                 continue
             if isinstance(k, (TableArrayHeader, ComprehensionHeader)):
                 header_val = k.original.strip('[]') if hasattr(k, 'original') else str(k)
-                k = safe_eval(header_val, local_env=local_env) if header_val.startswith('[') else header_val
+                k = header_val  # Defer evaluation to ComprehensionHeader branch
             if isinstance(v, list) and all(isinstance(item, (dict, TableArraySectionNode)) for item in v):
                 result[k] = []
                 for item in v:
@@ -55,10 +110,10 @@ def substitute_deferred(ast_node, env, context=None):
                 result[k] = substitute_deferred(v, local_env, context)
         return result
 
-    elif isinstance(ast_node, list):
+    if isinstance(ast_node, list):
         return [substitute_deferred(item, env, context) for item in ast_node]
 
-    elif isinstance(ast_node, PreservedString):
+    if isinstance(ast_node, PreservedString):
         s = ast_node.origin
         if s.strip() == "":
             return ""
@@ -66,7 +121,7 @@ def substitute_deferred(ast_node, env, context=None):
             return evaluate_f_string(s.lstrip(), global_data=env, local_data=env, context=context)
         return _substitute_vars(ast_node.value, env, context=context)
 
-    elif isinstance(ast_node, str):
+    if isinstance(ast_node, str):
         if ast_node.strip() == "":
             return ""
         if ast_node.lstrip().startswith(("f\"", "f'")):
@@ -157,6 +212,7 @@ def _substitute_vars(expr: str, env: Dict[str, Any], context: Dict[str, Any] = N
             elif isinstance(val, (list, tuple)) and key.isdigit():
                 val = val[int(key)]
             else:
+                print("[DEBUG SUB] Failed to resolve:", f"{prefix}{{{var}}}")
                 return f"{prefix}{{{var}}}"
         val = _extract_value(val)
         return repr(val) if quote_strings and isinstance(val, str) else val
@@ -164,27 +220,30 @@ def _substitute_vars(expr: str, env: Dict[str, Any], context: Dict[str, Any] = N
     if not expr.strip():
         return ""
 
+    # Handle full variable expressions
     if re.match(r'^[@%$]\{[^}]+\}$', expr):
         prefix = expr[0]
         var = expr[2:-1]
         return resolve_var(var, prefix)
 
-    for prefix, replacer in [
-        (r'\$\{([^}]*)\}', lambda m: resolve_var(m.group(1), '$')),
-        (r'%\{([^}]*)\}', lambda m: resolve_var(m.group(1), '%')),
-        (r'@\{([^}]*)\}', lambda m: resolve_var(m.group(1), '@'))
-    ]:
-        expr = re.sub(prefix, replacer, expr)
+    # Substitute within strings
+    def replace_var(match):
+        prefix = match.group(1) or ''
+        var = match.group(2)
+        return str(resolve_var(var, prefix))
+
+    expr = re.sub(r'([@%$])?\{([^}]+)\}', replace_var, expr)
+    
+    # Clean up spaces and quotes for paths
+    if '/' in expr:
+        expr = expr.replace(" / ", "/").strip("'").strip('"')
     
     return expr
 
 def extract_header_env(header, env):
     if isinstance(header, ComprehensionHeader):
         header_env = {}
-        if header.clauses:
-            for clause in header.clauses.clauses:
-                for var in clause.loop_vars:
-                    var_name = str(var).strip()
-                    header_env[var_name] = env.get(var_name, None)
+        for alias in header.aliases:
+            header_env[alias] = env.get(alias, None)
         return header_env
     return {}

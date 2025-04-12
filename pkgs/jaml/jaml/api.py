@@ -44,7 +44,7 @@ def dumps(obj: Dict[str, Any]) -> str:
     unparser = JMLUnparser(obj)
     dumped = unparser.unparse()
     print("[DEBUG API]: ")
-    pprint(dumped)
+    print(dumped)
     return dumped
 
 
@@ -62,7 +62,7 @@ def loads(s: str) -> Dict[str, Any]:
     try:
         ast = parser.parse(s)
         print("[DEBUG API]: ")
-        pprint(ast)
+        print(ast)
     except UnexpectedToken as e:
         raise SyntaxError("UnexpectedToken") from e
     except UnexpectedCharacters as e:
@@ -96,7 +96,7 @@ def round_trip_dumps(ast: Any) -> str:
     # Transform the AST to a plain dict if needed.
     # ast = ConfigTransformer().transform(ast)
     # print("[DEBUG API]: ")
-    # pprint(ast)
+    # print(ast)
     unparser = JMLUnparser(ast)
     dumped = unparser.unparse()
     print("[DEBUG RT_DUMPS API]: ")
@@ -114,13 +114,13 @@ def round_trip_dump(ast: Any, fp: IO[str]) -> None:
 def round_trip_loads(s: str):
     ast = parser.parse(s)
     print("[DEBUG RT_LOADS API]: ")
-    pprint(ast)
+    print(ast)
     transformer = ConfigTransformer()
     # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
     transformed = transformer.transform(ast)
     print("[DEBUG RT_LOADS API - Post Transform]: ")
-    pprint(transformed)
+    print(transformed)
     return transformed
 
 
@@ -163,6 +163,6 @@ def render(text, context={}):
     """
     ast = loads(text)
     print("[DEBUG RENDER API]: ")
-    pprint(ast)
+    print(ast)
     return substitute_deferred(ast, env={}, context=context)
 

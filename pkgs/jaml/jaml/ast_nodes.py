@@ -39,8 +39,9 @@ class AliasClause:
       keyword: The literal keyword value (expected to be "as").
       original: The original raw text for this keyword (for round-trip fidelity).
     """
-    def __init__(self, keyword, original):
+    def __init__(self, keyword, scoped_var, original):
         self.keyword = keyword
+        self.scoped_var = scoped_var
         self.origin = original
 
     def __str__(self):
@@ -48,7 +49,7 @@ class AliasClause:
         return self.origin
 
     def __repr__(self):
-        return f"AliasClause(keyword={self.keyword!r}, original={self.origin!r})"
+        return f"AliasClause(keyword={self.keyword!r}, scoped_var={self.scoped_var!r}, origin={self.origin!r})"
 
 
 class PairExpr:
