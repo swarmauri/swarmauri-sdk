@@ -133,7 +133,6 @@ def evaluate_f_string(f_str, global_data, local_data, context=None):
 
 
 
-
 def evaluate_comprehension(expr_node, env):
     """
     Evaluate an arithmetic expression from a comprehension.

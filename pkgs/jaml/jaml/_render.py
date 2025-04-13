@@ -1,9 +1,10 @@
 from typing import Dict, Any
 import re
+from lark import Token
 from .ast_nodes import (
-    PreservedString, 
+    PreservedString,
     DeferredDictComprehension,
-    DeferredListComprehension, 
+    DeferredListComprehension,
     FoldedExpressionNode,
     TableArraySectionNode,
     TableArrayHeader,
@@ -12,11 +13,14 @@ from .ast_nodes import (
 from ._helpers import resolve_scoped_variable, evaluate_f_string
 from ._eval import safe_eval
 
-def substitute_deferred(ast_node, env, context=None):
+def substitute_deferred(ast_node, env, context=None, section_data=None):
     print("[DEBUG RENDER] Processing node of type:", type(ast_node))
+    print("[DEBUG RENDER] Environment:", env)
+    print("[DEBUG RENDER] Context:", context)
+    print("[DEBUG RENDER] Section data:", section_data)
 
     if isinstance(ast_node, dict) and {"_annotation", "_value"}.issubset(ast_node):
-        return substitute_deferred(ast_node["_value"], env, context)
+        return substitute_deferred(ast_node["_value"], env, context, section_data)
 
     if isinstance(ast_node, (DeferredDictComprehension, DeferredListComprehension)):
         return ast_node.evaluate(env, context=context)
@@ -33,9 +37,7 @@ def substitute_deferred(ast_node, env, context=None):
 
         def evaluate_clauses(clauses, index, env):
             if index >= len(clauses.clauses):
-                # Base case: evaluate header and create table
                 try:
-                    # Ensure header_expr can use aliases
                     header_val = evaluate_f_string(
                         str(header_expr),
                         global_data=env,
@@ -44,11 +46,11 @@ def substitute_deferred(ast_node, env, context=None):
                     )
                     print("[DEBUG RENDER] Header value:", header_val)
                     table = {"__header__": header_val}
-                    # Add alias KV pairs to the section
                     for alias in ast_node.aliases:
                         table[alias] = env.get(alias)
-                    # Merge existing assignments
-                    if header_val in env:
+                    if hasattr(ast_node, 'inline_assignments') and ast_node.inline_assignments:
+                        table.update(substitute_deferred(ast_node.inline_assignments, env, context))
+                    elif header_val in env:
                         table.update(substitute_deferred(env[header_val], env, context))
                     result[header_val] = table
                 except Exception as e:
@@ -56,22 +58,21 @@ def substitute_deferred(ast_node, env, context=None):
                 return
 
             clause = clauses.clauses[index]
-            # Evaluate iterable
             iterable = substitute_deferred(clause.iterable, env, context)
             print("[DEBUG RENDER] Iterable resolved to:", iterable)
+            if iterable is None or iterable == clause.iterable:
+                print("[DEBUG RENDER] Error: Iterable not substituted:", clause.iterable)
+                iterable = []
             if not isinstance(iterable, (list, tuple)):
                 print("[DEBUG RENDER] Warning: Iterable is not a sequence:", iterable)
                 iterable = [iterable] if iterable else []
 
-            # Iterate over items
             for item in iterable:
-                # Set loop variables
                 for var in clause.loop_vars:
                     if isinstance(var, tuple) and len(var) == 2:
                         var_name, alias_clause = var
                         var_name = str(var_name)
                         env[var_name] = item
-                        # Extract alias name (e.g., 'package' from '%{package}')
                         alias_match = re.match(r'[@%$]\{([^}]+)\}', alias_clause.scoped_var)
                         if alias_match:
                             alias_name = alias_match.group(1)
@@ -83,17 +84,25 @@ def substitute_deferred(ast_node, env, context=None):
                         env[str(var)] = item
                         print("[DEBUG RENDER] Set loop var:", str(var), "=", item)
 
-                # Evaluate conditions
                 conditions_pass = True
                 for cond in clause.conditions:
-                    # Handle conditions as lists (e.g., [DottedExpr, Operator, DottedExpr])
                     try:
                         cond_str = " ".join(str(c) for c in cond if not isinstance(c, Token) or c.type != "NEWLINE")
-                        cond_val = safe_eval(cond_str, local_env=env)
-                        print("[DEBUG RENDER] Condition", cond_str, "=", cond_val)
-                        if not cond_val:
-                            conditions_pass = False
-                            break
+                        parts = cond_str.split('.')
+                        current = env
+                        for part in parts:
+                            if isinstance(current, dict) and part in current:
+                                current = current[part]
+                            else:
+                                print("[DEBUG RENDER] Failed to resolve condition part:", part)
+                                conditions_pass = False
+                                break
+                        else:
+                            cond_val = bool(current)
+                            print("[DEBUG RENDER] Condition", cond_str, "=", cond_val)
+                            if not cond_val:
+                                conditions_pass = False
+                                break
                     except Exception as e:
                         print("[DEBUG RENDER] Failed to evaluate condition:", cond, "Error:", e)
                         conditions_pass = False
@@ -106,22 +115,48 @@ def substitute_deferred(ast_node, env, context=None):
         return result
 
     if isinstance(ast_node, FoldedExpressionNode):
-        return _render_folded_expression_node(ast_node, env, context=context)
+        return _render_folded_expression_node(ast_node, env, context)
 
     if isinstance(ast_node, dict):
         local_env = env.copy() if isinstance(env, dict) else {}
+        result = {}
+
+        # First pass: Build hierarchical local_env mirroring AST structure
         for k, v in ast_node.items():
             if k == "__comments__":
                 continue
-            local_env[k] = v["_value"] if isinstance(v, dict) and "_value" in v else v
-        result = {}
+            if isinstance(k, (ComprehensionHeader, TableArrayHeader)):
+                # Headers will be processed later
+                continue
+            if isinstance(v, dict):
+                # Section: Create nested dictionary and process assignments
+                section_env = local_env.setdefault(k, {})
+                for sk, sv in v.items():
+                    # Render sub-value with section-specific local_data
+                    section_env[sk] = substitute_deferred(sv, local_env, context, section_data=section_env)
+                    print("[DEBUG RENDER] Set local_env[{}][{}] = {}".format(k, sk, section_env[sk]))
+            else:
+                # Simple assignment at root level
+                local_env[k] = substitute_deferred(v, local_env, context, section_data=None)
+                print("[DEBUG RENDER] Set local_env[{}] = {}".format(k, local_env[k]))
+
+        # Second pass: Process ComprehensionHeader keys
+        for k, v in ast_node.items():
+            if isinstance(k, ComprehensionHeader):
+                header_val = substitute_deferred(k, local_env, context)
+                result.update(header_val)
+                local_env.update({hk: hv for hk, hv in header_val.items()})
+
+        # Third pass: Assign final values to result
         for k, v in ast_node.items():
             if k == "__comments__":
                 result[k] = v
                 continue
-            if isinstance(k, (TableArrayHeader, ComprehensionHeader)):
+            if isinstance(k, ComprehensionHeader):
+                continue
+            if isinstance(k, TableArrayHeader):
                 header_val = k.original.strip('[]') if hasattr(k, 'original') else str(k)
-                k = header_val  # Defer evaluation to ComprehensionHeader branch
+                k = header_val
             if isinstance(v, list) and all(isinstance(item, (dict, TableArraySectionNode)) for item in v):
                 result[k] = []
                 for item in v:
@@ -134,25 +169,35 @@ def substitute_deferred(ast_node, env, context=None):
                     else:
                         result[k].append(substitute_deferred(item, item_env, context))
             else:
-                result[k] = substitute_deferred(v, local_env, context)
+                # Use pre-rendered value from local_env
+                result[k] = local_env[k]
+                print("[DEBUG RENDER] Assigned result[{}] = {}".format(k, result[k]))
+
         return result
 
     if isinstance(ast_node, list):
-        return [substitute_deferred(item, env, context) for item in ast_node]
+        return [substitute_deferred(item, env, context, section_data) for item in ast_node]
 
     if isinstance(ast_node, PreservedString):
         s = ast_node.origin
         if s.strip() == "":
             return ""
         if s.lstrip().startswith(("f\"", "f'")):
-            return evaluate_f_string(s.lstrip(), global_data=env, local_data=env, context=context)
-        return _substitute_vars(ast_node.value, env, context=context)
+            # Use section_data if provided for local scope, else fall back to env
+            local_data = section_data if section_data is not None else env
+            result = evaluate_f_string(s.lstrip(), global_data=env, local_data=local_data, context=context)
+            print("[DEBUG RENDER] Resolved f-string {} to {}".format(s, result))
+            return result
+        return _substitute_vars(ast_node, env, context=context)
 
     if isinstance(ast_node, str):
         if ast_node.strip() == "":
             return ""
         if ast_node.lstrip().startswith(("f\"", "f'")):
-            return evaluate_f_string(ast_node.lstrip(), global_data=env, local_data=env, context=context)
+            local_data = section_data if section_data is not None else env
+            result = evaluate_f_string(ast_node.lstrip(), global_data=env, local_data=local_data, context=context)
+            print("[DEBUG RENDER] Resolved f-string {} to {}".format(ast_node, result))
+            return result
         return _substitute_vars(ast_node, env, context=context)
 
     return ast_node
@@ -234,18 +279,24 @@ def _substitute_vars(expr: str, env: Dict[str, Any], context: Dict[str, Any] = N
         else:
             val = env
         current = val
-        print('\n\nCurrent:','\n'*2, current, '\n\n', keys, '\n'*2, '-'*10)
-        for key in keys:
+        print("[DEBUG SUB] Resolving", f"{prefix}{{{var}}}", "with keys:", keys, "in env:", current)
+        for i, key in enumerate(keys):
             try:
                 if isinstance(current, dict):
                     current = current[key]
                 elif isinstance(current, (list, tuple)) and key.isdigit():
                     current = current[int(key)]
+                elif i == 0 and prefix in ('@', '%'):
+                    if key in current:
+                        current = current[key]
+                    else:
+                        print("[DEBUG SUB] Alias not found:", key)
+                        return f"{prefix}{{{var}}}"
                 else:
-                    print("[DEBUG SUB] Failed to resolve:", f"{prefix}{{{var}}}")
+                    print("[DEBUG SUB] Failed to resolve key:", key, "in:", current)
                     return f"{prefix}{{{var}}}"
-            except (KeyError, IndexError, TypeError):
-                print("[DEBUG SUB] Resolution error for:", f"{prefix}{{{var}}}")
+            except (KeyError, IndexError, TypeError) as e:
+                print("[DEBUG SUB] Resolution error for:", f"{prefix}{{{var}}}", "at key:", key, "Error:", e)
                 return f"{prefix}{{{var}}}"
         current = _extract_value(current)
         print("[DEBUG SUB] Resolved", f"{prefix}{{{var}}}", "to:", current)
@@ -282,3 +333,4 @@ def extract_header_env(header, env):
             header_env[alias] = env.get(alias, None)
         return header_env
     return {}
+
