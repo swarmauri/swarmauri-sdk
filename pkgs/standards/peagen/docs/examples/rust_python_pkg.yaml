@@ -33,8 +33,6 @@ PROJECTS:
                 - "Support batch tokenization for large documents and text arrays."
                 - "Optimize regex execution for minimal CPU and memory overhead."
                 - "Provide thread-safe execution for concurrent tokenization tasks."
-              DEPENDENCIES:
-                - "numpy"
 
           - NAME: "whitespace_tokenizer"
             EXTRAS:
@@ -44,8 +42,6 @@ PROJECTS:
                 - "Rapidly split large strings on whitespace with minimal overhead."
                 - "Provide parallelized tokenization to utilize multi-core CPUs effectively."
                 - "Ensure low-latency execution for real-time NLP tasks."
-              DEPENDENCIES:
-                - "numpy"
 
           - NAME: "normalizer"
             EXTRAS:
@@ -55,8 +51,6 @@ PROJECTS:
                 - "Support Unicode-compliant text normalization (NFC, NFD forms)."
                 - "Fast removal of punctuation and special characters."
                 - "Parallelized execution for high-performance normalization on large text datasets."
-              DEPENDENCIES:
-                - "numpy"
 
           - NAME: "tokenizer_io"
             EXTRAS:
@@ -67,6 +61,3 @@ PROJECTS:
                 - "Support zero-copy data transfers between Rust internals and Python."
                 - "Provide optimized functions for batch preprocessing of textual data."
                 - "Handle memory-mapped files and incremental streaming for datasets larger than available memory."
-              DEPENDENCIES:
-                - "numpy"
-                - "pandas"

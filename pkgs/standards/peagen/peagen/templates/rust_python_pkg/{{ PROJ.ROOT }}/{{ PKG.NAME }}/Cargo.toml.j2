@@ -1,5 +1,5 @@
 [package]
-name = "{{ PKG.NAME | replace('_', '-') }}"
+name = "{{ PKG.NAME }}"
 version = "0.1.0"
 edition = "2021"
 authors = ["Jacob Stewart <jacob@swarmauri.com>"]
@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJ.ROOT }}/{{ PKG.NAME }}/"
 
 [lib]
-name = "{{ PKG.NAME | replace('-', '_') }}_rust"
+name = "{{ PKG.NAME }}"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -19,6 +19,9 @@ pyo3 = { version = "0.20", features = ["extension-module"] }
 {{ dependency.name }} = "{{ dependency.version }}"
 {% endfor %}
 {% endif %}
+
+[features]
+py_bindings = []
 
 [profile.release]
 lto = true

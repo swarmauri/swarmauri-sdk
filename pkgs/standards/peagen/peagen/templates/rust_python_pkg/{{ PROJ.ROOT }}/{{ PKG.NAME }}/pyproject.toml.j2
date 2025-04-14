@@ -22,16 +22,6 @@ classifiers = [
     "Development Status :: 3 - Alpha"
 ]
 
-dependencies = [
-    # Dependencies
-    <!-- include additional dependencies here -->
-    {% if PKG.PACKAGE_REQUIRES %}
-    {% for required in PKG.PACKAGE_REQUIRES %}
-    "{{ required.NAME }}{{ required.VERSION }}",
-    {% endfor %}
-    {% endif %}
-]
-
 [project.optional-dependencies]
 dev = ["pytest", "uv"]
 

@@ -25,12 +25,10 @@ classifiers = [
 keywords = ["tokenizer", "nlp", "rust", "fast", "text processing"]
 
 dependencies = [
-    "regex", # Example dependency
-    "pyo3"  # Example dependency
+    "regex",
 ]
 
 [tool.maturin]
-features = ["py_bindings"]
 module-name = "fasttokenizer"
 python-source = "src"
 

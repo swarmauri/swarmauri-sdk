@@ -1,26 +1,31 @@
 use pyo3::prelude::*;
-use pyo3::types::PyString;
+use pyo3::types::PyType;
 use regex::Regex;
-use log::{info, error};
+use log::info;
 
 /// High-speed regex-based tokenizer.
 ///
 /// This class provides an implementation of a Rust-accelerated tokenizer 
 /// that leverages optimized regex processing for extremely fast token extraction.
-#[pymodule]
+#[pyclass]
 pub struct RegexTokenizer {
     /// The regex pattern used for tokenization.
     pattern: Regex,
 }
 
-#[pyproto]
-impl pyo3::class::PyProto for RegexTokenizer {
-    fn __init__(slf: PyRefMut<Self>, pattern: &str) {
-        slf.pattern = Regex::new(pattern).unwrap();
-    }
-}
-
+#[pymethods]
 impl RegexTokenizer {
+    /// Create a new RegexTokenizer with the given pattern
+    #[new]
+    fn new(pattern: &str) -> PyResult<Self> {
+        match Regex::new(pattern) {
+            Ok(regex) => Ok(RegexTokenizer { pattern: regex }),
+            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                format!("Invalid regex pattern: {}", e)
+            ))
+        }
+    }
+
     /// Tokenize the input string using the provided regex pattern.
     ///
     /// Args:
@@ -28,8 +33,7 @@ impl RegexTokenizer {
     ///
     /// Returns:
     ///     List[str]: A list of extracted tokens.
-    #[pyfunction]
-    pub fn tokenize(&self, input: &str) -> PyResult<Vec<String>> {
+    fn tokenize(&self, input: &str) -> PyResult<Vec<String>> {
         info!("Tokenizing input string...");
         let tokens: Vec<String> = self.pattern.find_iter(input)
            .map(|m| m.as_str().to_string())
@@ -41,26 +45,13 @@ impl RegexTokenizer {
     ///
     /// Returns:
     ///     str: The regex pattern as a string.
-    #[pyfunction]
-    pub fn get_pattern(&self) -> PyResult<String> {
+    fn get_pattern(&self) -> PyResult<String> {
         Ok(self.pattern.as_str().to_string())
     }
-}
-
-#[pymodule]
-impl pyo3::class::PyModule for RegexTokenizer {
-    fn __name__(&self) -> &str {
-        "RegexTokenizer"
-    }
-
-    fn __doc__(&self) -> &str {
+    
+    /// Class documentation for Python
+    #[classattr]
+    fn __doc__() -> &'static str {
         "High-speed regex-based tokenizer."
     }
-}
-
-/// Define a Python module for the RegexTokenizer class.
-#[pymodule]
-fn regex_tokenizer(py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<RegexTokenizer>()?;
-    Ok(())
 }
