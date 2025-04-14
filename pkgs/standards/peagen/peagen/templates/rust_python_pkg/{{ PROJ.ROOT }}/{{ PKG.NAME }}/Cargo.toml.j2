@@ -1,0 +1,30 @@
+[package]
+name = "{{ PKG.NAME }}"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jacob Stewart <jacob@swarmauri.com>"]
+description = "{{ PKG.DESCRIPTION }}"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/{{ PROJ.ROOT }}/{{ PKG.NAME }}/"
+
+[lib]
+name = "{{ PKG.NAME }}"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+{% if PKG.RUST_DEPENDENCIES %}
+{% for dependency in PKG.RUST_DEPENDENCIES %}
+{{ dependency.name }} = "{{ dependency.version }}"
+{% endfor %}
+{% endif %}
+
+[features]
+py_bindings = []
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true
