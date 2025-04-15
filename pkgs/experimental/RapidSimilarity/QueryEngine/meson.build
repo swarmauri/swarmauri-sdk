@@ -1,4 +1,4 @@
-project('{{ PKG.NAME }}', 'cpp',
+project('QueryEngine', 'cpp',
   version: '0.1.0',
   default_options: ['cpp_std=c++17', 'warning_level=3']
 )
@@ -12,13 +12,9 @@ py_dep = py.dependency()
 pybind11_dep = dependency('pybind11', required: true)
 
 # Create Python extension modules
-{% for MOD in PKG.MODULES %}
-{%- if MOD.EXTRAS and MOD.EXTRAS.DEPENDENCIES %}
-{%- for dep in MOD.EXTRAS.DEPENDENCIES -%}
-{{ dep }}_dep = dependency('{{ dep }}', required: true)
-{%- endfor %}
-{%- endif %}
-{% endfor %}
+numpy_dep = dependency('numpy', required: true)
+numpy_dep = dependency('numpy', required: true)
+
 
 # Include directory for the main submodule
-subdir('{{ PKG.NAME }}')
+subdir('QueryEngine')

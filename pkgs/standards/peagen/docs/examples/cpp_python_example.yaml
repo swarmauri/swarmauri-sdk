@@ -4,69 +4,95 @@ PROJECTS:
     TEMPLATE_SET: "cpp_python_pkg"
     EXTRAS:
       REQUIREMENTS:
-        - "Provide fast and memory-efficient implementations of common similarity and distance metrics."
-        - "Optimize performance for large-scale data, suitable for AI/ML applications requiring real-time similarity calculations."
-        - "Easy integration with popular Python data science libraries, including NumPy and pandas."
+        - "Implement high-performance similarity search algorithms using C++ for computationally intensive operations."
+        - "Integrate seamlessly with Python for rapid prototyping in AI applications."
+        - "Leverage optimized data structures, multi-threading, and approximation methods for scalable similarity queries."
 
     PACKAGES:
-      #-----------------------------------------------------
-      # 1) VectorMetrics
-      #-----------------------------------------------------
-      - NAME: "VectorMetrics"
+      - NAME: "IndexBuilder"
         EXTRAS:
           AUTHORS:
             - "Michael Nwogha"
-          PURPOSE: "Implement optimized vector similarity and distance metrics for Python."
-          DESCRIPTION: "A suite of fast, memory-efficient implementations of vector similarity and distance metrics (cosine, Euclidean, Manhattan) optimized in C++ for Python usage."
+          PURPOSE: "Construct and maintain high-dimensional indexes for similarity search."
+          DESCRIPTION: "Provides efficient algorithms for building indexes (e.g., tree-based or hash-based structures) to accelerate similarity queries over large datasets."
           REQUIREMENTS:
-            - "Efficient calculation of similarity metrics for large NumPy arrays."
-            - "Minimize memory overhead and optimize computation speed."
-            - "Thread-safe and parallelizable implementations for large-scale vector datasets."
-
+            - "Support various index structures such as kd-trees, ball trees, and locality-sensitive hashing (LSH)."
+            - "Efficiently handle large, high-dimensional datasets."
+            - "Allow incremental updates for dynamic data."
         MODULES:
-          - NAME: "cosine"
+          - NAME: "tree_index"
             EXTRAS:
-              PURPOSE: "Provide optimized cosine similarity calculation."
-              DESCRIPTION: "High-performance cosine similarity computation between vectors or matrices."
+              PURPOSE: "Implement tree-based index construction."
+              DESCRIPTION: "A module for constructing kd-trees or ball trees optimized for rapid nearest neighbor searches."
               REQUIREMENTS:
-                - "Support batched similarity computations between large matrices."
-                - "Optimize data access for CPU cache efficiency."
-                - "Provide both sparse and dense vector support."
-                - "Thread-safe implementation for concurrent operations."
+                - "Optimize recursive partitioning for speed and minimal memory overhead."
+                - "Provide configurable balance and depth parameters."
+              DEPENDENCIES:
+                - "numpy"
+          - NAME: "hash_index"
+            EXTRAS:
+              PURPOSE: "Implement LSH-based indexing."
+              DESCRIPTION: "A module for creating Locality Sensitive Hashing based indexes to reduce search dimensionality and accelerate similarity queries."
+              REQUIREMENTS:
+                - "Utilize multiple hash functions for robust indexing."
+                - "Support configurable bucket sizes for tuning search performance."
               DEPENDENCIES:
                 - "numpy"
 
+      - NAME: "QueryEngine"
+        EXTRAS:
+          AUTHORS:
+            - "Michael Nwogha"
+          PURPOSE: "Execute similarity search queries over pre-built indexes."
+          DESCRIPTION: "Offers a Python interface for running both exact and approximate similarity searches on the indexes built by IndexBuilder, leveraging C++ optimization for speed."
+          REQUIREMENTS:
+            - "Provide both exact and approximate search options."
+            - "Utilize multi-threading where possible to reduce query latency."
+            - "Expose a simple API compatible with common Python data structures."
+        MODULES:
+          - NAME: "exact_query"
+            EXTRAS:
+              PURPOSE: "Execute exact similarity queries."
+              DESCRIPTION: "Implements a precise search algorithm that scans the index to find exact nearest neighbors."
+              REQUIREMENTS:
+                - "Focus on accuracy and robustness for precise query needs."
+              DEPENDENCIES:
+                - "numpy"
+          - NAME: "approx_query"
+            EXTRAS:
+              PURPOSE: "Execute approximate similarity queries."
+              DESCRIPTION: "Implements fast, approximate nearest neighbor search algorithms to significantly reduce query times with an acceptable trade-off in precision."
+              REQUIREMENTS:
+                - "Adjustable parameters to balance speed and accuracy."
+                - "Optimize for rapid retrieval in large-scale datasets."
+              DEPENDENCIES:
+                - "numpy"
+
+      - NAME: "DistanceMetrics"
+        EXTRAS:
+          AUTHORS:
+            - "Michael Nwogha"
+          PURPOSE: "Provide core distance and similarity measures."
+          DESCRIPTION: "Implements various distance functions such as Euclidean distance and cosine similarity to evaluate similarity between high-dimensional vectors."
+          REQUIREMENTS:
+            - "Support multiple distance metrics tailored for different data types."
+            - "Optimize arithmetic operations for large-scale computations."
+            - "Allow easy extension with custom metrics."
+        MODULES:
           - NAME: "euclidean"
             EXTRAS:
-              PURPOSE: "Provide optimized Euclidean distance calculation."
-              DESCRIPTION: "Fast calculation of Euclidean distances optimized for batch operations and real-time computation."
+              PURPOSE: "Compute Euclidean distances."
+              DESCRIPTION: "Optimized computation of Euclidean distance between vectors for use in exact similarity evaluation."
               REQUIREMENTS:
-                - "Support efficient batch processing for large-scale vectors."
-                - "Use SIMD instructions for performance optimization."
-                - "Implement memory-efficient computation for large datasets."
+                - "Ensure computational efficiency with minimal floating-point overhead."
               DEPENDENCIES:
                 - "numpy"
-
-          - NAME: "manhattan"
+          - NAME: "cosine"
             EXTRAS:
-              PURPOSE: "Implement optimized Manhattan (L1) distance calculation."
-              DESCRIPTION: "Efficient Manhattan distance computation suitable for high-dimensional and large-scale vector data."
+              PURPOSE: "Compute cosine similarity."
+              DESCRIPTION: "Efficient module to calculate cosine similarity scores between vectors, widely used in high-dimensional data analysis."
               REQUIREMENTS:
-                - "Fast batch processing for large vector arrays."
-                - "Optimize computation for minimal memory usage and high-speed access."
-                - "Provide thread-safe parallel computations."
+                - "Optimize dot product and norm calculations."
+                - "Handle edge cases such as zero vectors."
               DEPENDENCIES:
                 - "numpy"
-
-          - NAME: "metrics_io"
-            EXTRAS:
-              PURPOSE: "Efficient data loading and preparation utilities for similarity metrics."
-              DESCRIPTION: "Fast utilities for loading, saving, and preprocessing vector data with minimal overhead."
-              REQUIREMENTS:
-                - "Support zero-copy data transfer between Python (NumPy, pandas) and internal C++ structures."
-                - "Efficiently handle large datasets, including memory-mapped file support."
-                - "Provide optimized preprocessing functions (normalization, scaling) commonly needed before similarity calculations."
-                - "Support incremental loading and streaming for datasets larger than memory."
-              DEPENDENCIES:
-                - "numpy"
-                - "pandas"

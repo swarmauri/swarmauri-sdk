@@ -3,14 +3,14 @@ requires = ["meson-python", "ninja", "pybind11"]
 build-backend = "mesonpy"
 
 [project]
-name = "{{ PKG.NAME }}"
+name = "DistanceMetrics"
 version = "0.1.0"
-description = "{{ PKG.DESCRIPTION }}"
+description = "DistanceMetrics package with C++ extensions for calculating various distance metrics."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
 authors = [
-    {name = "Jacob Stewart", email = "jacob@swarmauri.com"}
+    {name = "Your Name", email = "your.email@example.com"}
 ]
 classifiers = [
     "Natural Language :: English",
@@ -22,13 +22,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Dependencies
-    <!-- include additional dependencies here -->
-    {% if PKG.PACKAGE_REQUIRES %}
-    {% for required in PKG.PACKAGE_REQUIRES %}
-    "{{ required.NAME }}{{ required.VERSION }}",
-    {% endfor %}
-    {% endif %}
+    "numpy",
+    "scipy"
 ]
 
 [project.optional-dependencies]

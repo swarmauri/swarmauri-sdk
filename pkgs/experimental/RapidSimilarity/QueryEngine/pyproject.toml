@@ -3,9 +3,9 @@ requires = ["meson-python", "ninja", "pybind11"]
 build-backend = "mesonpy"
 
 [project]
-name = "{{ PKG.NAME }}"
+name = "QueryEngine"
 version = "0.1.0"
-description = "{{ PKG.DESCRIPTION }}"
+description = "Configuration for package QueryEngine with C++ extensions using Meson build system."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
@@ -22,13 +22,9 @@ classifiers = [
 ]
 
 dependencies = [
-    # Dependencies
-    <!-- include additional dependencies here -->
-    {% if PKG.PACKAGE_REQUIRES %}
-    {% for required in PKG.PACKAGE_REQUIRES %}
-    "{{ required.NAME }}{{ required.VERSION }}",
-    {% endfor %}
-    {% endif %}
+    "numpy",
+    "pybind11",
+    "uv"
 ]
 
 [project.optional-dependencies]

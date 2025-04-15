@@ -1,16 +1,16 @@
 [build-system]
-requires = ["meson-python", "ninja", "pybind11"]
+requires = ["meson-python", "ninja", "pybind11", "uv"]
 build-backend = "mesonpy"
 
 [project]
-name = "{{ PKG.NAME }}"
+name = "IndexBuilder"
 version = "0.1.0"
-description = "{{ PKG.DESCRIPTION }}"
+description = "Configuration for package IndexBuilder with C++ extensions using Meson build system."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
 authors = [
-    {name = "Jacob Stewart", email = "jacob@swarmauri.com"}
+    {name = "Your Name", email = "your.email@example.com"}
 ]
 classifiers = [
     "Natural Language :: English",
@@ -22,13 +22,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Dependencies
-    <!-- include additional dependencies here -->
-    {% if PKG.PACKAGE_REQUIRES %}
-    {% for required in PKG.PACKAGE_REQUIRES %}
-    "{{ required.NAME }}{{ required.VERSION }}",
-    {% endfor %}
-    {% endif %}
+    "numpy",
+    "scipy"
 ]
 
 [project.optional-dependencies]

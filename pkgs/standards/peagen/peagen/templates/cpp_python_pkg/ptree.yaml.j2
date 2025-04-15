@@ -46,7 +46,7 @@
 
 - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/meson.build.j2{% endraw %}"
   RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/meson.build"
-  PROCESS_TYPE: "GENERATE"
+  PROCESS_TYPE: "COPY"
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
@@ -143,7 +143,7 @@
 
 - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/meson.build.j2{% endraw %}"
   RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ PKG.NAME }}/meson.build"
-  PROCESS_TYPE: "GENERATE"
+  PROCESS_TYPE: "COPY"
   AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"
   PACKAGE_NAME: "{{ PKG.NAME }}"
