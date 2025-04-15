@@ -1,0 +1,21 @@
+# Create Python extension modules
+{% for MOD in PKG.MODULES %}
+{{ MOD.NAME }}_module = py.extension_module(
+  '{{ MOD.NAME }}',
+  '{{ MOD.NAME }}.cpp',
+  dependencies: [py_dep, pybind11_dep
+    {%- if MOD.EXTRAS and MOD.EXTRAS.DEPENDENCIES %}
+    {%- for dep in MOD.EXTRAS.DEPENDENCIES -%}
+    , {{ dep }}_dep
+    {%- endfor %}
+    {%- endif %}],
+  install: true,
+  install_dir: py.get_install_dir() / '{{ PKG.NAME }}'
+)
+{% endfor %}
+
+# Install Python sources
+py.install_sources(
+  '__init__.py',
+  subdir: '{{ PKG.NAME }}'
+)
