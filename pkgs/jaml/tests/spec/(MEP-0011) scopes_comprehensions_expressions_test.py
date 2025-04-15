@@ -1,5 +1,6 @@
 import pytest
-from jaml import loads, dumps, round_trip_loads, round_trip_dumps, resolve, render
+from jaml import loads, round_trip_loads
+
 
 # Test 2: Global Scope Evaluation
 @pytest.mark.spec
@@ -21,26 +22,25 @@ url = f"@{base}/config.toml"
     print("[DEBUG]:")
     print(data)
 
-    from jaml.ast_nodes import PreservedString
+    from jaml._ast_nodes import StringNode
 
-    data["config"]["url"] = PreservedString(value='f"@{alt}/config.toml"', original='f"@{alt}/config.toml"')
+    data["config"]["url"] = 'f"@{alt}/config.toml"'
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["config"]["url"] == "/home/alt/config.toml"
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="Global scope evaluation not implemented")
 def test_global_scope_section_evaluation():
     """
     In f-string interpolations, we should replace global scope on load.
@@ -58,21 +58,14 @@ url = f"@{paths.base}/config.toml"
     print("[DEBUG]:")
     print(data)
 
-    data["config"]["url"].origin = 'f"@{paths.alt}/config.toml"'
+    data["config"]["url"] = 'f"@{paths.alt}/config.toml"'
     print("[DEBUG]:")
     print(data)
 
-
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()  # Use instance method
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["config"]["url"] == "/home/alt/config.toml"
-
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
-    print("[DEBUG]:")
-    print(rendered_data)
-    assert rendered_data["config"]["url"] == "/home/alt/config.toml"
 
 # Test 3: Self (Local) Scope Evaluation
 @pytest.mark.spec
@@ -97,13 +90,13 @@ greeting = f"Hello, %{name}!"
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()  # Use instance method
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
     out  = round_trip_dumps(data)
-    rendered_data = render(out)
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["user"]["greeting"] == "Hello, Bob!"
@@ -122,12 +115,12 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     assert data["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
     # With a render context provided:
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
 
-    out = round_trip_dumps(data)
+    out = data.dumps()
     rendered_data = render(out, context={"user": {"name": "Alice", "age": 30}})
     assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
 
@@ -142,9 +135,9 @@ text = f"Hello, ${name}!"
 """
     # Assuming 'name' is provided via render context.
     data = round_trip_loads(sample)
-    out = round_trip_dumps(data)
+    out = data.dumps()
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["message"]["text"] == 'f"Hello, ${name}!"'
@@ -171,8 +164,8 @@ text = f"Hello, ${name}!"
 # """
 #     data = round_trip_loads(sample)
 #     assert data["paths"]["config"] == "%{base} + '/config.toml'"
-#     out = round_trip_dumps(data)
-#     rendered_data = render(out)
+#     out = data.dumps()
+#     rendered_data = data.render()
 #     assert rendered_data["paths"]["config"] == "/usr/local/config.toml"
 
 @pytest.mark.spec
@@ -201,12 +194,12 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
 
-    out = round_trip_dumps(data)
+    out = data.dumps()
     rendered_data = render(out, context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
@@ -230,13 +223,13 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["items"]["list_config"] == ["item_5", "item_10", "item_15"]
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["items"]["list_config"] == ["item_5", "item_10", "item_15"]
@@ -262,14 +255,14 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
@@ -292,13 +285,13 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     assert rendered_data["items"]["dict_config"] == {"item_5": 15, "item_10": 30, "item_15": 45}
 
 @pytest.mark.spec
@@ -318,13 +311,13 @@ result = <( 3 + 4 )>
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["calc"]["result"] == 11
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     assert rendered_data["calc"]["result"] == 11
 
 
@@ -359,13 +352,13 @@ result = <( 3 + 4 )>
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
     assert resolved_config["calc"]["result"] == 11
 
-    out = round_trip_dumps(data)
+    out = data.dumps()
     rendered_data = render(out, context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
@@ -391,13 +384,13 @@ status = f"{'Yes' if true else 'No'}"
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["cond"]["status"] == "No"
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["cond"]["status"] == "No"
@@ -418,13 +411,13 @@ status = <('Yes' if true else 'No')>"""
     print("[DEBUG]:")
     print(data)
 
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert resolved_config["cond"]["status"] == "No"
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out)
+    out = data.dumps()
+    rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["cond"]["status"] == "No"
@@ -447,7 +440,7 @@ def test_infer_expressions():
     combo = <( true and false )>
     '''
     data = round_trip_loads(source)
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
 

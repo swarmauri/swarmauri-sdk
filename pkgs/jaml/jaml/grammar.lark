@@ -24,7 +24,6 @@ NEWLINE: /\r?\n/  // Each newline is treated as a token
 %ignore HSPACES
 HSPACES: /[ \t]+/
 
-ws: WHITESPACE
 WHITESPACE: /\s+/
 
 INLINE_WS: /[ \t]+/  // For inline comments
@@ -43,15 +42,15 @@ line: comment_line
     | folded_expr
 
 comment_line: COMMENT NEWLINE
-blank_line: NEWLINE
+blank_line: NEWLINE+
 
 // Section headers can appear:
-section: "[" (section_name | STRING | header_comprehension) "]" NEWLINE?
-section_name: IDENTIFIER ("." IDENTIFIER)* 
+section: L_SQ_BRACK (section_name | string | header_comprehension) R_SQ_BRACK HSPACES? (NEWLINE | assignment | comment_line)*
+section_name: IDENTIFIER (DOT IDENTIFIER)*
 
 // Table array section
-table_array_section: "[[" table_array_header "]]" (NEWLINE table_array_content)?
-table_array_header: section_name | STRING | list_comprehension | header_comprehension
+table_array_section: L_DBL_SQ_BRACK table_array_header R_DBL_SQ_BRACK (NEWLINE table_array_content)?
+table_array_header: section_name | string | list_comprehension | header_comprehension
 table_array_content: line+
 header_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
 
@@ -59,10 +58,13 @@ header_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clau
 // 3. Assignment and Expression Definitions
 //////////////////////////////
 
-assignment: IDENTIFIER (":" type_annotation)? "=" assignment_value inline_comment? 
+assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? assignment_value inline_comment? 
 
-concat_expr: string_component (HSPACES? "+" HSPACES? string_component)+
-string_component: STRING | SCOPED_VAR
+concat_expr: string_component (HSPACES? PLUS HSPACES? string_component)+
+string_component: string 
+                | GLOBAL_SCOPED_VAR
+                | LOCAL_SCOPED_VAR
+                | CONTEXT_SCOPED_VAR
 
 type_annotation: TYPE
 TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | "table"
@@ -74,24 +76,27 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
                  | inline_table
                  | paren_expr
                  | folded_expr
-                 | STRING
-                 | SCOPED_VAR
+                 | string
+                 | GLOBAL_SCOPED_VAR
+                 | LOCAL_SCOPED_VAR
+                 | CONTEXT_SCOPED_VAR
                  | COMMENT
                  | FLOAT
                  | INTEGER
                  | BOOLEAN
                  | NULL
                  | RESERVED_FUNC
-                 | KEYWORD
-                 | TABLE_ARRAY
+                 | keyword
                  | OPERATOR
 
 // Basic expression items and arithmetic
 ?expr_item: IDENTIFIER
           | FLOAT
           | INTEGER
-          | STRING
-          | SCOPED_VAR
+          | string
+          | GLOBAL_SCOPED_VAR
+          | LOCAL_SCOPED_VAR
+          | CONTEXT_SCOPED_VAR
           | paren_expr
 
 ?arithmetic: expr_item (OPERATOR expr_item)*
@@ -101,41 +106,49 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
       | inline_table
       | paren_expr
       | folded_expr
-      | STRING
-      | SCOPED_VAR
+      | string
+      | GLOBAL_SCOPED_VAR
+      | LOCAL_SCOPED_VAR
+      | CONTEXT_SCOPED_VAR
       | COMMENT
       | FLOAT
       | INTEGER
       | BOOLEAN
       | NULL
       | RESERVED_FUNC
-      | KEYWORD
-      | TABLE_ARRAY
+      | keyword
       | OPERATOR
+
+?string: SINGLE_QUOTED_STRING
+       | TRIPLE_QUOTED_STRING
+       | TRIPLE_BACKTICK_STRING
+       | BACKTICK_STRING
+       | F_STRING
 
 //////////////////////////////
 // 4. Array Handling
 //////////////////////////////
 
-LBRACK: "["
-RBRACK: "]"
+?array: single_line_array
+      | multiline_array
 
-?array: LBRACK NEWLINE* array_content? RBRACK
+single_line_array: L_SQ_BRACK (array_content | HSPACES? inline_comment?) R_SQ_BRACK
+multiline_array: L_SQ_BRACK NEWLINE* array_content NEWLINE* R_SQ_BRACK
 
-?array_content: NEWLINE* array_item (ws? "," ws? (NEWLINE* array_item))* (ws? "," ws?)? NEWLINE*
+?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? (NEWLINE* array_item))* (WHITESPACE? COMMA WHITESPACE?)? NEWLINE*
 ?array_item: pre_item_comments? value inline_comment? post_item_comments?
 
 //////////////////////////////
 // 5. Inline Table Handling
 //////////////////////////////
 
-inline_table: "{" (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* "}"
-inline_table_items: inline_table_item (ws? "," ws? inline_table_item)* (ws? "," ws?)?
+inline_table: L_CURL_BRACE (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* R_CURL_BRACE
+inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_table_item)* (WHITESPACE? COMMA WHITESPACE?)?
 
 inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
                   | comment_line
 
-inline_assignment: IDENTIFIER (COLON type_annotation)? "=" value inline_comment?
+inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? value inline_comment?
 
 //////////////////////////////
 // 6. Comment Handling
@@ -150,54 +163,95 @@ post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
 //////////////////////////////
 
 ?comprehension: list_comprehension
+              | inline_table_comprehension
               | dict_comprehension
 
 // String expression for concatenation in comprehensions
-string_expr: (STRING | SCOPED_VAR) (HSPACES? "+" HSPACES? (STRING | SCOPED_VAR))*
+string_expr: (string | (GLOBAL_SCOPED_VAR | LOCAL_SCOPED_VAR | CONTEXT_SCOPED_VAR)) (HSPACES? PLUS HSPACES? (string | GLOBAL_SCOPED_VAR | LOCAL_SCOPED_VAR | CONTEXT_SCOPED_VAR))*
 pair_expr: (string_expr | IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr | IDENTIFIER))
 ?comprehension_expr: pair_expr | string_expr | expr_item
 
-// List comprehension (e.g., [ f"item_{x}" for x in [1, 2, 3] ])
-list_comprehension: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
+// List comprehension
+list_comprehension: L_SQ_BRACK comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* R_SQ_BRACK
 comprehension_clauses: comprehension_clause+ 
 comprehension_clause: FOR loop_vars IN value (IF comprehension_condition)* NEWLINE*
 
-loop_vars: loop_var ("," loop_var)*
+loop_vars: loop_var (COMMA loop_var)*
 loop_var: dotted_expr alias_clause?
 comprehension_condition: comp_expr (OPERATOR comp_expr)?
 
-alias_clause: AS SCOPED_VAR
+alias_clause: AS (GLOBAL_SCOPED_VAR | LOCAL_SCOPED_VAR | CONTEXT_SCOPED_VAR)
 
 ?comp_expr: dotted_expr | value
-dotted_expr: IDENTIFIER ("." IDENTIFIER)*
+dotted_expr: IDENTIFIER (DOT IDENTIFIER)*
 
-// Dict comprehension (e.g., { f"user_{x}": x for x in [1, 2, 3] })
-dict_comprehension: "{" NEWLINE* comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
-comprehension_pair: arithmetic (COLON | EQ) arithmetic
+inline_table_comprehension: L_CURL_BRACE NEWLINE* inline_comprehension_pair FOR IDENTIFIER IN value (IF value)? NEWLINE* R_CURL_BRACE
+dict_comprehension: L_CURL_BRACE NEWLINE* dict_comprehension_pair FOR IDENTIFIER IN value (IF value)? NEWLINE* R_CURL_BRACE
+inline_comprehension_pair: arithmetic EQ arithmetic
+dict_comprehension_pair: arithmetic COLON arithmetic
+
 
 COLON: ":"
 EQ: "="
+PLUS: "+"
+COMMA: ","
+DOT: "."
+
+L_CURL_BRACE: "{"
+R_CURL_BRACE: "}"
+L_DBL_CURL_BRACE: "{{"
+R_DBL_CURL_BRACE: "}}"
+
+L_SQ_BRACK: "["
+R_SQ_BRACK: "]"
+
+L_DBL_SQ_BRACK: "[["
+R_DBL_SQ_BRACK: "]]"
+
+L_ROUND_BRACK: "("
+R_ROUND_BRACK: ")"
+
+L_DBL_ROUND_BRACK: "(("
+R_DBL_ROUND_BRACK: "))"
+
+L_BRACK_BRACE: "[{"
+R_BRACK_BRACE: "}]"
+
+FOLDED_START: "<("
+FOLDED_END: ")>"
+
 
 //////////////////////////////
 // 8. Parenthesized and Folded Expressions
 //////////////////////////////
 
-paren_expr: "(" value+ ")"
+paren_expr: L_ROUND_BRACK value+ R_ROUND_BRACK
 
 folded_expr: FOLDED_START folded_content FOLDED_END
 folded_content: value+
-FOLDED_START: "<("
-FOLDED_END: ")>"
 
 //////////////////////////////
 // 9. Terminal Definitions
 //////////////////////////////
 
-// STRING: Supports various quoting styles (single, double, triple, backticks).
-STRING: /(f)?('''.*?'''|\"\"\".*?\"\"\"|```.*?```|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`)/s
+// Plain single-quoted or double-quoted strings (NOT triple):
+SINGLE_QUOTED_STRING: /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/s
+
+// Triple-quoted strings (single or double triple-quotes):
+TRIPLE_QUOTED_STRING: /'''(?:\\.|[^'\\])*'''|"""(?:\\.|[^"\\])*"""/s
+
+// Backtick strings:
+BACKTICK_STRING: /`(?:\\.|[^`\\])*`/s
+
+// F‑strings (supports single, double, triple):
+F_STRING: /f'(?:\\.|[^'\\])*'|f"(?:\\.|[^"\\])*"|f'''(?:\\.|[^'\\])*'''|f"""(?:\\.|[^"\\])*"""/s
+
+TRIPLE_BACKTICK_STRING: /```(?:\\.|[^`\\])*```/s
 
 // Scoped variable expressions (e.g., @{var})
-SCOPED_VAR: /[@%$]\{[^}]+\}/
+GLOBAL_SCOPED_VAR: /@\{[^}]+\}/
+LOCAL_SCOPED_VAR: /%\{[^}]+\}/
+CONTEXT_SCOPED_VAR: /\$\{[^}]+\}/
 
 // Comment tokens
 COMMENT.1: /\#[^\n]*/
@@ -215,20 +269,24 @@ NULL: /null\b/
 RESERVED_FUNC: /(File\(\)|Git\(\))\b/
 
 // Keywords
-FOR: "for"
 AS: "as"
+FOR: "for"
+ENUMERATE: "enumerate"
 IN: "in"
 IF: "if"
+ELIF: "elif"
 ELSE: "else"
+AND: "and"
+OR: "or"
+IS: "is"
+INCLUDE: "include"
+NOT: "not"
 
-KEYWORD.2: /\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as)\b/
+?keyword: AS|FOR|ENUMERATE|IN|IF|ELIF|ELSE|AND|OR|IS|INCLUDE|NOT
 
-// Table array and section tokens
-TABLE_ARRAY: /\[\[[^\]\n]+\]\]/
-TABLE_SECTION: /\[[A-Za-z0-9_.\-]+\]/
 
 // Identifier: Disallow reserved keywords and special names
-IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
+IDENTIFIER: /(?!\b(?:is|not|and|or|if|elif|else|for|in|enumerate|include|as|File|Git)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
 
 // Operators: Including arithmetic and comparison operators
 OPERATOR: /\*\*|==|!=|>=|<=|->|<<|\+|-|\*|\/|%|>|<(?!{)/

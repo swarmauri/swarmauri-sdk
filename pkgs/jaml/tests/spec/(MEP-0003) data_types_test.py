@@ -13,7 +13,7 @@ def test_string_scalar():
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
     # Expect one STRING token with "Hello, World!" and IDENTIFIER "greeting"
-    string_tokens = [t for t in tokens if t.type == "STRING"]
+    string_tokens = [t for t in tokens if t.type == "SINGLE_QUOTED_STRING"]
     assert len(string_tokens) == 1
     assert "Hello, World!" in string_tokens[0].value
 
@@ -25,7 +25,7 @@ def test_multiline_string():
     source = 'description = "Line one\nLine two\nLine three"'
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    string_tokens = [t for t in tokens if t.type == "STRING"]
+    string_tokens = [t for t in tokens if t.type == "SINGLE_QUOTED_STRING"]
     assert len(string_tokens) == 1
     # Check that newlines are preserved.
     assert "\n" in string_tokens[0].value
@@ -150,7 +150,7 @@ def test_multiline_array():
     '''
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 18
+    assert len([t for t in tokens]) == 23
 
 @pytest.mark.spec
 @pytest.mark.mep0003
@@ -160,7 +160,7 @@ def test_inline_table():
     source = 'point = { x = 10, y = 20 }'
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 8
+    assert len([t for t in tokens]) == 20
 
 @pytest.mark.spec
 @pytest.mark.mep0003
@@ -169,7 +169,7 @@ def test_standard_table_section():
     source = "[section]\nkey = \"value\""
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 4
+    assert len([t for t in tokens]) == 9
 
 @pytest.mark.spec
 @pytest.mark.mep0003
@@ -188,4 +188,4 @@ def test_nested_inline_table():
     source = 'user = { name = "Azzy", details = { age = 9, role = "admin" } }'
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 14
+    assert len([t for t in tokens]) == 35

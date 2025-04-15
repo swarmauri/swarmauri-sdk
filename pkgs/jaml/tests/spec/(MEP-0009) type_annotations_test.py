@@ -2,10 +2,8 @@
 import pytest
 
 from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
     loads,
-    dumps
+    round_trip_loads,
 )
 
 @pytest.mark.spec
@@ -27,7 +25,7 @@ missing_val: null = null
 """
     # Round-trip to check that annotations are preserved
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Ensure the annotated keys are present with correct annotation
     assert "greeting: str = \"Hello, World!\"" in reserialized
@@ -52,7 +50,7 @@ numbers: list = [1, 2, 3]
 colors: list = ["red", "green", "blue"]
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     assert "numbers: list = [1, 2, 3]" in reserialized
     assert "colors: list = [\"red\", \"green\", \"blue\"]" in reserialized
@@ -72,7 +70,7 @@ def test_table_annotation():
 point: table = { x = 10, y = 20 }
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     assert "point: table = { x = 10, y = 20 }" in reserialized
 
@@ -91,7 +89,7 @@ def test_nested_inline_table_annotation():
 user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str = "admin" } }
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Verify the top-level user: table annotation
     assert "user: table = { name: str = \"Azzy\"," in reserialized
@@ -116,7 +114,7 @@ authors: list = [
 ]
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Should see 'authors: list = [' plus the inline tables
     assert "authors: list = [\n  { name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\" }," in reserialized

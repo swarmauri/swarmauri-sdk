@@ -2,10 +2,7 @@ import pytest
 from copy import deepcopy
 
 from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
-    resolve,
-    render,
+    round_trip_loads
 )
 
 # The input JML content (as a multi-line string)
@@ -80,9 +77,9 @@ def test_assignment_in_list_compr():
     resolved_config = resolve(data)
     assert resolved_config["rootDir"] == '"new_src"'
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out, context=BASE_CONTEXT)
-    final_out = round_trip_dumps(rendered_data)
+    out = data.dumps()
+    rendered_data = data.render(context=BASE_CONTEXT)
+    final_out = data.dumps(rendered_data)
     
     assert rendered_data["rootDir"] == "new_src"
     assert "src/auth" in final_out

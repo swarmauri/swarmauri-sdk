@@ -22,7 +22,7 @@ def test_reserved_keywords():
     when we parse 'if = 42'.
     """
     source = "if = 42\nelif = 10\ndata = true"
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         # We expect an error from our parser because 'if' / 'elif' are KEYWORD tokens
         # that cannot appear on the left side of '='.
         _ = loads(source)  # or round_trip_loads(source)
@@ -37,7 +37,7 @@ def test_reserved_functions():
     Ensure they cannot be used as normal identifiers or misapplied.
     """
     source = "File = 'some file'\nGit = 'some repo'"
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         # The parser should refuse to let 'File()' or 'Git()' be used as keys if your grammar forbids it.
         _ = loads(source)
 
@@ -50,7 +50,7 @@ def test_reserved_punctuation():
     e.g. some:key = 1
     """
     source = "some:key = 1"
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 
@@ -74,12 +74,20 @@ def test_single_quote_string():
 
 @pytest.mark.spec
 @pytest.mark.mep0001
+def test_double_quote_string():
+    source = 'single = "Hello, World!"'
+    data = loads(source)
+    # Expect that the value has been unquoted correctly.
+    assert data["single"] == 'Hello, World!'
+
+@pytest.mark.spec
+@pytest.mark.mep0001
 def test_triple_single_quote_string():
     # The JML source uses triple-single quotes to enclose a triple-double-quoted string.
     # The inner value should be: """One\nTwo\nThree"""
     source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
-    expected = '"""One\nTwo\nThree"""'
+    expected = '''\"\"\"One\nTwo\nThree\"\"\"'''
     assert data["triple_single"] == expected
 
 @pytest.mark.spec
@@ -88,19 +96,26 @@ def test_triple_double_quote_string():
     # The JML source contains a triple-double quoted string with embedded newlines.
     source = 'triple_double = """Line1\nLine2\nLine3"""'
     data = loads(source)
-    expected = "Line1\nLine2\nLine3"
+    expected = """Line1\nLine2\nLine3"""
     assert data["triple_double"] == expected
 
 @pytest.mark.spec
 @pytest.mark.mep0001
-def test_raw_backticks_string():
+def test_single_backtick_string():
     # The JML source uses backticks to represent a raw string.
-    source = "raw_backticks = `C:/Users/Name`"
+    source = "single_backtick = `C:/Users/Name`"
     data = loads(source)
     expected = "C:/Users/Name"
-    assert data["raw_backticks"] == expected
+    assert data["single_backtick"] == expected
 
-
+@pytest.mark.spec
+@pytest.mark.mep0001
+def test_triple_backtick_string():
+    # The JML source uses backticks to represent a raw string.
+    source = "triple_backtick = ```C:/Users/Name```"
+    data = loads(source)
+    expected = "C:/Users/Name"
+    assert data["triple_backtick"] == expected
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -125,7 +140,7 @@ def test_pipeline_operator():
     If your grammar doesn't support it, raise an error or handle as unrecognized.
     """
     source = "result = <{ data | transform | filter }>"
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         # If your grammar doesn't allow '|', we might fail. 
         _ = loads(source)
 
@@ -162,7 +177,7 @@ def test_merge_operator():
 [settings]
 merged_config = default << user_override
 '''
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 
@@ -173,7 +188,7 @@ def test_invalid_use_of_colon():
     Confirms that using a colon as part of a key name triggers a syntax error.
     """
     source = 'invalid:key = "value"'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 
@@ -186,7 +201,7 @@ def test_keyword_as_identifier():
     """
     source = 'if = "condition"'
     # This specifically tests something like `if = "condition"`, expecting syntax error
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 
@@ -198,7 +213,7 @@ def test_reserved_function_as_var():
     Should raise an error.
     """
     source = 'File = "somefile"'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 @pytest.mark.spec
@@ -209,7 +224,7 @@ def test_identifier_assigned_identifier():
     Should raise an error.
     """
     source = 'identifier = another_identifier'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 @pytest.mark.spec
@@ -231,7 +246,7 @@ def test_unmatched_brackets():
     If so, we expect an error.
     """
     source = '[config'
-    with pytest.raises(SyntaxError, match="UnexpectedEOF"):
+    with pytest.raises(SyntaxError, match="Unexpected end of input"):
         _ = loads(source)
 
 
@@ -242,7 +257,7 @@ def test_invalid_mismatched_quotes():
     Confirms that mismatched quotes trigger a syntax error.
     """
     source = 'bad = "Missing end quote'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 @pytest.mark.spec
@@ -252,7 +267,7 @@ def test_invalid_enclosed_special_character_identifier():
     Expect a syntax error when an invalid special character is used.
     """
     source = 'mykey!a = "strange_value"'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
 @pytest.mark.spec
@@ -262,7 +277,7 @@ def test_invalid_prefix_special_character_identifier():
     Expect a syntax error when an invalid special character is used.
     """
     source = '!mykey = "strange_value"'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
         
 @pytest.mark.spec
@@ -272,5 +287,5 @@ def test_invalid_special_character_identifier():
     Expect a syntax error when an invalid special character is used.
     """
     source = 'mykey! = "strange_value"'
-    with pytest.raises(SyntaxError, match="UnexpectedCharacters"):
+    with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)

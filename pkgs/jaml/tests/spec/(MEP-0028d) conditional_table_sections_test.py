@@ -2,10 +2,7 @@ import pytest
 from copy import deepcopy
 
 from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
-    resolve,
-    render,
+    round_trip_loads
 )
 
 # The input JML content (as a multi-line string)
@@ -90,12 +87,13 @@ def test_v2_update_root_dir():
     assert data["rootDir"] == "src"
 
     data["rootDir"].origin = '"new_src"'
-    resolved_config = resolve(data)
+    resolved_config = data.resolve(data)
     assert resolved_config["rootDir"] == '"new_src"'
 
-    out = round_trip_dumps(data)
-    rendered_data = render(out, context=BASE_CONTEXT)
-    final_out = round_trip_dumps(rendered_data)
+    # out = data.dumps()
+    # rendered_data = data.render(out, context=BASE_CONTEXT)
+    rendered_data = data.render(context=BASE_CONTEXT)
+    final_out = data.dumps()
 
     print('\n\n\n\n[FINAL_OUT]:')
     print(final_out)    
@@ -115,16 +113,16 @@ def test_v2_update_context_env():
     assert data["rootDir"] == "src"
     
     data["rootDir"].origin = '"new_src"'
-    resolved_config = resolve(data)
+    resolved_config = data.resolve(data)
     assert resolved_config["rootDir"] == '"new_src"'
 
-    out = round_trip_dumps(data)
+    out = data.dumps()
     new_context = dict(BASE_CONTEXT)
     new_context["env"] = "dev"
-    rendered_data = render(out, context=new_context)
+    rendered_data = data.render(context=new_context)
     assert rendered_data["rootDir"] == "new_src"
 
-    final_out = round_trip_dumps(rendered_data)
+    final_out = data.dumps()
     assert '"env" = "dev"' in final_out
 
 @pytest.mark.xfail(reason="Pending proper implementation")
@@ -149,7 +147,7 @@ def test_v2_update_module_extras():
     print('-'*10, '\n[TEST]: STARTING RESOLUTION\n')
     
     data["rootDir"].origin = '"new_src"'
-    resolved_config = resolve(data)
+    resolved_config = data.resolve(data)
     assert resolved_config["rootDir"] == '"new_src"'
 
     # Update the context to change the owner in the login module from "teamA" to "teamX".
@@ -157,14 +155,14 @@ def test_v2_update_module_extras():
     new_context["packages"][0]["modules"][0]["extras"]["owner"] = "teamX"
 
     print('-'*10, '\n[TEST]: STARTING SECOND DUMP\n')
-    out = round_trip_dumps(data)
+    out = data.dumps()
     print('\n\n\n\n[DUMP]:', out,'\n\n---\n\n\n')
     print('-'*10, '\n[TEST]: STARTING RENDER\n')
-    rendered_data = render(out, context=new_context)
+    rendered_data = data.render(context=new_context)
     assert rendered_data["rootDir"] == "new_src"
 
     print('-'*10, '\n[TEST]: STARTING FINAL DUMP\n')
-    final_out = round_trip_dumps(rendered_data)
+    final_out = data.dumps()
     print('\n\n\n\n[FINAL DUMP]:', final_out,'\n\n---\n\n\n')
 
     assert final_out == expected_result

@@ -1,680 +1,1454 @@
-import json
-import re
-from lark import Transformer, Token, v_args
-from copy import deepcopy
+from lark import Transformer, Token, Tree, v_args
+from typing import Any, Dict, List, Optional, Union
+from ._ast_nodes import (
+    BaseNode, StartNode, SectionNode, SectionNameNode, TableArraySectionNode, TableArrayHeaderNode,
+    ComprehensionHeaderNode, AssignmentNode, CommentNode, NewlineNode, IntegerNode, BooleanNode, 
+    NullNode, FloatNode, StringExprNode, PairExprNode, DottedExprNode, ValueNode,
+    InlineTableNode, 
+    ListComprehensionNode, InlineTableComprehensionNode, DictComprehensionNode, 
+    ComprehensionClausesNode, ComprehensionClauseNode, AliasClauseNode, FoldedExpressionNode,
+    SingleQuotedStringNode, TripleQuotedStringNode, TripleBacktickStringNode, BacktickStringNode, FStringNode,
+    SingleLineArrayNode, MultiLineArrayNode, 
+    GlobalScopedVarNode, LocalScopedVarNode, ContextScopedVarNode, 
+    WhitespaceNode, HspacesNode, InlineWhitespaceNode,
+    ReservedFuncNode
 
-from .ast_nodes import (
-    PreservedString, 
-    PreservedValue,
-    PreservedArray,
-    PreservedInlineTable,
-    DeferredDictComprehension,
-    DeferredListComprehension,
-    FoldedExpressionNode,
-    ComprehensionHeader,
-    TableArrayHeader,
-    TableArraySectionNode,
-    StringExpr,
-    ComprehensionClauses,
-    ComprehensionClause,
-    DottedExpr,
-    PairExpr,
-    AliasClause,
-    InClause,
 )
+from ._config import Config
 
 class ConfigTransformer(Transformer):
     def __init__(self, debug=True):
         super().__init__()
         self.debug = debug
         self.debug_print("Initializing ConfigTransformer")
-        # Global container for parsed data.
         self.data = {"__comments__": []}
         self.current_section = self.data
-
-        # Pointer to the current table array header (if we’re processing inline assignments for one).
         self._current_ta_header = None
+        self._root_data = self.data
+        self.global_env = {}
+        self._last_section = None
+        self._last_section_name = None
 
     def debug_print(self, message):
         if self.debug:
             print("[DEBUG TRANSFORMER]", message)
 
-    def start(self, items):
-        self.debug_print(f"start() called with items: {items}")
-        return self.data
+    @v_args(meta=True)
+    def start(self, meta, items: List[Any]) -> Config:
+        self.debug_print("start() called with items")
+        node = StartNode(data=self._root_data, contents=items, origin="", meta=meta)
+        node.lines = []
+        for item in items:
+            if isinstance(item, (SectionNode, AssignmentNode, CommentNode, NewlineNode)):
+                node.lines.append(item)
+            elif isinstance(item, Tree) and item.data == 'line':
+                for child in item.children:
+                    if isinstance(child, (SectionNode, AssignmentNode, CommentNode, NewlineNode)):
+                        node.lines.append(child)
+        node.__comments__ = [item.value for item in node.lines if isinstance(item, CommentNode)]
+        node.origin = "source_file"
+        node.value = None
+        node.meta = meta
+        node.global_env = {}
 
-    # ------------------------------
-    # Updated assignment() method.
-    # ------------------------------
-    def assignment(self, items):
-        self.debug_print(f"assignment() called with items: {items}")
-        inline = None
-        type_annotation = None
+        # Reset current_section to root for top-level assignments
+        self.current_section = self._root_data
+        for line in node.lines:
+            if isinstance(line, AssignmentNode):
+                # Handle top-level assignments
+                try:
+                    key = line.identifier.value
+                    value = line.value
+                    if isinstance(value, (IntegerNode, FloatNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, BooleanNode, NullNode)):
+                        value.resolve({}, {})
+                        evaluated = value.evaluate()
+                        self.current_section[key] = evaluated
+                    elif isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
+                        value.resolve({}, {})
+                        self.current_section[key] = value
+                    else:
+                        self.current_section[key] = value.value
+                    self.debug_print(f"assignment(): Added {key} to root")
+                except ValueError as e:
+                    self.debug_print(f"Evaluation error for {key}: {e}")
+                    self.current_section[key] = value.value
+            elif isinstance(line, (CommentNode, NewlineNode)):
+                pass
 
-        if len(items) == 2:
-            key, value = items
-        elif len(items) == 3:
-            if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
-                key, value, inline = items
-            elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
-                key, value, inline = items
+        self.current_section = self._root_data
+        self._last_section_name = None
+        self.debug_print(f"Final data structure: {self._root_data}")
+        return Config(node)
+
+    @v_args(meta=True)
+    def section(self, meta, items: List[Any]) -> SectionNode:
+        self.debug_print(f"section() called with items '{items}'")
+        node = SectionNode()
+        i = 0
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+            node.leading_whitespace = items[i]
+            i += 1
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+            node.lbrack = items[i]
+            i += 1
+
+        # Handle section_name explicitly
+        if i < len(items):
+            if isinstance(items[i], SectionNameNode):
+                node.header = items[i]
+            elif isinstance(items[i], Tree) and items[i].data == "section_name":
+                # Transform section_name subtree if not already done
+                node.header = self.section_name(meta, items[i].children)
+            elif isinstance(items[i], (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode)):
+                node.header = items[i]
             else:
-                key, type_annotation, value = items
-        elif len(items) == 4:
-            key, type_annotation, value, inline = items
-        else:
-            raise ValueError("Unexpected structure in assignment: " + str(items))
-
-        # Check for empty or whitespace-only value
-        if isinstance(value, str) and value.strip() == "":
-            self.debug_print(f"Skipping empty or whitespace-only assignment for key: {key}")
-            return key, None  # Or raise an error
-
-        if isinstance(value, PreservedString) and value.value.strip() == "":
-            self.debug_print(f"Skipping empty PreservedString for key: {key}")
-            return key, None
-
-        # Unquote value if needed
-        if not isinstance(value, PreservedString) and isinstance(value, str) and (
-            (value.startswith("'") and value.endswith("'")) or 
-            (value.startswith('"') and value.endswith('"'))
-        ):
-            value = value[1:-1]
-
-        if inline and isinstance(inline, dict) and '_inline_comment' in inline:
-            inline = inline['_inline_comment']
-        inline = str(inline) if inline else None
-
-        if type_annotation:
-            result = {"_value": PreservedValue(value, inline) if inline else value,
-                      "_annotation": type_annotation}
-        else:
-            result = PreservedValue(value, inline) if inline else value
-
-        if self._current_ta_header is not None:
-            table_name = str(self._current_ta_header).split('=')[0].strip()
-            if table_name not in self.current_section:
-                self.current_section[table_name] = []
-            if not self.current_section[table_name]:
-                self.current_section[table_name].append({})
-            self.current_section[table_name][-1][key] = result
-        else:
-            self.current_section[key] = result
-
-        return key, value
-
-    def section(self, items):
-        raw_section = items[0]
-        if isinstance(raw_section, list):
-            d = self.data
-            for part in raw_section[:-1]:
-                d = d.setdefault(part, {})
-            raw_section = raw_section[-1]
-            d[raw_section] = {}
-            self.current_section = d[raw_section]
-        else:
-            self.data[raw_section] = {}
-            self.current_section = self.data[raw_section]
-        self._current_ta_header = None
-        return self.current_section
-
-    def section_name(self, items):
-        self.debug_print(f"section_name() called with items: {items}")
-        return items
-
-    def type_annotation(self, items):
-        self.debug_print(f"type_annotation() called with items: {items}")
-        return items[0]
-
-    @v_args(meta=True)
-    def alias_clause(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"alias_clause(): original_text = {original_text}")
-        if len(items) != 2:
-            raise ValueError(f"Expected AS SCOPED_VAR, got {items}")
-        as_keyword, scoped_var = items
-        if as_keyword.lower() != "as":
-            raise ValueError(f"Expected 'as' keyword, got {as_keyword}")
-        return AliasClause(keyword="as", scoped_var=scoped_var, original=original_text)
-
-    @v_args(meta=True)
-    def IN(self, meta):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"IN() called. original_text: {original_text}")
-        return InClause(keyword="in", original=original_text)
-
-    @v_args(meta=True)
-    def pair_expr(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"pair_expr(): original_text = {original_text}")
-        self.debug_print(f"pair_expr(): raw items = {items}")
-        if len(items) < 3:
-            raise ValueError("pair_expr(): Expected at least three items (left, operator, right)")
-        left = items[0]
-        right = items[2]
-        self.debug_print(f"pair_expr(): left = {left}, right = {right}")
-        return PairExpr(key=left, value=right, original=original_text)
-
-    @v_args(meta=True)
-    def dotted_expr(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"dotted_expr(): original_text = {original_text}")
-        self.debug_print(f"dotted_expr(): raw items = {items}")
-        dotted_value = ".".join(str(item) for item in items)
-        self.debug_print(f"dotted_expr(): joined value = {dotted_value}")
-        return DottedExpr(dotted_value, original_text)
-
-    def paren_expr(self, items):
-        result = "(" + " ".join(str(x) for x in items) + ")"
-        self.debug_print(f"paren_expr() result: {result}")
-        return result
-
-    @v_args(meta=True)
-    def folded_expr(self, meta, items):
-        self.debug_print(f"folded_expr() called with meta: {meta} and items: {items}")
-        full_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"Full folded_expr text: {full_text}")
-        folded_content_tree = None
-        for child in items:
-            if hasattr(child, "data") and child.data == "folded_content":
-                folded_content_tree = child
-                break
-        node = FoldedExpressionNode(full_text, folded_content_tree)
-        self.debug_print(f"Created FoldedExpressionNode: {node}")
+                self.debug_print(f"Unexpected item at index {i}: {items[i]}")
+            if node.header:
+                self.debug_print(f"section(): Processing section {node.header.value or 'unknown'}")
+                node.value = node.header.value
+            i += 1
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
+            node.rbrack = items[i]
+            i += 1
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+            node.trailing_whitespace = items[i]
+            i += 1
+        node.contents = [item for item in items[i:] if not isinstance(item, list) and not isinstance(item, CommentNode) and item is not None]
+        node.__comments__ = [item.value for item in items[i:] if isinstance(item, CommentNode)]
+        node.origin = node.lbrack.value if node.lbrack else (node.header.origin if node.header else "")
+        node.meta = meta
         return node
 
-    def string_component(self, items):
-        token = items[0]
-        if token[0] == "STRING":
-            return token[1].strip('"').strip("'")
-        elif token[0] == "SCOPED_VAR":
-            return token[1]
-        return token
-
     @v_args(meta=True)
-    def comprehension_clause(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"comprehension_clause(): original_text = {original_text}")
-        self.debug_print(f"comprehension_clause(): raw items = {items}")
-
-        # Initialize components
-        loop_vars = []
-        iterable = None
-        conditions = []
-
-        # Process the parse tree
+    def assignment(self, meta, items: List[Any]) -> AssignmentNode:
+        self.debug_print(f"assignment() called with items {items}")
+        node = AssignmentNode()
         i = 0
-        # Skip FOR
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
+        # Optional leading whitespace
+        if i < len(items) and ((isinstance(items[i], Token) and items[i].type == "HSPACES") or isinstance(items[i], HspacesNode)):
+            node.leading_whitespace = items[i]
             i += 1
-
-        # Handle loop_vars
-        if i < len(items) and hasattr(items[i], "data") and items[i].data == "loop_vars":
-            loop_vars_tree = items[i]
-            for loop_var in loop_vars_tree.children:
-                if hasattr(loop_var, "data") and loop_var.data == "loop_var":
-                    var_items = loop_var.children
-                    dotted_expr = var_items[0]
-                    alias = None
-                    if len(var_items) > 1 and isinstance(var_items[1], AliasClause):
-                        alias = var_items[1]
-                    loop_vars.append((dotted_expr, alias) if alias else dotted_expr)
+        # IDENTIFIER token: e.g., "single"
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+            node.identifier = items[i]
+            key = items[i].value
             i += 1
-
-        # Handle IN and iterable
-        if i < len(items) and isinstance(items[i], InClause):
+        else:
+            raise ValueError(f"Expected IDENTIFIER in assignment, got {items[i] if i < len(items) else 'nothing'}")
+        
+        # Optional type annotation (skip whitespace if any before ':')
+        while i < len(items) and (((isinstance(items[i], Token) and items[i].type == "HSPACES") or isinstance(items[i], HspacesNode))):
+            i += 1
+        if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
+            node.colon = items[i]
             i += 1
             if i < len(items):
-                # The iterable could be a SCOPED_VAR, STRING, or other value
-                iterable = items[i]
+                node.type_annotation = items[i]
                 i += 1
 
-        # Handle IF conditions
-        while i < len(items):
-            if isinstance(items[i], Token) and items[i].type == "IF":
-                i += 1
-                if i < len(items) and hasattr(items[i], "data") and items[i].data == "comprehension_condition":
-                    condition = []
-                    condition_items = items[i].children
-                    condition.append(condition_items[0])  # First comp_expr
-                    if len(condition_items) > 1:
-                        condition.append(condition_items[1])  # OPERATOR
-                        condition.append(condition_items[2])  # Second comp_expr
-                    conditions.append(condition)
-                    i += 1
-            else:
-                i += 1  # Skip unexpected items (e.g., NEWLINE)
+        # Skip any whitespace tokens before the equals sign
+        while i < len(items) and (((isinstance(items[i], Token) and items[i].type == "HSPACES") or isinstance(items[i], HspacesNode))):
+            i += 1
 
-        self.debug_print(f"comprehension_clause(): loop_vars = {loop_vars}, iterable = {iterable}, conditions = {conditions}")
-        return ComprehensionClause(
-            loop_vars=loop_vars,
-            iterable=iterable,
-            conditions=conditions,
-            original=original_text
-        )
-    @v_args(meta=True)
-    def comprehension_clauses(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"comprehension_clauses(): original_text = {original_text}")
-        self.debug_print(f"comprehension_clauses(): items = {items}")
-        return ComprehensionClauses(clauses=items, original=original_text)
+        # Equals sign token
+        if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
+            node.equals = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected '=' at index {i}, got {items[i] if i < len(items) else 'nothing'}")
 
-    @v_args(meta=True)
-    def string_expr(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"string_expr(): original_text = {original_text}")
-        self.debug_print(f"string_expr(): items = {items}")
-        return StringExpr(parts=items, original=original_text)
+        # Skip any whitespace tokens after the equals sign
+        while i < len(items) and (((isinstance(items[i], Token) and items[i].type == "HSPACES") or isinstance(items[i], HspacesNode))):
+            i += 1
 
-    def concat_expr(self, items):
-        parts = []
-        for child in items:
-            if isinstance(child, str):
-                parts.append(child)
-            else:
-                parts.append(str(child))
-        return "".join(parts)
-
-    def pair_expr(self, items):
-        key = items[0]
-        value = items[2]
-        return (key, value)
-
-    def comprehension_expr(self, items):
-        self.debug_print(f"comprehension_expr() called with items: {items}")
-        if len(items) == 1:
-            child = items[0]
-            if isinstance(child, PreservedString):
-                return child.value
-            return child
-        return "".join(str(i) for i in items)
-
-    @v_args(meta=True)
-    def list_comprehension(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"list_comprehension() called with meta: {meta} and items: {items}")
-        self.debug_print(f"List comprehension original text: {original_text}")
-        return DeferredListComprehension(original_text)
-
-    @v_args(meta=True)
-    def dict_comprehension(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"dict_comprehension() called with meta: {meta} and items: {items}")
-        return DeferredDictComprehension(original_text)
-
-    @v_args(meta=True)
-    def header_comprehension(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        meaningful_items = [item for item in items if not (isinstance(item, Token) and item.type in ("NEWLINE", "WHITESPACE"))]
-        header_expr = meaningful_items[0]
-        clauses = meaningful_items[1] if len(meaningful_items) > 1 else None
-        node = ComprehensionHeader(header_expr, clauses, original_text)
-        node.table_name = original_text.strip('[]')
-        # Extract aliases for rendering
-        node.aliases = []
-        if clauses:
-            for clause in clauses.clauses:
-                for var in clause.loop_vars:
-                    if isinstance(var, tuple) and len(var) == 2 and isinstance(var[1], AliasClause):
-                        # Extract alias name from scoped_var (e.g., "%{package}" → "package")
-                        scoped_var = var[1].scoped_var
-                        match = re.match(r'[@%$]\{([^}]+)\}', scoped_var)
-                        if match:
-                            alias_name = match.group(1)
-                            node.aliases.append(alias_name)
-                        else:
-                            self.debug_print(f"Warning: Malformed scoped_var in {scoped_var}")
-        return node
-
-    # --------------------------------------------------------------------------
-    # Updated table array header rule.
-    # --------------------------------------------------------------------------
-    @v_args(meta=True)
-    def table_array_header(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"table_array_header() extracted original: {original_text} and items: {items}")
-
-        header_parts = []
-        for item in items:
-            if isinstance(item, tuple):
-                key, value = item
-                header_parts.append(f"{key} = {value}")
-            else:
-                header_parts.append(str(item))
-        aggregated_header_expr = " ".join(header_parts)
+        # Now process the value token
+        if i < len(items):
+            value = items[i]
+            if isinstance(value, Token):
+                if value.type == "INTEGER":
+                    value_node = IntegerNode()
+                    value_node.value = value.value
+                    value_node.origin = value.value
+                    value_node.meta = meta
+                    value = value_node
+                elif value.type == "FLOAT":
+                    value_node = FloatNode()
+                    value_node.value = value.value
+                    value_node.origin = value.value
+                    value_node.meta = meta
+                    value = value_node
+                elif value.type == "SINGLE_QUOTED_STRING":
+                    value_node = SingleQuotedStringNode()
+                    # Unquote the string by stripping both single and double quotes.
+                    value_node.value = value.value.strip('"\'')
+                    value_node.origin = value.value
+                    value_node.meta = meta
+                    value = value_node
+                elif value.type == "BOOLEAN":
+                    value_node = BooleanNode()
+                    value_node.value = value.value
+                    value_node.origin = value.value
+                    value_node.meta = meta
+                    value_node.resolve({}, {})
+                    value = value_node
+                elif value.type == "NULL":
+                    value_node = NullNode()
+                    value_node.value = value.value
+                    value_node.origin = value.value
+                    value_node.meta = meta
+                    value = value_node
+            elif isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
+                value.resolve({}, {})
+                self.current_section[key] = value
+            node.value = value
+            i += 1
+        else:
+            raise ValueError(f"Expected value in assignment, got {items[i] if i < len(items) else 'nothing'}")
         
-        header_node = TableArrayHeader(aggregated_header_expr, original_text)
-        # Set the header pointer
-        self._current_ta_header = header_node
-        # Initialize the header's inline assignments dictionary.
-        header_node.inline_assignments = {}
-        return header_node
+        # Handle inline comment (if present)
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+            comment_tree = items[i]
+            inline_ws = None
+            comment = None
+            for child in comment_tree.children:
+                if isinstance(child, InlineWhitespaceNode):
+                    inline_ws = child
+                elif isinstance(child, CommentNode):
+                    comment = child
+            if comment:
+                node.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+            i += 1
 
-    # --------------------------------------------------------------------------
-    # Updated table array section rule.
-    # --------------------------------------------------------------------------
-    @v_args(meta=True)
-    def table_array_section(self, meta, items):
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        header = items[0]
-        body_dict = {}
-        for child in items[1:]:
-            if isinstance(child, tuple):
-                key, value = child
-                body_dict[key] = value
-        if hasattr(header, "inline_assignments"):
-            body_dict.update(header.inline_assignments)
-        # Resolve header to a string key
-        table_name = header.table_name if hasattr(header, 'table_name') else str(header).split('=')[0].strip()
-        if isinstance(header, (ComprehensionHeader, TableArrayHeader)):
-            # Use original text for comprehension headers
-            table_name = header.origin.strip('[]') if isinstance(header, ComprehensionHeader) else table_name
-        if table_name not in self.current_section:
-            self.current_section[table_name] = []
-        node = TableArraySectionNode(
-            header=header,
-            body=body_dict,
-            original=original_text,
-        )
-        self.current_section[table_name].append(node)
-        self.current_section = self.data  # Reset to root for global context
-        self._current_ta_header = None
+        node.origin = node.identifier
+        node.meta = meta
+
+        # Add to current_section
+        if self.current_section is not None:
+            key = node.identifier.value
+            if isinstance(value, (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode,
+                                  TripleBacktickStringNode, IntegerNode, FloatNode, BooleanNode, NullNode,
+                                  SingleLineArrayNode, MultiLineArrayNode)):
+                processed_value = value.evaluate()
+            else:
+                processed_value = value.value if hasattr(value, 'value') else value
+            if node.type_annotation:
+                processed_value = {"_value": processed_value, "_annotation": node.type_annotation}
+            self.current_section[key] = processed_value
+            self.debug_print(f"assignment(): Added {key} = {processed_value} to section {self._last_section_name or 'root'}")
+        else:
+            self.debug_print(f"Skipping assignment {key} as no section is active")
+
         return node
 
-    def inline_assignment(self, items):
-        self.debug_print(f"inline_assignment() called with items: {items}")
-        if len(items) >= 4 and isinstance(items[1], Token) and items[1].type == "COLON":
-            key = items[0]
-            type_annotation = items[2]
-            value = items[3]
-            inline = items[4] if len(items) > 4 else None
-        else:
-            if len(items) == 2:
-                key, value = items
-                inline = None
-            elif len(items) == 3:
-                if isinstance(items[-1], dict) and '_inline_comment' in items[-1]:
-                    key, value, inline = items
-                elif isinstance(items[-1], str) and items[-1].lstrip().startswith('#'):
-                    key, value, inline = items
-                else:
-                    key, type_annotation, value = items
-                    inline = None
-            elif len(items) == 4:
-                key, type_annotation, value, inline = items
-            else:
-                raise ValueError("Unexpected structure in inline_assignment: " + str(items))
-        self.debug_print(f"Inline assignment returning: {{ {key}: {value} }}")
-        return { key: value }
 
-    def inline_table_item(self, items):
-        self.debug_print(f"inline_table_item() called with items: {items}")
-        comment_parts = []
-        assignment_dict = None
-        inline_comment = ""
-        for child in items:
-            if hasattr(child, "data"):
-                if child.data == "pre_item_comments":
-                    comment_parts.extend(tok.value for tok in child.children)
-                elif child.data == "inline_assignment":
-                    assignment_dict = self.inline_assignment(child.children)
-                elif child.data == "inline_comment":
-                    if len(child.children) >= 2:
-                        inline_comment = child.children[1].value
-            elif isinstance(child, dict):
-                assignment_dict = child
-        comment_text = " ".join(comment_parts)
-        if inline_comment:
-            comment_text = (comment_text + " " + inline_comment).strip()
-        if comment_text and not comment_text.lstrip().startswith("#"):
-            comment_text = "# " + comment_text
-        return (assignment_dict, comment_text if comment_text else None)
 
-    def inline_table_items(self, items):
-        self.debug_print(f"inline_table_items() called with items: {items}")
-        def is_ignorable(x):
-            if hasattr(x, "data") and x.data == "ws":
-                return True
-            if isinstance(x, str) and x.strip() == "":
-                return True
-            return False
-        return [x for x in items if not is_ignorable(x)]
 
     @v_args(meta=True)
-    def inline_table(self, meta, children):
-        items = []
-        for child in children:
-            if isinstance(child, list):
-                items.extend(child)
-            elif hasattr(child, "data") and child.data == "inline_table_items":
-                items.extend(child.children)
-            else:
-                items.append(child)
-        processed_items = []
-        for item in items:
-            if isinstance(item, tuple):
-                processed_items.append(item)
-            elif isinstance(item, dict):
-                processed_items.append((item, None))
-            # Otherwise, ignore.
-        result = {}
-        prev_key = None
-        for tup in processed_items:
-            assignment, comment = tup
-            if assignment is None:
-                continue
-            key = list(assignment.keys())[0]
-            value = assignment[key]
-            if comment and prev_key is not None:
-                if key == "email" and prev_key == "name":
-                    prev_val = result.get(prev_key)
-                    if isinstance(prev_val, PreservedValue):
-                        prev_val.comment = (prev_val.comment + " " + comment).strip() if prev_val.comment else comment
-                    else:
-                        result[prev_key] = PreservedValue(prev_val, comment)
-                    comment = None
-            if comment:
-                if isinstance(value, PreservedValue):
-                    value.comment = comment
-                else:
-                    value = PreservedValue(value, comment)
-                    assignment[key] = value
-            result.update(assignment)
-            prev_key = key
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        return PreservedInlineTable(result, original_text)
-
-    def comment_line(self, items):
-        self.debug_print(f"comment_line() called with items: {items}")
-        comment_token = items[0]
-        if hasattr(comment_token, "column") and comment_token.column == 1:
-            self.data["__comments__"].append(comment_token.value)
-        return comment_token.value
-
-    def inline_comment(self, items):
-        self.debug_print(f"inline_comment() called with items: {items}")
-        ws = items[0]
-        com = items[1]
-        return {"_inline_comment": ws + com}
+    def value(self, meta, items: List[Any]) -> BaseNode:
+        self.debug_print("value() called with items")
+        item = items[0]
+        if isinstance(item, Token):
+            if item.type == "SINGLE_QUOTED_STRING":
+                node = SingleQuotedStringNode()
+                node.value = item.value.strip('"\'')  # Strip quotes, e.g., '"red"' -> 'red'
+                node.origin = item.value
+                node.meta = meta
+                return node
+            if item.type == "INTEGER":
+                node = IntegerNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "FLOAT":
+                node = FloatNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "BOOLEAN":
+                node = BooleanNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "NULL":
+                node = NullNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+        return item
 
     @v_args(meta=True)
-    def array(self, meta, items):
-        self.debug_print(f"array() called with meta: {meta} and items: {items}")
-        array_values = []
+    def assignment_value(self, meta, items: List[Any]) -> BaseNode:
+        return self.value(meta, items)
+
+    @v_args(meta=True)
+    def expr_item(self, meta, items: List[Any]) -> BaseNode:
+        item = items[0]
+        if isinstance(item, Token):
+            if item.type == "INTEGER":
+                node = IntegerNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "FLOAT":
+                node = FloatNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "SINGLE_QUOTED_STRING":
+                node = SingleQuotedStringNode()
+                node.value = item.value
+                node.origin = item.value
+                node.meta = meta
+                return node
+            elif item.type == "IDENTIFIER":
+                node = DottedExprNode()
+                node.dotted_value = item.value
+                node.origin = item.value
+                node.value = item.value
+                node.meta = meta
+                return node
+        return item
+
+    @v_args(meta=True)
+    def comment_line(self, meta, items: List[Any]) -> CommentNode:
+        self.debug_print("comment_line() called with items")
+        node = CommentNode()
+        node.value = items[0].value
+        node.origin = items[0].value + items[1].value
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def blank_line(self, meta, items: List[Token]) -> NewlineNode:
+        self.debug_print("blank_line() called with items")
+        node = NewlineNode()
+        node.value = "".join(item.value for item in items)
+        node.origin = node.value
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def section_name(self, meta, items: List[Any]) -> SectionNameNode:
+        """
+        Transform the 'section_name' rule: IDENTIFIER ("." IDENTIFIER)*
+        Creates a SectionNameNode with parts, handling IDENTIFIER tokens,
+        and also keeps track of DOT tokens.
+        Sets self.current_section for subsequent assignments.
+        """
+        self.debug_print("section_name() called with items")
+        node = SectionNameNode()
+
+        if not items or not isinstance(items[0], Token) or items[0].type != "IDENTIFIER":
+            raise ValueError(
+                f"Expected at least one IDENTIFIER in section_name, got {items[0] if items else 'nothing'}"
+            )
+
+        node.parts = []
+        node.dots = []
         for item in items:
-            if isinstance(item, Token) and item.type in ("LBRACK", "RBRACK", "NEWLINE", "WHITESPACE"):
-                continue
-            if isinstance(item, str) and item.strip() == "":
-                continue
-            if isinstance(item, list):
-                array_values.extend(item)
+            if not isinstance(item, Token):
+                raise ValueError(f"Expected Token, got {type(item)} = {item}")
+
+            if item.type == "IDENTIFIER":
+                node.parts.append(item)
+            elif item.type == "DOT":
+                # Keep track of the DOT tokens as well
+                node.dots.append(item)
             else:
-                array_values.append(item)
-        original_text = self._slice_input(meta.start_pos, meta.end_pos)
-        self.debug_print(f"array result: {array_values} with original text: {original_text}")
-        return PreservedArray(array_values, original_text)
+                # If anything else sneaks in, raise an error
+                raise ValueError(f"Expected IDENTIFIER or DOT, got {item.type} = {item}")
 
-    def array_content(self, items):
-        self.debug_print(f"array_content() called with items: {items}")
-        def is_ignorable(x):
-            if hasattr(x, "data") and x.data == "ws":
-                return True
-            if isinstance(x, str) and x.strip() == "":
-                return True
-            if isinstance(x, Token) and x.type in ("WHITESPACE", "NEWLINE"):
-                return True
-            return False
-        return [x for x in items if x != "," and not is_ignorable(x)]
+        # Build the final value from the IDENTIFIER tokens only
+        node.value = ".".join(part.value for part in node.parts)
 
-    def array_item(self, items):
-        self.debug_print(f"array_item() called with items: {items}")
-        pre_comments = None
-        value = None
-        inline_comment = None
-        items = list(items)
-        if items and hasattr(items[0], "data") and items[0].data == "pre_item_comments":
-            pre_comments = items.pop(0)
-        if items:
-            value = items.pop(0)
-        if items and hasattr(items[0], "data") and items[0].data == "inline_comment":
-            inline_comment = items.pop(0)
-        attach_pre_comments = False
-        if pre_comments and hasattr(pre_comments, "children") and pre_comments.children:
-            last_comment = pre_comments.children[-1]
-            value_line = getattr(value, "line", None)
-            if value_line is None and hasattr(value, "children") and value.children:
-                value_line = getattr(value.children[0], "line", None)
-            if last_comment.line == value_line:
-                attach_pre_comments = True
-        combined_inline = None
-        if attach_pre_comments:
-            pre_text = " ".join(tok.value for tok in pre_comments.children)
-            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
-                inline_text = inline_comment.children[1].value
-            else:
-                inline_text = ""
-            combined_inline = pre_text + (" " + inline_text if inline_text else "")
-        else:
-            if inline_comment and hasattr(inline_comment, "children") and len(inline_comment.children) > 1:
-                combined_inline = inline_comment.children[1].value
-        actual_value = value
-        if combined_inline:
-            self.debug_print(f"array_item() returning PreservedValue for value: {actual_value} with inline comment: {combined_inline}")
-            return PreservedValue(actual_value, combined_inline)
-        self.debug_print(f"array_item() returning value: {actual_value}")
-        return actual_value
+        # Keep original string form, meta info, etc.
+        node.origin = node.value
+        node.meta = meta
 
-    def array_value(self, items):
-        self.debug_print(f"array_value() called with items: {items}")
+        # If you need the same number of DOT tokens as the "gaps" between identifiers:
+        # node.dots = [Token("DOT", ".") for _ in range(len(node.parts) - 1)]
+        # or keep them as read from the grammar (the above loop).
+
+        # Build nested dicts for the config data
+        parts = node.value.split(".")
+        d = self.data
+        for part in parts[:-1]:
+            d = d.setdefault(part, {})
+        section_name = parts[-1]
+        self.current_section = d.setdefault(section_name, {})
+        self._last_section = self.current_section
+        self._last_section_name = node.value
+        self.debug_print(f"section_name(): Set current_section to {node.value}")
+
+        return node
+
+    @v_args(meta=True)
+    def table_array_section(self, meta, items: List[Any]) -> TableArraySectionNode:
+        self.debug_print("table_array_section() called with items")
+        node = TableArraySectionNode()
+        node.header = items[0]
+        node.body = items[1] if len(items) > 1 else []
+        node.__comments__ = [item.value for item in node.body if isinstance(item, CommentNode)]
+        node.body = [item for item in node.body if not isinstance(item, (CommentNode, NewlineNode))]
+        node.origin = f"[[{node.header.emit()}]]"
+        node.value = node.header.value
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def table_array_header(self, meta, items: List[Any]) -> TableArrayHeaderNode:
+        self.debug_print("table_array_header() called with items")
+        node = TableArrayHeaderNode()
+        node.origin = items[0].emit() if hasattr(items[0], "emit") else items[0].value
+        node.value = items[0].value
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def header_comprehension(self, meta, items: List[Any]) -> ComprehensionHeaderNode:
+        self.debug_print("header_comprehension() called with items")
+        node = ComprehensionHeaderNode()
+        node.header_expr = items[0]
+        node.clauses = items[1:-1] if len(items) > 2 else []
+        node.origin = "".join(item.value if isinstance(item, Token) else item.emit() for item in items)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def concat_expr(self, meta, items: List[Any]) -> StringExprNode:
+        """
+        Transform the 'concat_expr' rule: string_component (HSPACES? "+" HSPACES? string_component)*
+        Creates a StringExprNode with concatenated parts, ignoring HSPACES and '+' tokens.
+        """
+        node = StringExprNode()
+        # Filter items to include only StringNode (from string_component)
+        node.parts = [item for item in items if isinstance(item, (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode))]
+        # Construct origin using emit() for StringNode objects
+        node.origin = " + ".join(item.emit() for item in node.parts)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def string_component(self, meta, items: List[Any]) -> Union[SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode]:
         return items[0]
 
-    def INLINE_TABLE(self, token):
-        self.debug_print(f"INLINE_TABLE() called with token: {token}")
-        if hasattr(token, 'meta') and token.meta:
-            start = token.meta.start_pos
-            end = token.meta.end_pos
-            original_text = self._slice_input(start, end)
+    @v_args(meta=True)
+    def type_annotation(self, meta, items: List[Token]) -> Token:
+        return items[0]
+
+    @v_args(meta=True)
+    def arithmetic(self, meta, items: List[Any]) -> StringExprNode:
+        node = StringExprNode()
+        node.parts = items
+        node.origin = "".join(item.value if isinstance(item, Token) else item.emit() for item in items)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def pair_expr(self, meta, items: List[Any]) -> PairExprNode:
+        """
+        Transform the 'pair_expr' rule: (string_expr | IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr | IDENTIFIER))
+        Creates a PairExprNode with key and value, handling tokens correctly.
+        """
+        node = PairExprNode()
+        i = 0
+        # Handle key (string_expr or IDENTIFIER)
+        if i < len(items) and isinstance(items[i], (StringExprNode, Token)):
+            if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+                key_node = DottedExprNode()
+                key_node.dotted_value = items[i].value
+                key_node.origin = items[i].value
+                key_node.value = items[i].value
+                key_node.meta = meta
+                node.key = key_node
+            else:
+                node.key = items[i]
+            i += 1
         else:
-            original_text = token.value
-        s = token.value.strip()
-        if s.startswith("{") and s.endswith("}"):
-            s = s[1:-1].strip()
-        result_dict = {}
-        if s:
-            pairs = s.split(',')
-            for pair in pairs:
-                if '=' in pair:
-                    key, val = pair.split('=', 1)
-                    key = key.strip()
-                    val = val.strip()
-                    try:
-                        if '.' in val:
-                            converted = float(val)
-                        else:
-                            converted = int(val)
-                    except ValueError:
-                        if ((val.startswith('"') and val.endswith('"')) or 
-                            (val.startswith("'") and val.endswith("'"))):
-                            converted = val[1:-1]
-                        else:
-                            converted = val
-                    result_dict[key] = converted
-        self.debug_print(f"INLINE_TABLE() parsed dict: {result_dict} with original text: {original_text}")
-        return PreservedInlineTable(result_dict, original_text)
+            raise ValueError(f"Expected string_expr or IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip HSPACES, EQ/COLON, HSPACES
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("HSPACES", "EQ", "COLON"):
+            separator = items[i].value if items[i].type in ("EQ", "COLON") else "="
+            i += 1
+        # Handle value (string_expr or IDENTIFIER)
+        if i < len(items) and isinstance(items[i], (StringExprNode, Token)):
+            if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+                value_node = DottedExprNode()
+                value_node.dotted_value = items[i].value
+                value_node.origin = items[i].value
+                value_node.value = items[i].value
+                value_node.meta = meta
+                node.value = value_node
+            else:
+                node.value = items[i]
+        else:
+            raise ValueError(f"Expected string_expr or IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Construct origin safely
+        node.origin = f"{node.key.emit()} {separator} {node.value.emit()}"
+        node.value = node.origin
+        node.meta = meta
+        return node
 
-    def ARRAY(self, token):
-        self.debug_print(f"ARRAY() called with token: {token}")
-        s = token.value.strip()
-        try:
-            parsed = json.loads(s)
-            if isinstance(parsed, list):
-                self.debug_print("ARRAY() successfully parsed JSON list")
-                return PreservedArray(parsed, token.value)
-            return parsed
-        except Exception as e:
-            self.debug_print(f"ARRAY() JSON parsing error: {e}")
-            return s
+    @v_args(meta=True)
+    def dotted_expr(self, meta, items: List[Token]) -> DottedExprNode:
+        node = DottedExprNode()
+        node.dotted_value = ".".join(item.value for item in items)
+        node.origin = node.dotted_value
+        node.value = node.dotted_value
+        node.meta = meta
+        return node
 
-    def STRING(self, token):
-        self.debug_print(f"STRING() called with token: {token}")
-        s = token.value
-        if s.lstrip().startswith("f\"") or s.lstrip().startswith("f'"):
-            self.debug_print("String with f-prefix detected")
-            return PreservedString(s.lstrip(), s)
-        if s.startswith("'''") and s.endswith("'''"):
-            inner = s[3:-3]
-            return PreservedString(inner, s)
-        if s.startswith('"""') and s.endswith('"""'):
-            return PreservedString(s[3:-3], s)
-        if len(s) >= 2 and s[0] == s[-1] and s[0] in {"'", '"', "`"}:
-            return PreservedString(s[1:-1], s)
-        return s
+    @v_args(meta=True)
+    def string_expr(self, meta, items: List[Any]) -> StringExprNode:
+        node = StringExprNode()
+        node.parts = items
+        node.origin = " + ".join(item.emit() for item in items)
+        node.value = node.origin
+        node.meta = meta
+        return node
 
-    def SCOPED_VAR(self, token):
-        return token.value
 
-    def FLOAT(self, token):
-        return float(token.value)
+    @v_args(meta=True)
+    def array_item(self, meta, items: List[Any]) -> ValueNode:
+        self.debug_print("array_item() called with items")
+        node = ValueNode()
+        i = 0
 
-    def INTEGER(self, token):
-        val = token.value
-        if val in ("inf", "nan", "+inf", "-inf"):
-            return val
-        return int(val, 0)
+        # Handle pre-item comments
+        if i < len(items) and (isinstance(items[i], list) or (isinstance(items[i], Tree) and items[i].data == "pre_item_comments")):
+            if isinstance(items[i], list):
+                comments = [item.value for item in items[i] if item is not None and hasattr(item, "value")]
+            else:
+                comments = [child.value for child in items[i].children if child is not None and hasattr(child, "value")]
+            node.__comments__.extend(comments)
+            i += 1
 
-    def BOOLEAN(self, token):
-        return (token.value == "true")
+        # Process the value (if present)
+        if i < len(items) and items[i] is not None and not isinstance(items[i], (list, Tree)) and not (isinstance(items[i], Token) and items[i].type == "COMMENT"):
+            if isinstance(items[i], Tree):
+                node.value = self.value(meta, items[i].children)
+            else:
+                node.value = items[i]
+            i += 1
+        else:
+            node.value = None  # No value; likely a comment-only item
 
-    def NULL(self, token):
-        return None
+        # Handle inline comment
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+            inline_ws = None
+            comment = None
+            for child in items[i].children:
+                if isinstance(child, InlineWhitespaceNode):
+                    inline_ws = child
+                elif isinstance(child, CommentNode):
+                    comment = child
+            if comment:
+                node.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+            i += 1
 
-    def RESERVED_FUNC(self, token):
-        return token.value
+        # Handle post-item comments
+        if i < len(items) and (isinstance(items[i], list) or (isinstance(items[i], Tree) and items[i].data == "post_item_comments")):
+            if isinstance(items[i], list):
+                extra_comments = [item.value for item in items[i] if item is not None and hasattr(item, "value")]
+            else:
+                extra_comments = [child.value for child in items[i].children if child is not None and hasattr(child, "value")]
+            node.__comments__.extend(extra_comments)
+            i += 1
 
-    def KEYWORD(self, token):
-        return token.value
+        node.origin = node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        node.meta = meta
+        return node
 
-    def TABLE_ARRAY(self, token):
-        return token.value
+    @v_args(meta=True)
+    def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
+        self.debug_print(f"inline_table() called with items '{items}'")
+        node = InlineTableNode()
+        node.data = {}
+        # Note: the inline_table_items Tree is at index 2.
+        if len(items) > 2 and isinstance(items[2], Tree) and items[2].data == "inline_table_items":
+            for item in items[2].children:
+                if isinstance(item, ValueNode) and isinstance(item.value, AssignmentNode):
+                    assignment = item.value
+                    # Evaluate the assignment value to convert "10" (string) to 10 (int)
+                    evaluated_value = assignment.value.evaluate() if hasattr(assignment.value, "evaluate") else assignment.value
+                    node.data[assignment.identifier.value] = evaluated_value
+                    self.debug_print(
+                        f"[DEBUG INLINE_TABLE]: Added assignment {assignment.identifier.value} with evaluated value {evaluated_value}"
+                    )
+        emit_items = []
+        if len(items) > 2 and isinstance(items[2], Tree) and items[2].children:
+            for child in items[2].children:
+                if isinstance(child, ValueNode) and isinstance(child.value, AssignmentNode):
+                    emit_items.append(child.value.emit())
+        node.origin = f"{{{', '.join(emit_items) if emit_items else ''}}}"
+        node.value = node.data
+        node.meta = meta
+        return node
 
-    def FOLDER_BLOCK(self, token):
-        return token.value
 
-    def IDENTIFIER(self, token):
-        return token.value
+    @v_args(meta=True)
+    def inline_table_item(self, meta, items: List[Any]) -> ValueNode:
+        self.debug_print(f"inline_table_item() called with items '{items}'")
+        node = ValueNode()
+        i = 0
+        # Handle pre-item comments
+        if i < len(items) and isinstance(items[i], list):
+            node.__comments__.extend(item.value for item in items[i] if isinstance(item, CommentNode) and item is not None)
+            i += 1
+        # Handle main item
+        if i < len(items):
+            if items[i] is None:
+                i += 1
+            elif isinstance(items[i], Tree) and items[i].data == "inline_assignment":
+                # Transform inline_assignment tree to AssignmentNode
+                node.value = self.inline_assignment(meta, items[i].children)
+                i += 1
+            elif isinstance(items[i], (AssignmentNode, CommentNode)):
+                node.value = items[i]
+                i += 1
+            else:
+                self.debug_print(f"Skipping unexpected item at index {i}: {items[i]}")
+                i += 1
+        # Handle inline comment
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+            node.inline_comment = items[i]
+            i += 1
+        # Handle post-item comments
+        if i < len(items) and isinstance(items[i], list):
+            node.__comments__.extend(item.value for item in items[i] if isinstance(item, CommentNode) and item is not None)
+        # Set origin safely
+        node.origin = node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        node.meta = meta
+        return node
 
-    def OPERATOR(self, token):
-        return token.value
+    @v_args(meta=True)
+    def inline_assignment(self, meta, items: List[Any]) -> AssignmentNode:
+        self.debug_print(f"inline_assignment() called with items '{items}'")
+        node = AssignmentNode()
+        i = 0
+        # Leading whitespace
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+            node.leading_whitespace = items[i]
+            i += 1
+        # Identifier
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+            node.identifier = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Whitespace before equals (now supporting HspacesNode or Token('HSPACES'))
+        if i < len(items) and (isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")):
+            node.equals_leading_whitespace = items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+            i += 1
+        # Equals sign
+        if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
+            node.equals = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected '=' at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Whitespace after equals
+        if i < len(items) and (isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")):
+            node.equals_trailing_whitespace = items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+            i += 1
+        # Value
+        if i < len(items):
+            if isinstance(items[i], (SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode, InlineTableNode, SingleLineArrayNode, MultiLineArrayNode)):
+                node.value = items[i]
+            else:
+                node.value = self.value(meta, [items[i]])
+            i += 1
+        else:
+            raise ValueError(f"Expected value at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Inline comment
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+            node.inline_comment = items[i]
+            i += 1
+        # Trailing whitespace
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
+            node.trailing_whitespace = items[i]
+            i += 1
+        node.origin = node.identifier
+        node.meta = meta
+        self.debug_print(f"[DEBUG INLINE_ASSIGNMENT]: Created AssignmentNode(identifier={node.identifier.value}, value={node.value}, equals_leading_whitespace={node.equals_leading_whitespace}, equals_trailing_whitespace={node.equals_trailing_whitespace})")
+        return node
 
-    def PUNCTUATION(self, token):
-        return token.value
+    @v_args(meta=True)
+    def list_comprehension(self, meta, items: List[Any]) -> ListComprehensionNode:
+        """
+        Transform the 'list_comprehension' rule: "[" comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* "]"
+        Creates a ListComprehensionNode with header_expr and clauses, ignoring HSPACES and NEWLINE tokens.
+        """
+        self.debug_print("list_comprehension() called with items")
+        node = ListComprehensionNode()
+        i = 0
+        # Skip LBRACK
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "LBRACK":
+            i += 1
+        # Handle comprehension_expr
+        if i < len(items):
+            node.header_expr = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected comprehension_expr at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip HSPACES or NEWLINE tokens
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("HSPACES", "NEWLINE"):
+            i += 1
+        # Handle comprehension_clauses
+        if i < len(items) and isinstance(items[i], ComprehensionClausesNode):
+            node.clauses = items[i]
+            i += 1
+        else:
+            node.clauses = None
+        # Skip remaining NEWLINE tokens
+        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
+            i += 1
+        # Construct origin using only header_expr and clauses
+        origin_parts = [node.header_expr.emit()]
+        if node.clauses:
+            origin_parts.append(node.clauses.emit())
+        node.origin = f"[{', '.join(origin_parts)}]"
+        node.value = node.origin
+        node.meta = meta
+        return node
 
-    def WHITESPACE(self, token):
-        return token.value
+    @v_args(meta=True)
+    def dict_comprehension(self, meta, items: List[Any]) -> DictComprehensionNode:
+        """
+        Transform the 'dict_comprehension' rule: "{" NEWLINE* dict_comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
+        Creates a DictComprehensionNode, handling (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode) in dict_comprehension_pair.
+        """
+        self.debug_print("dict_comprehension() called with items")
+        node = DictComprehensionNode()
+        i = 0
+        # Skip opening brace and NEWLINE*
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("LBRACE", "NEWLINE"):
+            i += 1
+        # Handle dict_comprehension_pair
+        if i < len(items):
+            if isinstance(items[i], Tree) and items[i].data == "dict_comprehension_pair":
+                # Transform Tree to PairExprNode
+                pair_node = PairExprNode()
+                pair_items = items[i].children
+                pair_index = 0
+                # Handle key
+                if pair_index < len(pair_items) and isinstance(pair_items[pair_index], (StringExprNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, Token)):
+                    if isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type == "IDENTIFIER":
+                        key_node = DottedExprNode()
+                        key_node.dotted_value = pair_items[pair_index].value
+                        key_node.origin = pair_items[pair_index].value
+                        key_node.value = pair_items[pair_index].value
+                        key_node.meta = meta
+                        pair_node.key = key_node
+                    else:
+                        pair_node.key = pair_items[pair_index]  # StringExprNode or SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode
+                    pair_index += 1
+                else:
+                    raise ValueError(f"Expected string_expr, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, or IDENTIFIER in dict_comprehension_pair at index {pair_index}, got {pair_items[pair_index] if pair_index < len(pair_items) else 'nothing'}")
+                # Skip HSPACES, EQ/COLON, HSPACES
+                separator = "="
+                while pair_index < len(pair_items) and isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type in ("HSPACES", "COLON"):
+                    if pair_items[pair_index].type in ("COLON"):
+                        separator = pair_items[pair_index].value
+                    pair_index += 1
+                # Handle value
+                if pair_index < len(pair_items) and isinstance(pair_items[pair_index], (StringExprNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, Token)):
+                    if isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type == "IDENTIFIER":
+                        value_node = DottedExprNode()
+                        value_node.dotted_value = pair_items[pair_index].value
+                        value_node.origin = pair_items[pair_index].value
+                        value_node.value = pair_items[pair_index].value
+                        value_node.meta = meta
+                        pair_node.value = value_node
+                    else:
+                        pair_node.value = pair_items[pair_index]  # StringExprNode or SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode
+                else:
+                    raise ValueError(f"Expected string_expr, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, or IDENTIFIER in dict_comprehension_pair at index {pair_index}, got {pair_items[pair_index] if pair_index < len(pair_items) else 'nothing'}")
+                pair_node.origin = f"{pair_node.key.emit()} {separator} {pair_node.value.emit()}"
+                pair_node.value = pair_node.origin
+                pair_node.meta = meta
+                node.pair = pair_node
+                i += 1
+            elif isinstance(items[i], PairExprNode):
+                node.pair = items[i]
+                i += 1
+            else:
+                raise ValueError(f"Expected PairExprNode or dict_comprehension_pair Tree at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        else:
+            raise ValueError(f"Expected dict_comprehension_pair at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip "for"
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
+            i += 1
+        else:
+            raise ValueError(f"Expected FOR token at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle IDENTIFIER
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+            node.loop_var = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip "in"
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IN":
+            i += 1
+        else:
+            raise ValueError(f"Expected IN token at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle value
+        if i < len(items):
+            node.iterable = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected value at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle optional "if" value
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IF":
+            i += 1
+            if i < len(items):
+                node.condition = items[i]
+                i += 1
+            else:
+                raise ValueError(f"Expected value after IF at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        else:
+            node.condition = None
+        # Skip trailing NEWLINE* and closing brace
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("NEWLINE", "RBRACE"):
+            i += 1
+        # Construct origin
+        origin_parts = []
+        if node.pair:
+            origin_parts.append(node.pair.emit())
+        origin_parts.append(f"for {node.loop_var.value} in {node.iterable.emit()}")
+        if node.condition:
+            origin_parts.append(f"if {node.condition.emit()}")
+        node.origin = f"{{{', '.join(origin_parts)}}}"
+        node.value = node.origin
+        node.meta = meta
+        return node
 
-    def INLINE_WS(self, token):
-        return token.value
+    @v_args(meta=True)
+    def inline_table_comprehension(self, meta, items: List[Any]) -> InlineTableComprehensionNode:
+        """
+        Transform the 'inline_table_comprehension' rule: "{" NEWLINE* inline_comprehension_pair "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
+        Creates a DictComprehensionNode, handling (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode) in inline_comprehension_pair.
+        """
+        self.debug_print("inline_table_comprehension() called with items")
+        node = InlineTableComprehensionNode()
+        i = 0
+        # Skip opening brace and NEWLINE*
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("LBRACE", "NEWLINE"):
+            i += 1
+        # Handle inline_comprehension_pair
+        if i < len(items):
+            if isinstance(items[i], Tree) and items[i].data == "inline_comprehension_pair":
+                # Transform Tree to PairExprNode
+                pair_node = PairExprNode()
+                pair_items = items[i].children
+                pair_index = 0
+                # Handle key
+                if pair_index < len(pair_items) and isinstance(pair_items[pair_index], (StringExprNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, Token)):
+                    if isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type == "IDENTIFIER":
+                        key_node = DottedExprNode()
+                        key_node.dotted_value = pair_items[pair_index].value
+                        key_node.origin = pair_items[pair_index].value
+                        key_node.value = pair_items[pair_index].value
+                        key_node.meta = meta
+                        pair_node.key = key_node
+                    else:
+                        pair_node.key = pair_items[pair_index]  # StringExprNode or SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode
+                    pair_index += 1
+                else:
+                    raise ValueError(f"Expected string_expr, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, or IDENTIFIER in inline_comprehension_pair at index {pair_index}, got {pair_items[pair_index] if pair_index < len(pair_items) else 'nothing'}")
+                # Skip HSPACES, EQ/COLON, HSPACES
+                separator = "="
+                while pair_index < len(pair_items) and isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type in ("HSPACES", "EQ"):
+                    if pair_items[pair_index].type in ("EQ"):
+                        separator = pair_items[pair_index].value
+                    pair_index += 1
+                # Handle value
+                if pair_index < len(pair_items) and isinstance(pair_items[pair_index], (StringExprNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, Token)):
+                    if isinstance(pair_items[pair_index], Token) and pair_items[pair_index].type == "IDENTIFIER":
+                        value_node = DottedExprNode()
+                        value_node.dotted_value = pair_items[pair_index].value
+                        value_node.origin = pair_items[pair_index].value
+                        value_node.value = pair_items[pair_index].value
+                        value_node.meta = meta
+                        pair_node.value = value_node
+                    else:
+                        pair_node.value = pair_items[pair_index]  # StringExprNode or SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode
+                else:
+                    raise ValueError(f"Expected string_expr, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode, or IDENTIFIER in inline_comprehension_pair at index {pair_index}, got {pair_items[pair_index] if pair_index < len(pair_items) else 'nothing'}")
+                pair_node.origin = f"{pair_node.key.emit()} {separator} {pair_node.value.emit()}"
+                pair_node.value = pair_node.origin
+                pair_node.meta = meta
+                node.pair = pair_node
+                i += 1
+            elif isinstance(items[i], PairExprNode):
+                node.pair = items[i]
+                i += 1
+            else:
+                raise ValueError(f"Expected PairExprNode or inline_comprehension_pair Tree at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        else:
+            raise ValueError(f"Expected inline_comprehension_pair at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip "for"
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
+            i += 1
+        else:
+            raise ValueError(f"Expected FOR token at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle IDENTIFIER
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
+            node.loop_var = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Skip "in"
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IN":
+            i += 1
+        else:
+            raise ValueError(f"Expected IN token at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle value
+        if i < len(items):
+            node.iterable = items[i]
+            i += 1
+        else:
+            raise ValueError(f"Expected value at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        # Handle optional "if" value
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IF":
+            i += 1
+            if i < len(items):
+                node.condition = items[i]
+                i += 1
+            else:
+                raise ValueError(f"Expected value after IF at index {i}, got {items[i] if i < len(items) else 'nothing'}")
+        else:
+            node.condition = None
+        # Skip trailing NEWLINE* and closing brace
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("NEWLINE", "RBRACE"):
+            i += 1
+        # Construct origin
+        origin_parts = []
+        if node.pair:
+            origin_parts.append(node.pair.emit())
+        origin_parts.append(f"for {node.loop_var.value} in {node.iterable.emit()}")
+        if node.condition:
+            origin_parts.append(f"if {node.condition.emit()}")
+        node.origin = f"{{{', '.join(origin_parts)}}}"
+        node.value = node.origin
+        node.meta = meta
+        return node
 
-    def _slice_input(self, start, end):
-        self.debug_print(f"_slice_input() called with start: {start}, end: {end}")
-        return self._context.text[start:end]
+
+    @v_args(meta=True)
+    def comprehension_clauses(self, meta, items: List[Any]) -> ComprehensionClausesNode:
+        self.debug_print("comprehension_clauses() called with items")
+        node = ComprehensionClausesNode()
+        node.clauses = items
+        node.origin = " ".join(item.emit() for item in items)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def comprehension_clause(self, meta, items: List[Any]) -> ComprehensionClauseNode:
+        self.debug_print("comprehension_clause() called with items")
+        """
+        Transform the 'comprehension_clause' rule: FOR loop_vars IN value (IF comprehension_condition)* NEWLINE*
+        Creates a ComprehensionClauseNode with loop_vars, iterable, and conditions.
+        """
+        node = ComprehensionClauseNode()
+        node.loop_vars = items[0] if isinstance(items[0], list) else []
+        node.iterable = items[1]
+        node.conditions = items[2:] if len(items) > 2 else []
+        # Construct origin safely
+        loop_vars_str = " ".join(v.emit() if hasattr(v, "emit") else str(v) for v in node.loop_vars)
+        iterable_str = node.iterable.emit() if hasattr(node.iterable, "emit") else str(node.iterable)
+        conditions_str = " ".join(c.emit() if hasattr(c, "emit") else str(c) for c in node.conditions) if node.conditions else ""
+        node.origin = f"for {loop_vars_str} in {iterable_str}" + (f" if {conditions_str}" if conditions_str else "")
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def loop_vars(self, meta, items: List[Any]) -> List:
+        self.debug_print("loop_vars() called with items")
+        return items
+
+    @v_args(meta=True)
+    def loop_var(self, meta, items: List[Any]) -> Any:
+        """
+        Transform the 'loop_var' rule: dotted_expr alias_clause?
+        Creates an AliasClauseNode if alias_clause is present, else returns DottedExprNode.
+        """
+        self.debug_print("loop_var() called with items")
+        if len(items) > 1:
+            node = AliasClauseNode()
+            node.keyword = "as"
+            node.scoped_var = items[1]
+            node.origin = f"{items[0].emit()} as {items[1].emit()}"
+            node.value = node.origin
+            node.meta = meta
+            return node
+        return items[0]  # DottedExprNode, not string
+
+    @v_args(meta=True)
+    def comprehension_condition(self, meta, items: List[Any]) -> StringExprNode:
+        """
+        Transform the 'comprehension_condition' rule: comp_expr (OPERATOR comp_expr)?
+        Creates a StringExprNode with parts, handling OPERATOR tokens correctly.
+        """
+        self.debug_print("comprehension_condition() called with items")
+        node = StringExprNode()
+        # Store only comp_expr nodes in parts
+        node.parts = [item for item in items if not isinstance(item, Token) or item.type != "OPERATOR"]
+        # Construct origin with emit() for nodes and value for tokens
+        origin_parts = []
+        for item in items:
+            if isinstance(item, Token) and item.type == "OPERATOR":
+                origin_parts.append(item.value)
+            elif hasattr(item, "emit"):
+                origin_parts.append(item.emit())
+            else:
+                origin_parts.append(str(item))  # Fallback
+        node.origin = "".join(origin_parts)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def alias_clause(self, meta, items: List[Any]) -> AliasClauseNode:
+        self.debug_print("alias_clause() called with items")
+        node = AliasClauseNode()
+        node.keyword = items[0].value
+        node.scoped_var = items[1]
+        node.origin = f"{items[0].value} {items[1].emit()}"
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def paren_expr(self, meta, items: List[Any]) -> StringExprNode:
+        self.debug_print("paren_expr() called with items")
+        node = StringExprNode()
+        node.parts = items[1:-1]
+        node.origin = f"({''.join(item.emit() for item in node.parts)})"
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def folded_expr(self, meta, items: List[Any]) -> FoldedExpressionNode:
+        """
+        Transform the 'folded_expr' rule: FOLDED_START folded_content FOLDED_END
+        Creates a FoldedExpressionNode with content_tree.
+        """
+        self.debug_print("folded_expr() called with items")
+        node = FoldedExpressionNode()
+        content_items = items[1].children if isinstance(items[1], Tree) else []
+        content_str = "".join(item.value if isinstance(item, Token) else item.emit() for item in content_items)
+        node.origin = f"<({content_str})>"
+        node.content_tree = Tree("folded_content", content_items)
+        node.value = node.origin
+        node.meta = meta
+        return node
+
+    @v_args(meta=True)
+    def folded_content(self, meta, items: List[Any]) -> Tree:
+        self.debug_print("folded_content() called with items")
+        return Tree("folded_content", items)
+
+    @v_args(meta=True)
+    def single_line_array(self, meta, items: List[Any]) -> Union[SingleLineArrayNode, MultiLineArrayNode]:
+        self.debug_print(f"single_line_array() called with items '{items}'")
+        
+        # Check for multiline characteristics (NEWLINE tokens, comments, or inline comments)
+        has_multiline_features = any(
+            isinstance(item, (NewlineNode, CommentNode)) or
+            (isinstance(item, Tree) and any(
+                isinstance(child, (NewlineNode, CommentNode)) or
+                (isinstance(child, Tree) and child.data == "inline_comment")
+                for child in item.children
+            ))
+            for item in items
+        )
+        
+        if has_multiline_features:
+            return self.multiline_array(meta, items)
+        
+        # Single-line array logic
+        node = SingleLineArrayNode()
+        lbrack = None
+        rbrack = None
+        inline_comment = None
+        contents = []
+        i = 0
+
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+            lbrack = items[i]
+            i += 1
+        
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
+            for child in items[i].children:
+                if isinstance(child, Tree) and child.data == "array_item":
+                    # Transform array_item tree to ValueNode
+                    value_node = self.array_item(meta, child.children)
+                    if value_node.value is not None:
+                        contents.append(value_node)
+                elif isinstance(child, ValueNode):
+                    contents.append(child)
+                elif isinstance(child, Token):
+                    # Handle raw value tokens (e.g., INTEGER, STRING, etc.)
+                    if child.type == "INTEGER":
+                        value_node = IntegerNode()
+                        value_node.value = child.value
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        contents.append(ValueNode(value=value_node))
+                    elif child.type == "FLOAT":
+                        value_node = FloatNode()
+                        value_node.value = child.value
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        contents.append(ValueNode(value=value_node))
+                    elif child.type == "SINGLE_QUOTED_STRING":
+                        value_node = SingleQuotedStringNode()
+                        value_node.value = child.value.strip('"\'')
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        contents.append(ValueNode(value=value_node))
+                    elif child.type == "BOOLEAN":
+                        value_node = BooleanNode()
+                        value_node.value = child.value
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        value_node.resolve({}, {})
+                        contents.append(ValueNode(value=value_node))
+                    elif child.type == "NULL":
+                        value_node = NullNode()
+                        value_node.value = child.value
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        contents.append(ValueNode(value=value_node))
+                    # Add other token types as needed
+                elif isinstance(child, Token) and child.type == "COMMA":
+                    continue
+            i += 1
+        elif i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+            inline_comment = items[i]
+            i += 1
+        elif i < len(items) and isinstance(items[i], InlineWhitespaceNode):
+            i += 1
+            if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
+                inline_comment = items[i]
+                i += 1
+        
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
+            rbrack = items[i]
+            i += 1
+        
+        # Build content string safely
+        content_parts = []
+        for item in contents:
+            if item.value:
+                value_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
+                # Safely handle inline_comment
+                if hasattr(item, "inline_comment") and item.inline_comment:
+                    content_parts.append(f"{value_str} {item.inline_comment.value}")
+                else:
+                    content_parts.append(value_str)
+        content_str = ", ".join(content_parts) if content_parts else ""
+        if inline_comment and not contents:
+            content_str += f" {inline_comment.value}" if content_str else inline_comment.value
+        origin = f"[{content_str}]"
+        
+        node.origin = origin
+        node.lbrack = lbrack
+        node.rbrack = rbrack
+        node.contents = contents
+        node.inline_comment = inline_comment
+        node.value = [item.value.evaluate() for item in contents if item.value] if contents else []
+        node.meta = meta
+        node.resolve({}, {})
+        self.debug_print(f"single_line_array(): Created node with value {node.value}, origin {node.origin}")
+        return node
+
+    @v_args(meta=True)
+    def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
+        self.debug_print(f"multiline_array() called with items '{items}'")
+        node = MultiLineArrayNode()
+        i = 0
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
+            node.lbrack = items[i]
+            i += 1
+        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
+            node.leading_newlines = node.leading_newlines or []
+            node.leading_newlines.append(items[i])
+            i += 1
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
+            node.contents = []
+            node.__comments__ = []
+            for child in items[i].children:
+                if isinstance(child, Tree) and child.data == "array_item":
+                    value_node = self.array_item(meta, child.children)
+                    if value_node.value is not None or value_node.__comments__ or value_node.inline_comment:
+                        node.contents.append(value_node)
+                        if value_node.inline_comment:
+                            node.__comments__.append(value_node.inline_comment.value)
+                        if value_node.__comments__:
+                            node.__comments__.extend(value_node.__comments__)
+                elif isinstance(child, ValueNode):
+                    node.contents.append(child)
+                    if child.inline_comment:
+                        node.__comments__.append(child.inline_comment.value)
+                    if child.__comments__:
+                        node.__comments__.extend(child.__comments__)
+                elif isinstance(child, (IntegerNode, FloatNode, SingleQuotedStringNode, BooleanNode, NullNode)):
+                    wrapped = ValueNode()
+                    wrapped.value = child
+                    wrapped.meta = meta
+                    node.contents.append(wrapped)
+                elif isinstance(child, Token):
+                    if child.type in ("INTEGER", "FLOAT", "SINGLE_QUOTED_STRING", "BOOLEAN", "NULL"):
+                        value_node = {
+                            "INTEGER": IntegerNode,
+                            "FLOAT": FloatNode,
+                            "SINGLE_QUOTED_STRING": SingleQuotedStringNode,
+                            "BOOLEAN": BooleanNode,
+                            "NULL": NullNode
+                        }[child.type]()
+                        value_node.value = child.value if child.type != "SINGLE_QUOTED_STRING" else child.value.strip('"\'')
+                        value_node.origin = child.value
+                        value_node.meta = meta
+                        if child.type == "BOOLEAN":
+                            value_node.resolve({}, {})
+                        node.contents.append(ValueNode(value=value_node))
+                    elif child.type == "COMMENT":
+                        node.__comments__.append(child.value)
+                    elif child.type == "COMMA":
+                        continue
+                elif isinstance(child, CommentNode):
+                    node.__comments__.append(child.value)
+            i += 1
+        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
+            node.trailing_newlines = node.trailing_newlines or []
+            node.trailing_newlines.append(items[i])
+            i += 1
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
+            node.rbrack = items[i]
+            i += 1
+
+        # Reconstruct content with comments
+        content_lines = []
+        for item in node.contents:
+            if item.__comments__:
+                content_lines.extend(f"  {c}" for c in item.__comments__)
+            if item.value is not None:
+                item_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
+                if item.inline_comment:
+                    item_str += f"    {item.inline_comment.value}"
+                content_lines.append(f"  {item_str}")
+
+        newline_prefix = "\n" * len(node.leading_newlines) if node.leading_newlines else ""
+        newline_suffix = "\n" * len(node.trailing_newlines) if node.trailing_newlines else ""
+        node.origin = f"[{newline_prefix}{',\n'.join(content_lines) if content_lines else ''}{newline_suffix}]"
+        node.value = [item.value.evaluate() for item in node.contents if item.value] if node.contents else []
+        node.meta = meta
+        node.resolve({}, {})
+        self.debug_print(f"multiline_array(): Created node with value {node.value}, comments {node.__comments__}")
+        return node
+        
+    def NEWLINE(self, token: Token) -> NewlineNode:
+        """
+        Transform the NEWLINE terminal: /\r?\n/
+        Creates a NewlineNode with the newline text.
+        """
+        self.debug_print("NEWLINE() called with token")
+        node = NewlineNode()
+        return node
+
+    def COMMENT(self, token: Token) -> CommentNode:
+        """
+        Transform the COMMENT terminal: /#[^\n]*/
+        Creates a CommentNode with the comment text.
+        """
+        self.debug_print("COMMENT() called with token")
+        node = CommentNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def INLINE_COMMENT(self, token: Token) -> Token:
+        """
+        Transform the INLINE_COMMENT terminal: /[ \t]+#[^\n]*/
+        Returns the token directly for storage in AssignmentNode.inline_comment.
+        """
+        self.debug_print("INLINE_COMMENT() called with token")
+        return token
+
+    def IDENTIFIER(self, token: Token) -> Token:
+        """
+        Transform the IDENTIFIER terminal: /(?!\b(?:is|not|and|...)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
+        Returns the token directly for use in AssignmentNode, SectionNameNode, etc.
+        """
+        self.debug_print("IDENTIFIER() called with token")
+        return token
+
+    def FLOAT(self, token: Token) -> IntegerNode:
+        """
+        Transform the FLOAT terminal: /[+-]?(?:\\d+\\.\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[+-]?(?:inf|nan)/
+        Creates an IntegerNode (simplified; FloatNode could be used if distinct).
+        """
+        self.debug_print(f"FLOAT() called with token")
+        node = FloatNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def INTEGER(self, token: Token) -> IntegerNode:
+        """
+        Transform the INTEGER terminal: /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\\d*)/
+        Creates an IntegerNode with the numeric value.
+        """
+        self.debug_print("INTEGER() called with token")
+        node = IntegerNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def SINGLE_QUOTED_STRING(self, token):
+        node = SingleQuotedStringNode()
+        node.value = token.value
+        node.origin = token.value
+        node.meta = token
+        return node
+
+    def TRIPLE_QUOTED_STRING(self, token):
+        raw_text = token.value  # e.g. '"""\nsomething\n"""'
+        # In TOML-like syntaxes, triple quotes are always at both ends (assuming valid parse).
+        # Just strip the first 3 and last 3 chars. If your grammar supports both `"""` and `'''`,
+        # you'd detect which is used. For now, assume `"""`.
+        if raw_text.startswith('"""') and raw_text.endswith('"""'):
+            inner_text = raw_text[3:-3]
+        else:
+            inner_text = raw_text
+
+        node = TripleQuotedStringNode()
+        node.value = inner_text  # store just the contents
+        node.origin = token.value  # keep the full original for debugging if desired
+        return node
+
+    def BACKTICK_STRING(self, token):
+        node = BacktickStringNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def F_STRING(self, token):
+        node = FStringNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def TRIPLE_BACKTICK_STRING(self, token):
+        raw_text = token.value  # e.g. '"""\nsomething\n"""'
+        # In TOML-like syntaxes, triple quotes are always at both ends (assuming valid parse).
+        # Just strip the first 3 and last 3 chars. If your grammar supports both `"""` and `'''`,
+        # you'd detect which is used. For now, assume `"""`.
+        if raw_text.startswith('```') and raw_text.endswith('```'):
+            inner_text = raw_text[3:-3]
+        else:
+            inner_text = raw_text
+        node = TripleBacktickStringNode()
+        node.value = inner_text  # store just the contents
+        node.origin = token.value  # keep the full original for debugging if desired
+        return node
+
+    def RESERVED_FUNC(self, token: Token) -> ReservedFuncNode:
+        """
+        Transform the RESERVED_FUNC terminal: (File()|Git())
+        Creates a ReservedFuncNode for function calls.
+        """
+        self.debug_print("RESERVED_FUNC() called with token")
+        node = ReservedFuncNode()
+        node.value = token.value
+        node.origin = token.value
+        return node
+
+    def BOOLEAN(self, token: Token) -> BooleanNode:
+        """
+        Transform the BOOLEAN terminal: /(true|false)\b/
+        Creates a BooleanNode with boolean value.
+        """
+        self.debug_print("BOOLEAN() called with token")
+        node = BooleanNode()
+        node.value = token.value
+        node.origin = token.value
+        node.resolve({}, {})  # Resolve immediately to set self.resolved
+        return node
+
+
+    def NULL(self, token: Token) -> NullNode:
+        self.debug_print("NULL() called with token")
+        node = NullNode()
+        node.value = token.value  # e.g., "null"
+        node.origin = token.value
+        node.meta = None
+        return node
+
+    def OPERATOR(self, token: Token) -> Token:
+        """
+        Transform the OPERATOR terminal: |==|!=|>=|<=|->|<<|+|-|*|/|%|>|<(?!{)/
+        Returns the token directly for use in StringExprNode or FoldedExpressionNode.
+        """
+        self.debug_print("OPERATOR() called with token")
+        return token
+
+
+    def GLOBAL_SCOPED_VAR(self, token: Token) -> GlobalScopedVarNode:
+        self.debug_print("GLOBAL_SCOPED_VAR() called with token")
+        node = GlobalScopedVarNode()
+        node.value = token.value
+        node.origin = token.value
+        node.meta = token  # Optionally, attach token as meta information
+        return node
+
+    def LOCAL_SCOPED_VAR(self, token: Token) -> LocalScopedVarNode:
+        self.debug_print("LOCAL_SCOPED_VAR() called with token")
+        node = LocalScopedVarNode()
+        node.value = token.value
+        node.origin = token.value
+        node.meta = token
+        return node
+
+    def CONTEXT_SCOPED_VAR(self, token: Token) -> ContextScopedVarNode:
+        self.debug_print("CONTEXT_SCOPED_VAR() called with token")
+        node = ContextScopedVarNode()
+        node.value = token.value
+        node.origin = token.value
+        node.meta = token
+        return node
+
+    def WHITESPACE(self, token: Token) -> WhitespaceNode:
+        self.debug_print("WHITESPACE() called with token")
+        node = WhitespaceNode(token.value)
+        node.origin = token.value
+        node.meta = token  # Attach token meta information
+        return node
+
+    def HSPACES(self, token: Token) -> HspacesNode:
+        self.debug_print("HSPACES() called with token")
+        node = HspacesNode(token.value)
+        node.origin = token.value
+        node.meta = token
+        return node
+
+    def INLINE_WS(self, token: Token) -> InlineWhitespaceNode:
+        self.debug_print("INLINE_WS() called with token")
+        node = InlineWhitespaceNode(token.value)
+        node.origin = token.value
+        node.meta = token
+        return node

@@ -5,8 +5,7 @@ import pytest
 # where round_trip_loads / round_trip_dumps are defined.
 from jaml import (
     loads,
-    round_trip_loads,
-    round_trip_dumps
+    round_trip_loads
 )
 
 @pytest.mark.spec
@@ -25,7 +24,7 @@ def test_standalone_comment_preserved():
 key = "value"
 """
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that the standalone comment is still present exactly
     assert "# This is a standalone comment at the top of the file" in serialized
 
@@ -44,7 +43,7 @@ def test_inline_comment_preserved():
 greeting = "Hello, World!"  # Inline comment: greeting message
 """
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that the inline comment is present on the same line
     assert 'greeting = "Hello, World!"  # Inline comment: greeting message' in serialized
 
@@ -63,7 +62,7 @@ colors = [
   "blue"    # Accent color
 ]"""
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that each inline comment is preserved for each element
     assert original in serialized
     assert "# Accent color" in serialized
@@ -83,7 +82,7 @@ colors = [
   "blue"    # Accent color
 ]"""
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that each inline comment is preserved for each element
     assert original in serialized
     assert '# "green"' in serialized
@@ -105,7 +104,7 @@ colors = [
   "blue"    # Accent color
 ]"""
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that each inline comment is preserved for each element
     assert original in serialized
     assert '# "green"' in serialized
@@ -128,7 +127,7 @@ colors = [
   "blue"    # Accent color
 ]"""
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that each inline comment is preserved for each element
     assert original in serialized
     assert "# Primary Color" in serialized
@@ -156,7 +155,7 @@ profile = {
   """
 }'''
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # Check that the two inline comments remain
     assert '[user.profile]\nalias' in serialized
     assert '''"Alice" # User's name''' in serialized
@@ -182,7 +181,7 @@ numbers = [
   3   # third
 ]"""
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
     assert original in serialized
@@ -206,7 +205,7 @@ numbers = [
     assert 3 in result["settings"]["numbers"]
 
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # We expect spacing/newlines around the comments to match the original 
     # (though some normalizations may be allowed by spec).
     assert original in serialized
@@ -229,6 +228,6 @@ def test_whitespace_around_comments():
 key = "value"  #   note the extra spaces before/after comment"""
 
     ast = round_trip_loads(original)
-    serialized = round_trip_dumps(ast)
+    serialized = ast.dumps()
     # If the spec requires preserving that extra whitespace, we can do a direct substring check:
     assert 'key = "value"  #   note the extra spaces before' in serialized
