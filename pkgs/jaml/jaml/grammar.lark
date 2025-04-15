@@ -132,11 +132,11 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 ?array: single_line_array
       | multiline_array
 
-single_line_array: L_SQ_BRACK (array_content | HSPACES? inline_comment?) R_SQ_BRACK
-multiline_array: L_SQ_BRACK NEWLINE* array_content NEWLINE* R_SQ_BRACK
+single_line_array: L_SQ_BRACK array_content R_SQ_BRACK
+multiline_array: L_SQ_BRACK NEWLINE* array_content+ NEWLINE* R_SQ_BRACK
 
-?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? (NEWLINE* array_item))* (WHITESPACE? COMMA WHITESPACE?)? NEWLINE*
-?array_item: pre_item_comments? value inline_comment? post_item_comments?
+?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? (inline_comment | NEWLINE)* array_item)* ((WHITESPACE? COMMA WHITESPACE?)? | comment_line | NEWLINE)*
+?array_item: value inline_comment? | comment_line
 
 //////////////////////////////
 // 5. Inline Table Handling
@@ -145,7 +145,7 @@ multiline_array: L_SQ_BRACK NEWLINE* array_content NEWLINE* R_SQ_BRACK
 inline_table: L_CURL_BRACE (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* R_CURL_BRACE
 inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_table_item)* (WHITESPACE? COMMA WHITESPACE?)?
 
-inline_table_item: pre_item_comments? inline_assignment inline_comment? post_item_comments? 
+inline_table_item: inline_assignment inline_comment? 
                   | comment_line
 
 inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? value inline_comment?
@@ -154,9 +154,7 @@ inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? valu
 // 6. Comment Handling
 //////////////////////////////
 
-pre_item_comments: (COMMENT NEWLINE)+
 inline_comment: INLINE_WS COMMENT
-post_item_comments: (NEWLINE? COMMENT NEWLINE*)+
 
 //////////////////////////////
 // 7. Comprehension Handling

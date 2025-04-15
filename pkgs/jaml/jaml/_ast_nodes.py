@@ -284,7 +284,7 @@ class AssignmentNode(BaseNode):
         if self.inline_comment:
             parts.append(self.inline_comment.value)
         return "".join(parts)
-        
+
     def __str__(self) -> str:
         return f"AssignmentNode({self.identifier.value if self.identifier else None})"
 
@@ -397,6 +397,9 @@ class NullNode(BaseNode):
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
         self.resolved = None
         print(f"[DEBUG NULLNODE RESOLVE]: {self.value} -> {self.resolved}")
+
+    def emit(self) -> str:
+        return "null"
 
     def evaluate(self):
         return None
@@ -1018,49 +1021,75 @@ class MultiLineArrayNode(BaseNode):
         self.lbrack = None              # '[' token
         self.rbrack = None              # ']' token
         self.contents = []              # List of ValueNode
-        self.leading_newlines = None    # List of NEWLINE tokens before content
-        self.trailing_newlines = None   # List of NEWLINE tokens after content
+        # We no longer rely on the parsed newline tokens for emitting exact spacing.
+        self.leading_newlines = None    
+        self.trailing_newlines = None   
         self.__comments__ = []          # List of comments (inline or standalone)
         self.value = []                 # Evaluated values
         self.resolved = None            # Resolved values after substitution
         self.meta = None                # Parser metadata
 
     def emit(self) -> str:
-        content_lines = []
-        for item in self.contents:
-            # Add associated comments
-            if item.__comments__:
-                content_lines.extend(f"  {comment}" for comment in item.__comments__)
-            # Add the item if it has a value
+        """
+        Emit a multiline array using a standardized canonical format.
+        The format is as follows:
+        
+        [
+          item1, <optional inline comment>
+          item2, <optional inline comment>
+          item3   <optional inline comment>
+        ]
+        
+        Each item is indented with exactly two spaces.
+        Exactly one newline is inserted after the opening '[' and one before the closing ']'.
+        A trailing comma is added for all items but the last.
+        """
+        indent = "  "  # exactly two spaces for each array item.
+        newline = "\n"
+        lines = []
+        for idx, item in enumerate(self.contents):
             if item.value is not None:
+                # Produce the text for the value.
                 item_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
+                # Add a comma if there is any subsequent item with a non-None value.
+                need_comma = any(
+                    self.contents[j].value is not None for j in range(idx + 1, len(self.contents))
+                )
+                if need_comma:
+                    item_str += ","
+                # Append inline comment if present.
                 if item.inline_comment:
-                    item_str += f"    {item.inline_comment.value}"
-                content_lines.append(f"  {item_str}")
-
-        newline_prefix = "\n" * len(self.leading_newlines) if self.leading_newlines else ""
-        newline_suffix = "\n" * len(self.trailing_newlines) if self.trailing_newlines else ""
-        content = ",\n".join(content_lines) if content_lines else ""
-        return f"[{newline_prefix}{content}{newline_suffix}]"
+                    item_str += " " + item.inline_comment.value
+                # Append the item with fixed indent.
+                lines.append(indent + item_str)
+            elif item.inline_comment:
+                lines.append(indent + item.inline_comment.value)
+        content = newline.join(lines)
+        return f"[{newline}{content}{newline}]"
 
     def resolve(self, global_env, local_env=None, context=None):
         resolved_items = []
         for item in self.contents:
-            if hasattr(item, "resolve"):
-                item.resolve(global_env, local_env, context)
-                resolved_items.append(getattr(item, "resolved", item.value))
-            else:
-                resolved_items.append(item.value)
+            # Only process nodes that have a meaningful value.
+            if item.value is not None:
+                if hasattr(item, "resolve") and callable(item.resolve):
+                    item.resolve(global_env, local_env, context)
+                if hasattr(item, "evaluate") and callable(item.evaluate):
+                    resolved_item = item.evaluate()
+                else:
+                    resolved_item = item.value
+                resolved_items.append(resolved_item)
         self.resolved = resolved_items
         self.value = resolved_items
-        # Preserve comments
+
+        # Optionally, preserve inline comments separately.
         for item in self.contents:
             if item.inline_comment:
                 self.__comments__.append(item.inline_comment.value)
 
     def evaluate(self) -> list:
         return [
-            item.evaluate() if hasattr(item, "evaluate") else item.value
+            item.evaluate() if hasattr(item, "evaluate") and item.value is not None else item.value
             for item in self.contents
             if item.value is not None
         ]
@@ -1070,6 +1099,9 @@ class MultiLineArrayNode(BaseNode):
 
     def __repr__(self) -> str:
         return f"MultiLineArrayNode(value={self.value})"
+
+
+
 
 class GlobalScopedVarNode(BaseNode):
     """

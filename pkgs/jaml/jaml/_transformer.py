@@ -523,17 +523,8 @@ class ConfigTransformer(Transformer):
         node = ValueNode()
         i = 0
 
-        # Handle pre-item comments
-        if i < len(items) and (isinstance(items[i], list) or (isinstance(items[i], Tree) and items[i].data == "pre_item_comments")):
-            if isinstance(items[i], list):
-                comments = [item.value for item in items[i] if item is not None and hasattr(item, "value")]
-            else:
-                comments = [child.value for child in items[i].children if child is not None and hasattr(child, "value")]
-            node.__comments__.extend(comments)
-            i += 1
-
         # Process the value (if present)
-        if i < len(items) and items[i] is not None and not isinstance(items[i], (list, Tree)) and not (isinstance(items[i], Token) and items[i].type == "COMMENT"):
+        if i < len(items) and items[i] is not None and not (isinstance(items[i], Token) and items[i].type == "COMMENT"):
             if isinstance(items[i], Tree):
                 node.value = self.value(meta, items[i].children)
             else:
@@ -567,6 +558,7 @@ class ConfigTransformer(Transformer):
         node.origin = node.value.emit() if node.value and hasattr(node.value, "emit") else ""
         node.meta = meta
         return node
+
 
     @v_args(meta=True)
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
@@ -1067,19 +1059,27 @@ class ConfigTransformer(Transformer):
         
         # Check for multiline characteristics (NEWLINE tokens, comments, or inline comments)
         has_multiline_features = any(
-            isinstance(item, (NewlineNode, CommentNode)) or
-            (isinstance(item, Tree) and any(
-                isinstance(child, (NewlineNode, CommentNode)) or
-                (isinstance(child, Tree) and child.data == "inline_comment")
-                for child in item.children
-            ))
+            isinstance(item, (Token, Tree)) and (
+                (isinstance(item, Token) and item.type in ("NEWLINE", "COMMENT")) or
+                (isinstance(item, Tree) and (
+                    item.data == "inline_comment" or
+                    any(
+                        isinstance(child, (Token, Tree)) and (
+                            (isinstance(child, Token) and child.type in ("NEWLINE", "COMMENT")) or
+                            (isinstance(child, Tree) and child.data == "inline_comment")
+                        )
+                        for child in item.children
+                    )
+                ))
+            )
             for item in items
         )
         
         if has_multiline_features:
+            self.debug_print("Delegating to multiline_array due to multiline features")
             return self.multiline_array(meta, items)
         
-        # Single-line array logic
+        # Existing single-line array logic...
         node = SingleLineArrayNode()
         lbrack = None
         rbrack = None
@@ -1191,47 +1191,108 @@ class ConfigTransformer(Transformer):
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
             node.contents = []
             node.__comments__ = []
-            for child in items[i].children:
+            array_content = items[i].children
+            j = 0
+            while j < len(array_content):
+                child = array_content[j]
                 if isinstance(child, Tree) and child.data == "array_item":
+                    # Transform array_item (e.g., '3' with '# third')
                     value_node = self.array_item(meta, child.children)
-                    if value_node.value is not None or value_node.__comments__ or value_node.inline_comment:
-                        node.contents.append(value_node)
-                        if value_node.inline_comment:
-                            node.__comments__.append(value_node.inline_comment.value)
-                        if value_node.__comments__:
-                            node.__comments__.extend(value_node.__comments__)
+                    node.contents.append(value_node)
+                    if value_node.inline_comment:
+                        node.__comments__.append(value_node.inline_comment.value)
+                    if value_node.__comments__:
+                        node.__comments__.extend(value_node.__comments__)
+                    j += 1
+                # NEW: if the child is already a ValueNode, add it directly.
                 elif isinstance(child, ValueNode):
                     node.contents.append(child)
-                    if child.inline_comment:
-                        node.__comments__.append(child.inline_comment.value)
-                    if child.__comments__:
-                        node.__comments__.extend(child.__comments__)
+                    j += 1
+                # Handle children already built as AST value nodes.
                 elif isinstance(child, (IntegerNode, FloatNode, SingleQuotedStringNode, BooleanNode, NullNode)):
                     wrapped = ValueNode()
                     wrapped.value = child
                     wrapped.meta = meta
+                    j += 1
+                    # Check for succeeding inline comment (e.g., '# first')
+                    if j < len(array_content) and isinstance(array_content[j], Tree) and array_content[j].data == "inline_comment":
+                        inline_ws = None
+                        comment = None
+                        for subchild in array_content[j].children:
+                            if isinstance(subchild, InlineWhitespaceNode):
+                                inline_ws = subchild
+                            elif isinstance(subchild, CommentNode):
+                                comment = subchild
+                        if comment:
+                            wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+                            node.__comments__.append(wrapped.inline_comment.value)
+                        j += 1
+                    # Skip comma if present.
+                    if j < len(array_content) and isinstance(array_content[j], Token) and array_content[j].type == "COMMA":
+                        j += 1
                     node.contents.append(wrapped)
-                elif isinstance(child, Token):
-                    if child.type in ("INTEGER", "FLOAT", "SINGLE_QUOTED_STRING", "BOOLEAN", "NULL"):
-                        value_node = {
-                            "INTEGER": IntegerNode,
-                            "FLOAT": FloatNode,
-                            "SINGLE_QUOTED_STRING": SingleQuotedStringNode,
-                            "BOOLEAN": BooleanNode,
-                            "NULL": NullNode
-                        }[child.type]()
-                        value_node.value = child.value if child.type != "SINGLE_QUOTED_STRING" else child.value.strip('"\'')
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        if child.type == "BOOLEAN":
-                            value_node.resolve({}, {})
-                        node.contents.append(ValueNode(value=value_node))
-                    elif child.type == "COMMENT":
-                        node.__comments__.append(child.value)
-                    elif child.type == "COMMA":
-                        continue
+                elif isinstance(child, Token) and child.type in ("INTEGER", "FLOAT", "SINGLE_QUOTED_STRING", "BOOLEAN", "NULL"):
+                    # Create a new ValueNode for a raw token.
+                    value_node = {
+                        "INTEGER": IntegerNode,
+                        "FLOAT": FloatNode,
+                        "SINGLE_QUOTED_STRING": SingleQuotedStringNode,
+                        "BOOLEAN": BooleanNode,
+                        "NULL": NullNode
+                    }[child.type]()
+                    value_node.value = child.value if child.type != "SINGLE_QUOTED_STRING" else child.value.strip('"\'')
+                    value_node.origin = child.value
+                    value_node.meta = meta
+                    if child.type == "BOOLEAN":
+                        value_node.resolve({}, {})
+                    wrapped = ValueNode()
+                    wrapped.value = value_node
+                    wrapped.meta = meta
+                    j += 1
+                    if j < len(array_content) and isinstance(array_content[j], Tree) and array_content[j].data == "inline_comment":
+                        inline_ws = None
+                        comment = None
+                        for subchild in array_content[j].children:
+                            if isinstance(subchild, InlineWhitespaceNode):
+                                inline_ws = subchild
+                            elif isinstance(subchild, CommentNode):
+                                comment = subchild
+                        if comment:
+                            wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+                            node.__comments__.append(wrapped.inline_comment.value)
+                        j += 1
+                    if j < len(array_content) and isinstance(array_content[j], Token) and array_content[j].type == "COMMA":
+                        j += 1
+                    node.contents.append(wrapped)
+                elif isinstance(child, Tree) and child.data == "inline_comment":
+                    # Handle standalone inline comment.
+                    inline_ws = None
+                    comment = None
+                    for subchild in child.children:
+                        if isinstance(subchild, InlineWhitespaceNode):
+                            inline_ws = subchild
+                        elif isinstance(subchild, CommentNode):
+                            comment = subchild
+                    if comment:
+                        wrapped = ValueNode()
+                        wrapped.meta = meta
+                        wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+                        wrapped.__comments__.append(wrapped.inline_comment.value)
+                        node.contents.append(wrapped)
+                        node.__comments__.append(wrapped.inline_comment.value)
+                    j += 1
                 elif isinstance(child, CommentNode):
+                    # Wrap standalone CommentNode.
+                    wrapped = ValueNode()
+                    wrapped.__comments__.append(child.value)
+                    wrapped.meta = meta
+                    node.contents.append(wrapped)
                     node.__comments__.append(child.value)
+                    j += 1
+                elif isinstance(child, Token) and child.type == "NEWLINE":
+                    j += 1
+                else:
+                    j += 1
             i += 1
         while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
             node.trailing_newlines = node.trailing_newlines or []
@@ -1241,25 +1302,14 @@ class ConfigTransformer(Transformer):
             node.rbrack = items[i]
             i += 1
 
-        # Reconstruct content with comments
-        content_lines = []
-        for item in node.contents:
-            if item.__comments__:
-                content_lines.extend(f"  {c}" for c in item.__comments__)
-            if item.value is not None:
-                item_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
-                if item.inline_comment:
-                    item_str += f"    {item.inline_comment.value}"
-                content_lines.append(f"  {item_str}")
-
-        newline_prefix = "\n" * len(node.leading_newlines) if node.leading_newlines else ""
-        newline_suffix = "\n" * len(node.trailing_newlines) if node.trailing_newlines else ""
-        node.origin = f"[{newline_prefix}{',\n'.join(content_lines) if content_lines else ''}{newline_suffix}]"
-        node.value = [item.value.evaluate() for item in node.contents if item.value] if node.contents else []
+        # Compute evaluated values, excluding comment-only nodes.
+        node.value = [item.value.evaluate() for item in node.contents if item.value is not None]
         node.meta = meta
         node.resolve({}, {})
         self.debug_print(f"multiline_array(): Created node with value {node.value}, comments {node.__comments__}")
         return node
+
+
         
     def NEWLINE(self, token: Token) -> NewlineNode:
         """
