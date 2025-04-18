@@ -274,9 +274,8 @@ class AssignmentNode(BaseNode):
         parts.append(self.equals.value if self.equals else "=")
         parts.append(" ")
         if isinstance(self.value, (SingleLineArrayNode, MultiLineArrayNode)):
-            array_str = self.value.emit()
-            indented_array = "\n    ".join(line for line in array_str.split("\n") if line.strip())
-            parts.append(indented_array)
+            # Append the array's emitted text directly without extra indent.
+            parts.append(self.value.emit())
         else:
             parts.append(self.value.emit() if hasattr(self.value, "emit") else str(self.value))
         if self.trailing_whitespace:
@@ -1021,18 +1020,17 @@ class MultiLineArrayNode(BaseNode):
         self.lbrack = None              # '[' token
         self.rbrack = None              # ']' token
         self.contents = []              # List of ValueNode
-        # We no longer rely on the parsed newline tokens for emitting exact spacing.
+        # We ignore parsed newlines for serialization and instead produce a canonical format.
         self.leading_newlines = None    
         self.trailing_newlines = None   
-        self.__comments__ = []          # List of comments (inline or standalone)
+        self.__comments__ = []          # List of comments
         self.value = []                 # Evaluated values
-        self.resolved = None            # Resolved values after substitution
-        self.meta = None                # Parser metadata
+        self.resolved = None            
+        self.meta = None                
 
     def emit(self) -> str:
         """
-        Emit a multiline array using a standardized canonical format.
-        The format is as follows:
+        Emit the multiline array in a canonical format:
         
         [
           item1, <optional inline comment>
@@ -1040,27 +1038,24 @@ class MultiLineArrayNode(BaseNode):
           item3   <optional inline comment>
         ]
         
-        Each item is indented with exactly two spaces.
-        Exactly one newline is inserted after the opening '[' and one before the closing ']'.
-        A trailing comma is added for all items but the last.
+        with exactly one newline after '[' and before ']', and exactly two spaces of indent.
+        A trailing comma is added for all items except the last.
         """
-        indent = "  "  # exactly two spaces for each array item.
+        indent = "  "  # exactly two spaces per item
         newline = "\n"
         lines = []
         for idx, item in enumerate(self.contents):
             if item.value is not None:
-                # Produce the text for the value.
                 item_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
-                # Add a comma if there is any subsequent item with a non-None value.
+                # Add a comma if there is a subsequent non-comment value.
                 need_comma = any(
-                    self.contents[j].value is not None for j in range(idx + 1, len(self.contents))
+                    self.contents[j].value is not None
+                    for j in range(idx + 1, len(self.contents))
                 )
                 if need_comma:
                     item_str += ","
-                # Append inline comment if present.
                 if item.inline_comment:
                     item_str += " " + item.inline_comment.value
-                # Append the item with fixed indent.
                 lines.append(indent + item_str)
             elif item.inline_comment:
                 lines.append(indent + item.inline_comment.value)

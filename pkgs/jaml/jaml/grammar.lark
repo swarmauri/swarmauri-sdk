@@ -135,8 +135,9 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 single_line_array: L_SQ_BRACK array_content R_SQ_BRACK
 multiline_array: L_SQ_BRACK NEWLINE* array_content+ NEWLINE* R_SQ_BRACK
 
-?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? (inline_comment | NEWLINE)* array_item)* ((WHITESPACE? COMMA WHITESPACE?)? | comment_line | NEWLINE)*
-?array_item: value inline_comment? | comment_line
+?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? array_item)* (WHITESPACE? COMMA WHITESPACE?)?
+
+?array_item: value inline_comment? 
 
 //////////////////////////////
 // 5. Inline Table Handling
@@ -154,7 +155,7 @@ inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? valu
 // 6. Comment Handling
 //////////////////////////////
 
-inline_comment: INLINE_WS COMMENT
+inline_comment: INLINE_COMMENT
 
 //////////////////////////////
 // 7. Comprehension Handling

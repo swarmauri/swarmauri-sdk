@@ -69,26 +69,35 @@ class Config(MutableMapping):
         """
         fp.write(dumps(obj))
 
-    def resolve(self):
-        resolved_data = {}
+    def resolve(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         from ._ast_nodes import BaseNode
-        for section, values in self._data.items():
-            if section == '__comments__':
-                resolved_data[section] = values
-                continue
-            if isinstance(values, (str, bool, int, float, type(None))):
-                resolved_data[section] = values
-                continue
-            # Initialize nested dictionary for sections
-            resolved_data[section] = {}
-            if isinstance(values, dict):
-                for key, value in values.items():
-                    if isinstance(value, BaseNode):
-                        resolved_data[section][key] = value.evaluate()
-                    else:
-                        resolved_data[section][key] = value
-        return resolved_data
+        """
+        Return a plain‑Python dict with every BaseNode evaluated **and**
+        every f‑string expanded against the current global scope.
+        """
+        context = context or {}
 
+        def _resolve_value(val: Any) -> Any:
+            # Collapse AST nodes first
+            if isinstance(val, BaseNode):
+                val = val.evaluate()
+
+            # Recurse into tables/sections
+            if isinstance(val, dict):
+                return {k: _resolve_value(v) for k, v in val.items()}
+
+            # Expand f‑strings of the form f"@{var}/path"
+            if isinstance(val, str) and val.startswith('f"') and val.endswith('"'):
+                try:
+                    return _evaluate_f_string(val, self._data, context)
+                except KeyError:
+                    # Leave unresolved if the variable isn’t defined yet
+                    return val
+
+            return val
+
+        return {k: _resolve_value(v) if k != "__comments__" else v
+                for k, v in self._data.items()}
 
     def render(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         context = context or {}
