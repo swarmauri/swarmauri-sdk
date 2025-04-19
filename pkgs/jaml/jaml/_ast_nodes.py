@@ -1251,18 +1251,19 @@ class MultiLineArrayNode(BaseNode):
     def emit(self) -> str:
         """
         Emit the multiline array in canonical form, preserving both
-        values and inline comments exactly as parsed.
+        values and inline comments exactly as parsed, but omitting
+        any blank-only lines.
         """
         lines = ["["]
         for item in self.contents:
-            # ValueNode.emit() will produce either:
-            #  - '"blue"    # Accent color'  (value+comment)
-            #  - '# just a comment'          (comment‑only)
-            text = item.emit()
+            # Get emitted text and strip trailing newline to avoid blank lines
+            text = item.emit().rstrip("\n")
+            # Skip blank-only lines
+            if not text.strip():
+                continue
             lines.append(f"  {text}")
         lines.append("]")
         return "\n".join(lines)
-
 
     def resolve(self, global_env, local_env=None):
         resolved_items = []
