@@ -145,14 +145,11 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 //////////////////////////////
 
 ?array: multiline_array | single_line_array
-
-single_line_array: L_SQ_BRACK sl_array_content R_SQ_BRACK
-?sl_array_content: sl_array_item+ (COMMA WHITESPACE?)?
-?sl_array_item: value | value WHITESPACE? COMMA WHITESPACE?
-
-multiline_array: L_SQ_BRACK (comment_line | NEWLINE*) ml_array_content+ NEWLINE* R_SQ_BRACK
-?ml_array_content: NEWLINE* ml_array_item+ (WHITESPACE? COMMA WHITESPACE?)?
-?ml_array_item: comment_line | value inline_comment? | value WHITESPACE? COMMA WHITESPACE? inline_comment?
+single_line_array: "[" sl_array_content "]"
+?sl_array_content: sl_array_item+ ("," HSPACES?)?
+?sl_array_item: value (HSPACES? ",")?
+multiline_array: "[" (comment_line | NEWLINE+) (NEWLINE* ml_array_item)+ NEWLINE? "]"
+?ml_array_item: comment_line | value (HSPACES? ",")? inline_comment?
 
 
 //////////////////////////////
