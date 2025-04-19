@@ -93,7 +93,7 @@ greeting = f"Hello, %{name}!"
     print(resolved_config)
     assert resolved_config["user"]["greeting"] == "Hello, Bob!"
 
-    out  = round_trip_dumps(data)
+    out  = data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
@@ -119,7 +119,7 @@ summary = f"User: ${user.name}, Age: ${user.age}"
     assert resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
 
     out = data.dumps()
-    rendered_data = render(out, context={"user": {"name": "Alice", "age": 30}})
+    rendered_data = data.render(context={"user": {"name": "Alice", "age": 30}})
     assert rendered_data["logic"]["summary"] == "User: Alice, Age: 30"
 
 # Test 5: F-String Interpolation
@@ -141,7 +141,7 @@ text = f"Hello, ${name}!"
     assert resolved_config["message"]["text"] == 'f"Hello, ${name}!"'
 
 
-    rendered_data = render(out, context={"name": "Alice"})
+    rendered_data = data.render(context={"name": "Alice"})
     assert rendered_data["message"]["text"] == "Hello, Alice!"
 
     data_again = loads(out)
@@ -198,7 +198,7 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
 
     out = data.dumps()
-    rendered_data = render(out, context={"auth_token": "ABC123"})
+    rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
@@ -357,7 +357,7 @@ result = <( 3 + 4 )>
     assert resolved_config["calc"]["result"] == 11
 
     out = data.dumps()
-    rendered_data = render(out, context={"auth_token": "ABC123"})
+    rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
     assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
@@ -403,7 +403,7 @@ status = <('Yes' if true else 'No')>"""
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["cond"]["status"] == "<('Yes' if true else 'No')>"
+    assert data["cond"]["status"] == "<( 'Yes' if true else 'No' )>"
 
     data["cond"]["status"] = "<('Yes' if false else 'No')>"
     print("[DEBUG]:")

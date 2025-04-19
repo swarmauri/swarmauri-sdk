@@ -8,16 +8,13 @@ from jaml import (
 
 # The input JML content (as a multi-line string)
 JML_INPUT = r'''
-["prod" if ${env} == "production" else null]
+env = "production"
+
+["prod" if @{env} == "production" else null]
 type = "python"
 
 
 '''
-
-# The base external context used during rendering.
-BASE_CONTEXT = {
-    "env": "production"
-}
 
 expected_result = r'''
 [prod]
@@ -28,21 +25,21 @@ type = "python"
 
 # @pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
-@pytest.mark.mep0028b
-def test_conditional_table_header_with_context():
+@pytest.mark.mep0028a
+def test_conditional_table_header():
     """
     Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print('\n\n[TEST DEBUG]:')
     print(data,'\n\n')
-    assert '''"prod" if ${env}=="production" else null''' in data
+    assert '''"prod" if @{env}=="production" else null''' in data
 
     resolved_config = data.resolve(data)
-    assert '''"prod" if ${env}=="production" else null''' in data
-    assert "type" in data['''"prod" if ${env}=="production" else null''']
+    assert "prod" in data
+    assert "type" in data["prod"]
 
-    rendered_data = data.render(context=BASE_CONTEXT)
+    rendered_data = data.render()
     print('\n\n\n\n[RENDERED DATA]:')
     print(rendered_data)
     assert rendered_data["prod"] == {"type": "python"}

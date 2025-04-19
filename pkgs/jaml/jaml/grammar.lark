@@ -44,21 +44,30 @@ line: comment_line
 comment_line: COMMENT NEWLINE
 blank_line: NEWLINE+
 
-// Section headers can appear:
-section: L_SQ_BRACK (section_name | string | header_comprehension) R_SQ_BRACK HSPACES? (NEWLINE | assignment | comment_line)*
+// Section headers can appear (now also support ternary in headers):
+section: L_SQ_BRACK (section_name | string | header_comprehension | header_conditional) R_SQ_BRACK HSPACES? (NEWLINE | assignment | comment_line)*
 section_name: IDENTIFIER (DOT IDENTIFIER)*
 
-// Table array section
+// Table array section (allowing ternary in the header as well):
 table_array_section: L_DBL_SQ_BRACK table_array_header R_DBL_SQ_BRACK (NEWLINE table_array_content)?
-table_array_header: section_name | string | list_comprehension | header_comprehension
+table_array_header: section_name | string | list_comprehension | header_comprehension | header_conditional
 table_array_content: line+
+
 header_comprehension: comprehension_expr (HSPACES | NEWLINE)+ comprehension_clauses (HSPACES | NEWLINE)*
+
+//////////////////////////////
+// 2.1 Header‑only Ternary (Conditional) Expressions
+//////////////////////////////
+
+// Only available in section/table‑array headers:
+header_conditional: comprehension_expr HSPACES? IF HSPACES? arithmetic HSPACES? ELSE HSPACES? comprehension_expr
+
 
 //////////////////////////////
 // 3. Assignment and Expression Definitions
 //////////////////////////////
 
-assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? assignment_value inline_comment? 
+assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? assignment_value inline_comment? 
 
 concat_expr: string_component (HSPACES? PLUS HSPACES? string_component)+
 string_component: string 
@@ -149,7 +158,7 @@ inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_tabl
 inline_table_item: inline_assignment inline_comment? 
                   | comment_line
 
-inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? EQ HSPACES? value inline_comment?
+inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? value inline_comment?
 
 //////////////////////////////
 // 6. Comment Handling
@@ -167,7 +176,7 @@ inline_comment: INLINE_COMMENT
 
 // String expression for concatenation in comprehensions
 string_expr: (string | (GLOBAL_SCOPED_VAR | LOCAL_SCOPED_VAR | CONTEXT_SCOPED_VAR)) (HSPACES? PLUS HSPACES? (string | GLOBAL_SCOPED_VAR | LOCAL_SCOPED_VAR | CONTEXT_SCOPED_VAR))*
-pair_expr: (string_expr | IDENTIFIER) (HSPACES? (EQ | COLON) HSPACES? (string_expr | IDENTIFIER))
+pair_expr: (string_expr | IDENTIFIER) (HSPACES? (SETTER | COLON) HSPACES? (string_expr | IDENTIFIER))
 ?comprehension_expr: pair_expr | string_expr | expr_item
 
 // List comprehension
@@ -186,12 +195,12 @@ dotted_expr: IDENTIFIER (DOT IDENTIFIER)*
 
 inline_table_comprehension: L_CURL_BRACE NEWLINE* inline_comprehension_pair FOR IDENTIFIER IN value (IF value)? NEWLINE* R_CURL_BRACE
 dict_comprehension: L_CURL_BRACE NEWLINE* dict_comprehension_pair FOR IDENTIFIER IN value (IF value)? NEWLINE* R_CURL_BRACE
-inline_comprehension_pair: arithmetic EQ arithmetic
+inline_comprehension_pair: arithmetic SETTER arithmetic
 dict_comprehension_pair: arithmetic COLON arithmetic
 
 
 COLON: ":"
-EQ: "="
+SETTER: "="
 PLUS: "+"
 COMMA: ","
 DOT: "."
@@ -226,8 +235,8 @@ FOLDED_END: ")>"
 
 paren_expr: L_ROUND_BRACK value+ R_ROUND_BRACK
 
-folded_expr: FOLDED_START folded_content FOLDED_END
-folded_content: value+
+folded_content : (HSPACES | WHITESPACE | value)+   // + → at least one
+folded_expr    : FOLDED_START folded_content? FOLDED_END
 
 //////////////////////////////
 // 9. Terminal Definitions

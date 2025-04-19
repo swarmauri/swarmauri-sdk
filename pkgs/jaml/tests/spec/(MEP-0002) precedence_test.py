@@ -81,7 +81,7 @@ def test_multiline_array_precedence():
 
     assert len(tokens) == 23
     # assert tokens[3] == "STRING"
-    assert tokens[3].type == 'EQ'
+    assert tokens[3].type == 'SETTER'
     assert tokens[3].value == '='
 
 # Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
@@ -124,7 +124,7 @@ def test_operator_precedence():
     # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
     token_types = [t.type for t in tokens]
     token_values = [t.value for t in tokens]
-    assert token_types == ['IDENTIFIER', 'HSPACES', 'EQ', 'HSPACES', 'INTEGER']
+    assert token_types == ['IDENTIFIER', 'HSPACES', 'SETTER', 'HSPACES', 'INTEGER']
 
 # Test that scoped variables take precedence (e.g. '${base}' is a SCOPED_VAR).
 @pytest.mark.spec
@@ -138,7 +138,7 @@ def test_scoped_variable_precedence():
 
     token_types = [t.type for t in tokens]
     token_values = [t.value for t in tokens]
-    assert token_types == ['IDENTIFIER', 'HSPACES', 'EQ', 'HSPACES', 'CONTEXT_SCOPED_VAR']
+    assert token_types == ['IDENTIFIER', 'HSPACES', 'SETTER', 'HSPACES', 'CONTEXT_SCOPED_VAR']
     assert token_values[4].startswith("${")
 
 # Test that comments inside a line with code are recognized separately.

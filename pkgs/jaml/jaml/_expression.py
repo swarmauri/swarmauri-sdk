@@ -1,75 +1,144 @@
-# jaml/_expression.py
-from lark import Tree, Token
-from typing import Dict, Any, Optional, List
+"""
+Folded‑expression evaluation for the *resolve* phase.
+
+• Substitutes @{…} / %{…} immediately (supports dotted paths).
+• Leaves ${…} placeholders for render‑time.
+• Executes constant arithmetic / concatenation with safe_eval.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any, Dict, List, Optional
+
+from lark import Token, Tree
+
 from ._eval import safe_eval
-from ._substitute import _substitute_vars
+from ._substitute import _substitute_vars  # still used for edge cases
 
-def evaluate_expression_tree(tree: Tree, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
-    from ._ast_nodes import BaseNode
 
+# ───────────────────────────── token classes ──────────────────────────────
+_STR_TOKENS = {
+    "SINGLE_QUOTED_STRING",
+    "TRIPLE_QUOTED_STRING",
+    "TRIPLE_BACKTICK_STRING",
+    "BACKTICK_STRING",
+}
+
+_SCOPE_PREFIX = {
+    "GLOBAL_SCOPED_VAR": "@",
+    "LOCAL_SCOPED_VAR":  "%",
+    "CONTEXT_SCOPED_VAR": "$",
+}
+
+
+# ───────────────────────────── helpers ─────────────────────────────────────
+def _lookup(path: str, *envs: Dict[str, Any]) -> Optional[Any]:
+    """Return the first hit for a dotted path in the provided envs."""
+    parts = path.split(".")
+    for env in envs:
+        cur: Any = env
+        for p in parts:
+            if not (isinstance(cur, dict) and p in cur):
+                cur = None
+                break
+            cur = cur[p]
+        if cur is not None:
+            return cur
+    return None
+
+
+def _tok_to_py(
+    tok: Token,
+    g: Dict[str, Any],
+    l: Dict[str, Any],
+    c: Dict[str, Any],
+) -> str:
+    """Convert a Lark token to a Python snippet (or placeholder)."""
+    if tok.type in _STR_TOKENS:
+        raw = tok.value.strip('"\'`')
+        return repr(raw)
+
+    if tok.type in {"INTEGER", "FLOAT"}:
+        return tok.value
+
+    if tok.type == "BOOLEAN":
+        return "True" if tok.value == "true" else "False"
+
+    if tok.type == "OPERATOR":
+        return tok.value
+
+    if tok.type in _SCOPE_PREFIX:
+        marker = _SCOPE_PREFIX[tok.type]
+        inner = tok.value[2:-1]          # strip @{ … }
+
+        if marker == "$":                # context – keep for render
+            return tok.value
+
+        val = (
+            _lookup(inner, g) if marker == "@"
+            else _lookup(inner, l, g)
+        )
+        if val is None:                  # unresolved – keep original text
+            return tok.value
+
+        if hasattr(val, "evaluate"):
+            val = val.evaluate()
+        if isinstance(val, str):
+            val = val.strip('"\'')
+        return repr(val)
+
+    # default: return verbatim
+    return tok.value
+
+
+# ─────────────────────────── public entry‑point ───────────────────────────
+def evaluate_expression_tree(
+    tree: Tree,
+    global_env: Dict[str, Any],
+    local_env: Optional[Dict[str, Any]] = None,
+    context: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Resolve a `<( … )>` expression as far as possible without context."""
     local_env = local_env or {}
     context = context or {}
-    
-    def evaluate_node(node: Any) -> Any:
-        if isinstance(node, BaseNode):
-            node.resolve(global_env, local_env, context)
-            return node.resolved
-        elif isinstance(node, Token):
-            if node.type == "OPERATOR":
-                return node.value
-            elif node.type == "STRING":
-                return node.value.strip('"\'')
-            elif node.type == "INTEGER":
-                return int(node.value, 0)
-            elif node.type == "FLOAT":
-                return float(node.value)
-            elif node.type == "BOOLEAN":
-                return node.value == "true"
-            elif node.type == "SCOPED_VAR":
-                var = node.value
-                if var.startswith("${"):
-                    return var
-                return _substitute_vars(var, global_env, local_env, quote_strings=False)
-        elif isinstance(node, Tree) and node.data == "folded_content":
-            return evaluate_expression(node.children)
-        return str(node)
 
-    def evaluate_expression(nodes: List[Any]) -> str:
-        parts = [evaluate_node(n) for n in nodes]
-        if any(isinstance(p, str) and p.startswith("${") for p in parts):
-            return "<(" + " ".join(str(p) for p in parts) + ")>"
-        
-        expr_string = " ".join(str(p) for p in parts)
+    py_parts: List[str] = [
+        _tok_to_py(tok, global_env, local_env, context)
+        for tok in tree.scan_values(lambda v: isinstance(v, Token))
+    ]
+    py_expr = "".join(py_parts).strip()
+
+    # ── fully static: evaluate completely ────────────────────────────────
+    if "${" not in py_expr:
         try:
-            if re.fullmatch(r'[\d\s+\-*/().]+', expr_string):
-                return str(eval(compile(expr_string, "<string>", "eval"), {}, {}))
-            return str(safe_eval(expr_string, local_env=local_env))
+            return str(safe_eval(py_expr, local_env=local_env))
         except Exception:
-            return expr_string
+            return py_expr
 
-    return evaluate_expression(tree.children)
+    # ── partially dynamic: replace ${…} with sentinel, eval rest ─────────
+    SENTINEL = "__CTX_PLACEHOLDER__"
+    tmp_expr = re.sub(r"\$\{[^}]+}", repr(SENTINEL), py_expr)
 
-def _render_folded_expression_node(node, env: Dict[str, Any], context: Optional[Dict] = None) -> Any:
-    from ._ast_nodes import BaseNode, FoldedExpressionNode
-    if hasattr(node, 'resolved') and node.resolved is not None:
-        if isinstance(node.resolved, str) and '${' in node.resolved:
-            expr = node.resolved.lstrip('<(').rstrip(')>')
-            parts = expr.split()
-            result = []
-            i = 0
-            while i < len(parts):
-                part = parts[i]
-                if part.startswith('${'):
-                    key = part.lstrip('${').rstrip('}')
-                    if key not in context:
-                        raise KeyError(f"Missing context variable: {part}")
-                    result.append(str(context[key]))
-                elif i + 1 < len(parts) and parts[i + 1] == "+":
-                    result.append(part)
-                    i += 1
-                else:
-                    result.append(part)
-                i += 1
-            return "".join(result)
+    try:
+        interim = str(safe_eval(tmp_expr, local_env=local_env))
+    except Exception:
+        interim = py_expr
+
+    # restore placeholders
+    restored = interim.replace(SENTINEL, "${")
+    # wrap so render() can finish substitution
+    return f'f"{restored}"'
+
+
+# ───────────────────── used by Config.render fallback ─────────────────────
+def _render_folded_expression_node(
+    node,
+    env: Dict[str, Any],
+    context: Optional[Dict[str, Any]] = None,
+):
+    from ._ast_nodes import FoldedExpressionNode
+
+    if isinstance(node, FoldedExpressionNode) and node.resolved is not None:
         return node.resolved
     return evaluate_expression_tree(node.content_tree, env, env, context)
