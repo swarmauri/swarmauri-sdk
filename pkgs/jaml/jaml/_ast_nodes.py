@@ -272,8 +272,6 @@ class TableArrayHeaderNode(BaseNode):
         # Returns the logical header name.
         return self.value
 
-
-# Updated ComprehensionHeaderNode in _ast_nodes.py
 class ComprehensionHeaderNode(BaseNode):
     def __init__(self):
         super().__init__()
@@ -327,23 +325,32 @@ class AssignmentNode(BaseNode):
         self.inline_comment = None
 
     def emit(self) -> str:
-        parts = []
+        parts: List[str] = []
+        # leading whitespace and identifier
         if self.leading_whitespace:
             parts.append(self.leading_whitespace.value)
         parts.append(self.identifier.value)
+        # type annotation if present
         if self.type_annotation:
             parts.append(self.colon.value)
             parts.append(self.type_annotation.value)
+        # equals with surrounding spaces
         parts.append(" ")
         parts.append(self.equals.value if self.equals else "=")
         parts.append(" ")
-        if isinstance(self.value, (SingleLineArrayNode, MultiLineArrayNode)):
-            # Append the array's emitted text directly without extra indent.
-            parts.append(self.value.emit())
+        # emit the right-hand side value (arrays, nodes, or primitives)
+        if hasattr(self.value, "emit"):
+            val_text = self.value.emit()
         else:
-            parts.append(self.value.emit() if hasattr(self.value, "emit") else str(self.value))
+            val_text = str(self.value)
+        # fallback if emit returned None
+        if val_text is None:
+            val_text = getattr(self.value, "origin", "")
+        parts.append(val_text)
+        # optional trailing whitespace
         if self.trailing_whitespace:
             parts.append(self.trailing_whitespace.value)
+        # inline comment on the assignment
         if self.inline_comment:
             parts.append(self.inline_comment.value)
         return "".join(parts)
@@ -500,8 +507,6 @@ class FoldedExpressionNode(BaseNode):
     def evaluate(self):
         return self.resolved if self.resolved is not None else self.origin
 
-
-
 class InClauseNode(BaseNode):
     def __init__(self):
         super().__init__()
@@ -609,7 +614,6 @@ class DottedExprNode(BaseNode):
 
     def evaluate(self) -> Any:
         return self.resolved if self.resolved is not None else self.dotted_value
-
 
 class ComprehensionClauseNode(BaseNode):
     def __init__(self):
@@ -773,7 +777,6 @@ class StringExprNode(BaseNode):
             for p in self.parts
         )
 
-
 class ListComprehensionNode(BaseNode):
     def __init__(self):
         super().__init__()
@@ -863,11 +866,21 @@ class ValueNode(BaseNode):
         self.inline_comment = None  # New attribute to hold an inline comment
 
     def emit(self) -> str:
-        # Emit the base value, then append the inline comment (if present)
+        """
+        Emit the wrapped value plus its inline comment (if any).
+        If `value` is None, emit the inline comment alone.
+        """
+        # Comment‑only line
+        if self.value is None:
+            return self.inline_comment.value.strip()
+
+        # Otherwise, emit the value then the comment
         base = self.value.emit() if hasattr(self.value, "emit") else str(self.value)
         if self.inline_comment:
-            base += " " + self.inline_comment.value
+            # inline_comment.value contains the exact leading spaces + '#'
+            base += self.inline_comment.value
         return base
+
 
     def __str__(self) -> str:
         # Include inline_comment information for debugging output
@@ -888,7 +901,6 @@ class ValueNode(BaseNode):
     def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         # Delegate the rendering to the wrapped value (or convert to string)
         return self.value.render() if hasattr(self.value, "render") else str(self.value)
-
 
 class InlineTableNode(BaseNode):
     def __init__(self):
@@ -1040,8 +1052,6 @@ class SingleQuotedStringNode(BaseNode):
     def evaluate(self) -> Any:
         return self.resolved if self.resolved is not None else self.origin
 
-
-
 class TripleQuotedStringNode(BaseNode):
     """
     Represents a triple-quoted string, e.g. '''Hello\nWorld''' or \"\"\"Hello\nWorld\"\"\".
@@ -1154,7 +1164,6 @@ class TripleBacktickStringNode(BaseNode):
         """
         return self.resolved if self.resolved is not None else self.origin
 
-
 class SingleLineArrayNode(BaseNode):
     """
     Represents an array on a single line, e.g. [1, 2, "three"] or ["blue" # Accent color].
@@ -1212,7 +1221,6 @@ class SingleLineArrayNode(BaseNode):
     def __repr__(self) -> str:
         return f"SingleLineArrayNode(value={self.value})"
 
-
 class MultiLineArrayNode(BaseNode):
     def __init__(self):
         super().__init__()
@@ -1222,61 +1230,40 @@ class MultiLineArrayNode(BaseNode):
         # We ignore parsed newlines for serialization and instead produce a canonical format.
         self.leading_newlines = None    
         self.trailing_newlines = None   
-        self.__comments__ = []          # List of comments
-        self.value = []                 # Evaluated values
+        self.value = []                 
         self.resolved = None            
         self.meta = None                
 
     def emit(self) -> str:
         """
-        Emit the multiline array in a canonical format:
-        
-        [
-          item1, <optional inline comment>
-          item2, <optional inline comment>
-          item3   <optional inline comment>
-        ]
-        
-        with exactly one newline after '[' and before ']', and exactly two spaces of indent.
-        A trailing comma is added for all items except the last.
+        Emit the multiline array in canonical form, preserving both
+        values and inline comments exactly as parsed.
         """
-        indent = "  "  # exactly two spaces per item
-        newline = "\n"
-        lines = []
-        for idx, item in enumerate(self.contents):
-            if item.value is not None:
-                item_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
-                # Add a comma if there is a subsequent non-comment value.
-                need_comma = any(
-                    self.contents[j].value is not None
-                    for j in range(idx + 1, len(self.contents))
-                )
-                if need_comma:
-                    item_str += ","
-                if item.inline_comment:
-                    item_str += " " + item.inline_comment.value
-                lines.append(indent + item_str)
-            elif item.inline_comment:
-                lines.append(indent + item.inline_comment.value)
-        content = newline.join(lines)
-        return f"[{newline}{content}{newline}]"
+        lines = ["["]
+        for item in self.contents:
+            # ValueNode.emit() will produce either:
+            #  - '"blue"    # Accent color'  (value+comment)
+            #  - '# just a comment'          (comment‑only)
+            text = item.emit()
+            lines.append(f"  {text}")
+        lines.append("]")
+        return "\n".join(lines)
+
 
     def resolve(self, global_env, local_env=None):
         resolved_items = []
         for item in self.contents:
-            # Only process nodes that have a meaningful value.
             if item.value is not None:
                 if hasattr(item, "resolve") and callable(item.resolve):
                     item.resolve(global_env, local_env)
                 if hasattr(item, "evaluate") and callable(item.evaluate):
-                    resolved_item = item.evaluate()
+                    resolved_items.append(item.evaluate())
                 else:
-                    resolved_item = item.value
-                resolved_items.append(resolved_item)
+                    resolved_items.append(item.value)
         self.resolved = resolved_items
         self.value = resolved_items
 
-        # Optionally, preserve inline comments separately.
+        # Preserve inline comments
         for item in self.contents:
             if item.inline_comment:
                 self.__comments__.append(item.inline_comment.value)
@@ -1293,7 +1280,6 @@ class MultiLineArrayNode(BaseNode):
 
     def __repr__(self) -> str:
         return f"MultiLineArrayNode(value={self.value})"
-
 
 class GlobalScopedVarNode(BaseNode):
     """
@@ -1316,7 +1302,6 @@ class GlobalScopedVarNode(BaseNode):
     def evaluate(self):
         # Return the inner variable name or fallback to the original token text
         return self.resolved if self.resolved is not None else self.origin
-
 
 class LocalScopedVarNode(BaseNode):
     """

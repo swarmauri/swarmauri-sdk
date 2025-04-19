@@ -109,7 +109,6 @@ class ConfigTransformer(Transformer):
 
         return Config(node)
 
-
     # ───────────────────────── section  ──────────────────────────
     @v_args(meta=True)
     def section(self, meta, items: List[Any]) -> SectionNode:
@@ -153,7 +152,7 @@ class ConfigTransformer(Transformer):
                 if cur.data == "section_name":
                     node.header = self.section_name(meta, cur.children)
                 elif cur.data == "header_comprehension":
-                    # **FIXED**: delegate to the header_comprehension transformer
+                    # delegate to the header_comprehension transformer
                     node.header = self.header_comprehension(meta, cur.children)
                 elif cur.data == "header_conditional":
                     from ._ast_nodes import TableArrayHeaderNode
@@ -186,7 +185,7 @@ class ConfigTransformer(Transformer):
                 node.value = getattr(node.header, "value", None)
             i += 1
 
-        # ']'      
+        # ']'
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
             node.rbrack = items[i]
             i += 1
@@ -204,6 +203,15 @@ class ConfigTransformer(Transformer):
         node.__comments__ = [
             itm.value for itm in items[i:] if isinstance(itm, CommentNode)
         ]
+
+        # Attach inline comments to preceding assignment
+        from ._ast_nodes import AssignmentNode
+        for comment_text in node.__comments__:
+            for c in reversed(node.contents):
+                if isinstance(c, AssignmentNode):
+                    c.inline_comment = Token("INLINE_COMMENT", "  " + comment_text)
+                    break
+        node.__comments__ = []
 
         node.origin = (
             node.lbrack.value
@@ -223,7 +231,6 @@ class ConfigTransformer(Transformer):
             self._last_section_name = node.header.value
             self.debug_print(f"section(): Processing static section {node.header.value}")
         else:
-            # dynamic or conditional header
             raw_key = node.header.emit() if hasattr(node.header, "emit") else str(node.header)
             self.data[raw_key] = {}
             self.current_section = self.data[raw_key]
@@ -231,14 +238,13 @@ class ConfigTransformer(Transformer):
             self._last_section_name = raw_key
             self.debug_print(f"section(): Processing dynamic section {raw_key}")
 
-        # ── relocate any assignments that were primed into root back into this section ──
-        from ._ast_nodes import AssignmentNode
+        # relocate assignments primed into root back into this section
+        from ._ast_nodes import AssignmentNode as _AssignmentNode
         for child in node.contents:
-            if isinstance(child, AssignmentNode):
+            if isinstance(child, _AssignmentNode):
                 key = child.identifier.value
                 if key in self.data and self.data[key] is not self.current_section:
                     self.data.pop(key, None)
-                    val = None
                     if hasattr(child.value, "evaluate"):
                         try:
                             child.value.resolve({}, {}, {})
@@ -298,50 +304,48 @@ class ConfigTransformer(Transformer):
             raise ValueError("Expected value in assignment")
         value = items[i]
 
-        # handle arrays: unwrap into Python lists immediately
+        # handle arrays: preserve AST nodes to maintain formatting and comments
         if isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
-            # resolve and evaluate
-            value.resolve({}, {})
-            evaluated_list = value.evaluate()
-            # assign Python list directly
-            node.value = evaluated_list
-            value = evaluated_list
-        # convert raw scalar tokens
+            node.value = value
+            i += 1
         elif isinstance(value, Token):
             t = value.type
             if t == "INTEGER":
-                value = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
+                tmp = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
+                node.value = tmp
             elif t == "FLOAT":
-                value = FloatNode(value=value.value, origin=value.value, meta=meta)
+                tmp = FloatNode(value=value.value, origin=value.value, meta=meta)
+                node.value = tmp
             elif t == "BOOLEAN":
-                tmp = BooleanNode(); tmp.value = tmp.origin = value.value; tmp.resolve({}, {}); value = tmp
+                tmp = BooleanNode(); tmp.value = tmp.origin = value.value; tmp.resolve({}, {}); node.value = tmp
             elif t == "NULL":
-                value = NullNode(value=value.value, origin=value.value, meta=meta)
+                tmp = NullNode(value=value.value, origin=value.value, meta=meta)
+                node.value = tmp
             elif t == "SINGLE_QUOTED_STRING":
-                node_str = SingleQuotedStringNode(); node_str.origin = value.value;
-                node_str.value  = value.value.strip('"\''); node_str.meta = meta; value = node_str
-
-            node.value = value
+                node_str = SingleQuotedStringNode()
+                node_str.origin = value.value
+                node_str.value  = value.value.strip("\"'")
+                node_str.meta = meta
+                node.value = node_str
+            else:
+                node.value = value
+            i += 1
         else:
             node.value = value
-        i += 1
+            i += 1
 
         # inline comment
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
-            inline_ws = None; comment = None
             for child in items[i].children:
-                if isinstance(child, InlineWhitespaceNode): inline_ws = child
-                elif isinstance(child, CommentNode): comment = child
-            if comment:
-                node.inline_comment = Token(
-                    "INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value
-                )
+                if isinstance(child, Token) and child.type == "INLINE_COMMENT":
+                    node.inline_comment = child
+                    break
             i += 1
 
         node.origin = node.identifier
         node.meta   = meta
 
-        # store in section
+        # store in section (value semantics preserved)
         if self.current_section is not None:
             if isinstance(node.value, list):
                 processed = node.value
@@ -356,11 +360,6 @@ class ConfigTransformer(Transformer):
             self.debug_print(f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}")
 
         return node
-
-
-
-
-
     @v_args(meta=True)
     def value(self, meta, items: List[Any]) -> BaseNode:
         self.debug_print("value() called with items")
@@ -577,8 +576,6 @@ class ConfigTransformer(Transformer):
         node.meta = meta
         return node
 
-
-
     @v_args(meta=True)
     def table_array_header(self, meta, items: List[Any]) -> TableArrayHeaderNode:
         self.debug_print("table_array_header() called with items")
@@ -623,7 +620,6 @@ class ConfigTransformer(Transformer):
         node.meta = meta
         return node
 
-
     # ───────────────────────── header comprehension ──────────────────────────
     @v_args(meta=True)
     def header_comprehension(self, meta, items: List[Any]) -> ComprehensionHeaderNode:
@@ -664,9 +660,6 @@ class ConfigTransformer(Transformer):
         node.meta = meta
         return node
 
-
-
-
     @v_args(meta=True)
     def concat_expr(self, meta, items: List[Any]) -> StringExprNode:
         """
@@ -690,7 +683,6 @@ class ConfigTransformer(Transformer):
         node.value = node.origin
         node.meta  = meta
         return node
-
 
     @v_args(meta=True)
     def string_component(self, meta, items: List[Any]) -> Union[SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode]:
@@ -786,7 +778,6 @@ class ConfigTransformer(Transformer):
         node.meta   = meta
         return node
 
-
     @v_args(meta=True)
     def dotted_expr(self, meta, items: List[Token]) -> DottedExprNode:
         node = DottedExprNode()
@@ -805,46 +796,47 @@ class ConfigTransformer(Transformer):
         node.meta = meta
         return node
 
-
     @v_args(meta=True)
     def array_item(self, meta, items: List[Any]) -> ValueNode:
-        self.debug_print("array_item() called with items")
         node = ValueNode()
         i = 0
 
-        # Process the value (if present)
-        if i < len(items) and items[i] is not None and not (isinstance(items[i], Token) and items[i].type == "COMMENT"):
+        # 1) Process the value
+        if i < len(items) and items[i] is not None and not (
+            isinstance(items[i], Token) and items[i].type == "COMMENT"
+        ):
             if isinstance(items[i], Tree):
                 node.value = self.value(meta, items[i].children)
             else:
                 node.value = items[i]
             i += 1
         else:
-            node.value = None  # No value; likely a comment-only item
+            node.value = None  # comment-only line
 
-        # Handle inline comment
+        # 2) Handle inline comment - preserve exact whitespace
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
-            inline_ws = None
-            comment = None
             for child in items[i].children:
-                if isinstance(child, InlineWhitespaceNode):
-                    inline_ws = child
-                elif isinstance(child, CommentNode):
-                    comment = child
-            if comment:
-                node.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
+                if isinstance(child, Token) and child.type == "INLINE_COMMENT":
+                    # preserve leading spaces and '#'
+                    node.inline_comment = Token("INLINE_COMMENT", child.value)
+                    break
             i += 1
 
-        # Handle post-item comments
-        if i < len(items) and (isinstance(items[i], list) or (isinstance(items[i], Tree) and items[i].data == "post_item_comments")):
+        # 3) Handle post-item comments as before
+        if i < len(items) and (
+            isinstance(items[i], list)
+            or (isinstance(items[i], Tree) and items[i].data == "post_item_comments")
+        ):
             if isinstance(items[i], list):
-                extra_comments = [item.value for item in items[i] if item is not None and hasattr(item, "value")]
+                extra = [c.value for c in items[i] if hasattr(c, "value")]
             else:
-                extra_comments = [child.value for child in items[i].children if child is not None and hasattr(child, "value")]
-            node.__comments__.extend(extra_comments)
+                extra = [c.value for c in items[i].children if hasattr(c, "value")]
+            node.__comments__.extend(extra)
             i += 1
 
-        node.origin = node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        node.origin = (
+            node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+        )
         node.meta = meta
         return node
 
@@ -883,7 +875,6 @@ class ConfigTransformer(Transformer):
         node.value = node.data
         node.meta = meta
         return node
-
 
     @v_args(meta=True)
     def inline_table_item(self, meta, items: List[Any]) -> ValueNode:
@@ -1042,7 +1033,6 @@ class ConfigTransformer(Transformer):
         node.value  = node.origin
         node.meta   = meta
         return node
-
 
     @v_args(meta=True)
     def dict_comprehension(self, meta, items: List[Any]) -> DictComprehensionNode:
@@ -1301,8 +1291,6 @@ class ConfigTransformer(Transformer):
         node.meta   = meta
         return node
 
-
-
     @v_args(meta=True)
     def comprehension_clauses(self, meta, items: List[Any]) -> ComprehensionClausesNode:
         self.debug_print("comprehension_clauses() called with items")
@@ -1347,7 +1335,6 @@ class ConfigTransformer(Transformer):
         node.value = origin
         node.meta = meta
         return node
-
 
     @v_args(meta=True)
     def loop_vars(self, meta, items: List[Any]) -> List:
@@ -1507,73 +1494,46 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
         """
-        Represents a multiline array, e.g.
-        [
-          "red",
-          "green",
-          "blue"
-        ]
-        Accumulates ValueNode children and resolves them into a Python list.
+        Parse a multiline array into a MultiLineArrayNode whose .contents
+        holds ValueNode elements (with inline comments preserved).
+        Emits as:
+
+            [
+              el1    # comment
+              el2
+            ]
         """
-        self.debug_print(f"multiline_array() called with items '{items}'")
+        from ._ast_nodes import MultiLineArrayNode, ValueNode
+        from lark import Tree, Token
+
         node = MultiLineArrayNode()
         contents: List[ValueNode] = []
-        i = 0
 
-        # match '['
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
-            node.lbrack = items[i]
-            i += 1
+        for itm in items:
+            # 1) Already‑transformed array items
+            if isinstance(itm, ValueNode):
+                contents.append(itm)
 
-        # find array_content
-        while i < len(items) and not (isinstance(items[i], Tree) and items[i].data == "array_content"):
-            i += 1
+            # 2) Raw parse‑tree array items (fallback)
+            elif isinstance(itm, Tree) and itm.data == "array_item":
+                val_node = self.array_item(meta, itm.children)
+                contents.append(val_node)
 
-        # collect the array_content subtree
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
-            for child in items[i].children:
-                # skip commas and whitespace/newlines
-                if isinstance(child, Token) and child.type == "COMMA":
-                    continue
-                if isinstance(child, (WhitespaceNode, HspacesNode)) or (isinstance(child, Token) and child.type in ("NEWLINE", "WHITESPACE")):
-                    continue
-
-                # explicit array_item
-                if isinstance(child, Tree) and child.data == "array_item":
-                    val_node = self.array_item(meta, child.children)
-                    if val_node.value is not None:
-                        contents.append(val_node)
-                    continue
-
-                # raw AST nodes (e.g., IntegerNode, SingleQuotedStringNode)
-                if isinstance(child, BaseNode):
-                    wrapped = ValueNode()
-                    wrapped.value = child
-                    wrapped.meta = meta
-                    if wrapped.value is not None:
-                        contents.append(wrapped)
-                    continue
-
-                # direct token values (e.g., strings)
-                if isinstance(child, Token):
-                    node_val = self.value(meta, [child])
-                    wrapped = ValueNode()
-                    wrapped.value = node_val
-                    wrapped.meta = meta
-                    if wrapped.value is not None:
-                        contents.append(wrapped)
-                    continue
-
-        # match ']' and attach
-        while i < len(items) and not (isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK"):
-            i += 1
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
-            node.rbrack = items[i]
+            # 3) Standalone inline comments (rare)
+            elif isinstance(itm, Tree) and itm.data == "inline_comment":
+                token = itm.children[0]
+                if isinstance(token, Token) and token.type == "INLINE_COMMENT":
+                    comment_node = ValueNode()
+                    comment_node.value = None
+                    comment_node.inline_comment = Token("INLINE_COMMENT", token.value)
+                    comment_node.meta = meta
+                    contents.append(comment_node)
 
         node.contents = contents
         return node
 
-        
+
+
     def NEWLINE(self, token: Token) -> NewlineNode:
         """
         Transform the NEWLINE terminal: /\r?\n/
@@ -1703,7 +1663,6 @@ class ConfigTransformer(Transformer):
         node.resolve({}, {})  # Resolve immediately to set self.resolved
         return node
 
-
     def NULL(self, token: Token) -> NullNode:
         self.debug_print("NULL() called with token")
         node = NullNode()
@@ -1719,7 +1678,6 @@ class ConfigTransformer(Transformer):
         """
         self.debug_print("OPERATOR() called with token")
         return token
-
 
     def GLOBAL_SCOPED_VAR(self, token: Token) -> GlobalScopedVarNode:
         self.debug_print("GLOBAL_SCOPED_VAR() called with token")

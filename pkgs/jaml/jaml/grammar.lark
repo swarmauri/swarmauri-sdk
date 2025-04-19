@@ -19,6 +19,11 @@
 // 1. Global Tokens & Whitespace
 //////////////////////////////
 
+
+// Comment tokens
+COMMENT.1: /\#[^\n]*/
+INLINE_COMMENT.2: /[ \t]+#[^\n]*/
+
 NEWLINE: /\r?\n/  // Each newline is treated as a token
 
 %ignore HSPACES
@@ -261,9 +266,6 @@ GLOBAL_SCOPED_VAR: /@\{[^}]+\}/
 LOCAL_SCOPED_VAR: /%\{[^}]+\}/
 CONTEXT_SCOPED_VAR: /\$\{[^}]+\}/
 
-// Comment tokens
-COMMENT.1: /\#[^\n]*/
-INLINE_COMMENT: /[ \t]+#[^\n]*/
 
 // Number tokens
 FLOAT: /[+-]?(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|[+-]?(?:inf|nan)/
@@ -277,20 +279,21 @@ NULL: /null\b/
 RESERVED_FUNC: /(File\(\)|Git\(\))\b/
 
 // Keywords
-AS: "as"
-FOR: "for"
-ENUMERATE: "enumerate"
-IN: "in"
-IF: "if"
-ELIF: "elif"
-ELSE: "else"
-AND: "and"
-OR: "or"
-IS: "is"
-INCLUDE: "include"
-NOT: "not"
+AS: /\bas\b/
+FOR: /\bfor\b/
+ENUMERATE: /\benumerate\b/
+IN: /\bin\b/
+IF: /\bif\b/
+ELIF: /\belif\b/
+ELSE: /\belse\b/
+AND: /\band\b/
+OR: /\bor\b/
+IS: /\bis\b/
+INCLUDE: /\binclude\b/
+NOT: /\bnot\b/
 
-?keyword: AS|FOR|ENUMERATE|IN|IF|ELIF|ELSE|AND|OR|IS|INCLUDE|NOT
+
+?keyword.0: AS|FOR|ENUMERATE|IN|IF|ELIF|ELSE|AND|OR|IS|INCLUDE|NOT
 
 
 // Identifier: Disallow reserved keywords and special names
