@@ -636,7 +636,7 @@ class PairExprNode(BaseNode):
 class DottedExprNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.dotted_value = None  # Full dotted string (e.g., "package.active")
+        self.dotted_value = None  # Full dotted string, e.g. "package.active"
 
     def __str__(self) -> str:
         return f"DottedExprNode(dotted_value={self.dotted_value})"
@@ -644,14 +644,41 @@ class DottedExprNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        # Resolve dotted path (e.g., settings.x)
-        from ._helpers import resolve_scoped_variable
-        self.resolved = resolve_scoped_variable(self.dotted_value, global_env)
-        self.value = self.resolved if self.resolved is not None else self.dotted_value
+    def resolve(
+        self,
+        global_env: Dict[str, Any],
+        local_env: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ):
+        local_env = local_env or {}
+        context   = context   or {}
+
+        # Walk a dotted path through a mapping (dict-like or objects with attrs).
+        def _dig(src, path: str):
+            cur = src
+            for part in path.split("."):
+                if isinstance(cur, dict) and part in cur:
+                    cur = cur[part]
+                elif hasattr(cur, part):
+                    cur = getattr(cur, part)
+                else:
+                    return None
+            return cur
+
+        # Try lookup in local_env → context → global_env
+        result = _dig(local_env, self.dotted_value)
+        if result is None:
+            result = _dig(context, self.dotted_value)
+        if result is None:
+            result = _dig(global_env, self.dotted_value)
+
+        self.resolved = result
+        # If nothing found, leave the original dotted string as a fallback
+        self.value    = result if result is not None else self.dotted_value
 
     def evaluate(self) -> Any:
         return self.resolved if self.resolved is not None else self.dotted_value
+
 
 class ComprehensionClauseNode(BaseNode):
     def __init__(self):

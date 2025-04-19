@@ -564,106 +564,79 @@ class ConfigTransformer(Transformer):
 
     # ───────────────────────── table‑array section ─────────────────────────
     @v_args(meta=True)
-    def table_array_section(
-        self, meta, items: List[Any]
-    ) -> TableArraySectionNode:
+    def table_array_section(self, meta, items: List[Any]) -> TableArraySectionNode:
         """
-        “[[” <header> “]]” <NEWLINE*> <body‑lines…>
-
-        <header> is either:
-            • TableArrayHeaderNode
-            • ComprehensionHeaderNode
+        2) Detect comprehension headers immediately after '[[' and mount them,
+        deferring full expansion to render time.
         """
         self.debug_print("table_array_section() called with items")
-        # If this is a comprehension header, delegate to header_comprehension
-        first = items[0]
-        if isinstance(first, Tree) and first.data == "header_comprehension":
-            comp = self.header_comprehension(meta, first.children)
-            node = TableArraySectionNode()
-            node.header      = comp          # use the ComprehensionHeaderNode itself
-            node.body        = []            # no inner assignments
-            node.__comments__ = []
-            node.origin      = f"[[{comp.origin}]]"
-            node.value       = comp.value
-            node.meta        = meta
+        if not (items and isinstance(items[0], Token) and items[0].type == "L_DBL_SQ_BRACK"):
+            raise ValueError("Table-array section must start with '[['")
 
-            # also mount it into self.data so resolve/render pick it up
+        # Comprehension-first: header is a ComprehensionHeaderNode
+        if len(items) > 1 and isinstance(items[1], ComprehensionHeaderNode):
+            comp = items[1]
+            node = TableArraySectionNode()
+            node.header = comp
+            node.body = []
+            node.__comments__ = []
             raw_key = comp.origin
+            # Mount placeholder into raw data
             self.data[raw_key] = {}
-            self.current_section    = self.data[raw_key]
-            self._last_section      = self.current_section
+            self.current_section = self.data[raw_key]
+            self._last_section = self.current_section
             self._last_section_name = raw_key
+            node.origin = f"[[{comp.origin}]]"
+            node.value = comp.value
+            node.meta = meta
             return node
 
+        # Fallback: static or conditional header
         node = TableArraySectionNode()
-
-        i = 0
-        # ── 1. leading "[[" token ─────────────────────────────────────────
-        if (
-            i < len(items)
-            and isinstance(items[i], Token)
-            and items[i].type == "L_DBL_SQ_BRACK"
-        ):
+        i = 1  # skip '[[' token
+        # header node (TableArrayHeaderNode or ComprehensionHeaderNode)
+        header = items[i]
+        if not isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):
+            raise ValueError("Missing or invalid table‑array header")
+        node.header = header
+        i += 1
+        # skip any newlines between header and closing
+        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
+            i += 1
+        # expect ']]'
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_DBL_SQ_BRACK":
             i += 1
         else:
-            raise ValueError("Table‑array section must start with '[['")
-
-        # ── 2. header node ────────────────────────────────────────────────
-        if not isinstance(items[i], (TableArrayHeaderNode, ComprehensionHeaderNode)):
-            raise ValueError("Missing or invalid table‑array header")
-        node.header = items[i]
-        i += 1
-
-        # Mount the dynamic table‑array placeholder into the raw data mapping
+            raise ValueError("Table‑array section header not closed with ']]'")
+        # body lines (assignments, comments)
+        node.body = [itm for itm in items[i:] if not (isinstance(itm, Token) and itm.type == "NEWLINE")]
+        node.__comments__ = [itm.value for itm in node.body if isinstance(itm, CommentNode)]
+        # mount into raw data
         raw_key = node.header.emit() if hasattr(node.header, "emit") else str(node.header)
         self.data[raw_key] = {}
         self.current_section = self.data[raw_key]
         self._last_section = self.current_section
         self._last_section_name = raw_key
-        self.debug_print(f"table_array_section(): Mounted dynamic section '{raw_key}'")
-
-        # ── 3. consume optional NEWLINE tokens between header and "]]" ────
-        while (
-            i < len(items)
-            and isinstance(items[i], Token)
-            and items[i].type == "NEWLINE"
-        ):
-            i += 1
-
-        # ── 4. closing "]]" token ────────────────────────────────────────
-        if (
-            i < len(items)
-            and isinstance(items[i], Token)
-            and items[i].type == "R_DBL_SQ_BRACK"
-        ):
-            i += 1
-        else:
-            raise ValueError("Table‑array section header not closed with ']]'")
-
-        # ── 5. remaining items are the body lines (could be empty) ───────
-        node.body = [
-            itm for itm in items[i:]
-            if not (isinstance(itm, Token) and itm.type == "NEWLINE")
-        ]
-
-        # ── 6. collect inline comments, origin, misc bookkeeping ─────────
-        node.__comments__ = [
-            itm.value for itm in node.body if isinstance(itm, CommentNode)
-        ]
-        node.origin = f"[[{node.header.emit()}]]"
-        node.value  = node.header.value
-        node.meta   = meta
+        node.origin = f"[[{raw_key}]]"
+        node.value = getattr(node.header, 'value', raw_key)
+        node.meta = meta
         return node
+
 
 
     @v_args(meta=True)
     def table_array_header(self, meta, items: List[Any]) -> TableArrayHeaderNode:
         self.debug_print("table_array_header() called with items")
-        from ._ast_nodes import TableArrayHeaderNode
-        node = TableArrayHeaderNode()
-        first = items[0]
+        from ._ast_nodes import TableArrayHeaderNode, ComprehensionHeaderNode
 
-        # Handle conditional‑header trees (e.g. header_conditional)
+        # If the header node is a comprehension header, let it pass through so
+        # table_array_section can handle it
+        first = items[0]
+        if isinstance(first, ComprehensionHeaderNode):
+            return first
+
+        node = TableArrayHeaderNode()
+        # Handle conditional-header trees (e.g. header_conditional)
         if isinstance(first, Tree) and first.data == "header_conditional":
             # Reconstruct the raw header expression
             raw = "".join(
@@ -675,7 +648,7 @@ class ConfigTransformer(Transformer):
             node.meta   = meta
             return node
 
-        # All other cases (ComprehensionHeaderNode, literal node, Token, etc.)
+        # All other cases (literal node, Token, etc.)
         if hasattr(first, "emit"):
             origin = first.emit()
         elif isinstance(first, Token):
@@ -699,9 +672,14 @@ class ConfigTransformer(Transformer):
     # ───────────────────────── header comprehension ──────────────────────────
     @v_args(meta=True)
     def header_comprehension(self, meta, items: List[Any]) -> ComprehensionHeaderNode:
+        """
+        1) Parse f-string and comprehension clauses into a single node,
+        capturing header_expr and clauses for later render.
+        """
         self.debug_print("header_comprehension() called with items")
         node = ComprehensionHeaderNode()
 
+        # Wrap raw F_STRING tokens into FStringNode
         head = items[0]
         if isinstance(head, Token) and head.type == "F_STRING":
             wrap = FStringNode()
@@ -711,20 +689,28 @@ class ConfigTransformer(Transformer):
             head = wrap
         node.header_expr = head
 
-        clauses = next((itm for itm in items[1:] if isinstance(itm, ComprehensionClausesNode)), None)
+        # Capture the comprehension clauses
+        from ._ast_nodes import ComprehensionClausesNode
+        clauses = next(
+            (itm for itm in items[1:] if isinstance(itm, ComprehensionClausesNode)),
+            None
+        )
+        node.clauses = clauses
 
-        head_text = getattr(head, 'origin', head.value if hasattr(head, 'value') else str(head))
-        clauses_text = clauses.origin if clauses is not None else ''
+        # Rebuild origin text for fidelity
+        head_text = getattr(head, "origin", getattr(head, "value", str(head)))
+        clauses_text = clauses.origin if clauses is not None else ""
+        raw = head_text + ("\n" + clauses_text if clauses_text else "")
+        lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+        node.origin = "\n".join(lines)
 
-        # Build and normalize raw representation: single newline and stripped lines
-        raw = head_text + ('\n' + clauses_text if clauses_text else '')
-        lines = [line.strip() for line in raw.splitlines() if line.strip()]
-        normalized = '\n'.join(lines)
-
-        node.origin = normalized
+        # Keep the unmodified value for render-phase evaluation
         node.value = raw
         node.meta = meta
         return node
+
+
+
 
     @v_args(meta=True)
     def concat_expr(self, meta, items: List[Any]) -> StringExprNode:

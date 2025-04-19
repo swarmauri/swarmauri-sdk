@@ -79,7 +79,7 @@ for module in ${packages.modules} if package.active''' in data
     print('\n\n\n\n[RENDERED DATA]:')
     print(rendered_data)
     assert rendered_data["rootDir"] == "new_src"
-    # assert "file" in rendered_data
+    assert "file" in rendered_data
 
 
     final_out = data.dumps()
