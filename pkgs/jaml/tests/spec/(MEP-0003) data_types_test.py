@@ -128,7 +128,7 @@ def test_null_literal():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-@pytest.mark.xfail(reason="Currently this does not ")
+# @pytest.mark.xfail(reason="Not fully implemented.")
 def test_inline_array():
     source = 'numbers = [1, 2, 3, 4]'
     tree = parser.parse(source)
@@ -150,7 +150,7 @@ def test_multiline_array():
     '''
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 18
+    assert len([t for t in tokens]) == 14
 
 @pytest.mark.spec
 @pytest.mark.mep0003

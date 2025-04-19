@@ -73,7 +73,7 @@ header_conditional: comprehension_expr HSPACES? IF HSPACES? arithmetic HSPACES? 
 // 3. Assignment and Expression Definitions
 //////////////////////////////
 
-assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? assignment_value inline_comment? 
+assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? assignment_value INLINE_COMMENT? 
 
 concat_expr: string_component (HSPACES? PLUS HSPACES? string_component)+
 string_component: string 
@@ -149,7 +149,7 @@ single_line_array: "[" sl_array_content "]"
 ?sl_array_content: sl_array_item+ ("," HSPACES?)?
 ?sl_array_item: value (HSPACES? ",")?
 multiline_array: "[" (comment_line | NEWLINE+) (NEWLINE* ml_array_item)+ NEWLINE? "]"
-?ml_array_item: comment_line | value (HSPACES? ",")? inline_comment?
+?ml_array_item: comment_line | value (HSPACES? ",")? INLINE_COMMENT?
 
 
 //////////////////////////////
@@ -159,16 +159,10 @@ multiline_array: "[" (comment_line | NEWLINE+) (NEWLINE* ml_array_item)+ NEWLINE
 inline_table: L_CURL_BRACE (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* R_CURL_BRACE
 inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_table_item)* (WHITESPACE? COMMA WHITESPACE?)?
 
-inline_table_item: inline_assignment inline_comment? 
+inline_table_item: inline_assignment INLINE_COMMENT? 
                   | comment_line
 
-inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? value inline_comment?
-
-//////////////////////////////
-// 6. Comment Handling
-//////////////////////////////
-
-inline_comment: INLINE_COMMENT
+inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? value INLINE_COMMENT?
 
 //////////////////////////////
 // 7. Comprehension Handling

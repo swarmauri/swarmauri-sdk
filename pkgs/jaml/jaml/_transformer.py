@@ -262,21 +262,21 @@ class ConfigTransformer(Transformer):
     # ──────────────────────────────────────────────────────────────
     @v_args(meta=True)
     def assignment(self, meta, items: List[Any]) -> "AssignmentNode":
-        from ._ast_nodes import SingleLineArrayNode, MultiLineArrayNode
+        self.debug_print(f"assignment() called with items '{items}'")
+        from ._ast_nodes import SingleLineArrayNode, MultiLineArrayNode, IntegerNode, FloatNode, BooleanNode, NullNode, SingleQuotedStringNode
+        from lark import Token, Tree
+
         node = AssignmentNode()
         i = 0
 
         def _is_ws(tok) -> bool:
-            return isinstance(tok, HspacesNode) or (
-                isinstance(tok, Token) and tok.type == "HSPACES"
-            )
+            return isinstance(tok, HspacesNode) or (isinstance(tok, Token) and tok.type == "HSPACES")
 
-        # optional leading whitespace
+        # 1) leading whitespace
         if i < len(items) and _is_ws(items[i]):
-            node.leading_whitespace = items[i]
-            i += 1
+            node.leading_whitespace = items[i]; i += 1
 
-        # identifier
+        # 2) identifier
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
             node.identifier = items[i]
             key = items[i].value
@@ -284,7 +284,7 @@ class ConfigTransformer(Transformer):
         else:
             raise ValueError(f"Expected IDENTIFIER in assignment, got {items[i]}")
 
-        # skip type annotation and equals
+        # 3) skip optional type‐annotation + WS
         while i < len(items) and _is_ws(items[i]):
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
@@ -292,6 +292,8 @@ class ConfigTransformer(Transformer):
             node.type_annotation = items[i]; i += 1
         while i < len(items) and _is_ws(items[i]):
             i += 1
+
+        # 4) equals sign
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
             node.equals = items[i]; i += 1
         else:
@@ -299,53 +301,58 @@ class ConfigTransformer(Transformer):
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
-        # right-hand side
+        # 5) right‑hand side value
         if i >= len(items):
             raise ValueError("Expected value in assignment")
         value = items[i]
 
-        # handle arrays: preserve AST nodes to maintain formatting and comments
+        # preserve array ASTs
         if isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
-            node.value = value
-            i += 1
+            node.value = value; i += 1
+
+        # scalar tokens
         elif isinstance(value, Token):
             t = value.type
             if t == "INTEGER":
-                tmp = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
-                node.value = tmp
+                node.value = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
             elif t == "FLOAT":
-                tmp = FloatNode(value=value.value, origin=value.value, meta=meta)
-                node.value = tmp
+                node.value = FloatNode(value=value.value, origin=value.value, meta=meta)
             elif t == "BOOLEAN":
                 tmp = BooleanNode(); tmp.value = tmp.origin = value.value; tmp.resolve({}, {}); node.value = tmp
             elif t == "NULL":
-                tmp = NullNode(value=value.value, origin=value.value, meta=meta)
-                node.value = tmp
+                node.value = NullNode(value=value.value, origin=value.value, meta=meta)
             elif t == "SINGLE_QUOTED_STRING":
-                node_str = SingleQuotedStringNode()
-                node_str.origin = value.value
-                node_str.value  = value.value.strip("\"'")
-                node_str.meta = meta
-                node.value = node_str
+                sq = SingleQuotedStringNode()
+                sq.origin = value.value
+                sq.value  = value.value.strip("\"'")
+                sq.meta   = meta
+                node.value = sq
             else:
                 node.value = value
             i += 1
+
+        # sub‑trees (comprehensions, inline tables, etc.)
         else:
             node.value = value
             i += 1
 
-        # inline comment
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        # 6) **bare** INLINE_COMMENT token
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
+            node.inline_comment = items[i]
+            i += 1
+        # 7) fallback: old Tree‑wrapped inline_comment
+        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
                     break
             i += 1
 
+        # 8) record origin/meta
         node.origin = node.identifier
         node.meta   = meta
 
-        # store in section (value semantics preserved)
+        # 9) store into current_section (unchanged)…
         if self.current_section is not None:
             if isinstance(node.value, list):
                 processed = node.value
@@ -360,6 +367,8 @@ class ConfigTransformer(Transformer):
             self.debug_print(f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}")
 
         return node
+
+
 
     @v_args(meta=True)
     def value(self, meta, items: List[Any]) -> BaseNode:
@@ -860,8 +869,8 @@ class ConfigTransformer(Transformer):
 
         # 1) Skip any indentation or whitespace tokens
         while i < len(items) and (
-            isinstance(items[i], (WhitespaceNode, HspacesNode, InlineWhitespaceNode)) or
-            (isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"))
+            isinstance(items[i], (WhitespaceNode, HspacesNode, InlineWhitespaceNode))
+            or (isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"))
         ):
             i += 1
 
@@ -873,39 +882,39 @@ class ConfigTransformer(Transformer):
                 node.value = items[i]
             i += 1
         else:
+            # comment-only line
             node.value = None
             if i < len(items) and isinstance(items[i], CommentNode):
-                comment_text = items[i].value
-                node.inline_comment = Token("INLINE_COMMENT", comment_text)
+                # treat the entire comment as an inline_comment
+                comment_tok = Token("INLINE_COMMENT", items[i].value)
+                node.inline_comment = comment_tok
             i += 1
 
-        # 3) Handle comma immediately following the value
+        # 3) Handle trailing comma, if present
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
             node.has_comma = True
             i += 1
 
-        # 4) Skip any whitespace tokens after the comma
-        while i < len(items) and (
-            isinstance(items[i], (WhitespaceNode, HspacesNode, InlineWhitespaceNode)) or
-            (isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"))
-        ):
+        # 4) Skip any extra whitespace tokens
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
             i += 1
 
-        # 5) Handle inline comment
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        # 5) **Bare** INLINE_COMMENT token (new): attach directly
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
+            node.inline_comment = items[i]
+            i += 1
+
+        # 6) Fallback: wrapped inline_comment Tree (if still encountered)
+        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
                     break
             i += 1
 
-        # 6) Set origin for round-trip fidelity
-        if hasattr(node.value, "emit"):
-            node.origin = node.value.emit()
-        else:
-            node.origin = str(node.value) if node.value is not None else ""
         node.meta = meta
         return node
+
 
         
     @v_args(meta=True)
