@@ -150,7 +150,7 @@ def test_multiline_array():
     '''
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 24
+    assert len([t for t in tokens]) == 18
 
 @pytest.mark.spec
 @pytest.mark.mep0003
@@ -169,7 +169,7 @@ def test_standard_table_section():
     source = "[section]\nkey = \"value\""
     tree = parser.parse(source)
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
-    assert len([t for t in tokens]) == 9
+    assert len([t for t in tokens]) == 8
 
 @pytest.mark.spec
 @pytest.mark.mep0003

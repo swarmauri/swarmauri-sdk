@@ -798,50 +798,113 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def array_item(self, meta, items: List[Any]) -> ValueNode:
-        node = ValueNode()
+    def sl_array_item(self, meta, items: List[Any]) -> "SLArrayItemNode":
+        self.debug_print("sl_array_item() called with items")
+        from ._ast_nodes import SLArrayItemNode, CommentNode
+        from lark import Tree, Token
+        node = SLArrayItemNode()
         i = 0
 
-        # 1) Process the value
-        if i < len(items) and items[i] is not None and not (
-            isinstance(items[i], Token) and items[i].type == "COMMENT"
-        ):
+        # 1) Process the value or comment-only line
+        if i < len(items) and not isinstance(items[i], CommentNode):
             if isinstance(items[i], Tree):
                 node.value = self.value(meta, items[i].children)
             else:
                 node.value = items[i]
             i += 1
         else:
-            node.value = None  # comment-only line
+            # comment-only line
+            node.value = None
+            # capture the comment text
+            if i < len(items) and isinstance(items[i], CommentNode):
+                node.inline_comment = Token("INLINE_COMMENT", items[i].value)
+            i += 1
 
-        # 2) Handle inline comment - preserve exact whitespace
+        # 2) Handle comma immediately following the value
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
+            node.has_comma = True
+            i += 1
+
+        # 3) Skip any whitespace tokens
+        while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
+            i += 1
+
+        # 4) Handle inline comment
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
-                    # preserve leading spaces and '#'
-                    node.inline_comment = Token("INLINE_COMMENT", child.value)
+                    node.inline_comment = child
                     break
             i += 1
 
-        # 3) Handle post-item comments as before
-        if i < len(items) and (
-            isinstance(items[i], list)
-            or (isinstance(items[i], Tree) and items[i].data == "post_item_comments")
-        ):
-            if isinstance(items[i], list):
-                extra = [c.value for c in items[i] if hasattr(c, "value")]
-            else:
-                extra = [c.value for c in items[i].children if hasattr(c, "value")]
-            node.__comments__.extend(extra)
-            i += 1
-
-        node.origin = (
-            node.value.emit() if node.value and hasattr(node.value, "emit") else ""
-        )
+        # 5) Set origin for round-trip fidelity
+        if hasattr(node.value, "emit"):
+            node.origin = node.value.emit()
+        else:
+            node.origin = str(node.value) if node.value is not None else ""
         node.meta = meta
         return node
 
+    @v_args(meta=True)
+    def ml_array_item(self, meta, items: List[Any]) -> "MLArrayItemNode":
+        """
+        Handle a multiline array item, preserving values, commas, and inline comments.
+        Supports both value lines and comment-only lines.
+        """
+        self.debug_print("ml_array_item() called with items")
+        from ._ast_nodes import MLArrayItemNode, CommentNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode
+        from lark import Token, Tree
 
+        node = MLArrayItemNode()
+        i = 0
+
+        # 1) Process the value or comment-only line
+        if i < len(items) and not isinstance(items[i], CommentNode):
+            if isinstance(items[i], Tree):
+                node.value = self.value(meta, items[i].children)
+            else:
+                node.value = items[i]
+            i += 1
+        else:
+            node.value = None
+            if i < len(items) and isinstance(items[i], CommentNode):
+                comment_text = items[i].value
+                node.inline_comment = Token("INLINE_COMMENT", comment_text)
+            i += 1
+
+        # 2) Handle comma immediately following the value
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
+            node.has_comma = True
+            i += 1
+
+        # 3) Capture any whitespace before an inline-comment (to preserve it)
+        ws = ""
+        while i < len(items) and (
+            (isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"))
+            or isinstance(items[i], (WhitespaceNode, HspacesNode, InlineWhitespaceNode))
+        ):
+            ws += items[i].value
+            i += 1
+
+        # 4) Handle inline comment subtree
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+            child = next(
+                c for c in items[i].children
+                if isinstance(c, Token) and c.type == "INLINE_COMMENT"
+            )
+            comment_tok = Token("INLINE_COMMENT", ws + child.value)
+            node.inline_comment = comment_tok
+            i += 1
+
+        # 5) Set origin for round-trip fidelity
+        if node.value is not None and hasattr(node.value, "emit"):
+            node.origin = node.value.emit()
+        else:
+            node.origin = str(node.value) if node.value is not None else ""
+        node.meta = meta
+
+        return node
+        
     @v_args(meta=True)
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
         """
@@ -1460,7 +1523,7 @@ class ConfigTransformer(Transformer):
 
                 # explicit array_item
                 if isinstance(child, Tree) and child.data == "sl_array_item":
-                    val_node = self.array_item(meta, child.children)
+                    val_node = self.sl_array_item(meta, child.children)
                     if val_node.value is not None:
                         contents.append(val_node)
                     continue
@@ -1495,47 +1558,64 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
-        """
-        Parse a multiline array into a MultiLineArrayNode whose .contents
-        holds ValueNode elements (with inline comments preserved).
-        Emits as:
-
-            [
-              el1    # comment
-              el2
-            ]
-        """
-        from ._ast_nodes import MultiLineArrayNode, ValueNode
+        from ._ast_nodes import MultiLineArrayNode, ValueNode, CommentNode
         from lark import Tree, Token
 
         node = MultiLineArrayNode()
         contents: List[ValueNode] = []
 
         def _process(itm):
-            # Already-transformed ValueNode
+            # 1) Already-constructed ValueNode
             if isinstance(itm, ValueNode):
                 contents.append(itm)
-            # Raw parse-tree array items
-            elif isinstance(itm, Tree) and itm.data == "ml_array_item":
-                val_node = self.array_item(meta, itm.children)
-                contents.append(val_node)
-            # Standalone inline_comment nodes
-            elif isinstance(itm, Tree) and itm.data == "inline_comment":
-                token = itm.children[0]
-                if isinstance(token, Token) and token.type == "INLINE_COMMENT":
-                    comment_node = ValueNode()
-                    comment_node.value = None
-                    comment_node.inline_comment = Token("INLINE_COMMENT", token.value)
-                    comment_node.meta = meta
-                    contents.append(comment_node)
-            # Comment-only lines (raw COMMENT tokens)
-            elif isinstance(itm, Token) and itm.type == "COMMENT":
-                comment_node = ValueNode()
-                comment_node.value = item.value
-                comment_node.meta = meta
-                contents.append(comment_node)
 
-        # Flatten array_content and standalone items
+            # 2) Delegate ml_array_item sub-tree
+            elif isinstance(itm, Tree) and itm.data == "ml_array_item":
+                contents.append(self.ml_array_item(meta, itm.children))
+
+            # 3) Explicit COMMA token → mark previous element as having a comma
+            elif isinstance(itm, Token) and itm.type == "COMMA":
+                if contents:
+                    contents[-1].has_comma = True
+
+            # 4) Bare INLINE_COMMENT token → attach to previous or emit standalone
+            elif isinstance(itm, Token) and itm.type == "INLINE_COMMENT":
+                if contents and contents[-1].value is not None and contents[-1].inline_comment is None:
+                    contents[-1].inline_comment = itm
+                else:
+                    comment = ValueNode()
+                    comment.value = None
+                    comment.inline_comment = itm
+                    contents.append(comment)
+
+            # 5) Literal tokens → wrap into a ValueNode
+            elif isinstance(itm, Token) and itm.type in ("SINGLE_QUOTED_STRING", "INTEGER", "FLOAT", "BOOLEAN", "NULL"):
+                val_node = ValueNode()
+                val_node.value = self.value(meta, [itm])
+                val_node.meta = meta
+                contents.append(val_node)
+
+            # 6) inline_comment sub-tree
+            elif isinstance(itm, Tree) and itm.data == "inline_comment":
+                tok = itm.children[0]
+                if contents and contents[-1].value is not None and contents[-1].inline_comment is None:
+                    contents[-1].inline_comment = tok
+                else:
+                    comment = ValueNode()
+                    comment.value = None
+                    comment.inline_comment = tok
+                    contents.append(comment)
+
+            # 7) Full-line comments that came in as CommentNode
+            elif isinstance(itm, CommentNode):
+                comment = ValueNode()
+                comment.value = None
+                comment.inline_comment = Token("INLINE_COMMENT", itm.value)
+                contents.append(comment)
+
+            # else: ignore NEWLINE, HSPACES, etc.
+
+        # Flatten the ml_array_content children
         for itm in items:
             if isinstance(itm, Tree) and itm.data == "ml_array_content":
                 for child in itm.children:
@@ -1545,7 +1625,6 @@ class ConfigTransformer(Transformer):
 
         node.contents = contents
         return node
-
 
     def NEWLINE(self, token: Token) -> NewlineNode:
         """

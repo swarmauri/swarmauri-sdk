@@ -60,7 +60,7 @@ def test_inline_table_nesting():
 
     assert len(tokens) == 29
     assert tokens[0] == "test"
-    assert "# Inline table comment" in tokens[19].value
+    assert "# Inline table comment" in tokens[18].value
 
 # Test that a multiline array with commas is parsed as an ARRAY (not as a table section).
 @pytest.mark.spec
@@ -79,10 +79,10 @@ def test_multiline_array_precedence():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 24
+    assert len(tokens) == 18
     # assert tokens[3] == "STRING"
-    assert tokens[3].type == 'SETTER'
-    assert tokens[3].value == '='
+    assert tokens[2].type == 'SETTER'
+    assert tokens[2].value == '='
 
 # Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
 @pytest.mark.spec

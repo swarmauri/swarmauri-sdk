@@ -861,31 +861,31 @@ class InlineTableComprehensionNode(BaseNode):
 class ValueNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.value = None  # Wrapped value (e.g., IntegerNode, SingleQuotedStringNode, etc.)
+        self.value = None            # Wrapped value (IntegerNode, StringNode, …)
         self.comment = None
-        self.inline_comment = None  # New attribute to hold an inline comment
+        self.inline_comment = None   # Holds Token('INLINE_COMMENT', …) – includes leading spaces
+        self.has_comma = False       # True when a ',' token directly followed this item in source
 
     def emit(self) -> str:
-        """
-        Emit the wrapped value plus its inline comment (if any).
-        If `value` is None, emit the inline comment alone.
-        """
-        # Comment‑only line
+        """Return the exact textual representation for round‑trip serialisation."""
+        # ── comment‑only line ───────────────────────────────────────────
         if self.value is None:
-            return self.inline_comment.value.strip()
+            txt = self.inline_comment.value.strip()
+            if self.has_comma:
+                txt += ","
+            return txt
 
-        # Otherwise, emit the value then the comment
+        # ── regular value (may have inline comment) ────────────────────
         base = self.value.emit() if hasattr(self.value, "emit") else str(self.value)
+        if self.has_comma:
+            base += ","
         if self.inline_comment:
-            # inline_comment.value contains the exact leading spaces + '#'
-            base += self.inline_comment.value
+            base += self.inline_comment.value     # already holds leading spaces
         return base
 
-
-    def __str__(self) -> str:
-        # Include inline_comment information for debugging output
+    def __str__(self):
         ic = self.inline_comment.value if self.inline_comment else None
-        return f"ValueNode(value={self.value}, inline_comment={ic})"
+        return f"ValueNode(value={self.value}, inline_comment={ic}, has_comma={self.has_comma})"
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         if hasattr(self.value, "resolve"):
@@ -894,13 +894,27 @@ class ValueNode(BaseNode):
         else:
             self.resolved = self.value
 
-    def evaluate(self) -> Any:
-        # Evaluate using the wrapped value’s evaluate() method if available
+    def evaluate(self):
         return self.value.evaluate() if hasattr(self.value, "evaluate") else self.value
 
-    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
-        # Delegate the rendering to the wrapped value (or convert to string)
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
         return self.value.render() if hasattr(self.value, "render") else str(self.value)
+
+class SLArrayItemNode(ValueNode):
+    """
+    Represents an item in a single-line array, preserving value, inline comments, and comma.
+    """
+    def __init__(self):
+        super().__init__()
+        # Already inherits value, inline_comment, and has_comma from ValueNode
+
+class MLArrayItemNode(ValueNode):
+    """
+    Represents an item in a multi-line array, preserving value, inline comments, and comma.
+    """
+    def __init__(self):
+        super().__init__()
+        # Already inherits value, inline_comment, and has_comma from ValueNode
 
 class InlineTableNode(BaseNode):
     def __init__(self):
