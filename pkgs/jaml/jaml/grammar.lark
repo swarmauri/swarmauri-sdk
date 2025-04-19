@@ -24,6 +24,7 @@
 COMMENT.1: /\#[^\n]*/
 INLINE_COMMENT.2: /[ \t]+#[^\n]*/
 
+%ignore NEWLINE  
 NEWLINE: /\r?\n/  // Each newline is treated as a token
 
 %ignore HSPACES
@@ -146,12 +147,13 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 ?array: single_line_array
       | multiline_array
 
-single_line_array: L_SQ_BRACK array_content R_SQ_BRACK
-multiline_array: L_SQ_BRACK NEWLINE* array_content+ NEWLINE* R_SQ_BRACK
+single_line_array: L_SQ_BRACK sl_array_content R_SQ_BRACK
+?sl_array_content: sl_array_item (comment_line | WHITESPACE? COMMA WHITESPACE? sl_array_item)* (WHITESPACE? COMMA WHITESPACE?)?
+?sl_array_item: value 
 
-?array_content: NEWLINE* array_item (WHITESPACE? COMMA WHITESPACE? array_item)* (WHITESPACE? COMMA WHITESPACE?)?
-
-?array_item: value inline_comment? 
+multiline_array: L_SQ_BRACK (comment_line | NEWLINE*) ml_array_content+ NEWLINE* R_SQ_BRACK
+?ml_array_content: NEWLINE* ml_array_item (comment_line | WHITESPACE? COMMA WHITESPACE? ml_array_item)* (WHITESPACE? COMMA WHITESPACE?)?
+?ml_array_item: comment_line | value inline_comment? 
 
 //////////////////////////////
 // 5. Inline Table Handling

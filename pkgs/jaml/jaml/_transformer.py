@@ -360,6 +360,7 @@ class ConfigTransformer(Transformer):
             self.debug_print(f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}")
 
         return node
+
     @v_args(meta=True)
     def value(self, meta, items: List[Any]) -> BaseNode:
         self.debug_print("value() called with items")
@@ -1448,16 +1449,17 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # collect the array_content subtree
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "sl_array_content":
             for child in items[i].children:
                 # skip delimiters and whitespace
                 if isinstance(child, Token) and child.type == "COMMA":
                     continue
-                if isinstance(child, (WhitespaceNode, HspacesNode, InlineWhitespaceNode)):
+
+                if isinstance(child, (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode)):
                     continue
 
                 # explicit array_item
-                if isinstance(child, Tree) and child.data == "array_item":
+                if isinstance(child, Tree) and child.data == "sl_array_item":
                     val_node = self.array_item(meta, child.children)
                     if val_node.value is not None:
                         contents.append(val_node)
@@ -1509,17 +1511,15 @@ class ConfigTransformer(Transformer):
         node = MultiLineArrayNode()
         contents: List[ValueNode] = []
 
-        for itm in items:
-            # 1) Already‑transformed array items
+        def _process(itm):
+            # Already-transformed ValueNode
             if isinstance(itm, ValueNode):
                 contents.append(itm)
-
-            # 2) Raw parse‑tree array items (fallback)
-            elif isinstance(itm, Tree) and itm.data == "array_item":
+            # Raw parse-tree array items
+            elif isinstance(itm, Tree) and itm.data == "ml_array_item":
                 val_node = self.array_item(meta, itm.children)
                 contents.append(val_node)
-
-            # 3) Standalone inline comments (rare)
+            # Standalone inline_comment nodes
             elif isinstance(itm, Tree) and itm.data == "inline_comment":
                 token = itm.children[0]
                 if isinstance(token, Token) and token.type == "INLINE_COMMENT":
@@ -1528,10 +1528,23 @@ class ConfigTransformer(Transformer):
                     comment_node.inline_comment = Token("INLINE_COMMENT", token.value)
                     comment_node.meta = meta
                     contents.append(comment_node)
+            # Comment-only lines (raw COMMENT tokens)
+            elif isinstance(itm, Token) and itm.type == "COMMENT":
+                comment_node = ValueNode()
+                comment_node.value = item.value
+                comment_node.meta = meta
+                contents.append(comment_node)
+
+        # Flatten array_content and standalone items
+        for itm in items:
+            if isinstance(itm, Tree) and itm.data == "ml_array_content":
+                for child in itm.children:
+                    _process(child)
+            else:
+                _process(itm)
 
         node.contents = contents
         return node
-
 
 
     def NEWLINE(self, token: Token) -> NewlineNode:
