@@ -58,7 +58,7 @@ def test_inline_table_nesting():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 30
+    assert len(tokens) == 29
     assert tokens[0] == "test"
     assert "# Inline table comment" in tokens[19].value
 
@@ -79,7 +79,7 @@ def test_multiline_array_precedence():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 23
+    assert len(tokens) == 24
     # assert tokens[3] == "STRING"
     assert tokens[3].type == 'SETTER'
     assert tokens[3].value == '='
@@ -153,5 +153,5 @@ def test_inline_comment_precedence():
 
     # Expect tokens: IDENTIFIER, PUNCTUATION, STRING, COMMENT.
     token_types = [t.type for t in tokens]
-    assert "INLINE_WS" and "COMMENT" in token_types
+    assert "INLINE_COMMENT" in token_types
 

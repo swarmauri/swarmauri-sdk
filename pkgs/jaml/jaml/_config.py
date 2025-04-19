@@ -125,24 +125,8 @@ class Config(MutableMapping):
     dump = staticmethod(lambda obj, fp: fp.write(Config.dumps(obj)))  # type: ignore
 
     # ───────────────────────────────────────────────────────── resolution
-    def resolve(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Fully collapse the raw AST into a plain Python mapping, resolving every
-        node that **does not** depend on per‑call *context*.
-
-        Resolution order for placeholders and scoped variables:
-
-        1. *context*                – values supplied by the caller
-        2. current local scope      – earlier keys in the same mapping
-        3. full configuration root  – the whole config file
-
-        Any placeholder still unresolved after those three passes is left
-        untouched so that a later `render()` call can inject a runtime context.
-        """
+    def resolve(self) -> Dict[str, Any]:
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
-
-        context = context or {}
-
         # ────────────────────────────────────────────────── ❶ expand conditional headers
         import re
         for node in list(self._ast.lines):
@@ -200,7 +184,7 @@ class Config(MutableMapping):
             from ._ast_nodes import BaseNode
 
             if isinstance(value, BaseNode):
-                value.resolve(self._data, scope, context)
+                value.resolve(self._data, scope)
                 return _collapse(value.evaluate(), scope)
 
             if isinstance(value, dict):
@@ -306,7 +290,9 @@ class Config(MutableMapping):
                     print(f"[DEBUG _config.render] Produced sections: {list(produced.keys())}")
 
                     original_lines[pos: pos + 1] = new_nodes
-                    print(f"[DEBUG _config.render] AST lines after splicing: {[type(n).__name__+'('+getattr(n.header,'origin','')+')' for n in original_lines]}")
+                    # Safely print AST lines without causing AttributeError
+                    print("[DEBUG _config.render] AST lines after splicing:",
+                          [f"{type(n).__name__}({getattr(getattr(n, 'header', None), 'origin', '')})" for n in original_lines])
 
                     for hdr_name, entry in produced.items():
                         parts = hdr_name.split('.')
@@ -376,14 +362,18 @@ class Config(MutableMapping):
         # ──────────────────────────────────── ❸ collapse & build final mapping
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
+
             if isinstance(val, BaseNode):
                 val.resolve(self._data, scope, context)
                 return _collapse(val.evaluate(), scope)
+
             if isinstance(val, dict):
                 merged = {**scope, **val}
                 return {k: _collapse(v, merged) for k, v in val.items()}
+
             if isinstance(val, list):
                 return [_collapse(x, scope) for x in val]
+
             return val
 
         final: Dict[str, Any] = {}

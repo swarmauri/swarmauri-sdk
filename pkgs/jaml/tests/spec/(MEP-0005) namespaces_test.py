@@ -32,7 +32,7 @@ def test_simple_namespace_merging():
     assert "settings" in result["app"]
     assert result["app"]["settings"]["debug"] is True
     assert "paths" in result["app"]
-    assert result["app"]["paths"]["log"] == '"/var/log/app.log"'
+    assert result["app"]["paths"]["log"] == '/var/log/app.log'
 
 @pytest.mark.spec
 @pytest.mark.mep0005
@@ -53,7 +53,7 @@ def test_conflicting_keys_last_key_wins():
     # Expect "host" to be "localhost", as the last definition wins
     # and "port" = 8080.
     assert "server" in result
-    assert result["server"]["host"] == '"localhost"'
+    assert result["server"]["host"] == 'localhost'
     assert result["server"]["port"] == 8080
 
 @pytest.mark.spec
@@ -80,11 +80,11 @@ def test_nested_namespace():
     # } }
     assert "project" in result
     assert "metadata" in result["project"]
-    assert result["project"]["metadata"]["name"] == '"MyApp"'
-    assert result["project"]["metadata"]["version"] == '"1.0.0"'
+    assert result["project"]["metadata"]["name"] == 'MyApp'
+    assert result["project"]["metadata"]["version"] == '1.0.0'
     assert "author" in result["project"]
-    assert result["project"]["author"]["name"] == '"John Doe"'
-    assert result["project"]["author"]["email"] == '"john@example.com"'
+    assert result["project"]["author"]["name"] == 'John Doe'
+    assert result["project"]["author"]["email"] == 'john@example.com'
 
 @pytest.mark.spec
 @pytest.mark.mep0005
@@ -158,8 +158,8 @@ def test_quoted_namespaces():
     level = "info"
     """
     result = loads(source)
-    assert result["logging.app"]["url"] == '"/"'
-    assert result["logging.config"]["level"] == '"info"'
+    assert result["logging.app"]["url"] == '/'
+    assert result["logging.config"]["level"] == 'info'
 
 # @pytest.mark.xfail(reason="Table preservation is not yet implemented")
 @pytest.mark.spec

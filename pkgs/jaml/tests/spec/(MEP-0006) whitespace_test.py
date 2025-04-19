@@ -19,13 +19,13 @@ def test_leading_trailing_whitespace_in_strings_preserved():
 name = "  Jeff  "
 """
     ast = round_trip_loads(toml_str)
-    assert ast["settings"]["name"] == '"  Jeff  "', "Leading/trailing spaces should be preserved"
+    assert ast["settings"]["name"] == '  Jeff  ', "Leading/trailing spaces should be preserved"
 
     # If you want to test round-trip:
     out = ast.dumps()
     # parse again
     data_again = loads(out)
-    assert data_again["settings"]["name"] == '"  Jeff  "'
+    assert data_again["settings"]["name"] == '  Jeff  '
 
 
 @pytest.mark.spec
@@ -41,7 +41,7 @@ def test_trailing_whitespace_after_value_ignored():
 title = "Dev"     
 """
     data = loads(toml_str)
-    assert data["settings"]["title"] == '"Dev"', "Trailing whitespace after 'Dev' should be ignored"
+    assert data["settings"]["title"] == 'Dev', "Trailing whitespace after 'Dev' should be ignored"
 
 
 @pytest.mark.spec
@@ -58,7 +58,7 @@ def test_whitespace_around_assignment_operator_normalized():
 key    =    "value"
 """
     ast = round_trip_loads(toml_str)
-    assert ast["config"]["key"] == '"value"'
+    assert ast["config"]["key"] == 'value'
 
     # Excessive whitespace normalized to single space in the output
     out = ast.dumps()

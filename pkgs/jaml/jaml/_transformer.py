@@ -255,154 +255,109 @@ class ConfigTransformer(Transformer):
     # jaml/_transformer.py
     # ──────────────────────────────────────────────────────────────
     @v_args(meta=True)
-    def assignment(self, meta, items: List[Any]) -> AssignmentNode:
-        """
-        Parse a single assignment line, keep purely static literals as Python
-        scalars, and leave anything potentially dynamic (concat‑expr, ${…},
-        f‑string, etc.) in AST‑node form so it can be resolved later by
-        Config.render().
-        """
-        self.debug_print(f"assignment() called with items {items}")
+    def assignment(self, meta, items: List[Any]) -> "AssignmentNode":
+        from ._ast_nodes import SingleLineArrayNode, MultiLineArrayNode
         node = AssignmentNode()
         i = 0
 
-        # helper — recognise either raw HSPACES tokens or HspacesNode helpers
         def _is_ws(tok) -> bool:
             return isinstance(tok, HspacesNode) or (
                 isinstance(tok, Token) and tok.type == "HSPACES"
             )
 
-        # ───────── optional leading whitespace
+        # optional leading whitespace
         if i < len(items) and _is_ws(items[i]):
             node.leading_whitespace = items[i]
             i += 1
 
-        # ───────── identifier
+        # identifier
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
             node.identifier = items[i]
             key = items[i].value
             i += 1
         else:
-            raise ValueError(
-                f"Expected IDENTIFIER in assignment, got {items[i] if i < len(items) else 'nothing'}"
-            )
+            raise ValueError(f"Expected IDENTIFIER in assignment, got {items[i]}")
 
-        # ───────── optional type annotation  (name : Type = …)
+        # skip type annotation and equals
         while i < len(items) and _is_ws(items[i]):
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
-            node.colon = items[i]
-            i += 1
-            if i < len(items):
-                node.type_annotation = items[i]
-                i += 1
-
-        # ───────── equals sign
+            node.colon = items[i]; i += 1
+            node.type_annotation = items[i]; i += 1
         while i < len(items) and _is_ws(items[i]):
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
-            node.equals = items[i]
-            i += 1
+            node.equals = items[i]; i += 1
         else:
-            raise ValueError(
-                f"Expected '=' at index {i}, got {items[i] if i < len(items) else 'nothing'}"
-            )
-
+            raise ValueError(f"Expected '=' at index {i}, got {items[i]}")
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
-        # ───────── right‑hand side
+        # right-hand side
         if i >= len(items):
             raise ValueError("Expected value in assignment")
-
         value = items[i]
 
-        # convert raw scalar tokens → node classes
-        if isinstance(value, Token):
+        # handle arrays: unwrap into Python lists immediately
+        if isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
+            # resolve and evaluate
+            value.resolve({}, {})
+            evaluated_list = value.evaluate()
+            # assign Python list directly
+            node.value = evaluated_list
+            value = evaluated_list
+        # convert raw scalar tokens
+        elif isinstance(value, Token):
             t = value.type
             if t == "INTEGER":
                 value = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
             elif t == "FLOAT":
-                value = FloatNode(value=value.value, origin=value.value, meta=meta)    # type: ignore
+                value = FloatNode(value=value.value, origin=value.value, meta=meta)
             elif t == "BOOLEAN":
-                tmp = BooleanNode()
-                tmp.value = tmp.origin = value.value
-                tmp.resolve({}, {})
-                value = tmp
+                tmp = BooleanNode(); tmp.value = tmp.origin = value.value; tmp.resolve({}, {}); value = tmp
             elif t == "NULL":
-                value = NullNode(value=value.value, origin=value.value, meta=meta)      # type: ignore
+                value = NullNode(value=value.value, origin=value.value, meta=meta)
             elif t == "SINGLE_QUOTED_STRING":
-                # Properly wrap quoted-string tokens so that .resolve() strips the quotes
-                node_str = SingleQuotedStringNode()
-                node_str.origin = value.value                   # e.g. '"src"'
-                node_str.value  = value.value.strip('"\'')      # e.g. 'src'
-                node_str.meta   = meta
-                value = node_str
-            # other token types (e.g. CONTEXT_SCOPED_VAR, F_STRING) fall through to _value()
+                node_str = SingleQuotedStringNode(); node_str.origin = value.value;
+                node_str.value  = value.value.strip('"\''); node_str.meta = meta; value = node_str
 
-        elif isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
-            # resolve arrays immediately but keep the node for round‑trip fidelity
-            value.resolve({}, {})
+            node.value = value
+        else:
+            node.value = value
+        i += 1
 
-        node.value = value
-        i += 1  # skip value token/node
-
-        # ───────── inline comment  (# …)
+        # inline comment
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
-            inline_ws = None
-            comment   = None
+            inline_ws = None; comment = None
             for child in items[i].children:
-                if isinstance(child, InlineWhitespaceNode):
-                    inline_ws = child
-                elif isinstance(child, CommentNode):
-                    comment = child
+                if isinstance(child, InlineWhitespaceNode): inline_ws = child
+                elif isinstance(child, CommentNode): comment = child
             if comment:
                 node.inline_comment = Token(
-                    "INLINE_COMMENT",
-                    (inline_ws.value if inline_ws else "") + comment.value,
+                    "INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value
                 )
             i += 1
 
         node.origin = node.identifier
         node.meta   = meta
 
-        # ───────── store in current_section (if any)
+        # store in section
         if self.current_section is not None:
-            from ._ast_nodes import (
-                IntegerNode, FloatNode, BooleanNode, NullNode,
-                SingleQuotedStringNode, TripleQuotedStringNode,
-                BacktickStringNode, TripleBacktickStringNode,
-            )
-
-            # decide whether to collapse immediately
-            if isinstance(value, (IntegerNode, FloatNode, BooleanNode, NullNode)):
-                value.resolve({}, {})
-                processed = value.evaluate()
-            elif isinstance(
-                value,
-                (
-                    SingleQuotedStringNode, TripleQuotedStringNode,
-                    BacktickStringNode,  TripleBacktickStringNode,
-                ),
-            ):
-                # now that we set .origin/.value correctly, this strips quotes
-                value.resolve({}, {})
-                processed = value.evaluate()
+            if isinstance(node.value, list):
+                processed = node.value
+            elif hasattr(node.value, 'evaluate'):
+                node.value.resolve({}, {})
+                processed = node.value.evaluate()
             else:
-                # dynamic (concat‑expr, ${…}, f‑string, etc.)
-                processed = value
-
+                processed = node.value
             if node.type_annotation:
                 processed = {"_value": processed, "_annotation": node.type_annotation}
-
             self.current_section[key] = processed
-            self.debug_print(
-                f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}"
-            )
-        else:
-            self.debug_print(f"Skipping assignment {key} as no section is active")
+            self.debug_print(f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}")
 
         return node
+
+
 
 
 
@@ -1490,261 +1445,133 @@ class ConfigTransformer(Transformer):
         return Tree("folded_content", items)
 
     @v_args(meta=True)
-    def single_line_array(self, meta, items: List[Any]) -> Union[SingleLineArrayNode, MultiLineArrayNode]:
+    def single_line_array(self, meta, items: List[Any]) -> SingleLineArrayNode:
+        """
+        Represents a single‑line array, e.g. [1, 2, "three"].
+        Accumulates ValueNode children and resolves them into a Python list.
+        """
         self.debug_print(f"single_line_array() called with items '{items}'")
-        
-        # Check for multiline characteristics (NEWLINE tokens, comments, or inline comments)
-        has_multiline_features = any(
-            isinstance(item, (Token, Tree)) and (
-                (isinstance(item, Token) and item.type in ("NEWLINE", "COMMENT")) or
-                (isinstance(item, Tree) and (
-                    item.data == "inline_comment" or
-                    any(
-                        isinstance(child, (Token, Tree)) and (
-                            (isinstance(child, Token) and child.type in ("NEWLINE", "COMMENT")) or
-                            (isinstance(child, Tree) and child.data == "inline_comment")
-                        )
-                        for child in item.children
-                    )
-                ))
-            )
-            for item in items
-        )
-        
-        if has_multiline_features:
-            self.debug_print("Delegating to multiline_array due to multiline features")
-            return self.multiline_array(meta, items)
-        
-        # Existing single-line array logic...
         node = SingleLineArrayNode()
-        lbrack = None
-        rbrack = None
-        inline_comment = None
-        contents = []
+        contents: List[ValueNode] = []
         i = 0
 
+        # match '['
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
-            lbrack = items[i]
+            node.lbrack = items[i]
             i += 1
-        
+
+        # collect the array_content subtree
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
             for child in items[i].children:
-                if isinstance(child, Tree) and child.data == "array_item":
-                    # Transform array_item tree to ValueNode
-                    value_node = self.array_item(meta, child.children)
-                    if value_node.value is not None:
-                        contents.append(value_node)
-                elif isinstance(child, ValueNode):
-                    contents.append(child)
-                elif isinstance(child, Token):
-                    # Handle raw value tokens (e.g., INTEGER, STRING, etc.)
-                    if child.type == "INTEGER":
-                        value_node = IntegerNode()
-                        value_node.value = child.value
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        contents.append(ValueNode(value=value_node))
-                    elif child.type == "FLOAT":
-                        value_node = FloatNode()
-                        value_node.value = child.value
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        contents.append(ValueNode(value=value_node))
-                    elif child.type == "SINGLE_QUOTED_STRING":
-                        value_node = SingleQuotedStringNode()
-                        value_node.value = child.value.strip('"\'')
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        contents.append(ValueNode(value=value_node))
-                    elif child.type == "BOOLEAN":
-                        value_node = BooleanNode()
-                        value_node.value = child.value
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        value_node.resolve({}, {})
-                        contents.append(ValueNode(value=value_node))
-                    elif child.type == "NULL":
-                        value_node = NullNode()
-                        value_node.value = child.value
-                        value_node.origin = child.value
-                        value_node.meta = meta
-                        contents.append(ValueNode(value=value_node))
-                    # Add other token types as needed
-                elif isinstance(child, Token) and child.type == "COMMA":
+                # skip delimiters and whitespace
+                if isinstance(child, Token) and child.type == "COMMA":
                     continue
+                if isinstance(child, (WhitespaceNode, HspacesNode, InlineWhitespaceNode)):
+                    continue
+
+                # explicit array_item
+                if isinstance(child, Tree) and child.data == "array_item":
+                    val_node = self.array_item(meta, child.children)
+                    if val_node.value is not None:
+                        contents.append(val_node)
+                    continue
+
+                # raw AST nodes (IntegerNode, FloatNode, String nodes, etc.)
+                if isinstance(child, BaseNode):
+                    wrapped = ValueNode()
+                    wrapped.value = child
+                    wrapped.meta = meta
+                    if wrapped.value is not None:
+                        contents.append(wrapped)
+                    continue
+
+                # direct tokens (e.g., strings) — convert via value()
+                if isinstance(child, Token):
+                    node_val = self.value(meta, [child])
+                    wrapped = ValueNode()
+                    wrapped.value = node_val
+                    wrapped.meta = meta
+                    if wrapped.value is not None:
+                        contents.append(wrapped)
+                    continue
+
             i += 1
-        elif i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
-            inline_comment = items[i]
-            i += 1
-        elif i < len(items) and isinstance(items[i], InlineWhitespaceNode):
-            i += 1
-            if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
-                inline_comment = items[i]
-                i += 1
-        
+
+        # match ']'
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
-            rbrack = items[i]
-            i += 1
-        
-        # Build content string safely
-        content_parts = []
-        for item in contents:
-            if item.value:
-                value_str = item.value.emit() if hasattr(item.value, "emit") else str(item.value)
-                # Safely handle inline_comment
-                if hasattr(item, "inline_comment") and item.inline_comment:
-                    content_parts.append(f"{value_str} {item.inline_comment.value}")
-                else:
-                    content_parts.append(value_str)
-        content_str = ", ".join(content_parts) if content_parts else ""
-        if inline_comment and not contents:
-            content_str += f" {inline_comment.value}" if content_str else inline_comment.value
-        origin = f"[{content_str}]"
-        
-        node.origin = origin
-        node.lbrack = lbrack
-        node.rbrack = rbrack
+            node.rbrack = items[i]
+
         node.contents = contents
-        node.inline_comment = inline_comment
-        node.value = [item.value.evaluate() for item in contents if item.value] if contents else []
-        node.meta = meta
-        node.resolve({}, {})
-        self.debug_print(f"single_line_array(): Created node with value {node.value}, origin {node.origin}")
         return node
 
     @v_args(meta=True)
     def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
+        """
+        Represents a multiline array, e.g.
+        [
+          "red",
+          "green",
+          "blue"
+        ]
+        Accumulates ValueNode children and resolves them into a Python list.
+        """
         self.debug_print(f"multiline_array() called with items '{items}'")
         node = MultiLineArrayNode()
+        contents: List[ValueNode] = []
         i = 0
+
+        # match '['
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "L_SQ_BRACK":
             node.lbrack = items[i]
             i += 1
-        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
-            node.leading_newlines = node.leading_newlines or []
-            node.leading_newlines.append(items[i])
+
+        # find array_content
+        while i < len(items) and not (isinstance(items[i], Tree) and items[i].data == "array_content"):
             i += 1
+
+        # collect the array_content subtree
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "array_content":
-            node.contents = []
-            node.__comments__ = []
-            array_content = items[i].children
-            j = 0
-            while j < len(array_content):
-                child = array_content[j]
+            for child in items[i].children:
+                # skip commas and whitespace/newlines
+                if isinstance(child, Token) and child.type == "COMMA":
+                    continue
+                if isinstance(child, (WhitespaceNode, HspacesNode)) or (isinstance(child, Token) and child.type in ("NEWLINE", "WHITESPACE")):
+                    continue
+
+                # explicit array_item
                 if isinstance(child, Tree) and child.data == "array_item":
-                    # Transform array_item (e.g., '3' with '# third')
-                    value_node = self.array_item(meta, child.children)
-                    node.contents.append(value_node)
-                    if value_node.inline_comment:
-                        node.__comments__.append(value_node.inline_comment.value)
-                    if value_node.__comments__:
-                        node.__comments__.extend(value_node.__comments__)
-                    j += 1
-                # NEW: if the child is already a ValueNode, add it directly.
-                elif isinstance(child, ValueNode):
-                    node.contents.append(child)
-                    j += 1
-                # Handle children already built as AST value nodes.
-                elif isinstance(child, (IntegerNode, FloatNode, SingleQuotedStringNode, BooleanNode, NullNode)):
+                    val_node = self.array_item(meta, child.children)
+                    if val_node.value is not None:
+                        contents.append(val_node)
+                    continue
+
+                # raw AST nodes (e.g., IntegerNode, SingleQuotedStringNode)
+                if isinstance(child, BaseNode):
                     wrapped = ValueNode()
                     wrapped.value = child
                     wrapped.meta = meta
-                    j += 1
-                    # Check for succeeding inline comment (e.g., '# first')
-                    if j < len(array_content) and isinstance(array_content[j], Tree) and array_content[j].data == "inline_comment":
-                        inline_ws = None
-                        comment = None
-                        for subchild in array_content[j].children:
-                            if isinstance(subchild, InlineWhitespaceNode):
-                                inline_ws = subchild
-                            elif isinstance(subchild, CommentNode):
-                                comment = subchild
-                        if comment:
-                            wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
-                            node.__comments__.append(wrapped.inline_comment.value)
-                        j += 1
-                    # Skip comma if present.
-                    if j < len(array_content) and isinstance(array_content[j], Token) and array_content[j].type == "COMMA":
-                        j += 1
-                    node.contents.append(wrapped)
-                elif isinstance(child, Token) and child.type in ("INTEGER", "FLOAT", "SINGLE_QUOTED_STRING", "BOOLEAN", "NULL"):
-                    # Create a new ValueNode for a raw token.
-                    value_node = {
-                        "INTEGER": IntegerNode,
-                        "FLOAT": FloatNode,
-                        "SINGLE_QUOTED_STRING": SingleQuotedStringNode,
-                        "BOOLEAN": BooleanNode,
-                        "NULL": NullNode
-                    }[child.type]()
-                    value_node.value = child.value if child.type != "SINGLE_QUOTED_STRING" else child.value.strip('"\'')
-                    value_node.origin = child.value
-                    value_node.meta = meta
-                    if child.type == "BOOLEAN":
-                        value_node.resolve({}, {})
+                    if wrapped.value is not None:
+                        contents.append(wrapped)
+                    continue
+
+                # direct token values (e.g., strings)
+                if isinstance(child, Token):
+                    node_val = self.value(meta, [child])
                     wrapped = ValueNode()
-                    wrapped.value = value_node
+                    wrapped.value = node_val
                     wrapped.meta = meta
-                    j += 1
-                    if j < len(array_content) and isinstance(array_content[j], Tree) and array_content[j].data == "inline_comment":
-                        inline_ws = None
-                        comment = None
-                        for subchild in array_content[j].children:
-                            if isinstance(subchild, InlineWhitespaceNode):
-                                inline_ws = subchild
-                            elif isinstance(subchild, CommentNode):
-                                comment = subchild
-                        if comment:
-                            wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
-                            node.__comments__.append(wrapped.inline_comment.value)
-                        j += 1
-                    if j < len(array_content) and isinstance(array_content[j], Token) and array_content[j].type == "COMMA":
-                        j += 1
-                    node.contents.append(wrapped)
-                elif isinstance(child, Tree) and child.data == "inline_comment":
-                    # Handle standalone inline comment.
-                    inline_ws = None
-                    comment = None
-                    for subchild in child.children:
-                        if isinstance(subchild, InlineWhitespaceNode):
-                            inline_ws = subchild
-                        elif isinstance(subchild, CommentNode):
-                            comment = subchild
-                    if comment:
-                        wrapped = ValueNode()
-                        wrapped.meta = meta
-                        wrapped.inline_comment = Token("INLINE_COMMENT", (inline_ws.value if inline_ws else "") + comment.value)
-                        wrapped.__comments__.append(wrapped.inline_comment.value)
-                        node.contents.append(wrapped)
-                        node.__comments__.append(wrapped.inline_comment.value)
-                    j += 1
-                elif isinstance(child, CommentNode):
-                    # Wrap standalone CommentNode.
-                    wrapped = ValueNode()
-                    wrapped.__comments__.append(child.value)
-                    wrapped.meta = meta
-                    node.contents.append(wrapped)
-                    node.__comments__.append(child.value)
-                    j += 1
-                elif isinstance(child, Token) and child.type == "NEWLINE":
-                    j += 1
-                else:
-                    j += 1
-            i += 1
-        while i < len(items) and isinstance(items[i], Token) and items[i].type == "NEWLINE":
-            node.trailing_newlines = node.trailing_newlines or []
-            node.trailing_newlines.append(items[i])
+                    if wrapped.value is not None:
+                        contents.append(wrapped)
+                    continue
+
+        # match ']' and attach
+        while i < len(items) and not (isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK"):
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "R_SQ_BRACK":
             node.rbrack = items[i]
-            i += 1
 
-        # Compute evaluated values, excluding comment-only nodes.
-        node.value = [item.value.evaluate() for item in node.contents if item.value is not None]
-        node.meta = meta
-        node.resolve({}, {})
-        self.debug_print(f"multiline_array(): Created node with value {node.value}, comments {node.__comments__}")
+        node.contents = contents
         return node
-
 
         
     def NEWLINE(self, token: Token) -> NewlineNode:

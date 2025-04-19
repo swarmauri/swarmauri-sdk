@@ -33,14 +33,15 @@ class BaseNode:
     def evaluate(self) -> Any:
         return self.resolved if self.resolved is not None else self.value
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         pass
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return str(self.resolved if self.resolved is not None else self.value)
 
     def load(self):
         pass
+
 
 class StartNode(BaseNode):
     def __init__(self, data, contents, origin, meta):
@@ -56,7 +57,6 @@ class StartNode(BaseNode):
         lines = []
         for line in self.lines:
             if isinstance(line, SectionNode):
-                # static (or spliced) section
                 header = line.header.emit()
                 lines.append(f"[{header}]")
                 for content in line.contents:
@@ -71,21 +71,18 @@ class StartNode(BaseNode):
             elif isinstance(line, NewlineNode):
                 lines.append("")
             else:
-                # fallback for other node types (e.g., TableArraySectionNode from make_static_section)
                 try:
                     emitted = line.emit()
                     if emitted:
-                        # split multi-line emits into individual lines
                         lines.extend(emitted.split("\n"))
                 except Exception:
                     pass
         return "\n".join(lines)
 
-
-    def resolve(self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None):
         env = self.global_env if self.global_env else (global_env or {})
         for line in self.lines:
-            line.resolve(env, local_env, context)
+            line.resolve(env, local_env)
         self.resolved = self.evaluate()
 
     def evaluate(self) -> Dict:
@@ -99,18 +96,18 @@ class StartNode(BaseNode):
                 current_dict[parts[-1]] = line.evaluate()
         return result
 
-    def render(self) -> str:
+    def render(self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return self.emit()
 
 class SectionNode(BaseNode):
     def __init__(self):
         super().__init__()
         self.leading_whitespace = None
-        self.lbrack = None            # '[' token
-        self.header = None            # SectionNameNode or ComprehensionHeaderNode
-        self.rbrack = None            # ']' token
+        self.lbrack = None
+        self.header = None
+        self.rbrack = None
         self.trailing_whitespace = None
-        self.contents = []            # List of AssignmentNode, etc.
+        self.contents = []
 
     def __str__(self) -> str:
         return f"SectionNode(header={self.header.value if self.header else None})"
@@ -129,43 +126,27 @@ class SectionNode(BaseNode):
         parts.extend(c.emit() for c in self.contents)
         return "\n".join(parts)
 
-    def resolve(self,
-                global_env: Dict,
-                local_env: Optional[Dict] = None,
-                context: Optional[Dict] = None):
-
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         base_env = local_env or {}
-        # capture simple int/float assignments that appear *before* the header
+        # Pre-populate simple numeric assignments in local scope for header resolution
         for content in self.contents:
-            if (isinstance(content, AssignmentNode) and
-                isinstance(content.value, (IntegerNode, FloatNode))):
+            if isinstance(content, AssignmentNode) and isinstance(content.value, (IntegerNode, FloatNode)):
                 base_env[content.identifier.value] = content.value.evaluate()
 
-        # evaluate the header (handles comprehensions & aliases)
-        self.header.resolve(global_env, base_env, context)
+        # Resolve header (may generate multiple header_envs in comprehensions)
+        self.header.resolve(global_env, base_env)
 
-        # ------------------------------------------------------------------
-        self.resolved: dict[str, dict] = {}
-
-        # for ordinary headers we get a single (header, env) pair
-        header_env_pairs = (
-            getattr(self.header, "header_envs", [(self.header.resolved, {})])
-        )
-
+        self.resolved = {}
+        header_env_pairs = getattr(self.header, "header_envs", [(self.header.resolved, {})])
         for header_name, alias_env in header_env_pairs:
-            # create a fresh scope that already contains alias bindings
             scope = {**base_env, **alias_env}
-
-            # walk every assignment inside the section
             for line in self.contents:
-                line.resolve(global_env, scope, context)
+                line.resolve(global_env, scope)
                 if isinstance(line, AssignmentNode):
                     scope[line.identifier.value] = line.resolved
-
-            # ALSO expose alias bindings as top‑level keys
+            # Ensure alias bindings persist
             for k, v in alias_env.items():
                 scope.setdefault(k, v)
-
             self.resolved[header_name] = scope
 
         self.value = self.resolved
@@ -179,49 +160,33 @@ class SectionNode(BaseNode):
                 result[content.header.value] = content.evaluate()
         return result
 
-    # inside class SectionNode in _ast_nodes.py
-    def render(self, global_env=None, context=None):
-        global_env = global_env or {}
-        context    = context or {}
-
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
+        # handle comprehension expansion
         if isinstance(self.header, ComprehensionHeaderNode):
-            # ❶ run header again now that context is here
-            self.header.render(global_env, {}, context)
-
-            produced: Dict[str, Dict] = {}
+            produced = {}
             new_nodes = []
-
-            # parent pointer set by StartNode at parse time
             start_lines = self.meta.parent.lines
             my_idx = start_lines.index(self)
-
+            self.header.render(global_env, local_env or {}, context or {})
             for hdr, alias_env in self.header.header_envs:
                 scope = {**alias_env}
-
-                # evaluate every line with alias bindings
                 for line in self.contents:
                     line.resolve(global_env, scope, context)
                     if isinstance(line, AssignmentNode):
                         scope[line.identifier.value] = line.evaluate()
-
                 produced[hdr] = scope
                 new_nodes.append(make_static_section(hdr, scope))
-
-            # ❷ splice the concrete sections into the AST
-            start_lines[my_idx : my_idx + 1] = new_nodes
-
-            # ❸ update the plain mapping so Config[...] works
+            start_lines[my_idx:my_idx+1] = new_nodes
             global_env.update(produced)
-            return produced
+            return str(produced)
 
-        # non‑comprehension section -----------------------------
         simple = {}
         for line in self.contents:
-            line.resolve(global_env, simple, context)
+            line.resolve(global_env, simple)
             if isinstance(line, AssignmentNode):
                 simple[line.identifier.value] = line.evaluate()
         global_env[self.header.value] = simple
-        return {self.header.value: simple}
+        return str({self.header.value: simple})
 
 class SectionNameNode(BaseNode):
     def __init__(self):
@@ -238,9 +203,6 @@ class SectionNameNode(BaseNode):
             parts.append(dot.value)
             parts.append(part.value)
         return "".join(parts)
-
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        pass  # Static name, no resolution needed
 
     def evaluate(self) -> str:
         return self.value
@@ -261,14 +223,14 @@ class TableArraySectionNode(BaseNode):
         parts.extend(item.emit() for item in self.body)
         return "\n".join(parts)
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         local_env = local_env or {}
         for item in self.body:
             if isinstance(item, AssignmentNode) and isinstance(item.value, IntegerNode):
                 local_env[item.identifier.value] = item.value.evaluate()
-        self.header.resolve(global_env, local_env, context)
+        self.header.resolve(global_env, local_env)
         for item in self.body:
-            item.resolve(global_env, local_env, context)
+            item.resolve(global_env, local_env)
         self.resolved = self.evaluate()
 
     def evaluate(self) -> Dict:
@@ -282,7 +244,7 @@ class TableArraySectionNode(BaseNode):
                 d[parts[-1]] = line.evaluate()
         return result
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         parts = [f"{item.identifier.value}: {item.render()}" for item in self.body
                  if isinstance(item, AssignmentNode)]
         return "{" + ", ".join(parts) + "}"
@@ -306,63 +268,45 @@ class TableArrayHeaderNode(BaseNode):
         # Emit exactly what was parsed—preserving newlines & indent.
         return self.origin
 
-    def resolve(
-        self,
-        global_env: Dict,
-        local_env: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None
-    ):
-        # Static header; nothing to resolve at render time.
-        return
-
     def evaluate(self) -> str:
         # Returns the logical header name.
         return self.value
 
 
+# Updated ComprehensionHeaderNode in _ast_nodes.py
 class ComprehensionHeaderNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.header_expr = None  # Expression node (e.g., (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode))
-        self.clauses = None      # ComprehensionClausesNode
+        self.header_expr = None      # Expression node (e.g., FStringNode)
+        self.clauses = None          # ComprehensionClausesNode
 
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        self._evaluate(global_env or {}, local_env or {}, {})
+
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
         self._evaluate(global_env, local_env or {}, context or {})
 
-    def render(self, global_env, local_env, context):
-        self._evaluate(global_env, local_env, context)   # second pass
-
-    # ---------------- internal helper ----------------
-    def _evaluate(self, g, l, ctx):
-        """
-        Evaluate the header expression once per comprehension environment,
-        but omit any iterations whose header_expr yields None or False.
-        """
-        self.header_envs: list[tuple[str, dict]] = []
+    def _evaluate(self, g: Dict, l: Dict, ctx: Dict):
+        self.header_envs: List[tuple[str, dict]] = []
 
         for env in iter_environments(self.clauses, g, l, ctx):
-            merged = {**l, **env}
-            # resolve the header expression in this iteration
-            self.header_expr.resolve(g, merged, ctx)
+            scope = {**l, **env}
+            self.header_expr.resolve(g, scope, ctx)
             name = self.header_expr.evaluate()
 
-            # skip any table whose header is None or False
             if name is None or name is False:
                 continue
 
             self.header_envs.append((name, env))
 
         if not self.header_envs:
-            # no tables to produce
-            self.resolved = []  
+            self.resolved = []
         elif len(self.header_envs) > 1:
-            # multiple tables: list of names
             self.resolved = [h for h, _ in self.header_envs]
         else:
-            # single table: just its name
             self.resolved = self.header_envs[0][0]
 
         self.value = self.resolved
@@ -407,10 +351,10 @@ class AssignmentNode(BaseNode):
     def __str__(self) -> str:
         return f"AssignmentNode({self.identifier.value if self.identifier else None})"
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        print('[resolve]:', global_env, local_env, context)
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        print('[resolve]:', global_env, local_env)
         if hasattr(self.value, 'resolve'):
-            self.value.resolve(global_env, local_env, context)
+            self.value.resolve(global_env, local_env)
             self.resolved = self.value.resolved if hasattr(self.value, 'resolved') else self.value.evaluate()
         else:
             if isinstance(self.value, Token):
@@ -439,7 +383,7 @@ class AssignmentNode(BaseNode):
     def evaluate(self):
         return self.resolved if self.resolved is not None else (self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value)
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return self.value.render()
 
 class CommentNode(BaseNode):
@@ -451,9 +395,6 @@ class CommentNode(BaseNode):
 
     def evaluate(self) -> None:
         return None
-
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        pass  # Comments are static
 
 class NewlineNode(BaseNode):
     def __init__(self):
@@ -467,8 +408,6 @@ class NewlineNode(BaseNode):
     def evaluate(self) -> None:
         return None
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        pass  # Newlines are static
 
 class IntegerNode(BaseNode):
     def __init__(self):
@@ -486,7 +425,7 @@ class IntegerNode(BaseNode):
             print(f"[DEBUG INTEGERNODE EVALUATE ERROR]: Invalid integer {self.value}: {e}")
             return self.value
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         try:
             if isinstance(self.value, str):
                 self.resolved = int(self.value, 0)  # Auto-detect base for strings
@@ -505,7 +444,7 @@ class BooleanNode(BaseNode):
     def emit(self) -> str:
         return str(self.value).lower()
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         self.resolved = self.value.lower() == "true"
         print(f"[DEBUG BOOLEANNODE RESOLVE]: {self.value} -> {self.resolved}")
 
@@ -513,7 +452,7 @@ class BooleanNode(BaseNode):
         return self.resolved if self.resolved is not None else (self.value.lower() == "true")
 
 class NullNode(BaseNode):
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         self.resolved = None
         print(f"[DEBUG NULLNODE RESOLVE]: {self.value} -> {self.resolved}")
 
@@ -574,9 +513,6 @@ class InClauseNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        pass  # Static keyword, no resolution needed
-
     def evaluate(self) -> str:
         return self.keyword
 
@@ -595,10 +531,10 @@ class AliasClauseNode(BaseNode):
         """
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         local_env = local_env or {}
         if isinstance(self.scoped_var, (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode)):
-            self.scoped_var.resolve(global_env, local_env, context)
+            self.scoped_var.resolve(global_env, local_env)
             self.resolved = self.scoped_var.resolved
             local_env[self.value] = self.resolved  # Bind alias
         else:
@@ -621,16 +557,16 @@ class PairExprNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        self.key.resolve(global_env, local_env, context)
-        self.value.resolve(global_env, local_env, context)
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        self.key.resolve(global_env, local_env)
+        self.value.resolve(global_env, local_env)
         self.resolved = (self.key.resolved, self.value.resolved)
         self.value = self.resolved
 
     def evaluate(self) -> tuple:
         return (self.key.evaluate(), self.value.evaluate())
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return f"{self.key.render()}: {self.value.render()}"
 
 class DottedExprNode(BaseNode):
@@ -647,11 +583,9 @@ class DottedExprNode(BaseNode):
     def resolve(
         self,
         global_env: Dict[str, Any],
-        local_env: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None
+        local_env: Optional[Dict[str, Any]] = None
     ):
         local_env = local_env or {}
-        context   = context   or {}
 
         # Walk a dotted path through a mapping (dict-like or objects with attrs).
         def _dig(src, path: str):
@@ -664,11 +598,8 @@ class DottedExprNode(BaseNode):
                 else:
                     return None
             return cur
-
-        # Try lookup in local_env → context → global_env
+            
         result = _dig(local_env, self.dotted_value)
-        if result is None:
-            result = _dig(context, self.dotted_value)
         if result is None:
             result = _dig(global_env, self.dotted_value)
 
@@ -702,21 +633,20 @@ class ComprehensionClauseNode(BaseNode):
 
     def resolve(self,
                 global_env: Dict,
-                local_env: Optional[Dict] = None,
-                context: Optional[Dict] = None):
+                local_env: Optional[Dict] = None):
         local_env = local_env or {}
         for var in self.loop_vars:
             if isinstance(var, AliasClauseNode):
-                var.resolve(global_env, local_env, context)
+                var.resolve(global_env, local_env)
                 local_env[var.value] = var.resolved
         if hasattr(self.iterable, "resolve"):
-            self.iterable.resolve(global_env, local_env, context)
+            self.iterable.resolve(global_env, local_env)
             iterable_resolved = self.iterable.resolved
         else:
             iterable_resolved = self.iterable
         for cond in self.conditions:
             if hasattr(cond, "resolve"):
-                cond.resolve(global_env, local_env, context)
+                cond.resolve(global_env, local_env)
         self.resolved = {
             "loop_vars": [var.resolved for var in self.loop_vars if isinstance(var, AliasClauseNode)],
             "iterable": iterable_resolved,
@@ -731,7 +661,7 @@ class ComprehensionClauseNode(BaseNode):
             "conditions": [cond.evaluate() for cond in self.conditions]
         }
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         vars_str = ", ".join(var.render() for var in self.loop_vars)
         iter_str = self.iterable.render()
         cond_str = ", ".join(cond.render() for cond in self.conditions)
@@ -751,16 +681,16 @@ class ComprehensionClausesNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         for clause in self.clauses:
-            clause.resolve(global_env, local_env, context)
+            clause.resolve(global_env, local_env)
         self.resolved = [clause.resolved for clause in self.clauses]
         self.value = self.resolved
 
     def evaluate(self) -> List:
         return [clause.evaluate() for clause in self.clauses]
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return " ".join(clause.render() for clause in self.clauses)
 
 class StringExprNode(BaseNode):
@@ -773,12 +703,7 @@ class StringExprNode(BaseNode):
         super().__init__()
         self.parts: list[Any] = []
 
-    def resolve(
-        self,
-        global_env: Dict,
-        local_env: Optional[Dict] = None,
-        context: Optional[Dict] = None,
-    ):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         """
         Resolve a concatenation expression into a plain Python value.
         - If there are multiple parts, build a Python f-string that
@@ -789,7 +714,6 @@ class StringExprNode(BaseNode):
         from ._ast_nodes import LocalScopedVarNode, GlobalScopedVarNode, SingleQuotedStringNode
 
         local_env = local_env or {}
-        context   = context   or {}
 
         # Helper to strip quotes from a SingleQuotedStringNode
         def _lit_text(node: SingleQuotedStringNode) -> str:
@@ -807,7 +731,7 @@ class StringExprNode(BaseNode):
                     segments.append(_lit_text(part))
                 else:
                     # resolve any other node to its Python value
-                    part.resolve(global_env, local_env, context)
+                    part.resolve(global_env, local_env)
                     val = part.resolved if hasattr(part, "resolved") else part.value
                     segments.append(str(val))
 
@@ -818,14 +742,14 @@ class StringExprNode(BaseNode):
                 fstring,
                 global_data=global_env,
                 local_data=local_env,
-                context=context,
+                context={},
             )
             self.value = self.resolved
             return
 
         # -- single part: just resolve that node directly --
         single = self.parts[0]
-        single.resolve(global_env, local_env, context)
+        single.resolve(global_env, local_env)
         val = getattr(single, "resolved", None)
         if val is None:
             # fallback to its literal or origin if nothing resolved
@@ -862,17 +786,17 @@ class ListComprehensionNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        self.header_expr.resolve(global_env, local_env, context)
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        self.header_expr.resolve(global_env, local_env)
         if self.clauses:
-            self.clauses.resolve(global_env, local_env, context)
+            self.clauses.resolve(global_env, local_env)
         self.resolved = evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> List:
         return self.resolved if self.resolved is not None else []
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return f"[{', '.join(str(item) for item in self.evaluate())}]"
 
 class DictComprehensionNode(BaseNode):
@@ -889,18 +813,18 @@ class DictComprehensionNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        self.pair.resolve(global_env, local_env, context)
-        self.iterable.resolve(global_env, local_env, context)
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        self.pair.resolve(global_env, local_env)
+        self.iterable.resolve(global_env, local_env)
         if self.condition:
-            self.condition.resolve(global_env, local_env, context)
+            self.condition.resolve(global_env, local_env)
         self.resolved = evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> Dict:
         return self.resolved if self.resolved is not None else {}
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return "{" + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items()) + "}"
 
 class InlineTableComprehensionNode(BaseNode):
@@ -917,18 +841,18 @@ class InlineTableComprehensionNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
-        self.pair.resolve(global_env, local_env, context)
-        self.iterable.resolve(global_env, local_env, context)
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        self.pair.resolve(global_env, local_env)
+        self.iterable.resolve(global_env, local_env)
         if self.condition:
-            self.condition.resolve(global_env, local_env, context)
+            self.condition.resolve(global_env, local_env)
         self.resolved = evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> Dict:
         return self.resolved if self.resolved is not None else {}
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         return "{" + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items()) + "}"
 
 class ValueNode(BaseNode):
@@ -950,9 +874,9 @@ class ValueNode(BaseNode):
         ic = self.inline_comment.value if self.inline_comment else None
         return f"ValueNode(value={self.value}, inline_comment={ic})"
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         if hasattr(self.value, "resolve"):
-            self.value.resolve(global_env, local_env, context)
+            self.value.resolve(global_env, local_env)
             self.resolved = self.value.resolved
         else:
             self.resolved = self.value
@@ -961,7 +885,7 @@ class ValueNode(BaseNode):
         # Evaluate using the wrapped value’s evaluate() method if available
         return self.value.evaluate() if hasattr(self.value, "evaluate") else self.value
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         # Delegate the rendering to the wrapped value (or convert to string)
         return self.value.render() if hasattr(self.value, "render") else str(self.value)
 
@@ -988,12 +912,12 @@ class InlineTableNode(BaseNode):
     def __str__(self) -> str:
         return f"InlineTableNode(data={len(self.data)})"
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         local_env = local_env or {}
         for key, value in self.data.items():
             # If the value supports resolution, resolve it.
             if hasattr(value, "resolve"):
-                value.resolve(global_env, local_env, context)
+                value.resolve(global_env, local_env)
                 local_env[key] = value.resolved
             else:
                 local_env[key] = value
@@ -1015,7 +939,7 @@ class InlineTableNode(BaseNode):
                 out[key] = value
         return out
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         # Render each entry; if the entry is a node, call its render method.
         rendered_items = []
         for key, value in self.data.items():
@@ -1057,14 +981,14 @@ class FloatNode(BaseNode):
         self.resolved = float(self.value)
         return self.resolved
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         """
         Forces creation of a float from self.value.
         """
         self.resolved = float(self.value)
         print(f"[DEBUG FLOATNODE RESOLVE]: {self.value} -> {self.resolved}")
 
-    def render(self) -> str:
+    def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
         """
         Renders the resolved float back to a string (e.g. '3.14' or 'inf').
         """
@@ -1081,16 +1005,10 @@ class SingleQuotedStringNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(
-        self,
-        global_env: Dict,
-        local_env: Optional[Dict] = None,
-        context: Optional[Dict] = None,
-    ):
+    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         from ._substitute import _substitute_vars
 
         local_env = local_env or {}
-        context = context or {}
 
         # Strip surrounding quotes
         s = self.origin
@@ -1102,7 +1020,7 @@ class SingleQuotedStringNode(BaseNode):
             s,
             global_env,
             local_env,
-            context=context,
+            context={},
             quote_strings=False,
         )
 
@@ -1113,8 +1031,6 @@ class SingleQuotedStringNode(BaseNode):
                 return str(local_env[key])
             if isinstance(global_env, Mapping) and key in global_env:
                 return str(global_env[key])
-            if key in context:
-                return str(context[key])
             return match.group(0)
 
         result = re.sub(r'%\{([^}]+)\}', repl, substituted)
@@ -1138,7 +1054,7 @@ class TripleQuotedStringNode(BaseNode):
         # Re-wrap in triple quotes:
         return f'"""{self.value or ""}"""'
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         # Strip the triple quotes. For example, if origin is """...""", remove them.
         # We assume it's either '''...''' or """...""" 
         # This is a naive approach; you could do more robust logic if needed
@@ -1150,7 +1066,7 @@ class TripleQuotedStringNode(BaseNode):
             stripped = stripped[3:-3]
 
         # Perform variable substitution if your DSL allows that:
-        self.resolved = _substitute_vars(stripped, global_env, local_env, context=context, quote_strings=False)
+        self.resolved = _substitute_vars(stripped, global_env, local_env, context={}, quote_strings=False)
         self.value = self.resolved
 
     def evaluate(self):
@@ -1166,12 +1082,12 @@ class BacktickStringNode(BaseNode):
     def emit(self) -> str:
         return self.origin  # e.g. `abc`
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         # Typically, backticks are used verbatim. But if your DSL allows
         # some variable interpolation or special handling, do it here.
         # Example: Just remove backticks and do a substitution:
         unquoted = self.origin.strip('`')
-        self.resolved = _substitute_vars(unquoted, global_env, local_env, context=context, quote_strings=False)
+        self.resolved = _substitute_vars(unquoted, global_env, local_env, context={}, quote_strings=False)
         self.value = self.resolved
 
     def evaluate(self):
@@ -1188,13 +1104,13 @@ class FStringNode(BaseNode):
         # Return the original f-string if you want to preserve the 'f' prefix and quotes:
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         # Use your existing _evaluate_f_string helper to evaluate python-like f-strings
         self.resolved = _evaluate_f_string(
             self.origin,
             global_data=global_env,
             local_data=local_env,
-            context=context
+            context={}
         )
         self.value = self.resolved
 
@@ -1217,7 +1133,7 @@ class TripleBacktickStringNode(BaseNode):
         """
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         """
         If your DSL permits variable interpolation or environment-based substitutions
         inside triple-backtick strings, handle it here. Otherwise, you can treat them
@@ -1228,7 +1144,7 @@ class TripleBacktickStringNode(BaseNode):
         if content.startswith("```") and content.endswith("```"):
             content = content[3:-3]  # remove the leading and trailing ```
         # If you do want to do variable substitution, you might do:
-        # content = _substitute_vars(content, global_env, local_env, context, quote_strings=False)
+        # content = _substitute_vars(content, global_env, local_env, quote_strings=False)
         self.resolved = content
         self.value = self.resolved
 
@@ -1265,7 +1181,7 @@ class SingleLineArrayNode(BaseNode):
             content += f" {self.inline_comment.value}"
         return f"[{content}]"
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         """
         Resolve each item, e.g., substituting variables or evaluating subexpressions.
         Store the fully resolved result in self.resolved.
@@ -1273,7 +1189,7 @@ class SingleLineArrayNode(BaseNode):
         resolved_items = []
         for item in self.contents:
             if hasattr(item, "resolve"):
-                item.resolve(global_env, local_env, context)
+                item.resolve(global_env, local_env)
                 resolved_items.append(getattr(item, "resolved", item.value))
             else:
                 resolved_items.append(item.value)
@@ -1345,13 +1261,13 @@ class MultiLineArrayNode(BaseNode):
         content = newline.join(lines)
         return f"[{newline}{content}{newline}]"
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         resolved_items = []
         for item in self.contents:
             # Only process nodes that have a meaningful value.
             if item.value is not None:
                 if hasattr(item, "resolve") and callable(item.resolve):
-                    item.resolve(global_env, local_env, context)
+                    item.resolve(global_env, local_env)
                 if hasattr(item, "evaluate") and callable(item.evaluate):
                     resolved_item = item.evaluate()
                 else:
@@ -1390,10 +1306,10 @@ class GlobalScopedVarNode(BaseNode):
         # Return the original token text (including "@{...}")
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         inner = self.origin[2:-1]
         from ._fstring import _lookup          # reuse existing helper
-        val = _lookup(inner, global_env, context)
+        val = _lookup(inner, global_env, {})
         self.resolved = val if val is not None else self.origin
         self.value    = self.resolved
 
@@ -1413,13 +1329,12 @@ class LocalScopedVarNode(BaseNode):
         # Return the original token text (including "%{...}")
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         """
         Resolve `%{dotted.path}` against:
 
         1. the *local_env* created by comprehension aliases,
         2. the whole configuration (`global_env`),
-        3. the caller‑supplied *context*.
 
         Supports dotted traversal through **dicts _and_ objects with
         attributes**, so `%{package.name}` works even when `package` is a
@@ -1428,7 +1343,6 @@ class LocalScopedVarNode(BaseNode):
         from collections.abc import Mapping
 
         local_env = local_env or {}
-        context   = context or {}
 
         dotted = self.origin[2:-1]                         # strip `%{` … `}`
 
@@ -1451,10 +1365,6 @@ class LocalScopedVarNode(BaseNode):
         # ❷ full configuration
         if result is None:
             result = _dig(global_env, dotted)
-
-        # ❸ caller context
-        if result is None:
-            result = _dig(context, dotted)
 
         # still unresolved → keep literal to be handled later
         if result is None:
@@ -1485,55 +1395,62 @@ class ContextScopedVarNode(BaseNode):
         self,
         global_env: Dict,
         local_env: Optional[Dict] = None,
-        context: Optional[Dict] = None,
     ):
         """
-        Replace the ${placeholder} with a concrete value, searching in order:
-
-        1. *context*      – runtime dictionary passed to Config.render/resolve
-        2. *local_env*    – scope built by the surrounding section / loop
-        3. *global_env*   – entire configuration accumulated so far
-
-        • If the key is **packages** and no value is found, default to an empty
-          list so that tests expecting `list` after `Config.resolve()` pass.
-        • For any still‑unknown key, leave the literal placeholder unchanged.
-
-        The method **never** references `self.parts`; that attribute only
-        exists for StringExprNode.
+        Replace the ${placeholder} with a concrete value, supporting nested lookups and
+        list flattening. Lookup order:
+        1. context
+        2. local_env
+        3. global_env
+        If the key is exactly 'packages' and no value is found, default to an empty list.
         """
         from collections.abc import Mapping
 
         local_env = local_env or {}
-        context   = context or {}
 
-        # guard – ensure this is a ${…} placeholder
-        if not (self.origin.startswith("${") and self.origin.endswith("}")):
-            self.resolved = self.origin
-            self.value    = self.resolved
-            return
+        # Extract path segments
+        path = self.origin[2:-1]
+        parts = path.split('.')
 
-        key = self.origin[2:-1]                      # strip "${" ... "}"
+        def _dig(src):
+            cur = src
+            for part in parts:
+                if isinstance(cur, Mapping) and part in cur:
+                    cur = cur[part]
+                elif hasattr(cur, part):
+                    cur = getattr(cur, part)
+                elif isinstance(cur, list):
+                    # flatten list of mappings/objects
+                    out = []
+                    for item in cur:
+                        val = None
+                        if isinstance(item, Mapping) and part in item:
+                            val = item[part]
+                        elif hasattr(item, part):
+                            val = getattr(item, part)
+                        if val is None:
+                            continue
+                        if isinstance(val, list):
+                            out.extend(val)
+                        else:
+                            out.append(val)
+                    cur = out
+                else:
+                    return None
+            return cur
 
-        # helper to read Mapping‑like objects safely
-        def _fetch(src):
-            if src is None:
-                return None
-            try:
-                if isinstance(src, Mapping):
-                    return src.get(key)
-                return src[key]                     # tolerate jaml.Config etc.
-            except Exception:
-                return None
+        # Attempt lookups in precedence order
+        if result is None:
+            result = _dig(local_env)
+        if result is None:
+            result = _dig(global_env)
 
-        # look‑ups in precedence order
-        result = (
-            _fetch(context)                         # 1
-            or _fetch(local_env)                    # 2
-            or _fetch(global_env)                   # 3
-        )
+        # Default 'packages' placeholder to empty list if still missing
+        if result is None and parts == ['packages']:
+            result = []
 
         self.resolved = result
-        self.value    = self.resolved
+        self.value = self.resolved
 
 
 class WhitespaceNode(BaseNode):
@@ -1581,7 +1498,7 @@ class ReservedFuncNode(BaseNode):
         # Return e.g. "File()" or "Git()"
         return self.origin
 
-    def resolve(self, global_env, local_env=None, context=None):
+    def resolve(self, global_env, local_env=None):
         """
         If your DSL requires special evaluation for `File()` or `Git()`,
         handle it. Otherwise, keep as literal.
