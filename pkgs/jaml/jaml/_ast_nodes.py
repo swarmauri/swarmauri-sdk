@@ -656,12 +656,12 @@ class DottedExprNode(BaseNode):
 class ComprehensionClauseNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.loop_vars = []    # List of loop variables (e.g., [(SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode), AliasClauseNode])
-        self.iterable = None   # Iterable expression (e.g., (SingeLineArrayNode, MultiLineArrayNode), (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode))
-        self.conditions = []   # List of condition expressions
+        self.loop_vars = []    # List of loop variables
+        self.iterable = None   # Iterable expression
+        self.conditions = []   # Condition expressions
 
     def __str__(self) -> str:
-        vars_str = " ".join(str(v) for v in self.loop_vars) if self.loop_vars else ""
+        vars_str = " ".join(str(v) for v in self.loop_vars)
         iter_str = str(self.iterable) if self.iterable else ""
         cond_str = " ".join(str(c) for c in self.conditions) if self.conditions else ""
         result = f"for {vars_str} in {iter_str}"
@@ -670,6 +670,7 @@ class ComprehensionClauseNode(BaseNode):
         return result
 
     def emit(self) -> str:
+        # Emit exactly the stored origin, with no extra whitespace
         return self.origin
 
     def resolve(self,
@@ -677,32 +678,20 @@ class ComprehensionClauseNode(BaseNode):
                 local_env: Optional[Dict] = None,
                 context: Optional[Dict] = None):
         local_env = local_env or {}
-
-        # ❶ Resolve any alias bindings in loop_vars
         for var in self.loop_vars:
             if isinstance(var, AliasClauseNode):
                 var.resolve(global_env, local_env, context)
                 local_env[var.value] = var.resolved
-
-        # ❷ Resolve the iterable if it supports resolve(), else use it as-is
         if hasattr(self.iterable, "resolve"):
             self.iterable.resolve(global_env, local_env, context)
-            iterable_resolved = getattr(self.iterable, "resolved", None)
+            iterable_resolved = self.iterable.resolved
         else:
             iterable_resolved = self.iterable
-
-        # ❸ Resolve any conditions
         for cond in self.conditions:
             if hasattr(cond, "resolve"):
                 cond.resolve(global_env, local_env, context)
-
-        # ❹ Build the final resolved dictionary
         self.resolved = {
-            "loop_vars": [
-                var.resolved
-                for var in self.loop_vars
-                if isinstance(var, AliasClauseNode)
-            ],
+            "loop_vars": [var.resolved for var in self.loop_vars if isinstance(var, AliasClauseNode)],
             "iterable": iterable_resolved,
             "conditions": [cond.resolved for cond in self.conditions],
         }

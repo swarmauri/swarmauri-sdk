@@ -579,11 +579,22 @@ class ConfigTransformer(Transformer):
         first = items[0]
         if isinstance(first, Tree) and first.data == "header_comprehension":
             comp = self.header_comprehension(meta, first.children)
-            node = TableArrayHeaderNode()
-            node.origin = comp.origin
-            node.value  = comp.value
-            node.meta   = meta
+            node = TableArraySectionNode()
+            node.header      = comp          # use the ComprehensionHeaderNode itself
+            node.body        = []            # no inner assignments
+            node.__comments__ = []
+            node.origin      = f"[[{comp.origin}]]"
+            node.value       = comp.value
+            node.meta        = meta
+
+            # also mount it into self.data so resolve/render pick it up
+            raw_key = comp.origin
+            self.data[raw_key] = {}
+            self.current_section    = self.data[raw_key]
+            self._last_section      = self.current_section
+            self._last_section_name = raw_key
             return node
+
         node = TableArraySectionNode()
 
         i = 0
@@ -688,19 +699,9 @@ class ConfigTransformer(Transformer):
     # ───────────────────────── header comprehension ──────────────────────────
     @v_args(meta=True)
     def header_comprehension(self, meta, items: List[Any]) -> ComprehensionHeaderNode:
-        """
-        Handle a comprehension-style section header:
-
-            f"..."
-            NEWLINE*
-            comprehension_clauses
-
-        Build the origin string preserving only the f-string and the clauses text.
-        """
         self.debug_print("header_comprehension() called with items")
         node = ComprehensionHeaderNode()
 
-        # 1. Wrap first token into FStringNode if needed
         head = items[0]
         if isinstance(head, Token) and head.type == "F_STRING":
             wrap = FStringNode()
@@ -710,27 +711,20 @@ class ConfigTransformer(Transformer):
             head = wrap
         node.header_expr = head
 
-        # 2. Locate the ComprehensionClausesNode among items
-        clauses = None
-        for itm in items[1:]:
-            if isinstance(itm, ComprehensionClausesNode):
-                clauses = itm
-                break
-        node.clauses = clauses
+        clauses = next((itm for itm in items[1:] if isinstance(itm, ComprehensionClausesNode)), None)
 
-        # 3. Rebuild a clean raw string: f-string + newline + clauses
         head_text = getattr(head, 'origin', head.value if hasattr(head, 'value') else str(head))
         clauses_text = clauses.origin if clauses is not None else ''
-        raw = head_text + ('\n' + clauses_text if clauses_text else '')
 
-        node.origin = raw
+        # Build and normalize raw representation: single newline and stripped lines
+        raw = head_text + ('\n' + clauses_text if clauses_text else '')
+        lines = [line.strip() for line in raw.splitlines() if line.strip()]
+        normalized = '\n'.join(lines)
+
+        node.origin = normalized
         node.value = raw
         node.meta = meta
         return node
-
-
-
-
 
     @v_args(meta=True)
     def concat_expr(self, meta, items: List[Any]) -> StringExprNode:
@@ -855,7 +849,7 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def dotted_expr(self, meta, items: List[Token]) -> DottedExprNode:
         node = DottedExprNode()
-        node.dotted_value = ".".join(item.value for item in items)
+        node.dotted_value = "".join(item.value for item in items)
         node.origin = node.dotted_value
         node.value = node.dotted_value
         node.meta = meta
@@ -1385,36 +1379,32 @@ class ConfigTransformer(Transformer):
         self.debug_print("comprehension_clause() called with items")
         node = ComprehensionClauseNode()
 
-        # Filter out raw syntax tokens, keep only AST nodes and lists
-        non_tokens = [itm for itm in items if not isinstance(itm, Token)]
-
-        # First non-token is the loop_vars (either a list or single var)
-        raw_vars = non_tokens[0]
+        # Drop raw syntax tokens
+        ast_items = [itm for itm in items if not isinstance(itm, Token)]
+        raw_vars = ast_items[0]
         node.loop_vars = raw_vars if isinstance(raw_vars, list) else [raw_vars]
+        node.iterable = ast_items[1]
+        node.conditions = ast_items[2:]
 
-        # Next element is the iterable expression
-        node.iterable = non_tokens[1]
-
-        # Any remaining elements are condition expressions
-        node.conditions = non_tokens[2:]
-
-        # Build the textual origin: e.g. "for package in ${packages} if package.active"
-        loop_vars_str   = " ".join(v.emit() for v in node.loop_vars)
-        iterable_str    = (
-            node.iterable.emit()
-            if hasattr(node.iterable, "emit")
-            else str(node.iterable)
+        vars_txt = " ".join(
+            getattr(v, 'origin', v.emit() if hasattr(v, 'emit') else str(v)).strip()
+            for v in node.loop_vars
         )
-        cond_strs       = [c.emit() for c in node.conditions]
-        conditions_str  = " ".join(cond_strs)
+        iterable_txt = (
+            node.iterable.emit() if hasattr(node.iterable, 'emit') else str(node.iterable)
+        ).strip()
+        cond_txt = " ".join(
+            getattr(c, 'origin', c.emit() if hasattr(c, 'emit') else str(c)).strip()
+            for c in node.conditions
+        )
 
-        origin = f"for {loop_vars_str} in {iterable_str}"
-        if conditions_str:
-            origin += f" if {conditions_str}"
+        origin = f"for {vars_txt} in {iterable_txt}"
+        if cond_txt:
+            origin += f" if {cond_txt}"
 
         node.origin = origin
-        node.value  = origin
-        node.meta   = meta
+        node.value = origin
+        node.meta = meta
         return node
 
 
