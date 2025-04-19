@@ -1586,7 +1586,7 @@ class ConfigTransformer(Transformer):
                 continue
 
             # any other AST node: wrap in ValueNode
-            if isinstance(itm, (SingleQuotedStringNode)):
+            if isinstance(itm, (SingleQuotedStringNode, IntegerNode)):
                 wrapped = ValueNode()
                 wrapped.value = itm
                 wrapped.meta = meta
