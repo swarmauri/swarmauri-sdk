@@ -144,16 +144,15 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 // 4. Array Handling
 //////////////////////////////
 
-?array: single_line_array
-      | multiline_array
+?array: multiline_array | single_line_array
 
 single_line_array: L_SQ_BRACK sl_array_content R_SQ_BRACK
-?sl_array_content: sl_array_item (comment_line | HSPACES? COMMA HSPACES? sl_array_item)* (HSPACES? COMMA HSPACES?)?
-?sl_array_item: value 
+?sl_array_content: sl_array_item+ (COMMA WHITESPACE?)?
+?sl_array_item: value | value WHITESPACE? COMMA WHITESPACE?
 
 multiline_array: L_SQ_BRACK (comment_line | NEWLINE*) ml_array_content+ NEWLINE* R_SQ_BRACK
-?ml_array_content: NEWLINE* ml_array_item+ (HSPACES? COMMA )?
-?ml_array_item: comment_line | value inline_comment? | value HSPACES? COMMA HSPACES? inline_comment?
+?ml_array_content: NEWLINE* ml_array_item+ (WHITESPACE? COMMA WHITESPACE?)?
+?ml_array_item: comment_line | value inline_comment? | value WHITESPACE? COMMA WHITESPACE? inline_comment?
 
 
 //////////////////////////////
@@ -161,7 +160,7 @@ multiline_array: L_SQ_BRACK (comment_line | NEWLINE*) ml_array_content+ NEWLINE*
 //////////////////////////////
 
 inline_table: L_CURL_BRACE (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* R_CURL_BRACE
-inline_table_items: inline_table_item (HSPACES? COMMA HSPACES? inline_table_item)* (HSPACES? COMMA HSPACES?)?
+inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_table_item)* (WHITESPACE? COMMA WHITESPACE?)?
 
 inline_table_item: inline_assignment inline_comment? 
                   | comment_line
@@ -243,7 +242,7 @@ FOLDED_END: ")>"
 
 paren_expr: L_ROUND_BRACK value+ R_ROUND_BRACK
 
-folded_content : (HSPACES | value)+   // + → at least one
+folded_content : (HSPACES | WHITESPACE | value)+   // + → at least one
 folded_expr    : FOLDED_START folded_content? FOLDED_END
 
 //////////////////////////////
