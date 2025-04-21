@@ -899,15 +899,8 @@ class ConfigTransformer(Transformer):
             else:
                 node.value = items[i]
             i += 1
-        else:
-            # comment-only line
-            node.value = None
-            if i < len(items) and isinstance(items[i], CommentNode):
-                comment_tok = Token("INLINE_COMMENT", items[i].value)
-                node.inline_comment = comment_tok
-            i += 1
 
-        # 3) Handle trailing comma
+        # 3) Handle comma immediately following the value
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
             node.has_comma = True
             i += 1
@@ -916,20 +909,25 @@ class ConfigTransformer(Transformer):
         while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
             i += 1
 
-        # 5) Handle inline comment
-        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        # 5) Handle inline-comment token directly (fix)
+        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
+            node.inline_comment = items[i]
+            i += 1
+        # 6) Fallback: inline-comment subtree
+        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
                     break
             i += 1
 
-        # 6) Set origin for round-trip fidelity
+        # 7) Set origin for round-trip fidelity
         if hasattr(node.value, "emit"):
             node.origin = node.value.emit()
         else:
             node.origin = str(node.value) if node.value is not None else ""
         node.meta = meta
+
         return node
 
         
