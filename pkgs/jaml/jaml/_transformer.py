@@ -1582,12 +1582,15 @@ class ConfigTransformer(Transformer):
     def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
         """
         Parse a multiline array into a MultiLineArrayNode, preserving values and comments.
-        Explicitly strip ALL NewlineNode instances before processing to avoid blank entries.
+        Handles both raw COMMENT tokens and CommentNode instances, and ensures that
+        any trailing commas on comment‑only lines are captured, and inline comments
+        on value lines are correctly attached.
         """
         self.debug_print("multiline_array() called with items")
         from ._ast_nodes import (
             MultiLineArrayNode,
             ValueNode,
+            CommentNode,
             NewlineNode,
             WhitespaceNode,
             HspacesNode,
@@ -1595,40 +1598,62 @@ class ConfigTransformer(Transformer):
         )
         from lark import Token, Tree
 
-        # Strip out any newline nodes that Lark has already created
+        # Remove any explicit NewlineNode instances (we'll skip raw NEWLINE tokens below)
         items = [itm for itm in items if not isinstance(itm, NewlineNode)]
 
         node = MultiLineArrayNode()
 
         for itm in items:
-            # skip pure whitespace tokens/nodes
+            # Skip purely structural whitespace/newline tokens
             if (
-                (isinstance(itm, Token) and itm.type in ("NEWLINE", "HSPACES", "INLINE_WS"))
+                isinstance(itm, Token) and itm.type in ("NEWLINE", "HSPACES", "INLINE_WS")
                 or isinstance(itm, (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode))
             ):
                 continue
 
-            # full-line comments
-            if isinstance(itm, Tree) and itm.data == "comment_line":
-                comment_node = self.comment_line(meta, itm.children)
+            # 1) Raw COMMENT token (e.g. "# something,"), strip and detect comma
+            if isinstance(itm, Token) and itm.type == "COMMENT":
+                raw = itm.value.rstrip()
+                has_comma = raw.endswith(',')
+                text = raw[:-1] if has_comma else raw
                 vn = ValueNode()
                 vn.value = None
-                vn.inline_comment = Token("INLINE_COMMENT", comment_node.value)
+                vn.inline_comment = Token("INLINE_COMMENT", "  " + text)
+                vn.has_comma = has_comma
                 vn.meta = meta
                 node.contents.append(vn)
                 continue
 
-            # explicit multiline-array items
+            # 2) CommentNode (from comment_line transformer)
+            if isinstance(itm, CommentNode):
+                raw = itm.origin.rstrip()
+                has_comma = raw.endswith(',')
+                text = raw[:-1] if has_comma else raw
+                vn = ValueNode()
+                vn.value = None
+                vn.inline_comment = Token("INLINE_COMMENT", "  " + text)
+                vn.has_comma = has_comma
+                vn.meta = meta
+                node.contents.append(vn)
+                continue
+
+            # 3) Explicit ml_array_item subtree (value lines, possibly with inline comments)
             if isinstance(itm, Tree) and itm.data == "ml_array_item":
                 node.contents.append(self.ml_array_item(meta, itm.children))
                 continue
 
-            # already wrapped ValueNode
+            # 4) Pre‑wrapped ValueNode (unlikely here, but safe)
             if isinstance(itm, ValueNode):
                 node.contents.append(itm)
                 continue
 
-            # other AST nodes (fallback)
+            # 5) Catch standalone COMMA tokens—mark the previous entry
+            if isinstance(itm, Token) and itm.type == "COMMA":
+                if node.contents:
+                    node.contents[-1].has_comma = True
+                continue
+
+            # 6) Fallback for any other AST node (treat as a bare value)
             if hasattr(itm, "emit"):
                 vn = ValueNode()
                 vn.value = itm
@@ -1636,13 +1661,7 @@ class ConfigTransformer(Transformer):
                 node.contents.append(vn)
                 continue
 
-            # catch trailing commas
-            if isinstance(itm, Token) and itm.type == "COMMA":
-                if node.contents:
-                    node.contents[-1].has_comma = True
-                continue
-
-            # inline_comment subtrees
+            # 7) Inline-comment subtree (rare): attach to last entry
             if isinstance(itm, Tree) and itm.data == "inline_comment":
                 for child in itm.children:
                     if isinstance(child, Token) and child.type == "INLINE_COMMENT":
@@ -1651,9 +1670,31 @@ class ConfigTransformer(Transformer):
                         break
                 continue
 
-            # ignore anything else
-        return node
+            # Anything else is ignored
 
+        # Merge comment-only items into preceding values when appropriate
+        merged = []
+        i = 0
+        while i < len(node.contents):
+            curr = node.contents[i]
+            if curr.value is None and i > 0:
+                prev = merged[-1]
+                # Attach only if previous is a true value and has no inline comment yet
+                if prev.value is not None and prev.inline_comment is None:
+                    prev.inline_comment = curr.inline_comment
+                    prev.has_comma = prev.has_comma or curr.has_comma
+                    i += 1
+                    continue
+            merged.append(curr)
+            i += 1
+        node.contents = merged
+
+        # Finally, ensure that every true value item (not comment‑only) ends with a comma
+        value_idxs = [idx for idx, v in enumerate(node.contents) if v.value is not None]
+        for idx in value_idxs[:-1]:
+            node.contents[idx].has_comma = True
+
+        return node
 
     def NEWLINE(self, token: Token) -> NewlineNode:
         """

@@ -22,7 +22,7 @@
 
 // Comment tokens
 COMMENT.1: /\#[^\n]*/
-INLINE_COMMENT.2: /[ \t]+#[^\n]*/
+INLINE_COMMENT.3: /[ \t]+#[^\n]*/
 
 %ignore NEWLINE  
 NEWLINE: /\r?\n/  // Each newline is treated as a token
@@ -47,7 +47,7 @@ line: comment_line
     | assignment
     | folded_expr
 
-comment_line: COMMENT NEWLINE
+comment_line.2: COMMENT (HSPACES? COMMA)? NEWLINE
 blank_line: NEWLINE+
 
 // Section headers can appear (now also support ternary in headers):

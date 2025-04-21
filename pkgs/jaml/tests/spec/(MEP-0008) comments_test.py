@@ -196,7 +196,7 @@ def test_multiline_arrays_comment_out_line():
     original = """[settings]
 numbers = [
   1,  # first
-  # 2,  
+  # 2,
   3   # third
 ]"""
     result = loads(original)
