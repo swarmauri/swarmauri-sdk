@@ -267,7 +267,7 @@ class ConfigTransformer(Transformer):
             SingleLineArrayNode, MultiLineArrayNode,
             IntegerNode, FloatNode, BooleanNode, NullNode,
             SingleQuotedStringNode, FStringNode, TripleQuotedStringNode,
-            BacktickStringNode, TripleBacktickStringNode
+            BacktickStringNode, TripleBacktickStringNode, InlineTableNode
         )
         from lark import Token, Tree
 
@@ -310,8 +310,8 @@ class ConfigTransformer(Transformer):
         if i >= len(items):
             raise ValueError("Expected value in assignment")
         raw_value = items[i]
-        # Wrap array nodes unchanged
-        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode)):
+        # Wrap array and inline-table nodes unchanged
+        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode, InlineTableNode)):
             node.value = raw_value
             i += 1
         # Scalar tokens → AST nodes
@@ -355,10 +355,13 @@ class ConfigTransformer(Transformer):
         node.origin = node.identifier
         node.meta   = meta
 
-        # 7) **Inference for basic scalars and arrays**
+        # 7) **Inference for basic scalars, arrays, and inline tables**
         if self.current_section is not None:
             val = node.value
             if isinstance(val, (IntegerNode, FloatNode, BooleanNode, NullNode)):
+                processed = val.evaluate()
+            elif isinstance(val, InlineTableNode):
+                val.resolve(self.data, self.current_section)
                 processed = val.evaluate()
             elif isinstance(val, (SingleLineArrayNode, MultiLineArrayNode)):
                 # Resolve and evaluate arrays to plain Python lists
@@ -374,7 +377,6 @@ class ConfigTransformer(Transformer):
             self.debug_print(f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}")
 
         return node
-
 
 
     @v_args(meta=True)
