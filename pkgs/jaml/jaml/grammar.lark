@@ -149,7 +149,7 @@ single_line_array: "[" sl_array_content "]"
 ?sl_array_content: sl_array_item+ ("," HSPACES?)?
 ?sl_array_item: value (HSPACES? ",")?
 multiline_array: "[" (comment_line | NEWLINE+) (NEWLINE* ml_array_item)+ NEWLINE? "]"
-?ml_array_item: comment_line | value (HSPACES? ",")? INLINE_COMMENT?
+?ml_array_item: comment_line | value (HSPACES? COMMA)? INLINE_COMMENT?
 
 
 //////////////////////////////

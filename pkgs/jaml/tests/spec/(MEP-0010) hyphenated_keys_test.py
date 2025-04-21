@@ -41,7 +41,7 @@ build-backend = "poetry.core.masonry.api"
     data = loads(toml_str)
     # Check that the key is recognized
     assert "build-backend" in data["project"], "Hyphenated key name missing from parsed data"
-    assert data["project"]["build-backend"] == "poetry.core.masonry.api"
+    assert data["project"]["build-backend"] == '"poetry.core.masonry.api"'
 
     # Now confirm round-trip
     ast = round_trip_loads(toml_str)

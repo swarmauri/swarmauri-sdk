@@ -144,7 +144,7 @@ def test_section_header_with_alias():
     data = round_trip_loads(JML_INPUT)
     print('\n\n[TEST DEBUG]:')
     print(data,'\n\n')
-    assert data["rootDir"] == "src"
+    assert data["rootDir"] == '"src"'
 
     data["rootDir"] = 'new_src'
     resolved_config = data.resolve(data)

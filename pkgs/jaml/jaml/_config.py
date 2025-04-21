@@ -28,13 +28,10 @@ class Config(MutableMapping):
     # mapping protocol --------------------------------------------------------
     def __getitem__(self, key: str) -> Any:
         """
-        Return the resolved value at `key`, interpreting inline tables,
-        concatenations, scoped vars, etc., so that nested lookups
-        like config["test"]["module"]["name"] yield plain Python values.
+        Return the **raw** value from the underlying data mapping,
+        without performing any f‑string evaluation.
         """
-        # Produce a fully resolved plain dict
-        resolved = self.resolve()
-        cur = resolved
+        cur = self._data
         for part in key.split("."):
             cur = cur[part]
         return cur
@@ -125,16 +122,32 @@ class Config(MutableMapping):
     dump = staticmethod(lambda obj, fp: fp.write(Config.dumps(obj)))  # type: ignore
 
     # ───────────────────────────────────────────────────────── resolution
-    def resolve(self) -> Dict[str, Any]:
+    def resolve(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        # ──────────────────────────────────────────────────────────────
+        # ① expand global- and local-scope f-strings
+        def _eval_fstrings(mapping: Dict[str, Any]):
+            for key, val in list(mapping.items()):
+                if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
+                    # Skip context-scoped placeholders (${...}), only expand static f-strings
+                    if '${' not in val:
+                        mapping[key] = _evaluate_f_string(
+                            val,
+                            global_data=self._data,
+                            local_data=mapping,
+                            context={},
+                        )
+                elif isinstance(val, dict):
+                    _eval_fstrings(val)
+        _eval_fstrings(self._data)
+
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
-        # ────────────────────────────────────────────────── ❶ expand conditional headers
+        # ──────────────────────────────────────────────────────────────
         import re
+        # ② expand conditional headers (unchanged)
         for node in list(self._ast.lines):
-            print(f"[DEBUG _config.resolve] {node}")
-            # ─ conditional single-bracket section headers ──────────────
             if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
                 raw_key = node.header.value
-                expr    = node.header.origin
+                expr = node.header.origin
 
                 def _scoped_repl(m):
                     var = m.group(1)
@@ -152,13 +165,12 @@ class Config(MutableMapping):
                 else:
                     section_map = self._data.pop(raw_key, None)
                     self._data[result] = section_map
-                    node.header.value  = result
+                    node.header.value = result
                     node.header.origin = result
 
-            # ─ conditional table‑array section headers ────────────────
             if isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
                 raw_key = node.header.value
-                expr    = node.header.origin
+                expr = node.header.origin
 
                 def _scoped_repl(m):
                     var = m.group(1)
@@ -176,10 +188,10 @@ class Config(MutableMapping):
                 else:
                     section_map = self._data.pop(raw_key, None)
                     self._data[result] = section_map
-                    node.header.value  = result
+                    node.header.value = result
                     node.header.origin = result
 
-        # ──── collapse helpers ───────────────────────────────────────
+        # ──────────────────────────────────────────────────────────────
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
 
@@ -202,45 +214,46 @@ class Config(MutableMapping):
 
             return value
 
-        # … rest of resolve stays unchanged …
-
         collapsed: Dict[str, Any] = {}
-        # Snapshot so mutations don’t break iteration
         for key, val in list(self._data.items()):
             if key == "__comments__":
                 collapsed[key] = val
                 continue
             collapsed[key] = _collapse(val, self._data)
 
-        # ────────────────────────────────────────────────── post‑process scoped‑string patterns
-        _PAT = re.compile(r'%\{([^}]+)\}(.*)')
-
-        def _expand(val: Any) -> Any:
+        # ──────────────────────────────────────────────────────────────
+        # ③ post-process both global- and local-scoped placeholders in strings
+        def _expand(val: Any, local_scope: Any) -> Any:
+            import re
             if isinstance(val, dict):
-                return {k: _expand(v) for k, v in val.items()}
+                return {k: _expand(v, val) for k, v in val.items()}
             if isinstance(val, str):
-                m = _PAT.fullmatch(val)
-                if m:
-                    path, rest = m.groups()
-                    tgt: Any = collapsed
+                pattern = re.compile(r'%\{([^}]+)\}')
+                def repl(m):
+                    path = m.group(1)
+                    tgt = local_scope
                     for part in path.split('.'):
                         if isinstance(tgt, dict) and part in tgt:
                             tgt = tgt[part]
                         else:
-                            tgt = None
-                            break
-                    if tgt is not None:
-                        return str(tgt) + rest
-                return val
+                            return m.group(0)
+                    return str(tgt)
+                return pattern.sub(repl, val)
             return val
 
-        out = _expand(collapsed)
-        print(f"[DEBUG _config.resolve] {out}")
+        out = {k: _expand(v, v if isinstance(v, dict) else collapsed) for k, v in collapsed.items()}
         return out
+
+
 
 
     # ──────────────────────────────────────────── render
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Finish expanding f-strings and scoped placeholders using the provided context,
+        returning a fully-resolved mapping.
+        """
+        from ._fstring import _evaluate_f_string
         from ._ast_nodes import (
             SectionNode,
             TableArraySectionNode,
@@ -248,141 +261,96 @@ class Config(MutableMapping):
             TableArrayHeaderNode,
             AssignmentNode,
         )
+        import re
+
         context = context or {}
         print("[DEBUG _config.render] Entering render with context:", context)
         print("[DEBUG _config.render] Initial data keys:", list(self._data.keys()))
 
-        # ──────────────────────────────────────────── ❶ expand table-array comprehensions
+        # ❶ expand table-array comprehensions
         for idx, node in enumerate(list(self._ast.lines)):
-            print(f"[DEBUG _config.render] Line {idx}: {node} (type={type(node).__name__})")
-            if isinstance(node, TableArraySectionNode):
+            if isinstance(node, TableArraySectionNode) and isinstance(node.header, ComprehensionHeaderNode):
                 hdr = node.header
-                print(f"[DEBUG _config.render] Found TableArraySectionNode; header type={type(hdr).__name__}, origin='{getattr(hdr, 'origin', None)}'")
-                if isinstance(hdr, ComprehensionHeaderNode):
-                    raw_key = hdr.origin
-                    print(f"[DEBUG _config.render] Comprehension placeholder key: {raw_key}")
-                    hdr.render(self._data, {}, context)
-                    print(f"[DEBUG _config.render] header_envs after render: {hdr.header_envs}")
+                hdr.render(self._data, {}, context)
+                produced: Dict[str, Dict] = {}
+                new_nodes: List[TableArraySectionNode] = []
+                original_lines = self._ast.lines
+                pos = original_lines.index(node)
+                for hdr_name, alias_env in hdr.header_envs:
+                    entry: Dict[str, Any] = {}
+                    for item in node.body:
+                        if isinstance(item, AssignmentNode):
+                            item.resolve(self._data, alias_env, context)
+                            entry[item.identifier.value] = item.evaluate()
+                    produced[hdr_name] = entry
+                    static = TableArraySectionNode()
+                    static.header = TableArrayHeaderNode()
+                    static.header.origin = hdr_name
+                    static.header.value = hdr_name
+                    static.body = node.body
+                    new_nodes.append(static)
+                original_lines[pos:pos+1] = new_nodes
+                for hdr_name, entry in produced.items():
+                    parts = hdr_name.split('.')
+                    cur = self._data
+                    for p in parts[:-1]:
+                        cur = cur.setdefault(p, {})
+                    cur[parts[-1]] = entry
+                self._data.pop(hdr.origin, None)
 
-                    produced: Dict[str, Dict] = {}
-                    new_nodes: List[TableArraySectionNode] = []
-                    original_lines = self._ast.lines
-                    pos = original_lines.index(node)
-                    print(f"[DEBUG _config.render] Placeholder at AST lines index {pos}")
+        # ❷ expand conditional headers (with context)
+        def _expand_conditional_headers():
+            for node in list(self._ast.lines):
+                if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
+                    raw = node.header.origin
+                    def repl(m): return repr(context.get(m.group(1), self._data.get(m.group(1))))
+                    expr_py = re.sub(r"\$\{([^}]+)\}", repl, raw).replace('null','None')
+                    try:
+                        result = eval(expr_py, {}, {})
+                    except Exception:
+                        continue
+                    if not result:
+                        self._data.pop(node.header.value, None)
+                    else:
+                        section_map = self._data.pop(node.header.value, None)
+                        node.header.value = result
+                        node.header.origin = result
+                        self._data[result] = section_map
+        _expand_conditional_headers()
 
-                    for hdr_name, alias_env in hdr.header_envs:
-                        print(f"[DEBUG _config.render] Iterating env for header '{hdr_name}' with alias_env={alias_env}")
-                        entry: Dict[str, Any] = {}
-                        for item in node.body:
-                            if isinstance(item, AssignmentNode):
-                                item.resolve(self._data, alias_env, context)
-                                entry[item.identifier.value] = item.evaluate()
-                                print(f"[DEBUG _config.render] Resolved '{item.identifier.value}' -> {entry[item.identifier.value]}")
-                        produced[hdr_name] = entry
-                        hdr_node = TableArrayHeaderNode()
-                        hdr_node.origin = hdr_name
-                        hdr_node.value = hdr_name
-                        static = TableArraySectionNode()
-                        static.header = hdr_node
-                        static.body = node.body
-                        static.__comments__ = getattr(node, '__comments__', [])
-                        new_nodes.append(static)
-                    print(f"[DEBUG _config.render] Produced sections: {list(produced.keys())}")
-
-                    original_lines[pos: pos + 1] = new_nodes
-                    # Safely print AST lines without causing AttributeError
-                    print("[DEBUG _config.render] AST lines after splicing:",
-                          [f"{type(n).__name__}({getattr(getattr(n, 'header', None), 'origin', '')})" for n in original_lines])
-
-                    for hdr_name, entry in produced.items():
-                        parts = hdr_name.split('.')
-                        cur = self._data
-                        for p in parts[:-1]:
-                            cur = cur.setdefault(p, {})
-                        cur[parts[-1]] = entry
-                        print(f"[DEBUG _config.render] Updated _data at {parts} -> {entry}")
-
-                    popped = self._data.pop(raw_key, None)
-                    print(f"[DEBUG _config.render] Removed placeholder key '{raw_key}', popped value: {popped}")
-            else:
-                print(f"[DEBUG _config.render] Skipping non-table node")
-
-        # ──────────────────────────────────────────── ❷ expand conditional headers
-        import re
-        for node in list(self._ast.lines):
-            if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
-                print(f"[DEBUG _config.render] Processing conditional section header: {node.header.origin}")
-                raw_key = node.header.value
-                expr    = node.header.origin
-                def _repl(m):
-                    var = m.group(1)
-                    return repr(context.get(var, self._data.get(var)))
-                expr_py = re.sub(r'\$\{([^}]+)\}', _repl, expr).replace('null', 'None')
-                print(f"[DEBUG _config.render] Evaluating conditional expr: {expr_py}")
-                try:
-                    result = eval(expr_py, {}, {})
-                except Exception as e:
-                    print(f"[DEBUG _config.render] Conditional eval exception: {e}")
-                    continue
-                print(f"[DEBUG _config.render] Conditional result: {result}")
-                if not result:
-                    popped = self._data.pop(raw_key, None)
-                    print(f"[DEBUG _config.render] Removed false section '{raw_key}', popped: {popped}")
-                else:
-                    section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value = result
-                    node.header.origin = result
-                    print(f"[DEBUG _config.render] Renamed section '{raw_key}' to '{result}'")
-            elif isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
-                print(f"[DEBUG _config.render] Processing conditional table-array header: {node.header.origin}")
-                raw_key = node.header.value
-                expr    = node.header.origin
-                def _repl(m):
-                    var = m.group(1)
-                    return repr(context.get(var, self._data.get(var)))
-                expr_py = re.sub(r'\$\{([^}]+)\}', _repl, expr).replace('null', 'None')
-                print(f"[DEBUG _config.render] Evaluating conditional table-array expr: {expr_py}")
-                try:
-                    result = eval(expr_py, {}, {})
-                except Exception as e:
-                    print(f"[DEBUG _config.render] Table-array conditional eval exception: {e}")
-                    continue
-                print(f"[DEBUG _config.render] Table-array conditional result: {result}")
-                if not result:
-                    popped = self._data.pop(raw_key, None)
-                    print(f"[DEBUG _config.render] Removed false table-array '{raw_key}', popped: {popped}")
-                else:
-                    section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value = result
-                    node.header.origin = result
-                    print(f"[DEBUG _config.render] Renamed table-array '{raw_key}' to '{result}'")
-
-        # ──────────────────────────────────── ❸ collapse & build final mapping
+        # ❸ collapse AST nodes into Python values
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
-
             if isinstance(val, BaseNode):
                 val.resolve(self._data, scope, context)
-                return _collapse(val.evaluate(), scope)
-
+                return _collapse(val.evaluate(), {**scope, **(val.evaluate() if isinstance(val.evaluate(), dict) else {})})
             if isinstance(val, dict):
                 merged = {**scope, **val}
                 return {k: _collapse(v, merged) for k, v in val.items()}
-
             if isinstance(val, list):
                 return [_collapse(x, scope) for x in val]
-
             return val
 
-        final: Dict[str, Any] = {}
+        collapsed: Dict[str, Any] = {}
         for key, val in list(self._data.items()):
-            print(f"[DEBUG _config.render] Collapsing key '{key}' with value {val}")
-            if key == "__comments__":
-                final[key] = val
+            if key == '__comments__':
+                collapsed[key] = val
             else:
-                final[key] = _collapse(val, self._data)
-                self._data[key] = final[key]
-        print(f"[DEBUG _config.render] Final mapping: {final}")
-        return final
+                collapsed[key] = _collapse(val, self._data)
+                self._data[key] = collapsed[key]
+
+        # ❹ expand remaining f-strings using context
+        def _eval_context_fstrings(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                return {k: _eval_context_fstrings(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_eval_context_fstrings(v) for v in obj]
+            if isinstance(obj, str) and (obj.startswith('f"') or obj.startswith("f'")):
+                try:
+                    return _evaluate_f_string(obj, global_data=self._data, local_data={}, context=context)
+                except Exception:
+                    return obj
+            return obj
+
+        return _eval_context_fstrings(collapsed)
+

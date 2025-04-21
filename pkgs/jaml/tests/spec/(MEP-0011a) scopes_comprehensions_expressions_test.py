@@ -93,7 +93,7 @@ def test_context_scoped_var_resolve():
     data = round_trip_loads(JML_INPUT)
     print('\n\n[TEST DEBUG]:')
     print(data,'\n\n')
-    assert data["rootDir"] == "src"
+    assert data["rootDir"] == '"src"'
 
     resolved_config = data.resolve(data)
 

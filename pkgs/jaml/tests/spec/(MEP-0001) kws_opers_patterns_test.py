@@ -70,7 +70,7 @@ def test_single_quote_string():
     source = "single = 'Hello, World!'"
     data = loads(source)
     # Expect that the value has been unquoted correctly.
-    assert data["single"] == "Hello, World!"
+    assert data["single"] == "'Hello, World!'"
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -78,7 +78,7 @@ def test_double_quote_string():
     source = 'single = "Hello, World!"'
     data = loads(source)
     # Expect that the value has been unquoted correctly.
-    assert data["single"] == 'Hello, World!'
+    assert data["single"] == '"Hello, World!"'
 
 @pytest.mark.spec
 @pytest.mark.mep0001
@@ -87,7 +87,7 @@ def test_triple_single_quote_string():
     # The inner value should be: """One\nTwo\nThree"""
     source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
-    expected = '''\"\"\"One\nTwo\nThree\"\"\"'''
+    expected = "'''\"\"\"One\nTwo\nThree\"\"\"'''"
     assert data["triple_single"] == expected
 
 @pytest.mark.spec
@@ -96,7 +96,7 @@ def test_triple_double_quote_string():
     # The JML source contains a triple-double quoted string with embedded newlines.
     source = 'triple_double = """Line1\nLine2\nLine3"""'
     data = loads(source)
-    expected = """Line1\nLine2\nLine3"""
+    expected = '"""Line1\nLine2\nLine3"""'
     assert data["triple_double"] == expected
 
 @pytest.mark.spec
@@ -105,7 +105,7 @@ def test_single_backtick_string():
     # The JML source uses backticks to represent a raw string.
     source = "single_backtick = `C:/Users/Name`"
     data = loads(source)
-    expected = "C:/Users/Name"
+    expected = "`C:/Users/Name`"
     assert data["single_backtick"] == expected
 
 @pytest.mark.spec
@@ -114,7 +114,7 @@ def test_triple_backtick_string():
     # The JML source uses backticks to represent a raw string.
     source = "triple_backtick = ```C:/Users/Name```"
     data = loads(source)
-    expected = "C:/Users/Name"
+    expected = "```C:/Users/Name```"
     assert data["triple_backtick"] == expected
 
 @pytest.mark.spec

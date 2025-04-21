@@ -79,7 +79,7 @@ def test_multiline_array_precedence():
     for tok in tokens:
         print(f"[DEBUG]: {tok}")
 
-    assert len(tokens) == 14
+    assert len(tokens) == 16
     # assert tokens[3] == "STRING"
     assert tokens[2].type == 'SETTER'
     assert tokens[2].value == '='

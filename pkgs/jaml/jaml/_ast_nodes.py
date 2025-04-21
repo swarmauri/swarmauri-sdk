@@ -333,6 +333,7 @@ class AssignmentNode(BaseNode):
         # type annotation if present
         if self.type_annotation:
             parts.append(self.colon.value)
+            parts.append(" ")
             parts.append(self.type_annotation.value)
         # equals with surrounding spaces
         parts.append(" ")
@@ -354,6 +355,7 @@ class AssignmentNode(BaseNode):
         if self.inline_comment:
             parts.append(self.inline_comment.value)
         return "".join(parts)
+
 
     def __str__(self) -> str:
         return f"AssignmentNode({self.identifier.value if self.identifier else None})"
@@ -1031,26 +1033,34 @@ class SingleQuotedStringNode(BaseNode):
     def emit(self) -> str:
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+    def resolve(
+        self,
+        global_env: Dict,
+        local_env: Optional[Dict] = None,
+        context: Optional[Dict] = None
+    ):
         from ._substitute import _substitute_vars
+        from collections.abc import Mapping
 
+        # Initialize environments
         local_env = local_env or {}
+        context   = context   or {}
 
         # Strip surrounding quotes
         s = self.origin
         if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
             s = s[1:-1]
 
-        # First substitute `${...}` placeholders
+        # First, substitute `${...}` placeholders using the provided context
         substituted = _substitute_vars(
             s,
             global_env,
             local_env,
-            context={},
+            context=context,
             quote_strings=False,
         )
 
-        # Substitute `%{...}` placeholders via regex
+        # Then substitute `%{...}` placeholders via regex
         def repl(match):
             key = match.group(1)
             if key in local_env:
@@ -1061,7 +1071,8 @@ class SingleQuotedStringNode(BaseNode):
 
         result = re.sub(r'%\{([^}]+)\}', repl, substituted)
         self.resolved = result
-        self.value = result
+        self.value    = result
+
 
     def evaluate(self) -> Any:
         return self.resolved if self.resolved is not None else self.origin
@@ -1411,6 +1422,7 @@ class ContextScopedVarNode(BaseNode):
         # Extract path segments
         path = self.origin[2:-1]
         parts = path.split('.')
+        result = None
 
         def _dig(src):
             cur = src

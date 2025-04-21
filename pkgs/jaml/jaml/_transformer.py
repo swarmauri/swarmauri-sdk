@@ -263,7 +263,11 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def assignment(self, meta, items: List[Any]) -> "AssignmentNode":
         self.debug_print(f"assignment() called with items '{items}'")
-        from ._ast_nodes import SingleLineArrayNode, MultiLineArrayNode, IntegerNode, FloatNode, BooleanNode, NullNode, SingleQuotedStringNode
+        from ._ast_nodes import (
+            SingleLineArrayNode, MultiLineArrayNode,
+            IntegerNode, FloatNode, BooleanNode, NullNode,
+            SingleQuotedStringNode, FStringNode
+        )
         from lark import Token, Tree
 
         node = AssignmentNode()
@@ -281,8 +285,6 @@ class ConfigTransformer(Transformer):
             node.identifier = items[i]
             key = items[i].value
             i += 1
-        else:
-            raise ValueError(f"Expected IDENTIFIER in assignment, got {items[i]}")
 
         # 3) skip optional type‐annotation + WS
         while i < len(items) and _is_ws(items[i]):
@@ -296,51 +298,44 @@ class ConfigTransformer(Transformer):
         # 4) equals sign
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
             node.equals = items[i]; i += 1
-        else:
-            raise ValueError(f"Expected '=' at index {i}, got {items[i]}")
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
         # 5) right‑hand side value
         if i >= len(items):
             raise ValueError("Expected value in assignment")
-        value = items[i]
-
-        # preserve array ASTs
-        if isinstance(value, (SingleLineArrayNode, MultiLineArrayNode)):
-            node.value = value; i += 1
-
-        # scalar tokens
-        elif isinstance(value, Token):
-            t = value.type
+        raw_value = items[i]
+        # Wrap array nodes unchanged
+        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode)):
+            node.value = raw_value
+            i += 1
+        # Scalar tokens → AST nodes
+        elif isinstance(raw_value, Token):
+            t = raw_value.type
             if t == "INTEGER":
-                node.value = IntegerNode(value=value.value, origin=value.value, meta=meta)  # type: ignore
+                node.value = IntegerNode(value=raw_value.value, origin=raw_value.value, meta=meta)
             elif t == "FLOAT":
-                node.value = FloatNode(value=value.value, origin=value.value, meta=meta)
+                node.value = FloatNode(value=raw_value.value, origin=raw_value.value, meta=meta)
             elif t == "BOOLEAN":
-                tmp = BooleanNode(); tmp.value = tmp.origin = value.value; tmp.resolve({}, {}); node.value = tmp
+                tmp = BooleanNode(); tmp.value = tmp.origin = raw_value.value; tmp.resolve({}, {}); node.value = tmp
             elif t == "NULL":
-                node.value = NullNode(value=value.value, origin=value.value, meta=meta)
+                node.value = NullNode(value=raw_value.value, origin=raw_value.value, meta=meta)
             elif t == "SINGLE_QUOTED_STRING":
                 sq = SingleQuotedStringNode()
-                sq.origin = value.value
-                sq.value  = value.value.strip("\"'")
+                sq.origin = raw_value.value
+                sq.value  = raw_value.value.strip("\"'")
                 sq.meta   = meta
                 node.value = sq
             else:
-                node.value = value
+                node.value = raw_value
             i += 1
-
-        # sub‑trees (comprehensions, inline tables, etc.)
         else:
-            node.value = value
+            node.value = raw_value
             i += 1
 
-        # 6) **bare** INLINE_COMMENT token
+        # 6) inline comment, trailing WS, etc.
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
-            node.inline_comment = items[i]
-            i += 1
-        # 7) fallback: old Tree‑wrapped inline_comment
+            node.inline_comment = items[i]; i += 1
         elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
@@ -348,25 +343,27 @@ class ConfigTransformer(Transformer):
                     break
             i += 1
 
-        # 8) record origin/meta
         node.origin = node.identifier
         node.meta   = meta
 
-        # 9) store into current_section (unchanged)…
+        # 7) **Inference for basic scalars**  
+        # Store Python primitives immediately for int, float, bool, null, and plain strings
         if self.current_section is not None:
-            if isinstance(node.value, list):
-                processed = node.value
-            elif hasattr(node.value, 'evaluate'):
-                node.value.resolve({}, {})
-                processed = node.value.evaluate()
+            from ._ast_nodes import BaseNode
+            val = node.value
+            if isinstance(val, (IntegerNode, FloatNode, BooleanNode, NullNode)):
+                # evaluate() returns Python int, float, bool, None, or str
+                processed = val.evaluate()
+            elif isinstance(val, (FStringNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, TripleBacktickStringNode)):
+                # preserve f‑strings for later resolution
+                processed = val.origin
             else:
-                processed = node.value
-            if node.type_annotation:
-                processed = {"_value": processed, "_annotation": node.type_annotation}
+                processed = val
             self.current_section[key] = processed
-            self.debug_print(f"assignment(): Added {key} = {processed} to section {self._last_section_name or 'root'}")
+            self.debug_print(f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}")
 
         return node
+
 
     @v_args(meta=True)
     def value(self, meta, items: List[Any]) -> BaseNode:
@@ -930,7 +927,7 @@ class ConfigTransformer(Transformer):
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
         """
         Parse an inline table `{ key1 = val1, key2 = val2 }`, storing
-        AST nodes in `node.data` so they can be properly resolved later.
+        full AssignmentNode ASTs so annotations and formatting can be round-tripped.
         """
         self.debug_print(f"inline_table() called with items '{items}'")
         node = InlineTableNode()
@@ -940,23 +937,18 @@ class ConfigTransformer(Transformer):
         for itm in items:
             if isinstance(itm, Tree) and itm.data == "inline_table_items":
                 for child in itm.children:
-                    # Each child is a ValueNode wrapping an AssignmentNode
                     if isinstance(child, ValueNode) and isinstance(child.value, AssignmentNode):
                         assignment = child.value
-                        # Store the AST node itself, not its evaluated value
-                        node.data[assignment.identifier.value] = assignment.value
+                        # Store the entire AssignmentNode to preserve the ': TYPE = value'
+                        node.data[assignment.identifier.value] = assignment
                         self.debug_print(
                             f"[DEBUG INLINE_TABLE]: Added AST node for '{assignment.identifier.value}'"
                         )
                 break
 
-        # Build a best‐guess origin string for round-tripping (emit will reformat later)
-        emit_parts = []
-        for key, val in node.data.items():
-            # If it's an AST node, use its emit(); otherwise, str()
-            val_str = val.emit() if hasattr(val, "emit") else str(val)
-            emit_parts.append(f"{key}={val_str}")
-        node.origin = "{" + ", ".join(emit_parts) + "}"
+        # Build a best‑guess origin string (emit() will use node.data directly)
+        parts = [assignment.emit() for assignment in node.data.values()]
+        node.origin = "{" + ", ".join(parts) + "}"
         node.value = node.data
         node.meta = meta
         return node
@@ -998,53 +990,87 @@ class ConfigTransformer(Transformer):
 
     @v_args(meta=True)
     def inline_assignment(self, meta, items: List[Any]) -> AssignmentNode:
+        """
+        Handle key[: type]? = value in inline tables, preserving whitespace,
+        type annotations, and comments.
+        """
         self.debug_print(f"inline_assignment() called with items '{items}'")
         node = AssignmentNode()
         i = 0
-        # Leading whitespace
+
+        # 1) Leading whitespace
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
             node.leading_whitespace = items[i]
             i += 1
-        # Identifier
+
+        # 2) Identifier
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
             node.identifier = items[i]
             i += 1
-        else:
-            raise ValueError(f"Expected IDENTIFIER at index {i}, got {items[i] if i < len(items) else 'nothing'}")
-        # Whitespace before equals (now supporting HspacesNode or Token('HSPACES'))
-        if i < len(items) and (isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")):
-            node.equals_leading_whitespace = items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+
+        # 3) Skip whitespace before optional annotation
+        while i < len(items) and (
+            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+        ):
             i += 1
-        # Equals sign
+
+        # 4) Optional type annotation
+        if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
+            node.colon = items[i]
+            i += 1
+            if i < len(items) and isinstance(items[i], Token) and items[i].type == "TYPE":
+                node.type_annotation = items[i]
+                i += 1
+            # skip whitespace after annotation
+            while i < len(items) and (
+                isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+            ):
+                i += 1
+
+        # 5) Whitespace before equals, then '=' and whitespace after
+        if i < len(items) and (
+            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+        ):
+            node.equals_leading_whitespace = (
+                items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+            )
+            i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
             node.equals = items[i]
             i += 1
-        else:
-            raise ValueError(f"Expected '=' at index {i}, got {items[i] if i < len(items) else 'nothing'}")
-        # Whitespace after equals
-        if i < len(items) and (isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")):
-            node.equals_trailing_whitespace = items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+        if i < len(items) and (
+            isinstance(items[i], HspacesNode) or (isinstance(items[i], Token) and items[i].type == "HSPACES")
+        ):
+            node.equals_trailing_whitespace = (
+                items[i] if isinstance(items[i], HspacesNode) else HspacesNode(items[i].value)
+            )
             i += 1
-        # Value
+
+        # 6) Value
         if i < len(items):
-            if isinstance(items[i], (SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode, InlineTableNode, SingleLineArrayNode, MultiLineArrayNode)):
-                node.value = items[i]
+            val = items[i]
+            if isinstance(val, (SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode, InlineTableNode, SingleLineArrayNode, MultiLineArrayNode)):
+                node.value = val
             else:
-                node.value = self.value(meta, [items[i]])
+                node.value = self.value(meta, [val])
             i += 1
-        else:
-            raise ValueError(f"Expected value at index {i}, got {items[i] if i < len(items) else 'nothing'}")
-        # Inline comment
+
+        # 7) Inline comment
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "inline_comment":
             node.inline_comment = items[i]
             i += 1
-        # Trailing whitespace
+
+        # 8) Trailing whitespace
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "HSPACES":
             node.trailing_whitespace = items[i]
             i += 1
+
         node.origin = node.identifier
         node.meta = meta
-        self.debug_print(f"[DEBUG INLINE_ASSIGNMENT]: Created AssignmentNode(identifier={node.identifier.value}, value={node.value}, equals_leading_whitespace={node.equals_leading_whitespace}, equals_trailing_whitespace={node.equals_trailing_whitespace})")
+        self.debug_print(
+            f"[DEBUG INLINE_ASSIGNMENT]: Created AssignmentNode(identifier={node.identifier.value}, "
+            f"type_annotation={getattr(node.type_annotation, 'value', None)}, value={node.value})"
+        )
         return node
 
     # ────────────────────────── list comprehension ──────────────────────────
