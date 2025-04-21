@@ -72,7 +72,7 @@ point: table = { x = 10, y = 20 }
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
 
-    assert "point: table = { x = 10, y = 20 }" in reserialized
+    assert "point: table = {x = 10, y = 20}" in reserialized
 
 
 @pytest.mark.spec
@@ -92,9 +92,9 @@ user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str =
     reserialized = ast.dumps()
 
     # Verify the top-level user: table annotation
-    assert "user: table = { name: str = \"Azzy\"," in reserialized
+    assert "user: table = {name: str = \"Azzy\"," in reserialized
     # Verify nested details: table annotation
-    assert "details: table = { age: int = 9," in reserialized
+    assert "details: table = {age: int = 9," in reserialized
 
 
 @pytest.mark.spec
@@ -117,8 +117,8 @@ authors: list = [
     reserialized = ast.dumps()
 
     # Should see 'authors: list = [' plus the inline tables
-    assert "authors: list = [\n  { name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\" }," in reserialized
-    assert "{ name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\" }" in reserialized
+    assert "authors: list = [\n  {name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\"}," in reserialized
+    assert "{name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\"}" in reserialized
 
 
 # @pytest.mark.xfail(reason="Type validation not implemented yet.")

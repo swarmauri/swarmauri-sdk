@@ -266,7 +266,8 @@ class ConfigTransformer(Transformer):
         from ._ast_nodes import (
             SingleLineArrayNode, MultiLineArrayNode,
             IntegerNode, FloatNode, BooleanNode, NullNode,
-            SingleQuotedStringNode, FStringNode
+            SingleQuotedStringNode, FStringNode, TripleQuotedStringNode,
+            BacktickStringNode, TripleBacktickStringNode
         )
         from lark import Token, Tree
 
@@ -278,7 +279,8 @@ class ConfigTransformer(Transformer):
 
         # 1) leading whitespace
         if i < len(items) and _is_ws(items[i]):
-            node.leading_whitespace = items[i]; i += 1
+            node.leading_whitespace = items[i]
+            i += 1
 
         # 2) identifier
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
@@ -290,14 +292,17 @@ class ConfigTransformer(Transformer):
         while i < len(items) and _is_ws(items[i]):
             i += 1
         if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
-            node.colon = items[i]; i += 1
-            node.type_annotation = items[i]; i += 1
+            node.colon = items[i]
+            i += 1
+            node.type_annotation = items[i]
+            i += 1
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
         # 4) equals sign
         if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
-            node.equals = items[i]; i += 1
+            node.equals = items[i]
+            i += 1
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
@@ -317,7 +322,10 @@ class ConfigTransformer(Transformer):
             elif t == "FLOAT":
                 node.value = FloatNode(value=raw_value.value, origin=raw_value.value, meta=meta)
             elif t == "BOOLEAN":
-                tmp = BooleanNode(); tmp.value = tmp.origin = raw_value.value; tmp.resolve({}, {}); node.value = tmp
+                tmp = BooleanNode()
+                tmp.value = tmp.origin = raw_value.value
+                tmp.resolve({}, {})
+                node.value = tmp
             elif t == "NULL":
                 node.value = NullNode(value=raw_value.value, origin=raw_value.value, meta=meta)
             elif t == "SINGLE_QUOTED_STRING":
@@ -335,7 +343,8 @@ class ConfigTransformer(Transformer):
 
         # 6) inline comment, trailing WS, etc.
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
-            node.inline_comment = items[i]; i += 1
+            node.inline_comment = items[i]
+            i += 1
         elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
@@ -346,16 +355,18 @@ class ConfigTransformer(Transformer):
         node.origin = node.identifier
         node.meta   = meta
 
-        # 7) **Inference for basic scalars**  
-        # Store Python primitives immediately for int, float, bool, null, and plain strings
+        # 7) **Inference for basic scalars and arrays**
         if self.current_section is not None:
-            from ._ast_nodes import BaseNode
             val = node.value
             if isinstance(val, (IntegerNode, FloatNode, BooleanNode, NullNode)):
-                # evaluate() returns Python int, float, bool, None, or str
                 processed = val.evaluate()
-            elif isinstance(val, (FStringNode, SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, TripleBacktickStringNode)):
-                # preserve f‑strings for later resolution
+            elif isinstance(val, (SingleLineArrayNode, MultiLineArrayNode)):
+                # Resolve and evaluate arrays to plain Python lists
+                val.resolve(self.data, self.current_section)
+                processed = val.evaluate()
+            elif isinstance(val, (FStringNode, SingleQuotedStringNode, TripleQuotedStringNode,
+                                  BacktickStringNode, TripleBacktickStringNode)):
+                # Preserve f‑strings for later resolution
                 processed = val.origin
             else:
                 processed = val
@@ -363,6 +374,7 @@ class ConfigTransformer(Transformer):
             self.debug_print(f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}")
 
         return node
+
 
 
     @v_args(meta=True)
@@ -852,7 +864,7 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def ml_array_item(self, meta, items: List[Any]) -> "MLArrayItemNode":
         """
-        Handle a multiline array item, preserving values, commas, and inline comments.
+        Handle a multiline array item, preserving values, inline comments, and comma.
         Supports both value lines and comment-only lines.
         """
         self.debug_print("ml_array_item() called with items")
@@ -880,6 +892,8 @@ class ConfigTransformer(Transformer):
         if i < len(items) and not isinstance(items[i], CommentNode):
             if isinstance(items[i], Tree):
                 node.value = self.value(meta, items[i].children)
+            elif isinstance(items[i], Token):
+                node.value = self.value(meta, [items[i]])
             else:
                 node.value = items[i]
             i += 1
@@ -896,32 +910,26 @@ class ConfigTransformer(Transformer):
             node.has_comma = True
             i += 1
 
-        # 4) Skip extra whitespace tokens
+        # 4) Skip any whitespace tokens
         while i < len(items) and isinstance(items[i], Token) and items[i].type in ("WHITESPACE", "HSPACES", "INLINE_WS"):
             i += 1
 
-        # 5) Attach bare INLINE_COMMENT token
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
-            node.inline_comment = items[i]
-            i += 1
-
-        # 6) Fallback: wrapped inline_comment Tree
-        elif i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
+        # 5) Handle inline comment
+        if i < len(items) and isinstance(items[i], Tree) and items[i].data == "inline_comment":
             for child in items[i].children:
                 if isinstance(child, Token) and child.type == "INLINE_COMMENT":
                     node.inline_comment = child
                     break
             i += 1
 
-        # 7) Skip trailing newlines
-        while i < len(items) and (
-            (isinstance(items[i], Token) and items[i].type == "NEWLINE")
-            or isinstance(items[i], NewlineNode)
-        ):
-            i += 1
-
+        # 6) Set origin for round-trip fidelity
+        if hasattr(node.value, "emit"):
+            node.origin = node.value.emit()
+        else:
+            node.origin = str(node.value) if node.value is not None else ""
         node.meta = meta
         return node
+
         
     @v_args(meta=True)
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
