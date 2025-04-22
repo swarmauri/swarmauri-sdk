@@ -15,7 +15,7 @@ def iter_environments(clauses, global_env, local_env, context):
         # Determine iterable values, resolving if necessary
         iterable = clause.iterable
         if hasattr(iterable, "resolve"):
-            iterable.resolve(global_env, {**local_env, **env}, context)
+            iterable.resolve(global_env, {**local_env, **env})
             iterable_vals = getattr(iterable, "resolved", []) or []
         else:
             iterable_vals = iterable or []

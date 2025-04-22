@@ -4,9 +4,44 @@ from typing import Any, Dict, IO, Optional
 from ._fstring import _evaluate_f_string
 
 
+class SectionProxy(MutableMapping):
+    def __init__(self, config: "Config", prefix: str):
+        self._config = config
+        self._prefix = prefix
+
+    def _cur_dict(self):
+        # grab the nested dict at top‑level key self._prefix
+        return self._config._data[self._prefix]
+
+    def __getitem__(self, key: str) -> Any:
+        cur = self._cur_dict()
+        val = cur[key]
+        if isinstance(val, dict):
+            # nested SectionProxy for deeper sections
+            return SectionProxy(self._config, f"{self._prefix}.{key}")
+        return val
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        cur = self._cur_dict()
+        cur[key] = value
+        # still sync the AST with the dotted path
+        self._config._sync_ast(f"{self._prefix}.{key}", value)
+
+    def __delitem__(self, key: str) -> None:
+        cur = self._cur_dict()
+        del cur[key]
+        self._config._sync_ast(f"{self._prefix}.{key}", None)
+
+    def __iter__(self):
+        return iter(self._cur_dict())
+
+    def __len__(self) -> int:
+        return len(self._cur_dict())
+
+
 class Config(MutableMapping):
     """
-    A thin wrapper around the parsed AST that preserves round‑trip fidelity
+    A thin wrapper around the parsed AST that preserves round-trip fidelity
     yet behaves like a normal mutable mapping.
 
     • `resolve()` collapses every AST node and expands **static** f‑strings
@@ -19,100 +54,149 @@ class Config(MutableMapping):
     # imported lazily to avoid circulars
     from ._ast_nodes import StartNode
 
-    # ───────────────────────────────────────────────────────── basics
     def __init__(self, ast: "Config.StartNode"):
-        self._ast   = ast                 # top‑level StartNode
-        self._data  = ast.data            # raw underlying dict
+        self._ast = ast
+        self._data = ast.data
         print("[DEBUG CONFIG INIT]:", self._data, self._ast)
 
-    # mapping protocol --------------------------------------------------------
     def __getitem__(self, key: str) -> Any:
-        """
-        Return the **raw** value from the underlying data mapping,
-        without performing any f‑string evaluation.
-        """
-        cur = self._data
-        for part in key.split("."):
-            cur = cur[part]
-        return cur
+        val = self._data[key]             # only literal keys
+        if isinstance(val, dict):
+            return SectionProxy(self, key)
+        return val
 
-    def __setitem__(self, key: str, value: Any):
-        # 1) update the *plain* data dict
-        cur   = self._data
-        parts = key.split(".")
-        for part in parts[:-1]:
-            cur = cur.setdefault(part, {})
-        cur[parts[-1]] = value
-
-        # 2) update the AST + refresh any dependent concat expressions
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._data[key] = value           # only literal keys
         self._sync_ast(key, value)
 
-    def __delitem__(self, key: str):
-        cur   = self._data
-        parts = key.split(".")
-        for part in parts[:-1]:
-            cur = cur[part]
-        del cur[parts[-1]]
+    def __delitem__(self, key: str) -> None:
+        del self._data[key]
 
     def __iter__(self):
         return iter(self._data)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Config({self._data})"
 
     def __contains__(self, key: str) -> bool:
-        """
-        Check membership against the raw, un‑resolved data mapping so that
-        conditional‑header strings remain present until resolve() is called.
-        """
-        # Direct key match
         if key in self._data:
             return True
-        # Fallback: normalize whitespace for approximate match of dynamic section keys
         import re
         def _normalize(s: str) -> str:
-            # collapse all whitespace (spaces, newlines, tabs) to single spaces and trim
             return re.sub(r"\s+", " ", s.strip())
-        normalized_key = _normalize(key)
-        for existing in self._data:
-            if isinstance(existing, str) and _normalize(existing) == normalized_key:
-                return True
-        return False
+        normalized = _normalize(key)
+        return any(isinstance(k, str) and _normalize(k) == normalized for k in self._data)
 
     # ──────────────────────────────────────────────────────── helpers
+    def _reparse_value(self, value: str) -> "BaseNode":
+        """
+        Parse a value fragment (e.g. folded, array, inline table, comprehension, etc.) by
+        wrapping it in a tiny config snippet and using the existing parser + transformer.
+        Returns the newly built AST node for that fragment.
+        """
+        from .api import round_trip_loads
+        # Wrap the fragment into a dummy section with a single assignment
+        snippet = f"key = {value}\n"
+        tmp_cfg = round_trip_loads(snippet)
+        # The second line is the AssignmentNode for 'key'
+        assign_node = tmp_cfg._ast.lines[0]
+        return assign_node.value
+
     def _sync_ast(self, dotted: str, value: Any):
         """
-        Bring the underlying AST in line with a mutation to the Config
-        mapping interface.
+        Sync the underlying AST with mutations to the Config mapping.
 
-        • `dotted`  – key in dotted‑path form, e.g. "server.port"
-        • `value`   – new Python value assigned by the user
+        • `dotted` – key in dotted‑path form, e.g. "server.port"
+        • `value`  – new Python value or AST node assigned by the user
         """
-        from ._ast_nodes import AssignmentNode, SingleQuotedStringNode
+        from ._ast_nodes import (
+            AssignmentNode, BaseNode,
+            SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode
+        )
 
-        # 1) update the raw data cache held by the root StartNode
+        # Locate the raw data mapping slot
         cur = self._ast.data
-        for part in dotted.split(".")[:-1]:
+        parts = dotted.split('.')
+        for part in parts[:-1]:
             cur = cur.setdefault(part, {})
-        cur[dotted.split(".")[-1]] = value
+        key = parts[-1]
 
-        # 2) walk the top‑level line list to find the matching AssignmentNode
+        # Find the matching AST assignment
         for node in self._ast.lines:
-            if isinstance(node, AssignmentNode) and node.identifier.value == dotted:
-                # Wrap plain scalars so .emit() round‑trips exactly
-                if isinstance(value, str):
-                    sq = SingleQuotedStringNode()
-                    # ensure the literal keeps its quotes for fidelity
-                    sq.value  = f'"{value}"' if not (value.startswith('"') or value.startswith("'")) else value
-                    sq.origin = sq.value
-                    node.value = sq
-                else:
-                    node.value = value  # complex objects (dicts, lists, etc.)
-                node.resolved = value
+            if not (isinstance(node, AssignmentNode) and node.identifier.value == key):
+                continue
+
+            old = node.value
+
+            # If editing any AST node (folded, array, inline table, comprehension, etc.) via string,
+            # wholesale reparse through the grammar.
+            if isinstance(old, BaseNode) and isinstance(value, str) and not isinstance(old, SingleQuotedStringNode):
+                new_node = self._reparse_value(value)
+                node.value    = new_node
+                node.resolved = None
+                cur[key]      = new_node
                 break
+
+            # Direct AST node replacement
+            if isinstance(value, BaseNode):
+                node.value    = value
+                node.resolved = None
+                cur[key]      = value
+                break
+
+            # Literal updates: string
+            if isinstance(value, str) and isinstance(old, SingleQuotedStringNode):
+                lit = value if value.startswith(('"', "'")) else f'"{value}"'
+                old.origin    = lit
+                old.value     = value
+                node.resolved = value
+                cur[key]      = value
+                break
+
+            # Literal updates: integer
+            if isinstance(value, int) and isinstance(old, IntegerNode):
+                sval = str(value)
+                old.origin    = sval
+                old.value     = sval
+                old.resolved  = value
+                cur[key]      = value
+                break
+
+            # Literal updates: float
+            if isinstance(value, float) and isinstance(old, FloatNode):
+                sval = str(value)
+                old.origin    = sval
+                old.value     = sval
+                old.resolved  = value
+                cur[key]      = value
+                break
+
+            # Literal updates: boolean
+            if isinstance(value, bool) and isinstance(old, BooleanNode):
+                bval = "true" if value else "false"
+                old.origin    = bval
+                old.value     = bval
+                old.resolved  = value
+                cur[key]      = value
+                break
+
+            # Literal updates: null
+            if value is None and isinstance(old, NullNode):
+                old.resolved = None
+                cur[key]     = None
+                break
+
+            # Fallback: replace node outright
+            node.value    = value
+            node.resolved = value
+            cur[key]      = value
+            break
+
+
+
 
     # round‑trip helpers ------------------------------------------------------
     def dumps(self) -> str:
@@ -322,7 +406,7 @@ class Config(MutableMapping):
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
             if isinstance(val, BaseNode):
-                val.resolve(self._data, scope, context)
+                val.resolve(self._data, scope)
                 return _collapse(val.evaluate(), {**scope, **(val.evaluate() if isinstance(val.evaluate(), dict) else {})})
             if isinstance(val, dict):
                 merged = {**scope, **val}

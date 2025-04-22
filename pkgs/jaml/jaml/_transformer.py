@@ -12,7 +12,6 @@ from ._ast_nodes import (
     GlobalScopedVarNode, LocalScopedVarNode, ContextScopedVarNode, 
     WhitespaceNode, HspacesNode, InlineWhitespaceNode,
     ReservedFuncNode
-
 )
 from ._config import Config
 
@@ -258,8 +257,8 @@ class ConfigTransformer(Transformer):
 
         return node
 
-    # jaml/_transformer.py
-    # ──────────────────────────────────────────────────────────────
+
+    # ─────────────────────────── assignment ─────────────────────────────
     @v_args(meta=True)
     def assignment(self, meta, items: List[Any]) -> "AssignmentNode":
         self.debug_print(f"assignment() called with items '{items}'")
@@ -267,7 +266,8 @@ class ConfigTransformer(Transformer):
             SingleLineArrayNode, MultiLineArrayNode,
             IntegerNode, FloatNode, BooleanNode, NullNode,
             SingleQuotedStringNode, FStringNode, TripleQuotedStringNode,
-            BacktickStringNode, TripleBacktickStringNode, InlineTableNode
+            BacktickStringNode, TripleBacktickStringNode,
+            InlineTableNode, FoldedExpressionNode
         )
         from lark import Token, Tree
 
@@ -306,15 +306,14 @@ class ConfigTransformer(Transformer):
         while i < len(items) and _is_ws(items[i]):
             i += 1
 
-        # 5) right‑hand side value
+        # 5) right‐hand side value
         if i >= len(items):
             raise ValueError("Expected value in assignment")
         raw_value = items[i]
-        # Wrap array and inline-table nodes unchanged
-        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode, InlineTableNode)):
+
+        if isinstance(raw_value, (SingleLineArrayNode, MultiLineArrayNode, InlineTableNode, FoldedExpressionNode)):
             node.value = raw_value
             i += 1
-        # Scalar tokens → AST nodes
         elif isinstance(raw_value, Token):
             t = raw_value.type
             if t == "INTEGER":
@@ -341,7 +340,7 @@ class ConfigTransformer(Transformer):
             node.value = raw_value
             i += 1
 
-        # 6) inline comment, trailing WS, etc.
+        # 6) inline comment
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "INLINE_COMMENT":
             node.inline_comment = items[i]
             i += 1
@@ -352,10 +351,15 @@ class ConfigTransformer(Transformer):
                     break
             i += 1
 
-        node.origin = node.identifier
+        # ── **FIXED HERE**: set origin to the raw text of the RHS node if available
+        if hasattr(node.value, "origin"):
+            node.origin = node.value.origin
+        else:
+            # fallback to identifier if no origin on the value
+            node.origin = node.identifier.value
         node.meta   = meta
 
-        # 7) **Inference for basic scalars, arrays, and inline tables**
+        # 7) Inference & priming into the raw data mapping
         if self.current_section is not None:
             val = node.value
             if isinstance(val, (IntegerNode, FloatNode, BooleanNode, NullNode)):
@@ -364,15 +368,17 @@ class ConfigTransformer(Transformer):
                 val.resolve(self.data, self.current_section)
                 processed = val.evaluate()
             elif isinstance(val, (SingleLineArrayNode, MultiLineArrayNode)):
-                # Resolve and evaluate arrays to plain Python lists
                 val.resolve(self.data, self.current_section)
                 processed = val.evaluate()
+            elif isinstance(val, FoldedExpressionNode):
+                # preserve the AST node so Config.resolve() can handle it later
+                processed = val
             elif isinstance(val, (FStringNode, SingleQuotedStringNode, TripleQuotedStringNode,
                                   BacktickStringNode, TripleBacktickStringNode)):
-                # Preserve f‑strings for later resolution
                 processed = val.origin
             else:
                 processed = val
+
             self.current_section[key] = processed
             self.debug_print(f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}")
 
@@ -1523,27 +1529,37 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def folded_expr(self, meta, items):
-        node = FoldedExpressionNode()
-        if isinstance(items[1], Tree):                    # folded_content branch
-            content_items = items[1].children
-            parts = []
-            for obj in content_items:
-                if isinstance(obj, Token):
-                    parts.append(obj.value)
-                elif hasattr(obj, "emit"):
-                    parts.append(obj.emit())
-                else:                          # raw Tree / unexpected node
-                    parts.append(str(obj))
-            content_str = "".join(parts)
-        else:                                   # FOLDED_BODY token branch
-            content_str = items[1].value
+    def folded_expr(self, meta, items: List[Any]) -> FoldedExpressionNode:
+        """
+        Handle `<( ... )>` folded expressions:
+        - Preserve the entire raw `<( … )>` text, including spaces and operators.
+        - Keep the `folded_content` subtree for later resolve/render phases.
+        """
+        from ._ast_nodes import FoldedExpressionNode
+        from lark import Token, Tree
 
-        node.origin       = f"<( {content_str} )>"
-        node.content_tree = items[1] if isinstance(items[1], Tree) else None
-        node.value        = node.origin
-        node.meta         = meta
+        node = FoldedExpressionNode()
+        # 1) Retain the AST subtree for evaluation/render
+        folded_wrapper = items[1]
+        node.content_tree = folded_wrapper
+
+        # 2) Build the inner content exactly as parsed
+        content_parts: List[str] = []
+        for child in folded_wrapper.children:
+            if isinstance(child, Token):
+                content_parts.append(child.value)
+            else:
+                content_parts.append(child.emit())
+        content_str = "".join(content_parts)
+
+        # 3) Reconstruct full origin with leading/trailing spaces
+        start = items[0].value   # '<('
+        end   = items[-1].value  # ')>'
+        node.origin = f"{start} {content_str} {end}"
+        node.value  = node.origin
+        node.meta   = meta
         return node
+
 
     @v_args(meta=True)
     def folded_content(self, meta, items: List[Any]) -> Tree:

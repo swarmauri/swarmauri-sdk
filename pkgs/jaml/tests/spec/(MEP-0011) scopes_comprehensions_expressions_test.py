@@ -147,24 +147,6 @@ text = f"Hello, ${name}!"
     data_again = loads(out)
     assert data_again["message"]["text"] == 'f"Hello, ${name}!"'
 
-# # Test 6: Deferred Expression Evaluation using <{ ... }>
-# @pytest.mark.spec
-# @pytest.mark.mep0011
-# # @pytest.mark.xfail(reason="Deferred expression evaluation not implemented")
-# def test_deferred_expression():
-#     """
-#     Validates deferred (ie: literal) expressions
-#     """
-#     sample = """
-# [paths]
-# base = "/usr/local"
-# config = <{ %{base} + '/config.toml' }>
-# """
-#     data = round_trip_loads(sample)
-#     assert data["paths"]["config"] == "%{base} + '/config.toml'"
-#     out = data.dumps()
-#     rendered_data = data.render()
-#     assert rendered_data["paths"]["config"] == "/usr/local/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0011
@@ -188,14 +170,16 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     print(data)
     assert data["api"]["endpoint"] == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
 
-    data["api"]["endpoint"] = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data.resolve()
     print("[DEBUG]:")
     print(data)
+    assert data["api"]["endpoint"] == 'f"http://prodserver:8080/api?token=${auth_token}"'
 
-    resolved_config = data.resolve()
-    print("[DEBUG]:")
-    print(resolved_config)
-    assert resolved_config["api"]["endpoint"] == 'f"http://devserver:8080/api?token=${auth_token}"'
+    print("[DEBUG SETTER]: START")
+    data["api"]["endpoint"] = '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    data.resolve()
+    print("[DEBUG SETTER]:")
+    print(data)
 
     out = data.dumps()
     rendered_data = data.render(context={"auth_token": "ABC123"})

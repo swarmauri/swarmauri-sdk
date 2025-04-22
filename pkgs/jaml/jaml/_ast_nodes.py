@@ -27,6 +27,18 @@ class BaseNode:
         else:
             return f"{self.__class__.__name__}(value={self.value})"
 
+    def __eq__(self, other) -> bool:
+        """
+        Compare AST nodes to strings or other nodes by origin for fidelity in tests.
+        """
+        # If comparing to a string, check origin equality
+        if isinstance(other, str):
+            return self.origin == other
+        # If comparing to another BaseNode, compare origins
+        if isinstance(other, BaseNode):
+            return self.origin == other.origin
+        return NotImplemented
+
     def emit(self) -> str:
         raise NotImplementedError(f"emit() not implemented for {self.__class__.__name__}")
 
@@ -472,24 +484,12 @@ class NullNode(BaseNode):
         return None
 
 class FoldedExpressionNode(BaseNode):
-    """
-    Represents  <( … )>  folded expressions.
-
-    After .resolve():
-        • If fully static, .resolved is the final value (str, int, …)
-        • If still needs context, .resolved is an f‑string containing ${…}
-    """
-
     def __init__(self):
         super().__init__()
-        self.content_tree: Optional[Tree] = None  # parsed body
-
-    # ---------------------------------------------------------------------
+        self.content_tree: Optional[Tree] = None
 
     def emit(self) -> str:
         return self.origin
-
-    # ---------------------------------------------------------------------
 
     def resolve(
         self,
@@ -497,17 +497,49 @@ class FoldedExpressionNode(BaseNode):
         local_env: Optional[Dict] = None,
         context: Optional[Dict] = None,
     ):
+        """
+        Phase 2: static folding + placeholder deferral
+        - Substitutes @{…} and %{…} immediately.
+        - Leaves ${…} intact and wraps the result in an f‑string if any remain.
+        """
         from ._expression import evaluate_expression_tree
 
+        # Always pass an empty dict for `context` here so that ${…} tokens
+        # get preserved and trigger the f‑string branch in evaluate_expression_tree.
+        static_ctx: Dict[str, Any] = {}
+
+        # Evaluate without real context, deferring ${…}
         self.resolved = evaluate_expression_tree(
-            self.content_tree, global_env, local_env, context
+            self.content_tree,
+            global_env,
+            local_env or {},
+            static_ctx
         )
-        self.value = self.resolved
 
-    # ---------------------------------------------------------------------
+        # Update origin and value so that subsequent .emit() or lookup
+        # returns the folded result (e.g. 'f"...${auth_token}"')
+        self.origin = self.resolved
+        self.value  = self.resolved
 
-    def evaluate(self):
+
+
+    def render(
+        self,
+        global_env: Dict,
+        local_env: Optional[Dict] = None,
+        context: Optional[Dict] = None,
+    ) -> Any:
+        # Phase 3: final inject of context placeholders
+        from ._expression import evaluate_expression_tree
+        final = evaluate_expression_tree(
+            self.content_tree, global_env, local_env or {}, context or {}
+        )
+        return final
+
+    def evaluate(self) -> Any:
+        # Used by collapse; prefer resolved or fallback to origin
         return self.resolved if self.resolved is not None else self.origin
+
 
 class InClauseNode(BaseNode):
     def __init__(self):

@@ -55,41 +55,55 @@ def _tok_to_py(
     c: Dict[str, Any],
 ) -> str:
     """Convert a Lark token to a Python snippet (or placeholder)."""
+    # ──────────────────────────────── Strings ────────────────────────────────
     if tok.type in _STR_TOKENS:
-        raw = tok.value.strip('"\'`')
+        raw = tok.value
+        # If the first and last chars are matching quotes/backticks, strip them
+        if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in ('"', "'", "`"):
+            raw = raw[1:-1]
         return repr(raw)
 
+    # ───────────────────────────── Numerics & Booleans ─────────────────────────
     if tok.type in {"INTEGER", "FLOAT"}:
         return tok.value
-
     if tok.type == "BOOLEAN":
         return "True" if tok.value == "true" else "False"
 
+    # ───────────────────────────── Operators ────────────────────────────────
     if tok.type == "OPERATOR":
         return tok.value
 
+    # ───────────────────────── Scope‑prefixed vars ───────────────────────────
     if tok.type in _SCOPE_PREFIX:
         marker = _SCOPE_PREFIX[tok.type]
-        inner = tok.value[2:-1]          # strip @{ … }
+        inner  = tok.value[2:-1]  # strip the @{…}, %{…}, or ${…}
 
-        if marker == "$":                # context – keep for render
+        # Context‑scoped (${…})
+        if marker == "$":
+            ctx = c or {}
+            val = _lookup(inner, ctx)
+            if val is not None:
+                if hasattr(val, "evaluate"):
+                    val = val.evaluate()
+                return repr(val)
             return tok.value
 
-        val = (
-            _lookup(inner, g) if marker == "@"
-            else _lookup(inner, l, g)
-        )
-        if val is None:                  # unresolved – keep original text
+        # Global (@{…}) or local (%{…})
+        val = (_lookup(inner, g) if marker == "@" else _lookup(inner, l, g))
+        if val is None:
             return tok.value
-
         if hasattr(val, "evaluate"):
             val = val.evaluate()
         if isinstance(val, str):
-            val = val.strip('"\'')
+            # strip any leftover quotes
+            val = val.strip('"\'' )
         return repr(val)
 
-    # default: return verbatim
+    # ────────────────────────────── Fallback ────────────────────────────────
     return tok.value
+
+
+
 
 
 # ─────────────────────────── public entry‑point ───────────────────────────
@@ -99,36 +113,93 @@ def evaluate_expression_tree(
     local_env: Optional[Dict[str, Any]] = None,
     context: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """Resolve a `<( … )>` expression as far as possible without context."""
+    """Resolve a `<( … )>` expression, substituting @{…} and %{…} immediately.
+    Leaves ${…} intact and wraps in an f‑string if any remain."""
+    import re
+    from ._eval import safe_eval
+    from lark import Token
+    from ._ast_nodes import BaseNode, HspacesNode, InlineWhitespaceNode, WhitespaceNode
+
+    # Debug entry
+    print("[DEBUG EXPR] → evaluate_expression_tree called")
     local_env = local_env or {}
     context = context or {}
+    print(f"[DEBUG EXPR] Global env: {global_env}")
+    print(f"[DEBUG EXPR] Local env:  {local_env}")
+    print(f"[DEBUG EXPR] Context:    {context}")
 
-    py_parts: List[str] = [
-        _tok_to_py(tok, global_env, local_env, context)
-        for tok in tree.scan_values(lambda v: isinstance(v, Token))
+    # Collect only meaningful children (drop whitespace tokens/nodes)
+    items = [
+        c for c in getattr(tree, 'children', [])
+        if not (
+            (isinstance(c, Token) and c.type in ("HSPACES", "INLINE_WS", "WHITESPACE"))
+            or isinstance(c, (HspacesNode, InlineWhitespaceNode, WhitespaceNode))
+        )
     ]
-    py_expr = "".join(py_parts).strip()
+    print(f"[DEBUG EXPR] Expression items: {[getattr(c, 'value', repr(c)) for c in items]}")
 
-    # ── fully static: evaluate completely ────────────────────────────────
+    parts: List[str] = []
+    for c in items:
+        if isinstance(c, Token):
+            snippet = _tok_to_py(c, global_env, local_env, context)
+        elif isinstance(c, BaseNode) and hasattr(c, 'meta') and isinstance(c.meta, Token):
+            snippet = _tok_to_py(c.meta, global_env, local_env, context)
+        elif isinstance(c, BaseNode):
+            try:
+                c.resolve(global_env, local_env, context)
+            except Exception:
+                pass
+            val = getattr(c, 'resolved', None) or getattr(c, 'value', None)
+            if isinstance(val, str):
+                snippet = repr(val.strip('"\''))
+            else:
+                snippet = str(val)
+        else:
+            snippet = str(c)
+        parts.append(snippet)
+        print(f"[DEBUG EXPR] Part snippet: {snippet}")
+
+    # Build py_expr by direct concatenation (preserve '+' tokens from parts)
+    py_expr = ''.join(parts)
+    print(f"[DEBUG EXPR] Built py_expr: {py_expr}")
+
+    # Static-only: no ${…}, so safe_eval
     if "${" not in py_expr:
         try:
-            return str(safe_eval(py_expr, local_env=local_env))
-        except Exception:
+            result = str(safe_eval(py_expr, local_env=local_env))
+            print(f"[DEBUG EXPR] Static eval result: {result}")
+            return result
+        except Exception as e:
+            print(f"[DEBUG EXPR] Static eval error: {e}")
             return py_expr
 
-    # ── partially dynamic: replace ${…} with sentinel, eval rest ─────────
-    SENTINEL = "__CTX_PLACEHOLDER__"
-    tmp_expr = re.sub(r"\$\{[^}]+}", repr(SENTINEL), py_expr)
+        # Mixed dynamic: preserve ${…}
+    # Find the first placeholder index
+    placeholder_idxs = [idx for idx, part in enumerate(parts) if isinstance(part, str) and part.startswith('${')]
+    if placeholder_idxs:
+        i0 = placeholder_idxs[0]
+        # Exclude the trailing '+' before placeholder if present
+        if i0 > 0 and parts[i0-1] == '+':
+            static_parts = parts[:i0-1]
+        else:
+            static_parts = parts[:i0]
+        placeholder_text = parts[i0]
+        # Evaluate only the static prefix
+        static_expr = ''.join(static_parts)
+        try:
+            static_value = str(safe_eval(static_expr, local_env=local_env))
+        except Exception as e:
+            print(f"[DEBUG EXPR] Static prefix eval error: {e}")
+            static_value = static_expr
+        # Build final f-string with placeholder
+        f_res = f'f"{static_value}{placeholder_text}"'
+        print(f"[DEBUG EXPR] Final f-string result: {f_res}")
+        return f_res
+    else:
+        # No placeholders detected, fallback
+        return py_expr
 
-    try:
-        interim = str(safe_eval(tmp_expr, local_env=local_env))
-    except Exception:
-        interim = py_expr
 
-    # restore placeholders
-    restored = interim.replace(SENTINEL, "${")
-    # wrap so render() can finish substitution
-    return f'f"{restored}"'
 
 
 # ───────────────────── used by Config.render fallback ─────────────────────
