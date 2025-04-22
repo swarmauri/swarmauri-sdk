@@ -223,8 +223,8 @@ class Config(MutableMapping):
         _eval_fstrings(self._data)
 
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
-        # ──────────────────────────────────────────────────────────────
         import re
+
         # ② expand conditional headers (unchanged)
         for node in list(self._ast.lines):
             if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
@@ -305,19 +305,21 @@ class Config(MutableMapping):
             collapsed[key] = _collapse(val, self._data)
 
         # ──────────────────────────────────────────────────────────────
-        # ◆ evaluate any raw list-comprehension strings into real lists
-        comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+        # ◆ evaluate any raw list- and dict-comprehension strings into real Python objects
+        list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+        dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
 
         def _eval_comprehensions(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_comprehensions(v) for k, v in obj.items()}
             if isinstance(obj, list):
                 return [_eval_comprehensions(v) for v in obj]
-            if isinstance(obj, str) and comp_pattern.match(obj):
-                try:
-                    return eval(obj)
-                except Exception:
-                    return obj
+            if isinstance(obj, str):
+                if list_comp_pattern.match(obj) or dict_comp_pattern.match(obj):
+                    try:
+                        return eval(obj)
+                    except Exception:
+                        return obj
             return obj
 
         collapsed = _eval_comprehensions(collapsed)
@@ -336,15 +338,20 @@ class Config(MutableMapping):
                         if isinstance(tgt, dict) and part in tgt:
                             tgt = tgt[part]
                         else:
-                            return m.group(0)
-                    return str(tgt)
-                return pattern.sub(repl, val)
+                            return "None"
+                    return repr(tgt)
+                return re.sub(pattern, repl, val)
             return val
 
-        out = {k: _expand(v, v if isinstance(v, dict) else collapsed)
-               for k, v in collapsed.items()}
+        # Apply placeholder expansion and return final collapsed config
+        final: Dict[str, Any] = {}
+        for k, v in collapsed.items():
+            if k == "__comments__":
+                final[k] = v
+            else:
+                final[k] = _expand(v, collapsed)
+        return final
 
-        return out
 
 
 
@@ -352,7 +359,7 @@ class Config(MutableMapping):
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Finish expanding f-strings and scoped placeholders using the provided context,
-        evaluate list comprehensions, and return a fully-resolved mapping.
+        evaluate list and dict comprehensions, and return a fully-resolved mapping.
         """
         from ._fstring import _evaluate_f_string
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode
@@ -364,7 +371,10 @@ class Config(MutableMapping):
             from ._ast_nodes import BaseNode
             if isinstance(val, BaseNode):
                 val.render(self._data, scope, context)
-                return _collapse(val.evaluate(), {**scope, **(val.evaluate() if isinstance(val.evaluate(), dict) else {})})
+                collapsed_val = val.evaluate()
+                # Merge into scope if it's a dict, so nested placeholders work
+                new_scope = {**scope, **(collapsed_val if isinstance(collapsed_val, dict) else {})}
+                return _collapse(collapsed_val, new_scope)
             if isinstance(val, dict):
                 merged = {**scope, **val}
                 return {k: _collapse(v, merged) for k, v in val.items()}
@@ -379,18 +389,21 @@ class Config(MutableMapping):
             else:
                 collapsed[key] = _collapse(val, self._data)
 
-        # Step 2: evaluate any leftover list‐comprehension strings
-        comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+        # Step 2: evaluate any leftover list‐ or dict‐comprehension strings
+        list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+        dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
+
         def _eval_comprehensions(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_comprehensions(v) for k, v in obj.items()}
             if isinstance(obj, list):
                 return [_eval_comprehensions(v) for v in obj]
-            if isinstance(obj, str) and comp_pattern.match(obj):
-                try:
-                    return eval(obj)
-                except Exception:
-                    return obj
+            if isinstance(obj, str):
+                if list_comp_pattern.match(obj) or dict_comp_pattern.match(obj):
+                    try:
+                        return eval(obj)
+                    except Exception:
+                        return obj
             return obj
 
         collapsed = _eval_comprehensions(collapsed)
@@ -405,8 +418,9 @@ class Config(MutableMapping):
                 try:
                     return _evaluate_f_string(obj, global_data=self._data, local_data={}, context=context)
                 except Exception:
-                    pass
+                    return obj
             return obj
 
         return _eval_context_fstrings(collapsed)
+
 
