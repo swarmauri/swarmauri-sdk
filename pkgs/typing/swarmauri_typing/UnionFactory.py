@@ -65,7 +65,7 @@ class UnionFactory:
             hasattr(annotated_type, "__origin__")
             and annotated_type.__origin__ is Annotated
         ):
-            return Annotated.__class_getitem__((annotated_type, new_metadata))
+            return Annotated[annotated_type, new_metadata]
 
         args = get_args(annotated_type)
         base_type = args[0]
