@@ -301,11 +301,11 @@ class Config(MutableMapping):
         for key, val in list(self._data.items()):
             if key == "__comments__":
                 collapsed[key] = val
-                continue
-            collapsed[key] = _collapse(val, self._data)
+            else:
+                collapsed[key] = _collapse(val, self._data)
 
         # ──────────────────────────────────────────────────────────────
-        # ◆ evaluate any raw list- and dict-comprehension strings into real Python objects
+        # ◆ evaluate any raw list‑ and dict‑comprehension strings into real Python objects
         list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
         dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
 
@@ -315,9 +315,18 @@ class Config(MutableMapping):
             if isinstance(obj, list):
                 return [_eval_comprehensions(v) for v in obj]
             if isinstance(obj, str):
-                if list_comp_pattern.match(obj) or dict_comp_pattern.match(obj):
+                # List comprehensions can be eval’d directly
+                if list_comp_pattern.match(obj):
                     try:
                         return eval(obj)
+                    except Exception:
+                        return obj
+                # Dict comprehensions need JAML’s '=' → Python’s ':' conversion
+                if dict_comp_pattern.match(obj):
+                    # Replace the first '=' before the 'for' with ':' 
+                    python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
+                    try:
+                        return eval(python_syntax)
                     except Exception:
                         return obj
             return obj
@@ -325,7 +334,7 @@ class Config(MutableMapping):
         collapsed = _eval_comprehensions(collapsed)
 
         # ──────────────────────────────────────────────────────────────
-        # ③ post-process both global- and local-scoped placeholders in strings
+        # ③ post‑process both global‑ and local‑scoped placeholders in strings
         def _expand(val: Any, local_scope: Any) -> Any:
             if isinstance(val, dict):
                 return {k: _expand(v, val) for k, v in val.items()}
@@ -343,7 +352,6 @@ class Config(MutableMapping):
                 return re.sub(pattern, repl, val)
             return val
 
-        # Apply placeholder expansion and return final collapsed config
         final: Dict[str, Any] = {}
         for k, v in collapsed.items():
             if k == "__comments__":
@@ -359,13 +367,14 @@ class Config(MutableMapping):
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Finish expanding f-strings and scoped placeholders using the provided context,
-        evaluate list and dict comprehensions, and return a fully-resolved mapping.
+        evaluate list- and dict-comprehensions, and return a fully-resolved mapping.
         """
         from ._fstring import _evaluate_f_string
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode
         import re
 
         context = context or {}
+
         # Step 1: fully collapse the AST into Python values (like resolve+collapse)
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
@@ -389,7 +398,7 @@ class Config(MutableMapping):
             else:
                 collapsed[key] = _collapse(val, self._data)
 
-        # Step 2: evaluate any leftover list‐ or dict‐comprehension strings
+        # Step 2: evaluate any leftover list‑ or dict‑comprehension strings
         list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
         dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
 
@@ -399,9 +408,18 @@ class Config(MutableMapping):
             if isinstance(obj, list):
                 return [_eval_comprehensions(v) for v in obj]
             if isinstance(obj, str):
-                if list_comp_pattern.match(obj) or dict_comp_pattern.match(obj):
+                # List comprehensions can be eval'd directly
+                if list_comp_pattern.match(obj):
                     try:
                         return eval(obj)
+                    except Exception:
+                        return obj
+                # Dict comprehensions need JAML’s '=' → Python’s ':' conversion
+                if dict_comp_pattern.match(obj):
+                    # Replace the first '=' before the 'for' with ':'
+                    python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
+                    try:
+                        return eval(python_syntax)
                     except Exception:
                         return obj
             return obj
@@ -422,5 +440,3 @@ class Config(MutableMapping):
             return obj
 
         return _eval_context_fstrings(collapsed)
-
-
