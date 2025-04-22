@@ -736,78 +736,63 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def pair_expr(self, meta, items: List[Any]) -> PairExprNode:
         """
-        (string_expr | IDENTIFIER) (HSPACES? (SETTER | COLON) HSPACES? (string_expr | IDENTIFIER))
+        (string_expr | FStringNode | IDENTIFIER) (HSPACES? (SETTER | COLON) HSPACES? (string_expr | FStringNode | IDENTIFIER))
 
-        Handles either plain identifiers or StringExprNode‑style keys/values,
-        while tolerating *both* raw HSPACES tokens and the HspacesNode helper
+        Handles either plain identifiers, FStringNode, or StringExprNode‑style keys/values,
+        while tolerating both raw HSPACES tokens and the HspacesNode helper
         that earlier rules may have produced.
         """
         node = PairExprNode()
         i = 0
 
         # ── 1. KEY ──────────────────────────────────────────────────────
-        if i < len(items) and isinstance(items[i], (StringExprNode, Token)):
+        if i < len(items) and isinstance(items[i], (StringExprNode, FStringNode, Token)):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
-                key_node            = DottedExprNode()
+                key_node = DottedExprNode()
                 key_node.dotted_value = key_node.origin = key_node.value = items[i].value
-                key_node.meta       = meta
-                node.key            = key_node
+                key_node.meta = meta
+                node.key = key_node
             else:
                 node.key = items[i]
             i += 1
-        else:
-            raise ValueError(
-                f"Expected string_expr or IDENTIFIER at index {i}, "
-                f"got {items[i] if i < len(items) else 'nothing'}"
-            )
 
         # ── 2. skip whitespace & collect the = / : separator ───────────
-        separator = "="          # default
+        separator = "="  # default
         while i < len(items):
             itm = items[i]
-            if isinstance(itm, HspacesNode):
-                i += 1
-                continue
-            if isinstance(itm, Token) and itm.type == "HSPACES":
+            if isinstance(itm, HspacesNode) or (isinstance(itm, Token) and itm.type == "HSPACES"):
                 i += 1
                 continue
             if isinstance(itm, Token) and itm.type in ("SETTER", "COLON"):
                 separator = itm.value
                 i += 1
-                # absorb any whitespace nodes **after** the symbol
-                while (
-                    i < len(items)
-                    and isinstance(items[i], (HspacesNode, Token))
-                    and (
-                        isinstance(items[i], HspacesNode)
-                        or items[i].type == "HSPACES"
-                    )
+                # absorb any whitespace nodes after the symbol
+                while i < len(items) and isinstance(items[i], (HspacesNode, Token)) and (
+                    isinstance(items[i], HspacesNode) or items[i].type == "HSPACES"
                 ):
                     i += 1
                 break
-            # anything else → not part of the separator blob
             break
 
         # ── 3. VALUE ───────────────────────────────────────────────────
-        if i < len(items) and isinstance(items[i], (StringExprNode, Token)):
+        if i < len(items) and isinstance(items[i], (StringExprNode, FStringNode, Token)):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
-                value_node              = DottedExprNode()
+                value_node = DottedExprNode()
                 value_node.dotted_value = value_node.origin = value_node.value = items[i].value
-                value_node.meta         = meta
-                node.value              = value_node
+                value_node.meta = meta
+                node.value = value_node
             else:
                 node.value = items[i]
-        else:
-            raise ValueError(
-                f"Expected string_expr or IDENTIFIER at index {i}, "
-                f"got {items[i] if i < len(items) else 'nothing'}"
-            )
 
         # ── 4. bookkeeping ─────────────────────────────────────────────
-        node.origin = f"{node.key.emit()} {separator} {node.value.emit()}"
-        node.value  = node.origin
-        node.meta   = meta
+        # Safely emit key and value (in case one is still None)
+        key_emit = node.key.emit() if getattr(node, 'key', None) is not None else ""
+        val_emit = node.value.emit() if getattr(node, 'value', None) is not None else ""
+        node.origin = f"{key_emit} {separator} {val_emit}"
+        node.value = node.origin
+        node.meta = meta
         return node
+
 
     @v_args(meta=True)
     def dotted_expr(self, meta, items: List[Token]) -> DottedExprNode:
@@ -1170,86 +1155,69 @@ class ConfigTransformer(Transformer):
         """
         Transform the 'dict_comprehension' rule: "{" NEWLINE* dict_comprehension_pair
         "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
-        Creates a DictComprehensionNode, handling keys and values similarly to pair_expr.
+        Creates a DictComprehensionNode, handling keys and values by delegating to pair_expr.
         """
         self.debug_print("dict_comprehension() called with items")
         node = DictComprehensionNode()
         i = 0
 
-        # Skip opening brace and NEWLINE*
+        # Skip opening brace and any newlines
         while i < len(items) and isinstance(items[i], Token) and items[i].type in ("LBRACE", "L_CURL_BRACE", "NEWLINE"):
             i += 1
 
-        # dict_comprehension_pair → PairExprNode
+        # dict_comprehension_pair → PairExprNode via pair_expr()
         if i < len(items) and isinstance(items[i], Tree) and items[i].data == "dict_comprehension_pair":
-            # build PairExprNode from children
-            pair_items = items[i].children
-            pair_node = PairExprNode()
-            # -- key
-            # (identifiers or f‑strings handled)
-            # ...
-            # (same as before)
+            pair_node = self.pair_expr(meta, items[i].children)
             node.pair = pair_node
             i += 1
         elif i < len(items) and isinstance(items[i], PairExprNode):
             node.pair = items[i]
             i += 1
-        else:
-            raise ValueError(f"Expected PairExprNode or dict_comprehension_pair at index {i}")
 
         # Skip "for"
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
             i += 1
-        else:
-            raise ValueError(f"Expected FOR token at index {i}")
 
-        # loop variable
+        # Loop variable
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
             node.loop_var = items[i]
             i += 1
-        else:
-            raise ValueError(f"Expected IDENTIFIER at index {i}")
 
         # Skip "in"
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IN":
             i += 1
-        else:
-            raise ValueError(f"Expected IN token at index {i}")
 
-        # iterable
+        # Iterable expression
         if i < len(items):
             node.iterable = items[i]
             i += 1
-        else:
-            raise ValueError(f"Expected iterable at index {i}")
 
-        # optional "if" clause
+        # Optional "if" clause
         if i < len(items) and isinstance(items[i], Token) and items[i].type == "IF":
             i += 1
             if i < len(items):
                 node.condition = items[i]
                 i += 1
-            else:
-                raise ValueError(f"Expected condition after IF at index {i}")
         else:
             node.condition = None
 
-        # Skip trailing NEWLINE* and closing brace
+        # Skip any trailing newlines and the closing brace
         while i < len(items) and isinstance(items[i], Token) and items[i].type in ("NEWLINE", "RBRACE", "R_CURL_BRACE"):
             i += 1
 
-        # ── Construct origin without a comma ─────────────────────────
-        origin_parts: List[str] = []
-        if node.pair:
-            origin_parts.append(node.pair.emit())
-        origin_parts.append(f"for {node.loop_var.value} in {node.iterable.emit()}")
+        # Construct origin string
+        origin_parts: List[str] = [
+            node.pair.emit(),
+            f"for {node.loop_var.value} in {node.iterable.emit()}"
+        ]
         if node.condition:
             origin_parts.append(f"if {node.condition.emit()}")
 
         node.origin = "{" + " ".join(origin_parts) + "}"
-        node.value = node.origin
-        node.meta = meta
+        node.value  = node.origin
+        node.meta   = meta
         return node
+
 
     # ───────────────────── inline‑table comprehension ──────────────────────
     @v_args(meta=True)
