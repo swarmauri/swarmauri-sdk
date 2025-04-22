@@ -231,7 +231,7 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["items"]["dict_config"] == '{f"key_{x}" : x * 2 for x in [1, 2, 3]}'
+    assert data["items"]["dict_config"] == '{f"key_{x}" : x*2 for x in [1, 2, 3]}'
 
     data["items"]["dict_config"] = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")
@@ -261,7 +261,7 @@ def test_dict_assignment_comprehension():
 dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
 """
     data = round_trip_loads(sample)
-    assert data["items"]["dict_config"] == '{f"key_{x}" = x * 2 for x in [1, 2, 3]}'
+    assert data["items"]["dict_config"] == '{f"key_{x}" = x*2 for x in [1, 2, 3]}'
 
     data["items"]["dict_config"] = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")

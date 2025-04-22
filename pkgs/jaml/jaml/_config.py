@@ -196,8 +196,6 @@ class Config(MutableMapping):
             break
 
 
-
-
     # round‑trip helpers ------------------------------------------------------
     def dumps(self) -> str:
         """Emit the configuration exactly as it would appear on disk."""
@@ -276,6 +274,7 @@ class Config(MutableMapping):
                     node.header.origin = result
 
         # ──────────────────────────────────────────────────────────────
+        # collapse all AST nodes and produce plain Python values
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
 
@@ -306,9 +305,26 @@ class Config(MutableMapping):
             collapsed[key] = _collapse(val, self._data)
 
         # ──────────────────────────────────────────────────────────────
+        # ◆ evaluate any raw list-comprehension strings into real lists
+        comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+
+        def _eval_comprehensions(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                return {k: _eval_comprehensions(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_eval_comprehensions(v) for v in obj]
+            if isinstance(obj, str) and comp_pattern.match(obj):
+                try:
+                    return eval(obj)
+                except Exception:
+                    return obj
+            return obj
+
+        collapsed = _eval_comprehensions(collapsed)
+
+        # ──────────────────────────────────────────────────────────────
         # ③ post-process both global- and local-scoped placeholders in strings
         def _expand(val: Any, local_scope: Any) -> Any:
-            import re
             if isinstance(val, dict):
                 return {k: _expand(v, val) for k, v in val.items()}
             if isinstance(val, str):
@@ -325,9 +341,10 @@ class Config(MutableMapping):
                 return pattern.sub(repl, val)
             return val
 
-        out = {k: _expand(v, v if isinstance(v, dict) else collapsed) for k, v in collapsed.items()}
-        return out
+        out = {k: _expand(v, v if isinstance(v, dict) else collapsed)
+               for k, v in collapsed.items()}
 
+        return out
 
 
 
@@ -335,78 +352,18 @@ class Config(MutableMapping):
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Finish expanding f-strings and scoped placeholders using the provided context,
-        returning a fully-resolved mapping.
+        evaluate list comprehensions, and return a fully-resolved mapping.
         """
         from ._fstring import _evaluate_f_string
-        from ._ast_nodes import (
-            SectionNode,
-            TableArraySectionNode,
-            ComprehensionHeaderNode,
-            TableArrayHeaderNode,
-            AssignmentNode,
-        )
+        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode
         import re
 
         context = context or {}
-        print("[DEBUG _config.render] Entering render with context:", context)
-        print("[DEBUG _config.render] Initial data keys:", list(self._data.keys()))
-
-        # ❶ expand table-array comprehensions
-        for idx, node in enumerate(list(self._ast.lines)):
-            if isinstance(node, TableArraySectionNode) and isinstance(node.header, ComprehensionHeaderNode):
-                hdr = node.header
-                hdr.render(self._data, {}, context)
-                produced: Dict[str, Dict] = {}
-                new_nodes: List[TableArraySectionNode] = []
-                original_lines = self._ast.lines
-                pos = original_lines.index(node)
-                for hdr_name, alias_env in hdr.header_envs:
-                    entry: Dict[str, Any] = {}
-                    for item in node.body:
-                        if isinstance(item, AssignmentNode):
-                            item.resolve(self._data, alias_env, context)
-                            entry[item.identifier.value] = item.evaluate()
-                    produced[hdr_name] = entry
-                    static = TableArraySectionNode()
-                    static.header = TableArrayHeaderNode()
-                    static.header.origin = hdr_name
-                    static.header.value = hdr_name
-                    static.body = node.body
-                    new_nodes.append(static)
-                original_lines[pos:pos+1] = new_nodes
-                for hdr_name, entry in produced.items():
-                    parts = hdr_name.split('.')
-                    cur = self._data
-                    for p in parts[:-1]:
-                        cur = cur.setdefault(p, {})
-                    cur[parts[-1]] = entry
-                self._data.pop(hdr.origin, None)
-
-        # ❷ expand conditional headers (with context)
-        def _expand_conditional_headers():
-            for node in list(self._ast.lines):
-                if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
-                    raw = node.header.origin
-                    def repl(m): return repr(context.get(m.group(1), self._data.get(m.group(1))))
-                    expr_py = re.sub(r"\$\{([^}]+)\}", repl, raw).replace('null','None')
-                    try:
-                        result = eval(expr_py, {}, {})
-                    except Exception:
-                        continue
-                    if not result:
-                        self._data.pop(node.header.value, None)
-                    else:
-                        section_map = self._data.pop(node.header.value, None)
-                        node.header.value = result
-                        node.header.origin = result
-                        self._data[result] = section_map
-        _expand_conditional_headers()
-
-        # ❸ collapse AST nodes into Python values
+        # Step 1: fully collapse the AST into Python values (like resolve+collapse)
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
             if isinstance(val, BaseNode):
-                val.resolve(self._data, scope)
+                val.render(self._data, scope, context)
                 return _collapse(val.evaluate(), {**scope, **(val.evaluate() if isinstance(val.evaluate(), dict) else {})})
             if isinstance(val, dict):
                 merged = {**scope, **val}
@@ -421,9 +378,24 @@ class Config(MutableMapping):
                 collapsed[key] = val
             else:
                 collapsed[key] = _collapse(val, self._data)
-                self._data[key] = collapsed[key]
 
-        # ❹ expand remaining f-strings using context
+        # Step 2: evaluate any leftover list‐comprehension strings
+        comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+        def _eval_comprehensions(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                return {k: _eval_comprehensions(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_eval_comprehensions(v) for v in obj]
+            if isinstance(obj, str) and comp_pattern.match(obj):
+                try:
+                    return eval(obj)
+                except Exception:
+                    return obj
+            return obj
+
+        collapsed = _eval_comprehensions(collapsed)
+
+        # Step 3: expand any remaining f-strings with the context
         def _eval_context_fstrings(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_context_fstrings(v) for k, v in obj.items()}
@@ -433,7 +405,7 @@ class Config(MutableMapping):
                 try:
                     return _evaluate_f_string(obj, global_data=self._data, local_data={}, context=context)
                 except Exception:
-                    return obj
+                    pass
             return obj
 
         return _eval_context_fstrings(collapsed)
