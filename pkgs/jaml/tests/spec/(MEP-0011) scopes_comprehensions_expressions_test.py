@@ -293,10 +293,10 @@ result = <( 3 + 4 )>
     print("[DEBUG]:")
     print(data)
 
-    data = data.resolve()
+    resolved_config = data.resolve()
     print("[DEBUG]:")
     print(data)
-    assert data["calc"]["result"] == 11
+    assert resolved_config["calc"]["result"] == 11
 
     out = data.dumps()
     rendered_data = data.render()

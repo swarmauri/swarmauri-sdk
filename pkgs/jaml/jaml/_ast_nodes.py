@@ -508,7 +508,8 @@ class FoldedExpressionNode(BaseNode):
         self.content_tree: Optional[Tree] = None
 
     def emit(self) -> str:
-        return self.origin
+        # Ensure we always return a string, even if origin was replaced by an int
+        return str(self.origin)
 
     def resolve(
         self,
@@ -517,14 +518,14 @@ class FoldedExpressionNode(BaseNode):
         context: Optional[Dict] = None,
     ):
         """
-        Phase 2: static folding + placeholder deferral
+        Phase 2: static folding + placeholder deferral
         - Substitutes @{…} and %{…} immediately.
-        - Leaves ${…} intact and wraps the result in an f‑string if any remain.
+        - Leaves ${…} intact and wraps the result in an f-string if any remain.
         """
         from ._expression import evaluate_expression_tree
 
         # Always pass an empty dict for `context` here so that ${…} tokens
-        # get preserved and trigger the f‑string branch in evaluate_expression_tree.
+        # get preserved and trigger the f-string branch in evaluate_expression_tree.
         static_ctx: Dict[str, Any] = {}
 
         # Evaluate without real context, deferring ${…}
@@ -539,8 +540,6 @@ class FoldedExpressionNode(BaseNode):
         # returns the folded result (e.g. 'f"...${auth_token}"')
         self.origin = self.resolved
         self.value  = self.resolved
-
-
 
     def render(
         self,
@@ -558,6 +557,7 @@ class FoldedExpressionNode(BaseNode):
     def evaluate(self) -> Any:
         # Used by collapse; prefer resolved or fallback to origin
         return self.resolved if self.resolved is not None else self.origin
+
 
 class InClauseNode(BaseNode):
     def __init__(self):

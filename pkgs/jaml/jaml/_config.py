@@ -415,8 +415,6 @@ class Config(MutableMapping):
         return final
 
 
-
-
     # ──────────────────────────────────────────── render
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
