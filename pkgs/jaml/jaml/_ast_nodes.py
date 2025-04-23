@@ -66,8 +66,11 @@ class StartNode(BaseNode):
         self.meta = meta
 
     def emit(self) -> str:
-        lines = []
+        lines: List[str] = []
+        from ._ast_nodes import TableArraySectionNode  # ensure the name is in scope
+
         for line in self.lines:
+            # ── single-bracket sections ───────────────────────────
             if isinstance(line, SectionNode):
                 header = line.header.emit()
                 lines.append(f"[{header}]")
@@ -76,19 +79,40 @@ class StartNode(BaseNode):
                         lines.append(content.emit())
                     elif isinstance(content, CommentNode):
                         lines.append(content.emit().strip())
+
+            # ── double-bracket (table-array) sections ─────────────
+            elif isinstance(line, TableArraySectionNode):
+                header = line.header.emit()
+                lines.append(f"[[{header}]]")
+                for item in getattr(line, "body", []):
+                    # only emit assignments and comments; skip untransformed Trees
+                    if isinstance(item, AssignmentNode):
+                        lines.append(item.emit())
+                    elif isinstance(item, CommentNode):
+                        lines.append(item.emit().strip())
+
+            # ── top-level assignments ─────────────────────────────
             elif isinstance(line, AssignmentNode):
                 lines.append(line.emit())
+
+            # ── standalone comments ───────────────────────────────
             elif isinstance(line, CommentNode):
                 lines.append(line.emit().strip())
+
+            # ── blank lines ───────────────────────────────────────
             elif isinstance(line, NewlineNode):
                 lines.append("")
+
+            # ── anything else (should be rare) ────────────────────
             else:
                 try:
                     emitted = line.emit()
                     if emitted:
                         lines.extend(emitted.split("\n"))
                 except Exception:
+                    # swallow errors to avoid breaking dumps()
                     pass
+
         return "\n".join(lines)
 
     def resolve(self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None):
