@@ -428,41 +428,141 @@ class Config(MutableMapping):
 
     # ──────────────────────────────────────────── render
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Finish expanding f-strings and scoped placeholders using the provided context,
-        evaluate list- and dict-comprehensions, strip surrounding quotes from plain strings,
-        and return a fully-resolved mapping.
-        """
-        from ._fstring import _evaluate_f_string
-        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode
+        # ────────────────────────────────────────────────────────────────
+        # ① expand global- and local-scope f-strings
+        def _eval_fstrings(mapping: Dict[str, Any]):
+            for key, val in list(mapping.items()):
+                if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
+                    # Skip context-scoped placeholders (${…}), only expand static f-strings
+                    if '${' not in val:
+                        mapping[key] = _evaluate_f_string(
+                            val,
+                            global_data=self._data,
+                            local_data=mapping,
+                            context={},
+                        )
+                elif isinstance(val, dict):
+                    _eval_fstrings(val)
+        _eval_fstrings(self._data)
+
+        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
         import re
 
-        context = context or {}
+        # ────────────────────────────────────────────────────────────────
+        # ② expand conditional headers (with context)
+        for node in list(self._ast.lines):
+            if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
+                raw_key = node.header.value
+                expr    = node.header.origin
 
-        # Step 1: fully collapse the AST into Python values (like resolve+collapse)
-        def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
+                # ②a substitute context placeholders (${…})
+                def _context_repl(m):
+                    var = m.group(1)
+                    if context and var in context:
+                        v = context[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')
+                        return repr(v)
+                    return "None"
+                expr_py = re.sub(r'\$\{([^}]+)\}', _context_repl, expr)
+
+                # ②b substitute global (@{…}) and local (%{…}) placeholders
+                def _scoped_repl(m):
+                    var = m.group(1)
+                    if var in self._data:
+                        v = self._data[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')
+                        return repr(v)
+                    return "None"
+                expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr_py)
+
+                expr_py = expr_py.replace('null', 'None')
+
+                try:
+                    result = eval(expr_py, {}, {})
+                except Exception:
+                    continue
+
+                if not result:
+                    # remove section when condition is false/None
+                    self._data.pop(raw_key, None)
+                else:
+                    # rename the key to the evaluated result
+                    section_map = self._data.pop(raw_key, None)
+                    self._data[result] = section_map
+                    node.header.value  = result
+                    node.header.origin = result
+
+            # handle [[…]] table-array sections similarly
+            if isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
+                raw_key = node.header.value
+                expr    = node.header.origin
+
+                def _context_repl(m):
+                    var = m.group(1)
+                    if context and var in context:
+                        v = context[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')
+                        return repr(v)
+                    return "None"
+                expr_py = re.sub(r'\$\{([^}]+)\}', _context_repl, expr)
+
+                def _scoped_repl(m):
+                    var = m.group(1)
+                    if var in self._data:
+                        v = self._data[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')
+                        return repr(v)
+                    return "None"
+                expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr_py)
+
+                expr_py = expr_py.replace('null', 'None')
+
+                try:
+                    result = eval(expr_py, {}, {})
+                except Exception:
+                    continue
+
+                if not result:
+                    self._data.pop(raw_key, None)
+                else:
+                    section_map = self._data.pop(raw_key, None)
+                    self._data[result] = section_map
+                    node.header.value  = result
+                    node.header.origin = result
+
+        # ────────────────────────────────────────────────────────────────
+        # ③ collapse all AST nodes into plain Python values
+        def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
-            if isinstance(val, BaseNode):
-                val.render(self._data, scope, context)
-                collapsed_val = val.evaluate()
-                # Merge into scope if it's a dict, so nested placeholders work
-                new_scope = {**scope, **(collapsed_val if isinstance(collapsed_val, dict) else {})}
-                return _collapse(collapsed_val, new_scope)
-            if isinstance(val, dict):
-                merged = {**scope, **val}
-                return {k: _collapse(v, merged) for k, v in val.items()}
-            if isinstance(val, list):
-                return [_collapse(x, scope) for x in val]
-            return val
+            if isinstance(value, BaseNode):
+                value.resolve(self._data, scope)
+                return _collapse(value.evaluate(), scope)
+            if isinstance(value, dict):
+                merged = {**scope, **value}
+                out: Dict[str, Any] = {}
+                for k, v in value.items():
+                    if k == "__comments__":
+                        out[k] = v
+                    else:
+                        out[k] = _collapse(v, merged)
+                return out
+            if isinstance(value, list):
+                return [_collapse(x, scope) for x in value]
+            return value
 
         collapsed: Dict[str, Any] = {}
         for key, val in list(self._data.items()):
-            if key == '__comments__':
+            if key == "__comments__":
                 collapsed[key] = val
             else:
                 collapsed[key] = _collapse(val, self._data)
 
-        # Step 2: evaluate any leftover list- or dict-comprehension strings
+        # ────────────────────────────────────────────────────────────────
+        # ④ evaluate list- and dict-comprehension strings
         list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
         dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
 
@@ -484,10 +584,10 @@ class Config(MutableMapping):
                     except Exception:
                         return obj
             return obj
-
         collapsed = _eval_comprehensions(collapsed)
 
-        # Step 3: expand any remaining f-strings with the context
+        # ────────────────────────────────────────────────────────────────
+        # ⑤ expand any remaining f-strings with the context
         def _eval_context_fstrings(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_context_fstrings(v) for k, v in obj.items()}
@@ -499,10 +599,10 @@ class Config(MutableMapping):
                 except Exception:
                     return obj
             return obj
-
         expanded = _eval_context_fstrings(collapsed)
 
-        # Step 4: strip surrounding quotes from plain strings
+        # ────────────────────────────────────────────────────────────────
+        # ⑥ strip surrounding quotes from plain strings
         def _strip_quotes(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _strip_quotes(v) for k, v in obj.items()}
@@ -514,5 +614,4 @@ class Config(MutableMapping):
             ):
                 return obj[1:-1]
             return obj
-
         return _strip_quotes(expanded)
