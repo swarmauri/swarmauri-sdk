@@ -196,8 +196,9 @@ def evaluate_expression_tree(
         parts.append(snippet)
         print(f"[DEBUG EXPR] Part snippet: {snippet}")
 
-    # Build py_expr by direct concatenation (preserve '+' tokens)
-    py_expr = "".join(parts)
+    # ────────────────────────────────────────────
+    # **FIX**: join with spaces so that 'if' / 'else' remain valid
+    py_expr = " ".join(parts)
     print(f"[DEBUG EXPR] Built py_expr: {py_expr}")
 
     # Static-only: no ${…}, so safe_eval
@@ -234,6 +235,7 @@ def evaluate_expression_tree(
 
     # No placeholders detected, fallback
     return py_expr
+
 
 
 
