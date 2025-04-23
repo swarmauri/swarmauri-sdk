@@ -1465,9 +1465,8 @@ class LocalScopedVarNode(BaseNode):
 
 class ContextScopedVarNode(BaseNode):
     """
-    Represents a context‑scoped variable, e.g. ${variable}.
+    Represents a context-scoped variable, e.g. ${variable}.
     """
-
     def __init__(self):
         super().__init__()
 
@@ -1475,7 +1474,6 @@ class ContextScopedVarNode(BaseNode):
         # Return the original token text (including "${…}")
         return self.origin
 
-    # ────────────────────────────────────────────────────────── UPDATED
     def resolve(
         self,
         global_env: Dict,
@@ -1484,10 +1482,9 @@ class ContextScopedVarNode(BaseNode):
         """
         Replace the ${placeholder} with a concrete value, supporting nested lookups and
         list flattening. Lookup order:
-        1. context
-        2. local_env
-        3. global_env
-        If the key is exactly 'packages' and no value is found, default to an empty list.
+        1. local_env
+        2. global_env
+        If the lookup yields another AST node (including this one), treat it as missing.
         """
         from collections.abc import Mapping
 
@@ -1495,8 +1492,7 @@ class ContextScopedVarNode(BaseNode):
 
         # Extract path segments
         path = self.origin[2:-1]
-        parts = path.split('.')
-        result = None
+        parts = path.split(".")
 
         def _dig(src):
             cur = src
@@ -1506,7 +1502,6 @@ class ContextScopedVarNode(BaseNode):
                 elif hasattr(cur, part):
                     cur = getattr(cur, part)
                 elif isinstance(cur, list):
-                    # flatten list of mappings/objects
                     out = []
                     for item in cur:
                         val = None
@@ -1525,19 +1520,19 @@ class ContextScopedVarNode(BaseNode):
                     return None
             return cur
 
-        # Attempt lookups in precedence order
-        if result is None:
-            result = _dig(local_env)
-        if result is None:
-            result = _dig(global_env)
+        # ❶ Attempt lookup in local_env
+        candidate = _dig(local_env)
+        # ❷ Fallback to lookup in global_env if local failed
+        if candidate is None:
+            candidate = _dig(global_env)
 
-        # Default 'packages' placeholder to empty list if still missing
-        if result is None and parts == ['packages']:
-            result = []
+        # If we got another AST node back, ignore it (to prevent self-reference)
+        from ._ast_nodes import BaseNode
+        if isinstance(candidate, BaseNode):
+            candidate = None
 
-        self.resolved = result
-        self.value = self.resolved
-
+        self.resolved = candidate
+        self.value    = self.resolved
 
 class WhitespaceNode(BaseNode):
     def __init__(self, value: str):
