@@ -3,6 +3,22 @@ from __future__ import annotations
 from typing import Dict, Iterator, Optional, Union, List
 from ._eval import safe_eval
 
+def _evaluate_comprehension(node, global_env, context=None):
+    from ._ast_nodes import ListComprehensionNode
+    results = []
+    for env in iter_environments(node.clauses, global_env, {}, context or {}):
+        # resolve header_expr (for lists) or pair (for dicts)
+        if hasattr(node, 'header_expr'):
+            node.header_expr.resolve(global_env, env)
+            results.append(node.header_expr.resolved)
+        else:
+            node.pair.resolve(global_env, env)
+            k, v = node.pair.resolved
+            results.append((k, v))
+    # for dict comprehensions, you’d turn results into a dict
+    return results if isinstance(node, ListComprehensionNode) else dict(results)
+
+
 def iter_environments(clauses, global_env, local_env, context):
     clause_list = clauses.clauses
 

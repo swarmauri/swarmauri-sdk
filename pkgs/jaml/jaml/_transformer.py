@@ -1480,33 +1480,45 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def folded_expr(self, meta, items: List[Any]) -> FoldedExpressionNode:
         """
-        Handle `<( ... )>` folded expressions:
-        - Preserve the entire raw `<( … )>` text, including spaces and operators.
-        - Keep the `folded_content` subtree for later resolve/render phases.
+        Handle `<( … )>` folded expressions:
+        - Unwrap a single-child 'folded_content' Tree so our evaluator sees
+          the actual expression AST (e.g. arithmetic, concatenation, etc.).
+        - Preserve raw origin for round-trip fidelity.
         """
         from ._ast_nodes import FoldedExpressionNode
         from lark import Token, Tree
 
         node = FoldedExpressionNode()
-        # 1) Retain the AST subtree for evaluation/render
-        folded_wrapper = items[1]
-        node.content_tree = folded_wrapper
 
-        # 2) Build the inner content exactly as parsed
+        # items structure: [Token('<('), Tree('folded_content', [...]), Token(')>')]
+        folded_wrapper = items[1]
+
+        # If folded_wrapper is exactly one real AST subtree, unwrap it:
+        if (
+            isinstance(folded_wrapper, Tree)
+            and folded_wrapper.data == "folded_content"
+            and len(folded_wrapper.children) == 1
+            and isinstance(folded_wrapper.children[0], Tree)
+        ):
+            node.content_tree = folded_wrapper.children[0]
+        else:
+            node.content_tree = folded_wrapper
+
+        # Rebuild origin exactly as parsed (so dumps()/emit() remains unchanged)
         content_parts: List[str] = []
-        for child in folded_wrapper.children:
+        for child in getattr(folded_wrapper, "children", []):
             if isinstance(child, Token):
                 content_parts.append(child.value)
             else:
                 content_parts.append(child.emit())
         content_str = "".join(content_parts)
 
-        # 3) Reconstruct full origin with leading/trailing spaces
         start = items[0].value   # '<('
         end   = items[-1].value  # ')>'
         node.origin = f"{start} {content_str} {end}"
         node.value  = node.origin
         node.meta   = meta
+
         return node
 
 

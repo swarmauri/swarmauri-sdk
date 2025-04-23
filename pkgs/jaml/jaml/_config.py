@@ -22,6 +22,7 @@ class SectionProxy(MutableMapping):
         return val
 
     def __setitem__(self, key: str, value: Any) -> None:
+        print('SectionProxy setter')
         cur = self._cur_dict()
         cur[key] = value
         # still sync the AST with the dotted path
@@ -66,6 +67,7 @@ class Config(MutableMapping):
         return val
 
     def __setitem__(self, key: str, value: Any) -> None:
+        print('Config setter')
         self._data[key] = value           # only literal keys
         self._sync_ast(key, value)
 
@@ -106,14 +108,15 @@ class Config(MutableMapping):
         return assign_node.value
 
     def _sync_ast(self, dotted: str, value: Any):
+        print(dotted, value, type(value))
         """
         Sync the underlying AST with mutations to the Config mapping.
 
-        • `dotted` – key in dotted‑path form, e.g. "server.port"
+        • `dotted` – key in dotted-path form, e.g. "server.port" or "section.key"
         • `value`  – new Python value or AST node assigned by the user
         """
         from ._ast_nodes import (
-            AssignmentNode, BaseNode,
+            AssignmentNode, BaseNode, FoldedExpressionNode, SectionNode,
             SingleQuotedStringNode, IntegerNode, FloatNode, BooleanNode, NullNode
         )
 
@@ -124,76 +127,127 @@ class Config(MutableMapping):
             cur = cur.setdefault(part, {})
         key = parts[-1]
 
-        # Find the matching AST assignment
+        # ──────────────────────────────────────────────────
+        # Handle assignments inside sections (e.g., "section.key")
+        if len(parts) > 1:
+            section_name = parts[0]
+            for node in self._ast.lines:
+                if isinstance(node, SectionNode) and getattr(node.header, "value", None) == section_name:
+                    for content in node.contents:
+                        if isinstance(content, AssignmentNode) and content.identifier.value == key:
+                            # If the old value was a folded-expression (or the new string looks like one),
+                            # reparse it back into a FoldedExpressionNode so resolve() will evaluate it.
+                            if (
+                                isinstance(content.value, FoldedExpressionNode)
+                                or (isinstance(value, str) and value.strip().startswith('<(') and value.strip().endswith(')>'))
+                            ):
+                                new_node = self._reparse_value(value)
+                                content.value    = new_node
+                                content.resolved = None
+                                cur[key]         = new_node
+                            else:
+                                # For other raw strings (e.g. list comprehensions), keep as-is
+                                content.value    = value
+                                content.resolved = None
+                                cur[key]         = value
+                            return
+
+        # ──────────────────────────────────────────────────
+        # Fallback to top-level assignments
         for node in self._ast.lines:
+            print(key, node, type(node))
             if not (isinstance(node, AssignmentNode) and node.identifier.value == key):
+                print('\n\nbad?')
                 continue
+            try:
+                old = node
+                print(old, type(old))
 
-            old = node.value
+                # wholesale reparse for any AST-backed node updated via a string
+                if isinstance(old.value, BaseNode) and isinstance(value, str) and not isinstance(old, SingleQuotedStringNode):
+                    print('\n\nhere1')
+                    new_node = self._reparse_value(value)
+                    node.value    = new_node
+                    node.resolved = None
+                    cur[key]      = new_node
+                    break
 
-            # If editing any AST node (folded, array, inline table, comprehension, etc.) via string,
-            # wholesale reparse through the grammar.
-            if isinstance(old, BaseNode) and isinstance(value, str) and not isinstance(old, SingleQuotedStringNode):
-                new_node = self._reparse_value(value)
-                node.value    = new_node
-                node.resolved = None
-                cur[key]      = new_node
-                break
+                # Direct AST node replacement
+                if isinstance(value, BaseNode):
+                    print('\n\nhere2')
+                    node.value    = value
+                    node.resolved = None
+                    cur[key]      = value
+                    break
 
-            # Direct AST node replacement
-            if isinstance(value, BaseNode):
+                # folded-expression string update (when old was already FoldedExpressionNode)
+                if isinstance(value, str) and isinstance(old, FoldedExpressionNode):
+                    print('\n\nhere3')
+                    new_node = self._reparse_value(value)
+                    node.value    = new_node
+                    node.resolved = None
+                    cur[key]      = new_node
+                    break
+
+                # Literal updates: string
+                if isinstance(value, str) and isinstance(old, SingleQuotedStringNode):
+                    print('\n\nhere4')
+                    lit = value if value.startswith(('"', "'")) else f'"{value}"'
+                    old.origin    = lit
+                    old.value     = value
+                    node.resolved = value
+                    cur[key]      = value
+                    break
+
+                # Literal updates: integer
+                if isinstance(value, int) and isinstance(old, IntegerNode):
+                    print('\n\nhere5')
+                    sval = str(value)
+                    old.origin    = sval
+                    old.value     = sval
+                    old.resolved  = value
+                    cur[key]      = value
+                    break
+
+                # Literal updates: float
+                if isinstance(value, float) and isinstance(old, FloatNode):
+                    print('\n\nhere6')
+                    sval = str(value)
+                    old.origin    = sval
+                    old.value     = sval
+                    old.resolved  = value
+                    cur[key]      = value
+                    break
+
+                # Literal updates: boolean
+                if isinstance(value, bool) and isinstance(old, BooleanNode):
+                    print('\n\nhere bool')
+                    bval = "true" if value else "false"
+                    old.origin    = bval
+                    old.value     = bval
+                    old.resolved  = value
+                    cur[key]      = value
+                    break
+
+                # Literal updates: null
+                if value is None and isinstance(old, NullNode):
+                    print('\n\n none branch')
+                    old.resolved = None
+                    cur[key]     = None
+                    break
+
+                # Fallback: replace node outright
+                print('\n\nfalling back...')
                 node.value    = value
-                node.resolved = None
-                cur[key]      = value
-                break
-
-            # Literal updates: string
-            if isinstance(value, str) and isinstance(old, SingleQuotedStringNode):
-                lit = value if value.startswith(('"', "'")) else f'"{value}"'
-                old.origin    = lit
-                old.value     = value
                 node.resolved = value
                 cur[key]      = value
                 break
 
-            # Literal updates: integer
-            if isinstance(value, int) and isinstance(old, IntegerNode):
-                sval = str(value)
-                old.origin    = sval
-                old.value     = sval
-                old.resolved  = value
-                cur[key]      = value
-                break
+            except Exception as e:
+                print(f"_config.Config._sync_ast() failed: '{e}'")
 
-            # Literal updates: float
-            if isinstance(value, float) and isinstance(old, FloatNode):
-                sval = str(value)
-                old.origin    = sval
-                old.value     = sval
-                old.resolved  = value
-                cur[key]      = value
-                break
 
-            # Literal updates: boolean
-            if isinstance(value, bool) and isinstance(old, BooleanNode):
-                bval = "true" if value else "false"
-                old.origin    = bval
-                old.value     = bval
-                old.resolved  = value
-                cur[key]      = value
-                break
 
-            # Literal updates: null
-            if value is None and isinstance(old, NullNode):
-                old.resolved = None
-                cur[key]     = None
-                break
-
-            # Fallback: replace node outright
-            node.value    = value
-            node.resolved = value
-            cur[key]      = value
-            break
 
 
     # round‑trip helpers ------------------------------------------------------

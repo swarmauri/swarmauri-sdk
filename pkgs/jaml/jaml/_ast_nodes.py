@@ -8,7 +8,7 @@ from ._make_static import make_static_section
 from ._fstring import _evaluate_f_string, _lookup
 from ._substitute import _substitute_vars
 from ._expression import _render_folded_expression_node, evaluate_expression_tree
-from ._comprehension import iter_environments
+from ._comprehension import iter_environments, _evaluate_comprehension
 
 class BaseNode:
     def __init__(self):
@@ -321,7 +321,6 @@ class ComprehensionHeaderNode(BaseNode):
 
         self.value = self.resolved
 
-
 class AssignmentNode(BaseNode):
     def __init__(self):
         super().__init__()
@@ -372,34 +371,55 @@ class AssignmentNode(BaseNode):
     def __str__(self) -> str:
         return f"AssignmentNode({self.identifier.value if self.identifier else None})"
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
-        print('[resolve]:', global_env, local_env)
-        if hasattr(self.value, 'resolve'):
-            self.value.resolve(global_env, local_env)
-            self.resolved = self.value.resolved if hasattr(self.value, 'resolved') else self.value.evaluate()
-        else:
-            if isinstance(self.value, Token):
-                if self.value.type == 'INTEGER':
-                    try:
-                        self.resolved = int(self.value.value, 0)
-                    except ValueError:
-                        self.resolved = self.value.value
-                elif self.value.type == 'FLOAT':
-                    try:
-                        self.resolved = float(self.value.value)
-                    except ValueError:
-                        self.resolved = self.value.value
-                elif self.value.type == 'SINGLE_QUOTED_STRING':
-                    self.resolved = self.value.value.strip('"\'')
-                elif self.value.type == 'BOOLEAN':
-                    self.resolved = self.value.value == "true"
-                elif self.value.type == 'NULL':
-                    self.resolved = None
+        def resolve(
+            self, 
+            global_env: Dict, 
+            local_env: Optional[Dict] = None
+        ):
+            """
+            Resolve the assignment's right‑hand side, handling both AST nodes,
+            folded-expression strings, and manual folded-expression AST values.
+            """
+            local_env = local_env or {}
+
+            # ── Handle folded-expression AST nodes (e.g., <(3 + 4)>) ──
+            if isinstance(self.value, FoldedExpressionNode):
+                # Extract inner arithmetic expression and evaluate safely
+                expr = self.value.origin[2:-2].strip()
+                from ._eval import safe_eval
+                try:
+                    self.resolved = safe_eval(expr, local_env)
+                except Exception:
+                    # Fallback to original origin if evaluation fails
+                    self.resolved = self.value.origin
+                print(f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: {self.identifier.value} -> {self.resolved}")
+                return
+
+            # ── Handle manual folded-expression strings (e.g., '<(3 + 4)>') ──
+            if isinstance(self.value, str) and self.value.startswith('<(') and self.value.endswith(')>'):
+                expr = self.value[2:-2].strip()
+                from ._eval import safe_eval
+                try:
+                    self.resolved = safe_eval(expr, local_env)
+                except Exception:
+                    self.resolved = self.value
+                print(f"[DEBUG ASSIGNMENT RESOLVE folded expr]: {self.identifier.value} -> {self.resolved}")
+                return
+
+            # ── Delegate to AST node resolution if available ──
+            print('[resolve]:', global_env, local_env)
+            if hasattr(self.value, 'resolve'):
+                self.value.resolve(global_env, local_env)
+                if hasattr(self.value, 'resolved') and self.value.resolved is not None:
+                    self.resolved = self.value.resolved
                 else:
-                    self.resolved = self.value.value
+                    self.resolved = self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value
             else:
+                # Plain Python literal (int, float, bool, None, etc.)
                 self.resolved = self.value
-        print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
+
+            print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
+
 
     def evaluate(self):
         return self.resolved if self.resolved is not None else (self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value)
@@ -428,7 +448,6 @@ class NewlineNode(BaseNode):
 
     def evaluate(self) -> None:
         return None
-
 
 class IntegerNode(BaseNode):
     def __init__(self):
@@ -539,7 +558,6 @@ class FoldedExpressionNode(BaseNode):
     def evaluate(self) -> Any:
         # Used by collapse; prefer resolved or fallback to origin
         return self.resolved if self.resolved is not None else self.origin
-
 
 class InClauseNode(BaseNode):
     def __init__(self):
@@ -827,7 +845,7 @@ class ListComprehensionNode(BaseNode):
         self.header_expr.resolve(global_env, local_env)
         if self.clauses:
             self.clauses.resolve(global_env, local_env)
-        self.resolved = evaluate_comprehension(self, global_env)
+        self.resolved = _evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> List:
@@ -855,7 +873,7 @@ class DictComprehensionNode(BaseNode):
         self.iterable.resolve(global_env, local_env)
         if self.condition:
             self.condition.resolve(global_env, local_env)
-        self.resolved = evaluate_comprehension(self, global_env)
+        self.resolved = _evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> Dict:
@@ -883,7 +901,7 @@ class InlineTableComprehensionNode(BaseNode):
         self.iterable.resolve(global_env, local_env)
         if self.condition:
             self.condition.resolve(global_env, local_env)
-        self.resolved = evaluate_comprehension(self, global_env)
+        self.resolved = _evaluate_comprehension(self, global_env)
         self.value = self.resolved
 
     def evaluate(self) -> Dict:

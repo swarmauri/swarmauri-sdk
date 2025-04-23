@@ -104,15 +104,13 @@ def _tok_to_py(
 
 
 
-
-
 # ─────────────────────────── public entry‑point ───────────────────────────
 def evaluate_expression_tree(
     tree: Tree,
     global_env: Dict[str, Any],
     local_env: Optional[Dict[str, Any]] = None,
     context: Optional[Dict[str, Any]] = None,
-) -> str:
+) -> Any:
     """Resolve a `<( … )>` expression, substituting @{…} and %{…} immediately.
     Leaves ${…} intact and wraps in an f‑string if any remain."""
     import re
@@ -151,7 +149,7 @@ def evaluate_expression_tree(
                 pass
             val = getattr(c, 'resolved', None) or getattr(c, 'value', None)
             if isinstance(val, str):
-                snippet = repr(val.strip('"\''))
+                snippet = repr(val.strip('"\'')) 
             else:
                 snippet = str(val)
         else:
@@ -166,41 +164,35 @@ def evaluate_expression_tree(
     # Static-only: no ${…}, so safe_eval
     if "${" not in py_expr:
         try:
-            result = str(safe_eval(py_expr, local_env=local_env))
+            # **Changed:** return the raw evaluated result (int, float, etc.)
+            result = safe_eval(py_expr, local_env=local_env)
             print(f"[DEBUG EXPR] Static eval result: {result}")
             return result
         except Exception as e:
             print(f"[DEBUG EXPR] Static eval error: {e}")
             return py_expr
 
-        # Mixed dynamic: preserve ${…}
-    # Find the first placeholder index
+    # Mixed dynamic: preserve ${…}
     placeholder_idxs = [idx for idx, part in enumerate(parts) if isinstance(part, str) and part.startswith('${')]
     if placeholder_idxs:
         i0 = placeholder_idxs[0]
-        # Exclude the trailing '+' before placeholder if present
         if i0 > 0 and parts[i0-1] == '+':
             static_parts = parts[:i0-1]
         else:
             static_parts = parts[:i0]
         placeholder_text = parts[i0]
-        # Evaluate only the static prefix
         static_expr = ''.join(static_parts)
         try:
             static_value = str(safe_eval(static_expr, local_env=local_env))
         except Exception as e:
             print(f"[DEBUG EXPR] Static prefix eval error: {e}")
             static_value = static_expr
-        # Build final f-string with placeholder
         f_res = f'f"{static_value}{placeholder_text}"'
         print(f"[DEBUG EXPR] Final f-string result: {f_res}")
         return f_res
-    else:
-        # No placeholders detected, fallback
-        return py_expr
 
-
-
+    # No placeholders detected, fallback
+    return py_expr
 
 # ───────────────────── used by Config.render fallback ─────────────────────
 def _render_folded_expression_node(
