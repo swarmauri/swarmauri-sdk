@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_lexicaldensity)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_lexicaldensity)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_lexicaldensity)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_lexicaldensity?label=swarmauri_tool_lexicaldensity&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_lexicaldensity" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_lexicaldensity/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_lexicaldensity.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_lexicaldensity" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_lexicaldensity" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_lexicaldensity?label=swarmauri_tool_lexicaldensity&color=green" alt="PyPI - swarmauri_tool_lexicaldensity"/></a>
+</p>
 
 ---
 
-# Lexical Density Tool
+# Swarmauri Tool Lexical Density
 
 A tool for calculating the lexical density of text, indicating the proportion of content words (nouns, verbs, adjectives, and adverbs) relative to the total number of words.
 

@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_beautifulsoupelement)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_beautifulsoupelement)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_beautifulsoupelement)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_beautifulsoupelement?label=swarmauri_parser_beautifulsoupelement&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_parser_beautifulsoupelement/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_parser_beautifulsoupelement" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_parser_beautifulsoupelement/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_parser_beautifulsoupelement.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_beautifulsoupelement/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_beautifulsoupelement" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_beautifulsoupelement/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_beautifulsoupelement" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_beautifulsoupelement/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_beautifulsoupelement?label=swarmauri_parser_beautifulsoupelement&color=green" alt="PyPI - swarmauri_parser_beautifulsoupelement"/></a>
+</p>
 
 ---
 
-# BeautifulSoup Element Parser
+# Swarmauri Parser Beautifulsoupelement
 
 A specialized parser that utilizes BeautifulSoup to extract specific HTML elements and their content from HTML documents.
 

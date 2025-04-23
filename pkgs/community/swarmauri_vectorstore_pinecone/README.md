@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_pinecone)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_pinecone)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_pinecone)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_pinecone?label=swarmauri_vectorstore_pinecone&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_pinecone/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_pinecone" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_pinecone/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_pinecone.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_pinecone/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_pinecone" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_pinecone/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_pinecone" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_pinecone/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_pinecone?label=swarmauri_vectorstore_pinecone&color=green" alt="PyPI - swarmauri_vectorstore_pinecone"/></a>
+</p>
 
 ---
 
-# Swarmauri Pinecone Vector Store
+# Swarmauri Vectorstore Pinecone
 
 A vector store implementation using Pinecone as the backend for efficient similarity search and document storage.
 

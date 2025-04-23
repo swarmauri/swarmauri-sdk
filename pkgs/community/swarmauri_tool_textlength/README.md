@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_textlength)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_textlength)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_textlength)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_textlength?label=swarmauri_tool_textlength&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_textlength/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_textlength" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_textlength/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_textlength.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_textlength/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_textlength" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_textlength/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_textlength" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_textlength/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_textlength?label=swarmauri_tool_textlength&color=green" alt="PyPI - swarmauri_tool_textlength"/></a>
+</p>
 
 ---
 
-# Text Length Tool
+# Swarmauri Tool Text Length
 
 A Swarmauri tool that calculates the length of text in terms of characters, words, and sentences using NLTK tokenization.
 

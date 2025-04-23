@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_documentstore_redis)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_documentstore_redis)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_documentstore_redis)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_documentstore_redis?label=swarmauri_documentstore_redis&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_documentstore_redis" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_documentstore_redis/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_documentstore_redis.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_documentstore_redis" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_documentstore_redis" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_documentstore_redis?label=swarmauri_documentstore_redis&color=green" alt="PyPI - swarmauri_documentstore_redis"/></a>
+</p>
 
 ---
 
-# Swarmauri DocumentStore Redis
+# Swarmauri Documentstore Redis
 
 A Redis-based document store for Swarmauri SDK.
 

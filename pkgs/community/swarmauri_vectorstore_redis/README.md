@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_redis)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_redis)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_redis)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_redis?label=swarmauri_vectorstore_redis&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_redis" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_redis/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_redis.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_redis" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_redis" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_redis?label=swarmauri_vectorstore_redis&color=green" alt="PyPI - swarmauri_vectorstore_redis"/></a>
+</p>
 
 ---
 
-# Redis Vector Store for Swarmauri
+# Swarmauri Vectorstore Redis
 
 A Redis-based vector store implementation for the Swarmauri SDK that enables efficient storage and retrieval of document embeddings.
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from swarmauri_core.ComponentBase import SubclassUnion
+from swarmauri_base.ComponentBase import SubclassUnion
 from swarmauri_core.agents.IAgentVectorStore import IAgentVectorStore
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 

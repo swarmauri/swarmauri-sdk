@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_sentencecomplexity)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_sentencecomplexity)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_sentencecomplexity)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_sentencecomplexity?label=swarmauri_tool_sentencecomplexity&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_sentencecomplexity" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_sentencecomplexity/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_sentencecomplexity.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_sentencecomplexity" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_sentencecomplexity" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_sentencecomplexity?label=swarmauri_tool_sentencecomplexity&color=green" alt="PyPI - swarmauri_tool_sentencecomplexity"/></a>
+</p>
 
 ---
 
-# Sentence Complexity Tool
+# Swarmauri Tool Sentencecomplexity
 
 A tool for evaluating sentence complexity based on average sentence length and the number of clauses.
 

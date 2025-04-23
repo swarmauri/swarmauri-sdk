@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_psutil)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_psutil)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_psutil)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_psutil?label=swarmauri_tool_psutil&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_psutil/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_psutil" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_psutil/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_psutil.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_psutil/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_psutil" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_psutil/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_psutil" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_psutil/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_psutil?label=swarmauri_tool_psutil&color=green" alt="PyPI - swarmauri_tool_psutil"/></a>
+</p>
 
 ---
 
-# Swarmauri Psutil Tool
+# Swarmauri Tool Psutil
 
 A system monitoring tool that provides comprehensive system information using psutil library. This tool can gather information about CPU, memory, disk, network, and sensors.
 
