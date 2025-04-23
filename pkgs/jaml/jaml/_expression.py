@@ -112,11 +112,14 @@ def evaluate_expression_tree(
     context: Optional[Dict[str, Any]] = None,
 ) -> Any:
     """Resolve a `<( … )>` expression, substituting @{…} and %{…} immediately.
-    Leaves ${…} intact and wraps in an f‑string if any remain."""
+    Leaves ${…} intact and wraps in an f-string if any remain."""
     import re
     from ._eval import safe_eval
     from lark import Token
-    from ._ast_nodes import BaseNode, HspacesNode, InlineWhitespaceNode, WhitespaceNode
+    from ._ast_nodes import (
+        BaseNode, HspacesNode, InlineWhitespaceNode, WhitespaceNode,
+        IntegerNode, FloatNode, BooleanNode
+    )
 
     # Debug entry
     print("[DEBUG EXPR] → evaluate_expression_tree called")
@@ -128,7 +131,7 @@ def evaluate_expression_tree(
 
     # Collect only meaningful children (drop whitespace tokens/nodes)
     items = [
-        c for c in getattr(tree, 'children', [])
+        c for c in getattr(tree, "children", [])
         if not (
             (isinstance(c, Token) and c.type in ("HSPACES", "INLINE_WS", "WHITESPACE"))
             or isinstance(c, (HspacesNode, InlineWhitespaceNode, WhitespaceNode))
@@ -138,33 +141,68 @@ def evaluate_expression_tree(
 
     parts: List[str] = []
     for c in items:
+        # 1) AST‐level boolean → Python literal
+        if isinstance(c, BooleanNode):
+            snippet = "True" if c.value.lower() == "true" else "False"
+            print(f"[DEBUG EXPR] AST boolean node: {snippet}")
+            parts.append(snippet)
+            continue
+
+        # 2) AST‐level integers/floats → raw digits
+        if isinstance(c, (IntegerNode, FloatNode)):
+            snippet = c.value
+            print(f"[DEBUG EXPR] AST numeric node: {snippet}")
+            parts.append(snippet)
+            continue
+
+        # 3) Raw Token integers/floats (just in case)
+        if isinstance(c, Token) and c.type in {"INTEGER", "FLOAT"}:
+            snippet = c.value
+            print(f"[DEBUG EXPR] Token numeric: {snippet}")
+            parts.append(snippet)
+            continue
+
+        # 4) Other tokens → normal converter
         if isinstance(c, Token):
             snippet = _tok_to_py(c, global_env, local_env, context)
-        elif isinstance(c, BaseNode) and hasattr(c, 'meta') and isinstance(c.meta, Token):
+            # strip accidental quotes around digit‐only strings
+            if (
+                snippet.startswith(("'", '"'))
+                and snippet.endswith(("'", '"'))
+                and snippet[1:-1].isdigit()
+            ):
+                snippet = snippet[1:-1]
+
+        # 5) AST nodes carrying a Token in .meta
+        elif isinstance(c, BaseNode) and hasattr(c, "meta") and isinstance(c.meta, Token):
             snippet = _tok_to_py(c.meta, global_env, local_env, context)
+
+        # 6) Other AST nodes → resolve then stringify
         elif isinstance(c, BaseNode):
             try:
                 c.resolve(global_env, local_env, context)
             except Exception:
                 pass
-            val = getattr(c, 'resolved', None) or getattr(c, 'value', None)
+            val = getattr(c, "resolved", None) or getattr(c, "value", None)
             if isinstance(val, str):
                 snippet = repr(val.strip('"\'')) 
             else:
                 snippet = str(val)
+
+        # 7) Fallback
         else:
             snippet = str(c)
+
         parts.append(snippet)
         print(f"[DEBUG EXPR] Part snippet: {snippet}")
 
-    # Build py_expr by direct concatenation (preserve '+' tokens from parts)
-    py_expr = ''.join(parts)
+    # Build py_expr by direct concatenation (preserve '+' tokens)
+    py_expr = "".join(parts)
     print(f"[DEBUG EXPR] Built py_expr: {py_expr}")
 
     # Static-only: no ${…}, so safe_eval
     if "${" not in py_expr:
         try:
-            # **Changed:** return the raw evaluated result (int, float, etc.)
             result = safe_eval(py_expr, local_env=local_env)
             print(f"[DEBUG EXPR] Static eval result: {result}")
             return result
@@ -173,15 +211,18 @@ def evaluate_expression_tree(
             return py_expr
 
     # Mixed dynamic: preserve ${…}
-    placeholder_idxs = [idx for idx, part in enumerate(parts) if isinstance(part, str) and part.startswith('${')]
+    placeholder_idxs = [
+        idx for idx, part in enumerate(parts)
+        if isinstance(part, str) and part.startswith("${")
+    ]
     if placeholder_idxs:
         i0 = placeholder_idxs[0]
-        if i0 > 0 and parts[i0-1] == '+':
-            static_parts = parts[:i0-1]
+        if i0 > 0 and parts[i0 - 1] == "+":
+            static_parts = parts[: i0 - 1]
         else:
             static_parts = parts[:i0]
         placeholder_text = parts[i0]
-        static_expr = ''.join(static_parts)
+        static_expr = "".join(static_parts)
         try:
             static_value = str(safe_eval(static_expr, local_env=local_env))
         except Exception as e:
@@ -193,6 +234,9 @@ def evaluate_expression_tree(
 
     # No placeholders detected, fallback
     return py_expr
+
+
+
 
 # ───────────────────── used by Config.render fallback ─────────────────────
 def _render_folded_expression_node(
