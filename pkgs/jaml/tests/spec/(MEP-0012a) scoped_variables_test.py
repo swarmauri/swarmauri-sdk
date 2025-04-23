@@ -168,7 +168,7 @@ file = f"${path}/config.toml"
     ctx = {"path": "/render-time"}
     data = round_trip_loads(toml_str)
     rendered = data.render(context=ctx)
-    reserialized = rendered.dumps()
+    reserialized = data.dumps()
     assert "/render-time/config.toml" in reserialized
 
 @pytest.mark.spec

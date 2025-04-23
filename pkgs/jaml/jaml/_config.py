@@ -264,7 +264,7 @@ class Config(MutableMapping):
         def _eval_fstrings(mapping: Dict[str, Any]):
             for key, val in list(mapping.items()):
                 if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
-                    # Skip context-scoped placeholders (${...}), only expand static f-strings
+                    # Skip context-scoped placeholders (${…}), only expand static f-strings
                     if '${' not in val:
                         mapping[key] = _evaluate_f_string(
                             val,
@@ -279,15 +279,21 @@ class Config(MutableMapping):
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
         import re
 
-        # ② expand conditional headers (unchanged)
+        # ② expand conditional headers
         for node in list(self._ast.lines):
+            # Plain [ … ] sections
             if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
                 raw_key = node.header.value
-                expr = node.header.origin
+                expr    = node.header.origin
 
                 def _scoped_repl(m):
                     var = m.group(1)
-                    return repr(self._data.get(var)) if var in self._data else "None"
+                    if var in self._data:
+                        v = self._data[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')      # ➞ strip any surrounding quotes
+                        return repr(v)
+                    return "None"
 
                 expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr)
                 expr_py = expr_py.replace('null', 'None')
@@ -301,16 +307,22 @@ class Config(MutableMapping):
                 else:
                     section_map = self._data.pop(raw_key, None)
                     self._data[result] = section_map
-                    node.header.value = result
+                    node.header.value  = result
                     node.header.origin = result
 
+            # [[ … ]] table-array sections
             if isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
                 raw_key = node.header.value
-                expr = node.header.origin
+                expr    = node.header.origin
 
                 def _scoped_repl(m):
                     var = m.group(1)
-                    return repr(self._data.get(var)) if var in self._data else "None"
+                    if var in self._data:
+                        v = self._data[var]
+                        if isinstance(v, str):
+                            v = v.strip('"\'')
+                        return repr(v)
+                    return "None"
 
                 expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr)
                 expr_py = expr_py.replace('null', 'None')
@@ -324,11 +336,10 @@ class Config(MutableMapping):
                 else:
                     section_map = self._data.pop(raw_key, None)
                     self._data[result] = section_map
-                    node.header.value = result
+                    node.header.value  = result
                     node.header.origin = result
 
-        # ──────────────────────────────────────────────────────────────
-        # collapse all AST nodes and produce plain Python values
+        # ③ collapse all AST nodes into plain Python values
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
 
@@ -419,7 +430,8 @@ class Config(MutableMapping):
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Finish expanding f-strings and scoped placeholders using the provided context,
-        evaluate list- and dict-comprehensions, and return a fully-resolved mapping.
+        evaluate list- and dict-comprehensions, strip surrounding quotes from plain strings,
+        and return a fully-resolved mapping.
         """
         from ._fstring import _evaluate_f_string
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode
@@ -427,7 +439,7 @@ class Config(MutableMapping):
 
         context = context or {}
 
-        # Step 1: fully collapse the AST into Python values (like resolve+collapse)
+        # Step 1: fully collapse the AST into Python values (like resolve+collapse)
         def _collapse(val: Any, scope: Dict[str, Any]) -> Any:
             from ._ast_nodes import BaseNode
             if isinstance(val, BaseNode):
@@ -450,7 +462,7 @@ class Config(MutableMapping):
             else:
                 collapsed[key] = _collapse(val, self._data)
 
-        # Step 2: evaluate any leftover list‑ or dict‑comprehension strings
+        # Step 2: evaluate any leftover list- or dict-comprehension strings
         list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
         dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
 
@@ -460,15 +472,12 @@ class Config(MutableMapping):
             if isinstance(obj, list):
                 return [_eval_comprehensions(v) for v in obj]
             if isinstance(obj, str):
-                # List comprehensions can be eval'd directly
                 if list_comp_pattern.match(obj):
                     try:
                         return eval(obj)
                     except Exception:
                         return obj
-                # Dict comprehensions need JAML’s '=' → Python’s ':' conversion
                 if dict_comp_pattern.match(obj):
-                    # Replace the first '=' before the 'for' with ':'
                     python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
                     try:
                         return eval(python_syntax)
@@ -478,7 +487,7 @@ class Config(MutableMapping):
 
         collapsed = _eval_comprehensions(collapsed)
 
-        # Step 3: expand any remaining f-strings with the context
+        # Step 3: expand any remaining f-strings with the context
         def _eval_context_fstrings(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_context_fstrings(v) for k, v in obj.items()}
@@ -491,4 +500,19 @@ class Config(MutableMapping):
                     return obj
             return obj
 
-        return _eval_context_fstrings(collapsed)
+        expanded = _eval_context_fstrings(collapsed)
+
+        # Step 4: strip surrounding quotes from plain strings
+        def _strip_quotes(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                return {k: _strip_quotes(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_strip_quotes(v) for v in obj]
+            if isinstance(obj, str) and len(obj) >= 2 and (
+                (obj.startswith('"') and obj.endswith('"')) or
+                (obj.startswith("'") and obj.endswith("'"))
+            ):
+                return obj[1:-1]
+            return obj
+
+        return _strip_quotes(expanded)
