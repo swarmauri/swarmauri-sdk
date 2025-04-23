@@ -1,0 +1,25 @@
+[project]
+name = "swarmauri_tool_searchword"
+version = "0.1.dev1"
+description = "A tool for searching for a specific word or phrase in a file and highlighting occurrences."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_searchword/"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+authors = [{ name = "Vijay Vignesh", email = "vijayvigneshp02@gmail.com" }]
+
+keywords = ["search", "highlight", "tool", "file", "text", "swarmauri"]
+
+[dependencies]
+pydantic = "*"
+swarmauri_base = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

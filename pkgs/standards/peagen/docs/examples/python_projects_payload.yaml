@@ -1,6 +1,6 @@
 PROJECTS:
-  - NAME: "AdvancedConversationalMemory"
-    ROOT: "pkgs"
+  - NAME: "SearchWordTool"
+    ROOT: "pkgs/community"
     TEMPLATE_SET: "pythonpkg"
     EXTRAS:
       REQUIREMENTS:
@@ -10,32 +10,32 @@ PROJECTS:
 
     PACKAGES:
       #-----------------------------------------------------
-      # 1) SessionContextController
+      # 1) swarmauri_tool_searchword
       #-----------------------------------------------------
-      - NAME: "SessionContextController"
+      - NAME: "swarmauri_tool_searchword"
         EXTRAS:
           AUTHORS:
-            - "Jacob Stewart"
-          PURPOSE: "Implement session-based context management for robust conversational continuity."
-          DESCRIPTION: "Maintains long-lived session context, ensuring consistent tracking of user data and topics across dialogue turns."
+            - "Vijay Vignesh Prasad Rao"
+          PURPOSE: "Implement a tool to search for specific word or phrase within a file and return its occurances."
+          DESCRIPTION: "Searches for a specific word or phrase in a file, highlights it and returns its occurances."
           REQUIREMENTS:
-            - "Handle session persistence with fallback to a robust data store if in-memory caching becomes too large."
-            - "Support concurrency at scale (i.e., safe to read/write from multiple threads)."
-            - "Allow session expiration and renewal policies to adapt to production needs."
+            - "Highlight the line where the word appears."
+            - "Return word or phrase count."
+            - "Support case insensitive search."
 
         MODULES:
-          - NAME: "SessionContextConv"
+          - NAME: "SearchWordTool"
             EXTRAS:
-              PURPOSE: "Maintain and update per-session conversation context."
-              DESCRIPTION: "Tracks conversation history within a session, leveraging concurrency-safe data structures for reliable context retrieval."
+              PURPOSE: "Search for a specific word or phrase in a file."
+              DESCRIPTION: "Searches for a word or a phrase in a file and highlights it along with generating the number of occurances in the file."
               REQUIREMENTS:
-              - "Implement session retrieval and update methods with locks or atomic operations to prevent race conditions."
-              - "Avoid duplicating conversation logs; instead, merge incremental user turns into a centralized store."
-              - "Allow developers to configure session size limits, with clear error-handling or trimming mechanisms when limits are reached."
-              RESOURCE_KIND: "conversations"
-              BASE_NAME: "ConversationBase"
-              BASE_FILE: "base/swarmauri_base/conversations/ConversationBase.py"
+              - "Highlight the line where the word appears."
+              - "Return word or phrase count."
+              - "Support case insensitive search."
+              RESOURCE_KIND: "tools"
+              BASE_NAME: "ToolBase"
+              BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
               EXAMPLES:
-              - "swarmauri_standard/swarmauri_standard/conversations/Conversation.py"
+              - "swarmauri_standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.py"
             
 
