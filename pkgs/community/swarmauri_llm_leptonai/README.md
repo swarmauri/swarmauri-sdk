@@ -1,13 +1,18 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_llm_leptonai)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_llm_leptonai)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_llm_leptonai)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_llm_leptonai?label=swarmauri_llm_leptonai&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_llm_leptonai/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_llm_leptonai" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_leptonai/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_leptonai.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_llm_leptonai/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_llm_leptonai" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_llm_leptonai/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_llm_leptonai" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_llm_leptonai/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_llm_leptonai?label=swarmauri_llm_leptonai&color=green" alt="PyPI - swarmauri_llm_leptonai"/></a>
+</p>
 
 ---
 

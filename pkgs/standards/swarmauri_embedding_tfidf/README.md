@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_embedding_tfidf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_embedding_tfidf)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_embedding_tfidf)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_embedding_tfidf?label=swarmauri_embedding_tfidf&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_embedding_tfidf" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_embedding_tfidf/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_embedding_tfidf.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_embedding_tfidf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_embedding_tfidf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_embedding_tfidf?label=swarmauri_embedding_tfidf&color=green" alt="PyPI - swarmauri_embedding_tfidf"/></a>
+</p>
 
 ---
 
-# TF-IDF Embedding
+# Swarmauri Embedding TFIDF
 
 A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
 

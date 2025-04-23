@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_matplotlib)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_matplotlib)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_matplotlib)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_matplotlib?label=swarmauri_tool_matplotlib&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_matplotlib" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_matplotlib/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_matplotlib.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_matplotlib" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_matplotlib" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_matplotlib?label=swarmauri_tool_matplotlib&color=green" alt="PyPI - swarmauri_tool_matplotlib"/></a>
+</p>
 
 ---
 
-# Matplotlib Tool Package
+# Swarmauri Tool Matplotlib
 
 A Swarmauri package that provides tools for generating plots using Matplotlib. Includes support for basic plots and CSV data visualization.
 

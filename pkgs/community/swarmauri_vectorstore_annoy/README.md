@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_annoy)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_annoy)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_annoy)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_annoy?label=swarmauri_vectorstore_annoy&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_annoy/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_annoy" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_annoy/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_annoy.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_annoy/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_annoy" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_annoy/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_annoy" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_annoy/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_annoy?label=swarmauri_vectorstore_annoy&color=green" alt="PyPI - swarmauri_vectorstore_annoy"/></a>
+</p>
 
 ---
 
-# Annoy Vector Store
+# Swarmauri VectorStore Annoy
 
 A vector store implementation using Annoy as the backend for efficient similarity search and nearest neighbor queries.
 

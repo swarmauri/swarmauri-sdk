@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_measurement_tokencountestimator)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_measurement_tokencountestimator)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_measurement_tokencountestimator)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_measurement_tokencountestimator?label=swarmauri_measurement_tokencountestimator&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_measurement_tokencountestimator/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_measurement_tokencountestimator" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_measurement_tokencountestimator/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_measurement_tokencountestimator.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_tokencountestimator/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_measurement_tokencountestimator" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_tokencountestimator/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_measurement_tokencountestimator" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_measurement_tokencountestimator/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_measurement_tokencountestimator?label=swarmauri_measurement_tokencountestimator&color=green" alt="PyPI - swarmauri_measurement_tokencountestimator"/></a>
+</p>
 
 ---
 
-# Token Count Estimator Measurement
+# Swarmauri Measurement Token Count Estimator
 
 A measurement class to estimate the number of tokens in a given text.
 

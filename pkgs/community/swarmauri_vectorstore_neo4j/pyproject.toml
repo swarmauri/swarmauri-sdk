@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_neo4j"
-version = "0.7.0"
+version = "0.7.4.dev1"
 description = "Swarmauri Neo4j Vector Store"
 license = "Apache-2.0"
 readme = "README.md"
@@ -36,6 +36,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
 log_cli = true
@@ -44,7 +45,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.vector_stores"]
+[project.entry-points.'swarmauri.vector_stores']
 Neo4jVectorStore = "swarmauri_vectorstore_neo4j.Neo4jVectorStore:Neo4jVectorStore"
 
 [build-system]
@@ -63,4 +64,5 @@ dev = [
     "flake8>=7.0",
     "pytest-mock>=3.14.0",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

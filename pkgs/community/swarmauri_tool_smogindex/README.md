@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_smogindex)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_smogindex)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_smogindex)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_smogindex?label=swarmauri_tool_smogindex&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_smogindex/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_smogindex" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_smogindex/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_smogindex.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_smogindex/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_smogindex" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_smogindex/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_smogindex" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_smogindex/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_smogindex?label=swarmauri_tool_smogindex&color=green" alt="PyPI - swarmauri_tool_smogindex"/></a>
+</p>
 
 ---
 
-# SMOG Index Tool
+# Swarmauri Tool Smog Index
 
 A tool for calculating the SMOG (Simple Measure of Gobbledygook) Index of text, which estimates the years of education needed to understand a piece of written material.
 

@@ -1,13 +1,18 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_state_clipboard)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_state_clipboard)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_state_clipboard)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_state_clipboard?label=swarmauri_state_clipboard&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_state_clipboard/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_state_clipboard" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_state_clipboard/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_state_clipboard.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_state_clipboard/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_state_clipboard" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_state_clipboard/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_state_clipboard" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_state_clipboard/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_state_clipboard?label=swarmauri_state_clipboard&color=green" alt="PyPI - swarmauri_state_clipboard"/></a>
+</p>
 
 ---
 

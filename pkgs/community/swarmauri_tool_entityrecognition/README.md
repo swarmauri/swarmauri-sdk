@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_tool_entityrecognition)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_tool_entityrecognition)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_tool_entityrecognition)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_tool_entityrecognition?label=swarmauri_tool_entityrecognition&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_entityrecognition/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_entityrecognition" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_entityrecognition/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_entityrecognition.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_entityrecognition/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_entityrecognition" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_entityrecognition/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_entityrecognition" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_entityrecognition/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_entityrecognition?label=swarmauri_tool_entityrecognition&color=green" alt="PyPI - swarmauri_tool_entityrecognition"/></a>
+</p>
 
 ---
 
-# Entity Recognition Tool
+# Swarmauri Tool Entity Recognition
 
 A Swarmauri tool that extracts named entities from text using a pre-trained NLP model.
 
@@ -38,7 +43,6 @@ text = "Apple Inc. is an American multinational technology company."
 result = tool(text=text)
 
 # The result will contain entities in JSON format
-# Example output: {"I-ORG": ["Apple", "Inc"], "I-MISC": ["American"]}
 print(result["entities"])
 ```
 

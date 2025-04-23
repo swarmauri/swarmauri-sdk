@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_vectorstore_neo4j)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_neo4j)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_vectorstore_neo4j)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_vectorstore_neo4j?label=swarmauri_vectorstore_neo4j&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_vectorstore_neo4j" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_neo4j/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_neo4j.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_neo4j" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_neo4j" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_neo4j?label=swarmauri_vectorstore_neo4j&color=green" alt="PyPI - swarmauri_vectorstore_neo4j"/></a>
+</p>
 
 ---
 
-# Neo4j Vector Store
+# Swarmauri Vectorstore Neo4j
 
 A Neo4j-based vector store implementation for Swarmauri SDK, providing document storage and retrieval functionality using Neo4j graph database.
 

@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri_parser_pypdf2)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri_parser_pypdf2)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri_parser_pypdf2)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri_parser_pypdf2?label=swarmauri_parser_pypdf2&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_parser_pypdf2/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_parser_pypdf2" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_parser_pypdf2/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_parser_pypdf2.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdf2/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_pypdf2" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdf2/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_pypdf2" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_pypdf2/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_pypdf2?label=swarmauri_parser_pypdf2&color=green" alt="PyPI - swarmauri_parser_pypdf2"/></a>
+</p>
 
 ---
 
-# Swarmauri PyPDF2 Parser
+# Swarmauri Parser PyPDF2
 
 A parser for reading and extracting text from PDF files using PyPDF2.
 

@@ -1,17 +1,22 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-<div align="center">
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/swarmauri-parser-bertembedding)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/swarmauri-parser-bertembedding)
-![PyPI - License](https://img.shields.io/pypi/l/swarmauri-parser-bertembedding)
-![PyPI - Version](https://img.shields.io/pypi/v/swarmauri-parser-bertembedding?label=swarmauri-parser-bertembedding&color=green)
-
-</div>
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_parser_bertembedding/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_parser_bertembedding" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_parser_bertembedding/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_parser_bertembedding.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_bertembedding/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_bertembedding" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_bertembedding/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_bertembedding" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_bertembedding/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_bertembedding?label=swarmauri_parser_bertembedding&color=green" alt="PyPI - swarmauri_parser_bertembedding"/></a>
+</p>
 
 ---
 
-# Swarmauri BERT Embedding Parser
+# Swarmauri Parser Bert Embedding
 
 A parser that transforms input text into document embeddings using BERT.
 

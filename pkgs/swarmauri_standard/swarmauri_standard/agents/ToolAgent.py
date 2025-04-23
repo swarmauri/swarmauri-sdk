@@ -1,6 +1,6 @@
 import logging
 from pydantic import ConfigDict
-from typing import Any, Optional, Union, Dict, Literal
+from typing import Any, Optional, Union, Dict, Literal, List
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_base.agents.AgentBase import AgentBase
@@ -12,7 +12,7 @@ from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 
 from swarmauri_core.messages import IMessage
-from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "ToolAgent")
@@ -26,6 +26,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     def exec(
         self,
         input_data: Optional[Union[str, IMessage]] = "",
+        multiturn: bool = True,
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
         # Check if the input is a string, then wrap it in a HumanMessage
@@ -41,7 +42,10 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
         # predict a response
         self.conversation = self.llm.predict(
-            conversation=self.conversation, toolkit=self.toolkit, **llm_kwargs
+            conversation=self.conversation,
+            toolkit=self.toolkit,
+            multiturn=multiturn,
+            **llm_kwargs,
         )
 
         logging.info(self.conversation.get_last().content)
@@ -51,6 +55,7 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
     async def aexec(
         self,
         input_data: Optional[Union[str, IMessage]] = "",
+        multiturn: bool = True,
         llm_kwargs: Optional[Dict] = {},
     ) -> Any:
         # Check if the input is a string, then wrap it in a HumanMessage
@@ -65,5 +70,13 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         self.conversation.add_message(human_message)
 
         # Use the LLM in async mode
-        await self.llm.apredict(conversation=self.conversation, **llm_kwargs)
+        await self.llm.apredict(
+            conversation=self.conversation,
+            toolkit=self.toolkit,
+            multiturn=multiturn,
+            **llm_kwargs,
+        )
         return self.conversation.get_last().content
+
+    def get_tool_message_content(self) -> List[str]:
+        return [m.content for m in self.conversation.history if m.role == "tool"]
