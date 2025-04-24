@@ -11,11 +11,13 @@ from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverter
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_core.conversations.IConversation import IConversation
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
@@ -209,9 +211,9 @@ class GeminiToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,

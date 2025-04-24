@@ -132,19 +132,19 @@ print(swarmauri.__version__)
 
 After installation:
 
-1. Check out our [Quickstart Guide](../guide/quickstart.md)
-2. Review [API Documentation](../api/index.md)
-3. Try our [Examples](../examples/index.md)
-4. Join our [Community](../community/index.md)
+1. Check out our [Quickstart Guide](../guide/usage.md)
+2. Review [API Documentation](../api/concepts.md)
+3. Try our [Courses](../guide/courses.md)
+4. Join our [Community](https://discord.gg/swarmauri)
 
 !!! tip "Getting Started"
-    The [Quickstart Guide](../guide/quickstart.md) is the best place to begin your journey with Swarmauri SDK.
+    The [Quickstart Guide](../guide/usage.md) is the best place to begin your journey with Swarmauri SDK.
 
 ## Getting Help
 
 If you run into issues:
 
-1. Check our [FAQ](../faq.md)
+1. Check our [FAQ](../guide/faq.md)
 2. Visit our [GitHub Issues](https://github.com/swarmauri/swarmauri-sdk/issues)
 3. Join our [Discord Community](https://discord.gg/swarmauri)
 

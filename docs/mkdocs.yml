@@ -112,24 +112,10 @@ nav:
   - guide/index.md
   - Installation: guide/installation.md
   - Usage: guide/usage.md
-  - Courses:
-    - guide/index.md
-    - Entry: guide/course/1.md
-    - Generative AI: guide/course/2.md
-    - Tool: guide/course/3.md
+  - Courses: guide/courses.md
   - FAQ: guide/faq.md
-- Concept:
-  - concept/index.md
-  - Core: concept/core.md
-  - Base: concept/base.md
-  - Standard: concept/standard.md
-  - Swarmauri: concept/swarmauri.md
 - API Documentation:
-  - api/index.md
-  - Third Class:
-    - api/third_class/index.md
-    - Module 1: api/third_class/module1.md
-    - Module 2: api/third_class/module2.md
+  - api/concepts.md
   - Standard:
     - Home: api/standard/index.md
     - Agents:
@@ -568,14 +554,9 @@ nav:
       - IPredictVision: api/core/swarmauri_core/vlms/IPredictVision.md
   - First_Class:
     - Home: api/first_class/index.md
-    - MinkowskiDistance: api/first_class/swarmauri_distance_minkowski/MinkowskiDistance.md
   - Second_Class:
     - Home: api/second_class/index.md
-    - Mlmembedding:
-      - MlmEmbedding: api/second_class/swarmauri_embedding_mlm/MlmEmbedding.md
-- Blog:
-  - blog/index.md
-  - News: blog/news.md
-  - Events: blog/events.md
-  - Releases: blog/releases.md
+  - Third Class:
+    - Home: api/third_class/index.md
+- Blog: blog/index.md
 - Swarmauri People: people/index.md

@@ -26,7 +26,7 @@ class IChain(ABC):
     """
 
     @abstractmethod
-    def add_step(self, step: IChainStep, **kwargs) -> None:
+    def add_step(self, step: IChainStep, **kwargs: dict[str, Any]) -> None:
         """
         Adds a new step to the chain. Steps are executed in the order they are added.
         Each step is represented by a Callable, which can be a function or method, with
@@ -51,7 +51,7 @@ class IChain(ABC):
         pass
 
     @abstractmethod
-    def execute(self, *args, **kwargs) -> Dict[str, Any]:
+    def execute(self, *args: tuple[Any, ...], **kwargs: dict[str, Any]) -> Dict[str, Any]:
         """
         Initiates the execution of the chain. This involves invoking each step in the order
         they have been added to the chain, passing control from one step to the next, and optionally

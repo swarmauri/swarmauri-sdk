@@ -1,6 +1,6 @@
 import asyncio
 import time
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
@@ -42,7 +42,7 @@ class FalVLM(VLMBase):
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]) -> None:
         """
         Initialize the FalOCR with API key, HTTP clients, and model name validation.
 
@@ -59,14 +59,14 @@ class FalVLM(VLMBase):
         self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
+    def _send_request(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> Dict:
         """
         Send a synchronous request to the vision model API for image processing.
 
         Args:
             image_url (str): The URL of the image to process.
             prompt (str): The question or instruction to apply to the image.
-            **kwargs: Additional parameters for the API request.
+            **kwargs (dict[str, Any]): Additional parameters for the API request.
 
         Returns:
             Dict: The result of the image processing request.
@@ -84,14 +84,14 @@ class FalVLM(VLMBase):
         return response_data  # For immediate responses
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def _async_send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
+    async def _async_send_request(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> Dict:
         """
         Send an asynchronous request to the vision model API for image processing.
 
         Args:
             image_url (str): The URL of the image to process.
             prompt (str): The question or instruction to apply to the image.
-            **kwargs: Additional parameters for the API request.
+            **kwargs: dict[str, Any]: Additional parameters for the API request.
 
         Returns:
             Dict: The result of the image processing request.
@@ -207,14 +207,14 @@ class FalVLM(VLMBase):
         response_data = await self._async_send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    def batch(self, image_urls: List[str], prompts: List[str], **kwargs) -> List[str]:
+    def batch(self, image_urls: List[str], prompts: List[str], **kwargs: dict[str, Any]) -> List[str]:
         """
         Process a batch of images and answer questions for each image synchronously.
 
         Args:
             image_urls (List[str]): A list of image URLs to process.
             prompts (List[str]): A list of prompts corresponding to each image.
-            **kwargs: Additional parameters for the API requests.
+            **kwargs (dict[str, Any]): Additional parameters for the API requests.
 
         Returns:
             List[str]: A list of answers or results for each image.
@@ -225,7 +225,7 @@ class FalVLM(VLMBase):
         ]
 
     async def abatch(
-        self, image_urls: List[str], prompts: List[str], **kwargs
+        self, image_urls: List[str], prompts: List[str], **kwargs: dict[str, Any]
     ) -> List[str]:
         """
         Asynchronously process a batch of images and answer questions for each image.
@@ -233,7 +233,7 @@ class FalVLM(VLMBase):
         Args:
             image_urls (List[str]): A list of image URLs to process.
             prompts (List[str]): A list of prompts corresponding to each image.
-            **kwargs: Additional parameters for the API requests.
+            **kwargs: (dict[str, Any]): Additional parameters for the API requests.
 
         Returns:
             List[str]: A list of answers or results for each image.
