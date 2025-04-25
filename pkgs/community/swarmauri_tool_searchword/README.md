@@ -1,73 +1,97 @@
+![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tool_searchword/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_searchword" alt="PyPI - Downloads"/></a>
+    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/community/swarmauri_tool_searchword">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/community/swarmauri_tool_searchword&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_searchword">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_searchword" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_searchword">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_searchword" alt="PyPI - License"/></a>
+    <br />
+    <a href="https://pypi.org/project/swarmauri/swarmauri_tool_searchword">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_searchword?label=swarmauri_tool_searchword&color=green" alt="PyPI - swarmauri_tool_searchword"/></a>
+</p>
+
+---
+
 # `swarmauri_tool_searchword`
 
 ## Installation
 
-To install the `swarmauri_tool_searchword` package, ensure you have Python 3.10 or newer installed on your system. You can use `pip` to install the package along with its dependencies. Open your terminal and run the following command:
+To install the `swarmauri_tool_searchword` package, you can use pip. Ensure that you have Python 3.10 or newer installed on your system. You can install the package directly from PyPI using the following command:
 
 ```bash
 pip install swarmauri_tool_searchword
 ```
 
-This command will automatically install the package and all required dependencies as specified in the `pyproject.toml` file.
+If you are using Poetry for dependency management, you can add it to your project by executing:
+
+```bash
+poetry add swarmauri_tool_searchword
+```
 
 ### Dependencies
-The `swarmauri_tool_searchword` package requires the following dependencies:
-- `pydantic`: A data validation and settings management library.
-- `swarmauri_base`: The base package that provides foundational tools.
 
-Make sure these dependencies are installed correctly. If you run into issues, please check your Python and `pip` installation.
+The `swarmauri_tool_searchword` package has the following dependencies that will be installed automatically:
+
+- `pydantic`
+- `requests`
+
+For development, you may also want to install the following additional packages:
+
+- `flake8` for linting
+- `pytest` and associated plugins for testing
+
+You can install these by adding the following to your `pyproject.toml` under the `[tool.poetry.group.dev.dependencies]` section:
+
+```toml
+flake8 = "^7.0"
+pytest = "^8.0"
+pytest-asyncio = ">=0.24.0"
+pytest-xdist = "^3.6.1"
+pytest-json-report = "^1.5.0"
+python-dotenv = "*"
+```
 
 ## Usage 
 
-Once the package is installed, you can use the `SearchWordTool` class to search for a specific word or phrase in a text file. Below is a detailed example of how to use the tool:
+The `swarmauri_tool_searchword` package provides a single class, `SearchWordTool`, to search for specific words or phrases within a file. Below is an example of how to use it.
 
-### Example Usage
-
-1. **Import the Tool**
-   First, you need to import the `SearchWordTool` from the package:
-
-   ```python
-   from swarmauri_tool_searchword import SearchWordTool
-   ```
-
-2. **Create an Instance of the Tool**
-   Create an instance of `SearchWordTool`:
-
-   ```python
-   search_tool = SearchWordTool()
-   ```
-
-3. **Call the Tool with Required Parameters**
-   Use the `__call__` method of the `SearchWordTool` instance to search for the word or phrase. Provide the file path and the word you want to search:
-
-   ```python
-   result = search_tool(file_path='path/to/your/file.txt', search_word='your_search_word')
-   ```
-
-4. **Process the Result**
-   The `result` will be a dictionary containing the highlighted lines and the count of occurrences:
-
-   ```python
-   print(f"Found {result['count']} occurrences.")
-   for line in result['highlighted_lines']:
-       print(line)
-   ```
-
-### Error Handling
-The tool has built-in error handling. If you provide an invalid file path or an invalid search word, it will raise appropriate exceptions.
-
-- `FileNotFoundError`: Raised if the specified file does not exist.
-- `ValueError`: Raised if the input parameters are invalid.
-
-Make sure to handle these exceptions in your application to ensure a smooth user experience.
-
-### Logging
-The tool uses Python's built-in `logging` module to log information about the search process. You can adjust the logging level by configuring the `logging` settings in your application.
+### Example
 
 ```python
-import logging
+from swarmauri_tool_searchword import SearchWordTool
 
-logging.basicConfig(level=logging.DEBUG)  # Set to DEBUG for more detailed logs
+# Create an instance of the SearchWordTool
+search_tool = SearchWordTool()
+
+# Specify the file path and the search word
+file_path = 'path/to/your/file.txt'
+search_word = 'your_search_term'
+
+# Execute the search
+try:
+    result = search_tool(file_path=file_path, search_word=search_word)
+    print(f"Occurrences of '{search_word}': {result['count']}")
+    for line in result['lines']:
+        print(line)
+except ValueError as e:
+    print(f"An error occurred: {e}")
+except FileNotFoundError as e:
+    print(f"File not found: {e}")
 ```
 
-With these steps and considerations, you can effectively integrate and use the `swarmauri_tool_searchword` package in your projects to search and highlight specific terms in text files.
+### Functionality
+
+1. **Create an Instance**: Instantiate the `SearchWordTool` class.
+2. **Specify Parameters**: Provide the file path and the word or phrase you want to search.
+3. **Execute the Search**: Call the instance with the specified parameters to get the occurrences.
+4. **Handle Errors**: Use try-except blocks to handle potential errors such as invalid input or file not found.
+
+This package highlights the occurrences of the search term in the output, making it easy to identify where the term appears in the text.
+
+### Logging
+
+The tool uses Python's built-in logging module to log important actions and errors. Make sure to configure logging in your application to see the log messages. You can set the logging level as needed, such as `logging.DEBUG` or `logging.INFO`.

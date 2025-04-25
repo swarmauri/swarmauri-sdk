@@ -55,7 +55,7 @@ class SearchWordTool(ToolBase):
                 
                 occurrences, count_occurances = self.search_in_file(text, search_word)
                 logger.info(f"Found {count_occurances} occurrences of '{search_word}' in {file_path}.")
-                return {"highlighted_lines": occurrences, "count": count_occurances}
+                return {"lines": occurrences, "count": count_occurances}
             except FileNotFoundError as e:
                 logger.error(f"File not found: {file_path}")
                 raise e

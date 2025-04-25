@@ -1,25 +1,52 @@
-[project]
+[tool.poetry]
 name = "swarmauri_tool_searchword"
 version = "0.1.dev1"
-description = "A tool for searching for a specific word or phrase in a file and highlighting occurrences."
+description = "A tool for searching a specific word or phrase in a file."
+authors = ["Vijay Vignesh Prasad Rao <vijayvigneshp02@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_searchword/"
-requires-python = ">=3.10,<3.13"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/community/swarmauri_tool_searchword/"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha"
 ]
-authors = [{ name = "Vijay Vignesh", email = "vijayvigneshp02@gmail.com" }]
+keywords = ["search", "tool", "word", "phrase", "file", "highlight", "swarmauri"]
 
-keywords = ["search", "highlight", "tool", "file", "text", "swarmauri"]
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
 
-[dependencies]
+# Dependencies
 pydantic = "*"
-swarmauri_base = "*"
+requests = "*"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0"
+pytest = "^8.0"
+pytest-asyncio = ">=0.24.0"
+pytest-xdist = "^3.6.1"
+pytest-json-report = "^1.5.0"
+python-dotenv = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.poetry.plugins."swarmauri.tools"]
+SearchWordTool = "swarmauri_tool_searchword:SearchWordTool"
