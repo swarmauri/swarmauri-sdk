@@ -18,6 +18,8 @@
 
 # `swarmauri_tool_searchword`
 
+A tool for extracting the number of occurances of a word or phrase (case insensitive) within a file. 
+
 ## Installation
 
 To install the `swarmauri_tool_searchword` package, you can use pip. Ensure that you have Python 3.10 or newer installed on your system. You can install the package directly from PyPI using the following command:
