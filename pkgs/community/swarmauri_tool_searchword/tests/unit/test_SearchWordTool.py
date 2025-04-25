@@ -34,7 +34,7 @@ def test_serialization():
             "test_file.txt",
             "sample",
             {
-                "highlighted_lines": [
+                "lines": [
                     "\x1b[1;31mThis is a sample text.\x1b[0m",
                     "Another line.",
                 ],
@@ -45,7 +45,7 @@ def test_serialization():
             "test_file.txt",
             "a sample",
             {
-                "highlighted_lines": [
+                "lines": [
                     "\x1b[1;31mThis is a sample text.\x1b[0m",
                     "Another line.",
                 ],
@@ -56,7 +56,7 @@ def test_serialization():
             "test_file.txt",
             "nonexistent",
             {
-                "highlighted_lines": ["This is a sample text.", "Another line."],
+                "lines": ["This is a sample text.", "Another line."],
                 "count": 0,
             },
         ),
@@ -74,10 +74,10 @@ def test_call(file_path, search_word, expected):
         mock_file.assert_called_once()
 
         assert isinstance(
-            result["highlighted_lines"], list
-        ), f"Expected list, but got {type(result['highlighted_lines']).__name__}"
-        assert len(result["highlighted_lines"]) == len(expected["highlighted_lines"])
-        assert result["highlighted_lines"] == expected["highlighted_lines"]
+            result["lines"], list
+        ), f"Expected list, but got {type(result['lines']).__name__}"
+        assert len(result["lines"]) == len(expected["lines"])
+        assert result["lines"] == expected["lines"]
         assert isinstance(
             result["count"], int
         ), f"Expected int, but got {type(result['count']).__name__}"
