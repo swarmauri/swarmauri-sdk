@@ -2,13 +2,13 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -35,10 +35,11 @@ class MistralToolModel(LLMBase):
     It supports processing single and batch conversations, as well as streaming responses.
 
     Attributes:
-        api_key (str): The API key for authenticating requests with the Mistral API.
+        api_key (SecretStr): The API key for authenticating requests with the Mistral API.
         allowed_models (List[str]): A list of supported model names for the Mistral API.
         name (str): The default model name to use for predictions.
         type (Literal["MistralToolModel"]): The type identifier for the model.
+        timeout (float): Maximum time to wait for API responses in seconds.
 
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
@@ -52,12 +53,12 @@ class MistralToolModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Any) -> None:
         """
-        Initializes the GroqToolModel instance, setting up headers for API requests.
+        Initializes the MistralToolModel instance, setting up headers for API requests.
 
         Parameters:
-            **data: Arbitrary keyword arguments for initialization.
+            **data (Any): Arbitrary keyword arguments for initialization.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -73,12 +74,12 @@ class MistralToolModel(LLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Convert a dictionary of tools to the schema format required by Mistral API.
 
         Args:
-            tools (dict): A dictionary of tool objects.
+            tools (Dict[str, Any]): A dictionary of tool objects.
 
         Returns:
             List[Dict[str, Any]]: A list of converted tool schemas.
@@ -130,10 +131,10 @@ class MistralToolModel(LLMBase):
     def predict(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
     ) -> Conversation:
         """
@@ -141,8 +142,8 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation object.
-            toolkit (Optional): The toolkit for tool assistance.
-            tool_choice (Optional): The tool choice strategy (default is "auto").
+            toolkit (Optional[Any]): The toolkit for tool assistance.
+            tool_choice (Optional[str]): The tool choice strategy (default is "auto").
             temperature (float): The temperature for response variability.
             max_tokens (int): The maximum number of tokens for the response.
             safe_prompt (bool): Whether to use a safer prompt.
@@ -207,10 +208,10 @@ class MistralToolModel(LLMBase):
     async def apredict(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
     ) -> Conversation:
         """
@@ -218,8 +219,8 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation object.
-            toolkit (Optional): The toolkit for tool assistance.
-            tool_choice (Optional): The tool choice strategy.
+            toolkit (Optional[Any]): The toolkit for tool assistance.
+            tool_choice (Optional[str]): The tool choice strategy.
             temperature (float): The temperature for response variability.
             max_tokens (int): The maximum number of tokens for the response.
             safe_prompt (bool): Whether to use a safer prompt.
@@ -281,10 +282,10 @@ class MistralToolModel(LLMBase):
     def stream(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
     ) -> Iterator[str]:
         """
@@ -295,8 +296,8 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation object containing the message history.
-            toolkit (Optional): The toolkit for tool assistance, providing external tools to be invoked.
-            tool_choice (Optional): The tool choice strategy, such as "auto" or "manual".
+            toolkit (Optional[Any]): The toolkit for tool assistance, providing external tools to be invoked.
+            tool_choice (Optional[str]): The tool choice strategy, such as "auto" or "manual".
             temperature (float): The sampling temperature for response variability.
             max_tokens (int): The maximum number of tokens to generate in the response.
             safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
@@ -377,10 +378,10 @@ class MistralToolModel(LLMBase):
     async def astream(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
     ) -> AsyncIterator[str]:
         """
@@ -391,8 +392,8 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversation (Conversation): The conversation object containing the message history.
-            toolkit (Optional): The toolkit for tool assistance, providing external tools to be invoked.
-            tool_choice (Optional): The tool choice strategy, such as "auto" or "manual".
+            toolkit (Optional[Any]): The toolkit for tool assistance, providing external tools to be invoked.
+            tool_choice (Optional[str]): The tool choice strategy, such as "auto" or "manual".
             temperature (float): The sampling temperature for response variability.
             max_tokens (int): The maximum number of tokens to generate in the response.
             safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
@@ -472,10 +473,10 @@ class MistralToolModel(LLMBase):
     def batch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
     ) -> List[Conversation]:
         """
@@ -483,11 +484,11 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
-            temperature (float, optional): Sampling temperature for response generation.
-            max_tokens (int, optional): Maximum tokens for the response.
-            top_p (int, optional): Nucleus sampling parameter.
-            enable_json (bool, optional): If True, enables JSON output format.
-            safe_prompt (bool, optional): If True, enables safe prompting.
+            toolkit (Optional[Any]): The toolkit for tool assistance.
+            tool_choice (Optional[str]): The tool choice strategy.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum tokens for the response.
+            safe_prompt (bool): If True, enables safe prompting.
 
         Returns:
             List[Conversation]: List of updated conversations with generated responses.
@@ -507,10 +508,10 @@ class MistralToolModel(LLMBase):
     async def abatch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         safe_prompt: bool = False,
         max_concurrent: int = 5,
     ) -> List[Conversation]:
@@ -519,19 +520,19 @@ class MistralToolModel(LLMBase):
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
-            temperature (float, optional): Sampling temperature for response generation.
-            max_tokens (int, optional): Maximum tokens for the response.
-            top_p (int, optional): Nucleus sampling parameter.
-            enable_json (bool, optional): If True, enables JSON output format.
-            safe_prompt (bool, optional): If True, enables safe prompting.
-            max_concurrent (int, optional): Maximum number of concurrent tasks.
+            toolkit (Optional[Any]): The toolkit for tool assistance.
+            tool_choice (Optional[str]): The tool choice strategy.
+            temperature (float): Sampling temperature for response generation.
+            max_tokens (int): Maximum tokens for the response.
+            safe_prompt (bool): If True, enables safe prompting.
+            max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
             List[Conversation]: List of updated conversations with generated responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv) -> Conversation:
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,
