@@ -177,14 +177,14 @@ class FalVLM(VLMBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
-    def predict_vision(self, image_url: str, prompt: str, **kwargs) -> str:
+    def predict_vision(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> str:
         """
         Process an image and answer a question based on the prompt.
 
         Args:
             image_url (str): The URL of the image to process.
             prompt (str): The question or instruction to apply to the image.
-            **kwargs: Additional parameters for the API request.
+            **kwargs (dict[str, Any]): Additional parameters for the API request.
 
         Returns:
             str: The answer or result of the image processing.
@@ -192,14 +192,14 @@ class FalVLM(VLMBase):
         response_data = self._send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    async def apredict_vision(self, image_url: str, prompt: str, **kwargs) -> str:
+    async def apredict_vision(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> str:
         """
         Asynchronously process an image and answer a question based on the prompt.
 
         Args:
             image_url (str): The URL of the image to process.
             prompt (str): The question or instruction to apply to the image.
-            **kwargs: Additional parameters for the API request.
+            **kwargs (dict[str, Any]): Additional parameters for the API request.
 
         Returns:
             str: The answer or result of the image processing.

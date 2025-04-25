@@ -316,7 +316,7 @@ class ToolLLM(ToolLLMBase):
         Parameters:
             conversation (Conversation): Conversation instance with message history.
             toolkit (Tookit): Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            tool_choice (dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -386,10 +386,9 @@ class ToolLLM(ToolLLMBase):
         Args:
             conversations (List[Conversation]): List of conversations to process.
             temperature (float): Sampling temperature for response diversity.
+            tool_choice dict[str, Any]): Tool selection strategy.
+            toolkit (Tookit): Optional toolkit for tool conversion.
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
             List[IConversation]: List of updated conversations with model responses.
@@ -412,7 +411,7 @@ class ToolLLM(ToolLLMBase):
         tool_choice: dict[str, Any],
         temperature: float = 0.7,
         max_tokens: int = 1024,
-        max_concurrent=5,
+        max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
         Async method for processing a batch of conversations concurrently.
@@ -420,10 +419,9 @@ class ToolLLM(ToolLLMBase):
         Args:
             conversations (List[Conversation]): List of conversations to process.
             temperature (float): Sampling temperature for response diversity.
+            tool_choice (dict[str, Any]): Tool selection strategy.
+            toolkit (Tookit): Optional toolkit for tool conversion.s
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
