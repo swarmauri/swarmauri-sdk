@@ -34,29 +34,6 @@ If you are using Poetry for dependency management, you can add it to your projec
 poetry add swarmauri_tool_searchword
 ```
 
-### Dependencies
-
-The `swarmauri_tool_searchword` package has the following dependencies that will be installed automatically:
-
-- `pydantic`
-- `requests`
-
-For development, you may also want to install the following additional packages:
-
-- `flake8` for linting
-- `pytest` and associated plugins for testing
-
-You can install these by adding the following to your `pyproject.toml` under the `[tool.poetry.group.dev.dependencies]` section:
-
-```toml
-flake8 = "^7.0"
-pytest = "^8.0"
-pytest-asyncio = ">=0.24.0"
-pytest-xdist = "^3.6.1"
-pytest-json-report = "^1.5.0"
-python-dotenv = "*"
-```
-
 ## Usage 
 
 The `swarmauri_tool_searchword` package provides a single class, `SearchWordTool`, to search for specific words or phrases within a file. Below is an example of how to use it.
@@ -74,15 +51,11 @@ file_path = 'path/to/your/file.txt'
 search_word = 'your_search_term'
 
 # Execute the search
-try:
-    result = search_tool(file_path=file_path, search_word=search_word)
-    print(f"Occurrences of '{search_word}': {result['count']}")
-    for line in result['lines']:
-        print(line)
-except ValueError as e:
-    print(f"An error occurred: {e}")
-except FileNotFoundError as e:
-    print(f"File not found: {e}")
+result = search_tool(file_path=file_path, search_word=search_word)
+print(f"Occurrences of '{search_word}': {result['count']}")
+for line in result['lines']:
+   print(line)
+
 ```
 
 ### Functionality
@@ -90,10 +63,5 @@ except FileNotFoundError as e:
 1. **Create an Instance**: Instantiate the `SearchWordTool` class.
 2. **Specify Parameters**: Provide the file path and the word or phrase you want to search.
 3. **Execute the Search**: Call the instance with the specified parameters to get the occurrences.
-4. **Handle Errors**: Use try-except blocks to handle potential errors such as invalid input or file not found.
 
 This package highlights the occurrences of the search term in the output, making it easy to identify where the term appears in the text.
-
-### Logging
-
-The tool uses Python's built-in logging module to log important actions and errors. Make sure to configure logging in your application to see the log messages. You can set the logging level as needed, such as `logging.DEBUG` or `logging.INFO`.
