@@ -65,7 +65,7 @@ for module in package.modules if package.active]]'''
     print(data,'\n\n')
     assert data["rootDir"] == '"src"'
 
-    data["rootDir"] = 'new_src'
+    data["rootDir"] = '"new_src"'
     resolved_config = data.resolve(data)
     assert resolved_config["rootDir"] == 'new_src'
     assert '''f"file.{package.name}.{module.name}.source"

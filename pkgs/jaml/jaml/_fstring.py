@@ -59,6 +59,29 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 
     return None
 
+
+# utils.py
+from typing import Any, Dict, Optional
+import re
+
+# ────────────────────────────────────────────────────────────────────────────────
+# ① expand global- and local-scope f-strings
+def _eval_fstrings(mapping: Dict[str, Any]):
+    for key, val in list(mapping.items()):
+        if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
+            # Skip context-scoped placeholders (${…}), only expand static f-strings
+            if '${' not in val:
+                mapping[key] = _evaluate_f_string(
+                    val,
+                    global_data=self._data,
+                    local_data=mapping,
+                    context={},
+                )
+        elif isinstance(val, dict):
+            _eval_fstrings(val)
+
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # Public entry‑point
 # ────────────────────────────────────────────────────────────────────────────

@@ -429,20 +429,7 @@ class Config(MutableMapping):
     # ──────────────────────────────────────────── render
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         # ────────────────────────────────────────────────────────────────
-        # ① expand global- and local-scope f-strings
-        def _eval_fstrings(mapping: Dict[str, Any]):
-            for key, val in list(mapping.items()):
-                if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
-                    # Skip context-scoped placeholders (${…}), only expand static f-strings
-                    if '${' not in val:
-                        mapping[key] = _evaluate_f_string(
-                            val,
-                            global_data=self._data,
-                            local_data=mapping,
-                            context={},
-                        )
-                elif isinstance(val, dict):
-                    _eval_fstrings(val)
+        from ._fstring import _eval_fstrings
         _eval_fstrings(self._data)
 
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
