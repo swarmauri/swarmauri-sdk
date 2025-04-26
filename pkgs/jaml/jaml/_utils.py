@@ -14,3 +14,4 @@ def resolve_scoped_variable(var_name, data):
         else:
             return None
     return current
+
