@@ -56,7 +56,7 @@ def iter_environments(clauses, global_env, local_env, context):
             passed = True
             for cond in getattr(clause, "conditions", []):
                 if hasattr(cond, "resolve"):
-                    cond.resolve(global_env, new_env, context)
+                    cond.resolve(global_env, new_env)
                     if not cond.evaluate():
                         passed = False
                         break
