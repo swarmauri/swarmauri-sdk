@@ -4,6 +4,14 @@ from copy import deepcopy
 from typing import Dict
 
 
+def make_static_table_array(header_str: str, scope: Dict) -> "TableArraySectionNode":
+    from ._ast_nodes import TableArraySectionNode, TableArrayHeaderNode
+    ta = TableArraySectionNode()
+    ta.header = TableArrayHeaderNode(origin=header_str, value=header_str)
+    ta.body   = []          # no inline assignments in the header-only form
+    ta.value  = scope
+    return ta
+
 
 def make_static_section(header: str, scope: Dict) -> "SectionNode":
     from ._ast_nodes import (

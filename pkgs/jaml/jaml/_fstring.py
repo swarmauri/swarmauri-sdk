@@ -9,46 +9,53 @@ from ._eval import safe_eval
 # Helpers
 # ────────────────────────────────────────────────────────────────────────────
 
+from collections.abc import Mapping          # NEW import ⬅️
+
 _VAR_RE = re.compile(r'([@%\$])?\{([^}]+)\}')
 
 
 def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
+    print(f"[DEBUG _fstring._lookup] path {path}")
     """
-    Follow a dotted *path* (e.g. "a.b.c") through each `env` in order,
-    unwrapping AST nodes (via .evaluate()) so nested tables work.
-    Returns the first successful hit or None.
+    Walk the dotted *path* (e.g. ``"a.b.c"``) through each mapping / object
+    supplied in *envs*, returning the first successful hit.
+
+    • Works with plain dicts, pydantic models, dataclass instances, etc.
+    • If the current object on the walk implements ``evaluate()``, that is
+      called so nested AST nodes or inline-table nodes unwrap cleanly.
     """
-    keys = path.split(".")
+    parts = path.split(".")
+
+    def _dig(cur: Any, key: str) -> Any:
+        # Unwrap AST-style nodes
+        if hasattr(cur, "evaluate"):
+            try:
+                cur = cur.evaluate()
+            except Exception:
+                pass
+
+        # Mapping lookup
+        if isinstance(cur, Mapping) and key in cur:
+            return cur[key]
+
+        # Attribute lookup
+        if hasattr(cur, key):
+            return getattr(cur, key)
+
+        return None
+
     for env in envs:
         if env is None:
             continue
 
-        # Start from the raw env; if it's an AST node or inline‑table node, unwrap it
-        val: Any = env
-        if hasattr(val, "evaluate"):
-            try:
-                val = val.evaluate()
-            except Exception:
-                # fallback to the raw env if evaluate() fails
-                pass
-
-        # Drill down the dotted path
-        for key in keys:
-            # Unwrap any nested AST node before key lookup
-            if hasattr(val, "evaluate"):
-                try:
-                    val = val.evaluate()
-                except Exception:
-                    pass
-
-            if isinstance(val, dict) and key in val:
-                val = val[key]
-            else:
-                val = None
-                break
-
-        if val is not None:
-            return val
+        cur: Any = env
+        for part in parts:
+            cur = _dig(cur, part)
+            if cur is None:
+                break          # this env failed, try the next one
+        else:
+            # completed the for-loop ⇒ success
+            return cur
 
     return None
 

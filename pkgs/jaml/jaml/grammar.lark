@@ -180,7 +180,7 @@ pair_expr: (string_expr | IDENTIFIER) (HSPACES? (SETTER | COLON) HSPACES? (strin
 // List comprehension
 list_comprehension: L_SQ_BRACK comprehension_expr (HSPACES | NEWLINE)* comprehension_clauses NEWLINE* R_SQ_BRACK
 comprehension_clauses: comprehension_clause+ 
-comprehension_clause: FOR loop_vars IN value (IF comprehension_condition)* NEWLINE*
+comprehension_clause: FOR loop_vars IN ( value | dotted_expr ) (IF comprehension_condition)* NEWLINE*
 
 loop_vars: loop_var (COMMA loop_var)*
 loop_var: dotted_expr alias_clause?

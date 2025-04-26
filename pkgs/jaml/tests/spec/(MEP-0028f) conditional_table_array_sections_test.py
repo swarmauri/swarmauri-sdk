@@ -22,7 +22,7 @@ def test_section_headers_with_clauses():
 
     [[f"file.{package.name}.{module.name}.source"
 for package in ${packages} if package.active
-for module in ${packages.modules} if package.active]]'''
+for module in package.modules if package.active]]'''
 
     # The base external context used during rendering.
     BASE_CONTEXT = {
@@ -70,7 +70,7 @@ for module in ${packages.modules} if package.active]]'''
     assert resolved_config["rootDir"] == 'new_src'
     assert '''f"file.{package.name}.{module.name}.source"
 for package in ${packages} if package.active
-for module in ${packages.modules} if package.active''' in data
+for module in package.modules if package.active''' in data
 
 
     # out = data.dumps()
@@ -79,7 +79,7 @@ for module in ${packages.modules} if package.active''' in data
     print('\n\n\n\n[RENDERED DATA]:')
     print(rendered_data)
     assert rendered_data["rootDir"] == "new_src"
-    assert "file" in rendered_data
+    assert isinstance(rendered_data["file"], list)
 
 
     final_out = data.dumps()
