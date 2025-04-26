@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, List, Literal
 import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -14,7 +14,7 @@ class SentenceChunker(ChunkerBase):
 
     type: Literal["SentenceChunker"] = "SentenceChunker"
 
-    def chunk_text(self, text, *args, **kwargs):
+    def chunk_text(self, text: str, *args: Any, **kwargs: Any) -> List[str]:
         """
         Chunks the given text into sentences using basic punctuation.
 

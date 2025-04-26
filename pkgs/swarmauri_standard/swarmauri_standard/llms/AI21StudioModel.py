@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -43,7 +43,7 @@ class AI21StudioModel(LLMBase):
     )
     timeout: float = 600.0
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initializes the GroqToolModel instance, setting up headers for API requests.
 

@@ -81,8 +81,8 @@ class GeminiToolModel(LLMBase):
         Initializes the GeminiToolModel instance with the provided API key and model name.
 
         Args:
-            api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
-            name (str): The name of the Gemini model in use.
+            *args (Any): Additional positional arguments.
+            **kwargs (Any): Additional keyword arguments, including 'allowed_models'.
         """
         super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
