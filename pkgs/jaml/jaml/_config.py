@@ -383,18 +383,17 @@ class Config(MutableMapping):
         # imports that create circulars if done at module top -------------
         from ._ast_nodes import (
             BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode,
+            ComprehensionHeaderNode
         )
         import re
 
         # ② expand conditional headers (with context) --------------------
         for node in list(self._ast.lines):
-            if (
-                (isinstance(node, SectionNode)      and isinstance(node.header, TableArrayHeaderNode))
-                or
-                (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode))
-            ):
-                raw_key = node.header.value
-                expr    = node.header.origin
+            header = getattr(node, "header", None)
+            if isinstance(node, (SectionNode, TableArraySectionNode)) and \
+               isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):  # ← broaden test
+                raw_key = header.value
+                expr    = header.origin
                 logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
                 # substitute ${…} placeholders from *context*
