@@ -2,7 +2,10 @@ from collections.abc import MutableMapping
 from typing import Any, Dict, IO, Optional
 
 from ._fstring import _evaluate_f_string
+import logging
 
+logger = logging.getLogger(__name__)          # put this with your other imports
+logger.setLevel(logging.DEBUG)                # caller can override
 
 class SectionProxy(MutableMapping):
     def __init__(self, config: "Config", prefix: str):
@@ -259,22 +262,10 @@ class Config(MutableMapping):
 
     # ───────────────────────────────────────────────────────── resolution
     def resolve(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        # ──────────────────────────────────────────────────────────────
-        # ① expand global- and local-scope f-strings
-        def _eval_fstrings(mapping: Dict[str, Any]):
-            for key, val in list(mapping.items()):
-                if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
-                    # Skip context-scoped placeholders (${…}), only expand static f-strings
-                    if '${' not in val:
-                        mapping[key] = _evaluate_f_string(
-                            val,
-                            global_data=self._data,
-                            local_data=mapping,
-                            context={},
-                        )
-                elif isinstance(val, dict):
-                    _eval_fstrings(val)
+        from ._fstring import _eval_fstrings
+        from ._comprehension import _eval_comprehensions
         _eval_fstrings(self._data)
+
 
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
         import re
@@ -282,7 +273,8 @@ class Config(MutableMapping):
         # ② expand conditional headers
         for node in list(self._ast.lines):
             # Plain [ … ] sections
-            if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
+            if (isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode)) or \
+            (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode)):
                 raw_key = node.header.value
                 expr    = node.header.origin
 
@@ -292,35 +284,6 @@ class Config(MutableMapping):
                         v = self._data[var]
                         if isinstance(v, str):
                             v = v.strip('"\'')      # ➞ strip any surrounding quotes
-                        return repr(v)
-                    return "None"
-
-                expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr)
-                expr_py = expr_py.replace('null', 'None')
-                try:
-                    result = eval(expr_py, {}, {})
-                except Exception:
-                    continue
-
-                if not result:
-                    self._data.pop(raw_key, None)
-                else:
-                    section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value  = result
-                    node.header.origin = result
-
-            # [[ … ]] table-array sections
-            if isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
-                raw_key = node.header.value
-                expr    = node.header.origin
-
-                def _scoped_repl(m):
-                    var = m.group(1)
-                    if var in self._data:
-                        v = self._data[var]
-                        if isinstance(v, str):
-                            v = v.strip('"\'')
                         return repr(v)
                     return "None"
 
@@ -370,32 +333,6 @@ class Config(MutableMapping):
                 collapsed[key] = _collapse(val, self._data)
 
         # ──────────────────────────────────────────────────────────────
-        # ◆ evaluate any raw list‑ and dict‑comprehension strings into real Python objects
-        list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
-        dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
-
-        def _eval_comprehensions(obj: Any) -> Any:
-            if isinstance(obj, dict):
-                return {k: _eval_comprehensions(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [_eval_comprehensions(v) for v in obj]
-            if isinstance(obj, str):
-                # List comprehensions can be eval’d directly
-                if list_comp_pattern.match(obj):
-                    try:
-                        return eval(obj)
-                    except Exception:
-                        return obj
-                # Dict comprehensions need JAML’s '=' → Python’s ':' conversion
-                if dict_comp_pattern.match(obj):
-                    # Replace the first '=' before the 'for' with ':' 
-                    python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
-                    try:
-                        return eval(python_syntax)
-                    except Exception:
-                        return obj
-            return obj
-
         collapsed = _eval_comprehensions(collapsed)
 
         # ──────────────────────────────────────────────────────────────
@@ -426,96 +363,105 @@ class Config(MutableMapping):
         return final
 
 
-    # ──────────────────────────────────────────── render
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        # ────────────────────────────────────────────────────────────────
-        from ._fstring import _eval_fstrings
-        from ._utils import _strip_quotes
-        from ._comprehension import _eval_comprehensions
-        _eval_fstrings(self._data)
+        """
+        Render the parsed JAML AST to a concrete Python object.
 
-        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
+        Detailed DEBUG-level logs trace every transformation step so that
+        complex scope interactions are visible during troubleshooting.
+        """
+        logger.debug("⮕ [render] entered with context=%r", context)
+
+        # ① expand global- and local-scope f-strings ----------------------
+        from ._fstring import _eval_fstrings
+        from ._utils   import _strip_quotes
+        from ._comprehension import _eval_comprehensions
+
+        _eval_fstrings(self._data)
+        logger.debug("① after _eval_fstrings  → self._data=%r", self._data)
+
+        # imports that create circulars if done at module top -------------
+        from ._ast_nodes import (
+            BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode,
+        )
         import re
 
-        # ────────────────────────────────────────────────────────────────
-        # ② expand conditional headers (with context)
+        # ② expand conditional headers (with context) --------------------
         for node in list(self._ast.lines):
-            if (isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode)) or \
-            (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode)):
+            if (
+                (isinstance(node, SectionNode)      and isinstance(node.header, TableArrayHeaderNode))
+                or
+                (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode))
+            ):
                 raw_key = node.header.value
                 expr    = node.header.origin
+                logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
-                # ②a substitute context placeholders (${…})
+                # substitute ${…} placeholders from *context*
                 def _context_repl(m):
                     var = m.group(1)
-                    if context and var in context:
-                        v = context[var]
-                        if isinstance(v, str):
-                            v = v.strip('"\'')
-                        return repr(v)
-                    return "None"
+                    v = (context or {}).get(var, None)
+                    logger.debug("   – context placeholder ${%s} -> %r", var, v)
+                    if isinstance(v, str):
+                        v = v.strip('"\'')
+                    return repr(v)
                 expr_py = re.sub(r'\$\{([^}]+)\}', _context_repl, expr)
 
-                # ②b substitute global (@{…}) and local (%{…}) placeholders
+                # substitute @{…} (global) and %{…} (local) placeholders
                 def _scoped_repl(m):
                     var = m.group(1)
-                    if var in self._data:
-                        v = self._data[var]
-                        if isinstance(v, str):
-                            v = v.strip('"\'')
-                        return repr(v)
-                    return "None"
+                    v = self._data.get(var, None)
+                    logger.debug("   – scoped placeholder {%s} -> %r", var, v)
+                    if isinstance(v, str):
+                        v = v.strip('"\'')
+                    return repr(v)
                 expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr_py)
-
                 expr_py = expr_py.replace('null', 'None')
 
+                logger.debug("   – evaluated Python expr: %s", expr_py)
                 try:
                     result = eval(expr_py, {}, {})
-                except Exception:
+                    logger.debug("   – result=%r", result)
+                except Exception as exc:
+                    logger.exception("   ✖ header expression failed (%s); leaving untouched", exc)
                     continue
 
                 if not result:
-                    # remove section when condition is false/None
+                    logger.debug("   – condition is falsy → removing section %s", raw_key)
                     self._data.pop(raw_key, None)
                 else:
-                    # rename the key to the evaluated result
-                    section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value  = result
-                    node.header.origin = result
+                    logger.debug("   – condition truthy → renaming %s → %s", raw_key, result)
+                    section_map          = self._data.pop(raw_key, None)
+                    self._data[result]   = section_map
+                    node.header.value    = result
+                    node.header.origin   = result
 
-        # ────────────────────────────────────────────────────────────────
-        # ③ collapse all AST nodes into plain Python values
+        logger.debug("② complete  → self._data=%r", self._data)
+
+        # ③ collapse all AST nodes into plain Python values --------------
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
-            from ._ast_nodes import BaseNode
             if isinstance(value, BaseNode):
                 value.resolve(self._data, scope)
                 return _collapse(value.evaluate(), scope)
             if isinstance(value, dict):
                 merged = {**scope, **value}
-                out: Dict[str, Any] = {}
-                for k, v in value.items():
-                    if k == "__comments__":
-                        out[k] = v
-                    else:
-                        out[k] = _collapse(v, merged)
-                return out
+                return {k: _collapse(v, merged) if k != "__comments__" else v
+                        for k, v in value.items()}
             if isinstance(value, list):
                 return [_collapse(x, scope) for x in value]
             return value
 
-        collapsed: Dict[str, Any] = {}
-        for key, val in list(self._data.items()):
-            if key == "__comments__":
-                collapsed[key] = val
-            else:
-                collapsed[key] = _collapse(val, self._data)
+        collapsed = {
+            k: v if k == "__comments__" else _collapse(v, self._data)
+            for k, v in self._data.items()
+        }
+        logger.debug("③ collapsed AST         → %r", collapsed)
 
-        # ────────────────────────────────────────────────────────────────
+        # ④ evaluate comprehensions --------------------------------------
         collapsed = _eval_comprehensions(collapsed)
+        logger.debug("④ after comprehensions  → %r", collapsed)
 
-        # ────────────────────────────────────────────────────────────────
-        # ⑤ expand any remaining f-strings with the context
+        # ⑤ expand remaining f-strings with context ----------------------
         def _eval_context_fstrings(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: _eval_context_fstrings(v) for k, v in obj.items()}
@@ -523,10 +469,20 @@ class Config(MutableMapping):
                 return [_eval_context_fstrings(v) for v in obj]
             if isinstance(obj, str) and (obj.startswith('f"') or obj.startswith("f'")):
                 try:
-                    return _evaluate_f_string(obj, global_data=self._data, local_data={}, context=context)
-                except Exception:
+                    evaluated = _evaluate_f_string(
+                        obj, global_data=self._data, local_data={}, context=context
+                    )
+                    logger.debug("   – f-string %s -> %r", obj, evaluated)
+                    return evaluated
+                except Exception as exc:
+                    logger.debug("   ✖ f-string %s failed (%s); leaving literal", obj, exc)
                     return obj
             return obj
-        expanded = _eval_context_fstrings(collapsed)
 
-        return _strip_quotes(expanded)
+        expanded = _eval_context_fstrings(collapsed)
+        logger.debug("⑤ after context f-str   → %r", expanded)
+
+        # ⑥ strip surrounding quotes on string literals ------------------
+        final = _strip_quotes(expanded)
+        logger.debug("⭢ [render] returning    → %r", final)
+        return final

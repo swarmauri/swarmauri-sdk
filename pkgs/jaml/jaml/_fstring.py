@@ -73,14 +73,12 @@ def _eval_fstrings(mapping: Dict[str, Any]):
             if '${' not in val:
                 mapping[key] = _evaluate_f_string(
                     val,
-                    global_data=self._data,
+                    global_data=mapping,
                     local_data=mapping,
                     context={},
                 )
         elif isinstance(val, dict):
             _eval_fstrings(val)
-
-
 
 # ────────────────────────────────────────────────────────────────────────────
 # Public entry‑point
