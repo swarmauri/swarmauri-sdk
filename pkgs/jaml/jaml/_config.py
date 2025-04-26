@@ -451,7 +451,8 @@ class Config(MutableMapping):
         # ────────────────────────────────────────────────────────────────
         # ② expand conditional headers (with context)
         for node in list(self._ast.lines):
-            if isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode):
+            if (isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode)) or \
+            (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode)):
                 raw_key = node.header.value
                 expr    = node.header.origin
 
@@ -489,46 +490,6 @@ class Config(MutableMapping):
                     self._data.pop(raw_key, None)
                 else:
                     # rename the key to the evaluated result
-                    section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value  = result
-                    node.header.origin = result
-
-            # handle [[…]] table-array sections similarly
-            if isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode):
-                raw_key = node.header.value
-                expr    = node.header.origin
-
-                def _context_repl(m):
-                    var = m.group(1)
-                    if context and var in context:
-                        v = context[var]
-                        if isinstance(v, str):
-                            v = v.strip('"\'')
-                        return repr(v)
-                    return "None"
-                expr_py = re.sub(r'\$\{([^}]+)\}', _context_repl, expr)
-
-                def _scoped_repl(m):
-                    var = m.group(1)
-                    if var in self._data:
-                        v = self._data[var]
-                        if isinstance(v, str):
-                            v = v.strip('"\'')
-                        return repr(v)
-                    return "None"
-                expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr_py)
-
-                expr_py = expr_py.replace('null', 'None')
-
-                try:
-                    result = eval(expr_py, {}, {})
-                except Exception:
-                    continue
-
-                if not result:
-                    self._data.pop(raw_key, None)
-                else:
                     section_map = self._data.pop(raw_key, None)
                     self._data[result] = section_map
                     node.header.value  = result
