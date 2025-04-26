@@ -1,4 +1,7 @@
 # jaml/_utils.py
+from typing import Any
+
+
 def unquote(s):
     if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
         return s[1:-1]
@@ -15,3 +18,18 @@ def resolve_scoped_variable(var_name, data):
             return None
     return current
 
+
+
+# ────────────────────────────────────────────────────────────────
+# ⑥ strip surrounding quotes from plain strings
+def _strip_quotes(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: _strip_quotes(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_strip_quotes(v) for v in obj]
+    if isinstance(obj, str) and len(obj) >= 2 and (
+        (obj.startswith('"') and obj.endswith('"')) or
+        (obj.startswith("'") and obj.endswith("'"))
+    ):
+        return obj[1:-1]
+    return obj

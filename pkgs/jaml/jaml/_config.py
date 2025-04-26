@@ -430,6 +430,8 @@ class Config(MutableMapping):
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         # ────────────────────────────────────────────────────────────────
         from ._fstring import _eval_fstrings
+        from ._utils import _strip_quotes
+        from ._comprehension import _eval_comprehensions
         _eval_fstrings(self._data)
 
         from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
@@ -510,28 +512,6 @@ class Config(MutableMapping):
                 collapsed[key] = _collapse(val, self._data)
 
         # ────────────────────────────────────────────────────────────────
-        # ④ evaluate list- and dict-comprehension strings
-        list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
-        dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
-
-        def _eval_comprehensions(obj: Any) -> Any:
-            if isinstance(obj, dict):
-                return {k: _eval_comprehensions(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [_eval_comprehensions(v) for v in obj]
-            if isinstance(obj, str):
-                if list_comp_pattern.match(obj):
-                    try:
-                        return eval(obj)
-                    except Exception:
-                        return obj
-                if dict_comp_pattern.match(obj):
-                    python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
-                    try:
-                        return eval(python_syntax)
-                    except Exception:
-                        return obj
-            return obj
         collapsed = _eval_comprehensions(collapsed)
 
         # ────────────────────────────────────────────────────────────────
@@ -549,17 +529,4 @@ class Config(MutableMapping):
             return obj
         expanded = _eval_context_fstrings(collapsed)
 
-        # ────────────────────────────────────────────────────────────────
-        # ⑥ strip surrounding quotes from plain strings
-        def _strip_quotes(obj: Any) -> Any:
-            if isinstance(obj, dict):
-                return {k: _strip_quotes(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [_strip_quotes(v) for v in obj]
-            if isinstance(obj, str) and len(obj) >= 2 and (
-                (obj.startswith('"') and obj.endswith('"')) or
-                (obj.startswith("'") and obj.endswith("'"))
-            ):
-                return obj[1:-1]
-            return obj
         return _strip_quotes(expanded)

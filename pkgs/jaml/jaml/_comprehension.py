@@ -1,9 +1,33 @@
 # jaml/_comprehension.py
 from __future__ import annotations
-from typing import Dict, Iterator, Optional, Union, List
+from typing import Dict, Iterator, Optional, Union, List, Any
 from ._eval import safe_eval
-
+import re
 print('[_comprehension] module loaded')
+
+
+# ④ evaluate list- and dict-comprehension strings
+list_comp_pattern = re.compile(r'^\s*\[.*\bfor\b.*\]\s*$')
+dict_comp_pattern = re.compile(r'^\s*\{.*\bfor\b.*\}\s*$')
+
+def _eval_comprehensions(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: _eval_comprehensions(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_eval_comprehensions(v) for v in obj]
+    if isinstance(obj, str):
+        if list_comp_pattern.match(obj):
+            try:
+                return eval(obj)
+            except Exception:
+                return obj
+        if dict_comp_pattern.match(obj):
+            python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
+            try:
+                return eval(python_syntax)
+            except Exception:
+                return obj
+    return obj
 
 def _evaluate_comprehension(node, global_env, context=None):
     from ._ast_nodes import ListComprehensionNode
