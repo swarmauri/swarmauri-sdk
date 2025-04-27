@@ -2,7 +2,13 @@ from typing import Dict, Any
 import ast
 import operator as op
 
+import logging
+
+logger = logging.getLogger(__name__)          # put this with your other imports
+logger.setLevel(logging.DEBUG)                # caller can override
+
 def safe_eval(expr: str, local_env: Dict[str, Any] = None) -> any:
+    logging.debug(f"expr: {expr}")
     local_env = local_env or {}
     allowed_operators = {
         ast.Add: op.add,

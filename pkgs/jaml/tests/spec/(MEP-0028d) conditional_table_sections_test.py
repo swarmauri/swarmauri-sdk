@@ -86,7 +86,7 @@ def test_section_headers_with_clauses():
     assert data["rootDir"] == "src"
 
     data["rootDir"] = 'new_src'
-    resolved_config = data.resolve(data)
+    resolved_config = data.resolve()
     assert resolved_config["rootDir"] == 'new_src'
 
     # out = data.dumps()

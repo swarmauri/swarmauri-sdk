@@ -1520,11 +1520,7 @@ class ContextScopedVarNode(BaseNode):
                     return None
             return cur
 
-        # ❶ Attempt lookup in local_env
-        candidate = _dig(local_env)
-        # ❷ Fallback to lookup in global_env if local failed
-        if candidate is None:
-            candidate = _dig(global_env)
+        candidate = _dig(global_env)
 
         # If we got another AST node back, ignore it (to prevent self-reference)
         from ._ast_nodes import BaseNode

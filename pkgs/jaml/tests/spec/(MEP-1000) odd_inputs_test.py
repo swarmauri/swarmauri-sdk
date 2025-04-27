@@ -74,7 +74,7 @@ def test_assignment_in_list_compr():
     assert data["rootDir"] == "src"
 
     data["rootDir"].origin = '"new_src"'
-    resolved_config = resolve(data)
+    resolved_config = data.resolve()
     assert resolved_config["rootDir"] == '"new_src"'
 
     out = data.dumps()

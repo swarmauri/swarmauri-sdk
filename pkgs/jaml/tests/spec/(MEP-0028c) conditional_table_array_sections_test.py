@@ -41,7 +41,7 @@ def test_section_headers_with_clauses():
     print(data,'\n\n')
     assert '''"prod" if ${env}=="production" else null''' in data
 
-    resolved_config = data.resolve(data)
+    resolved_config = data.resolve()
     assert '''"prod" if ${env}=="production" else null''' in resolved_config
 
     # out = data.dumps()

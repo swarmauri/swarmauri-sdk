@@ -261,22 +261,28 @@ class Config(MutableMapping):
     dump = staticmethod(lambda obj, fp: fp.write(Config.dumps(obj)))  # type: ignore
 
     # ───────────────────────────────────────────────────────── resolution
-    def resolve(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def resolve(self) -> Dict[str, Any]:
+
+        logger.debug("⮕ [resolve] entered...")
+        from ._eval import safe_eval
         from ._fstring import _eval_fstrings
         from ._comprehension import _eval_comprehensions
         _eval_fstrings(self._data)
 
+        logger.debug("① after _eval_fstrings  → self._data=%r", self._data)
 
-        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, TableArrayHeaderNode
+        from ._ast_nodes import BaseNode, SectionNode, TableArraySectionNode, \
+            TableArrayHeaderNode, ComprehensionHeaderNode
         import re
 
         # ② expand conditional headers
         for node in list(self._ast.lines):
-            # Plain [ … ] sections
-            if (isinstance(node, SectionNode) and isinstance(node.header, TableArrayHeaderNode)) or \
-            (isinstance(node, TableArraySectionNode) and isinstance(node.header, TableArrayHeaderNode)):
-                raw_key = node.header.value
-                expr    = node.header.origin
+            header = getattr(node, "header", None)
+            if isinstance(node, (SectionNode, TableArraySectionNode)) and \
+               isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):  # ← broaden test
+                raw_key = header.value
+                expr    = header.origin
+                logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
                 def _scoped_repl(m):
                     var = m.group(1)
@@ -289,9 +295,11 @@ class Config(MutableMapping):
 
                 expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr)
                 expr_py = expr_py.replace('null', 'None')
+                logger.debug("executing safe_eval on expr_py=%s", expr_py)
                 try:
-                    result = eval(expr_py, {}, {})
-                except Exception:
+                    result = safe_eval(expr_py, {})
+                except Exception as e:
+                    logger.exception(f"exception: {e}")
                     continue
 
                 if not result:
@@ -373,6 +381,7 @@ class Config(MutableMapping):
         logger.debug("⮕ [render] entered with context=%r", context)
 
         # ① expand global- and local-scope f-strings ----------------------
+        from ._eval import safe_eval
         from ._fstring import _eval_fstrings
         from ._utils   import _strip_quotes
         from ._comprehension import _eval_comprehensions
@@ -419,7 +428,7 @@ class Config(MutableMapping):
 
                 logger.debug("   – evaluated Python expr: %s", expr_py)
                 try:
-                    result = eval(expr_py, {}, {})
+                    result = safe_eval(expr_py, {})
                     logger.debug("   – result=%r", result)
                 except Exception as exc:
                     logger.exception("   ✖ header expression failed (%s); leaving untouched", exc)

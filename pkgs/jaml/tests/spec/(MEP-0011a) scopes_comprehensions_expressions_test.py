@@ -95,7 +95,7 @@ def test_context_scoped_var_resolve():
     print(data,'\n\n')
     assert data["rootDir"] == '"src"'
 
-    resolved_config = data.resolve(data)
+    resolved_config = data.resolve()
 
     # out = data.dumps()
     # rendered_data = data.render(out, context=BASE_CONTEXT)
