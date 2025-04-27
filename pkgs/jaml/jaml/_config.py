@@ -96,6 +96,23 @@ class Config(MutableMapping):
         return any(isinstance(k, str) and _normalize(k) == normalized for k in self._data)
 
     # ──────────────────────────────────────────────────────── helpers
+
+    def _insert_nested_key(self, dotted_key: str, value: Any) -> None:
+        """
+        Insert *value* into self._data following the dotted path in *dotted_key*
+        (e.g. "file.auth.login.source").  Intermediate mappings are created as
+        needed.  Any pre-existing scalar encountered on the path is replaced by
+        a new mapping.
+        """
+        cur: Dict[str, Any] = self._data
+        parts: List[str] = dotted_key.split(".")
+        for part in parts[:-1]:
+            if not isinstance(cur.get(part, {}), dict):
+                cur[part] = {}
+            cur = cur.setdefault(part, {})
+        cur[parts[-1]] = value
+        logger.debug("      ↳ nested-set %s → %r", dotted_key, value)
+
     def _reparse_value(self, value: str) -> "BaseNode":
         """
         Parse a value fragment (e.g. folded, array, inline table, comprehension, etc.) by
@@ -250,9 +267,6 @@ class Config(MutableMapping):
                 print(f"_config.Config._sync_ast() failed: '{e}'")
 
 
-
-
-
     # round‑trip helpers ------------------------------------------------------
     def dumps(self) -> str:
         """Emit the configuration exactly as it would appear on disk."""
@@ -306,9 +320,15 @@ class Config(MutableMapping):
                     self._data.pop(raw_key, None)
                 else:
                     section_map = self._data.pop(raw_key, None)
-                    self._data[result] = section_map
-                    node.header.value  = result
-                    node.header.origin = result
+                    if isinstance(result, (list, tuple, set)):
+                        import copy
+                        for idx, new_key in enumerate(result):
+                            tgt_map = section_map if idx == 0 else copy.deepcopy(section_map)
+                            self._insert_nested_key(new_key, tgt_map)
+                    else:
+                        self._insert_nested_key(result, section_map)
+                        node.header.value  = result
+                        node.header.origin = result
 
         # ③ collapse all AST nodes into plain Python values
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
@@ -401,8 +421,8 @@ class Config(MutableMapping):
             header = getattr(node, "header", None)
             if isinstance(node, (SectionNode, TableArraySectionNode)) and \
                isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):  # ← broaden test
-                raw_key = header.value
-                expr    = header.origin
+                raw_key = header.origin
+                expr    = raw_key
                 logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
                 # substitute ${…} placeholders from *context*
@@ -433,16 +453,20 @@ class Config(MutableMapping):
                 except Exception as exc:
                     logger.exception("   ✖ header expression failed (%s); leaving untouched", exc)
                     continue
-
                 if not result:
-                    logger.debug("   – condition is falsy → removing section %s", raw_key)
                     self._data.pop(raw_key, None)
                 else:
                     logger.debug("   – condition truthy → renaming %s → %s", raw_key, result)
-                    section_map          = self._data.pop(raw_key, None)
-                    self._data[result]   = section_map
-                    node.header.value    = result
-                    node.header.origin   = result
+                    section_map = self._data.pop(raw_key, None)
+                    if isinstance(result, (list, tuple, set)):
+                        import copy
+                        for idx, new_key in enumerate(result):
+                            tgt_map = section_map if idx == 0 else copy.deepcopy(section_map)
+                            self._insert_nested_key(new_key, tgt_map)
+                    else:
+                        self._insert_nested_key(result, section_map)
+                        node.header.value  = result
+                        node.header.origin = result
 
         logger.debug("② complete  → self._data=%r", self._data)
 

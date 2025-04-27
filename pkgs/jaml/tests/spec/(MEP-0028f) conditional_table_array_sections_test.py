@@ -79,11 +79,17 @@ for module in package.modules if package.active''' in data
     print('\n\n\n\n[RENDERED DATA]:')
     print(rendered_data)
     assert rendered_data["rootDir"] == "new_src"
-    assert isinstance(rendered_data["file"], list)
+    assert rendered_data["file"]
+    assert rendered_data["file"]["auth"]["login"]
+    assert rendered_data["file"]["auth"]["signup"]
+    assert '''f"file.{package.name}.{module.name}.source"
+for package in ${packages} if package.active
+for module in package.modules if package.active''' not in rendered_data
 
 
     final_out = data.dumps()
     print('\n\n\n\n[FINAL_OUT]:')
     print(final_out)
     assert "[[file.auth.signup.source]]" in final_out
+
 
