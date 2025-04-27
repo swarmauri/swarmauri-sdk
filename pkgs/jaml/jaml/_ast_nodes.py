@@ -3,6 +3,10 @@ from typing import Any, Dict, List, Optional
 import ast
 import re
 from lark import Token, Tree
+import logging
+
+logger = logging.getLogger(__name__)          # put this with your other imports
+logger.setLevel(logging.DEBUG)                # caller can override
 
 from ._make_static import make_static_section
 from ._fstring import _evaluate_f_string, _lookup
@@ -66,6 +70,7 @@ class StartNode(BaseNode):
         self.meta = meta
 
     def emit(self) -> str:
+        logger.debug("start.emit() triggered.")
         lines: List[str] = []
         from ._ast_nodes import TableArraySectionNode  # ensure the name is in scope
 
@@ -133,6 +138,7 @@ class StartNode(BaseNode):
         return result
 
     def render(self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
+        logger.debug("start.render() triggered.")
         return self.emit()
 
 class SectionNode(BaseNode):
@@ -149,6 +155,7 @@ class SectionNode(BaseNode):
         return f"SectionNode(header={self.header.value if self.header else None})"
 
     def emit(self) -> str:
+        logger.debug("SectionNode.emit() triggered.")
         parts = []
         if self.leading_whitespace:
             parts.append(self.leading_whitespace.value)
@@ -163,6 +170,7 @@ class SectionNode(BaseNode):
         return "\n".join(parts)
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        logger.debug("SectionNode.resolve() triggered.")
         base_env = local_env or {}
         # Pre-populate simple numeric assignments in local scope for header resolution
         for content in self.contents:
@@ -188,6 +196,7 @@ class SectionNode(BaseNode):
         self.value = self.resolved
 
     def evaluate(self) -> Dict:
+        logger.debug("SectionNode.evaluate() triggered.")
         result = {}
         for content in self.contents:
             if isinstance(content, AssignmentNode):
@@ -197,6 +206,7 @@ class SectionNode(BaseNode):
         return result
 
     def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
+        logger.debug("SectionNode.render() triggered.")
         # handle comprehension expansion
         if isinstance(self.header, ComprehensionHeaderNode):
             produced = {}
@@ -253,6 +263,7 @@ class TableArraySectionNode(BaseNode):
         return f"TableArraySectionNode(header={self.header.value if self.header else None})"
 
     def emit(self) -> str:
+        logger.debug("TableArraySectionNode.emit() triggered.")
         parts = [f"[[{self.header.emit()}]]"]
         if self.__comments__:
             parts.extend(self.__comments__)
@@ -260,6 +271,7 @@ class TableArraySectionNode(BaseNode):
         return "\n".join(parts)
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        logger.debug("TableArraySectionNode.resolve() triggered.")
         local_env = local_env or {}
         for item in self.body:
             if isinstance(item, AssignmentNode) and isinstance(item.value, IntegerNode):
@@ -270,6 +282,7 @@ class TableArraySectionNode(BaseNode):
         self.resolved = self.evaluate()
 
     def evaluate(self) -> Dict:
+        logger.debug("TableArraySectionNode.evaluate() triggered.")
         result = {}
         for line in self.lines:
             if isinstance(line, SectionNode):
@@ -281,6 +294,7 @@ class TableArraySectionNode(BaseNode):
         return result
 
     def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
+        logger.debug("TableArraySectionNode.render() triggered.")
         parts = [f"{item.identifier.value}: {item.render()}" for item in self.body
                  if isinstance(item, AssignmentNode)]
         return "{" + ", ".join(parts) + "}"
@@ -301,10 +315,12 @@ class TableArrayHeaderNode(BaseNode):
             self.value = value
 
     def emit(self) -> str:
+        logger.debug("TableArrayHeaderNode.emit() triggered.")
         # Emit exactly what was parsed—preserving newlines & indent.
         return self.origin
 
     def evaluate(self) -> str:
+        logger.debug("TableArrayHeaderNode.evaluate() triggered.")
         # Returns the logical header name.
         return self.value
 
@@ -315,15 +331,19 @@ class ComprehensionHeaderNode(BaseNode):
         self.clauses = None          # ComprehensionClausesNode
 
     def emit(self) -> str:
+        logger.debug("ComprehensionHeaderNode.emit() triggered.")
         return self.origin
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+        logger.debug("ComprehensionHeaderNode.resolve() triggered.")
         self._evaluate(global_env or {}, local_env or {}, {})
 
     def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None):
+        logger.debug("ComprehensionHeaderNode.render() triggered.")
         self._evaluate(global_env, local_env or {}, context or {})
 
     def _evaluate(self, g: Dict, l: Dict, ctx: Dict):
+        logger.debug("ComprehensionHeaderNode._evaluate() triggered.")
         self.header_envs: List[tuple[str, dict]] = []
 
         for env in iter_environments(self.clauses, g, l, ctx):
@@ -359,7 +379,10 @@ class AssignmentNode(BaseNode):
         self.value = None
         self.inline_comment = None
 
+
+
     def emit(self) -> str:
+        logger.debug("AssignmentNode.emit() triggered.")
         parts: List[str] = []
         # leading whitespace and identifier
         if self.leading_whitespace:
@@ -395,61 +418,63 @@ class AssignmentNode(BaseNode):
     def __str__(self) -> str:
         return f"AssignmentNode({self.identifier.value if self.identifier else None})"
 
-        def resolve(
-            self, 
-            global_env: Dict, 
-            local_env: Optional[Dict] = None
-        ):
-            """
-            Resolve the assignment's right‑hand side, handling both AST nodes,
-            folded-expression strings, and manual folded-expression AST values.
-            """
-            local_env = local_env or {}
+    def resolve(
+        self, 
+        global_env: Dict, 
+        local_env: Optional[Dict] = None
+    ):
+        """
+        Resolve the assignment's right‑hand side, handling both AST nodes,
+        folded-expression strings, and manual folded-expression AST values.
+        """
+        local_env = local_env or {}
+        logger.debug("AssignmentNode.resolve() triggered.")
+        # ── Handle folded-expression AST nodes (e.g., <(3 + 4)>) ──
+        if isinstance(self.value, FoldedExpressionNode):
+            # Extract inner arithmetic expression and evaluate safely
+            expr = self.value.origin[2:-2].strip()
+            from ._eval import safe_eval
+            try:
+                self.resolved = safe_eval(expr, local_env)
+            except Exception:
+                # Fallback to original origin if evaluation fails
+                self.resolved = self.value.origin
+            print(f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: {self.identifier.value} -> {self.resolved}")
+            return
 
-            # ── Handle folded-expression AST nodes (e.g., <(3 + 4)>) ──
-            if isinstance(self.value, FoldedExpressionNode):
-                # Extract inner arithmetic expression and evaluate safely
-                expr = self.value.origin[2:-2].strip()
-                from ._eval import safe_eval
-                try:
-                    self.resolved = safe_eval(expr, local_env)
-                except Exception:
-                    # Fallback to original origin if evaluation fails
-                    self.resolved = self.value.origin
-                print(f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: {self.identifier.value} -> {self.resolved}")
-                return
-
-            # ── Handle manual folded-expression strings (e.g., '<(3 + 4)>') ──
-            if isinstance(self.value, str) and self.value.startswith('<(') and self.value.endswith(')>'):
-                expr = self.value[2:-2].strip()
-                from ._eval import safe_eval
-                try:
-                    self.resolved = safe_eval(expr, local_env)
-                except Exception:
-                    self.resolved = self.value
-                print(f"[DEBUG ASSIGNMENT RESOLVE folded expr]: {self.identifier.value} -> {self.resolved}")
-                return
-
-            # ── Delegate to AST node resolution if available ──
-            print('[resolve]:', global_env, local_env)
-            if hasattr(self.value, 'resolve'):
-                self.value.resolve(global_env, local_env)
-                if hasattr(self.value, 'resolved') and self.value.resolved is not None:
-                    self.resolved = self.value.resolved
-                else:
-                    self.resolved = self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value
-            else:
-                # Plain Python literal (int, float, bool, None, etc.)
+        # ── Handle manual folded-expression strings (e.g., '<(3 + 4)>') ──
+        if isinstance(self.value, str) and self.value.startswith('<(') and self.value.endswith(')>'):
+            expr = self.value[2:-2].strip()
+            from ._eval import safe_eval
+            try:
+                self.resolved = safe_eval(expr, local_env)
+            except Exception:
                 self.resolved = self.value
+            print(f"[DEBUG ASSIGNMENT RESOLVE folded expr]: {self.identifier.value} -> {self.resolved}")
+            return
 
-            print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
+        # ── Delegate to AST node resolution if available ──
+        print('[resolve]:', global_env, local_env)
+        if hasattr(self.value, 'resolve'):
+            self.value.resolve(global_env, local_env)
+            if hasattr(self.value, 'resolved') and self.value.resolved is not None:
+                self.resolved = self.value.resolved
+            else:
+                self.resolved = self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value
+        else:
+            # Plain Python literal (int, float, bool, None, etc.)
+            self.resolved = self.value
+
+        print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
 
 
     def evaluate(self):
+        logger.debug("AssignmentNode.evaluate() triggered.")
         return self.resolved if self.resolved is not None else (self.value.evaluate() if hasattr(self.value, 'evaluate') else self.value)
 
     def render(self, global_env: Dict, local_env: Optional[Dict] = None, context: Optional[Dict] = None) -> str:
-        return self.value.render()
+        logger.debug("AssignmentNode.render() triggered.")
+        return self.value.render(global_env, local_env or {}, context or {})
 
 class CommentNode(BaseNode):
     def __init__(self):
@@ -531,7 +556,9 @@ class FoldedExpressionNode(BaseNode):
         super().__init__()
         self.content_tree: Optional[Tree] = None
 
+
     def emit(self) -> str:
+        logger.debug("FoldedExpressionNode.emit() triggered.")
         # Ensure we always return a string, even if origin was replaced by an int
         return str(self.origin)
 
@@ -548,6 +575,7 @@ class FoldedExpressionNode(BaseNode):
         """
         from ._expression import evaluate_expression_tree
 
+        logger.debug("FoldedExpressionNode.resolve() triggered.")
         # Always pass an empty dict for `context` here so that ${…} tokens
         # get preserved and trigger the f-string branch in evaluate_expression_tree.
         static_ctx: Dict[str, Any] = {}
@@ -576,9 +604,14 @@ class FoldedExpressionNode(BaseNode):
         final = evaluate_expression_tree(
             self.content_tree, global_env, local_env or {}, context or {}
         )
+
+        logger.debug("FoldedExpressionNode.render() triggered.")
         return final
 
     def evaluate(self) -> Any:
+
+
+        logger.debug("FoldedExpressionNode.evaluate() triggered.")
         # Used by collapse; prefer resolved or fallback to origin
         return self.resolved if self.resolved is not None else self.origin
 

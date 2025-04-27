@@ -24,11 +24,13 @@ def _eval_comprehensions(obj: Any) -> Any:
         if dict_comp_pattern.match(obj):
             python_syntax = re.sub(r'=(?=[^}]*\bfor\b)', ':', obj)
             try:
+                # THIS DOES NOT USE THE SAFE_EVAL METHOD
+                # CAUTION SHOULD BE EXERCISED UNTIL PATCHED.
                 return eval(python_syntax)
             except Exception:
                 return obj
     return obj
-
+    
 def _evaluate_comprehension(node, global_env, context=None):
     from ._ast_nodes import ListComprehensionNode
     print(f'[_evaluate_comprehension] entering: node={node}, global_env_keys={list(global_env.keys())}, context={context}')
