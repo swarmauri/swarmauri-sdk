@@ -263,7 +263,7 @@ class Config(MutableMapping):
     # ───────────────────────────────────────────────────────── resolution
     def resolve(self) -> Dict[str, Any]:
 
-        logger.debug("⮕ [resolve] entered...")
+        logger.debug("\n\n\n\n⮕ [resolve] entered...")
         from ._eval import safe_eval
         from ._fstring import _eval_fstrings
         from ._comprehension import _eval_comprehensions
@@ -378,7 +378,7 @@ class Config(MutableMapping):
         Detailed DEBUG-level logs trace every transformation step so that
         complex scope interactions are visible during troubleshooting.
         """
-        logger.debug("⮕ [render] entered with context=%r", context)
+        logger.debug("\n\n\n\n⮕ [render] entered with context=%r", context)
 
         # ① expand global- and local-scope f-strings ----------------------
         from ._eval import safe_eval

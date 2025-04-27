@@ -1426,7 +1426,7 @@ class ConfigTransformer(Transformer):
             node = AliasClauseNode()
             node.keyword = "as"
             node.scoped_var = items[1]
-            node.origin = f"{items[0].emit()} as {items[1].emit()}"
+            node.origin = f"{items[0].emit()} {items[1].emit()}"
             node.value = node.origin
             node.meta = meta
             return node

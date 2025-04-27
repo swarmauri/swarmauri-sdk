@@ -379,8 +379,6 @@ class AssignmentNode(BaseNode):
         self.value = None
         self.inline_comment = None
 
-
-
     def emit(self) -> str:
         logger.debug("AssignmentNode.emit() triggered.")
         parts: List[str] = []
@@ -466,7 +464,6 @@ class AssignmentNode(BaseNode):
             self.resolved = self.value
 
         print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
-
 
     def evaluate(self):
         logger.debug("AssignmentNode.evaluate() triggered.")
@@ -1620,4 +1617,3 @@ class ReservedFuncNode(BaseNode):
     def evaluate(self):
         # Return the resolved function call string
         return self.resolved if self.resolved is not None else self.origin
-
