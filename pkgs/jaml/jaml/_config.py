@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping
-from typing import Any, Dict, IO, Optional
+from copy import deepcopy
+from typing import Any, Dict, IO, Optional, Sequence
 
 from ._fstring import _evaluate_f_string
 import logging
@@ -96,6 +97,44 @@ class Config(MutableMapping):
         return any(isinstance(k, str) and _normalize(k) == normalized for k in self._data)
 
     # ──────────────────────────────────────────────────────── helpers
+
+    def _materialise_comprehension(
+        self,
+        node,
+        concrete_keys: Sequence[str],
+        section_map: dict,
+    ):
+        """
+        Replace *node* (whose header is still a ComprehensionHeaderNode) with
+        one or more TableArraySectionNode clones so that StartNode.emit() will
+        re-serialize the expanded keys exactly.
+
+        • *concrete_keys* – list/tuple of the header strings produced by the
+          comprehension, in order.
+        • *section_map*   – the body mapping for that section (already popped
+          from self._data by the caller).
+
+        Returns nothing.  Mutates self._ast.lines in place.
+        """
+        from ._ast_nodes import TableArrayHeaderNode
+
+        lines = self._ast.lines
+        idx   = lines.index(node)
+
+        # convert THIS node to the first key
+        first_key              = concrete_keys[0]
+        node.header = TableArrayHeaderNode(origin=first_key, value=first_key)
+
+        # any additional keys → deep-clone the section node
+        for k in concrete_keys[1:]:
+            clone        = deepcopy(node)
+            clone.header = TableArrayHeaderNode(origin=k, value=k)
+            idx += 1
+            lines.insert(idx, clone)
+
+        # finally, write bodies into _data (caller already handled first one)
+        for k in concrete_keys[1:]:
+            self._insert_nested_key(k, deepcopy(section_map))
 
     def _insert_nested_key(self, dotted_key: str, value: Any) -> None:
         """
@@ -294,8 +333,8 @@ class Config(MutableMapping):
             header = getattr(node, "header", None)
             if isinstance(node, (SectionNode, TableArraySectionNode)) and \
                isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):  # ← broaden test
-                raw_key = header.value
-                expr    = header.origin
+                raw_key = header.origin
+                expr    = raw_key
                 logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
                 def _scoped_repl(m):
@@ -459,10 +498,9 @@ class Config(MutableMapping):
                     logger.debug("   – condition truthy → renaming %s → %s", raw_key, result)
                     section_map = self._data.pop(raw_key, None)
                     if isinstance(result, (list, tuple, set)):
-                        import copy
-                        for idx, new_key in enumerate(result):
-                            tgt_map = section_map if idx == 0 else copy.deepcopy(section_map)
-                            self._insert_nested_key(new_key, tgt_map)
+                        # write the first body now – clones handled by helper
+                        self._insert_nested_key(result[0], section_map)
+                        self._materialise_comprehension(node, list(result), section_map)
                     else:
                         self._insert_nested_key(result, section_map)
                         node.header.value  = result
