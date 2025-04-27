@@ -156,5 +156,5 @@ def safe_eval(expr: str, local_env: Dict[str, Any] = None) -> any:
         tree = ast.parse(expr, mode='eval')
         return _eval(tree)
     except Exception as e:
-        print("[DEBUG SAFE_EVAL] Evaluation failed:", e)
+        logger.exception(f"Evaluation failed: {e}")
         raise
