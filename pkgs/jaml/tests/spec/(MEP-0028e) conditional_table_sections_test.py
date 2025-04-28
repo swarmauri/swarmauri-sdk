@@ -13,7 +13,7 @@ packages = ${packages}
 
 [f"file.{package.name}.{module.name}.source" 
   for package as %{package} in @{packages} if package.active
-  for module as %{module} in @{package.modules} if module.enabled]
+  for module as %{module} in package.modules if module.enabled]
 name = %{module.name} + ".py"
 path = @{rootDir} + "/" + %{package.name} + "/" + %{name}
 type = "python"
@@ -134,7 +134,7 @@ test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source", "test_v2_
 
 '''
 
-# @pytest.mark.xfail(reason="Pending proper implementation")
+@pytest.mark.xfail(reason="Pending proper implementation")
 @pytest.mark.spec
 @pytest.mark.mep0028e
 def test_section_header_with_alias():

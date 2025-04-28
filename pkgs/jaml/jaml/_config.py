@@ -224,7 +224,6 @@ class Config(MutableMapping):
 
                 # wholesale reparse for any AST-backed node updated via a string
                 if isinstance(old.value, BaseNode) and isinstance(value, str) and not isinstance(old, SingleQuotedStringNode):
-                    print('\n\nhere1')
                     new_node = self._reparse_value(value)
                     node.value    = new_node
                     node.resolved = None
@@ -233,7 +232,6 @@ class Config(MutableMapping):
 
                 # Direct AST node replacement
                 if isinstance(value, BaseNode):
-                    print('\n\nhere2')
                     node.value    = value
                     node.resolved = None
                     cur[key]      = value
@@ -241,7 +239,6 @@ class Config(MutableMapping):
 
                 # folded-expression string update (when old was already FoldedExpressionNode)
                 if isinstance(value, str) and isinstance(old, FoldedExpressionNode):
-                    print('\n\nhere3')
                     new_node = self._reparse_value(value)
                     node.value    = new_node
                     node.resolved = None
@@ -250,7 +247,6 @@ class Config(MutableMapping):
 
                 # Literal updates: string
                 if isinstance(value, str) and isinstance(old, SingleQuotedStringNode):
-                    print('\n\nhere4')
                     lit = value if value.startswith(('"', "'")) else f'"{value}"'
                     old.origin    = lit
                     old.value     = value
@@ -260,7 +256,6 @@ class Config(MutableMapping):
 
                 # Literal updates: integer
                 if isinstance(value, int) and isinstance(old, IntegerNode):
-                    print('\n\nhere5')
                     sval = str(value)
                     old.origin    = sval
                     old.value     = sval
@@ -270,7 +265,6 @@ class Config(MutableMapping):
 
                 # Literal updates: float
                 if isinstance(value, float) and isinstance(old, FloatNode):
-                    print('\n\nhere6')
                     sval = str(value)
                     old.origin    = sval
                     old.value     = sval
@@ -280,7 +274,6 @@ class Config(MutableMapping):
 
                 # Literal updates: boolean
                 if isinstance(value, bool) and isinstance(old, BooleanNode):
-                    print('\n\nhere bool')
                     bval = "true" if value else "false"
                     old.origin    = bval
                     old.value     = bval
@@ -290,7 +283,6 @@ class Config(MutableMapping):
 
                 # Literal updates: null
                 if value is None and isinstance(old, NullNode):
-                    print('\n\n none branch')
                     old.resolved = None
                     cur[key]     = None
                     break
@@ -336,6 +328,10 @@ class Config(MutableMapping):
                 raw_key = header.origin
                 expr    = raw_key
                 logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
+
+                # -- strip alias clauses like "as %{alias}" before placeholder work --
+                expr = re.sub(r'\s+as\s+%\{[^}]+\}', '', expr)
+
 
                 def _scoped_repl(m):
                     var = m.group(1)
@@ -464,6 +460,11 @@ class Config(MutableMapping):
                 expr    = raw_key
                 logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
 
+                # --- ①: Capture alias clause(s) before stripping them for later binding ---
+                alias_anchors = re.findall(r'\s+as\s+%\{([^}]+)\}', expr)  # get list of aliases (may be empty)
+                expr    = re.sub(r'\s+as\s+%\{[^}]+\}', '', expr)    # strip for python eval
+                logger.debug(f"\t- alias_anchors found {alias_anchors}")
+
                 # substitute ${…} placeholders from *context*
                 def _context_repl(m):
                     var = m.group(1)
@@ -482,6 +483,7 @@ class Config(MutableMapping):
                     if isinstance(v, str):
                         v = v.strip('"\'')
                     return repr(v)
+
                 expr_py = re.sub(r'[@%]\{([^}]+)\}', _scoped_repl, expr_py)
                 expr_py = expr_py.replace('null', 'None')
 
@@ -505,6 +507,13 @@ class Config(MutableMapping):
                         self._insert_nested_key(result, section_map)
                         node.header.value  = result
                         node.header.origin = result
+
+                # -- inject alias bindings if present --
+                if isinstance(header, ComprehensionHeaderNode):
+                    logger.debug("\t- injecting alias bindings")
+                    header.render(self._data, {}, context or {})
+                    logger.debug(f"\t- processing alias_env {header.header_envs}")
+
 
         logger.debug("② complete  → self._data=%r", self._data)
 

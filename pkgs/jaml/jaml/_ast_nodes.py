@@ -58,7 +58,6 @@ class BaseNode:
     def load(self):
         pass
 
-
 class StartNode(BaseNode):
     def __init__(self, data, contents, origin, meta):
         super().__init__()
@@ -347,14 +346,16 @@ class ComprehensionHeaderNode(BaseNode):
         self.header_envs: List[tuple[str, dict]] = []
 
         for env in iter_environments(self.clauses, g, l, ctx):
+            logger.debug(f"ComprehensionHeaderNode._evaluate() env: {env}.")
             scope = {**l, **env}
-            self.header_expr.resolve(g, scope, ctx)
-            name = self.header_expr.evaluate()
+            if ctx is None:
+                self.header_expr.resolve(g, scope)
+            else:
+                self.header_expr.render(g, scope, ctx)
 
-            if name is None or name is False:
-                continue
+            self.header_envs.append(env)
+        logger.debug(f"ComprehensionHeaderNode.header_envs {self.header_envs}.")
 
-            self.header_envs.append((name, env))
 
         if not self.header_envs:
             self.resolved = []
@@ -637,24 +638,38 @@ class AliasClauseNode(BaseNode):
         return f"AliasClauseNode(keyword={self.keyword}, scoped_var={self.scoped_var})"
 
     def emit(self) -> str:
+        logger.debug("AliasClauseNode.emit() triggered.")
+
         """
         Emit the alias clause exactly as parsed, preserving the 'as' keyword and the scoped variable.
         """
         return self.origin
 
-    def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
+    def resolve(self,
+                global_env: Dict,
+                local_env: Optional[Dict] = None):
+        """
+        During the static *resolve* phase we only capture the alias *name*.
+        The actual value is injected at runtime inside
+        _comprehension.iter_environments(), once the anchor item is known.
+        """
+        logger.debug("AliasClauseNode.resolve() triggered.")
         local_env = local_env or {}
-        if isinstance(self.scoped_var, (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode)):
-            self.scoped_var.resolve(global_env, local_env)
-            self.resolved = self.scoped_var.resolved
-            local_env[self.value] = self.resolved  # Bind alias
-        else:
-            self.resolved = self.scoped_var
-            local_env[self.value] = self.resolved
-        self.value = self.resolved
+
+        # ➜ extract the identifier inside %{…}
+        raw = getattr(self.scoped_var, "origin", "")
+        if raw.startswith("%{") and raw.endswith("}"):
+            alias_name = raw[2:-1].split(".")[0]          # drop %{…} and ignore dots
+        else:                                            # (unexpected but safe)
+            alias_name = str(self.scoped_var)
+
+        self.resolved = alias_name        # plain string – e.g. "package"
+        self.value    = alias_name        # let callers read .value directly
 
     def evaluate(self) -> Any:
+        logger.debug("AliasClauseNode.evaluate() triggered.")
         return self.resolved if self.resolved is not None else self.scoped_var
+
 
 class PairExprNode(BaseNode):
     def __init__(self):
@@ -1492,7 +1507,6 @@ class LocalScopedVarNode(BaseNode):
         # Return the inner variable name or fallback to the original token text
         return self.resolved if self.resolved is not None else self.origin
 
-
 class ContextScopedVarNode(BaseNode):
     """
     Represents a context-scoped variable, e.g. ${variable}.
@@ -1516,6 +1530,7 @@ class ContextScopedVarNode(BaseNode):
         2. global_env
         If the lookup yields another AST node (including this one), treat it as missing.
         """
+        logger.warning("ContextScopeVariable should not have resolve.")
         from collections.abc import Mapping
 
         local_env = local_env or {}
@@ -1559,6 +1574,46 @@ class ContextScopedVarNode(BaseNode):
 
         self.resolved = candidate
         self.value    = self.resolved
+
+    def render(
+        self,
+        global_env: Dict[str, Any],
+        local_env: Dict[str, Any] | None = None,
+        context: Dict[str, Any] | None   = None,
+    ) -> Any:
+        """
+        During Config.render we have a *context* dict.  First try to
+        resolve the variable against that dict; if not found, fall back
+        to the full configuration (global_env + local_env).
+        """
+        from collections.abc import Mapping
+
+        local_env = local_env or {}
+        context   = context   or {}
+
+        # split e.g. "packages.0.name"
+        path = self.origin[2:-1].split(".")
+
+        def _dig(src):
+            cur = src
+            for part in path:
+                if isinstance(cur, Mapping) and part in cur:
+                    cur = cur[part]
+                elif hasattr(cur, part):
+                    cur = getattr(cur, part)
+                else:
+                    return None
+            return cur
+
+        candidate = _dig(context)            # ❶ runtime context
+        if candidate is None:
+            candidate = _dig(local_env)      # ❷ current local env
+        if candidate is None:
+            candidate = _dig(global_env)     # ❸ whole config
+
+        self.resolved = candidate
+        self.value    = candidate
+        return candidate
 
 class WhitespaceNode(BaseNode):
     def __init__(self, value: str):
