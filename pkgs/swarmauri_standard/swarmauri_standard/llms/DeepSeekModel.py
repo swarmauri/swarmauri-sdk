@@ -33,6 +33,7 @@ class DeepSeekModel(LLMBase):
 
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
+
     api_key: SecretStr
     allowed_models: List[str] = ["deepseek-chat", "deepseek-reasoner"]
     name: str = "deepseek-chat"

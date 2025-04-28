@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import AsyncIterator, Dict, Iterator, List, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -211,11 +211,11 @@ class GeminiProModel(LLMBase):
 
         usage_data = response_data["usageMetadata"]
 
-        usage = self._prepare_usage_data(
-            usage_data,
-            prompt_timer.duration,
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -270,8 +270,11 @@ class GeminiProModel(LLMBase):
         message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
         usage_data = response_data["usageMetadata"]
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -340,10 +343,13 @@ class GeminiProModel(LLMBase):
                     if "usageMetadata" in response_data:
                         usage_data = response_data["usageMetadata"]
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=full_response, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=full_response, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=full_response))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -409,10 +415,13 @@ class GeminiProModel(LLMBase):
                     if "usageMetadata" in response_data:
                         usage_data = response_data["usageMetadata"]
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=full_response, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=full_response, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=full_response))
 
     def batch(
         self,

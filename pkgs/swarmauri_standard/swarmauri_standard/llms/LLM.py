@@ -3,7 +3,6 @@ import json
 from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -14,58 +13,43 @@ from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
-@ComponentBase.register_type(LLMBase, "OpenAIModel")
-class OpenAIModel(LLMBase):
+@ComponentBase.register_type()
+class LLM(LLMBase):
     """
-    OpenAIModel class for interacting with the Groq language models API. This class
+    Generic LLM class for interacting with various language model APIs. This class
     provides synchronous and asynchronous methods to send conversation data to the
     model, receive predictions, and stream responses.
 
     Attributes:
-        api_key (str): API key for authenticating requests to the Groq API.
+        api_key (SecretStr): API key for authenticating requests to the API.
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
-        type (Literal["OpenAIModel"]): The type identifier for this class.
-
-    Provider resources: https://platform.openai.com/docs/models
+        type (Literal["LLM"]): The type identifier for this class.
+        BASE_URL (str): The base URL for API requests.
+        timeout (float): Timeout for API requests in seconds.
     """
-
-    api_key: SecretStr
-    allowed_models: List[str] = [
-        "gpt-4o-mini",
-        "gpt-4o-2024-05-13",
-        "gpt-4o-2024-08-06",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4o",
-        "gpt-4-turbo",
-        "gpt-4-turbo-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4-0125-preview",
-        "gpt-4-0613",
-        "gpt-3.5-turbo-0125",
-    ]
-    name: str = "gpt-4o-mini"
-    type: Literal["OpenAIModel"] = "OpenAIModel"
-    timeout: float = 600.0
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
-    _headers: Dict[str, str] = PrivateAttr(default=None)
-
     def __init__(self, **data) -> None:
         """
-        Initialize the OpenAIModel class with the provided data.
+        Initialize the LLM class with the provided data.
 
         Args:
             **data: Arbitrary keyword arguments containing initialization data.
+                   Should include api_key, and optionally name, BASE_URL, timeout.
         """
         super().__init__(**data)
+
+        # Set up headers for API requests
         self._headers = {
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+
+        # Load allowed models and set default if needed
+        if not self.allowed_models:
+            self.allowed_models = self.get_allowed_models()
+
+        if not self.name and self.allowed_models:
+            self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -80,16 +64,14 @@ class OpenAIModel(LLMBase):
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
         """
-
         formatted_messages = []
         for message in messages:
-            formatted_message = message.model_dump(
-                include=["content", "role", "name"], exclude_none=True
-            )
+            if message.role != "assistant":
+                formatted_message = message.model_dump(
+                    include=["content", "role", "name"], exclude_none=True
+                )
 
-            if message.role == "system":
-                formatted_message["role"] = "developer"
-
+            # Handle multi-modal content
             if isinstance(formatted_message["content"], list):
                 formatted_message["content"] = [
                     {"type": item["type"], **item}
@@ -101,7 +83,7 @@ class OpenAIModel(LLMBase):
 
     def _prepare_usage_data(
         self,
-        usage_data,
+        usage_data: Dict[str, Any],
         prompt_time: float = 0.0,
         completion_time: float = 0.0,
     ) -> UsageData:
@@ -118,21 +100,7 @@ class OpenAIModel(LLMBase):
         """
         total_time = prompt_time + completion_time
 
-        # Filter usage data for relevant keys
-        filtered_usage_data = {
-            key: value
-            for key, value in usage_data.items()
-            if key
-            not in {
-                "prompt_tokens",
-                "completion_tokens",
-                "total_tokens",
-                "prompt_time",
-                "completion_time",
-                "total_time",
-            }
-        }
-
+        # Extract standard usage metrics
         usage = UsageData(
             prompt_tokens=usage_data.get("prompt_tokens", 0),
             completion_tokens=usage_data.get("completion_tokens", 0),
@@ -140,12 +108,11 @@ class OpenAIModel(LLMBase):
             prompt_time=prompt_time,
             completion_time=completion_time,
             total_time=total_time,
-            **filtered_usage_data,
         )
 
         return usage
 
-    @retry_on_status_codes((429, 529), max_retries=1)
+    @retry_on_status_codes((429, 529), max_retries=3)
     def predict(
         self,
         conversation: Conversation,
@@ -170,6 +137,8 @@ class OpenAIModel(LLMBase):
             Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
+
+        # Prepare the payload
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -178,30 +147,33 @@ class OpenAIModel(LLMBase):
             "top_p": top_p,
             "stop": stop or [],
         }
-        if enable_json:
-            payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        # Add JSON response format if requested
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        # Make the API request and measure time
+        with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    self.BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
 
+        # Parse the response
         response_data = response.json()
-
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
+        # Prepare usage data if tracking is enabled
         if self.include_usage:
-            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
             conversation.add_message(AgentMessage(content=message_content))
-
         return conversation
 
-    @retry_on_status_codes((429, 529), max_retries=1)
+    @retry_on_status_codes((429, 529), max_retries=3)
     async def apredict(
         self,
         conversation: Conversation,
@@ -226,6 +198,8 @@ class OpenAIModel(LLMBase):
             Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
+
+        # Prepare the payload
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -234,30 +208,34 @@ class OpenAIModel(LLMBase):
             "top_p": top_p,
             "stop": stop or [],
         }
-        if enable_json:
-            payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        # Add JSON response format if requested
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        # Make the async API request and measure time
+        with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    self.BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
 
+        # Parse the response
         response_data = response.json()
-
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
+        # Prepare usage data if tracking is enabled
         if self.include_usage:
-            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
-    @retry_on_status_codes((429, 529), max_retries=1)
+    @retry_on_status_codes((429, 529), max_retries=3)
     def stream(
         self,
         conversation: Conversation,
@@ -281,8 +259,9 @@ class OpenAIModel(LLMBase):
         Yields:
             str: Partial response content from the model.
         """
-
         formatted_messages = self._format_messages(conversation.history)
+
+        # Prepare the payload with stream flag
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -291,45 +270,69 @@ class OpenAIModel(LLMBase):
             "top_p": top_p,
             "stream": True,
             "stop": stop or [],
-            "stream_options": {"include_usage": True},
         }
-        if enable_json:
-            payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        if self.include_usage:
+            payload["stream_options"] = {"include_usage": True}
+
+        # Start timing for prompt processing
+        with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    self.BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
 
+        # Process the streaming response
         message_content = ""
         usage_data = {}
+
         with DurationManager() as completion_timer:
             for line in response.iter_lines():
-                json_str = line.replace("data: ", "")
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"] and chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                        if "usage" in chunk and chunk["usage"] is not None:
-                            usage_data = chunk["usage"]
+                if line.startswith("data: "):
+                    json_str = line.replace("data: ", "")  # Remove 'data: ' prefix
 
-                except json.JSONDecodeError:
-                    pass
+                    if json_str.strip() == "[DONE]":
+                        break
 
+                    try:
+                        if json_str:
+                            chunk = json.loads(json_str)
+                            if (
+                                "choices" in chunk
+                                and chunk["choices"]
+                                and "delta" in chunk["choices"][0]
+                            ):
+                                delta = chunk["choices"][0]["delta"]
+                                if "content" in delta:
+                                    content = delta["content"]
+                                    message_content += content
+                                    yield content
+
+                            # Collect usage data if available
+                            if (
+                                self.include_usage
+                                and "usage" in chunk
+                                and chunk["usage"] is not None
+                            ):
+                                usage_data = chunk["usage"]
+
+                    except json.JSONDecodeError:
+                        pass
+
+        # Add the complete message to the conversation
         if self.include_usage:
             usage = self._prepare_usage_data(
-                usage_data, promt_timer.duration, completion_timer.duration
+                usage_data, prompt_timer.duration, completion_timer.duration
             )
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
-    @retry_on_status_codes((429, 529), max_retries=1)
+    @retry_on_status_codes((429, 529), max_retries=3)
     async def astream(
         self,
         conversation: Conversation,
@@ -353,8 +356,9 @@ class OpenAIModel(LLMBase):
         Yields:
             str: Partial response content from the model.
         """
-
         formatted_messages = self._format_messages(conversation.history)
+
+        # Prepare the payload with stream flag
         payload = {
             "model": self.name,
             "messages": formatted_messages,
@@ -363,35 +367,60 @@ class OpenAIModel(LLMBase):
             "top_p": top_p,
             "stream": True,
             "stop": stop or [],
-            "stream_options": {"include_usage": True},
         }
-        if enable_json:
-            payload["response_format"] = "json_object"
 
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        if self.include_usage:
+            payload["stream_options"] = {"include_usage": True}
+
+        # Start timing for prompt processing
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
+                    self.BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
 
+        # Process the streaming response asynchronously
         message_content = ""
         usage_data = {}
+
         with DurationManager() as completion_timer:
             async for line in response.aiter_lines():
-                json_str = line.replace("data: ", "")
-                try:
-                    if json_str:
-                        chunk = json.loads(json_str)
-                        if chunk["choices"] and chunk["choices"][0]["delta"]:
-                            delta = chunk["choices"][0]["delta"]["content"]
-                            message_content += delta
-                            yield delta
-                        if "usage" in chunk and chunk["usage"] is not None:
-                            usage_data = chunk["usage"]
-                except json.JSONDecodeError:
-                    pass
+                if line.startswith("data: "):
+                    json_str = line[6:]  # Remove 'data: ' prefix
 
+                    if json_str.strip() == "[DONE]":
+                        break
+
+                    try:
+                        if json_str:
+                            chunk = json.loads(json_str)
+                            if (
+                                "choices" in chunk
+                                and chunk["choices"]
+                                and "delta" in chunk["choices"][0]
+                            ):
+                                delta = chunk["choices"][0]["delta"]
+                                if "content" in delta:
+                                    content = delta["content"]
+                                    message_content += content
+                                    yield content
+
+                            # Collect usage data if available
+                            if (
+                                self.include_usage
+                                and "usage" in chunk
+                                and chunk["usage"] is not None
+                            ):
+                                usage_data = chunk["usage"]
+
+                    except json.JSONDecodeError:
+                        pass
+
+        # Add the complete message to the conversation
         if self.include_usage:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
@@ -444,7 +473,7 @@ class OpenAIModel(LLMBase):
         top_p: float = 1.0,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-        max_concurrent=5,
+        max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
         Async method for processing a batch of conversations concurrently.
@@ -479,26 +508,12 @@ class OpenAIModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Returns a list of allowed models for this LLM provider.
+
+        This default implementation returns a static list. Provider-specific
+        subclasses should override this to query their respective APIs.
 
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = [
-            "gpt-4o-mini",
-            "gpt-4o-2024-05-13",
-            "gpt-4o-2024-08-06",
-            "gpt-4o-mini-2024-07-18",
-            "gpt-4o",
-            "gpt-4-turbo",
-            "gpt-4-turbo-preview",
-            "gpt-4-1106-preview",
-            "gpt-4",
-            "gpt-3.5-turbo-1106",
-            "gpt-3.5-turbo",
-            "gpt-4-turbo-2024-04-09",
-            "gpt-4-0125-preview",
-            "gpt-4-0613",
-            "gpt-3.5-turbo-0125",
-        ]
-        return models_data
+        return ["gpt-4", "gpt-3.5-turbo", "claude-3-5-sonnet-20240229"]

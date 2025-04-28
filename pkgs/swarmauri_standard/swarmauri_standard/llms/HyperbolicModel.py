@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -202,8 +202,11 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -250,8 +253,11 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -308,11 +314,13 @@ class HyperbolicModel(LLMBase):
                             usage_data = chunk["usage"]
                 except json.JSONDecodeError:
                     pass
-
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, promt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -374,10 +382,13 @@ class HyperbolicModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, promt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

@@ -1,5 +1,6 @@
 import asyncio
 from typing import Dict, List, Literal
+import warnings
 
 import aiofiles
 import httpx
@@ -8,6 +9,14 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing OpenAIAudio from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.stt import "
+    "OpenaiSTT' or 'from swarmauri.stt import OpenaiSTT' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIAudio")

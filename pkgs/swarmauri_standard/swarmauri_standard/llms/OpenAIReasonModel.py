@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Dict, List, Literal, Optional, Type
+from typing import Any, Dict, List, Optional, Type
+from xml.etree.ElementInclude import include
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -179,8 +180,12 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -215,7 +220,7 @@ class OpenAIReasonModel(LLMBase):
         if enable_json:
             payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -227,8 +232,12 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     def get_allowed_models(self) -> List[str]:

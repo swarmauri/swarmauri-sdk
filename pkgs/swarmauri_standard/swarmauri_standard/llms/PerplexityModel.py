@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import AsyncIterator, Dict, Iterator, List, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -31,8 +31,7 @@ class PerplexityModel(LLMBase):
     Provider resources: https://docs.perplexity.ai/guides/model-cards
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
-
-    api_key: SecretStr
+tStr
     allowed_models: List[str] = [
         "sonar-reasoning-pro",
         "sonar-reasoning",
@@ -321,11 +320,13 @@ class PerplexityModel(LLMBase):
                     if chunk_data["usage"]:
                         usage_data = chunk_data["usage"]
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -394,10 +395,13 @@ class PerplexityModel(LLMBase):
                     yield delta_content
                     usage_data = chunk_data.get("usage", usage_data)
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

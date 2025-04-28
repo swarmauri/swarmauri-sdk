@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal
+from typing import AsyncIterator, Dict, Iterator, List
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -47,7 +47,6 @@ class CohereModel(LLMBase):
     type: Literal["CohereModel"] = "CohereModel"
 
     timeout: float = 600.0
-
     def __init__(self, **data):
         """
         Initialize the CohereModel with the provided configuration.
@@ -192,11 +191,14 @@ class CohereModel(LLMBase):
 
         usage_data = data.get("usage", {})
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -249,12 +251,15 @@ class CohereModel(LLMBase):
 
             usage_data = data.get("usage", {})
 
+        if self.include_usage:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
-            return conversation
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
+        return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
@@ -316,12 +321,15 @@ class CohereModel(LLMBase):
                     elif "usage" in chunk:
                         usage_data = chunk["usage"]
 
-        full_content = "".join(collected_content)
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
+        message_content = "".join(collected_content)
 
-        conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -395,12 +403,14 @@ class CohereModel(LLMBase):
                         except json.JSONDecodeError:
                             continue
 
-            full_content = "".join(collected_content)
+            message_content = "".join(collected_content)
+        if self.include_usage:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-
-            conversation.add_message(AgentMessage(content=full_content, usage=usage))
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(self, conversations: List, temperature=0.7, max_tokens=256) -> List:
         """

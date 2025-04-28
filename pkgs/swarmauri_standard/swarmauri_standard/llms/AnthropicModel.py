@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import AsyncIterator, Dict, Iterator, List, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -32,7 +32,6 @@ class AnthropicModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.anthropic.com/v1")
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-
     api_key: SecretStr
     allowed_models: List[str] = [
         "claude-3-7-sonnet-latest",
@@ -171,11 +170,15 @@ class AnthropicModel(LLMBase):
             message_content = response_data["content"][0]["text"]
 
         usage_data = response_data["usage"]
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -254,10 +257,13 @@ class AnthropicModel(LLMBase):
                             except (json.JSONDecodeError, KeyError):
                                 continue
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
@@ -296,11 +302,15 @@ class AnthropicModel(LLMBase):
             message_content = response_data["content"][0]["text"]
 
         usage_data = response_data["usage"]
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -381,10 +391,13 @@ class AnthropicModel(LLMBase):
                             except (json.JSONDecodeError, KeyError):
                                 continue
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self, conversations: List[Conversation], temperature=0.7, max_tokens=256
