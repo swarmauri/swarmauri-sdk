@@ -1,10 +1,10 @@
-import os
-import pkgutil
 import importlib
 import inspect
-import yaml
+import os
+import pkgutil
 import re
-from typing import Dict, List
+
+import yaml
 
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
 
@@ -314,11 +314,127 @@ def generate(
 
 
 if __name__ == "__main__":
-    # Example usage
-    generate(
-        package_name="swarmauri_standard",
-        docs_dir="docs/docs",
-        api_output_dir="api",
-        mkdocs_yml_path="docs/mkdocs.yml",
-        top_label="Standard",
+    # Common parameters for all documentation generation
+    docs_dir = "docs/docs"
+    api_output_dir = "api"
+    mkdocs_yml_path = "docs/mkdocs.yml"
+
+    # Main SDK packages - process individually as before
+    main_packages = [
+        {"package_name": "swarmauri_standard", "top_label": "Standard"},
+        {"package_name": "swarmauri_core", "top_label": "Core"},
+        {"package_name": "swarmauri_base", "top_label": "Base"},
+    ]
+
+    for pkg in main_packages:
+        try:
+            importlib.import_module(pkg["package_name"])
+            print(f"Generating documentation for {pkg['package_name']}...")
+            generate(
+                package_name=pkg["package_name"],
+                docs_dir=docs_dir,
+                api_output_dir=api_output_dir,
+                mkdocs_yml_path=mkdocs_yml_path,
+                top_label=pkg["top_label"],
+            )
+        except ImportError:
+            print(
+                f"Package {pkg['package_name']} is not installed, skipping documentation generation."
+            )
+
+    # Get the root directory of the SDK
+    current_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
+
+    # Process standards packages (First_Class) - collect all modules first
+    standards_dir = os.path.join(current_dir, "pkgs", "standards")
+    if os.path.exists(standards_dir):
+        # For collecting all classes from all First_Class packages
+        first_class_module_classes_map = {}
+
+        # First generate docs for all standards packages
+        for item in os.listdir(standards_dir):
+            item_path = os.path.join(standards_dir, item)
+            if os.path.isdir(item_path) and item != "__pycache__":
+                package_name = item
+                try:
+                    importlib.import_module(package_name)
+                    print(f"Generating documentation for {package_name}...")
+
+                    # Generate docs but don't update mkdocs.yml yet
+                    top_label_dir = os.path.join(
+                        docs_dir, api_output_dir, "first_class"
+                    )
+                    ensure_home_page(top_label_dir)
+
+                    output_dir = os.path.join(docs_dir, api_output_dir, "first_class")
+                    module_map = generate_docs(package_name, output_dir)
+
+                    # Merge with our accumulated map
+                    first_class_module_classes_map.update(module_map)
+                except ImportError:
+                    print(
+                        f"Package {package_name} is not installed, skipping documentation generation."
+                    )
+
+        # Now build the nav structure for all First_Class packages at once
+        if first_class_module_classes_map:
+            new_section = build_nav_for_api_docs(
+                "first_class",
+                first_class_module_classes_map,
+                api_output_dir,
+                "First_Class",
+            )
+            update_api_docs_nav(mkdocs_yml_path, new_section)
+            print("Updated API Documentation with all First_Class packages")
+    else:
+        print(
+            f"Standards directory not found at {standards_dir}, skipping First Class packages."
+        )
+
+    # Process community packages (Second_Class) - similar approach
+    community_dir = os.path.join(current_dir, "pkgs", "community")
+    if os.path.exists(community_dir):
+        # For collecting all classes from all Second_Class packages
+        second_class_module_classes_map = {}
+
+        # First generate docs for all community packages
+        for item in os.listdir(community_dir):
+            item_path = os.path.join(community_dir, item)
+            if os.path.isdir(item_path) and item != "__pycache__":
+                package_name = item
+                try:
+                    importlib.import_module(package_name)
+                    print(f"Generating documentation for {package_name}...")
+
+                    # Generate docs but don't update mkdocs.yml yet
+                    top_label_dir = os.path.join(
+                        docs_dir, api_output_dir, "second_class"
+                    )
+                    ensure_home_page(top_label_dir)
+
+                    output_dir = os.path.join(docs_dir, api_output_dir, "second_class")
+                    module_map = generate_docs(package_name, output_dir)
+
+                    # Merge with our accumulated map
+                    second_class_module_classes_map.update(module_map)
+                except ImportError:
+                    print(
+                        f"Package {package_name} is not installed, skipping documentation generation."
+                    )
+
+        # Now build the nav structure for all Second_Class packages at once
+        if second_class_module_classes_map:
+            new_section = build_nav_for_api_docs(
+                "second_class",
+                second_class_module_classes_map,
+                api_output_dir,
+                "Second_Class",
+            )
+            update_api_docs_nav(mkdocs_yml_path, new_section)
+            print("Updated API Documentation with all Second_Class packages")
+    else:
+        print(
+            f"Community directory not found at {community_dir}, skipping Second Class packages."
+        )
