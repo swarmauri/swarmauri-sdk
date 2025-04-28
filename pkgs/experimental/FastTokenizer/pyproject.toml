@@ -1,0 +1,60 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "FastTokenizer"
+version = "0.1.0"
+description = "A fast tokenizer implemented in Rust"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+authors = [
+    { name = "Michael Nwogha", email = "michael@swarmauri.com" }
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust"
+]
+keywords = ["tokenizer", "nlp", "rust", "fast", "text processing"]
+
+dependencies = [
+    "regex",
+]
+
+[tool.maturin]
+module-name = "fasttokenizer"
+python-source = "src"
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

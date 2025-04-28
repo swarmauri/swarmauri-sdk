@@ -1,0 +1,11 @@
+# example for linguist & textgrammar based lexer support
+MyMarkup:
+  type: markup
+  group: markup
+  extensions:
+    - .mymarkup
+  filenames:
+    - MyMarkupfile
+  ace_mode: html
+  tm_scope: source.mymarkup
+  color: "#f1e05a"
