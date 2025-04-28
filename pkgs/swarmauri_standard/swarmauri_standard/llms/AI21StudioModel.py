@@ -1,9 +1,9 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Type
+from typing import AsyncIterator, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -31,7 +31,6 @@ class AI21StudioModel(LLMBase):
 
     Provider resources: https://docs.ai21.com/reference/jamba-15-api-ref
     """
-
 
     api_key: SecretStr
     allowed_models: List[str] = ["jamba-1.5-large", "jamba-1.5-mini"]

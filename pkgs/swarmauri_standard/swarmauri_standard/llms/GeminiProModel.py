@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Type
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -86,7 +86,6 @@ class GeminiProModel(LLMBase):
             headers={"Content-Type": "application/json"},
             timeout=self.timeout,
         )
-
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]

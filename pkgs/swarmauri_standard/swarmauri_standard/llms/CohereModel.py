@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List
+from typing import AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -47,6 +47,7 @@ class CohereModel(LLMBase):
     type: Literal["CohereModel"] = "CohereModel"
 
     timeout: float = 600.0
+
     def __init__(self, **data):
         """
         Initialize the CohereModel with the provided configuration.

@@ -4,7 +4,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
@@ -36,7 +36,6 @@ class OpenAIToolModel(ToolLLMBase):
 
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
-
 
     api_key: SecretStr
     allowed_models: List[str] = [

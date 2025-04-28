@@ -86,7 +86,6 @@ class FalAIVisionModel(LLMBase):
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
 
-
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """

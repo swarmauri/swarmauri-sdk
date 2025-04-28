@@ -7,10 +7,10 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
-from swarmauri_standard.conversations.Conversation import Conversation
-
+from swarmauri_core.conversations.IConversation import IConversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
@@ -32,7 +32,6 @@ class GeminiToolModel(ToolLLMBase):
         type (Literal["GeminiToolModel"]): The model type, set to "GeminiToolModel".
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
     """
-
 
     api_key: SecretStr
     allowed_models: List[str] = [
@@ -71,7 +70,6 @@ class GeminiToolModel(ToolLLMBase):
             },
         ]
     )
-
 
     def __init__(self, *args, **kwargs):
         """
