@@ -1,5 +1,10 @@
 
 # MEP-012: Scoped Variables
+**Author:** Jacob Stewart
+**Status:** Draft  
+**Created:** April 04, 2025  
+**Target Language:** TBD
+
 
 ## 1. Abstract
 

@@ -2,13 +2,12 @@
 import pytest
 
 from jaml import (
-    round_trip_loads,
-    round_trip_dumps,
     loads,
-    dumps
+    round_trip_loads,
 )
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
 def test_primitive_type_annotations():
     """
@@ -26,7 +25,7 @@ missing_val: null = null
 """
     # Round-trip to check that annotations are preserved
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Ensure the annotated keys are present with correct annotation
     assert "greeting: str = \"Hello, World!\"" in reserialized
@@ -37,6 +36,7 @@ missing_val: null = null
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="List annotation handling not fully implemented yet.")
 def test_list_annotation():
     """
@@ -50,13 +50,14 @@ numbers: list = [1, 2, 3]
 colors: list = ["red", "green", "blue"]
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     assert "numbers: list = [1, 2, 3]" in reserialized
     assert "colors: list = [\"red\", \"green\", \"blue\"]" in reserialized
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Inline table type annotations not fully preserved yet.")
 def test_table_annotation():
     """
@@ -69,12 +70,13 @@ def test_table_annotation():
 point: table = { x = 10, y = 20 }
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
-    assert "point: table = { x = 10, y = 20 }" in reserialized
+    assert "point: table = {x = 10, y = 20}" in reserialized
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Nested inline table type annotations not fully supported yet.")
 def test_nested_inline_table_annotation():
     """
@@ -87,15 +89,16 @@ def test_nested_inline_table_annotation():
 user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str = "admin" } }
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Verify the top-level user: table annotation
-    assert "user: table = { name: str = \"Azzy\"," in reserialized
+    assert "user: table = {name: str = \"Azzy\"," in reserialized
     # Verify nested details: table annotation
-    assert "details: table = { age: int = 9," in reserialized
+    assert "details: table = {age: int = 9," in reserialized
 
 
 @pytest.mark.spec
+@pytest.mark.mep0009
 # @pytest.mark.xfail(reason="Lists of inline tables annotations not fully implemented yet.")
 def test_table_arrays_and_lists_of_inline_tables():
     """
@@ -111,15 +114,16 @@ authors: list = [
 ]
 """
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Should see 'authors: list = [' plus the inline tables
-    assert "authors: list = [\n  { name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\" }," in reserialized
-    assert "{ name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\" }" in reserialized
+    assert "authors: list = [\n  {name: str = \"Jacob\", email: str = \"jacob@swarmauri.com\"}," in reserialized
+    assert "{name: str = \"Stewart\", email: str = \"stewart@swarmauri.com\"}" in reserialized
 
 
 # @pytest.mark.xfail(reason="Type validation not implemented yet.")
 @pytest.mark.spec
+@pytest.mark.mep0009
 def test_value_does_not_match_annotation():
     """
     MEP-009:
@@ -137,6 +141,7 @@ wrong_type: int = "this is not an int"
 
 # @pytest.mark.xfail(reason="Strict type enforcement for nested complex types not yet implemented.")
 @pytest.mark.spec
+@pytest.mark.mep0009
 def test_nested_type_mismatch():
     """
     MEP-009:

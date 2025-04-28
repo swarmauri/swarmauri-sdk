@@ -1,8 +1,8 @@
-from typing import Dict, List, Union, Optional, Literal
-from pydantic import ConfigDict, FilePath
-from jinja2 import Environment, FileSystemLoader, Template
 import os
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
+from jinja2 import Environment, FileSystemLoader, Template
+from pydantic import ConfigDict, FilePath
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
 
@@ -15,16 +15,24 @@ class J2PromptTemplate(PromptTemplateBase):
     The `template` attribute supports either a literal string representing the template content
     or a Pydantic FilePath. When a FilePath is provided, the template is loaded using
     `env.get_template()` and stored in `template`.
+
+    Features:
+    - Support for multiple template directories with fallback mechanism
+    - Built-in filters: split_whitespace, make_singular (when code_generation_mode is True)
+    - Template caching for performance
+    - Configurable for both general-purpose use and code generation
     """
 
     # The template attribute may be a literal string (template content),
     # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
     template: Union[str, FilePath, Template] = ""
-    variables: Dict[str, Union[str, int, float]] = {}
+    variables: Dict[str, Union[str, int, float, Any]] = {}
     # Optional templates_dir attribute (can be a single path or a list of paths)
     templates_dir: Optional[Union[str, List[str]]] = None
+    # Whether to enable code generation specific features like linguistic filters
+    code_generation_mode: bool = False
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra='allow')
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
 
     def get_env(self) -> Environment:
@@ -34,7 +42,7 @@ class J2PromptTemplate(PromptTemplateBase):
         If `templates_dir` is provided, a FileSystemLoader is created with that directory (or directories).
         Otherwise, no loader is set.
 
-        The custom 'split' filter is added before returning the environment.
+        The custom filters are added before returning the environment.
         """
         if self.templates_dir:
             if isinstance(self.templates_dir, str):
@@ -44,7 +52,14 @@ class J2PromptTemplate(PromptTemplateBase):
         else:
             loader = None
         env = Environment(loader=loader, autoescape=False)
+
+        # Add basic filters
         env.filters["split"] = self.split_whitespace
+
+        # Add code generation filters when in code_generation_mode
+        if self.code_generation_mode:
+            env.filters["make_singular"] = self.make_singular
+
         return env
 
     def set_template(self, template: Union[str, FilePath]) -> None:
@@ -55,15 +70,9 @@ class J2PromptTemplate(PromptTemplateBase):
         - If it is a FilePath, the template is loaded via an environment using `get_template()`.
         """
         if type(template) is str:
-            self._set_template_from_str(template)
+            self.template = template
         else:
             self._set_template_from_filepath(template)
-
-    def _set_template_from_str(self, template_str: str) -> None:
-        """
-        Sets the template from a literal string.
-        """
-        self.template = template_str
 
     def _set_template_from_filepath(self, template_path: FilePath) -> None:
         """
@@ -131,9 +140,12 @@ class J2PromptTemplate(PromptTemplateBase):
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
+        if self.code_generation_mode:
+            fallback_env.filters["make_singular"] = self.make_singular
+
         self.template = fallback_env.get_template(template_name)
 
-    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+    def generate_prompt(self, variables: Dict[str, Any] = None) -> str:
         """
         Generates a prompt by rendering the current template with the provided variables.
 
@@ -143,14 +155,17 @@ class J2PromptTemplate(PromptTemplateBase):
         variables = variables if variables else self.variables
         return self.fill(variables)
 
-    def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
+    def __call__(self, variables: Optional[Dict[str, Any]] = None) -> str:
         """
         Allows the instance to be called directly to generate a prompt.
         """
         variables = variables if variables else self.variables
         return self.fill(variables)
 
-    def fill(self, variables: Dict[str, str] = None) -> str:
+    def fill(self, variables: Dict[str, Any] = None) -> str:
+        """
+        Renders the template with the provided variables.
+        """
         variables = variables or self.variables
         env = self.get_env()
         if isinstance(self.template, Template):
@@ -170,3 +185,35 @@ class J2PromptTemplate(PromptTemplateBase):
             return value.split(delimiter)
         else:
             return value.split()
+
+    @staticmethod
+    def make_singular(verb):
+        """
+        Converts a plural word to singular form.
+        Requires inflect library to be installed.
+        """
+        try:
+            import inflect
+
+            # Initialize the engine
+            p = inflect.engine()
+            # Return the singular form of the verb
+            return p.singular_noun(verb) if p.singular_noun(verb) else verb
+        except ImportError:
+            # Return the original if inflect is not available
+            return verb
+
+    def add_filter(self, name: str, filter_func: Callable) -> None:
+        """
+        Adds a custom filter to the Jinja2 environment.
+
+        Parameters:
+            name: The name of the filter (used in templates)
+            filter_func: The function to be called when the filter is used
+        """
+        env = self.get_env()
+        env.filters[name] = filter_func
+
+
+# Create a singleton instance for peagen usage with code generation mode enabled
+j2pt = J2PromptTemplate(code_generation_mode=True)

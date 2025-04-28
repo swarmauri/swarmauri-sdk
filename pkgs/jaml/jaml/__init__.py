@@ -14,15 +14,7 @@ from .api import (
     round_trip_load,
     round_trip_loads,
     check_extension,
+    resolve,
     render,
 )
-
-from .ast_nodes import (
-    DocumentNode,
-    SectionNode,
-    KeyValueNode,
-    ScalarNode,
-    ArrayNode,
-    TableNode,
-    LogicExpressionNode,
-)
+from ._lark_parser import parser

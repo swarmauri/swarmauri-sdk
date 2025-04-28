@@ -1,4 +1,9 @@
 # MEP-016: Modular File Inclusion
+**Author:** Jacob Stewart
+**Status:** Draft  
+**Created:** April 04, 2025  
+**Target Language:** TBD
+
 
 ## 1. Abstract
 

@@ -34,9 +34,13 @@ class GroqAIAudio(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "whisper-large-v3-turbo",
+        "distil-whisper-large-v3-en",
+        "whisper-large-v3",
+    ]
 
-    name: str = ""
+    name: str = "whisper-large-v3-turbo"
     type: Literal["GroqAIAudio"] = "GroqAIAudio"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -62,9 +66,6 @@ class GroqAIAudio(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

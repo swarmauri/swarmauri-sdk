@@ -1,8 +1,9 @@
 # MEP-0021: List & Dict Comprehensions
-**Author:** [Your Name/Group]  
+**Author:** Jacob Stewart
 **Status:** Draft  
 **Created:** April 04, 2025  
-**Target Language:** [Your Markup Language Name]
+**Target Language:** TBD
+
 
 ## Abstract
 This proposal introduces list and dict comprehensions as a mechanism for dynamically generating lists and dictionaries within the markup language. Using f-string notation for templating and optional conditional logic, comprehensions produce either formatted strings or null, enhancing the language’s expressiveness while preserving readability.

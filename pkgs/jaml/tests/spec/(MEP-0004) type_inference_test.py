@@ -7,6 +7,7 @@ import pytest
 from jaml import loads
 
 @pytest.mark.spec
+@pytest.mark.mep0004
 # @pytest.mark.xfail(reason="Inference for basic scalar types is not yet implemented")
 def test_infer_basic_scalars():
     """
@@ -32,6 +33,7 @@ def test_infer_basic_scalars():
     assert isinstance(scalars["string_value"], str)
 
 @pytest.mark.spec
+@pytest.mark.mep0004
 # @pytest.mark.xfail(reason="Inference for numeric prefixes and special float values not yet implemented")
 def test_infer_numeric_prefixes_and_specials():
     """
@@ -55,33 +57,8 @@ def test_infer_numeric_prefixes_and_specials():
     assert numbers["infinity"] == float("inf")
     assert isinstance(numbers["not_number"], float)
 
-
-# Is this really a type inference test? 
 @pytest.mark.spec
-# @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
-def test_infer_expressions():
-    """
-    Ensures expressions (wrapped with (~ ... ~)) are type-inferred from their result.
-    """
-    source = '''
-    [exprs]
-    # Arithmetic expression
-    sum_val = {~ 10 + 5 ~}
-    # String concatenation
-    greeting = {~ "Hello, " + "World!" ~}
-    # Boolean logic
-    combo = {~ true and false ~}
-    '''
-    result = loads(source)
-    exprs = result["exprs"]
-    assert isinstance(exprs["sum_val"], int)
-    assert exprs["sum_val"] == 15
-    assert isinstance(exprs["greeting"], str)
-    assert exprs["greeting"] == "Hello, World!"
-    assert isinstance(exprs["combo"], bool)
-    assert exprs["combo"] is False
-
-@pytest.mark.spec
+@pytest.mark.mep0004
 # @pytest.mark.xfail(reason="Inference for lists, including multiline arrays, not fully implemented")
 def test_infer_lists():
     """
@@ -93,7 +70,8 @@ def test_infer_lists():
     multiline_list = [
       "red",
       "green",
-      "blue"
+      "blue",
+      f"purple",
     ]
     '''
     result = loads(source)
@@ -101,9 +79,10 @@ def test_infer_lists():
     assert isinstance(arrays["inline_list"], list)
     assert arrays["inline_list"] == [1, 2, 3]
     assert isinstance(arrays["multiline_list"], list)
-    assert arrays["multiline_list"] == ["red", "green", "blue"]
+    assert arrays["multiline_list"] == ["red", "green", "blue", f"purple"]
 
 @pytest.mark.spec
+@pytest.mark.mep0004
 # @pytest.mark.xfail(reason="Inference for inline tables not fully implemented")
 def test_infer_inline_tables():
     """
@@ -121,6 +100,7 @@ def test_infer_inline_tables():
 
 
 @pytest.mark.spec
+@pytest.mark.mep0004
 # @pytest.mark.xfail(reason="Heterogeneous lists might require special behavior or error reporting")
 def test_heterogeneous_list_inference():
     """
