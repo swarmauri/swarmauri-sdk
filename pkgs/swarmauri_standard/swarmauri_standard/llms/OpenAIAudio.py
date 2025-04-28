@@ -1,5 +1,6 @@
 import asyncio
 from typing import Dict, List, Literal
+import warnings
 
 import aiofiles
 import httpx
@@ -8,6 +9,14 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+warnings.warn(
+    "Importing OpenAIAudio from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from swarmauri_standard.stt import "
+    "OpenaiSTT' or 'from swarmauri.stt import OpenaiSTT' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIAudio")
@@ -27,9 +36,9 @@ class OpenAIAudio(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = ["whisper-1"]
 
-    name: str = ""
+    name: str = "whisper-1"
     type: Literal["OpenAIAudio"] = "OpenAIAudio"
     timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
@@ -54,8 +63,6 @@ class OpenAIAudio(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

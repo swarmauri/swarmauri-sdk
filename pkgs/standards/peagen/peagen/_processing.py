@@ -10,12 +10,14 @@ The module also provides a function to process all file records for a project.
 """
 
 import os
-from colorama import Fore, Style
-from typing import Dict, Any, List, Optional
 from pprint import pformat
+from typing import Any, Dict, List, Optional
+
+from colorama import Fore, Style
+from swarmauri_prompt_j2prompttemplate import j2pt
+
 from ._config import _config
 from ._rendering import _render_copy_template, _render_generate_template
-from ._Jinja2PromptTemplate import j2pt
 
 
 def _save_file(
@@ -176,7 +178,8 @@ def _process_file(
     if not content:
         if logger:
             logger.warning(f"No content generated for file '{final_filename}'.")
-        return False
+        if process_type == "GENERATE":
+            return False
     _save_file(content, final_filename, logger, start_idx, idx_len)
     return True
 
@@ -199,7 +202,8 @@ def _process_project_files(
         )
 
         # Update j2pt.templates_dir[0] only if it’s actually changed
-        if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
+        # if new_template_dir and (j2pt.templates_dir[0] != new_template_dir):
+        if new_template_dir and (str(j2pt.templates_dir[0]) != str(new_template_dir)):
             if logger:
                 logger.debug(
                     "Template dir updated: "

@@ -4,12 +4,15 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
+
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+
 from swarmauri_core.conversations.IConversation import IConversation
+
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
@@ -41,7 +44,21 @@ class AnthropicToolModel(ToolLLMBase):
     BASE_URL: str = "https://api.anthropic.com/v1"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-    name: str = ""
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "claude-3-7-sonnet-latest",
+        "claude-3-5-haiku-latest",
+        "claude-3-5-sonnet-latest",
+        "claude-3-opus-latest",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022",
+        "claude-3-7-sonnet-20250219,claude-3-5-sonnet-20240620",
+        "claude-3-opus-20240229",
+        "claude-3-sonnet-20240229",
+        "claude-3-haiku-20240307",
+    ]
+    name: str = "claude-3-sonnet-20240229"
+
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
     def __init__(self, **data):
@@ -57,6 +74,7 @@ class AnthropicToolModel(ToolLLMBase):
         self._async_client = httpx.AsyncClient(
             headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
+
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.name or self.allowed_models[0]
 
@@ -622,9 +640,16 @@ class AnthropicToolModel(ToolLLMBase):
             List[str]: A list of allowed model names.
         """
         allowed_models = [
+            "claude-3-7-sonnet-latest",
+            "claude-3-5-haiku-latest",
+            "claude-3-5-sonnet-latest",
+            "claude-3-opus-latest",
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-haiku-20241022",
+            "claude-3-7-sonnet-20250219",
+            "claude-3-5-sonnet-20240620",
+            "claude-3-opus-20240229",
             "claude-3-sonnet-20240229",
             "claude-3-haiku-20240307",
-            "claude-3-opus-20240229",
-            "claude-3-5-sonnet-20240620",
         ]
         return allowed_models

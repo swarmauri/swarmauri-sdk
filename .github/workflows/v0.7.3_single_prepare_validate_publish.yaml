@@ -37,10 +37,10 @@ jobs:
       - name: Bump Version Placeholder
         run: |
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
+
+          echo "::notice::Running bump version process for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          echo "Package name: $PACKAGE_NAME"
+          echo "::notice::Package name detected: $PACKAGE_NAME"
 
           # Determine whether to use bump or set based on inputs
           if [ -n "${{ github.event.inputs.set_version }}" ]; then
@@ -49,13 +49,14 @@ jobs:
             VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
           fi
 
+
           uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
 
       - name: Ruff format
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running format for workspace member: $MEMBER"
+          echo "::notice::Running Ruff format on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
@@ -63,15 +64,16 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running lint for workspace member: $MEMBER"
+          echo "::notice::Running tests for workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "::notice::Running Ruff lint check & fix on $MEMBER"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
       - name: Run tests
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "::notice::Package name: $PACKAGE_NAME"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
@@ -82,14 +84,19 @@ jobs:
           mkdir -p patches
           MEMBER="${{ github.event.inputs.member }}"
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
-          # Generate a patch relative to the repository root for the member directory
+          echo "::notice::Creating patch file for changed files in $MEMBER..."
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+          if [ ! -s "patches/patch_${SAFE_MEMBER}.patch" ]; then
+            echo "::warning::No changes detected for $MEMBER, the patch file is empty."
+          fi
 
       - name: Set safe member variable
         if: always()
         id: set_safe_member
         run: |
           echo "SAFE_MEMBER=$(echo '${{ github.event.inputs.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "::notice::Safe member name set to $SAFE_MEMBER"
 
       - name: Upload patch artifact
         if: always()
@@ -145,11 +152,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           if ! git diff-index --quiet HEAD; then
+            echo "::notice::Changes detected; committing and pushing..."
             git commit -m "chore: apply automatic formatting and lint fixes"
             git pull --rebase origin "${{ github.ref }}"
             git push origin HEAD:"${{ github.ref }}" --force
           else
-            echo "No changes to commit."
+            echo "::notice::No changes to commit."
           fi
 
   release:
@@ -176,7 +184,7 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Building workspace member: $MEMBER"
+          echo "::notice::Building workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
@@ -185,7 +193,7 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "Publishing workspace member: $MEMBER"
+          echo "::notice::Publishing workspace member: $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
@@ -216,7 +224,7 @@ jobs:
           CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
           # Find the most recent tag for this package excluding the current tag
           PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
-          echo "Previous tag: $PREVIOUS_TAG"
+          echo "::notice::Previous tag: $PREVIOUS_TAG"
           if [ -n "$PREVIOUS_TAG" ]; then
             RELEASE_NOTES=$(git log "$PREVIOUS_TAG" -- "$CURRENT_TAG" --pretty=format:"* %s" --reverse)
           else

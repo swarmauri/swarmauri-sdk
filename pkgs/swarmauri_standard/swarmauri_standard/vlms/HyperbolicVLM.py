@@ -32,8 +32,11 @@ class HyperbolicVLM(VLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "Qwen/Qwen2.5-VL-72B-Instruct",
+        "Qwen/Qwen2.5-VL-7B-Instruct",
+    ]
+    name: str = "Qwen/Qwen2.5-VL-72B-Instruct"
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
     timeout: float = 600.0
     _headers: Dict[str, str] = PrivateAttr(default=None)
@@ -57,8 +60,6 @@ class HyperbolicVLM(VLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,

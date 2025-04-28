@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Literal, Type
+from typing import AsyncIterator, Iterator, List, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -32,16 +32,16 @@ class AI21StudioModel(LLMBase):
     Provider resources: https://docs.ai21.com/reference/jamba-15-api-ref
     """
 
+
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["jamba-1.5-large", "jamba-1.5-mini"]
+    name: str = "jamba-1.5-large"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(
         default="https://api.ai21.com/studio/v1/chat/completions"
     )
-    timeout: float = 600.0
 
     def __init__(self, **data) -> None:
         """
@@ -61,8 +61,6 @@ class AI21StudioModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(self, messages: List[Type["MessageBase"]]) -> List[dict]:
         """
@@ -147,9 +145,12 @@ class AI21StudioModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
-
+        # Prepare usage data if tracking is enabled
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -196,9 +197,12 @@ class AI21StudioModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
-
+        # Prepare usage data if tracking is enabled
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -267,6 +271,15 @@ class AI21StudioModel(LLMBase):
 
         conversation.add_message(AgentMessage(content=message_content, usage=usage))
 
+        # Prepare usage data if tracking is enabled
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
@@ -327,11 +340,14 @@ class AI21StudioModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        # Prepare usage data if tracking is enabled
+        if self.include_usage:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
