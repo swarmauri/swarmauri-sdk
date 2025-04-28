@@ -70,7 +70,8 @@ def test_infer_lists():
     multiline_list = [
       "red",
       "green",
-      "blue"
+      "blue",
+      f"purple",
     ]
     '''
     result = loads(source)
@@ -78,7 +79,7 @@ def test_infer_lists():
     assert isinstance(arrays["inline_list"], list)
     assert arrays["inline_list"] == [1, 2, 3]
     assert isinstance(arrays["multiline_list"], list)
-    assert arrays["multiline_list"] == ["red", "green", "blue"]
+    assert arrays["multiline_list"] == ["red", "green", "blue", f"purple"]
 
 @pytest.mark.spec
 @pytest.mark.mep0004

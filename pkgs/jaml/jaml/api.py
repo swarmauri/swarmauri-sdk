@@ -1,22 +1,14 @@
+# jaml/api.py
 import os
 from typing import IO, Any, Dict
-
 from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
-from pprint import pprint
-
-# Using the lark parser and transformer modules:
-from .lark_parser import parser
+from ._lark_parser import parser  # Assuming lark_parser.py defines parser
 from ._transformer import ConfigTransformer
-
-from ._resolve import resolve_ast
-from ._render import substitute_deferred
-
-from .unparser import JMLUnparser
-
+from ._config import Config
 
 # -------------------------------------
-# 1) File Extension Helper (optional)
+# 1) File Extension Helper
 # -------------------------------------
 
 def check_extension(filename: str) -> None:
@@ -30,7 +22,6 @@ def check_extension(filename: str) -> None:
     if ext not in ('.jml', '.jaml'):
         raise ValueError("Unsupported file extension. Allowed: .jml or .jaml")
 
-
 # -------------------------------------
 # 2) Non-Round-Trip API
 # -------------------------------------
@@ -40,47 +31,55 @@ def dumps(obj: Dict[str, Any]) -> str:
     Serialize a plain Python dict into a minimal JML string (non-round-trip).
     Discards comments, merges, or advanced formatting.
     
-    This implementation directly unparses the plain dict using JMLUnparser.
-    Leading and trailing whitespace in string values is preserved.
+    :param obj: Dictionary to serialize.
+    :return: JML-formatted string.
     """
-    unparser = JMLUnparser(obj)
-    dumped = unparser.unparse()
-    print("[DEBUG API]: ")
-    pprint(dumped)
+    # Build a temporary Config from the dictionary
+    config = Config(obj)
+    # Use the new .dump() method
+    dumped = config.dump()
+    print("[DEBUG API] dumps:\n", dumped)
     return dumped
-
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
     Serialize a plain dict into JML and write to a file-like object (non-round-trip).
+    
+    :param obj: Dictionary to serialize.
+    :param fp: File-like object to write to.
     """
     fp.write(dumps(obj))
-
 
 def loads(s: str) -> Dict[str, Any]:
     """
     Parse a JML string into a plain Python dictionary.
+    
+    :param s: JML string to parse.
+    :return: Parsed dictionary.
+    :raises SyntaxError: If parsing fails.
     """
     try:
-        ast = parser.parse(s)
-        print("[DEBUG API]: ")
-        pprint(ast)
+        parse_tree = parser.parse(s)
+        print("[DEBUG API] loads parse_tree:\n", parse_tree)
     except UnexpectedToken as e:
-        raise SyntaxError("UnexpectedToken") from e
+        raise SyntaxError(f"Unexpected token at line {e.line}, column {e.column}: {e}") from e
     except UnexpectedCharacters as e:
-        raise SyntaxError("UnexpectedCharacters") from e
+        raise SyntaxError(f"Unexpected character at line {e.line}, column {e.column}: {e}") from e
     except UnexpectedEOF as e:
-        raise SyntaxError("UnexpectedEOF") from e
+        raise SyntaxError("Unexpected end of input") from e
 
     transformer = ConfigTransformer()
-    # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    return transformer.transform(ast)
-
+    config = transformer.transform(parse_tree)
+    config.resolve()  # Resolve static expressions
+    return config._data  # Return plain dictionary
 
 def load(fp: IO[str]) -> Dict[str, Any]:
     """
     Parse JML content from a file-like object into a plain dictionary.
+    
+    :param fp: File-like object to read from.
+    :return: Parsed dictionary.
     """
     return loads(fp.read())
 
@@ -88,88 +87,89 @@ def load(fp: IO[str]) -> Dict[str, Any]:
 # 3) Round-Trip API
 # -------------------------------------
 
-def round_trip_dumps(ast: Any) -> str:
+def round_trip_dumps(config: Config) -> str:
     """
-    Serialize an AST (as constructed by the lark parser) back to a JML-formatted string,
-    preserving layout, comments, merges, etc. (as far as the unparser supports it).
-
-    If the provided AST is not a plain dictionary, transform it using the ConfigTransformer.
+    Serialize a Config object back to a JML-formatted string, preserving layout,
+    comments, merges, etc., as supported by the unparser.
+    
+    :param config: Config object from round_trip_loads/load.
+    :return: JML-formatted string.
     """
-    # Transform the AST to a plain dict if needed.
-    # ast = ConfigTransformer().transform(ast)
-    # print("[DEBUG API]: ")
-    # pprint(ast)
-    unparser = JMLUnparser(ast)
-    dumped = unparser.unparse()
-    print("[DEBUG RT_DUMPS API]: ")
-    pprint(dumped)
+    dumped = config.dump()
+    print("[DEBUG API] round_trip_dumps:\n", dumped)
     return dumped
 
-
-def round_trip_dump(ast: Any, fp: IO[str]) -> None:
+def round_trip_dump(config: Config, fp: IO[str]) -> None:
     """
-    Serialize an AST into JML, writing to a file-like object (round-trip).
+    Serialize a Config object into JML, writing to a file-like object (round-trip).
+    
+    :param config: Config object to serialize.
+    :param fp: File-like object to write to.
     """
-    fp.write(round_trip_dumps(ast))
+    fp.write(round_trip_dumps(config))
 
+def round_trip_loads(s: str) -> Config:
+    """
+    Parse a JML string into a Config object, preserving round-trip data.
+    
+    :param s: JML string to parse.
+    :return: Config object.
+    :raises SyntaxError: If parsing fails.
+    """
+    try:
+        parse_tree = parser.parse(s)
+        print("[DEBUG API] round_trip_loads parse_tree:\n", parse_tree)
+    except UnexpectedToken as e:
+        raise SyntaxError(f"Unexpected token at line {e.line}, column {e.column}: {e}") from e
+    except UnexpectedCharacters as e:
+        raise SyntaxError(f"Unexpected character at line {e.line}, column {e.column}: {e}") from e
+    except UnexpectedEOF as e:
+        raise SyntaxError("Unexpected end of input") from e
 
-def round_trip_loads(s: str):
-    ast = parser.parse(s)
-    print("[DEBUG RT_LOADS API]: ")
-    pprint(ast)
     transformer = ConfigTransformer()
-    # Create a dummy context object with a 'text' attribute containing the original input.
     transformer._context = type("Context", (), {"text": s})
-    transformed = transformer.transform(ast)
-    print("[DEBUG RT_LOADS API - Post Transform]: ")
-    pprint(transformed)
-    return transformed
+    config = transformer.transform(parse_tree)
+    print("[DEBUG API] round_trip_loads config:\n", config)
+    return config
 
-
-def round_trip_load(fp: IO[str]) -> Any:
+def round_trip_load(fp: IO[str]) -> Config:
     """
-    Parse JML content from a file-like object into an AST, preserving round-trip data.
+    Parse JML content from a file-like object into a Config object, preserving round-trip data.
+    
+    :param fp: File-like object to read from.
+    :return: Config object.
     """
     return round_trip_loads(fp.read())
 
 # -------------------------------------
-# 3) Resolve API
+# 4) Resolve API
 # -------------------------------------
 
-def resolve(ast: Any) -> Any:
+def resolve(config: Config) -> Config:
     """
-    Partially evaluate all purely static expressions in the given AST, leaving 
-    only those placeholders that rely on dynamic context (i.e. ${...}) for the 
-    final render step.
-
-    This does not accept an external environment or context — all static data 
-    must already exist within the AST (e.g., from global/local assignments).
-    The returned AST can then be:
-
-      1) Dumped to text via round_trip_dumps(ast),
-      2) Passed to render() (after converting to text) to finalize dynamic placeholders.
-
-    :param ast: The AST produced by round_trip_loads() or similar.
-    :return: A new AST (or updated in-place, depending on your implementation)
-             with static expressions evaluated.
+    Evaluate all purely static expressions in the Config object, leaving ${...}
+    placeholders for the render step.
+    
+    :param config: Config object from round_trip_loads/load.
+    :return: Config object with static expressions resolved.
     """
-    return resolve_ast(ast)
-
+    config.resolve()
+    print("[DEBUG API] resolve config:\n", config._data)
+    return config
+    
 # -------------------------------------
-# 4) Render API (optional advanced usage)
+# 5) Render API
 # -------------------------------------
 
-def render(text, context={}):
+def render(config: Config, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Re-parse the dumped text, then walk the AST to substitute deferred placeholders.
+    Substitute deferred ${...} placeholders in the Config object using the provided context.
+    
+    :param config: Config object from round_trip_loads/load, preferably resolved.
+    :param context: Dictionary with context variables (default: empty).
+    :return: Rendered dictionary with all placeholders substituted.
     """
-    ast = loads(text)
-    env = {}
-    env.update(context)
-    # Also inject the booleans
-    env["true"] = True
-    env["false"] = False
-    print("[DEBUG RENDER API]: ")
-    pprint(ast)
-    return substitute_deferred(ast, env)
-
+    context = context or {}
+    rendered = config.render(context)
+    print("[DEBUG API] render output:\n", rendered)
+    return rendered
