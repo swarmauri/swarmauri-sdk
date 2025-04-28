@@ -91,10 +91,9 @@ class DeepInfraModel(LLMBase):
     ]
 
     name: str = "01-ai/Yi-34B-Chat"
-
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
-
     timeout: float = 600.0
+
     def __init__(self, **data):
         """
         Initializes the DeepInfraModel instance with the provided API key

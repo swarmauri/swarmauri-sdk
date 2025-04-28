@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Literal
 
 from pydantic import Field
-from swarmauri_base.logger_handler.HandlerBase import HandlerBase
+from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 
 

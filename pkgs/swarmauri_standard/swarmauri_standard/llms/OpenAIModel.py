@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
+from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr

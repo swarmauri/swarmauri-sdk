@@ -67,7 +67,6 @@ class GroqAIAudio(LLMBase):
             timeout=self.timeout,
         )
 
-
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,

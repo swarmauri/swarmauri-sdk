@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Optional, Type
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -31,7 +31,7 @@ class PerplexityModel(LLMBase):
     Provider resources: https://docs.perplexity.ai/guides/model-cards
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
-tStr
+    api_key: SecretStr
     allowed_models: List[str] = [
         "sonar-reasoning-pro",
         "sonar-reasoning",
