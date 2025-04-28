@@ -12,7 +12,8 @@ PROJECTS:
       - NAME: "IndexBuilder"
         EXTRAS:
           AUTHORS:
-            - "Michael Nwogha"
+            - NAME: "Michael Nwogha"
+              EMAIL: "michael@swamauri.com"
           PURPOSE: "Construct and maintain high-dimensional indexes for similarity search."
           DESCRIPTION: "Provides efficient algorithms for building indexes (e.g., tree-based or hash-based structures) to accelerate similarity queries over large datasets."
           REQUIREMENTS:
@@ -42,7 +43,8 @@ PROJECTS:
       - NAME: "QueryEngine"
         EXTRAS:
           AUTHORS:
-            - "Michael Nwogha"
+            - NAME: "Michael Nwogha"
+              EMAIL: "michael@swamauri.com"
           PURPOSE: "Execute similarity search queries over pre-built indexes."
           DESCRIPTION: "Offers a Python interface for running both exact and approximate similarity searches on the indexes built by IndexBuilder, leveraging C++ optimization for speed."
           REQUIREMENTS:
@@ -71,7 +73,9 @@ PROJECTS:
       - NAME: "DistanceMetrics"
         EXTRAS:
           AUTHORS:
-            - "Michael Nwogha"
+            - NAME: "Michael Nwogha"
+              EMAIL: "michael@swamauri.com"
+          EMAIL: "michael@swamauri.com"
           PURPOSE: "Provide core distance and similarity measures."
           DESCRIPTION: "Implements various distance functions such as Euclidean distance and cosine similarity to evaluate similarity between high-dimensional vectors."
           REQUIREMENTS:

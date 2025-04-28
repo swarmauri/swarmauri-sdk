@@ -9,8 +9,11 @@ description = "{{ PKG.DESCRIPTION }}"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
-authors = [
-    {name = "{{ PKG.EXTRAS.AUTHORS }}", email = "{{ PKG.EXTRAS.EMAIL }}"}
+authors = [{% if PKG.EXTRAS.AUTHORS %}
+    {% for author in PKG.EXTRAS.AUTHORS %}
+    {name = "{{ author.NAME }}", email = "{{ author.EMAIL }}"},
+    {% endfor %}
+    {% endif %}
 ]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
