@@ -4,9 +4,9 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
@@ -33,8 +33,17 @@ class CohereModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "command-a-03-2025",
+        "command-r7b-12-2024",
+        "command-r-plus",
+        "command-r",
+        "command",
+        "command-nightly",
+        "command-light",
+        "command-light-nightly",
+    ]
+    name: str = "command-a-03-2025"
     type: Literal["CohereModel"] = "CohereModel"
 
     timeout: float = 600.0
@@ -55,8 +64,6 @@ class CohereModel(LLMBase):
         self._client = httpx.Client(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def get_headers(self) -> Dict[str, str]:
         return {

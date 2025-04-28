@@ -14,13 +14,13 @@ we convert it to an AST before emitting YAML.
 """
 
 from .ast_nodes import (
-    YamlStream,
     DocumentNode,
     MappingNode,
     SequenceNode,
     ScalarNode,
     Node,
 )
+
 
 # Helper for plain mode scalar conversion.
 def _plain_scalar(node: ScalarNode) -> str:
@@ -39,6 +39,7 @@ def _plain_scalar(node: ScalarNode) -> str:
     else:
         return str(val)
 
+
 # ====================
 # Round-Trip Dumping
 # ====================
@@ -54,6 +55,7 @@ def _internal_dump_round_trip(node: Node, indent: int = 0) -> str:
         return unparse_scalar(node, indent)
     else:
         return " " * indent + str(node)
+
 
 def unparse_document(doc: DocumentNode, indent: int = 0) -> str:
     """Unparse a DocumentNode into YAML text, preserving document markers and comments."""
@@ -71,6 +73,7 @@ def unparse_document(doc: DocumentNode, indent: int = 0) -> str:
         lines.append(prefix + comment)
     return "\n".join(lines)
 
+
 def unparse_node(node: Node, indent: int = 0) -> str:
     """Dispatch unparse based on node type (round-trip mode)."""
     if isinstance(node, MappingNode):
@@ -82,6 +85,7 @@ def unparse_node(node: Node, indent: int = 0) -> str:
     else:
         return " " * indent + str(node)
 
+
 def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
     """Unparse a MappingNode with formatting metadata preserved."""
     lines = []
@@ -92,7 +96,11 @@ def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
     for key_node, value_node in mapping.pairs:
         for comment in key_node.leading_comments:
             lines.append(prefix + comment)
-        key_str = unparse_scalar(key_node, 0) if isinstance(key_node, ScalarNode) else unparse_node(key_node, 0)
+        key_str = (
+            unparse_scalar(key_node, 0)
+            if isinstance(key_node, ScalarNode)
+            else unparse_node(key_node, 0)
+        )
         if isinstance(value_node, (MappingNode, SequenceNode)):
             line = prefix + f"{key_str}:"
             if key_node.trailing_comments:
@@ -107,6 +115,7 @@ def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
             lines.append(line)
     return "\n".join(lines)
 
+
 def unparse_sequence(seq: SequenceNode, indent: int = 0) -> str:
     """Unparse a SequenceNode with formatting metadata preserved."""
     lines = []
@@ -119,6 +128,7 @@ def unparse_sequence(seq: SequenceNode, indent: int = 0) -> str:
             item_str = unparse_node(item, 0)
             lines.append(prefix + f"- {item_str}")
     return "\n".join(lines)
+
 
 def unparse_scalar(scalar: ScalarNode, indent: int = 0) -> str:
     """Unparse a ScalarNode with formatting metadata preserved."""
@@ -152,6 +162,7 @@ def unparse_scalar(scalar: ScalarNode, indent: int = 0) -> str:
             text = str(val)
         return prefix + tag_part + anchor_part + text
 
+
 # ==================
 # Plain Dumping
 # ==================
@@ -166,12 +177,20 @@ def _internal_dump_plain(node: Node, indent: int = 0) -> str:
         lines = []
         prefix = " " * indent
         for key_node, value_node in node.pairs:
-            key_str = _plain_scalar(key_node) if isinstance(key_node, ScalarNode) else _internal_dump_plain(key_node, 0)
+            key_str = (
+                _plain_scalar(key_node)
+                if isinstance(key_node, ScalarNode)
+                else _internal_dump_plain(key_node, 0)
+            )
             if isinstance(value_node, (MappingNode, SequenceNode)):
                 lines.append(prefix + f"{key_str}:")
                 lines.append(_internal_dump_plain(value_node, indent + 2))
             else:
-                value_str = _plain_scalar(value_node) if isinstance(value_node, ScalarNode) else _internal_dump_plain(value_node, 0)
+                value_str = (
+                    _plain_scalar(value_node)
+                    if isinstance(value_node, ScalarNode)
+                    else _internal_dump_plain(value_node, 0)
+                )
                 lines.append(prefix + f"{key_str}: {value_str}")
         return "\n".join(lines)
     elif isinstance(node, SequenceNode):
@@ -182,12 +201,16 @@ def _internal_dump_plain(node: Node, indent: int = 0) -> str:
                 lines.append(prefix + "-")
                 lines.append(_internal_dump_plain(item, indent + 2))
             else:
-                lines.append(prefix + f"- {_plain_scalar(item) if isinstance(item, ScalarNode) else _internal_dump_plain(item, 0)}")
+                lines.append(
+                    prefix
+                    + f"- {_plain_scalar(item) if isinstance(item, ScalarNode) else _internal_dump_plain(item, 0)}"
+                )
         return "\n".join(lines)
     elif isinstance(node, ScalarNode):
         return " " * indent + _plain_scalar(node)
     else:
         return " " * indent + str(node)
+
 
 # The plain scalar conversion is similar to our helper in round-trip mode.
 def _plain_scalar(node: ScalarNode) -> str:

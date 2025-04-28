@@ -33,8 +33,8 @@ class AI21StudioModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["jamba-1.5-large", "jamba-1.5-mini"]
+    name: str = "jamba-1.5-large"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -61,8 +61,6 @@ class AI21StudioModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(self, messages: List[Type["MessageBase"]]) -> List[dict]:
         """

@@ -12,14 +12,15 @@ If the node is a YamlStream containing multiple documents, a list of plain objec
 
 from .ast_nodes import DocumentNode, MappingNode, SequenceNode, ScalarNode, YamlStream
 
+
 def to_plain(node):
     """
     Recursively convert the given AST node into plain Python objects.
-    
+
     Parameters:
-        node: An AST node (DocumentNode, MappingNode, SequenceNode, or ScalarNode) 
+        node: An AST node (DocumentNode, MappingNode, SequenceNode, or ScalarNode)
               or a YamlStream.
-    
+
     Returns:
         The equivalent plain Python data structure (dict, list, scalar) for that node.
     """
@@ -39,7 +40,11 @@ def to_plain(node):
         result = {}
         for key_node, value_node in node.pairs:
             # Convert the key: if it's a ScalarNode, use its value; otherwise, convert recursively.
-            key = key_node.value if isinstance(key_node, ScalarNode) else to_plain(key_node)
+            key = (
+                key_node.value
+                if isinstance(key_node, ScalarNode)
+                else to_plain(key_node)
+            )
             result[key] = to_plain(value_node)
         return result
 

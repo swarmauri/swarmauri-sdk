@@ -1,7 +1,10 @@
 import pytest
-from cayaml import loads, dumps
+from cayaml import loads
 
-@pytest.mark.xfail(reason="Multi-line strings and different block styles not yet fully supported by cayaml.")
+
+@pytest.mark.xfail(
+    reason="Multi-line strings and different block styles not yet fully supported by cayaml."
+)
 def test_multiline_strings():
     """
     Tests various forms of multiline string handling:
@@ -27,4 +30,7 @@ def test_multiline_strings():
 
     assert data["literal_block"] == "This is on line one.\nThis is on line two.\n"
     assert data["folded_block"] == "This is line one, but folded into a single line.\n"
-    assert data["plain_multiline"] == "This is a single-line string with a backslash in plain style"
+    assert (
+        data["plain_multiline"]
+        == "This is a single-line string with a backslash in plain style"
+    )

@@ -2,6 +2,7 @@ import math
 import pytest
 from cayaml import loads
 
+
 @pytest.mark.unit
 def test_strings():
     yaml_str = """
@@ -11,6 +12,7 @@ def test_strings():
     data = loads(yaml_str)
     assert data["plain_str"] == "hello"
     assert data["quoted_str"] == "hello world"
+
 
 @pytest.mark.unit
 def test_booleans():
@@ -22,6 +24,7 @@ def test_booleans():
     assert data["bool_true"] is True
     assert data["bool_false"] is False
 
+
 @pytest.mark.unit
 def test_null():
     yaml_str = """
@@ -29,6 +32,7 @@ def test_null():
     """
     data = loads(yaml_str)
     assert data["null_val"] is None
+
 
 @pytest.mark.unit
 def test_integers():
@@ -44,6 +48,7 @@ def test_integers():
     assert data["oct_val"] == 42
     assert data["bin_val"] == 42
 
+
 @pytest.mark.unit
 def test_floats():
     yaml_str = """
@@ -58,6 +63,7 @@ def test_floats():
     assert math.isinf(data["neg_inf_val"]) and data["neg_inf_val"] < 0
     assert math.isnan(data["nan_val"])
 
+
 @pytest.mark.unit
 def test_sequence():
     yaml_str = """
@@ -68,6 +74,7 @@ def test_sequence():
     """
     data = loads(yaml_str)
     assert data["my_list"] == ["item1", "item2", "item3"]
+
 
 @pytest.mark.unit
 def test_mapping():

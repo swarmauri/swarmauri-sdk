@@ -14,9 +14,15 @@ Note:
     which is later rendered to obtain the correct template file path, with an expected '.j2' extension).
 """
 
-from pydantic import FilePath
 from typing import Any, Dict, Optional
-from ._Jinja2PromptTemplate import j2pt
+
+import colorama
+from colorama import Fore, Style
+from pydantic import FilePath
+from swarmauri_prompt_j2prompttemplate import j2pt
+
+# Initialize colorama for auto-resetting colors
+colorama.init(autoreset=True)
 
 
 def _render_copy_template(
@@ -42,7 +48,9 @@ def _render_copy_template(
         return rendered_content
     except Exception as e:
         if logger:
-            logger.error(f"Failed to render copy template '{template_path}': {e}")
+            logger.error(
+                f"{Fore.RED}Failed{Style.RESET_ALL} to render copy template '{template_path}': {e}"
+            )
         return ""
 
 
@@ -78,6 +86,6 @@ def _render_generate_template(
     except Exception as e:
         if logger:
             logger.error(
-                f"Failed to render generate template '{agent_prompt_template}': {e}"
+                f"{Fore.RED}Failed{Style.RESET_ALL} to render generate template '{agent_prompt_template}': {e}"
             )
         return ""

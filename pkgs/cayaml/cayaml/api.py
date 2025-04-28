@@ -25,10 +25,11 @@ Round-trip mode (multi-doc):
   - round_trip_load_all(file_obj)
 """
 
-from .parser import _internal_load, _internal_parse_stream, _internal_to_ast
+from .parser import _internal_parse_stream, _internal_to_ast
 from .unparser import _internal_dump_plain, _internal_dump_round_trip
 from .plain_conversion import to_plain
 from .ast_nodes import Node, YamlStream
+
 
 # -----------------------------
 # Plain mode (single-document)
@@ -41,6 +42,7 @@ def loads(yaml_str: str):
     docs = loads_all(yaml_str)
     return docs[0] if docs else None
 
+
 def load(file_obj):
     """
     Parse YAML from a file-like object (plain mode) and return plain Python objects.
@@ -49,6 +51,7 @@ def load(file_obj):
     yaml_str = file_obj.read()
     return loads(yaml_str)
 
+
 def dumps(data) -> str:
     """
     Convert plain Python objects into a YAML-formatted string (without preserving formatting metadata).
@@ -56,6 +59,7 @@ def dumps(data) -> str:
     if not isinstance(data, Node):
         data = _internal_to_ast(data)
     return _internal_dump_plain(data)
+
 
 def dump(data, file_obj):
     """
@@ -78,6 +82,7 @@ def loads_all(yaml_str: str):
         return [to_plain(yaml_stream)]
     return [to_plain(doc) for doc in yaml_stream.documents]
 
+
 def load_all(file_obj):
     """
     Parse YAML from a file-like object in plain mode.
@@ -98,13 +103,15 @@ def round_trip_loads(yaml_str: str):
     docs = round_trip_loads_all(yaml_str)
     return docs[0] if docs else None
 
+
 def round_trip_load(file_obj):
     """
-    Round-trip from a file-like object. 
+    Round-trip from a file-like object.
     If multiple docs, returns only the first one.
     """
     yaml_str = file_obj.read()
     return round_trip_loads(yaml_str)
+
 
 def round_trip_dumps(data) -> str:
     """
@@ -113,6 +120,7 @@ def round_trip_dumps(data) -> str:
     if not isinstance(data, Node):
         data = _internal_to_ast(data)
     return _internal_dump_round_trip(data)
+
 
 def round_trip_dump(data, file_obj):
     """
@@ -132,6 +140,7 @@ def round_trip_loads_all(yaml_str: str):
     if isinstance(yaml_stream, YamlStream):
         return yaml_stream.documents
     return [yaml_stream]
+
 
 def round_trip_load_all(file_obj):
     """

@@ -1,5 +1,6 @@
 import pytest
-from cayaml import round_trip_loads, dumps
+from cayaml import round_trip_loads
+
 
 @pytest.mark.xfail(reason="Anchor &alias and merge not yet supported by cayaml.")
 def test_anchors_and_merging():

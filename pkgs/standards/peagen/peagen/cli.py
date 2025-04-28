@@ -129,40 +129,40 @@ def process(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     try:
-        pfg = Peagen(
+        pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
             agent_env=agent_env,
         )
         if verbose == 1:
-            pfg.logger.set_level(30)  # INFO
+            pea.logger.set_level(30)  # INFO
         elif verbose == 2:
-            pfg.logger.set_level(20)  # DEBUG
+            pea.logger.set_level(20)  # DEBUG
         elif verbose >= 3:
-            pfg.logger.set_level(10)  # VERBOSE
+            pea.logger.set_level(10)  # VERBOSE
 
         if project_name:
-            projects = pfg.load_projects()
-            pfg.logger.debug(pformat(projects))
+            projects = pea.load_projects()
+            pea.logger.debug(pformat(projects))
             project = next(
                 (proj for proj in projects if proj.get("NAME") == project_name), None
             )
             if project is None:
-                pfg.logger.info(f"Project '{project_name}' not found.")
+                pea.logger.info(f"Project '{project_name}' not found.")
                 raise typer.Exit(code=1)
             if start_file:
-                sorted_records, start_idx = pfg.process_single_project(
+                sorted_records, start_idx = pea.process_single_project(
                     project, start_file=start_file
                 )
             else:
-                sorted_records, start_idx = pfg.process_single_project(
+                sorted_records, start_idx = pea.process_single_project(
                     project, start_idx=start_idx or 0
                 )
-            pfg.logger.info(f"Processed project '{project_name}' successfully.")
+            pea.logger.info(f"Processed project '{project_name}' successfully.")
         else:
-            pfg.process_all_projects()
-            pfg.logger.info("Processed all projects successfully.")
+            pea.process_all_projects()
+            pea.logger.info("Processed all projects successfully.")
     except KeyboardInterrupt:
         typer.echo("\n  Interrupted... exited.")
         raise typer.Exit(code=1)
@@ -320,40 +320,40 @@ def revise(
         agent_env["agent_prompt_template_file"] = agent_prompt_template_file
 
     try:
-        pfg = Peagen(
+        pea = Peagen(
             projects_payload_path=str(projects_payload),
             template_base_dir=str(template_base_dir) if template_base_dir else None,
             additional_package_dirs=additional_dirs_list,
             agent_env=agent_env,
         )
         if verbose == 1:
-            pfg.logger.set_level(30)  # INFO
+            pea.logger.set_level(30)  # INFO
         elif verbose == 2:
-            pfg.logger.set_level(20)  # DEBUG
+            pea.logger.set_level(20)  # DEBUG
         elif verbose >= 3:
-            pfg.logger.set_level(10)  # VERBOSE
+            pea.logger.set_level(10)  # VERBOSE
 
         if project_name:
-            projects = pfg.load_projects()
-            pfg.logger.debug(pformat(projects))
+            projects = pea.load_projects()
+            pea.logger.debug(pformat(projects))
             project = next(
                 (proj for proj in projects if proj.get("NAME") == project_name), None
             )
             if project is None:
-                pfg.logger.info(f"Project '{project_name}' not found.")
+                pea.logger.info(f"Project '{project_name}' not found.")
                 raise typer.Exit(code=1)
             if start_file:
-                sorted_records, start_idx = pfg.process_single_project(
+                sorted_records, start_idx = pea.process_single_project(
                     project, start_file=start_file
                 )
             else:
-                sorted_records, start_idx = pfg.process_single_project(
+                sorted_records, start_idx = pea.process_single_project(
                     project, start_idx=start_idx or 0
                 )
-            pfg.logger.info(f"Processed project '{project_name}' successfully.")
+            pea.logger.info(f"Processed project '{project_name}' successfully.")
         else:
-            pfg.process_all_projects()
-            pfg.logger.info("Processed all projects successfully.")
+            pea.process_all_projects()
+            pea.logger.info("Processed all projects successfully.")
     except KeyboardInterrupt:
         typer.echo("\n  Interrupted... exited.")
         raise typer.Exit(code=1)
@@ -438,7 +438,7 @@ def sort(
 
     resolved_key = _resolve_api_key(provider, api_key, env)
 
-    pfg = Peagen(
+    pea = Peagen(
         projects_payload_path=str(projects_payload),
         template_base_dir=str(template_base_dir) if template_base_dir else None,
         additional_package_dirs=additional_dirs_list,
@@ -451,41 +451,41 @@ def sort(
     )
 
     if verbose == 1:
-        pfg.logger.set_level(30)  # INFO
+        pea.logger.set_level(30)  # INFO
     elif verbose == 2:
-        pfg.logger.set_level(20)  # DEBUG
+        pea.logger.set_level(20)  # DEBUG
     elif verbose >= 3:
-        pfg.logger.set_level(10)  # VERBOSE
+        pea.logger.set_level(10)  # VERBOSE
 
     if project_name:
-        projects = pfg.load_projects()
-        pfg.logger.debug(pformat(projects))
+        projects = pea.load_projects()
+        pea.logger.debug(pformat(projects))
 
         project = next(
             (proj for proj in projects if proj.get("NAME") == project_name), None
         )
         if project is None:
-            pfg.logger.error(f"Project '{project_name}' not found.")
+            pea.logger.error(f"Project '{project_name}' not found.")
             raise typer.Exit(code=1)
 
         if start_file:
-            sorted_records, start_idx = pfg.process_single_project(
+            sorted_records, start_idx = pea.process_single_project(
                 project, start_file=start_file
             )
         else:
-            sorted_records, start_idx = pfg.process_single_project(
+            sorted_records, start_idx = pea.process_single_project(
                 project, start_idx=start_idx or 0
             )
 
-        pfg.logger.info("")
-        pfg.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
+        pea.logger.info("")
+        pea.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
         for i, record in enumerate(sorted_records):
-            pfg.logger.info(
+            pea.logger.info(
                 f"\t{i + (start_idx or 0)}) {record.get('RENDERED_FILE_NAME')}"
             )
     else:
-        projects_sorted_records = pfg.process_all_projects()
-        pfg.logger.debug(pformat(projects_sorted_records))
+        projects_sorted_records = pea.process_all_projects()
+        pea.logger.debug(pformat(projects_sorted_records))
 
         for sorted_records in projects_sorted_records:
             if not sorted_records:
@@ -493,12 +493,12 @@ def sort(
             current_project_name = sorted_records[0].get(
                 "PROJECT_NAME", "UnknownProject"
             )
-            pfg.logger.info("")
-            pfg.logger.info(
+            pea.logger.info("")
+            pea.logger.info(
                 Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL
             )
             for i, record in enumerate(sorted_records):
-                pfg.logger.info(f"\t{i}) {record.get('RENDERED_FILE_NAME')}")
+                pea.logger.info(f"\t{i}) {record.get('RENDERED_FILE_NAME')}")
 
 
 @app.command("templates")

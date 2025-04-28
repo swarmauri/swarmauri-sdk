@@ -1,5 +1,6 @@
 import pytest
-from cayaml import loads, dumps
+from cayaml import loads
+
 
 @pytest.mark.xfail(reason="Alias, anchor, and type hint not yet supported by cayaml.")
 def test_anchor_alias_typehint():
