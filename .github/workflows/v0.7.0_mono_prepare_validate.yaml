@@ -2,6 +2,8 @@ name: 0.7.0 - Mono (Prepare, Validate)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'   # Runs every 6 hours (at minute 0, every 6th hour)
 
 concurrency:
   group: dev-branch-prepare-workflow
