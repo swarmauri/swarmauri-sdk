@@ -15,14 +15,24 @@ authors = [{% if PKG.EXTRAS.AUTHORS %}
     {% endfor %}
     {% endif %}
 ]
+    
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11", 
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Development Status :: 3 - Alpha"
+]
+
+dependencies = [
+    # Dependencies
+    <!-- include additional dependencies here -->
+    {% if PKG.PACKAGE_REQUIRES %}
+    {% for required in PKG.PACKAGE_REQUIRES %}
+    "{{ required.NAME }}{{ required.VERSION }}",
+    {% endfor %}
+    {% endif %}
 ]
 
 [project.optional-dependencies]

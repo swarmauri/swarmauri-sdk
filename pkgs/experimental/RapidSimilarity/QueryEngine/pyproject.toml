@@ -3,26 +3,28 @@ requires = ["meson-python", "ninja", "pybind11"]
 build-backend = "mesonpy"
 
 [project]
-name = "{{ PKG.NAME }}"
+name = "QueryEngine"
 version = "0.1.0"
-description = "{{ PKG.DESCRIPTION }}"
+description = "Configuration for package QueryEngine with C++ extensions using Meson build system."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
-authors = [{% if PKG.EXTRAS.AUTHORS %}
-    {% for author in PKG.EXTRAS.AUTHORS %}
-    {name = "{{ author.NAME }}", email = "{{ author.EMAIL }}"},
-    {% endfor %}
-    {% endif %}
+authors = [
+    {name = "Nwogha Michael", email = "michael@swarmauri.com"}
 ]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11", 
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Development Status :: 3 - Alpha"
+]
+
+dependencies = [
+    "numpy",
+    "pybind11",
+    "uv"
 ]
 
 [project.optional-dependencies]
