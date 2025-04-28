@@ -1,13 +1,12 @@
-import re
 from typing import Dict, List, Literal
 
-from pydantic import ConfigDict
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 @ComponentBase.register_type(ToolBase, "SearchWordTool")
 class SearchWordTool(ToolBase):
@@ -28,10 +27,7 @@ class SearchWordTool(ToolBase):
     description: str = (
         "Searches for a specific word or phrase in a file and highlights occurrences."
     )
-    parameters: List[str] = [
-        "file_path",
-        "search_word"
-    ]
+    parameters: List[str] = ["file_path", "search_word"]
 
     def __call__(self, file_path: str, search_word: str) -> Dict[str, List[str]]:
         """
@@ -50,11 +46,13 @@ class SearchWordTool(ToolBase):
         """
         if self.validate_input(file_path, search_word):
             try:
-                with open(file_path, 'r', encoding='utf-8') as file:
+                with open(file_path, "r", encoding="utf-8") as file:
                     text = file.readlines()
-                
+
                 occurrences, count_occurances = self.search_in_file(text, search_word)
-                logger.info(f"Found {count_occurances} occurrences of '{search_word}' in {file_path}.")
+                logger.info(
+                    f"Found {count_occurances} occurrences of '{search_word}' in {file_path}."
+                )
                 return {"lines": occurrences, "count": count_occurances}
             except FileNotFoundError as e:
                 logger.error(f"File not found: {file_path}")
@@ -76,9 +74,9 @@ class SearchWordTool(ToolBase):
         occurrence_count = 0
         highlighted_lines = []
         search_word_lower = search_word.lower()
-        
+
         for line in lines:
-            line_stripped = line.rstrip('\n')
+            line_stripped = line.rstrip("\n")
             # Count occurrences in the current line (case-insensitive)
             occurrence_count += line.lower().count(search_word_lower)
             if search_word_lower in line.lower():

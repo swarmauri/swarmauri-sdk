@@ -73,14 +73,14 @@ def test_call(file_path, search_word, expected):
 
         mock_file.assert_called_once()
 
-        assert isinstance(
-            result["lines"], list
-        ), f"Expected list, but got {type(result['lines']).__name__}"
+        assert isinstance(result["lines"], list), (
+            f"Expected list, but got {type(result['lines']).__name__}"
+        )
         assert len(result["lines"]) == len(expected["lines"])
         assert result["lines"] == expected["lines"]
-        assert isinstance(
-            result["count"], int
-        ), f"Expected int, but got {type(result['count']).__name__}"
+        assert isinstance(result["count"], int), (
+            f"Expected int, but got {type(result['count']).__name__}"
+        )
         assert result["count"] == expected["count"]
 
 

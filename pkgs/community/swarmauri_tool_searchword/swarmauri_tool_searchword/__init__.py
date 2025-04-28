@@ -1,8 +1,6 @@
 from .SearchWordTool import SearchWordTool
 
-__all__ = [
-    "SearchWordTool"
-]
+__all__ = ["SearchWordTool"]
 
 try:
     # For Python 3.8 and newer
