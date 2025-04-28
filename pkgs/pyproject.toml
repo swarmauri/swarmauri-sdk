@@ -105,7 +105,8 @@ members = [
     "community/swarmauri_toolkit_jupytertoolkit",
     "community/swarmauri_tool_jupyterexportlatex",
     "community/swarmauri_tool_jupytergetiopubmessage",
-    "community/swarmauri_parser_slate"
+    "community/swarmauri_parser_slate",
+    "community/swarmauri_tool_searchword"
 
 ]
 
