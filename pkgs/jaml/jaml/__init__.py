@@ -17,4 +17,4 @@ from .api import (
     resolve,
     render,
 )
-from .lark_parser import parser
+from ._lark_parser import parser

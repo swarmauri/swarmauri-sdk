@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Optional
+from typing import AsyncIterator, Dict, Iterator, List
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
@@ -40,15 +40,6 @@ class LlamaCppModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-    api_key: Optional[SecretStr] = None
-    allowed_models: List[str] = []
-
-    name: str = ""
-
-    type: Literal["LlamaCppModel"] = "LlamaCppModel"
-
-    timeout: float = 600.0
-
     def __init__(self, **data):
         """
         Initializes the DeepInfraModel instance with the provided API key
@@ -73,7 +64,7 @@ class LlamaCppModel(LLMBase):
         )
 
         self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
+        self.name = self.name or self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

@@ -22,7 +22,7 @@ This proposal redefines the processing pipeline for our configuration language b
 ### 2.1. Unified Expression Syntax
 
 - **Simplification:**  
-  By using only one set of delimiters—`<( … )>`—we streamline the language syntax and reduce the complexity of having to choose between deferred and folded forms.
+  By using only one set of delimiters—`<( … )>`.
 
 - **Consistency:**  
   A single expression syntax makes it easier for configuration authors to understand how and when expressions are evaluated.

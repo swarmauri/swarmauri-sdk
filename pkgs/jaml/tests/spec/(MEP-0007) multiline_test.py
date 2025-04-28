@@ -4,9 +4,7 @@ import pytest
 # Adjust these imports to match your actual API or modules
 from jaml import (
     loads,
-    dumps,
     round_trip_loads,
-    round_trip_dumps
 )
 
 @pytest.mark.spec
@@ -26,7 +24,7 @@ description = """
 """'''
     # Round-trip load -> dump
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
 
     # Check that the multiline block is still present with indentation/newlines
     assert toml_str == reserialized
@@ -51,7 +49,9 @@ colors = [
   "blue"
 ]"""
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
+
 
     # Check that the array is split across multiple lines
     # and in the same order
@@ -77,7 +77,8 @@ profile = {
   \"\"\" 
 }"""
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
 
     # Check that the inline table remains multiline
     assert '[user.profile]\nname = "Alice"\nemail = "alice@example.com"\n' in reserialized
@@ -105,7 +106,8 @@ profile = {
   \"\"\" 
 }"""
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
 
     # Check that the inline table remains multiline
     assert "[user.profile]" in reserialized
@@ -126,7 +128,8 @@ authors = [
   { name = "Stewart", email = "stewart@swarmauri.com" }
 ]"""
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
 
     # Ensure array of inline tables remains multiline
     # and the key-values remain intact
@@ -149,7 +152,8 @@ notes = """
         Further indentation
 """'''
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
     # Expect exact indentation preservation, e.g. 4 spaces, then 8 spaces, etc.
     assert "    Indented line\n" in reserialized
     assert "        Further indentation" in reserialized
@@ -173,7 +177,8 @@ nested = {
     debug = true
 }"""
     ast = round_trip_loads(toml_str)
-    reserialized = round_trip_dumps(ast)
+    reserialized = ast.dumps()
+    # reserialized = round_trip_dumps(ast) # old 
     # We expect to preserve indentation, though the exact approach 
     # is not fully implemented yet. This test is xfail.
     assert "[deep.nested]\ndebug = true\n\n[deep.nested.meta]\nlevel = 2" in reserialized

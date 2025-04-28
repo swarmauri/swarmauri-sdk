@@ -1,0 +1,27 @@
+[project]
+name = "{{ PKG.NAME }}"
+version = "0.6.2.dev1"
+description = "{{ PKG.DESCRIPTION }}"
+authors = ["Jacob Stewart <jacob@swarmauri.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha"
+]
+keywords = []
+python-requires = ">=3.10,<3.13"
+
+[dependencies]
+# Dependencies
+<!-- include additional dependencies here -->
+{% if PKG.PACKAGE_REQUIRES %}
+{% for required in PACKAGE_REQUIRES %}
+{{ required.NAME }} = "{{ required.VERSION }}"
+{% endfor %}
+{% endif %}

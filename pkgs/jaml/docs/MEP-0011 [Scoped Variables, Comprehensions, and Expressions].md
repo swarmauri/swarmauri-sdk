@@ -10,7 +10,7 @@
 
 ## 1. Abstract
 
-This proposal defines a unified system for handling variable scoping, dynamic string interpolation, list and dict comprehensions, and expressions in our markup language. It introduces three distinct variable scopes, two forms of string interpolation (f-string and concatenation), and two expression syntaxes—deferred expressions and folded expressions. Both forms are evaluated during load time, with one important exception: any sub-expression that references a context variable (using the `${...}` syntax) is deferred and evaluated only during render time.
+This proposal defines a unified system for handling variable scoping, dynamic string interpolation, list and dict comprehensions, and expressions in our markup language. It introduces three distinct variable scopes, two forms of string interpolation (f-string and concatenation), and  expression syntaxes. Expressions are evaluated during resolve time, with one important exception: any sub-expression that references a context variable (using the `${...}` syntax) is deferred and evaluated only during render time.
 
 ---
 
@@ -128,7 +128,7 @@ Expressions allow for immediate, load-time computation of configuration values.
 
 ### 3.5. Folded Expressions
 
-Folded expressions provide a more readable alternative when constructing complex expressions. They use the `<( ... )>` syntax. Like immediate expressions, they are processed at load time with one exception: any context variables remain deferred until render time.
+Folded expressions provide a more readable alternative when constructing complex expressions. They use the `<( ... )>` syntax.
 
 - **Folded Expression Syntax:**
 
@@ -182,7 +182,7 @@ Folded expressions provide a more readable alternative when constructing complex
 ### 3.8. Error Handling
 
 - **Undefined Variables:**  
-  References to undefined global or table-local variables within immediate or folded expressions must produce clear, descriptive parse-time errors.
+  References to undefined global or table-local variables within folded expressions must produce clear, descriptive parse-time errors.
 
 - **Disallowed Context Usage:**  
   Folded expressions should not improperly embed context variables. If found, only the context parts are deferred while static parts are computed; any misuse should generate an error.
@@ -230,19 +230,6 @@ list_config = [f"@{prefix}_{item}" for item in @{items} if item != "banana" else
 
 ---
 
-### Example 3: Immediate Expressions with `<{ ... }>`
-
-```toml
-[paths]
-base = "/usr/local"
-config_immediate = <{ @{base} + '/config.toml' }>
-```
-
-*Expected Output:*
-
-- `config_immediate` resolves at load time to `/usr/local/config.toml`.
-
----
 
 ### Example 4: Folded Expressions with `<( ... )>`
 
@@ -304,8 +291,3 @@ strategy = <( "ProductionStrategy" if @{logic.is_production} else ${dynamic_stra
 - **Tooling and Error Reporting:**  
   Editor plugins and debugging tools need updates to support the new syntax, providing accurate highlighting and informative error messages.
 
----
-
-## 6. Conclusion
-
-MEP-0011 establishes a comprehensive framework for variable scoping, f-string interpolation, comprehensions, and expressions in our markup language. With clear distinctions between global, self, and context scopes, along with two expression forms—immediate (`<{ ... }>`), and folded (`<( ... )>`)—the proposal ensures that static data is efficiently computed at load time, while dynamic context values are seamlessly integrated at render time. This unified approach supports complex configurations with concise, readable syntax and predictable evaluation behavior.
