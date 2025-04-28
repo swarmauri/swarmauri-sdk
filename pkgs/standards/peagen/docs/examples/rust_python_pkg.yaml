@@ -16,6 +16,7 @@ PROJECTS:
         EXTRAS:
           AUTHORS:
             - "Michael Nwogha"
+          EMAIL: "michael@swamauri.com"
           PURPOSE: "Implement optimized text tokenization and preprocessing using Rust for Python."
           DESCRIPTION: "A high-performance tokenizer written in Rust, designed to quickly tokenize, normalize, and preprocess large text datasets efficiently, significantly outperforming pure Python implementations."
           REQUIREMENTS:
