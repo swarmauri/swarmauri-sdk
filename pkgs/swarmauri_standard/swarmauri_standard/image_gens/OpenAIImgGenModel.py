@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -31,12 +31,12 @@ class OpenAIImgGenModel(ImageGenBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Dict[str, Any]) -> None:
         """
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may include api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
