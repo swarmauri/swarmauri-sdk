@@ -2,7 +2,7 @@
 name = "fasttokenizer"
 version = "0.1.0"
 edition = "2021"
-authors = ["Jacob Stewart <jacob@swarmauri.com>"]
+authors = ["Michael Nwogha <michael@swarmauri.com>"]
 description = ""
 license = "Apache-2.0"
 readme = "README.md"
