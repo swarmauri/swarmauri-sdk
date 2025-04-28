@@ -9,6 +9,10 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "catoml",
+    "cayaml",
+    "jaml",
+    "peagen",
     "swarmauri",
     "swarmauri-base",
     "swarmauri-core",
@@ -29,6 +33,7 @@ members = [
     "swarmauri-parser-pypdf2",
     "swarmauri-parser-pypdftk",
     "swarmauri-parser-textblob",
+    "swarmauri-prompt-j2prompttemplate",
     "swarmauri-standard",
     "swarmauri-state-clipboard",
     "swarmauri-tool-captchagenerator",
@@ -466,6 +471,76 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/38/b4/244d58127e1cdf04cf2dc7d9566f0d24ef01d5ce21811bab088ecc62b5ea/catalogue-2.0.10.tar.gz", hash = "sha256:4f56daa940913d3f09d589c191c74e5a6d51762b3a9e37dd53b7437afd6cda15", size = 19561 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/96/d32b941a501ab566a16358d68b6eb4e4acc373fab3c3c4d7d9e649f7b4bb/catalogue-2.0.10-py3-none-any.whl", hash = "sha256:58c2de0020aa90f4a2da7dfad161bf7b3b054c86a5f09fcedc0b2b740c109a9f", size = 17325 },
+]
+
+[[package]]
+name = "catoml"
+version = "0.1.1.dev9"
+source = { editable = "catoml" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "cayaml"
+version = "0.1.0.dev9"
+source = { editable = "cayaml" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -941,20 +1016,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/31/e9/f49c4e7fccb77fa5c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/a3/ac312faeceffd2d8f86bc6dcb5c401188ba5a01bc88e69bed97578a0dfcd/durationpy-0.9-py3-none-any.whl", hash = "sha256:e65359a7af5cedad07fb77a2dd3f390f8eb0b74cb845589fa6c057086834dd38", size = 3461 },
 ]
-
-[[package]]
-name = "en-core-web-sm"
-version = "3.7.1"
-source = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" }
-dependencies = [
-    { name = "spacy" },
-]
-wheels = [
-    { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl", hash = "sha256:86cc141f63942d4b2c5fcee06630fd6f904788d2f0ab005cce45aadb8fb73889" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "spacy", specifier = ">=3.7.2,<3.8.0" }]
 
 [[package]]
 name = "entrypoints"
@@ -1625,6 +1686,19 @@ wheels = [
 ]
 
 [[package]]
+name = "inflect"
+version = "7.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "more-itertools" },
+    { name = "typeguard" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/78/c6/943357d44a21fd995723d07ccaddd78023eace03c1846049a2645d4324a3/inflect-7.5.0.tar.gz", hash = "sha256:faf19801c3742ed5a05a8ce388e0d8fe1a07f8d095c82201eb904f5d27ad571f", size = 73751 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/eb/427ed2b20a38a4ee29f24dbe4ae2dafab198674fe9a85e3d6adf9e5f5f41/inflect-7.5.0-py3-none-any.whl", hash = "sha256:2aea70e5e70c35d8350b8097396ec155ffd68def678c7ff97f51aa69c1d92344", size = 35197 },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1719,6 +1793,45 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ef/4c/5dd1d8af08107f88c7f741ead7a40854b8ac24ddf9ae850afbcf698aa552/ipython_pygments_lexers-1.1.1.tar.gz", hash = "sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81", size = 8393 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl", hash = "sha256:a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c", size = 8074 },
+]
+
+[[package]]
+name = "jaml"
+version = "0.1.0.dev8"
+source = { editable = "jaml" }
+dependencies = [
+    { name = "lark" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "lark" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
 ]
 
 [[package]]
@@ -2030,6 +2143,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/ce/3f144716a9f2cbf42aa86ebc8b085a184be25c80aa453eea17c294d239c1/language_data-1.3.0.tar.gz", hash = "sha256:7600ef8aa39555145d06c89f0c324bf7dab834ea0b0a439d8243762e3ebad7ec", size = 5129310 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/e9/5a5ffd9b286db82be70d677d0a91e4d58f7912bb8dd026ddeeb4abe70679/language_data-1.3.0-py3-none-any.whl", hash = "sha256:e2ee943551b5ae5f89cd0e801d1fc3835bb0ef5b7e9c3a4e8e17b2b214548fbf", size = 5385760 },
+]
+
+[[package]]
+name = "lark"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/60/bc7622aefb2aee1c0b4ba23c1446d3e30225c8770b38d7aedbfb65ca9d5a/lark-1.2.2.tar.gz", hash = "sha256:ca807d0162cd16cef15a8feecb862d7319e7a09bdb13aef927968e45040fed80", size = 252132 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/00/d90b10b962b4277f5e64a78b6609968859ff86889f5b898c1a778c06ec00/lark-1.2.2-py3-none-any.whl", hash = "sha256:c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c", size = 111036 },
 ]
 
 [[package]]
@@ -2346,6 +2468,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ea/ca/8e91948b782ddfbd194f323e7e7d9ba12e5877addf04fb2bf8fca38e86ac/monotonic-1.6.tar.gz", hash = "sha256:3a55207bcfed53ddd5c5bae174524062935efed17792e9de2ad0205ce9ad63f7", size = 7615 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9a/67/7e8406a29b6c45be7af7740456f7f37025f0506ae2e05fb9009a53946860/monotonic-1.6-py2.py3-none-any.whl", hash = "sha256:68687e19a14f11f26d140dd5c86f3dba4bf5df58003000ed467e0e2a69bca96c", size = 8154 },
+]
+
+[[package]]
+name = "more-itertools"
+version = "10.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/3b/7fa1fe835e2e93fd6d7b52b2f95ae810cf5ba133e1845f726f5a992d62c2/more-itertools-10.6.0.tar.gz", hash = "sha256:2cd7fad1009c31cc9fb6a035108509e6547547a7a738374f10bd49a09eb3ee3b", size = 125009 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/23/62/0fe302c6d1be1c777cab0616e6302478251dfbf9055ad426f5d0def75c89/more_itertools-10.6.0-py3-none-any.whl", hash = "sha256:6eb054cb4b6db1473f6e15fcc676a08e4732548acd47c708f0e179c2c7c01e89", size = 63038 },
 ]
 
 [[package]]
@@ -3077,6 +3208,63 @@ wheels = [
 ]
 
 [[package]]
+name = "peagen"
+version = "0.1.2.dev5"
+source = { editable = "standards/peagen" }
+dependencies = [
+    { name = "colorama" },
+    { name = "inflect" },
+    { name = "jinja2" },
+    { name = "python-dotenv" },
+    { name = "swarmauri" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "colorama" },
+    { name = "inflect" },
+    { name = "jinja2" },
+    { name = "python-dotenv" },
+    { name = "swarmauri", editable = "swarmauri" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+    { name = "typer" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3400,6 +3588,15 @@ wheels = [
 ]
 
 [[package]]
+name = "py-cpuinfo"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/a8/d832f7293ebb21690860d2e01d8115e5ff6f2ae8bbdc953f0eb0fa4bd2c7/py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690", size = 104716 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5", size = 22335 },
+]
+
+[[package]]
 name = "pyasn1"
 version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -3570,6 +3767,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/06/47/b61c1c44b87cbdaee
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/9b/98ef4b98309e9db3baa9fe572f0e61b6130bb9852d13189970f35b703499/pymupdf-1.25.3-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:96878e1b748f9c2011aecb2028c5f96b5a347a9a91169130ad0133053d97915e", size = 19343576 },
     { url = "https://files.pythonhosted.org/packages/14/62/4e12126db174c8cfbf692281cda971cc4046c5f5226032c2cfaa6f83e08d/pymupdf-1.25.3-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:6ef753005b72ebfd23470f72f7e30f61e21b0b5e748045ec5b8f89e6e3068d62", size = 18580114 },
+    { url = "https://files.pythonhosted.org/packages/ec/c5/cf7ecf005e4f8ba3664d6aaa0613adeba4c2ab524832c452c69857e7184f/pymupdf-1.25.3-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cbff443d899f37b17f1e67563cc03673d50b4bf33ccc237e73d34f18f3a07ccf", size = 19442580 },
     { url = "https://files.pythonhosted.org/packages/52/de/bd1418e31f73d37b8381cd5deacfd681e6be702b8890e123e83724569ee1/pymupdf-1.25.3-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:46d90c4f9e62d1856e8db4b9f04a202ff4a7f086a816af73abdc86adb7f5e25a", size = 19999825 },
     { url = "https://files.pythonhosted.org/packages/42/ee/3c449b0de061440ba1ac984aa845315e9e2dca0ff2003c5adfc6febff203/pymupdf-1.25.3-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a5de51efdbe4d486b6c1111c84e8a231cbfb426f3d6ff31ab530ad70e6f39756", size = 21123157 },
     { url = "https://files.pythonhosted.org/packages/83/53/71faaaf91c56f2883b13f3dd849bf2697f012eb35eb7b952d62734cff41f/pymupdf-1.25.3-cp39-abi3-win32.whl", hash = "sha256:bca72e6089f985d800596e22973f79cc08af6cbff1d93e5bda9248326a03857c", size = 15094211 },
@@ -3693,6 +3891,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f2/a8/ecbc8ede70921dd2f544ab1cadd3ff3bf842af27f87bbdea774c7baa1d38/pytest_asyncio-0.25.3.tar.gz", hash = "sha256:fc1da2cf9f125ada7e710b4ddad05518d4cee187ae9412e9ac9271003497f07a", size = 54239 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/67/17/3493c5624e48fd97156ebaec380dcaafee9506d7e2c46218ceebbb57d7de/pytest_asyncio-0.25.3-py3-none-any.whl", hash = "sha256:9e89518e0f9bd08928f97a3482fdc4e244df17529460bc038291ccaf8f85c7c3", size = 19467 },
+]
+
+[[package]]
+name = "pytest-benchmark"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "py-cpuinfo" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/39/d0/a8bd08d641b393db3be3819b03e2d9bb8760ca8479080a26a5f6e540e99c/pytest-benchmark-5.1.0.tar.gz", hash = "sha256:9ea661cdc292e8231f7cd4c10b0319e56a2118e2c09d9f50e1b3d150d2aca105", size = 337810 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/d6/b41653199ea09d5969d4e385df9bbfd9a100f28ca7e824ce7c0a016e3053/pytest_benchmark-5.1.0-py3-none-any.whl", hash = "sha256:922de2dfa3033c227c96da942d1878191afa135a29485fb942e85dff1c592c89", size = 44259 },
 ]
 
 [[package]]
@@ -4371,6 +4582,18 @@ wheels = [
 ]
 
 [[package]]
+name = "spacy-lookups-data"
+version = "1.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fd/42/b747618ec64be73023b84c9eed7a09f5a345f514f367369b863f6a1dbf4f/spacy_lookups_data-1.0.5.tar.gz", hash = "sha256:6f935c81f145bdcc84fc6115f648764285c7ff3e8ff246295046814e96dad63c", size = 98442761 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9f/9e/dae3acaacc7cbe8140acb181e09b9920f8b3ee81d2f1cd838d160c78f0c2/spacy_lookups_data-1.0.5-py2.py3-none-any.whl", hash = "sha256:466f21f087e4144bc93800679437ec5a17be7d0888734b1ba880b3ecb0978bc6", size = 98458367 },
+]
+
+[[package]]
 name = "srsly"
 version = "2.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4430,7 +4653,7 @@ wheels = [
 
 [[package]]
 name = "swarmauri"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "swarmauri" }
 dependencies = [
     { name = "httpx" },
@@ -4470,6 +4693,7 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4511,6 +4735,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.18.5" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4521,7 +4746,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-base"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "base" }
 dependencies = [
     { name = "numpy" },
@@ -4538,6 +4763,7 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-mock" },
     { name = "pytest-timeout" },
@@ -4563,6 +4789,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.18.5" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
@@ -4574,7 +4801,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-core"
-version = "0.6.2.dev9"
+version = "0.7.4.dev1"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
@@ -4585,6 +4812,7 @@ dependencies = [
 dev = [
     { name = "flake8" },
     { name = "pytest" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4601,6 +4829,7 @@ requires-dist = [
 dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4609,7 +4838,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
@@ -4623,6 +4852,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4644,6 +4874,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4654,7 +4885,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_embedding_doc2vec" }
 dependencies = [
     { name = "gensim" },
@@ -4668,6 +4899,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4689,6 +4921,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4699,7 +4932,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4714,6 +4947,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4736,6 +4970,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4746,7 +4981,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
@@ -4760,6 +4995,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4781,6 +5017,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4791,7 +5028,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
@@ -4805,6 +5042,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4826,6 +5064,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4836,7 +5075,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_measurement_mutualinformation" }
 dependencies = [
     { name = "pandas" },
@@ -4850,6 +5089,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4871,6 +5111,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4881,7 +5122,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4894,6 +5135,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4914,6 +5156,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -4932,6 +5175,7 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-mock" },
     { name = "pytest-timeout" },
@@ -4948,6 +5192,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.18.5" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
@@ -4959,7 +5204,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-ocr-pytesseract"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_ocr_pytesseract" }
 dependencies = [
     { name = "pytesseract" },
@@ -4973,6 +5218,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -4994,6 +5240,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5004,7 +5251,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -5018,6 +5265,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5039,6 +5287,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5049,7 +5298,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-bertembedding"
-version = "0.6.2.dev3"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_parser_bertembedding" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5064,6 +5313,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5086,6 +5336,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5096,11 +5347,11 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-entityrecognition"
-version = "0.6.2.dev4"
+version = "0.6.6.dev1"
 source = { editable = "community/swarmauri_parser_entityrecognition" }
 dependencies = [
-    { name = "en-core-web-sm" },
     { name = "spacy" },
+    { name = "spacy-lookups-data" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -5111,6 +5362,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5121,8 +5373,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" },
     { name = "spacy", specifier = ">=3.7.0,<3.8.0" },
+    { name = "spacy-lookups-data", specifier = ">=1.0.5" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
@@ -5133,6 +5385,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5143,7 +5396,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
@@ -5157,6 +5410,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5178,6 +5432,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5188,7 +5443,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-keywordextractor"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_parser_keywordextractor" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5202,6 +5457,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5223,6 +5479,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5233,7 +5490,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },
@@ -5247,6 +5504,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5268,6 +5526,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5278,7 +5537,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
@@ -5292,6 +5551,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5313,6 +5573,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5323,7 +5584,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-textblob"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_parser_textblob" }
 dependencies = [
     { name = "nltk" },
@@ -5338,6 +5599,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5360,6 +5622,54 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-prompt-j2prompttemplate"
+version = "0.7.2.dev1"
+source = { editable = "standards/swarmauri_prompt_j2prompttemplate" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "pydantic" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jinja2", specifier = ">=3.0" },
+    { name = "pydantic", specifier = ">=1.8.2" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5370,7 +5680,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-standard"
-version = "0.6.2.dev3"
+version = "0.7.4.dev1"
 source = { editable = "swarmauri_standard" }
 dependencies = [
     { name = "aiofiles" },
@@ -5394,6 +5704,7 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5424,6 +5735,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.18.5" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5434,7 +5746,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.6.2.dev4"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5446,6 +5758,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5465,6 +5778,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5475,7 +5789,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-captchagenerator"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_captchagenerator" }
 dependencies = [
     { name = "captcha" },
@@ -5489,6 +5803,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5510,6 +5825,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5520,7 +5836,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_dalechallreadability" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5534,6 +5850,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5555,6 +5872,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5565,7 +5883,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_downloadpdf" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5578,6 +5896,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5598,6 +5917,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5608,7 +5928,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_entityrecognition" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5624,6 +5944,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5647,6 +5968,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5657,7 +5979,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },
@@ -5671,6 +5993,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5692,6 +6015,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5702,7 +6026,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_gmail" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -5716,6 +6040,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5737,6 +6062,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5747,7 +6073,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterclearoutput"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterclearoutput" }
 dependencies = [
     { name = "nbconvert" },
@@ -5761,6 +6087,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5782,6 +6109,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5792,7 +6120,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplay"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterdisplay" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5807,6 +6135,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5828,6 +6157,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5838,7 +6168,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplayhtml"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterdisplayhtml" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5853,6 +6183,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5874,6 +6205,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5884,7 +6216,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecuteandconvert"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexecuteandconvert" }
 dependencies = [
     { name = "nbconvert" },
@@ -5898,6 +6230,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5919,6 +6252,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5929,14 +6263,13 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutecell"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexecutecell" }
 dependencies = [
     { name = "ipykernel" },
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "jupyter-client" },
-    { name = "pydantic" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
     { name = "swarmauri-standard" },
@@ -5947,6 +6280,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -5960,7 +6294,6 @@ requires-dist = [
     { name = "ipykernel", specifier = "==6.29.5" },
     { name = "ipython", specifier = ">=8.32.0" },
     { name = "jupyter-client", specifier = ">=8.6.3" },
-    { name = "pydantic", specifier = "==2.10.6" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
@@ -5971,6 +6304,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -5981,7 +6315,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebook"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebook" }
 dependencies = [
     { name = "ipykernel" },
@@ -5997,6 +6331,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6020,6 +6355,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6030,7 +6366,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebookwithparameters"
-version = "1.0.2.dev5"
+version = "1.1.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebookwithparameters" }
 dependencies = [
     { name = "papermill" },
@@ -6044,6 +6380,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6065,6 +6402,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6075,7 +6413,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6089,6 +6427,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6110,6 +6449,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6120,7 +6460,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportlatex"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexportlatex" }
 dependencies = [
     { name = "nbconvert" },
@@ -6134,6 +6474,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6155,6 +6496,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6165,7 +6507,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.0.2.dev6"
+version = "1.1.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6180,6 +6522,7 @@ dev = [
     { name = "nbconvert" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6202,6 +6545,7 @@ dev = [
     { name = "nbconvert", specifier = ">=7.16.6" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6212,7 +6556,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6226,6 +6570,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6247,6 +6592,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6257,7 +6603,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
@@ -6271,6 +6617,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6292,6 +6639,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6302,7 +6650,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetiopubmessage"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupytergetiopubmessage" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6316,6 +6664,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6337,6 +6686,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6347,7 +6697,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
@@ -6362,6 +6712,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6384,6 +6735,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6394,7 +6746,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterreadnotebook"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterreadnotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6408,6 +6760,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6429,6 +6782,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6439,7 +6793,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterruncell"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterruncell" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6454,6 +6808,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6475,6 +6830,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6485,7 +6841,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytershutdownkernel"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupytershutdownkernel" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6499,6 +6855,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6520,6 +6877,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6530,7 +6888,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterstartkernel"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterstartkernel" }
 dependencies = [
     { name = "ipykernel" },
@@ -6545,6 +6903,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6567,6 +6926,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6577,7 +6937,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6593,6 +6953,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6616,6 +6977,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6626,7 +6988,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterwritenotebook"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_jupyterwritenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6640,6 +7002,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6661,6 +7024,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6671,7 +7035,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-lexicaldensity"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_lexicaldensity" }
 dependencies = [
     { name = "nltk" },
@@ -6686,6 +7050,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6708,6 +7073,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6718,7 +7084,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_tool_matplotlib" }
 dependencies = [
     { name = "matplotlib" },
@@ -6732,6 +7098,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6753,6 +7120,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6763,7 +7131,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_psutil" }
 dependencies = [
     { name = "psutil" },
@@ -6777,6 +7145,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6798,6 +7167,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6808,7 +7178,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_qrcodegenerator" }
 dependencies = [
     { name = "qrcode" },
@@ -6822,6 +7192,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6843,6 +7214,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6853,7 +7225,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_sentencecomplexity" }
 dependencies = [
     { name = "nltk" },
@@ -6867,6 +7239,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6888,6 +7261,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6898,7 +7272,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_sentimentanalysis" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -6914,6 +7288,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6937,6 +7312,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6947,7 +7323,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_smogindex" }
 dependencies = [
     { name = "nltk" },
@@ -6962,6 +7338,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -6984,6 +7361,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -6994,7 +7372,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
@@ -7008,6 +7386,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7029,6 +7408,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7039,7 +7419,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -7053,6 +7433,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7074,6 +7455,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7084,7 +7466,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_tool_zapierhook" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7097,6 +7479,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7117,6 +7500,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7127,7 +7511,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-github"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_toolkit_github" }
 dependencies = [
     { name = "pygithub" },
@@ -7141,6 +7525,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7162,6 +7547,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7172,7 +7558,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-jupytertoolkit"
-version = "0.1.1.dev3"
+version = "0.2.4.dev1"
 source = { editable = "community/swarmauri_toolkit_jupytertoolkit" }
 dependencies = [
     { name = "pydantic" },
@@ -7206,6 +7592,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7247,6 +7634,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7257,7 +7645,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-typing"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "typing" }
 
 [package.dev-dependencies]
@@ -7265,6 +7653,7 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-mock" },
     { name = "pytest-timeout" },
@@ -7281,6 +7670,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.18.5" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
@@ -7292,7 +7682,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
@@ -7307,6 +7697,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7329,6 +7720,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7339,7 +7731,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_cloudweaviate" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7354,6 +7746,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7376,6 +7769,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7386,7 +7780,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7400,6 +7794,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7421,6 +7816,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7431,7 +7827,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_duckdb" }
 dependencies = [
     { name = "duckdb" },
@@ -7446,6 +7842,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7468,6 +7865,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7478,7 +7876,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-mlm"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7494,6 +7892,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7517,6 +7916,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7527,7 +7927,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_neo4j" }
 dependencies = [
     { name = "neo4j" },
@@ -7541,6 +7941,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-mock" },
     { name = "pytest-timeout" },
@@ -7563,6 +7964,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
@@ -7574,7 +7976,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-persistentchromadb"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_persistentchromadb" }
 dependencies = [
     { name = "chromadb" },
@@ -7589,6 +7991,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7611,6 +8014,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7621,7 +8025,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
@@ -7636,6 +8040,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7658,6 +8063,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7668,7 +8074,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-qdrant"
-version = "0.6.2.dev5"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_qdrant" }
 dependencies = [
     { name = "qdrant-client" },
@@ -7683,6 +8089,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7705,6 +8112,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -7715,7 +8123,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.6.2.dev6"
+version = "0.7.4.dev1"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },
@@ -7731,6 +8139,7 @@ dev = [
     { name = "flake8" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
     { name = "pytest-json-report" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -7754,6 +8163,7 @@ dev = [
     { name = "flake8", specifier = ">=7.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-json-report", specifier = ">=1.5.0" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
@@ -8194,6 +8604,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/01/65/3ffa90e158a2c82f0716eee8d26a725d241549b7d7aaf7e4f44ac03ebd89/triton-3.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b3e54983cd51875855da7c68ec05c05cf8bb08df361b1d5b69e05e40b0c9bd62", size = 253090354 },
     { url = "https://files.pythonhosted.org/packages/a7/2e/757d2280d4fefe7d33af7615124e7e298ae7b8e3bc4446cdb8e88b0f9bab/triton-3.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8009a1fb093ee8546495e96731336a33fb8856a38e45bb4ab6affd6dbc3ba220", size = 253157636 },
     { url = "https://files.pythonhosted.org/packages/06/00/59500052cb1cf8cf5316be93598946bc451f14072c6ff256904428eaf03c/triton-3.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8d9b215efc1c26fa7eefb9a157915c92d52e000d2bf83e5f69704047e63f125c", size = 253159365 },
+]
+
+[[package]]
+name = "typeguard"
+version = "4.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/70/60/8cd6a3d78d00ceeb2193c02b7ed08f063d5341ccdfb24df88e61f383048e/typeguard-4.4.2.tar.gz", hash = "sha256:a6f1065813e32ef365bc3b3f503af8a96f9dd4e0033a02c28c4a4983de8c6c49", size = 75746 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/4b/9a77dc721aa0b7f74440a42e4ef6f9a4fae7324e17f64f88b96f4c25cc05/typeguard-4.4.2-py3-none-any.whl", hash = "sha256:77a78f11f09777aeae7fa08585f33b5f4ef0e7335af40005b0c422ed398ff48c", size = 35801 },
 ]
 
 [[package]]

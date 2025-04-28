@@ -3,7 +3,7 @@ import json
 from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -30,6 +30,27 @@ class OpenAIModel(LLMBase):
     Provider resources: https://platform.openai.com/docs/models
     """
 
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "gpt-4o-mini",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini-2024-07-18",
+        "gpt-4o",
+        "gpt-4-turbo",
+        "gpt-4-turbo-preview",
+        "gpt-4-1106-preview",
+        "gpt-4",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4-0125-preview",
+        "gpt-4-0613",
+        "gpt-3.5-turbo-0125",
+    ]
+    name: str = "gpt-4o-mini"
+    type: Literal["OpenAIModel"] = "OpenAIModel"
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -45,8 +66,6 @@ class OpenAIModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,

@@ -3,7 +3,7 @@ import json
 from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -29,6 +29,17 @@ class HyperbolicModel(LLMBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "meta-llama/Meta-Llama-3-70B-Instruct",
+        "meta-llama/Meta-Llama-3.1-70B-Instruct",
+        "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "meta-llama/Meta-Llama-3.1-405B-FP8",
+        "meta-llama/Meta-Llama-3.1-405B-Instruct",
+    ]
+    name: str = "meta-llama/Meta-Llama-3-70B-Instruct"
+    type: Literal["HyperbolicModel"] = "HyperbolicModel"
+    timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
@@ -50,8 +61,6 @@ class HyperbolicModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -142,7 +151,6 @@ class HyperbolicModel(LLMBase):
         chat_models = [
             model["id"] for model in response_data["data"] if model["supports_chat"]
         ]
-
         return chat_models
 
     @retry_on_status_codes((429, 529), max_retries=1)

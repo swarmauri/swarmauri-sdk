@@ -20,6 +20,7 @@ dev = [
     "pytest-mock>=3.14.0",
     "jsonschema>=4.18.5",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]
 
 [tool.uv]
@@ -32,6 +33,9 @@ members = [
     "swarmauri_standard",
     "swarmauri",
     "typing",
+    "cayaml",
+    "catoml",
+    "jaml",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -42,7 +46,7 @@ members = [
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_prompt_j2prompttemplate",
-    "standards/ptree_dag",
+    "standards/peagen",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -101,6 +105,7 @@ members = [
     "community/swarmauri_toolkit_jupytertoolkit",
     "community/swarmauri_tool_jupyterexportlatex",
     "community/swarmauri_tool_jupytergetiopubmessage",
+
 ]
 
 [tool.uv.sources]
@@ -109,6 +114,10 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri = { workspace = true }
 typing = { workspace = true }
+cayaml = { workspace = true }
+catoml = { workspace = true }
+jaml = { workspace = true }
+
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
@@ -120,7 +129,7 @@ swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_prompt_j2prompttemplate = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
-ptree_dag = { workspace = true }
+peagen = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
@@ -181,6 +190,7 @@ swarmauri_tool_jupyterexportlatex = { workspace = true }
 swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 
+
 [tool.pytest.ini_options]
 norecursedirs = [
     "deprecated",
@@ -199,6 +209,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 
 timeout = 300

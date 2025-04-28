@@ -15,6 +15,7 @@ markers = [
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",
     "xfail: Expected failures",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 
 log_cli = true

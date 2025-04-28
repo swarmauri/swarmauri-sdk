@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutecell"
-version = "0.7.2"
+version = "0.7.4.dev1"
 description = "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors."
 license = "Apache-2.0"
 readme = "README.md"
@@ -18,7 +18,6 @@ dependencies = [
     "jupyter_client>=8.6.3",
     "IPython>=8.32.0",
     "ipykernel==6.29.5",
-    "pydantic==2.10.6",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -40,6 +39,7 @@ markers = [
     "xpass: Expected passes",
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
 ]
 timeout = 300
 log_cli = true
@@ -66,4 +66,5 @@ dev = [
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

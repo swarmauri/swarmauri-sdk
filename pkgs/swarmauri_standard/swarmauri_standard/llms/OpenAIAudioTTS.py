@@ -39,10 +39,10 @@ class OpenAIAudioTTS(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = ["tts-1", "tts-1-hd"]
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-    name: str = ""
+    name: str = "tts-1"
     type: Literal["OpenAIAudioTTS"] = "OpenAIAudioTTS"
     voice: str = "alloy"
     timeout: float = 600.0
@@ -61,8 +61,6 @@ class OpenAIAudioTTS(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @model_validator(mode="after")
     @classmethod
