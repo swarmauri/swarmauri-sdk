@@ -291,9 +291,7 @@ class TestPeagen:
             "peagen.core.Peagen.get_template_dir_any",
             return_value=Path("/test/templates/default"),
         ):
-            with patch(
-                "swarmauri_prompt_j2prompttemplate.j2pt.set_template"
-            ):
+            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
                 with patch(
                     "swarmauri_prompt_j2prompttemplate.j2pt.fill",
                     return_value="rendered content",
@@ -341,9 +339,7 @@ class TestPeagen:
             "peagen.core.Peagen.get_template_dir_any",
             return_value=Path("/test/templates/default"),
         ):
-            with patch(
-                "swarmauri_prompt_j2prompttemplate.j2pt.set_template"
-            ):
+            with patch("swarmauri_prompt_j2prompttemplate.j2pt.set_template"):
                 with patch(
                     "swarmauri_prompt_j2prompttemplate.j2pt.fill",
                     return_value="rendered content",

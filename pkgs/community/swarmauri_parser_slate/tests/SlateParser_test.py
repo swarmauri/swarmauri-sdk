@@ -48,12 +48,11 @@ def test_parser_success_mock_file_path():
     file_path = "resources/demo.pdf"
 
     with mock.patch("slate3k.PDF") as mock_pdf_reader:
-
-        mock_pdf_reader.return_value = ['Sample text from page 1.']
+        mock_pdf_reader.return_value = ["Sample text from page 1."]
 
         # Call the parser's parse method
         documents = parser.parse(file_path)
-        
+
         # Assertions
         mock_pdf_reader.assert_called_once()
 
@@ -61,7 +60,7 @@ def test_parser_success_mock_file_path():
         assert isinstance(documents[0], IDocument), (
             "Returned object should be an instance of IDocument."
         )
-        assert documents[0].content == 'Sample text from page 1.', (
+        assert documents[0].content == "Sample text from page 1.", (
             "Extracted content does not match expected."
         )
         assert documents[0].metadata["page_number"] == 1, (
@@ -70,6 +69,7 @@ def test_parser_success_mock_file_path():
         assert documents[0].metadata["source"] == file_path, (
             "Metadata 'source' should match the file path."
         )
+
 
 @pytest.mark.unit
 def test_parser_success_file_path():
@@ -96,7 +96,7 @@ def test_parser_success_file_path():
     )
     assert documents[0].metadata["source"] == file_path, (
         "Metadata 'source' should match the file path."
-    )    
+    )
 
 
 @pytest.mark.unit

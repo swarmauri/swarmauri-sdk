@@ -272,7 +272,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
         "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",
         "swarmauri.distances.MinkowskiDistance": "swarmauri_distance_minkowski.MinkowskiDistance",
-
         "swarmauri.loggers.Logger": "swarmauri_standard.loggers.Logger",
         "swarmauri.logger_handlers.StreamHandler": "swarmauri_standard.logger_handlers.StreamHandler",
         "swarmauri.logger_formatters.LoggerFormatter": "swarmauri_standard.logger_formatters.LoggerFormatter",

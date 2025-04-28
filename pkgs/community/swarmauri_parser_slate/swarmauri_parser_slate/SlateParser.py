@@ -47,5 +47,5 @@ class SlateParser(ParserBase):
                 return []
         else:
             raise TypeError("Source must be of type str (file path) or bytes.")
-        
+
         return documents

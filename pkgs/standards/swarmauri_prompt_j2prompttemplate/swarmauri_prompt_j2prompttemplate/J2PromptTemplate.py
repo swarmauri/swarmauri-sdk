@@ -32,7 +32,7 @@ class J2PromptTemplate(PromptTemplateBase):
     # Whether to enable code generation specific features like linguistic filters
     code_generation_mode: bool = False
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra='allow')
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
 
     def get_env(self) -> Environment:
