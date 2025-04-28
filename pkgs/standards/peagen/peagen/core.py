@@ -21,26 +21,27 @@ This class uses helper methods from modules such as:
   - external.py (for calling external agents and chunking content)
 """
 
-from colorama import init as colorama_init, Fore, Style
 import os
-import yaml
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import FilePath
-
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import peagen.templates
+import yaml
+from colorama import Fore, Style
+from colorama import init as colorama_init
+from pydantic import ConfigDict, Field, FilePath, model_validator
+from swarmauri_base import SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.loggers.LoggerBase import LoggerBase
+from swarmauri_prompt_j2prompttemplate import j2pt
+
+from swarmauri_standard.loggers.Logger import Logger
+
+from ._config import __logger_name__, _config
+from ._graph import _topological_sort, _transitive_dependency_sort
 
 # Import helper modules from our package.
 from ._processing import _process_project_files
-from ._graph import _topological_sort, _transitive_dependency_sort
-from ._Jinja2PromptTemplate import j2pt
-from ._config import _config, __logger_name__
-
-import peagen.templates
-from pydantic import Field, ConfigDict, model_validator
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base import SubclassUnion
-from swarmauri_standard.loggers.Logger import Logger
-from swarmauri_base.loggers.LoggerBase import LoggerBase
 
 colorama_init(autoreset=True)
 
@@ -53,7 +54,9 @@ class Peagen(ComponentBase):
 
     # Derived attributes with default factories:
     base_dir: str = Field(exclude=True, default_factory=os.getcwd)
-    additional_package_dirs: List[Path] = Field(exclude=True, default_factory=list)  # Changed from default=list
+    additional_package_dirs: List[Path] = Field(
+        exclude=True, default_factory=list
+    )  # Changed from default=list
     projects_list: List[Dict[str, Any]] = Field(exclude=True, default_factory=list)
     dependency_graph: Dict[str, List[str]] = Field(exclude=True, default_factory=dict)
     in_degree: Dict[str, int] = Field(exclude=True, default_factory=dict)
