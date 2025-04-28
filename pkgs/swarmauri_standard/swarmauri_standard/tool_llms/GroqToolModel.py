@@ -3,12 +3,12 @@ import json
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.conversations.IConversation import IConversation
+
+from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
@@ -36,6 +36,16 @@ class GroqToolModel(ToolLLMBase):
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
 
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "qwen-2.5-32b",
+        "deepseek-r1-distill-qwen-32b",
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+    ]
     name: str = ""
     type: Literal["GroqToolModel"] = "GroqToolModel"
 
@@ -63,6 +73,7 @@ class GroqToolModel(ToolLLMBase):
             headers=self._headers,
             timeout=self.timeout,
         )
+
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         if not self.name and self.allowed_models:
             self.name = self.allowed_models[0]

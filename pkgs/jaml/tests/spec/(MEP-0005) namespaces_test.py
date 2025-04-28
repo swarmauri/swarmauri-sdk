@@ -6,9 +6,10 @@ from pprint import pprint
 # 2) Merges tables by namespace (dotted keys),
 # 3) Returns a nested dictionary reflecting the final merged state.
 # In practice, you'd import such a function from your parser/merger module.
-from jaml import loads
+from jaml import loads, round_trip_loads
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Namespace merging not yet implemented")
 def test_simple_namespace_merging():
     """
@@ -31,9 +32,10 @@ def test_simple_namespace_merging():
     assert "settings" in result["app"]
     assert result["app"]["settings"]["debug"] is True
     assert "paths" in result["app"]
-    assert result["app"]["paths"]["log"] == "/var/log/app.log"
+    assert result["app"]["paths"]["log"] == '"/var/log/app.log"'
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
 def test_conflicting_keys_last_key_wins():
     """
@@ -51,10 +53,11 @@ def test_conflicting_keys_last_key_wins():
     # Expect "host" to be "localhost", as the last definition wins
     # and "port" = 8080.
     assert "server" in result
-    assert result["server"]["host"] == "localhost"
+    assert result["server"]["host"] == '"localhost"'
     assert result["server"]["port"] == 8080
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 # @pytest.mark.xfail(reason="Nested namespaces not yet implemented or tested")
 def test_nested_namespace():
     """
@@ -77,13 +80,14 @@ def test_nested_namespace():
     # } }
     assert "project" in result
     assert "metadata" in result["project"]
-    assert result["project"]["metadata"]["name"] == "MyApp"
-    assert result["project"]["metadata"]["version"] == "1.0.0"
+    assert result["project"]["metadata"]["name"] == '"MyApp"'
+    assert result["project"]["metadata"]["version"] == '"1.0.0"'
     assert "author" in result["project"]
-    assert result["project"]["author"]["name"] == "John Doe"
-    assert result["project"]["author"]["email"] == "john@example.com"
+    assert result["project"]["author"]["name"] == '"John Doe"'
+    assert result["project"]["author"]["email"] == '"john@example.com"'
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 @pytest.mark.xfail(reason="Loading multiple files simultaneously is not supported.")
 def test_merge_across_multiple_sources():
     """
@@ -110,11 +114,12 @@ def test_merge_across_multiple_sources():
     assert "database" in result
     assert "connection" in result["database"]
     assert "credentials" in result["database"]
-    assert result["database"]["connection"]["host"] == "localhost"
+    assert result["database"]["connection"]["host"] == '"localhost"'
     assert result["database"]["connection"]["port"] == 5432
-    assert result["database"]["credentials"]["user"] == "admin"
+    assert result["database"]["credentials"]["user"] == '"admin"'
 
 @pytest.mark.spec
+@pytest.mark.mep0005
 @pytest.mark.xfail(reason="Conflict warnings or detection not yet implemented")
 def test_conflicting_key_warning():
     """
@@ -136,18 +141,51 @@ def test_conflicting_key_warning():
     conflict_warnings = [w for w in warnings if "overwritten" in w.lower() and "level" in w]
     assert len(conflict_warnings) > 0
 
-def test_print_namespaces_for_debug():
+
+@pytest.mark.spec
+@pytest.mark.mep0005
+@pytest.mark.xfail(reason="Quoted keys planned, but not supported.")
+def test_quoted_namespaces():
     """
-    Optional test with no xfail – used for manual debugging or inspection.
+    This test ensure that quoted keys are correctly handled
     """
     source = """
-    [service.api]
-    url = "http://example.com"
-    token = "abc123"
+    ["logging.app"]
+    url = "/"
+    
 
-    [service]
-    name = "ExampleService"
+    ["logging.config"]
+    level = "info"
     """
-    # We'll parse and just print the result.
     result = loads(source)
-    pprint(result)
+    assert result["logging.app"]["url"] == '"/"'
+    assert result["logging.config"]["level"] == '"info"'
+
+# @pytest.mark.xfail(reason="Table preservation is not yet implemented")
+@pytest.mark.spec
+@pytest.mark.mep0005
+def test_toml_table_preservation():
+    toml_input = '''[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"'''
+    # Parse the TOML input.
+    data = round_trip_loads(toml_input)
+    # Dump the parsed structure back to TOML.
+    dumped = data.dumps()
+    assert toml_input == dumped

@@ -1,102 +1,212 @@
-# _eval.py
+# jaml/_eval.py
+from typing import Dict, Any
+import ast
+import operator as op
+import logging
 
-from typing import Any, Dict
-
-from .ast_nodes import (
-    DocumentNode,
-    SectionNode,
-    KeyValueNode,
-    ScalarNode,
-    ArrayNode,
-    TableNode,
-    LogicExpressionNode,
-)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)          # caller can override
 
 
-def _eval_ast_logical_expressions(ast: DocumentNode, context: Dict[str, Any] = None) -> DocumentNode:
+def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
     """
-    Traverse the entire AST, evaluating LogicExpressionNode nodes using the given context.
-    Returns the same AST with any logic expressions replaced by their evaluated results 
-    (usually as ScalarNode or TableNode, depending on what the expression yields).
-    
-    :param ast: The DocumentNode AST.
-    :param context: A dictionary for variable bindings or function references used in expressions.
-    :return: The AST with logic expressions evaluated.
+    Safely evaluate a restricted Python expression.
+
+    Supported:
+      • arithmetic + boolean ops
+      • comparisons
+      • literals  (list / tuple / set / dict)
+      • list-, set- & generator-comprehensions   ◀ NEW
+      • ternary expressions (a if cond else b)
+      • calls to a small allow-list of built-ins
     """
-    if context is None:
-        context = {}
+    local_env = local_env or {}
 
-    for section in ast.sections:
-        for i, kv in enumerate(section.keyvalues):
-            evaluated_value = _evaluate_node(kv.value, context)
-            kv.value = evaluated_value
+    # ── allow-lists ────────────────────────────────────────────────────
+    _ops = {
+        ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv,
+        ast.FloorDiv: op.floordiv, ast.Mod: op.mod, ast.Pow: op.pow
+    }
+    _boolops = {ast.And, ast.Or}
+    _cmpops = {
+        ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
+        ast.In, ast.NotIn, ast.Is, ast.IsNot
+    }
+    _funcs = {
+        "enumerate": enumerate,
+        "false": False, "true": True, "null": None
+    }
 
-    return ast
-
-
-def _evaluate_node(node, context: Dict[str, Any]):
-    """
-    Recursively evaluate a node:
-      - If it's a LogicExpressionNode, parse/eval the expression
-      - If it's an ArrayNode, evaluate each item
-      - If it's a TableNode, evaluate each key-value
-      - Otherwise (ScalarNode, etc.), return it as is
-    """
-    if isinstance(node, LogicExpressionNode):
-        return _eval_logic_expression(node, context)
-
-    elif isinstance(node, ArrayNode):
-        # Evaluate each item in the array
-        new_items = []
-        for item in node.items:
-            new_items.append(_evaluate_node(item, context))
-        return ArrayNode(items=new_items)
-
-    elif isinstance(node, TableNode):
-        # Evaluate each key-value in the table
-        new_kvs = []
-        for kv in node.keyvalues:
-            evaluated_value = _evaluate_node(kv.value, context)
-            new_kvs.append(KeyValueNode(
-                key=kv.key,
-                type_annotation=kv.type_annotation,
-                value=evaluated_value
-            ))
-        return TableNode(keyvalues=new_kvs)
-
-    # For ScalarNode or other types, just return as is
-    return node
+    # ── helpers ───────────────────────────────────────────────────────
+    def _eval(node: ast.AST):
 
 
-def _eval_logic_expression(expr_node: LogicExpressionNode, context: Dict[str, Any]):
-    """
-    Evaluate the LogicExpressionNode using your language rules. 
-    This function can parse the expression syntax and produce a result (e.g., Python value).
-    
-    Return a new Node representing the result (often a ScalarNode).
-    
-    Example: If your expression is a simple Python snippet like "x + 1",
-    you might do something like:
-    
-        code = compile(expr_node.expression, "<jml_expr>", "eval")
-        value = eval(code, {}, context)
-        return ScalarNode(value=value)
-    
-    BUT be aware that using eval can be a security risk if you parse untrusted input.
-    You might want to parse it yourself or use a safer method.
-    
-    If your language has custom syntax, parse it here and evaluate accordingly.
-    """
-    expr_str = expr_node.expression
+        # ── NEW: f-string nodes ───────────────────────────────────────────
+        if isinstance(node, ast.JoinedStr):        # complete f-string
+            parts = []
+            for piece in node.values:
+                parts.append(_eval(piece))
+            return "".join(parts)
 
-    # Example: naive usage of Python eval (NOT recommended for untrusted input)
+        if isinstance(node, ast.FormattedValue):   # an {expr[:spec]!c} piece
+            val = _eval(node.value)
+            # handle !s / !r / !a conversions
+            if   node.conversion == -1:  pass
+            elif node.conversion == ord("s"): val = str(val)
+            elif node.conversion == ord("r"): val = repr(val)
+            elif node.conversion == ord("a"): val = ascii(val)
+            else: raise ValueError("Unsupported f-string conversion")
+
+            # handle optional format spec
+            if node.format_spec is not None:
+                spec = _eval(node.format_spec)
+                val = format(val, spec)
+            return str(val)
+
+        # ── NEW: attribute access (obj.attr or mapping-style) ──────────────
+        if isinstance(node, ast.Attribute):
+            obj  = _eval(node.value)
+            attr = node.attr
+            if attr.startswith("_"):
+                raise ValueError("Access to private/protected attributes is disallowed")
+            # Treat dict-like objects as attribute-accessible by key
+            if isinstance(obj, dict):
+                if attr in obj:
+                    return obj[attr]
+                raise ValueError(f"Key '{attr}' not found in mapping")
+            if hasattr(obj, attr):
+                return getattr(obj, attr)
+            raise ValueError(f"Attribute '{attr}' not found")
+
+
+        # literals / names ------------------------------------------------
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name):
+            if node.id in local_env:
+                return local_env[node.id]
+            if node.id in _funcs:
+                return _funcs[node.id]
+            raise ValueError(f"Name not allowed: {node.id}")
+
+        # arithmetic / unary ops -----------------------------------------
+        if isinstance(node, ast.BinOp):
+            if type(node.op) not in _ops:
+                raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
+            return _ops[type(node.op)](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp):
+            operand = _eval(node.operand)
+            if isinstance(node.op, ast.UAdd):
+                return +operand
+            if isinstance(node.op, ast.USub):
+                return -operand
+            raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+
+        # boolean ops -----------------------------------------------------
+        if isinstance(node, ast.BoolOp):
+            if type(node.op) not in _boolops:
+                raise ValueError(f"Unsupported boolean operator: {type(node.op).__name__}")
+            vals = [_eval(v) for v in node.values]
+            return all(vals) if isinstance(node.op, ast.And) else any(vals)
+
+        # ternary ---------------------------------------------------------
+        if isinstance(node, ast.IfExp):
+            return _eval(node.body) if _eval(node.test) else _eval(node.orelse)
+
+        # comparisons -----------------------------------------------------
+        if isinstance(node, ast.Compare):
+            left = _eval(node.left)
+            for op_node, comp in zip(node.ops, node.comparators):
+                cmp = _eval(comp)
+                t = type(op_node)
+                if t not in _cmpops:
+                    raise ValueError(f"Unsupported comparison operator: {t.__name__}")
+                ok = (
+                    (t is ast.Eq     and left == cmp) or
+                    (t is ast.NotEq  and left != cmp) or
+                    (t is ast.Lt     and left <  cmp) or
+                    (t is ast.LtE    and left <= cmp) or
+                    (t is ast.Gt     and left >  cmp) or
+                    (t is ast.GtE    and left >= cmp) or
+                    (t is ast.In     and left in  cmp) or
+                    (t is ast.NotIn  and left not in cmp) or
+                    (t is ast.Is     and left is cmp) or
+                    (t is ast.IsNot  and left is not cmp)
+                )
+                if not ok:
+                    return False
+                left = cmp
+            return True
+
+        # calls -----------------------------------------------------------
+        if isinstance(node, ast.Call):
+            func = _eval(node.func)
+            args = [_eval(a) for a in node.args]
+            kwargs = {kw.arg: _eval(kw.value) for kw in node.keywords}
+            return func(*args, **kwargs)
+
+        # literals --------------------------------------------------------
+        if isinstance(node, ast.List):
+            return [_eval(elt) for elt in node.elts]
+        if isinstance(node, ast.Tuple):
+            return tuple(_eval(elt) for elt in node.elts)
+        if isinstance(node, ast.Set):
+            return {_eval(elt) for elt in node.elts}
+        if isinstance(node, ast.Dict):
+            return {_eval(k): _eval(v) for k, v in zip(node.keys, node.values)}
+
+        # comprehensions (list, set, generator) ---------------------------  ◀ NEW
+        if isinstance(node, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
+            def _comp_recurse(gen_idx: int):
+                if gen_idx == len(node.generators):
+                    yield _eval(node.elt)
+                    return
+                gen = node.generators[gen_idx]
+                for item in _eval(gen.iter):
+                    if not isinstance(gen.target, ast.Name):
+                        raise ValueError("Unsupported comprehension target")
+                    # save / restore binding to avoid leaks
+                    name = gen.target.id
+                    prev = local_env.get(name, object())
+                    local_env[name] = item
+                    try:
+                        if gen.ifs and not all(_eval(cond) for cond in gen.ifs):
+                            continue
+                        yield from _comp_recurse(gen_idx + 1)
+                    finally:
+                        if prev is object():
+                            local_env.pop(name, None)
+                        else:
+                            local_env[name] = prev
+
+            output = list(_comp_recurse(0))
+            # Always return the collection intact;
+            # header logic will decide what to do with it.
+            if isinstance(node, ast.GeneratorExp):
+                return output             # ← keep list, don’t join
+            if isinstance(node, ast.ListComp):
+                return output
+            return set(output)            # ast.SetComp
+
+        # subscripting ----------------------------------------------------
+        if isinstance(node, ast.Subscript):
+            value = _eval(node.value)
+            slice_val = _eval(node.slice.value if isinstance(node.slice, ast.Index) else node.slice)
+            return value[slice_val]
+
+        # fallback --------------------------------------------------------
+        raise ValueError(f"Unsupported expression element: {type(node).__name__}")
+
+    # ── entry-point ─────────────────────────────────────────────────────
     try:
-        code = compile(expr_str, "<jml_expr>", "eval")
-        result = eval(code, {}, context)
-    except Exception as e:
-        # Handle or log the error as needed
-        result = f"<Error evaluating expression: {expr_str}>"
-
-    # Return a ScalarNode with the result. If result is a list/dict/bool,
-    # you could optionally convert it to an ArrayNode, TableNode, or so forth.
-    return ScalarNode(value=result)
+        # wrap top-level bare f-string into a literal so ast.parse works
+        if isinstance(expr, str) and expr.lstrip().startswith('f"'):
+            expr = f"({expr})"      # minimal wrapper
+        logger.debug(f"evaluating {expr}")
+        tree = ast.parse(expr, mode="eval")
+        return _eval(tree)
+    except Exception as exc:
+        logger.exception(f"Evaluation failed: {exc}")
+        raise

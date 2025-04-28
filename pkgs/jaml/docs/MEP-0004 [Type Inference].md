@@ -1,4 +1,9 @@
 # MEP-004: Type Inference
+**Author:** Jacob Stewart
+**Status:** Draft  
+**Created:** April 04, 2025  
+**Target Language:** TBD
+
 
 ## 1. Abstract
 
@@ -32,7 +37,6 @@ The markup language infers the type of a value according to the following rules:
 | ---------------------------------------- | ------------------------- |
 | `"Hello, World!"`                        | `str`                     |
 | `'Hello, World!'`                        | `str`                     |
-| `f"${base}/path"`                        | `str` (after interpolation)|
 | `'''Multi-line\ntext'''`                 | `str`                     |
 | `123`, `0xFF`, `0b1010`, `0o52`          | `int`                     |
 | `3.14`, `-0.01`, `1e-10`, `inf`, `nan`   | `float`                   |
@@ -85,8 +89,8 @@ ssl_enabled = true        # inferred as bool
 ```toml
 [paths]
 base = "/etc/app"
-config_path = ~( @{base} + "/config.toml" )   # inferred as str
-timeout = ~( 30 + 5 )                         # inferred as int
+config_path = "path/to/file"
+timeout = 30
 ```
 
 ### Example 3: List and Table Inference
