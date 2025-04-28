@@ -17,11 +17,10 @@ pip install swarmauri
 ```
 
 !!! info "Installation Options"
-    For specific versions or development builds:
-    ```bash
-    # Install specific version
-    pip install swarmauri==1.2.3
-    
+For specific versions or development builds:
+```bash # Install specific version
+pip install swarmauri==1.2.3
+
     # Install from GitHub (latest development version)
     pip install git+https://github.com/swarmauri/swarmauri-sdk.git
     ```
@@ -49,11 +48,7 @@ If you encounter `ModuleNotFoundError`:
 pip list | grep swarmauri
 ```
 
-!!! warning "Common Import Error Causes"
-    - Package not installed correctly
-    - Virtual environment not activated
-    - Package installed in a different Python environment
-    - Package name misspelled in the import statement
+!!! warning "Common Import Error Causes" - Package not installed correctly - Virtual environment not activated - Package installed in a different Python environment - Package name misspelled in the import statement
 
 ### Version Conflicts
 
@@ -69,12 +64,12 @@ pip install swarmauri
 ```
 
 !!! tip "Dependency Isolation"
-    Consider using tools like Poetry or pipenv for better dependency management. These tools create lockfiles that ensure consistent environments across different machines.
-    
+Consider using tools like Poetry or pipenv for better dependency management. These tools create lockfiles that ensure consistent environments across different machines.
+
     ```bash
     # Using Poetry
     poetry add swarmauri
-    
+
     # Using pipenv
     pipenv install swarmauri
     ```
@@ -94,8 +89,8 @@ sudo apt install build-essential  # For Ubuntu/Debian
 ```
 
 ??? danger "Installation Troubleshooting"
-    If you encounter persistent installation issues:
-    
+If you encounter persistent installation issues:
+
     1. Make sure your pip is up to date: `pip install --upgrade pip`
     2. Check if you have sufficient privileges (try using `sudo` on Linux/Mac or run as administrator on Windows)
     3. If you're behind a corporate firewall, you may need to configure pip to use an HTTPS proxy
@@ -140,13 +135,13 @@ print(response)
 ```
 
 !!! info "Available Tools"
-    Swarmauri SDK offers a variety of built-in tools including:
+Swarmauri SDK offers a variety of built-in tools including:
 
     - `CalculatorTool`: For mathematical operations
     - `RequestsTool`: For HTTP requests
     - `CodeExtractorTool`: For code extraction
     - `CodeInterpreterTool`: For python code execution
-    
+
     You can also create custom tools by extending the `ToolBase` class.
 
 ### How do I create an AI assistant?
@@ -174,6 +169,7 @@ print(response)
 response = agent.exec("Can you explain it in simpler terms?")
 print(response)
 ```
+
 ### How do I handle large datasets?
 
 - **Chunking**: Break down large datasets into smaller chunks for processing.
@@ -232,3 +228,6 @@ If you need further assistance:
 1. Check our API Documentation
 2. Visit our [GitHub Issues](https://github.com/swarmauri/swarmauri-sdk/issues)
 3. Join our [Discord Community](https://discord.gg/swarmauri)
+
+!!! info "Community Support"
+    Our community is active and ready to help with any questions you might have. Don't hesitate to reach out if you're facing challenges with Swarmauri SDK.

@@ -1,6 +1,6 @@
 import asyncio
 import warnings
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -52,12 +52,12 @@ class WhisperLargeModel(LLMBase):
     _client: httpx.Client = PrivateAttr()
     _header: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]):
         """
         Initialize the WhisperLargeModel instance.
 
         Args:
-            **data: Keyword arguments containing model configuration.
+            **data (Dict[str, Any]): Keyword arguments containing model configuration.
                    Must include 'api_key' for HuggingFace API authentication.
 
         Raises:

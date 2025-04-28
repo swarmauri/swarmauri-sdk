@@ -112,24 +112,10 @@ nav:
   - guide/index.md
   - Installation: guide/installation.md
   - Usage: guide/usage.md
-  - Courses:
-    - guide/index.md
-    - Entry: guide/course/1.md
-    - Generative AI: guide/course/2.md
-    - Tool: guide/course/3.md
+  - Courses: guide/courses.md
   - FAQ: guide/faq.md
-- Concept:
-  - concept/index.md
-  - Core: concept/core.md
-  - Base: concept/base.md
-  - Standard: concept/standard.md
-  - Swarmauri: concept/swarmauri.md
 - API Documentation:
-  - api/index.md
-  - Third Class:
-    - api/third_class/index.md
-    - Module 1: api/third_class/module1.md
-    - Module 2: api/third_class/module2.md
+  - api/concepts.md
   - Standard:
     - Home: api/standard/index.md
     - Agents:
@@ -217,8 +203,8 @@ nav:
       - PerplexityModel: api/standard/swarmauri_standard/llms/PerplexityModel.md
       - PlayHTModel: api/standard/swarmauri_standard/llms/PlayHTModel.md
       - WhisperLargeModel: api/standard/swarmauri_standard/llms/WhisperLargeModel.md
-    - Logging:
-      - Logger: api/standard/swarmauri_standard/logging/Logger.md
+    - Loggers:
+      - Logger: api/standard/swarmauri_standard/loggers/Logger.md
     - Measurements:
       - CompletenessMeasurement: api/standard/swarmauri_standard/measurements/CompletenessMeasurement.md
       - DistinctivenessMeasurement: api/standard/swarmauri_standard/measurements/DistinctivenessMeasurement.md
@@ -280,10 +266,12 @@ nav:
     - Tool Llms:
       - AnthropicToolModel: api/standard/swarmauri_standard/tool_llms/AnthropicToolModel.md
       - CohereToolModel: api/standard/swarmauri_standard/tool_llms/CohereToolModel.md
+      - DeepInfraToolModel: api/standard/swarmauri_standard/tool_llms/DeepInfraToolModel.md
       - GeminiToolModel: api/standard/swarmauri_standard/tool_llms/GeminiToolModel.md
       - GroqToolModel: api/standard/swarmauri_standard/tool_llms/GroqToolModel.md
       - MistralToolModel: api/standard/swarmauri_standard/tool_llms/MistralToolModel.md
       - OpenAIToolModel: api/standard/swarmauri_standard/tool_llms/OpenAIToolModel.md
+      - ToolLLM: api/standard/swarmauri_standard/tool_llms/ToolLLM.md
     - Toolkits:
       - AccessibilityToolkit: api/standard/swarmauri_standard/toolkits/AccessibilityToolkit.md
       - Toolkit: api/standard/swarmauri_standard/toolkits/Toolkit.md
@@ -369,14 +357,14 @@ nav:
       - ImageGenBase: api/base/swarmauri_base/image_gens/ImageGenBase.md
     - Llms:
       - LLMBase: api/base/swarmauri_base/llms/LLMBase.md
-    - Logger:
-      - LoggerBase: api/base/swarmauri_base/logger/LoggerBase.md
-    - Logger Formatter:
-      - FormatterBase: api/base/swarmauri_base/logger_formatter/FormatterBase.md
-    - Logger Handler:
-      - HandlerBase: api/base/swarmauri_base/logger_handler/HandlerBase.md
+    - Logger Formatters:
+      - FormatterBase: api/base/swarmauri_base/logger_formatters/FormatterBase.md
+    - Logger Handlers:
+      - HandlerBase: api/base/swarmauri_base/logger_handlers/HandlerBase.md
     - Loggermixin:
       - LoggerMixin: api/base/swarmauri_base/LoggerMixin.md
+    - Loggers:
+      - LoggerBase: api/base/swarmauri_base/loggers/LoggerBase.md
     - Measurements:
       - MeasurementAggregateMixin: api/base/swarmauri_base/measurements/MeasurementAggregateMixin.md
       - MeasurementBase: api/base/swarmauri_base/measurements/MeasurementBase.md
@@ -494,12 +482,12 @@ nav:
     - Llms:
       - IFit: api/core/swarmauri_core/llms/IFit.md
       - IPredict: api/core/swarmauri_core/llms/IPredict.md
-    - Logger:
-      - ILogger: api/core/swarmauri_core/logger/ILogger.md
-    - Logger Formatter:
-      - IFormatter: api/core/swarmauri_core/logger_formatter/IFormatter.md
-    - Logger Handler:
-      - IHandler: api/core/swarmauri_core/logger_handler/IHandler.md
+    - Logger Formatters:
+      - IFormatter: api/core/swarmauri_core/logger_formatters/IFormatter.md
+    - Logger Handlers:
+      - IHandler: api/core/swarmauri_core/logger_handlers/IHandler.md
+    - Loggers:
+      - ILogger: api/core/swarmauri_core/loggers/ILogger.md
     - Measurements:
       - IMeasurement: api/core/swarmauri_core/measurements/IMeasurement.md
       - IMeasurementAggregate: api/core/swarmauri_core/measurements/IMeasurementAggregate.md
@@ -534,7 +522,7 @@ nav:
     - Task Mgmt Strategies:
       - ITaskMgmtStrategy: api/core/swarmauri_core/task_mgmt_strategies/ITaskMgmtStrategy.md
     - Tool Llms:
-      - IPredict: api/core/swarmauri_core/tool_llms/IPredict.md
+      - IToolPredict: api/core/swarmauri_core/tool_llms/IToolPredict.md
     - Toolkits:
       - IToolkit: api/core/swarmauri_core/toolkits/IToolkit.md
     - Tools:
@@ -566,15 +554,9 @@ nav:
       - IPredictVision: api/core/swarmauri_core/vlms/IPredictVision.md
   - First_Class:
     - Home: api/first_class/index.md
-    - MinkowskiDistance: api/first_class/swarmauri_distance_minkowski/MinkowskiDistance.md
   - Second_Class:
     - Home: api/second_class/index.md
-    - Mlmembedding:
-      - MlmEmbedding: api/second_class/swarmauri_embedding_mlm/MlmEmbedding.md
-  - Home: index.md
-- Blog:
-  - blog/index.md
-  - News: blog/news.md
-  - Events: blog/events.md
-  - Releases: blog/releases.md
+  - Third Class:
+    - Home: api/third_class/index.md
+- Blog: blog/index.md
 - Swarmauri People: people/index.md

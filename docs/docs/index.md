@@ -288,11 +288,11 @@ Need help? Have a feature suggestion? Join the Swarmauri community:
 
 Here are some recommended next steps to continue your journey with Swarmauri SDK:
 
-1. **Explore the Tutorials**: Check out our [step-by-step tutorials](../tutorials/index.md)
-2. **Read the API Documentation**: Dive into our [detailed API reference](../api/index.md)
+1. **Explore the Courses**: Check out our [step-by-step courses](./guide/courses.md)
+2. **Read the API Documentation**: Dive into our [detailed API reference](./api/concepts.md)
 3. **Join the Community**: Connect with other developers in our [Discord server](https://discord.gg/swarmauri)
 4. **Contribute**: Learn how to [contribute to the project](./home/contribute.md)
-5. **Stay Updated**: Follow our [blog](../blog/index.md) for the latest updates
+5. **Stay Updated**: Follow our [blog](./blog/index.md) for the latest updates
 
 ---
 

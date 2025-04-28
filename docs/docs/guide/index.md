@@ -9,7 +9,7 @@ Welcome to Swarmauri guides! This section contains practical tutorials and how-t
 
 - **[Installation Guide](installation.md)** - Step-by-step instructions for setting up Swarmauri SDK
 - **[Usage Guide](usage.md)** - Learn how to use core Swarmauri features
-- **[Courses](course/1.md)** - Structured learning paths for different skill levels
+- **[Courses](courses.md)** - Structured learning paths for different skill levels
 - **[FAQ](faq.md)** - Answers to frequently asked questions
 
 ## Learning Paths
@@ -21,15 +21,15 @@ Choose the path that fits your needs:
 
 ### 1. Beginners
 
-Start with the **[Installation Guide](installation.md)** followed by the **[Entry Course](course/1.md)**. This path introduces core concepts without assuming prior AI development experience.
+Start with the **[Installation Guide](installation.md)** followed by the **[Entry Course](courses.md)**. This path introduces core concepts without assuming prior AI development experience.
 
 ### 2. AI/ML Practitioners
 
-Begin with **[Installation Guide](installation.md)** and jump straight to the **[Generative AI Course](course/2.md)**. This path focuses on using Swarmauri with existing AI/ML knowledge.
+Begin with **[Installation Guide](installation.md)** and jump straight to the **[Generative AI Course](courses.md)**. This path focuses on using Swarmauri with existing AI/ML knowledge.
 
 ### 3. Tool Developers
 
-After installation, explore the **[Tool Development Course](course/3.md)**. This path is ideal if you want to extend Swarmauri with custom components.
+After installation, explore the **[Tool Development Course](courses.md)**. This path is ideal if you want to extend Swarmauri with custom components.
 
 !!! warning "Prerequisites"
     The Tool Development path assumes familiarity with Python development practices, including package management, testing, and object-oriented programming concepts.
@@ -52,7 +52,7 @@ If this is your first time using Swarmauri, we recommend:
 
 1. Install the SDK using the [Installation Guide](installation.md)
 2. Follow the basic examples in the [Usage Guide](usage.md)
-3. Explore more advanced concepts in our [Courses](course/1.md)
+3. Explore more advanced concepts in our [Courses](courses.md)
 
 !!! note "Community Support"
     Need help? Visit our [community resources](../home/help.md) or check the [FAQ](faq.md). Our active community is ready to assist with any questions you might have.

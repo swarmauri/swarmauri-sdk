@@ -1,9 +1,13 @@
 from abc import abstractmethod
-from typing import Optional, Union, List, Any, Literal
-from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from typing import Any, List, Literal, Optional, TypeVar, Union
+
+from pydantic import ConfigDict, Field
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.parsers.IParser import IParser
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+
+T = TypeVar("T", bound=IDocument)
 
 
 @ComponentBase.register_model()
@@ -16,11 +20,12 @@ class ParserBase(IParser, ComponentBase):
     chunking algorithms.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.PARSER.value)
+    resource: Optional[str] = Field(default=ResourceTypes.PARSER.value, frozen=True)
     type: Literal["ParserBase"] = "ParserBase"
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     @abstractmethod
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: Union[str, Any]) -> List[T]:
         """
         Public method to parse input data (either a str or a Message) into a list of Document instances.
 

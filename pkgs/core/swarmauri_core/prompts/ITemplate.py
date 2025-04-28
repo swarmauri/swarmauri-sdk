@@ -33,12 +33,12 @@ class ITemplate(ABC):
         pass
 
     @abstractmethod
-    def generate_prompt(self, **kwargs) -> str:
+    def generate_prompt(self, **kwargs: dict[str, Any]) -> str:
         """
         Generates a prompt string based on the current template and provided keyword arguments.
 
         Args:
-            **kwargs: Keyword arguments containing variables for template substitution.
+            **kwargs dict[str, Any]: Keyword arguments containing variables for template substitution.
 
         Returns:
             str: The generated prompt string with template variables replaced by their

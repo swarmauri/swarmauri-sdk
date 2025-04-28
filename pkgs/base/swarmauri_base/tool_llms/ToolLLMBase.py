@@ -1,5 +1,5 @@
-from abc import abstractmethod
 import json
+from abc import abstractmethod
 from typing import Any, Dict, List, Literal, Optional, Type
 
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
@@ -12,7 +12,6 @@ from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverter
 
 @ComponentBase.register_model()
 class ToolLLMBase(IToolPredict, ComponentBase):
-    allowed_models: List[str] = []
     resource: Optional[str] = Field(default=ResourceTypes.TOOL_LLM.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ToolLLMBase"] = "ToolLLMBase"
@@ -61,7 +60,7 @@ class ToolLLMBase(IToolPredict, ComponentBase):
             "get_schema_converter() not implemented in subclass yet."
         )
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         converter = self.get_schema_converter()
         return [converter.convert(tools[tool]) for tool in tools]
 
@@ -78,7 +77,7 @@ class ToolLLMBase(IToolPredict, ComponentBase):
             tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
                                a "function" key with a nested dictionary that includes the "name" and "arguments"
                                of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (object): An object that provides access to tools via the `get_tool_by_name` method.
+            toolkit (ToolkitBase): An object that provides access to tools via the `get_tool_by_name` method.
             messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
 
         Returns:

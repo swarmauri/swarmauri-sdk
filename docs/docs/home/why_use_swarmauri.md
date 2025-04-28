@@ -74,8 +74,8 @@ Build AI agents that can use tools to accomplish tasks:
 - **Jupyter notebook tools** for data science workflows
 - **Custom tools** that you can easily build and integrate
 
-!!! tip "Custom Tools"
-Creating your own tools is straightforward with Swarmauri. Extend the `ToolBase` class, register it with `@ComponentBase.register_type`, and implement the `__call__` method. See the [Custom Components](../guide/usage.md#creating-custom-components) section for examples.
+???+ tip "Custom Tools"
+    Creating your own tools is straightforward with Swarmauri. Extend the `ToolBase` class, register it with `@ComponentBase.register_type`, and implement the `__call__` method. See the [Custom Components](../guide/usage.md#creating-custom-components) section for examples.
 
 ### Data Processing
 
@@ -357,8 +357,8 @@ Discover how easy it is to build with Swarmauri:
 
 - [Installation Guide](installation.md) - Get set up with Swarmauri SDK
 - [Quick Start Tutorial](../guide/usage.md) - Build your first AI application
-- [Examples Gallery](../examples/index.md) - Explore example projects
-- [API Reference](../api/index.md) - Dive into detailed documentation
+- [ Courses ](../guide/courses.md) - Explore our Courses
+- [API Reference](../api/concepts.md) - Dive into detailed documentation
 
 Or jump right in with a simple example:
 

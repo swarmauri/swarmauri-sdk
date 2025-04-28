@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from typing import List, Literal
+from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -51,7 +51,7 @@ class HyperbolicImgGenModel(ImageGenBase):
     enable_refiner: bool = False
     backend: str = "auto"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         """
         Initializes the HyperbolicImgGenModel instance.
 
@@ -59,7 +59,7 @@ class HyperbolicImgGenModel(ImageGenBase):
         operations and configures request headers with the provided API key.
 
         Args:
-            **data: Keyword arguments for model initialization.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may include api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {

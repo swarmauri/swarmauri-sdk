@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any, AsyncIterator, Iterator
 
 
 class IPredict(ABC):
@@ -7,42 +8,42 @@ class IPredict(ABC):
     """
 
     @abstractmethod
-    def predict(self, *args, **kwargs) -> any:
+    def predict(self, *args, **kwargs) -> Any:
         """
         Generate predictions based on the input data provided to the model.
         """
         pass
 
     @abstractmethod
-    async def apredict(self, *args, **kwargs) -> any:
+    async def apredict(self, *args, **kwargs) -> Any:
         """
         Generate predictions based on the input data provided to the model.
         """
         pass
 
     @abstractmethod
-    def stream(self, *args, **kwargs) -> any:
+    def stream(self, *args, **kwargs) -> Iterator[Any]:
         """
         Generate predictions based on the input data provided to the model.
         """
         pass
 
     @abstractmethod
-    async def astream(self, *args, **kwargs) -> any:
+    async def astream(self, *args, **kwargs) -> AsyncIterator[Any]:
         """
         Generate predictions based on the input data provided to the model.
         """
         pass
 
     @abstractmethod
-    def batch(self, *args, **kwargs) -> any:
+    def batch(self, *args, **kwargs) -> list[Any]:
         """
         Generate predictions based on the input data provided to the model.
         """
         pass
 
     @abstractmethod
-    async def abatch(self, *args, **kwargs) -> any:
+    async def abatch(self, *args, **kwargs) -> list[Any]:
         """
         Generate predictions based on the input data provided to the model.
         """

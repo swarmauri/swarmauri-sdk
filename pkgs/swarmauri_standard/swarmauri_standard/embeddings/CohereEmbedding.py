@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -65,17 +65,12 @@ class CohereEmbedding(EmbeddingBase):
 
     def __init__(
         self,
-        **kwargs,
+        **kwargs: Dict[str, Any],
     ):
         """
         Initialize the CohereEmbedding instance.
 
         Args:
-            api_key (str, optional): The API key for accessing the Cohere API.
-            model (str, optional): The Cohere embedding model to use.
-            task_type (str, optional): The type of task for which embeddings are generated.
-            embedding_types (str, optional): The type of embedding to generate.
-            truncate (str, optional): The truncation strategy to use.
             **kwargs: Additional keyword arguments.
 
         Raises:

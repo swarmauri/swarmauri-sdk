@@ -1,13 +1,13 @@
 import asyncio
 import json
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -35,10 +35,11 @@ class OpenAIToolModel(LLMBase):
     and handle tool-related functions.
 
     Attributes:
-        api_key (str): API key to authenticate with Groq API.
+        api_key (SecretStr): API key to authenticate with Groq API.
         allowed_models (List[str]): List of permissible model names.
         name (str): Default model name for predictions.
-        type (Literal): Type identifier for the model.
+        type (Literal["OpenAIToolModel"]): Type identifier for the model.
+        timeout (float): Timeout for API requests in seconds.
 
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
@@ -51,7 +52,7 @@ class OpenAIToolModel(LLMBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         """
         Initialize the OpenAIToolModel class with the provided data.
 
@@ -66,31 +67,34 @@ class OpenAIToolModel(LLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(
-        self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[MessageBase]) -> List[Dict[str, Any]]:
         message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
         return [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
         ]
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+    def _process_tool_calls(
+        self,
+        tool_calls: List[Dict[str, Any]],
+        toolkit: Any,
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
         """
         Processes a list of tool calls and appends the results to the messages list.
 
         Args:
-            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
+            tool_calls (List[Dict[str, Any]]): A list of dictionaries representing tool calls. Each dictionary should contain
                                a "function" key with a nested dictionary that includes the "name" and "arguments"
                                of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (object): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+            toolkit (Any): An object that provides access to tools via the `get_tool_by_name` method.
+            messages (List[Dict[str, Any]]): A list of message dictionaries to which the results of the tool calls will be appended.
 
         Returns:
-            List[MessageBase]: The updated list of messages with the results of the tool calls appended.
+            List[Dict[str, Any]]: The updated list of messages with the results of the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -114,18 +118,18 @@ class OpenAIToolModel(LLMBase):
     def predict(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Conversation:
         """
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -172,18 +176,18 @@ class OpenAIToolModel(LLMBase):
     async def apredict(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Conversation:
         """
         Makes an asynchronous prediction using the OpenAI model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -233,18 +237,18 @@ class OpenAIToolModel(LLMBase):
     def stream(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams response from OpenAI model in real-time.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -303,18 +307,18 @@ class OpenAIToolModel(LLMBase):
     async def astream(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams response from Groq model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -373,21 +377,20 @@ class OpenAIToolModel(LLMBase):
     def batch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> List[Conversation]:
         """
         Processes a batch of conversations and generates responses for each sequentially.
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
             List[Conversation]: List of updated conversations with model responses.
@@ -406,22 +409,21 @@ class OpenAIToolModel(LLMBase):
     async def abatch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-        max_concurrent=5,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
         Async method for processing a batch of conversations concurrently.
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
@@ -429,7 +431,7 @@ class OpenAIToolModel(LLMBase):
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,
