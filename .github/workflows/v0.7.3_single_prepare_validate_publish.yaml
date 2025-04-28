@@ -1,0 +1,262 @@
+name: 0.7.3 - Single (Prepare, Validate, Publish)
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Bump type {major,minor,patch,finalize}"
+        required: false
+        default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
+      member:
+        description: "Specify a specific member to run the workflow for"
+        required: true
+
+concurrency:
+  group: dev-branch-prepare-workflow
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      - name: Bump Version Placeholder
+        run: |
+          MEMBER="${{ github.event.inputs.member }}"
+
+          echo "::notice::Running bump version process for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "::notice::Package name detected: $PACKAGE_NAME"
+
+          # Determine whether to use bump or set based on inputs
+          if [ -n "${{ github.event.inputs.set_version }}" ]; then
+            VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
+          else
+            VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
+          fi
+
+
+          uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+
+      - name: Ruff format
+        run: |
+          cd pkgs
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Running Ruff format on $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+
+      - name: Ruff lint check & fix
+        run: |
+          cd pkgs
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "::notice::Running Ruff lint check & fix on $MEMBER"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+
+      - name: Run tests
+        run: |
+          cd pkgs
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Package name: $PACKAGE_NAME"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+
+      # Patches
+      - name: Create patch for changes
+        if: always()
+        run: |
+          mkdir -p patches
+          MEMBER="${{ github.event.inputs.member }}"
+          SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          echo "::notice::Creating patch file for changed files in $MEMBER..."
+          git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+          if [ ! -s "patches/patch_${SAFE_MEMBER}.patch" ]; then
+            echo "::warning::No changes detected for $MEMBER, the patch file is empty."
+          fi
+
+      - name: Set safe member variable
+        if: always()
+        id: set_safe_member
+        run: |
+          echo "SAFE_MEMBER=$(echo '${{ github.event.inputs.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "::notice::Safe member name set to $SAFE_MEMBER"
+
+      - name: Upload patch artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-${{ steps.set_safe_member.outputs.SAFE_MEMBER }}
+          path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
+          if-no-files-found: warn
+
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: patches
+
+      - name: List downloaded artifacts
+        run: ls -R patches
+
+      - name: Apply patches
+        run: |
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
+          done
+          rm -rf patches
+
+      - name: Configure SSH for deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            echo "::notice::Changes detected; committing and pushing..."
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}" --force
+          else
+            echo "::notice::No changes to commit."
+          fi
+
+  release:
+    needs: [commit]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install uv pytest toml
+
+      # Build
+      - name: Build
+        run: |
+          cd pkgs
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Building workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+
+      # Publish
+      - name: Publish
+        run: |
+          cd pkgs
+          MEMBER="${{ github.event.inputs.member }}"
+          echo "::notice::Publishing workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+
+      # Release Steps
+      - name: Prepare release variables
+        id: prepare_release
+        run: |
+          cd pkgs/${{ github.event.inputs.member }}
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])")
+          VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          TAG="${PACKAGE_NAME}==${VERSION}"
+          # If bump_type is 'finalize' OR the version has no '.dev', treat this as a final release
+          if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
+            PRERELEASE_FLAG=false
+          else
+            PRERELEASE_FLAG=true
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE_FLAG" >> $GITHUB_OUTPUT
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Computed tag: $TAG, prerelease: $PRERELEASE_FLAG"
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        run: |
+          cd pkgs/${{ github.event.inputs.member }}
+          CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
+          # Find the most recent tag for this package excluding the current tag
+          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
+          echo "::notice::Previous tag: $PREVIOUS_TAG"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RELEASE_NOTES=$(git log "$PREVIOUS_TAG" -- "$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+          else
+            RELEASE_NOTES="Initial release."
+          fi
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag
+        run: |
+          cd pkgs/${{ github.event.inputs.member }}
+          git tag "${{ steps.prepare_release.outputs.tag }}"
+          git push origin "${{ steps.prepare_release.outputs.tag }}"
+
+      - name: Zip distribution artifacts
+        run: |
+          cd pkgs/${{ github.event.inputs.member }}
+          mkdir -p release_artifacts
+          ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
+          echo "Artifacts zipped to: $ZIP_PATH"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2.2.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.prepare_release.outputs.tag }}
+          name: ${{ steps.prepare_release.outputs.tag }}
+          body: ${{ steps.generate_release_notes.outputs.release_notes }}
+          prerelease: ${{ steps.prepare_release.outputs.prerelease }}
+          files: |
+            pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip

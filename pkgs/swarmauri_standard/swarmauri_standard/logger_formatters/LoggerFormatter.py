@@ -1,5 +1,5 @@
 from swarmauri_base import register_type
-from swarmauri_base.logger_formatter.FormatterBase import FormatterBase
+from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
 
 @register_type()
