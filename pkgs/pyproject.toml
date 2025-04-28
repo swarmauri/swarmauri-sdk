@@ -191,6 +191,8 @@ swarmauri_tool_jupyterclearoutput = { workspace = true }
 swarmauri_tool_jupyterexportlatex = { workspace = true }
 swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_parser_slate = { workspace = true }
+swarmauri_tool_searchword = { workspace = true }
 
 
 [tool.pytest.ini_options]
