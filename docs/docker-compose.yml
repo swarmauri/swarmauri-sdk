@@ -9,7 +9,7 @@ services:
             - .:/docs # Mount the local docs directory
             - ../pkgs:/pkgs # Mount the local pkgs directory
         working_dir: /docs
-        command: sh -c " pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && python scripts/install_packages.py && poetry install && mkdocs serve -a 0.0.0.0:8000"
+        command: sh -c " pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && poetry install && python scripts/generate_content.py && mkdocs serve -a 0.0.0.0:8000"
         networks:
             - dockernet
 
