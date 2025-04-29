@@ -314,10 +314,40 @@ def generate(
 
 
 if __name__ == "__main__":
+    import subprocess
+    import sys
+
     # Common parameters for all documentation generation
-    docs_dir = "docs/docs"
+    docs_dir = "docs"
     api_output_dir = "api"
-    mkdocs_yml_path = "docs/mkdocs.yml"
+    mkdocs_yml_path = "mkdocs.yml"
+
+    # Function to install or update a package
+    def install_or_update_package(package_name):
+        try:
+            # Check if package is already installed
+            importlib.import_module(package_name)
+            print(
+                f"Package {package_name} is already installed. Attempting to update..."
+            )
+            # Update the package
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "--upgrade", package_name]
+            )
+            print(f"Successfully updated {package_name}")
+            return True
+        except ImportError:
+            # Package is not installed, install it
+            print(f"Package {package_name} is not installed. Attempting to install...")
+            try:
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", package_name]
+                )
+                print(f"Successfully installed {package_name}")
+                return True
+            except subprocess.CalledProcessError:
+                print(f"Failed to install {package_name}")
+                return False
 
     # Main SDK packages - process individually as before
     main_packages = [
@@ -327,8 +357,7 @@ if __name__ == "__main__":
     ]
 
     for pkg in main_packages:
-        try:
-            importlib.import_module(pkg["package_name"])
+        if install_or_update_package(pkg["package_name"]):
             print(f"Generating documentation for {pkg['package_name']}...")
             generate(
                 package_name=pkg["package_name"],
@@ -336,10 +365,6 @@ if __name__ == "__main__":
                 api_output_dir=api_output_dir,
                 mkdocs_yml_path=mkdocs_yml_path,
                 top_label=pkg["top_label"],
-            )
-        except ImportError:
-            print(
-                f"Package {pkg['package_name']} is not installed, skipping documentation generation."
             )
 
     # Get the root directory of the SDK
@@ -358,8 +383,7 @@ if __name__ == "__main__":
             item_path = os.path.join(standards_dir, item)
             if os.path.isdir(item_path) and item != "__pycache__":
                 package_name = item
-                try:
-                    importlib.import_module(package_name)
+                if install_or_update_package(package_name):
                     print(f"Generating documentation for {package_name}...")
 
                     # Generate docs but don't update mkdocs.yml yet
@@ -373,10 +397,6 @@ if __name__ == "__main__":
 
                     # Merge with our accumulated map
                     first_class_module_classes_map.update(module_map)
-                except ImportError:
-                    print(
-                        f"Package {package_name} is not installed, skipping documentation generation."
-                    )
 
         # Now build the nav structure for all First_Class packages at once
         if first_class_module_classes_map:
@@ -404,8 +424,7 @@ if __name__ == "__main__":
             item_path = os.path.join(community_dir, item)
             if os.path.isdir(item_path) and item != "__pycache__":
                 package_name = item
-                try:
-                    importlib.import_module(package_name)
+                if install_or_update_package(package_name):
                     print(f"Generating documentation for {package_name}...")
 
                     # Generate docs but don't update mkdocs.yml yet
@@ -419,10 +438,6 @@ if __name__ == "__main__":
 
                     # Merge with our accumulated map
                     second_class_module_classes_map.update(module_map)
-                except ImportError:
-                    print(
-                        f"Package {package_name} is not installed, skipping documentation generation."
-                    )
 
         # Now build the nav structure for all Second_Class packages at once
         if second_class_module_classes_map:
