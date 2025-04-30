@@ -1,36 +1,54 @@
 services:
-    mkdocs:
-        image: python:3.12-slim
-        container_name: mkdocs
-        # restart: unless-stopped
-        ports:
-            - "8000:8000" # Expose mkdocs on port 8000
-        volumes:
-            - .:/docs # Mount the local docs directory
-            - ../pkgs:/pkgs # Mount the local pkgs directory
-        working_dir: /docs
-        command: sh -c " pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && poetry install && python scripts/generate_content.py && mkdocs serve -a 0.0.0.0:8000"
-        networks:
-            - dockernet
+  mkdocs:
+    image: python:3.12-slim
+    container_name: mkdocs
+    # restart: unless-stopped
+    ports:
+      - "8000:8000" # Expose mkdocs on port 8000
+    volumes:
+      - .:/docs # Mount the local docs directory
+      - ../pkgs:/pkgs # Mount the local pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        # Install dependencies
+        pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && 
+        poetry install &&
 
-    nginxproxymanager:
-        image: 'jc21/nginx-proxy-manager:latest'
-        container_name: nginxproxymanager
-        restart: unless-stopped
-        expose:
-            - 81
-            - 80
-            - 443
-        ports:
-            - '80:80' # Public HTTP Port
-            - '443:443' # Public HTTPS Port
-            - '81:81'
-        volumes:
-            - ./mnt/data/nginx-proxy-manager:/data
-            - ./mnt/data/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
-        networks:
-            - dockernet
+        # Add packages to PYTHONPATH to ensure they're importable
+        export PYTHONPATH=$$PYTHONPATH:/pkgs:/pkgs/standards:/pkgs/community &&
+        
+        # Install core packages in development mode
+        uv pip install -e /pkgs/base/ &&
+        uv pip install -e /pkgs/core/ &&
+        uv pip install -e /pkgs/swarmauri_standard/ &&
 
+        # Install standards packages
+        for dir in /pkgs/standards/*/; do
+          if [ -d \"$$dir\" ]; then
+            echo \"Installing $$dir\"
+            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"
+          fi
+        done
+
+        # Install community packages
+        for dir in /pkgs/community/*/; do
+          if [ -d \"$$dir\" ]; then
+            echo \"Installing $$dir\"
+            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"
+          fi
+        done
+        
+        # Generate documentation
+        python scripts/generate_content.py &&
+        
+        # Serve the static site
+        mkdocs serve -a 0.0.0.0:8000
+      "
+    networks:
+      - dockernet
+
+# Define networks at the bottom of the file
 networks:
-    dockernet:
-        driver: bridge
+  dockernet:
+    driver: bridge
