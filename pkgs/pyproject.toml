@@ -106,7 +106,8 @@ members = [
     "community/swarmauri_tool_jupyterexportlatex",
     "community/swarmauri_tool_jupytergetiopubmessage",
     "community/swarmauri_parser_slate",
-    "community/swarmauri_tool_searchword"
+    "community/swarmauri_tool_searchword",
+    "experimental/swarmauri_workflow_statedriven"
 
 ]
 
@@ -193,6 +194,7 @@ swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
+swarmauri_workflow_statedriven = { workspace = true }
 
 
 [tool.pytest.ini_options]

@@ -32,6 +32,7 @@ members = [
     "swarmauri-parser-keywordextractor",
     "swarmauri-parser-pypdf2",
     "swarmauri-parser-pypdftk",
+    "swarmauri-parser-slate",
     "swarmauri-parser-textblob",
     "swarmauri-prompt-j2prompttemplate",
     "swarmauri-standard",
@@ -66,6 +67,7 @@ members = [
     "swarmauri-tool-matplotlib",
     "swarmauri-tool-psutil",
     "swarmauri-tool-qrcodegenerator",
+    "swarmauri-tool-searchword",
     "swarmauri-tool-sentencecomplexity",
     "swarmauri-tool-sentimentanalysis",
     "swarmauri-tool-smogindex",
@@ -85,6 +87,7 @@ members = [
     "swarmauri-vectorstore-pinecone",
     "swarmauri-vectorstore-qdrant",
     "swarmauri-vectorstore-redis",
+    "swarmauri-workflow-statedriven",
 ]
 
 [[package]]
@@ -475,7 +478,7 @@ wheels = [
 
 [[package]]
 name = "catoml"
-version = "0.1.1.dev9"
+version = "0.1.1.dev14"
 source = { editable = "catoml" }
 
 [package.dev-dependencies]
@@ -1338,6 +1341,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/54/d2/c08f0d9f94b45faca68e355771329cba2411c777c8713924dd1baee0e09c/googleapis_common_protos-1.68.0.tar.gz", hash = "sha256:95d38161f4f9af0d9423eed8fb7b64ffd2568c3464eb542ff02c5bfa1953ab3c", size = 57367 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/85/c99a157ee99d67cc6c9ad123abb8b1bfb476fab32d2f3511c59314548e4f/googleapis_common_protos-1.68.0-py2.py3-none-any.whl", hash = "sha256:aaf179b2f81df26dfadac95def3b16a95064c76a5f45f07e4c68a21bb371c4ac", size = 164985 },
+]
+
+[[package]]
+name = "graphviz"
+version = "0.20.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fa/83/5a40d19b8347f017e417710907f824915fba411a9befd092e52746b63e9f/graphviz-0.20.3.zip", hash = "sha256:09d6bc81e6a9fa392e7ba52135a9d49f1ed62526f96499325930e87ca1b5925d", size = 256455 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/00/be/d59db2d1d52697c6adc9eacaf50e8965b6345cc143f671e1ed068818d5cf/graphviz-0.20.3-py3-none-any.whl", hash = "sha256:81f848f2904515d8cd359cc611faba817598d2feaac4027b266aa3eda7b3dde5", size = 47126 },
 ]
 
 [[package]]
@@ -3208,8 +3220,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pdfminer3k"
+version = "1.3.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "ply" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/cd/7ebbf829d7b2dcdaa6ee759e3daa36e3e5d1ee3464f76879c4a4d79ee0f9/pdfminer3k-1.3.4.tar.gz", hash = "sha256:ba3e43d4d800d434442687c88b3391b09d136acafd00304963a1386de294d4c6", size = 94873 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/15/5ac4faa314c38b335cf4db37fc02dc02c14bf67f7641bea2fa5e5b7d4ff4/pdfminer3k-1.3.4-py3-none-any.whl", hash = "sha256:7b669a36b1c4c66aa2d66519c800285659dac5a31e8fa760c13977b16218e5e0", size = 100774 },
+]
+
+[[package]]
 name = "peagen"
-version = "0.1.2.dev5"
+version = "0.1.2.dev10"
 source = { editable = "standards/peagen" }
 dependencies = [
     { name = "colorama" },
@@ -3219,6 +3243,7 @@ dependencies = [
     { name = "swarmauri" },
     { name = "swarmauri-base" },
     { name = "swarmauri-core" },
+    { name = "swarmauri-prompt-j2prompttemplate" },
     { name = "swarmauri-standard" },
     { name = "typer" },
 ]
@@ -3246,6 +3271,7 @@ requires-dist = [
     { name = "swarmauri", editable = "swarmauri" },
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-prompt-j2prompttemplate", editable = "standards/swarmauri_prompt_j2prompttemplate" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
     { name = "typer" },
 ]
@@ -3388,6 +3414,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
+]
+
+[[package]]
+name = "ply"
+version = "3.11"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz", hash = "sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3", size = 159130 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/58/35da89ee790598a0700ea49b2a66594140f44dec458c07e8e3d4979137fc/ply-3.11-py2.py3-none-any.whl", hash = "sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce", size = 49567 },
 ]
 
 [[package]]
@@ -4490,6 +4525,17 @@ wheels = [
 ]
 
 [[package]]
+name = "slate3k"
+version = "0.5.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pdfminer3k" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/e3/f27cac1dd24617894cf7ddb5da13beca27c9236736466bebaf5dd2a902c1/slate3k-0.5.3-py2.py3-none-any.whl", hash = "sha256:c40b47fdcccaedb3ef4fd8dcc058d7e10c5967b33c69858aabf3b1fb3467d6eb", size = 7851 },
+]
+
+[[package]]
 name = "smart-open"
 version = "7.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4653,7 +4699,7 @@ wheels = [
 
 [[package]]
 name = "swarmauri"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "swarmauri" }
 dependencies = [
     { name = "httpx" },
@@ -4746,7 +4792,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-base"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "base" }
 dependencies = [
     { name = "numpy" },
@@ -4801,7 +4847,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-core"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "core" }
 dependencies = [
     { name = "pydantic" },
@@ -4838,7 +4884,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-distance-minkowski"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_distance_minkowski" }
 dependencies = [
     { name = "scipy" },
@@ -4885,7 +4931,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-doc2vec"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_embedding_doc2vec" }
 dependencies = [
     { name = "gensim" },
@@ -4932,7 +4978,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-mlm"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_embedding_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -4981,7 +5027,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-embedding-nmf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_embedding_nmf" }
 dependencies = [
     { name = "scikit-learn" },
@@ -5028,7 +5074,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-llm-leptonai"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_llm_leptonai" }
 dependencies = [
     { name = "openai" },
@@ -5075,7 +5121,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-mutualinformation"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_measurement_mutualinformation" }
 dependencies = [
     { name = "pandas" },
@@ -5122,7 +5168,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-measurement-tokencountestimator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_measurement_tokencountestimator" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5204,7 +5250,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-ocr-pytesseract"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_ocr_pytesseract" }
 dependencies = [
     { name = "pytesseract" },
@@ -5251,7 +5297,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-beautifulsoupelement"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_parser_beautifulsoupelement" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -5298,7 +5344,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-bertembedding"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_parser_bertembedding" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5396,7 +5442,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-fitzpdf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_parser_fitzpdf" }
 dependencies = [
     { name = "pymupdf" },
@@ -5443,7 +5489,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-keywordextractor"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_parser_keywordextractor" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5490,7 +5536,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdf2"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_parser_pypdf2" }
 dependencies = [
     { name = "pypdf2" },
@@ -5537,7 +5583,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-parser-pypdftk"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_parser_pypdftk" }
 dependencies = [
     { name = "pypdftk" },
@@ -5583,8 +5629,53 @@ dev = [
 ]
 
 [[package]]
+name = "swarmauri-parser-slate"
+version = "0.1.0.dev6"
+source = { editable = "community/swarmauri_parser_slate" }
+dependencies = [
+    { name = "slate3k" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "slate3k", specifier = ">=0.5" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "swarmauri-parser-textblob"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_parser_textblob" }
 dependencies = [
     { name = "nltk" },
@@ -5633,7 +5724,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-prompt-j2prompttemplate"
-version = "0.7.2.dev1"
+version = "0.7.2.dev6"
 source = { editable = "standards/swarmauri_prompt_j2prompttemplate" }
 dependencies = [
     { name = "jinja2" },
@@ -5746,7 +5837,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-state-clipboard"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_state_clipboard" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5789,7 +5880,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-captchagenerator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_captchagenerator" }
 dependencies = [
     { name = "captcha" },
@@ -5836,7 +5927,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-dalechallreadability"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_dalechallreadability" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5883,7 +5974,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-downloadpdf"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_downloadpdf" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5928,7 +6019,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-entityrecognition"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_entityrecognition" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -5979,7 +6070,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-folium"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_folium" }
 dependencies = [
     { name = "folium" },
@@ -6026,7 +6117,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-gmail"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_gmail" }
 dependencies = [
     { name = "google-api-python-client" },
@@ -6073,7 +6164,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterclearoutput"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterclearoutput" }
 dependencies = [
     { name = "nbconvert" },
@@ -6120,7 +6211,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplay"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterdisplay" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6168,7 +6259,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterdisplayhtml"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterdisplayhtml" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6216,7 +6307,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecuteandconvert"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexecuteandconvert" }
 dependencies = [
     { name = "nbconvert" },
@@ -6263,7 +6354,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutecell"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexecutecell" }
 dependencies = [
     { name = "ipykernel" },
@@ -6315,7 +6406,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebook" }
 dependencies = [
     { name = "ipykernel" },
@@ -6366,7 +6457,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexecutenotebookwithparameters"
-version = "1.1.4.dev1"
+version = "1.1.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexecutenotebookwithparameters" }
 dependencies = [
     { name = "papermill" },
@@ -6413,7 +6504,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexporthtml"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexporthtml" }
 dependencies = [
     { name = "nbconvert" },
@@ -6460,7 +6551,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportlatex"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexportlatex" }
 dependencies = [
     { name = "nbconvert" },
@@ -6507,7 +6598,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportmarkdown"
-version = "1.1.4.dev1"
+version = "1.1.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexportmarkdown" }
 dependencies = [
     { name = "papermill" },
@@ -6556,7 +6647,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterexportpython"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterexportpython" }
 dependencies = [
     { name = "nbconvert" },
@@ -6603,7 +6694,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterfromdict"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterfromdict" }
 dependencies = [
     { name = "nbformat" },
@@ -6650,7 +6741,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetiopubmessage"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupytergetiopubmessage" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6697,7 +6788,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytergetshellmessage"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupytergetshellmessage" }
 dependencies = [
     { name = "ipykernel" },
@@ -6746,7 +6837,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterreadnotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterreadnotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6793,7 +6884,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterruncell"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterruncell" }
 dependencies = [
     { name = "ipython", version = "8.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -6841,7 +6932,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytershutdownkernel"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupytershutdownkernel" }
 dependencies = [
     { name = "jupyter-client" },
@@ -6888,7 +6979,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterstartkernel"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterstartkernel" }
 dependencies = [
     { name = "ipykernel" },
@@ -6937,7 +7028,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupytervalidatenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupytervalidatenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -6988,7 +7079,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-jupyterwritenotebook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_jupyterwritenotebook" }
 dependencies = [
     { name = "nbformat" },
@@ -7035,7 +7126,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-lexicaldensity"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_lexicaldensity" }
 dependencies = [
     { name = "nltk" },
@@ -7084,7 +7175,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-matplotlib"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_tool_matplotlib" }
 dependencies = [
     { name = "matplotlib" },
@@ -7131,7 +7222,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-psutil"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_psutil" }
 dependencies = [
     { name = "psutil" },
@@ -7178,7 +7269,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-qrcodegenerator"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_qrcodegenerator" }
 dependencies = [
     { name = "qrcode" },
@@ -7224,8 +7315,55 @@ dev = [
 ]
 
 [[package]]
+name = "swarmauri-tool-searchword"
+version = "0.1.0.dev4"
+source = { editable = "community/swarmauri_tool_searchword" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
 name = "swarmauri-tool-sentencecomplexity"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_sentencecomplexity" }
 dependencies = [
     { name = "nltk" },
@@ -7272,7 +7410,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-sentimentanalysis"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_sentimentanalysis" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7323,7 +7461,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-smogindex"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_smogindex" }
 dependencies = [
     { name = "nltk" },
@@ -7372,7 +7510,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-textlength"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_textlength" }
 dependencies = [
     { name = "nltk" },
@@ -7419,7 +7557,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-webscraping"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_webscraping" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -7466,7 +7604,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-tool-zapierhook"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_tool_zapierhook" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7511,7 +7649,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-github"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_toolkit_github" }
 dependencies = [
     { name = "pygithub" },
@@ -7558,7 +7696,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-toolkit-jupytertoolkit"
-version = "0.2.4.dev1"
+version = "0.2.4.dev6"
 source = { editable = "community/swarmauri_toolkit_jupytertoolkit" }
 dependencies = [
     { name = "pydantic" },
@@ -7645,7 +7783,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-typing"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "typing" }
 
 [package.dev-dependencies]
@@ -7682,7 +7820,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-annoy"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_annoy" }
 dependencies = [
     { name = "annoy" },
@@ -7731,7 +7869,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-cloudweaviate"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_cloudweaviate" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7780,7 +7918,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-doc2vec"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "standards/swarmauri_vectorstore_doc2vec" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7827,7 +7965,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-duckdb"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_duckdb" }
 dependencies = [
     { name = "duckdb" },
@@ -7876,7 +8014,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-mlm"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_mlm" }
 dependencies = [
     { name = "swarmauri-base" },
@@ -7927,7 +8065,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-neo4j"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_neo4j" }
 dependencies = [
     { name = "neo4j" },
@@ -7976,7 +8114,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-persistentchromadb"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_persistentchromadb" }
 dependencies = [
     { name = "chromadb" },
@@ -8025,7 +8163,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-pinecone"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_pinecone" }
 dependencies = [
     { name = "pinecone", extra = ["grpc"] },
@@ -8074,7 +8212,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-qdrant"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_qdrant" }
 dependencies = [
     { name = "qdrant-client" },
@@ -8123,7 +8261,7 @@ dev = [
 
 [[package]]
 name = "swarmauri-vectorstore-redis"
-version = "0.7.4.dev1"
+version = "0.7.4.dev6"
 source = { editable = "community/swarmauri_vectorstore_redis" }
 dependencies = [
     { name = "redis" },
@@ -8155,6 +8293,55 @@ requires-dist = [
     { name = "swarmauri-base", editable = "base" },
     { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-embedding-doc2vec", editable = "standards/swarmauri_embedding_doc2vec" },
+    { name = "swarmauri-standard", editable = "swarmauri_standard" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-json-report", specifier = ">=1.5.0" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "pytest-xdist", specifier = ">=3.6.1" },
+    { name = "python-dotenv" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", specifier = ">=0.9.9" },
+]
+
+[[package]]
+name = "swarmauri-workflow-statedriven"
+version = "0.1.0.dev1"
+source = { editable = "experimental/swarmauri_workflow_statedriven" }
+dependencies = [
+    { name = "graphviz" },
+    { name = "swarmauri" },
+    { name = "swarmauri-base" },
+    { name = "swarmauri-core" },
+    { name = "swarmauri-standard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-benchmark" },
+    { name = "pytest-json-report" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "graphviz" },
+    { name = "swarmauri", editable = "swarmauri" },
+    { name = "swarmauri-base", editable = "base" },
+    { name = "swarmauri-core", editable = "core" },
     { name = "swarmauri-standard", editable = "swarmauri_standard" },
 ]
 
