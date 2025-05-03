@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, List, Union
 from swarmauri_core.messages.IMessage import IMessage
 
 
