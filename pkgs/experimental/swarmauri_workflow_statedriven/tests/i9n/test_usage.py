@@ -183,9 +183,7 @@ def test_usage():
 
 	    return wf
 
-
-	if __name__ == "__main__":
-	    # Sample initial input: free‑form requirement text
+   	    # Sample initial input: free‑form requirement text
 	    initial_input = (
 	        "We need a system that supports mobile and web, "
 	        "with strong security and real‑time analytics."
@@ -196,3 +194,5 @@ def test_usage():
 
 	    for state, output in results.items():
 	        print(f"{state} → {output}\n")
+
+	    assert results
