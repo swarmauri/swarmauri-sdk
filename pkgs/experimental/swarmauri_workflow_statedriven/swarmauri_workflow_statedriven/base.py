@@ -86,6 +86,7 @@ class WorkflowBase:
             node = self.nodes[state_name]
 
             # ① Run the node (handles input_mode, split, merge, batch internally)
+            print(f'[DEBUG] Running {node.name} with \n\tdata: {data}\n\tresults: {results}')
             output = node.run(self.state_manager, data, results)
 
             # ② If split mode returned None, that work was re-enqueued

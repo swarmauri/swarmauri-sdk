@@ -82,13 +82,21 @@ class Node:
             if isinstance(input_data, (dict, list)):
                 try:
                     input_data = json.dumps(input_data)
-                    return self.agent.exec(input_data)
+                    res = self.agent.exec(input_data)
+                    print(res)
+                    return res
                 except Exception as e:
-                    return self.agent.exec(input_data)
+                    res = self.agent.exec(input_data)
+                    print(res)
+                    return res
             else:
-                return self.agent.exec(input_data)
+                res = self.agent.exec(input_data)
+                print(res)
+                return res
         if self.tool:
-            return self.tool.call(input_data)
+            res = self.tool.call(input_data)
+            print(res)
+            return res
         raise WorkflowError(f"No execution backend for node '{self.name}'")
 
     def batch(self, inputs: List[Any]) -> Any:
@@ -101,10 +109,16 @@ class Node:
         otherwise falls back to per‐item execute().
         """
         if self.agent and hasattr(self.agent, "batch"):
-            return self.agent.batch(inputs)
+            res = self.agent.batch(inputs)
+            print(res)
+            return res
         if self.tool and hasattr(self.tool, "batch"):
-            return self.tool.batch(inputs)
-        return [self.execute(item) for item in inputs]
+            res = self.tool.batch(inputs)
+            print(res)
+            return res
+        res = [self.execute(item) for item in inputs]
+        print(res)
+        return res
 
     def run(
         self,
