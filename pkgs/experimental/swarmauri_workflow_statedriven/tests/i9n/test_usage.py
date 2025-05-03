@@ -8,7 +8,7 @@ def test_usage():
 	from swarmauri_standard.llms.OpenAIModel import OpenAIModel
 	from swarmauri.agents.RagAgent import RagAgent
 
-	from swarmauri_workflow_statedriven.base import WorkflowBase
+	from swarmauri_workflow_statedriven.workflow import StateDrivenWorkflow
 	from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
 	from swarmauri_workflow_statedriven.input_modes.aggregate import AggregateInputMode
 	from swarmauri_workflow_statedriven.input_modes.split import SplitInputMode
@@ -92,8 +92,8 @@ def test_usage():
 	}
 
 
-	def build_workflow() -> WorkflowBase:
-	    wf = WorkflowBase()
+	def build_workflow() -> StateDrivenWorkflow:
+	    wf = StateDrivenWorkflow()
 
 	    # 1) Gather requirements (scalar → string) via identity + concat
 	    wf.add_state(
