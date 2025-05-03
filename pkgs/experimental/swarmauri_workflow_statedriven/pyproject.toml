@@ -18,7 +18,7 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "swarmauri",
-    "graphviz"
+    "pyppeteer"
 ]
 
 

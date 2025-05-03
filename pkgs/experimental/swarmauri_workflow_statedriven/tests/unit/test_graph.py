@@ -1,7 +1,7 @@
 # File: tests/workflows/test_graph.py
 
 import pytest
-from graphviz import Digraph
+from pathlib import Path
 from swarmauri_workflow_statedriven.graph import WorkflowGraph
 from swarmauri_workflow_statedriven.conditions.function_condition import FunctionCondition
 
@@ -12,10 +12,14 @@ class DummyAgent:
     def exec(self, input_data):
         return f"{input_data}_out"
 
+@pytest.mark.unit
 def test_execute_returns_expected_results():
     """
-    Test WorkflowGraph.execute produces correct outputs for a simple two‑state workflow.
-    (File: workflows/graph.py → class WorkflowGraph → method execute)
+    File: workflows/graph.py
+    Class: WorkflowGraph
+    Method: execute
+
+    Test that execute runs a simple two‑state workflow correctly.
     """
     wf = WorkflowGraph()
     a_agent = DummyAgent()
@@ -25,34 +29,61 @@ def test_execute_returns_expected_results():
     wf.add_transition("A", "B", FunctionCondition(lambda s: True))
 
     results = wf.execute("A", "start")
-    # A.exec appends "_out"
     assert results["A"] == "start_out"
-    # B.exec receives "start_out" and appends another "_out"
     assert results["B"] == "start_out_out"
 
-def test_visualize_contains_nodes_and_edges(tmp_path):
+@pytest.mark.unit
+def test_visualize_returns_dot_string_and_contains_nodes_edges(tmp_path):
     """
-    Test WorkflowGraph.visualize returns a Digraph with the correct nodes and edge labels.
-    (File: workflows/graph.py → class WorkflowGraph → method visualize)
+    File: workflows/graph.py
+    Class: WorkflowGraph
+    Method: visualize
+
+    visualize() should return a DOT string with node and edge definitions.
     """
     wf = WorkflowGraph()
     wf.add_state("X", agent=DummyAgent())
     wf.add_state("Y", agent=DummyAgent())
     wf.add_transition("X", "Y", FunctionCondition(lambda s: True))
 
-    dot: Digraph = wf.visualize()
-    assert isinstance(dot, Digraph)
+    dot = wf.visualize()
+    # Return type is str (DOT source)
+    assert isinstance(dot, str)
+    # Should include graph declaration
+    assert dot.startswith("flowchart TD")
+    # Should list both nodes
+    assert '"X";' in dot
+    assert '"Y";' in dot
+    # Should include the edge with condition label
+    assert '"X" -> "Y" [label="FunctionCondition"];' in dot
 
-    src = dot.source
-    # should list both nodes
-    assert "X" in src
-    assert "Y" in src
-    # should include the edge and the condition label
-    assert "X -> Y" in src
-    assert "FunctionCondition" in src
+    # Now test writing to file
+    basename = tmp_path / "my_workflow"
+    dot2 = wf.visualize(str(basename))
+    # Should still return the same content
+    assert dot2 == dot
+    dot_file = basename.with_suffix(".dot")
+    assert dot_file.exists()
+    content = dot_file.read_text(encoding="utf-8")
+    assert content == dot
 
-    # test rendering to file
-    out_file = tmp_path / "workflow_graph"
-    rendered = wf.visualize(str(out_file))
-    assert out_file.with_suffix(".gv").exists() or out_file.with_suffix(".gv").is_file()
-    assert isinstance(rendered, Digraph)
+@pytest.mark.skip(reason="Requires headless browser environment")
+def test_visualize_png_headless_creates_png(tmp_path):
+    """
+    File: workflows/graph.py
+    Class: WorkflowGraph
+    Method: visualize_png_headless
+
+    This test is skipped by default because it requires pyppeteer and a headless browser.
+    """
+    wf = WorkflowGraph()
+    wf.add_state("A", agent=DummyAgent())
+    wf.add_state("B", agent=DummyAgent())
+    wf.add_transition("A", "B", FunctionCondition(lambda s: True))
+
+    png_path = tmp_path / "graph.png"
+    result_path = wf.visualize_png_headless(str(png_path))
+    assert result_path == str(png_path)
+    assert png_path.exists()
+    # Optionally, check file size > 0
+    assert png_path.stat().st_size > 0
