@@ -88,7 +88,6 @@ class Node:
                     print(f"{e}")
                     return self.agent.exec(input_data)
             else:
-                print('here', type(input_data))
                 return self.agent.exec(input_data)
         if self.tool:
             return self.tool.call(input_data)
