@@ -8,7 +8,7 @@ def test_usage():
 	from swarmauri_standard.llms.OpenAIModel import OpenAIModel
 	from swarmauri.agents.RagAgent import RagAgent
 
-	from swarmauri_workflow_statedriven.workflow import StateDrivenWorkflow
+	from swarmauri_workflow_statedriven.base import WorkflowBase
 	from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
 	from swarmauri_workflow_statedriven.input_modes.aggregate import AggregateInputMode
 	from swarmauri_workflow_statedriven.input_modes.split import SplitInputMode
@@ -18,6 +18,7 @@ def test_usage():
 	from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMergeStrategy
 	from swarmauri_workflow_statedriven.conditions.function_condition import FunctionCondition
 	from swarmauri_workflow_statedriven.conditions.regex_condition import RegexCondition
+	from swarmauri_workflow_statedriven.conditions.string_condition import StringCondition
 
 	# — your existing setup for LLM, vector store, prompts, and RagAgents — 
 	api_key = ""
@@ -92,8 +93,8 @@ def test_usage():
 	}
 
 
-	def build_workflow() -> StateDrivenWorkflow:
-	    wf = StateDrivenWorkflow()
+	def build_workflow() -> WorkflowBase:
+	    wf = WorkflowBase()
 
 	    # 1) Gather requirements (scalar → string) via identity + concat
 	    wf.add_state(
@@ -117,7 +118,7 @@ def test_usage():
 	    wf.add_state(
 	        "ImplementBackend",
 	        agent=rag_agents["Backend Developer"],
-	        input_mode=IdentityInputMode(),
+	        input_mode=AggregateInputMode(),
 	        join_strategy=FirstJoinStrategy(),
 	        merge_strategy=ListMergeStrategy(),      # return list of endpoints
 	    )
@@ -126,7 +127,7 @@ def test_usage():
 	    wf.add_state(
 	        "ImplementFrontend",
 	        agent=rag_agents["Frontend Developer"],
-	        input_mode=IdentityInputMode(),
+	        input_mode=AggregateInputMode(),
 	        join_strategy=FirstJoinStrategy(),
 	        merge_strategy=ListMergeStrategy(),      # return list of components
 	    )
@@ -144,7 +145,7 @@ def test_usage():
 	    wf.add_state(
 	        "Finalize",
 	        agent=rag_agents["Requirements Analyst"],
-	        input_mode=IdentityInputMode(),
+	        input_mode=AggregateInputMode(),
 	        join_strategy=FirstJoinStrategy(),
 	        merge_strategy=ConcatMergeStrategy(),
 	    )
@@ -178,9 +179,8 @@ def test_usage():
 	    wf.add_transition(
 	        "QA",
 	        "Finalize",
-	         FunctionCondition(lambda state: isinstance(state.get("QA"), list) and len(state["QA"]) >= 2)
+	         RegexCondition(node_name="QA", pattern=r"Test Case")
 	    )
-
 	    return wf
 
    	    # Sample initial input: free‑form requirement text
