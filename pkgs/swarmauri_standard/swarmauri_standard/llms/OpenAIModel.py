@@ -193,7 +193,7 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -249,7 +249,7 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -321,13 +321,7 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        if self.include_usage:
-            usage = self._prepare_usage_data(
-                usage_data, promt_timer.duration, completion_timer.duration
-            )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
-        else:
-            conversation.add_message(AgentMessage(content=message_content))
+        conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -392,13 +386,7 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        if self.include_usage:
-            usage = self._prepare_usage_data(
-                usage_data, prompt_timer.duration, completion_timer.duration
-            )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
-        else:
-            conversation.add_message(AgentMessage(content=message_content))
+        conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
