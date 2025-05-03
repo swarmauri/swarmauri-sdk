@@ -1,10 +1,12 @@
 # File: swarmauri/workflows/node.py
 from __future__ import annotations
 from typing import Any, Optional, Dict, List
+import json
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
 from swarmauri_workflow_statedriven.join_strategies.first_join import FirstJoinStrategy
 from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMergeStrategy
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 class Node:
     """
@@ -77,7 +79,12 @@ class Node:
         Executes a single‐item call on agent.exec or tool.run.
         """
         if self.agent:
-            return self.agent.exec(input_data)
+            try:
+                input_data = json.dumps(input_data)
+                return self.agent.exec(HumanMessage(content=input_data))
+            except Exception as e:
+                print(f"{e}")
+                return self.agent.exec(HumanMessage(content=input_data))
         if self.tool:
             return self.tool.call(input_data)
         raise WorkflowError(f"No execution backend for node '{self.name}'")
