@@ -79,12 +79,17 @@ class Node:
         Executes a single‐item call on agent.exec or tool.run.
         """
         if self.agent:
-            try:
-                input_data = json.dumps(input_data)
-                return self.agent.exec(HumanMessage(content=input_data))
-            except Exception as e:
-                print(f"{e}")
-                return self.agent.exec(HumanMessage(content=input_data))
+            if isinstance(input_data, (dict, list)):
+                try:
+                    input_data = json.dumps(input_data)
+                    print(input_data)
+                    return self.agent.exec(input_data)
+                except Exception as e:
+                    print(f"{e}")
+                    return self.agent.exec(input_data)
+            else:
+                print('here', type(input_data))
+                return self.agent.exec(input_data)
         if self.tool:
             return self.tool.call(input_data)
         raise WorkflowError(f"No execution backend for node '{self.name}'")
