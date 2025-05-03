@@ -79,7 +79,7 @@ class Node:
         if self.agent:
             return self.agent.exec(input_data)
         if self.tool:
-            return self.tool.run(input_data)
+            return self.tool.call(input_data)
         raise WorkflowError(f"No execution backend for node '{self.name}'")
 
     def batch(self, inputs: List[Any]) -> Any:

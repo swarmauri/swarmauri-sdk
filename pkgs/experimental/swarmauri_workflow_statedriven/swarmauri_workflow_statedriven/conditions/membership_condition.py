@@ -36,9 +36,13 @@ class MembershipCondition(Condition):
 
         Returns True if membership test matches should_be_member.
         """
-        container = state.get(self.node_name)
         try:
+            container = state[self.node_name]
             result = self.member in container
         except Exception:
-            return False
+            # Missing node or non‑iterable: treat as False membership
+            return not self.should_be_member
+
+        # If member is found and should_be_member=True → True,
+        # if not found and should_be_member=False → True
         return result if self.should_be_member else not result

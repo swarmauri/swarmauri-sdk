@@ -4,6 +4,7 @@ import pytest
 from swarmauri_workflow_statedriven.node import Node
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
+from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 
 class DummyAgent:
@@ -28,7 +29,7 @@ class DummyTool:
     def __init__(self):
         self.calls = []
 
-    def run(self, data):
+    def call(self, data):
         self.calls.append(data)
         return f"T:{data}"
 
@@ -142,7 +143,7 @@ def test_run_dispatches_execute_and_batch():
     class BatchAgent:
         def exec(self, x): raise AssertionError("should not use exec")
         def batch(self, xs): return [f"b:{i}" for i in xs]
-    node2 = Node("n2", agent=BatchAgent(), input_mode=FirstInputMode())
+    node2 = Node("n2", agent=BatchAgent(), input_mode=IdentityInputMode())
     out2 = node2.run(sm, ["p","q"], results)
     assert out2 == ["b:p","b:q"]
 

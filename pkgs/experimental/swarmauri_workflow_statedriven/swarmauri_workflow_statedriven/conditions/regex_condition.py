@@ -40,7 +40,7 @@ class RegexCondition(Condition):
         Returns:
             True if the regex finds a match in the node's output; False otherwise.
         """
-        output = state.get(self.node_name, "")
+        output = state.get(self.node_name)
         if not isinstance(output, str):
             return False
         return bool(self.regex.search(output))
