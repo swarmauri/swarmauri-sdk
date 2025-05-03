@@ -82,10 +82,8 @@ class Node:
             if isinstance(input_data, (dict, list)):
                 try:
                     input_data = json.dumps(input_data)
-                    print(input_data)
                     return self.agent.exec(input_data)
                 except Exception as e:
-                    print(f"{e}")
                     return self.agent.exec(input_data)
             else:
                 return self.agent.exec(input_data)
