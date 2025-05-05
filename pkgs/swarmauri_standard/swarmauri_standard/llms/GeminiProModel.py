@@ -210,7 +210,7 @@ class GeminiProModel(LLMBase):
 
         usage_data = response_data["usageMetadata"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -269,7 +269,7 @@ class GeminiProModel(LLMBase):
         message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
         usage_data = response_data["usageMetadata"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -342,7 +342,7 @@ class GeminiProModel(LLMBase):
                     if "usageMetadata" in response_data:
                         usage_data = response_data["usageMetadata"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -414,7 +414,7 @@ class GeminiProModel(LLMBase):
                     if "usageMetadata" in response_data:
                         usage_data = response_data["usageMetadata"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )

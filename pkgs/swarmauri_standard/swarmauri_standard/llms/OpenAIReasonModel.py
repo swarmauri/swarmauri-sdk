@@ -180,7 +180,7 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -232,7 +232,7 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:

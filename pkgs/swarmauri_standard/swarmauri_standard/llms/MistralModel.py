@@ -227,7 +227,7 @@ class MistralModel(LLMBase):
 
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -294,7 +294,7 @@ class MistralModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -361,7 +361,7 @@ class MistralModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )

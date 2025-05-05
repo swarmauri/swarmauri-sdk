@@ -31,6 +31,7 @@ class PerplexityModel(LLMBase):
     Provider resources: https://docs.perplexity.ai/guides/model-cards
     Link to deprecated models: https://docs.perplexity.ai/changelog/changelog#model-deprecation-notice
     """
+
     api_key: SecretStr
     allowed_models: List[str] = [
         "sonar-reasoning-pro",
@@ -174,9 +175,12 @@ class PerplexityModel(LLMBase):
 
         usage_data = result.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -241,8 +245,12 @@ class PerplexityModel(LLMBase):
         message_content = result["choices"][0]["message"]["content"]
 
         usage_data = result.get("usage", {})
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -320,7 +328,7 @@ class PerplexityModel(LLMBase):
                     if chunk_data["usage"]:
                         usage_data = chunk_data["usage"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -395,7 +403,7 @@ class PerplexityModel(LLMBase):
                     yield delta_content
                     usage_data = chunk_data.get("usage", usage_data)
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
