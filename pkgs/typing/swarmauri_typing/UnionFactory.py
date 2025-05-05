@@ -70,7 +70,7 @@ class UnionFactory:
         args = get_args(annotated_type)
         base_type = args[0]
         old_metadata = args[1:]
-        return Annotated[base_type, *old_metadata, new_metadata]
+        return Annotated.__class_getitem__((base_type, *old_metadata, new_metadata))
 
     def __getitem__(self, input_data: Union[Type[T], str]) -> type:
         """
