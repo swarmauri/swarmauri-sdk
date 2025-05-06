@@ -192,7 +192,7 @@ class CohereModel(LLMBase):
 
         usage_data = data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -252,7 +252,7 @@ class CohereModel(LLMBase):
 
             usage_data = data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -324,7 +324,7 @@ class CohereModel(LLMBase):
 
         message_content = "".join(collected_content)
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
@@ -405,7 +405,8 @@ class CohereModel(LLMBase):
                             continue
 
             message_content = "".join(collected_content)
-        if self.include_usage:
+
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )

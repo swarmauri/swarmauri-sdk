@@ -193,7 +193,7 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if usage_data:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -249,7 +249,7 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if usage_data:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -296,7 +296,7 @@ class OpenAIModel(LLMBase):
         if enable_json:
             payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -321,7 +321,13 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        conversation.add_message(AgentMessage(content=message_content))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -386,7 +392,13 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        conversation.add_message(AgentMessage(content=message_content))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,
