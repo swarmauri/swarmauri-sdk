@@ -507,7 +507,7 @@ def get_templates(
         0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"
     ),
 ):
-    import ptree_dag.templates
+    import peagen.templates
     from pathlib import Path
 
     def detect_folders(path):
@@ -520,7 +520,7 @@ def get_templates(
             return "Permission denied!"
 
     typer.echo("\nTemplate Directories:")
-    namespace_dirs = list(ptree_dag.templates.__path__)
+    namespace_dirs = list(peagen.templates.__path__)
     for _n in namespace_dirs:
         typer.echo(f"- {_n}")
 
