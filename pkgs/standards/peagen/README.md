@@ -48,18 +48,6 @@
 ### Polyglot & Minimal Overhead  
 - Teams in Java, Rust, Go, or any language can use Peagen by installing and invoking the CLI—no Python API import paths to manage.
 
-### Simple Installation & Invocation  
-```bash
-# From PyPI (recommended)
-pip install peagen
-
-# From source (latest development)
-git clone https://github.com/swarmauri/swarmauri-sdk.git
-cd pkgs/peagen
-pip install .
-
-peagen --help
-````
 ### What Is Peagen?
 #### Core Concepts
 > Peagen is a template‑driven orchestration engine that transforms high‑level project definitions into concrete files - statically rendered or LLM‑generated - while respecting inter‑file dependencies.
@@ -101,12 +89,16 @@ Each of these methods is invoked by the CLI commands in cli.py (e.g. process() c
 ### Installing Peagen
 
 ```bash
+# From PyPI (recommended)
 pip install peagen
-# or from source:
-git clone https://github.com/your-org/peagen.git
-cd peagen
+
+# From source (latest development)
+git clone https://github.com/swarmauri/swarmauri-sdk.git
+cd pkgs/standards/peagen
 pip install .
-```
+
+peagen --help
+````
 
 ### Executing `peagen --help`
 
@@ -155,7 +147,6 @@ Render and/or generate files for one or more projects.
 
 ```bash
 peagen process <PROJECTS_YAML> \
-  --template-base-dir <TEMPLATES_DIR> \
   [--project-name <NAME>] \
   [--include-swarmauri | --swarmauri-dev] \
   [--transitive] \
@@ -172,7 +163,6 @@ Show the planned file‑generation order without making changes.
 
 ```bash
 peagen sort <PROJECTS_YAML> \
-  --template-base-dir <TEMPLATES_DIR> \
   [--project-name <NAME>] \
   [--transitive] \
   [-v | -vv]
@@ -186,7 +176,6 @@ Update project YAML or templates based on previous run metadata.
 
 ```bash
 peagen revise <PROJECTS_YAML> \
-  --template-base-dir <TEMPLATES_DIR> \
   [--project-name <NAME>] \
   [-v | -vv]
 ```
@@ -241,7 +230,6 @@ peagen process projects.yaml \
 ```bash
 peagen process projects.yaml \
   --project-name AnalyticsService \
-  --template-base-dir ./templates \
   --transitive \
   --start-file services/data_pipeline.py \
   -v
@@ -326,7 +314,6 @@ agent_env = {
 }
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    template_base_dir="./templates",
     additional_package_dirs=[],
     agent_env=agent_env,
 )
