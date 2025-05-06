@@ -171,7 +171,7 @@ class AnthropicModel(LLMBase):
 
         usage_data = response_data["usage"]
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )

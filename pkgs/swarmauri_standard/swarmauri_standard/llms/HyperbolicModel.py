@@ -202,7 +202,7 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -253,7 +253,7 @@ class HyperbolicModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
             conversation.add_message(AgentMessage(content=message_content, usage=usage))
         else:
@@ -314,7 +314,7 @@ class HyperbolicModel(LLMBase):
                             usage_data = chunk["usage"]
                 except json.JSONDecodeError:
                     pass
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, promt_timer.duration, completion_timer.duration
             )
@@ -382,7 +382,7 @@ class HyperbolicModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        if self.include_usage:
+        if self.include_usage and usage_data:
             usage = self._prepare_usage_data(
                 usage_data, promt_timer.duration, completion_timer.duration
             )
