@@ -65,19 +65,22 @@ Topological / Transitive Sorting
 - Offers both strict topological sort and a transitive variant to include indirect dependencies via the --transitive flag.
 File Processing
 - Iterates the sorted list of file records and either:
--- Renders static COPY templates, or
--- Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
+  - Renders static COPY templates, or
+  - Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
 
 #### Resume & Revision Support
 Allows resuming from any file index or template, and writing revisions back to project YAML or templates when peagen revise is used.
 
 #### Key Public Methods
 All methods below belong to core.py, class Peagen:
-load_projects()
+
+- `load_projects()`
 Loads and validates the YAML payload(s), returning a list of project dictionaries enriched with template paths and metadata.
-process_all_projects()
+
+- `process_all_projects()`
 For each loaded project, runs the full render → graph → sort → process pipeline, returning a mapping of project names to processed file records.
-process_single_project(project: Dict, start_idx: int = 0, start_file: Optional[str] = None)
+
+- `process_single_project(project: Dict, start_idx: int = 0, start_file: Optional[str] = None)`
 Executes the pipeline for one project, optionally resuming at start_idx or at a specific file path, and returns the sorted records plus the final index processed.
 
 Each of these methods is invoked by the CLI commands in cli.py (e.g. process() calls Peagen.load_projects() then Peagen.process_single_project()). By understanding these core components, you can both use the CLI effectively and extend Peagen programmatically.
