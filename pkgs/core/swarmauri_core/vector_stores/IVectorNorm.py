@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Union
 
+
 class IVectorNorm(ABC):
     """
     Interface for calculating vector norms.

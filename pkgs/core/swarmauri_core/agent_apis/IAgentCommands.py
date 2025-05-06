@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Any, List
+from typing import Any, List
+
 
 class IAgentCommands(ABC):
     """
     Interface for the API object that enables a SwarmAgent to host various API routes.
     """
 
-
     @abstractmethod
     def invoke(self, request: Any) -> Any:
         """
         Handles invocation requests synchronously.
-        
+
         Parameters:
             request (Any): The incoming request payload.
 
@@ -24,7 +24,7 @@ class IAgentCommands(ABC):
     async def ainvoke(self, request: Any) -> Any:
         """
         Handles invocation requests asynchronously.
-        
+
         Parameters:
             request (Any): The incoming request payload.
 
@@ -37,7 +37,7 @@ class IAgentCommands(ABC):
     def batch(self, requests: List[Any]) -> List[Any]:
         """
         Handles batched invocation requests synchronously.
-        
+
         Parameters:
             requests (List[Any]): A list of incoming request payloads.
 

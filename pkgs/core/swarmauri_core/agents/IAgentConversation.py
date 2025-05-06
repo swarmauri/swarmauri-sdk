@@ -1,5 +1,4 @@
-from abc import ABC, abstractmethod
-from swarmauri_core.conversations.IConversation import IConversation
+from abc import ABC
 
 
 class IAgentConversation(ABC):

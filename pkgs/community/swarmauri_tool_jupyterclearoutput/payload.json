@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to clear all outputs from a Jupyter Notebook using nbconvert\u2019s ClearOutputPreprocessor, preparing the notebook for sharing or version control.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterclearoutput",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterClearOutputTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Remove all cell outputs from the notebook.",
+        "Preserve cell code and metadata.",
+        "Log the clear operation for auditing.",
+        "Handle notebooks with large outputs efficiently.",
+        "Ensure compatibility with various notebook versions.",
+        "Return a clean NotebookNode for further use."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        }
+    ]
+}

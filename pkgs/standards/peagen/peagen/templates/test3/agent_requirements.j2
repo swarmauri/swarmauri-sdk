@@ -1,0 +1,56 @@
+I need you to generate requirements. This file provides specifications for the "{{ PROJECT_NAME }}" project.
+
+Below are the details and requirements for this task:
+
+1. **Purpose**:
+   {{ FILE_CONTEXT.PURPOSE }}
+
+2. **Description**:
+   {{ FILE_CONTEXT.DESCRIPTION }}
+
+3. **Requirements / Constraints**:
+   {%- for requirement in FILE_CONTEXT.REQUIREMENTS %}
+   - {{ requirement }}
+   {%- endfor %}
+
+
+4. **File Preferences**:
+   - Use markdown formatting
+
+5. **Behavior**:
+   - Professional
+   - Requirements Driven Focus
+
+### Desired Output
+Do not wrap it in triple backticks! Just provide the raw file ready to copy-paste.
+
+{# At the bottom of the template, include any example files specified by the EXAMPLES array #}
+{% if FILE_CONTEXT.EXAMPLES %}
+#### 
+Leverage the reference file below as a guideline to utilize when creating the new component.
+
+{%- for example in FILE_CONTEXT.EXAMPLES %}
+#### Reference File: `{{ example }}`
+```
+{% include example %}
+
+```
+{%- endfor %}
+{% endif %}
+ 
+### Example Format of the Output
+<!-- Example only; your code will vary. This is to show how your response should look. -->
+{% include FILE_NAME %}
+
+{# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
+{% if DEPENDENCIES %}
+### Dependencies
+{%- for dependency in DEPENDENCIES %}
+#### `{{ dependency | replace(PROJECT.PROJECT_ROOT + '/', '') }}`
+```
+{% include dependency %}
+
+```
+
+{%- endfor %}
+{% endif %}

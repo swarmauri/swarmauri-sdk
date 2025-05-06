@@ -1,10 +1,12 @@
-[tool.poetry]
+[project]
 name = "swarmauri-core"
-version = "0.5.2"
+version = "0.7.4.dev1"
 description = "This repository includes core interfaces for the Swarmauri framework."
-authors = ["Jacob Stewart <jacob@swarmauri.com>"]
+authors = [
+	{ name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+	]
 license = "Apache-2.0"
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -12,33 +14,35 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
+requires-python = ">=3.10,<3.13"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-#numpy = "==1.26.4"
-#requests = "^2.0"
-pydantic = "^2.0"
-#pandas = ">2.2"
+dependencies = [
+    "pydantic>=2.0",
+    "pyyaml>=6.0.2",
+]
 
-[tool.poetry.dev-dependencies]
-flake8 = "^7.0"  # Add flake8 as a development dependency
-pytest = "^8.0"  # Ensure pytest is also added if you run tests
-pytest-asyncio = ">=0.24.0"
-pytest-xdist = "^3.6.1"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+"flake8>=7.0",
+"pytest>=8.0",
+"pytest-xdist>=3.6.1",
+"pytest-json-report>=1.5.0",
+"pytest-timeout>=2.3.1",
+"ruff>=0.9.9",
+"pytest-benchmark>=4.0.0"
+]
 
 [tool.pytest.ini_options]
-norecursedirs = ["combined", "scripts"]
-
 markers = [
     "test: standard test",
     "unit: Unit tests",
-    "integration: Integration tests",
+    "i9n: Integration Tests",
+    "r8n: Regression Tests",
+    "timeout: mark test to timeout after X seconds",
+    "xfail: Expected failures",
+    "xpass: Expected passes",
     "acceptance: Acceptance tests",
-    "experimental: Experimental tests",
+    "perf: Performance tests that measure execution time and resource usage"
 ]
 
 log_cli = true
@@ -46,4 +50,6 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
-asyncio_default_fixture_loop_scope = "function"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

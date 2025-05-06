@@ -3,11 +3,13 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from swarmauri_core.documents.IDocument import IDocument
 
+
 class IExperimentDocument(IDocument, ABC):
     """
     Interface for an Experiment Document, extending the general IDocument interface
     with additional properties and methods specific to experimental data.
     """
+
     @property
     @abstractmethod
     def parameters(self) -> Dict[str, Any]:

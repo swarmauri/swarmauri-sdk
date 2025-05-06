@@ -1,0 +1,80 @@
+[project]
+name = "swarmauri-standard"
+version = "0.7.4.dev1"
+description = "This repository includes standard components within the Swarmauri framework."
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+    ]
+license = "Apache-2.0"
+readme = { file = "README.md", content-type = "text/markdown" }
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+"toml>=0.10.2",
+"pydantic>=2.9.2",
+"httpx>=0.27.0",
+"numpy",
+"pandas",
+"joblib>=1.4.0",
+"pillow>=11.1.0",
+"aiofiles",
+"typing_extensions",
+"swarmauri_core",
+"swarmauri_base",
+
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+
+
+[dependency-groups]
+dev = [
+"flake8>=7.0",
+"pytest>=8.0",
+"pytest-asyncio>=0.24.0",
+"pytest-xdist>=3.6.1",
+"pytest-json-report>=1.5.0",
+"pytest-timeout>=2.3.1",
+"python-dotenv>=1.0.0",
+"jsonschema>=4.18.5",
+"ipython>=8.28.0",
+"requests>=2.32.3",
+"ruff>=0.9.9",
+"pytest-benchmark>=4.0.0",
+]
+
+[tool.pytest.ini_options]
+timeout = 5
+asyncio_mode = "auto"
+
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration Tests",
+    "r8n: Regression Tests",
+    "timeout: mark test to timeout after X seconds",
+    "xfail: Expected failures",
+    "xpass: Expected passes",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage"
+]
+
+
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,6 +1,7 @@
 from typing import Any
 from abc import ABC, abstractmethod
 
+
 class IMeasurement(ABC):
     """
     Defines a general interface for measurements within the SwarmaURI system.

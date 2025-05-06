@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that exports a Jupyter Notebook to LaTeX format using nbconvert\u2019s LatexExporter, enabling further conversion to PDF.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexportlatex",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExportLatexTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Convert a NotebookNode into LaTeX format.",
+        "Support custom LaTeX templates.",
+        "Log export operations and handle conversion errors.",
+        "Return the LaTeX content for further processing.",
+        "Facilitate conversion to PDF with external tools.",
+        "Validate formatting for academic publication standards."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that reads a Jupyter Notebook file using nbformat, converting the JSON file into a NotebookNode object.",
+    "PACKAGE_ROOT": "swarmauri_tools_jupyterreadnotebook",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterReadNotebookTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Read a notebook file from the filesystem.",
+        "Convert JSON data into a NotebookNode object.",
+        "Support different notebook versions via as_version parameter.",
+        "Log the read operation and handle errors gracefully.",
+        "Validate the notebook schema after reading.",
+        "Return the NotebookNode for further processing."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbformat",
+            "version": "*"
+        }
+    ]
+}

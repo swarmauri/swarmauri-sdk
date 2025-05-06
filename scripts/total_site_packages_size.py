@@ -1,5 +1,4 @@
 import os
-import sys
 import site
 
 def get_site_packages_path():

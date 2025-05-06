@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to execute a single code cell in an IPython interactive shell, mimicking notebook cell execution.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterruncell",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterRunCellTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Execute a code cell in an interactive IPython shell.",
+        "Capture cell outputs and errors.",
+        "Log the execution process.",
+        "Handle execution timeouts and errors gracefully.",
+        "Return the cell output for further processing.",
+        "Integrate with automated testing workflows."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "IPython",
+            "version": "*"
+        }
+    ]
+}

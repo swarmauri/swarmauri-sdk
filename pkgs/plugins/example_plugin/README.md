@@ -1,0 +1,1 @@
+# Swarmauri Example Plugin

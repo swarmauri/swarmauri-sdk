@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that exports a Jupyter Notebook to a Python script using nbconvert\u2019s PythonExporter, facilitating code extraction.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterexportpython",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterExportPythonTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Convert a NotebookNode into a Python script.",
+        "Support custom templates for export.",
+        "Log export operations and errors.",
+        "Ensure proper conversion of code cells.",
+        "Return the generated Python script as a string.",
+        "Handle notebook execution context if needed."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbconvert",
+            "version": "*"
+        }
+    ]
+}

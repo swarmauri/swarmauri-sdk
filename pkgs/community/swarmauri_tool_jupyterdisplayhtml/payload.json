@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupyterdisplayhtml",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterDisplayHTMLTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Render a string of HTML within a notebook cell.",
+        "Support dynamic HTML content updates.",
+        "Log display actions and errors.",
+        "Integrate with other visualization tools.",
+        "Handle malformed HTML gracefully.",
+        "Return the rendered HTML output confirmation."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "IPython",
+            "version": "*"
+        }
+    ]
+}

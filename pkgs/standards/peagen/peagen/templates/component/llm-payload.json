@@ -1,0 +1,77 @@
+[
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/{{ MODULE_NAME }}.py",
+    "PURPOSE": "Implements the new component's main class.",
+    "DESCRIPTION": "This file defines the primary class, referencing a base class and mixin.",
+    "REQUIREMENTS": [
+      "Ensure the base class and mixin logic is correctly integrated.",
+      "Ensure that all methods include complete, comprehensive, and full functional implementation logic.",
+      "Use HTTPX."
+    ],
+    "DEPENDENCIES": ["base/swarmauri_base/llms/LLMBase.py"],
+    "PROCESS_TYPE": "GENERATE",
+    "BASE_CLASS": "LLMBase",
+    "MIXINS": [],
+    "EXAMPLES": ["standards/swarmauri_standard/swarmauri_standard/llms/GroqModel.py"]
+
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/__init__.py",
+    "PURPOSE": "Initializes the new component's package.",
+    "DESCRIPTION": "Exposes and imports the main class from {{ MODULE_NAME }}.py.",
+    "REQUIREMENTS": ["Should import the class defined in {{ MODULE_NAME }}.py."],
+    "DEPENDENCIES": ["{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/{{ MODULE_NAME }}.py"],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}//swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/tests/unit/test_{{ MODULE_NAME }}.py",
+    "PURPOSE": "Contains pytest based test cases for the new component class.",
+    "DESCRIPTION": "Verifies the functionality and correctness of the class in {{ MODULE_NAME }}.py.",
+    "REQUIREMENTS": ["Should import and test the class from the main module."],
+    "DEPENDENCIES": ["{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/{{ MODULE_NAME }}.py"],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/tests/unit/test___init__.py",
+    "PURPOSE": "Contains pytest based test cases for the package initialization.",
+    "DESCRIPTION": "Ensures __init__.py correctly exposes the new component class.",
+    "REQUIREMENTS": ["Should import from the package's __init__.py file."],
+    "DEPENDENCIES": ["{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/__init__.py"],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/README.md",
+    "PURPOSE": "Provides documentation and usage details for the new component.",
+    "DESCRIPTION": "Includes instructions, examples, and references for {{ MODULE_NAME }}.py",
+    "REQUIREMENTS": [
+      "Include required header fragment.",
+      "Should mention how to install, configure, and integrate the new component."
+    ],
+    "DEPENDENCIES": [
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/{{ MODULE_NAME }}.py",
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/__init__.py"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/LICENSE",
+    "PURPOSE": "Defines the licensing terms for this project.",
+    "DESCRIPTION": "Contains the open-source (or proprietary) LICENSE text.",
+    "REQUIREMENTS": [],
+    "DEPENDENCIES": [],
+    "PROCESS_TYPE": "COPY"
+  },
+  {
+    "FILE_NAME": "{{ PROJECT_ROOT }}//swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/pyproject.toml",
+    "PURPOSE": "Specifies Python project metadata and dependencies.",
+    "DESCRIPTION": "Indicates the project’s name, version, dependencies, and build system.",
+    "REQUIREMENTS": ["Must reference the main module, README, and LICENSE as applicable."],
+    "DEPENDENCIES": [
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/{{ MODULE_NAME }}.py",
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/__init__.py",
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/README.md",
+      "{{ PROJECT_ROOT }}/swarmauri_{{ RESOURCE_KIND }}_{{ PACKAGE_NAME }}/LICENSE"
+    ],
+    "PROCESS_TYPE": "GENERATE"
+  }
+]

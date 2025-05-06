@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any
 
+
 class IChunker(ABC):
     """
     Interface for chunking text into smaller pieces.

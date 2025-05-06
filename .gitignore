@@ -13,3 +13,8 @@ env
 .env
 .DS_STORE
 /combined
+.venv_core*
+*.obj
+pytest_results.json
+pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
+/pkgs/standards/ptree_dag/pkgs

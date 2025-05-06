@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources.",
+    "PACKAGE_ROOT": "swarmauri_tool_jupytershutdownkernel",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterShutdownKernelTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Gracefully shutdown a running Jupyter kernel.",
+        "Ensure all kernel resources are released.",
+        "Log shutdown events and handle errors.",
+        "Support timeout for kernel shutdown operations.",
+        "Return confirmation of successful kernel termination.",
+        "Integrate with the start kernel tool for lifecycle management."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "jupyter_client",
+            "version": "*"
+        }
+    ]
+}

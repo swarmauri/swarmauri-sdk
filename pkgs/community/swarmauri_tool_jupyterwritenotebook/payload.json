@@ -1,0 +1,26 @@
+{
+    "PROJECT_ROOT": "pkgs",
+    "PACKAGE_DESCRIPTION": "A tool that writes a NotebookNode object to a file in JSON format, preserving the notebook structure.",
+    "PACKAGE_ROOT": "swarmauri_tools_jupyterwritenotebook",
+    "RESOURCE_KIND": "tool",
+    "MODULE_NAME": "JupyterWriteNotebookTool",
+    "BASE_CLASS_NAME": "ToolBase",
+    "BASE_CLASS_DEPENDENCY_FILE": "base/swarmauri_base/tools/ToolBase.py",
+    "CONCRETE_EXAMPLE_FILE": "standards/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py",
+    "ADDITIONAL_REQUIREMENTS": [
+        "Convert a NotebookNode into JSON format.",
+        "Write the JSON data to a specified file.",
+        "Ensure the notebook structure remains intact.",
+        "Log write operations and handle potential I/O errors.",
+        "Support different output file encodings.",
+        "Confirm successful file creation and integrity."
+    ],
+    "EXTERNAL_DOC_FILE": null,
+    "EXTERNAL_DOC_EXAMPLE_FILE": null,
+    "THIRD_PARTY_DEPENDENCIES": [
+        {
+            "name": "nbformat",
+            "version": "*"
+        }
+    ]
+}
