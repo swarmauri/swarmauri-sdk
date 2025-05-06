@@ -16,11 +16,9 @@
 
 ---
 
-# Peagen
+# Peagen: a Template‑Driven Workflow
 
 ## Why Use the Peagen CLI?
-
-### Benefits of a Template‑Driven Workflow
 
 #### Reduced Variance in LLM‑Driven Generation  
 - While LLMs inherently introduce some nondeterminism, Peagen’s structured prompts, injected examples, and dependency‑aware ordering significantly reduce output variance. You’ll still see slight variations on each run, but far less than with ad‑hoc prompt calls.
@@ -56,46 +54,45 @@
 pip install peagen
 
 # From source (latest development)
-git clone https://github.com/your-org/peagen.git
-cd peagen
+git clone https://github.com/swarmauri/swarmauri-sdk.git
+cd pkgs/peagen
 pip install .
 
 peagen --help
 ````
+### What Is Peagen?
+#### Core Concepts
+> Peagen is a template‑driven orchestration engine that transforms high‑level project definitions into concrete files - statically rendered or LLM‑generated - while respecting inter‑file dependencies.
 
----
+At its heart sits the Peagen class (core.py, class Peagen), which encapsulates:
 
-## Understanding Peagen
+Project Loading
+- Reads one or more YAML payloads describing packages, modules, and template locations, turning them into in‑memory project objects.
 
-### What Is Peagen?
-
-Peagen is a template‑driven orchestration engine that transforms high‑level project definitions into concrete files—either statically rendered or LLM‑generated—while respecting inter‑file dependencies.
-
-### Core Concepts (`core.py`, class `Peagen`)
-
-#### **Project Loading**
- - Reads one or more YAML payloads describing packages, modules, and template locations into in‑memory project objects.
-#### **Template Rendering**
-- Uses Jinja2 to render each package’s `ptree.yaml.j2` into a flat list of file records, complete with metadata (path, mode, dependencies).
-#### **Dependency Graph Construction**
-- Builds a DAG of file records based on declared `depends_on` fields.
-#### **Topological / Transitive Sorting**
-- Offers both strict topological sort and a transitive variant via the `--transitive` flag.
-#### **File Processing**
+Template Rendering
+- Uses Jinja2 to render each package's ptree.yaml.j2 into a flat list of file records, complete with metadata (path, mode, dependencies).
+Dependency Graph Construction
+= Builds a directed acyclic graph (DAG) of file records based on declared DEPEDNENCIES fields, ensuring correct ordering.
+Topological / Transitive Sorting
+- Offers both strict topological sort and a transitive variant to include indirect dependencies via the --transitive flag.
+File Processing
 - Iterates the sorted list of file records and either:
-  * Renders static COPY templates, or
-  * Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
-#### **Resume & Revision Support**
-- Allows resuming from any file index or template, and writing revisions back to project YAML or templates when `peagen revise` is used.
+-- Renders static COPY templates, or
+-- Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
 
-### Key Public Methods (`core.py`, class `Peagen`)
+#### Resume & Revision Support
+Allows resuming from any file index or template, and writing revisions back to project YAML or templates when peagen revise is used.
 
-* `load_projects()`
-- Loads and validates the YAML payload(s), returning a list of project dicts enriched with template paths and metadata.
-* `process_all_projects()`
-- For each loaded project, runs the full render → graph → sort → process pipeline, returning a mapping of project names to processed file records.
-* `process_single_project(project: Dict, start_idx: int = 0, start_file: Optional[str] = None)`
-- Executes the pipeline for one project, optionally resuming at `start_idx` or at a specific file path, and returns the sorted records plus the final index processed.
+#### Key Public Methods
+All methods below belong to core.py, class Peagen:
+load_projects()
+Loads and validates the YAML payload(s), returning a list of project dictionaries enriched with template paths and metadata.
+process_all_projects()
+For each loaded project, runs the full render → graph → sort → process pipeline, returning a mapping of project names to processed file records.
+process_single_project(project: Dict, start_idx: int = 0, start_file: Optional[str] = None)
+Executes the pipeline for one project, optionally resuming at start_idx or at a specific file path, and returns the sorted records plus the final index processed.
+
+Each of these methods is invoked by the CLI commands in cli.py (e.g. process() calls Peagen.load_projects() then Peagen.process_single_project()). By understanding these core components, you can both use the CLI effectively and extend Peagen programmatically.
 
 ---
 
@@ -116,6 +113,9 @@ pip install .
 ```bash
 peagen --help
 ```
+
+![image](https://github.com/user-attachments/assets/52ce6b30-c7cc-4f9e-b9e4-8dde8f034b9c)
+
 
 ### Configuring `OPENAI_API_KEY`
 
@@ -163,15 +163,8 @@ peagen process <PROJECTS_YAML> \
   [--model-name <MODEL>] \
   [-v | -vv]
 ```
-
-**Positional:** `<PROJECTS_YAML>`: path to your projects definition file.
-**Key Flags:**
-
-  * `--project-name <NAME>`: target a single project.
-  * `--template-base-dir <DIR>`: directory for Jinja2 templates.
-  * `--transitive`: include indirect dependencies.
-  * `--provider`, `--model-name`: LLM options.
-  * `-v` / `-vv`: verbosity levels.
+    
+![image](https://github.com/user-attachments/assets/1f52f066-8caa-4070-ab63-63350f95b0ee)
 
 ### `peagen sort`
 
@@ -185,6 +178,8 @@ peagen sort <PROJECTS_YAML> \
   [-v | -vv]
 ```
 
+![image](https://github.com/user-attachments/assets/216369fb-b9e9-4ab9-84ca-5f13f7dfbc88)
+
 ### `peagen revise`
 
 Update project YAML or templates based on previous run metadata.
@@ -196,6 +191,8 @@ peagen revise <PROJECTS_YAML> \
   [-v | -vv]
 ```
 
+![image](https://github.com/user-attachments/assets/61292165-fb36-4662-8836-7971b2a7e7d0)
+
 ### `peagen templates`
 
 List available template sets and their directories:
@@ -203,6 +200,9 @@ List available template sets and their directories:
 ```bash
 peagen templates
 ```
+
+![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
+
 
 ---
 
