@@ -2,6 +2,34 @@ import heapq
 from collections import defaultdict
 from typing import Any, Dict, List
 
+# development method, may be unstable
+def get_immediate_dependencies(
+    payload: List[Dict[str, Any]], target_file: str
+) -> List[str]:
+    """
+    @dev development method, may be unstable
+
+    ---
+    
+    Returns a list of files that `target_file` directly depends on (one‑hop parents).
+
+    Args:
+      payload: List of record dicts, each with "RENDERED_FILE_NAME" and EXTRAS["DEPENDENCIES"].
+      target_file: The filename whose direct dependencies you want.
+
+    Raises:
+      ValueError: if `target_file` isn’t present in the payload.
+
+    Returns:
+      A list of filenames that `target_file` depends on directly.
+    """
+    # Build the forward graph to get all nodes
+    forward_graph, _, all_nodes = _build_forward_graph(payload)
+    if target_file not in all_nodes:
+        raise ValueError(f"File '{target_file}' not found in payload.")
+    # Invert to get direct dependency mapping
+    reverse_graph = _build_reverse_graph(forward_graph)
+    return reverse_graph[target_file]
 
 def _build_forward_graph(payload: List[Dict[str, Any]]):
     """
