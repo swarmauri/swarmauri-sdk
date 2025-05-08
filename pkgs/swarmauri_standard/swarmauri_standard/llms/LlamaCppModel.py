@@ -15,7 +15,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "LlamaCppModel")
 class LlamaCppModel(LLMBase):
     """
-    A class for interacting with DeepInfra's model API for text generation.
+    A class for interacting with LlamaCppModel's model API for text generation.
 
     This implementation uses httpx for both synchronous and asynchronous HTTP requests,
     providing support for predictions, streaming responses, and batch processing.
