@@ -20,6 +20,7 @@ from .core import Peagen, Fore, Style
 from ._config import _config
 from ._banner import _print_banner
 from ._api_key import _resolve_api_key
+from ._graph import get_immediate_dependencies
 
 app = typer.Typer(help="CLI tool for processing project files using Peagen.")
 
@@ -403,12 +404,16 @@ def sort(
     verbose: int = typer.Option(
         0, "-v", "--verbose", count=True, help="Verbosity level (-v, -vv, -vvv)"
     ),
-    # NEW TRANSITIVE FLAG
     transitive: bool = typer.Option(
         False,
         "--transitive/--no-transitive",
         help="If set, will only show transitive dependencies if start-file or start-idx is provided.",
     ),
+    show_dependencies: bool = typer.Option(
+        False,
+        "--show-deps/--no-show-deps",
+        help="If set, will show the direct dependenices of each file in the sort (one hop)."
+        )
 ):
     """
     Sort and show the list of files that would be processed for a project (Dry run).
@@ -430,11 +435,6 @@ def sort(
         additional_package_dirs.split(",") if additional_package_dirs else []
     )
     additional_dirs_list = [FilePath(_d) for _d in additional_dirs_list]
-
-    # if include_swarmauri:
-    #     from ._gitops import _clone_swarmauri_repo
-    #     cloned_dir = _clone_swarmauri_repo(use_dev_branch=swarmauri_dev)
-    #     additional_dirs_list.append(FilePath(cloned_dir))
 
     resolved_key = _resolve_api_key(provider, api_key, env)
 
@@ -479,14 +479,20 @@ def sort(
 
         pea.logger.info("")
         pea.logger.info(Fore.GREEN + f"\t[{project_name}]" + Style.RESET_ALL)
-        for i, record in enumerate(sorted_records):
-            pea.logger.info(
-                f"\t{i + (start_idx or 0)}) {record.get('RENDERED_FILE_NAME')}"
-            )
+        for i, record in enumerate(sorted_records): 
+            idx = i + (start_idx or 0)  
+            name = record.get("RENDERED_FILE_NAME")  
+            deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
+            dep_str = ", ".join(deps) if deps else "None"
+            pea.logger.info("")
+            pea.logger.info(f"\t{idx}) {name}")
+            if show_dependencies:
+                deps = get_immediate_dependencies(sorted_records, name)  
+                pea.logger.info(f"\t\tDependencies: {dep_str}")
+
     else:
         projects_sorted_records = pea.process_all_projects()
         pea.logger.debug(pformat(projects_sorted_records))
-
         for sorted_records in projects_sorted_records:
             if not sorted_records:
                 continue
@@ -497,8 +503,21 @@ def sort(
             pea.logger.info(
                 Fore.GREEN + f"\t[{current_project_name}]" + Style.RESET_ALL
             )
-            for i, record in enumerate(sorted_records):
-                pea.logger.info(f"\t{i}) {record.get('RENDERED_FILE_NAME')}")
+
+            for i, record in enumerate(sorted_records): 
+                idx = i + (start_idx or 0)  
+                name = record.get("RENDERED_FILE_NAME")  
+                deps = record.get("EXTRAS", {}).get("DEPENDENCIES", [])
+                dep_str = ", ".join(deps) if deps else "None"
+                if show_dependencies:
+                    pea.logger.info("")
+                    pea.logger.info(f"\t{idx}) {name}")
+                    deps = get_immediate_dependencies(sorted_records, name)  
+                    pea.logger.info(f"\t\tDependencies: {dep_str}")
+                else:
+                    pea.logger.info(f"\t{idx}) {name}")
+
+
 
 
 @app.command("templates")

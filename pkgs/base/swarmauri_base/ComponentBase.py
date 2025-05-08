@@ -41,7 +41,7 @@ class ComponentBase(LoggerMixin, YamlMixin, ServiceMixin, DynamicBase):
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
 
 ###########################################
