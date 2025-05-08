@@ -78,8 +78,8 @@
     RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
     EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
 
-- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py.j2{% endraw %}"
-  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py"
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py"
   PROCESS_TYPE: "GENERATE"
   AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
   PROJECT_NAME: "{{ PROJ.NAME }}"

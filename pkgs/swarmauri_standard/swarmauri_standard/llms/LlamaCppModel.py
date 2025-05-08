@@ -15,25 +15,24 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "LlamaCppModel")
 class LlamaCppModel(LLMBase):
     """
-    A class for interacting with LlamaCppModel's model API for text generation.
+    A class for interacting with LlamaCpp model API for text generation.
 
     This implementation uses httpx for both synchronous and asynchronous HTTP requests,
     providing support for predictions, streaming responses, and batch processing.
 
     Attributes:
-        api_key (str): DeepInfra API key for authentication
-            Can be obtained from: https://deepinfra.com/dash/api_keys
-
-        allowed_models (List[str]): List of supported model identifiers on DeepInfra
-            Full list available at: https://deepinfra.com/models/text-generation
+        allowed_models (List[str]): List of models available on the LlamaCpp server
+            Retrieved dynamically from the server's /models endpoint
 
         name (str): The currently selected model name
-            Defaults to "Qwen/Qwen2-72B-Instruct"
+            Defaults to the first available model on the server
 
-        type (Literal["DeepInfraModel"]): Type identifier for the model class
+        type (Literal["LlamaCppModel"]): Type identifier for the model class
 
-    Link to Allowed Models: https://deepinfra.com/models/text-generation
-    Link to API KEY: https://deepinfra.com/dash/api_keys
+    Notes:
+        - Requires a running LlamaCpp server (e.g., llama-cpp-server)
+        - Default server URL is http://localhost:8080/v1
+        - Can be configured via LLAMA_CPP_URL environment variable
     """
 
     _BASE_URL: str = PrivateAttr("http://localhost:8080/v1")
