@@ -234,7 +234,7 @@ def _process_project_files(
             global_attrs,
             template_dir,
             agent_env,
-            j2,
+            j2_instance,
             logger,
             start_idx,
             idx_len,
