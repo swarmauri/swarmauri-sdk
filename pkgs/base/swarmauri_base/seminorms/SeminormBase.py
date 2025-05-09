@@ -1,93 +1,92 @@
-from typing import TypeVar, Union
-import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from typing import Union, Sequence, Callable, Optional
+from abc import ABC
 from swarmauri_core.seminorms.ISeminorm import ISeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
+import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', Union[IVector, IMatrix, str, callable, Sequence[float], Sequence[Sequence[float]]])
 
-@ComponentBase.register_model()
-class SeminormBase(ISeminorm, ComponentBase):
+class SeminormBase(ISeminorm, ABC):
     """
-    Base class providing common functionality for seminorm implementations.
-
-    This class implements the core interface defined by ISeminorm and provides
-    basic structure and logging capabilities for all seminorm implementations.
-    Concrete implementations should extend this class and provide specific
-    implementations for the abstract methods.
-
-    Attributes:
-        resource: Optional[str] = ResourceTypes.SEMINORM.value
-            The resource type identifier for this component.
-    """
-    resource: str = ResourceTypes.SEMINORM.value
+    Base class providing fundamental implementation for seminorm structures.
     
-    def compute(self, input: T) -> float:
+    This class implements the core functionality required for seminorms while
+    leaving specific implementation details to be defined in subclasses.
+    
+    The class enforces the interface defined by ISeminorm while providing
+    basic structure and logging capabilities. All methods that require
+    specific implementation will raise NotImplementedError.
+    """
+    
+    def compute(
+        self,
+        input: Union[IVector, IMatrix, Sequence, str, Callable]
+    ) -> float:
         """
         Compute the seminorm of the given input.
 
         Args:
-            input: T
-                The input to compute the seminorm on. This can be a vector, matrix,
-                sequence, string, or callable.
+            input: The input to compute the seminorm for. Can be a vector,
+                matrix, sequence, string, or callable object.
 
         Returns:
-            float:
-                The computed seminorm value.
+            float: The computed seminorm value.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented in a concrete subclass.
+            NotImplementedError: This method must be implemented in a subclass.
+            ValueError: If the input type is not supported.
+            TypeError: If the input is of incorrect type.
         """
-        logger.error("compute() called on base class - must be implemented in subclass")
-        raise NotImplementedError("compute() must be implemented in a concrete subclass")
+        logger.debug("Base compute method called")
+        raise NotImplementedError("The compute method must be implemented in a subclass")
 
-    def check_triangle_inequality(self, a: T, b: T) -> bool:
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, IMatrix, Sequence, str, Callable],
+        b: Union[IVector, IMatrix, Sequence, str, Callable]
+    ) -> bool:
         """
         Check if the triangle inequality holds for the given inputs.
 
-        The triangle inequality states that for any two vectors a and b:
-        seminorm(a + b) <= seminorm(a) + seminorm(b)
+        The triangle inequality states that for any elements a and b,
+        the seminorm of (a + b) should be less than or equal to the sum
+        of the seminorms of a and b.
 
         Args:
-            a: T
-                The first input.
-            b: T
-                The second input.
+            a: The first element to check.
+            b: The second element to check.
 
         Returns:
-            bool:
-                True if the triangle inequality holds, False otherwise.
+            bool: True if the triangle inequality holds, False otherwise.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented in a concrete subclass.
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        logger.error("check_triangle_inequality() called on base class - must be implemented in subclass")
-        raise NotImplementedError("check_triangle_inequality() must be implemented in a concrete subclass")
+        logger.debug("Base triangle inequality check called")
+        raise NotImplementedError("The check_triangle_inequality method must be implemented in a subclass")
 
-    def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
+    def check_scalar_homogeneity(
+        self,
+        input: Union[IVector, IMatrix, Sequence, str, Callable],
+        scalar: float
+    ) -> bool:
         """
-        Check if scalar homogeneity holds for the given input and scalar.
+        Check if the seminorm satisfies scalar homogeneity.
 
-        Scalar homogeneity states that for any vector a and scalar c >= 0:
-        seminorm(c * a) = c * seminorm(a)
+        Scalar homogeneity requires that for any scalar c and input x,
+        the seminorm of (c * x) is equal to |c| * seminorm(x).
 
         Args:
-            a: T
-                The input to check.
-            scalar: float
-                The scalar to check against.
+            input: The input element to check.
+            scalar: The scalar to scale the input by.
 
         Returns:
-            bool:
-                True if scalar homogeneity holds, False otherwise.
+            bool: True if scalar homogeneity holds, False otherwise.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented in a concrete subclass.
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        logger.error("check_scalar_homogeneity() called on base class - must be implemented in subclass")
-        raise NotImplementedError("check_scalar_homogeneity() must be implemented in a concrete subclass")
+        logger.debug("Base scalar homogeneity check called")
+        raise NotImplementedError("The check_scalar_homogeneity method must be implemented in a subclass")

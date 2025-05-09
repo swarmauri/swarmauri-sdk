@@ -1,109 +1,200 @@
-from typing import Any, Sequence, Tuple, TypeVar, Union
+from typing import Union, List, Optional
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.similarities.ISimilarity import ISimilarity
 import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar('InputType', str, bytes, Any)
-OutputType = TypeVar('OutputType', float)
 
 @ComponentBase.register_model()
 class SimilarityBase(ISimilarity, ComponentBase):
     """
-    Concrete base class for implementing similarity measures.
-
-    This class provides a foundation for various similarity measures by implementing
-    the base functionality while leaving specific calculations to subclasses.
-    It handles bounds checking, reflexivity, and symmetry properties.
-
-    All specific similarity calculation methods should be implemented in derived classes.
-    """
+    Base implementation of the ISimilarity interface providing foundational functionality.
     
-    resource: str = ResourceTypes.SIMILARITY.value
+    This class provides a concrete implementation of the ISimilarity interface, serving as a base
+    class for various similarity measures. It implements the required methods with base logic while
+    leaving specific calculations to derived classes.
+    
+    Attributes:
+        resource: Type of resource this component represents, defaults to SIMILARITY.
+    """
+    resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
 
-    def __init__(self):
+    def similarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
-        Initialize the SimilarityBase instance.
-        """
-        super().__init__()
-        logger.debug("Initialized SimilarityBase instance")
-
-    def similarity(self, x: InputType, y: InputType) -> float:
-        """
-        Calculate the similarity between two elements.
-
+        Base method for calculating similarity between two elements.
+        
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
-
+            x: First element to compare.
+            y: Second element to compare.
+            
         Returns:
-            float:
-                A float representing the similarity between x and y.
-                If bounded, should be between 0 and 1.
-
+            float: Similarity score between x and y.
+            
         Raises:
-            NotImplementedError: Always raised as this method must be implemented by subclasses
+            NotImplementedError: This method must be implemented in a derived class.
         """
-        logger.error("similarity method not implemented by subclass")
-        raise NotImplementedError("similarity must be implemented by subclass")
+        raise NotImplementedError(
+            "Similarity calculation must be implemented in a derived class."
+        )
 
-    def similarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def similarities(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate similarities for multiple pairs of elements.
-
+        Base method for calculating similarities between an element and multiple elements.
+        
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
-
+            x: Reference element to compare against.
+            ys: List of elements or single element to compare with x.
+            
         Returns:
-            Sequence[float]:
-                A sequence of similarity scores corresponding to each pair.
-
+            Union[float, List[float]]: Similarity scores between x and each element in ys.
+            
         Raises:
-            NotImplementedError: Always raised as this method must be implemented by subclasses
+            NotImplementedError: This method must be implemented in a derived class.
         """
-        logger.error("similarities method not implemented by subclass")
-        raise NotImplementedError("similarities must be implemented by subclass")
+        raise NotImplementedError(
+            "Similarities calculation must be implemented in a derived class."
+        )
 
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
+    def dissimilarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
-        Calculate the dissimilarity between two elements.
-
+        Base method for calculating dissimilarity between two elements.
+        
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
-
+            x: First element to compare.
+            y: Second element to compare.
+            
         Returns:
-            float:
-                A float representing the dissimilarity between x and y.
-                If bounded, should be between 0 and 1.
-
+            float: Dissimilarity score between x and y.
+            
         Raises:
-            NotImplementedError: Always raised as this method must be implemented by subclasses
+            NotImplementedError: This method must be implemented in a derived class.
         """
-        logger.error("dissimilarity method not implemented by subclass")
-        raise NotImplementedError("dissimilarity must be implemented by subclass")
+        raise NotImplementedError(
+            "Dissimilarity calculation must be implemented in a derived class."
+        )
 
-    def dissimilarities(self, pairs: Sequence[Tuple[InputType, InputType]]) -> Sequence[float]:
+    def dissimilarities(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate dissimilarities for multiple pairs of elements.
-
+        Base method for calculating dissimilarities between an element and multiple elements.
+        
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
-
+            x: Reference element to compare against.
+            ys: List of elements or single element to compare with x.
+            
         Returns:
-            Sequence[float]:
-                A sequence of dissimilarity scores corresponding to each pair.
-
+            Union[float, List[float]]: Dissimilarity scores between x and each element in ys.
+            
         Raises:
-            NotImplementedError: Always raised as this method must be implemented by subclasses
+            NotImplementedError: This method must be implemented in a derived class.
         """
-        logger.error("dissimilarities method not implemented by subclass")
-        raise NotImplementedError("dissimilarities must be implemented by subclass")
+        raise NotImplementedError(
+            "Dissimilarities calculation must be implemented in a derived class."
+        )
+
+    def check_boundedness(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Base method for checking if the similarity measure is bounded.
+        
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+            
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+            
+        Raises:
+            NotImplementedError: This method must be implemented in a derived class.
+        """
+        raise NotImplementedError(
+            "Boundedness check must be implemented in a derived class."
+        )
+
+    def check_reflexivity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Base method for checking if the similarity measure is reflexive.
+        
+        Args:
+            x: Element to check reflexivity for.
+            
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+            
+        Raises:
+            NotImplementedError: This method must be implemented in a derived class.
+        """
+        raise NotImplementedError(
+            "Reflexivity check must be implemented in a derived class."
+        )
+
+    def check_symmetry(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Base method for checking if the similarity measure is symmetric.
+        
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+            
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+            
+        Raises:
+            NotImplementedError: This method must be implemented in a derived class.
+        """
+        raise NotImplementedError(
+            "Symmetry check must be implemented in a derived class."
+        )
+
+    def check_identity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Base method for checking if the similarity measure satisfies identity.
+        
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+            
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise.
+            
+        Raises:
+            NotImplementedError: This method must be implemented in a derived class.
+        """
+        raise NotImplementedError(
+            "Identity check must be implemented in a derived class."
+        )

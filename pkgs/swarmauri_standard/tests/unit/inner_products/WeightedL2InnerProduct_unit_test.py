@@ -1,94 +1,113 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.inner_products.WeightedL2InnerProduct import (
-    WeightedL2InnerProduct,
-)
+import numpy as np
 import logging
-from swarmauri_core.types import IVector
-from typing import Callable, Optional, Dict, Any
-
-logger = logging.getLogger(__name__)
-
+from swarmauri_standard.swarmauri_standard.inner_products.WeightedL2InnerProduct import WeightedL2InnerProduct
 
 @pytest.mark.unit
-class TestWeightedL2InnerProduct:
-    """Unit tests for the WeightedL2InnerProduct class."""
+def test_WeightedL2InnerProduct_resource():
+    """Test that the resource property returns the correct value."""
+    assert WeightedL2InnerProduct.resource == "Inner_product"
 
-    @pytest.fixture
-    def default_weight_function(self) -> Callable[[IVector], IVector]:
-        """Fixture providing a default weight function that returns 1 for all vectors."""
+@pytest.mark.unit
+def test_WeightedL2InnerProduct_type():
+    """Test that the type property returns the correct value."""
+    assert WeightedL2InnerProduct.type == "WeightedL2InnerProduct"
 
-        def weight_function(x: IVector) -> IVector:
-            return x.ones_like()
+@pytest.fixture
+def weighted_inner_product():
+    """Fixture to provide a default WeightedL2InnerProduct instance."""
+    # Using a simple weight array for testing
+    weight = np.array([1.0, 1.0, 1.0])
+    return WeightedL2InnerProduct(weight)
 
-        return weight_function
+@pytest.mark.unit
+def test_compute(weighted_inner_product):
+    """Test the compute method with sample vectors."""
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
+    
+    # Compute weighted inner product
+    result = weighted_inner_product.compute(a, b)
+    
+    # Expected result without weights (for verification)
+    expected_unweighted = np.vdot(a, b)
+    
+    # Since weights are all 1.0 in this case, result should match expected_unweighted
+    assert np.isclose(result, expected_unweighted)
 
-    @pytest.fixture
-    def test_vector(self) -> IVector:
-        """Fixture providing a test vector for computations."""
-        # Assuming IVector has a ones() method
-        return IVector.ones(5)
+@pytest.mark.unit
+def test_compute_with_callable_weight():
+    """Test compute method with a callable weight."""
+    # Define a callable weight that returns an array
+    def weight_callable(x):
+        return np.array([0.5, 1.0, 2.0])
+    
+    weighted = WeightedL2InnerProduct(weight_callable)
+    
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
+    
+    result = weighted.compute(a, b)
+    
+    # Compute expected result manually
+    weights = weight_callable(a)
+    weighted_a = a * np.sqrt(weights)
+    weighted_b = b * np.sqrt(weights)
+    expected_result = np.vdot(weighted_a.ravel(), weighted_b.ravel())
+    
+    assert np.isclose(result, expected_result)
 
-    @pytest.fixture
-    def invalid_weight_function(self) -> Callable[[IVector], IVector]:
-        """Fixture providing a weight function that may return zero or negative weights."""
+@pytest.mark.unit
+def test_check_conjugate_symmetry(weighted_inner_product):
+    """Test the conjugate symmetry property."""
+    a = np.array([1, 2])
+    b = np.array([3, 4])
+    
+    inner_product_ab = weighted_inner_product.compute(a, b)
+    inner_product_ba = weighted_inner_product.compute(b, a)
+    
+    # Check if inner_product_ab is the conjugate of inner_product_ba
+    assert np.isclose(inner_product_ab, np.conj(inner_product_ba))
 
-        def weight_function(x: IVector) -> IVector:
-            return x.zeros_like()
+@pytest.mark.unit
+def test_check_linearity_first_argument(weighted_inner_product):
+    """Test linearity in the first argument."""
+    a = np.array([1, 2])
+    b = np.array([3, 4])
+    c = np.array([5, 6])
+    
+    # Test additivity
+    inner_product_add = weighted_inner_product.compute(a + c, b)
+    inner_product_sum = weighted_inner_product.compute(a, b) + weighted_inner_product.compute(c, b)
+    
+    # Test homogeneity
+    scalar = 2.0
+    inner_product_scale = weighted_inner_product.compute(scalar * a, b)
+    inner_product_scaled = scalar * weighted_inner_product.compute(a, b)
+    
+    assert np.isclose(inner_product_add, inner_product_sum)
+    assert np.isclose(inner_product_scale, inner_product_scaled)
 
-        return weight_function
+@pytest.mark.unit
+def test_check_positivity(weighted_inner_product):
+    """Test positive definiteness."""
+    a = np.array([1, 2, 3])
+    
+    inner_product = weighted_inner_product.compute(a, a)
+    
+    assert inner_product > 0
 
-    def test_compute(self, default_weight_function, test_vector):
-        """Test the compute method with valid inputs."""
-        weighted_l2 = WeightedL2InnerProduct(default_weight_function)
-        result = weighted_l2.compute(test_vector, test_vector)
-        assert result > 0
+@pytest.mark.unit
+def test_invalid_weights():
+    """Test that invalid weights raise a ValueError."""
+    # Test with non-positive weights
+    weight = np.array([1.0, -1.0, 1.0])
+    
+    with pytest.raises(ValueError):
+        WeightedL2InnerProduct(weight)
 
-    def test_compute_invalid_weights(self, invalid_weight_function, test_vector):
-        """Test that compute raises ValueError with invalid weights."""
-        weighted_l2 = WeightedL2InnerProduct(invalid_weight_function)
-        with pytest.raises(ValueError):
-            weighted_l2.compute(test_vector, test_vector)
-
-    def test_check_conjugate_symmetry(self, default_weight_function, test_vector):
-        """Test the check_conjugate_symmetry method."""
-        weighted_l2 = WeightedL2InnerProduct(default_weight_function)
-        is_symmetric = weighted_l2.check_conjugate_symmetry(test_vector, test_vector)
-        assert is_symmetric
-
-    def test_check_linearity_first_argument(self, default_weight_function, test_vector):
-        """Test the check_linearity_first_argument method."""
-        weighted_l2 = WeightedL2InnerProduct(default_weight_function)
-        x = test_vector
-        y = test_vector
-        z = test_vector
-        a = 2.0
-        b = 3.0
-
-        lhs = weighted_l2.compute(a * x + b * y, z)
-        rhs = a * weighted_l2.compute(x, z) + b * weighted_l2.compute(y, z)
-
-        assert lhs == rhs
-
-    def test_check_positivity(self, default_weight_function, test_vector):
-        """Test the check_positivity method."""
-        weighted_l2 = WeightedL2InnerProduct(default_weight_function)
-        is_positive = weighted_l2.check_positivity(test_vector)
-        assert is_positive
-
-    @pytest.mark.parametrize(
-        "weight_parameters,expected_result",
-        [
-            (None, None),
-            ({"scale": 2.0}, {"scale": 2.0}),
-            ({"offset": 1.0}, {"offset": 1.0}),
-        ],
-    )
-    def test_weight_parameters(
-        self, default_weight_function, weight_parameters, expected_result
-    ):
-        """Test that weight parameters are stored correctly."""
-        weighted_l2 = WeightedL2InnerProduct(default_weight_function, weight_parameters)
-        assert weighted_l2.weight_parameters == expected_result
-
-
-__all__ = ["TestWeightedL2InnerProduct"]
+    # Test with zero weights
+    weight = np.array([1.0, 0.0, 1.0])
+    
+    with pytest.raises(ValueError):
+        WeightedL2InnerProduct(weight)

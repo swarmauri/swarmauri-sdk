@@ -1,205 +1,238 @@
-from typing import Union, TypeVar, Sequence
 import logging
-import numpy as np
+from typing import Union, List, Literal, Optional, Callable
+from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.metrics.IMetric import IMetric
 
-T = TypeVar("T", np.ndarray, Sequence, list)
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_type(MetricBase, "FrobeniusMetric")
+@ComponentBase.register_model()
 class FrobeniusMetric(MetricBase):
     """
-    Concrete implementation of the MetricBase class for computing the Frobenius metric
-    between matrices. The Frobenius metric is defined as the square root of the sum
-    of the squares of the differences between corresponding matrix elements.
+    Concrete implementation of the MetricBase class for computing the Frobenius metric.
+
+    The Frobenius metric calculates the distance between two matrices as the square root 
+    of the sum of the squares of their element-wise differences. This implementation 
+    provides the core functionality for computing the metric while adhering to the 
+    metric axioms.
 
     Inherits From:
-        MetricBase: Base class providing template logic for metric computations
-        IMetric (ABC): The interface for metric spaces
-        ComponentBase: Base class for all components in the system
+        MetricBase: Base class for metric computations
 
-    Provides:
-        Implementation of the distance method for Frobenius metric calculation
-        Implementations for checking metric properties like non-negativity,
-        identity, symmetry, and triangle inequality
+    Attributes:
+        type: Type identifier for the metric implementation
+        resource: Type of resource this component represents
     """
+    type: Literal["FrobeniusMetric"] = "FrobeniusMetric"
+    resource: Optional[str] = "metric"
 
-    def __init__(self):
-        """
-        Initializes the FrobeniusMetric instance.
-        """
-        super().__init__()
-        logger.debug("FrobeniusMetric instance initialized")
-
-    def distance(self, x: T, y: T) -> float:
+    def distance(
+        self, 
+        x: Union[List, str, Callable], 
+        y: Union[List, str, Callable]
+    ) -> float:
         """
         Compute the Frobenius distance between two matrices.
 
-        The Frobenius distance is defined as the square root of the sum of the squares
-        of the differences between corresponding matrix elements.
+        The Frobenius distance is calculated as the square root of the sum 
+        of the squares of the differences between corresponding matrix elements.
 
         Args:
-            x: T
-                The first matrix
-            y: T
-                The second matrix
+            x: The first matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            y: The second matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
 
         Returns:
-            float:
-                The computed Frobenius distance between x and y
+            float: The computed Frobenius distance between x and y.
 
         Raises:
-            ValueError:
-                If the input matrices are not of compatible shapes
-            TypeError:
-                If the input matrices are of unsupported types
+            ValueError: If the input matrices cannot be processed or have different shapes
         """
-        logger.debug("Starting Frobenius distance computation")
-
         try:
-            # Ensure inputs are numpy arrays
-            if not isinstance(x, np.ndarray):
-                x = np.asarray(x)
-            if not isinstance(y, np.ndarray):
-                y = np.asarray(y)
+            # Convert input to matrices if they are strings or callables
+            if isinstance(x, str):
+                x = [list(map(float, row.strip().split())) for row in x.strip().splitlines()]
+            elif callable(x):
+                x = x()
+            
+            if isinstance(y, str):
+                y = [list(map(float, row.strip().split())) for row in y.strip().splitlines()]
+            elif callable(y):
+                y = y()
 
             # Check if shapes match
-            if x.shape != y.shape:
-                raise ValueError("Input matrices must have the same shape")
+            if len(x) != len(y) or len(x[0]) != len(y[0]):
+                raise ValueError("Matrices must have the same dimensions")
 
-            # Compute element-wise differences
-            difference = x - y
+            # Calculate element-wise differences and sum of squares
+            sum_squares = 0.0
+            for i in range(len(x)):
+                for j in range(len(x[0])):
+                    diff = x[i][j] - y[i][j]
+                    sum_squares += diff ** 2
 
-            # Square the differences
-            squared_diff = np.square(difference)
-
-            # Sum the squared differences
-            sum_of_squares = np.sum(squared_diff)
-
-            # Take square root to get Frobenius norm
-            distance = np.sqrt(sum_of_squares)
-
-            logger.debug(f"Frobenius distance computed successfully: {distance}")
-            return float(distance)
+            # Compute and return the square root of the sum of squares
+            return sum_squares ** 0.5
 
         except Exception as e:
-            logger.error(f"Error computing Frobenius distance: {str(e)}")
-            raise ValueError(f"Failed to compute Frobenius distance: {str(e)}")
+            logger.error(f"Failed to compute Frobenius distance: {str(e)}")
+            raise ValueError("Invalid input for Frobenius distance computation")
 
     def distances(
-        self, x: T, y_list: Union[T, Sequence[T]]
-    ) -> Union[float, Sequence[float]]:
+        self, 
+        x: Union[List, str, Callable], 
+        ys: List[Union[List, str, Callable]]
+    ) -> List[float]:
         """
-        Compute the distance(s) between a matrix and one or more matrices.
+        Compute distances from a single matrix to multiple matrices.
 
         Args:
-            x: T
-                The reference matrix
-            y_list: Union[T, Sequence[T]]
-                Either a single matrix or a sequence of matrices
+            x: The reference matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            ys: List of matrices to compute distances to. Each can be a list of lists, 
+                a string representation, or a callable that produces a matrix.
 
         Returns:
-            Union[float, Sequence[float]]:
-                - If y_list is a single matrix: Returns the distance as a float
-                - If y_list is a sequence: Returns a sequence of distances
+            List[float]: List of distances from x to each matrix in ys.
 
         Raises:
-            ValueError:
-                If the input matrices are not of compatible shapes
-            TypeError:
-                If the input matrices are of unsupported types
+            ValueError: If any input matrix cannot be processed or has different dimensions than x
         """
-        logger.debug("Starting multiple Frobenius distance computations")
-
         try:
-            if isinstance(y_list, Sequence):
-                return [self.distance(x, y) for y in y_list]
-            else:
-                return self.distance(x, y_list)
+            # Convert x to matrix if needed
+            if isinstance(x, str):
+                x = [list(map(float, row.strip().split())) for row in x.strip().splitlines()]
+            elif callable(x):
+                x = x()
+
+            distances = []
+            for y in ys:
+                if isinstance(y, str):
+                    y = [list(map(float, row.strip().split())) for row in y.strip().splitlines()]
+                elif callable(y):
+                    y = y()
+
+                if len(x) != len(y) or len(x[0]) != len(y[0]):
+                    raise ValueError("All matrices must have the same dimensions")
+
+                sum_squares = 0.0
+                for i in range(len(x)):
+                    for j in range(len(x[0])):
+                        diff = x[i][j] - y[i][j]
+                        sum_squares += diff ** 2
+                distances.append(sum_squares ** 0.5)
+
+            return distances
 
         except Exception as e:
-            logger.error(f"Error computing multiple Frobenius distances: {str(e)}")
-            raise ValueError(
-                f"Failed to compute multiple Frobenius distances: {str(e)}"
-            )
+            logger.error(f"Failed to compute distances: {str(e)}")
+            raise ValueError("Failed to compute Frobenius distances")
 
-    def check_non_negativity(self, x: T, y: T) -> bool:
+    def check_non_negativity(
+        self, 
+        x: Union[List, str, Callable], 
+        y: Union[List, str, Callable]
+    ) -> Literal[True]:
         """
-        Verify the non-negativity axiom: d(x, y) ≥ 0.
+        Verify the non-negativity property: d(x, y) ≥ 0.
 
         Args:
-            x: T
-                The first matrix
-            y: T
-                The second matrix
+            x: The first matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            y: The second matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
 
         Returns:
-            bool:
-                True if the non-negativity condition holds, False otherwise
+            Literal[True]: True if the non-negativity property holds.
+
+        Raises:
+            AssertionError: If the non-negativity property is violated
         """
-        logger.debug("Checking non-negativity of Frobenius metric")
         distance = self.distance(x, y)
-        return distance >= 0.0
+        assert distance >= 0, "Frobenius distance is negative - non-negativity violated"
+        logger.info("Non-negativity property verified for Frobenius metric")
+        return True
 
-    def check_identity(self, x: T, y: T) -> bool:
+    def check_identity(
+        self, 
+        x: Union[List, str, Callable], 
+        y: Union[List, str, Callable]
+    ) -> Literal[True]:
         """
-        Verify the identity of indiscernibles axiom: d(x, y) = 0 if and only if x = y.
+        Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
 
         Args:
-            x: T
-                The first matrix
-            y: T
-                The second matrix
+            x: The first matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            y: The second matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
 
         Returns:
-            bool:
-                True if the identity condition holds, False otherwise
+            Literal[True]: True if the identity property holds.
+
+        Raises:
+            AssertionError: If the identity property is violated
         """
-        logger.debug("Checking identity of Frobenius metric")
         distance = self.distance(x, y)
-        return distance == 0.0
+        if distance != 0:
+            logger.error("Identity property violated: d(x, y) != 0 for identical matrices")
+        assert distance == 0, "Identity property violated: d(x, y) != 0 for identical matrices"
+        logger.info("Identity property verified for Frobenius metric")
+        return True
 
-    def check_symmetry(self, x: T, y: T) -> bool:
+    def check_symmetry(
+        self, 
+        x: Union[List, str, Callable], 
+        y: Union[List, str, Callable]
+    ) -> Literal[True]:
         """
-        Verify the symmetry axiom: d(x, y) = d(y, x).
+        Verify the symmetry property: d(x, y) = d(y, x).
 
         Args:
-            x: T
-                The first matrix
-            y: T
-                The second matrix
+            x: The first matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            y: The second matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
 
         Returns:
-            bool:
-                True if the symmetry condition holds, False otherwise
+            Literal[True]: True if the symmetry property holds.
+
+        Raises:
+            AssertionError: If the symmetry property is violated
         """
-        logger.debug("Checking symmetry of Frobenius metric")
         distance_xy = self.distance(x, y)
         distance_yx = self.distance(y, x)
-        return distance_xy == distance_yx
+        assert abs(distance_xy - distance_yx) < 1e-9, "Symmetry property violated: d(x, y) != d(y, x)"
+        logger.info("Symmetry property verified for Frobenius metric")
+        return True
 
-    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
+    def check_triangle_inequality(
+        self, 
+        x: Union[List, str, Callable], 
+        y: Union[List, str, Callable], 
+        z: Union[List, str, Callable]
+    ) -> Literal[True]:
         """
-        Verify the triangle inequality axiom: d(x, z) ≤ d(x, y) + d(y, z).
+        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
 
         Args:
-            x: T
-                The first matrix
-            y: T
-                The second matrix
-            z: T
-                The third matrix
+            x: The first matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            y: The second matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
+            z: The third matrix. Can be a list of lists, a string representation, 
+                or a callable that produces a matrix.
 
         Returns:
-            bool:
-                True if the triangle inequality condition holds, False otherwise
-        """
-        logger.debug("Checking triangle inequality of Frobenius metric")
+            Literal[True]: True if the triangle inequality property holds.
 
+        Raises:
+            AssertionError: If the triangle inequality is violated
+        """
         distance_xz = self.distance(x, z)
         distance_xy = self.distance(x, y)
         distance_yz = self.distance(y, z)
-
-        return distance_xz <= (distance_xy + distance_yz)
+        assert distance_xz <= distance_xy + distance_yz, "Triangle inequality violated"
+        logger.info("Triangle inequality property verified for Frobenius metric")
+        return True

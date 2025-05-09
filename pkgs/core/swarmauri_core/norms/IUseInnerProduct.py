@@ -1,79 +1,123 @@
 from abc import ABC, abstractmethod
-from typing import Type, Literal
+from typing import Union
 import logging
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
-from swarmauri_core.vectors.IVector import IVector
 
+# Define logger
 logger = logging.getLogger(__name__)
 
+# Type alias for vector types
+IVector = "IVector"
+
+# Type alias for matrix types
+Matrix = "Matrix"
+
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 
 class IUseInnerProduct(ABC):
-    """Abstract interface marking components using inner product geometry.
-    
-    This interface defines the contract for components that depend on inner product
-    operations. It provides abstract methods for checking key geometric properties
-    enabled by the inner product structure.
     """
-    
-    def __init__(self, inner_product: Type[IInnerProduct]):
-        """Initialize with a compatible inner product implementation.
-        
-        Args:
-            inner_product: Implementation of IInnerProduct to use for operations
+    Abstract interface marking components that use inner product geometry.
+    This interface defines methods that rely on an inner product structure for geometric operations.
+    Implementations should provide concrete geometric functionality using the inner product.
+    """
+
+    def __init__(self, inner_product: IInnerProduct):
         """
-        self.inner_product = inner_product()
-        
-    @abstractmethod
-    def check_angle_between_vectors(self, x: IVector, y: IVector) -> float:
-        """Compute the angle between two vectors using the inner product.
-        
+        Initializes the IUseInnerProduct implementation with a specific inner product.
+
         Args:
-            x: First vector
-            y: Second vector
-            
+            inner_product: An instance of IInnerProduct to be used for geometric operations
+        """
+        self.inner_product = inner_product
+
+    def check_angle(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> float:
+        """
+        Computes and checks the angle between two vectors using the inner product.
+
+        Args:
+            a: First vector
+            b: Second vector
+
         Returns:
-            Angle in radians between the two vectors
+            float: The angle between the two vectors in radians
         """
-        pass
-    
-    @abstractmethod
-    def check_verify_orthogonality(self, x: IVector, y: IVector) -> bool:
-        """Verify if two vectors are orthogonal using the inner product.
+        logger.info("Computing angle between vectors")
+        inner = self.inner_product.compute(a, b)
+        magnitude_a = self.inner_product.compute(a, a) ** 0.5
+        magnitude_b = self.inner_product.compute(b, b) ** 0.5
         
-        Args:
-            x: First vector
-            y: Second vector
+        if magnitude_a == 0 or magnitude_b == 0:
+            logger.warning("Cannot compute angle with zero magnitude vector")
+            return 0.0
             
-        Returns:
-            True if vectors are orthogonal (inner product is zero), False otherwise
-        """
-        pass
-    
-    @abstractmethod
-    def check_xy_project(self, x: IVector, y: IVector) -> IVector:
-        """Project vector x onto vector y using the inner product.
+        cosine_similarity = inner / (magnitude_a * magnitude_b)
+        angle = self.inner_product.compute(cosine_similarity, 1).real  # Assuming compute handles inverse cosine
         
+        logger.info(f"Angle between vectors: {angle}")
+        return angle
+
+    def check_verify_orthogonality(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
+        """
+        Verifies if two vectors are orthogonal using the inner product.
+
         Args:
-            x: Vector to project
-            y: Vector onto which to project
-            
+            a: First vector
+            b: Second vector
+
         Returns:
-            Projection of x onto y
+            bool: True if vectors are orthogonal, False otherwise
         """
-        pass
-    
-    @abstractmethod
-    def check_verify_parallelogram_law(self, x: IVector, y: IVector) -> bool:
-        """Verify the parallelogram law using the inner product.
+        logger.info("Checking orthogonality")
+        inner = self.inner_product.compute(a, b)
         
-        The parallelogram law states that:
-        ||x + y||² + ||x - y||² = 2||x||² + 2||y||²
-        
+        if inner == 0:
+            logger.info("Vectors are orthogonal")
+            return True
+        else:
+            logger.info("Vectors are not orthogonal")
+            return False
+
+    def check_xy_project(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> Union[IVector, Matrix]:
+        """
+        Projects vector a onto vector b using the inner product.
+
         Args:
-            x: First vector
-            y: Second vector
-            
+            a: Vector to project
+            b: Vector onto which to project
+
         Returns:
-            True if the parallelogram law holds, False otherwise
+            Union[IVector, Matrix]: Projection of a onto b
         """
-        pass
+        logger.info("Projecting vector a onto vector b")
+        inner = self.inner_product.compute(a, b)
+        norm_b = self.inner_product.compute(b, b)
+        
+        if norm_b == 0:
+            logger.warning("Cannot project onto zero vector")
+            return a
+            
+        projection = (inner / norm_b) * b
+        logger.info("Projection computed successfully")
+        return projection
+
+    def check_verify_parallelogram_law(self, a: Union[IVector, Matrix], b: Union[IVector, Matrix]) -> bool:
+        """
+        Verifies the parallelogram law using the inner product.
+
+        Args:
+            a: First vector
+            b: Second vector
+
+        Returns:
+            bool: True if parallelogram law holds, False otherwise
+        """
+        logger.info("Checking parallelogram law")
+        norm_a_plus_b = self.inner_product.compute(a + b, a + b)
+        norm_a_minus_b = self.inner_product.compute(a - b, a - b)
+        sum_of_squares = self.inner_product.compute(a, a) + self.inner_product.compute(b, b)
+        
+        if norm_a_plus_b + norm_a_minus_b == 2 * sum_of_squares:
+            logger.info("Parallelogram law holds")
+            return True
+        else:
+            logger.info("Parallelogram law does not hold")
+            return False

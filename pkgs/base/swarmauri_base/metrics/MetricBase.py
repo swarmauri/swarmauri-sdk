@@ -1,179 +1,152 @@
-from abc import ABC
-from typing import Any, Callable, Optional, Sequence, TypeVar, Union
-import logging
+from typing import Union, List, Literal
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.metrics.IMetric import IMetric
+import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-T = TypeVar('T', IVector, IMatrix, Sequence, str, Callable)
-S = TypeVar('S', int, float, bool, str)
 
 @ComponentBase.register_model()
 class MetricBase(IMetric, ComponentBase):
     """
-    Provides a base implementation for the IMetric interface, implementing the core
-    functionality required for metric spaces. This class ensures compliance with
-    the four main metric axioms and provides boilerplate code for distance
-    calculations.
+    Base implementation for metric spaces. This class provides a foundation for 
+    implementing specific metric spaces by implementing the required methods 
+    while enforcing the metric axioms.
 
-    Inherits From:
-        IMetric (ABC): The interface for metric spaces.
-        ComponentBase: Base class for components in the system.
-
-    Provides:
-        - Abstract method implementations that raise NotImplementedError
-        - Logging functionality
-        - Type hints and docstrings
-        - Compliance with PEP 8 and PEP 484 guidelines
+    Implementations must provide concrete implementations for the abstract methods 
+    while adhering to the following properties:
+    1. Non-negativity: d(x, y) ≥ 0
+    2. Identity: d(x, y) = 0 if and only if x = y
+    3. Symmetry: d(x, y) = d(y, x)
+    4. Triangle inequality: d(x, z) ≤ d(x, y) + d(y, z)
     """
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
-
-    def __init__(self):
-        """
-        Initialize the MetricBase instance.
-
-        Initializes the base class and sets up logging.
-        """
-        super().__init__()
-        logger.debug("MetricBase instance initialized")
-
-    def distance(self, x: T, y: T) -> float:
+    
+    def distance(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        y: Union[IVector, IMatrix, List, str, callable]
+    ) -> float:
         """
         Compute the distance between two points.
 
         Args:
-            x: T
-                The first point to compare
-            y: T
-                The second point to compare
+            x: The first point. Can be a vector, matrix, list, string, or callable.
+            y: The second point. Can be a vector, matrix, list, string, or callable.
 
         Returns:
-            float:
-                The computed distance between x and y
+            float: The computed distance between x and y.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by a subclass
-            ValueError:
-                If the input types are not supported
-            TypeError:
-                If the input types are incompatible
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("distance must be implemented by subclass")
+        logger.warning("distance method called on base class - must be implemented in subclass")
+        raise NotImplementedError("distance method must be implemented in subclass")
 
-    def distances(self, x: T, y_list: Union[T, Sequence[T]]) -> Union[float, Sequence[float]]:
+    def distances(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        ys: List[Union[IVector, IMatrix, List, str, callable]]
+    ) -> List[float]:
         """
-        Compute the distance(s) between a point and one or more points.
+        Compute distances from a single point to multiple points.
 
         Args:
-            x: T
-                The reference point
-            y_list: Union[T, Sequence[T]]
-                Either a single point or a sequence of points
+            x: The reference point. Can be a vector, matrix, list, string, or callable.
+            ys: List of points to compute distances to. Each can be a vector, 
+                matrix, list, string, or callable.
 
         Returns:
-            Union[float, Sequence[float]]:
-                - If y_list is a single point: Returns the distance as a float
-                - If y_list is a sequence: Returns a sequence of distances
+            List[float]: List of distances from x to each point in ys.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by subclass
-            ValueError:
-                If the input types are not supported
-            TypeError:
-                If the input types are incompatible
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("distances must be implemented by subclass")
+        logger.warning("distances method called on base class - must be implemented in subclass")
+        raise NotImplementedError("distances method must be implemented in subclass")
 
-    def check_non_negativity(self, x: T, y: T) -> bool:
+    def check_non_negativity(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        y: Union[IVector, IMatrix, List, str, callable]
+    ) -> Literal[True]:
         """
-        Verify the non-negativity axiom: d(x, y) ≥ 0.
+        Verify the non-negativity property: d(x, y) ≥ 0.
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
+            x: The first point. Can be a vector, matrix, list, string, or callable.
+            y: The second point. Can be a vector, matrix, list, string, or callable.
 
         Returns:
-            bool:
-                True if the non-negativity condition holds, False otherwise
+            Literal[True]: True if the non-negativity property holds.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by subclass
-            ValueError:
-                If the distance computation fails
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("check_non_negativity must be implemented by subclass")
+        logger.warning("check_non_negativity method called on base class - must be implemented in subclass")
+        raise NotImplementedError("check_non_negativity method must be implemented in subclass")
 
-    def check_identity(self, x: T, y: T) -> bool:
+    def check_identity(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        y: Union[IVector, IMatrix, List, str, callable]
+    ) -> Literal[True]:
         """
-        Verify the identity of indiscernibles axiom: d(x, y) = 0 if and only if x = y.
+        Verify the identity of indiscernibles property: d(x, y) = 0 if and only if x = y.
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
+            x: The first point. Can be a vector, matrix, list, string, or callable.
+            y: The second point. Can be a vector, matrix, list, string, or callable.
 
         Returns:
-            bool:
-                True if the identity condition holds, False otherwise
+            Literal[True]: True if the identity property holds.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by subclass
-            ValueError:
-                If the distance computation fails
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("check_identity must be implemented by subclass")
+        logger.warning("check_identity method called on base class - must be implemented in subclass")
+        raise NotImplementedError("check_identity method must be implemented in subclass")
 
-    def check_symmetry(self, x: T, y: T) -> bool:
+    def check_symmetry(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        y: Union[IVector, IMatrix, List, str, callable]
+    ) -> Literal[True]:
         """
-        Verify the symmetry axiom: d(x, y) = d(y, x).
+        Verify the symmetry property: d(x, y) = d(y, x).
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
+            x: The first point. Can be a vector, matrix, list, string, or callable.
+            y: The second point. Can be a vector, matrix, list, string, or callable.
 
         Returns:
-            bool:
-                True if the symmetry condition holds, False otherwise
+            Literal[True]: True if the symmetry property holds.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by subclass
-            ValueError:
-                If the distance computation fails
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("check_symmetry must be implemented by subclass")
+        logger.warning("check_symmetry method called on base class - must be implemented in subclass")
+        raise NotImplementedError("check_symmetry method must be implemented in subclass")
 
-    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
+    def check_triangle_inequality(
+        self, 
+        x: Union[IVector, IMatrix, List, str, callable], 
+        y: Union[IVector, IMatrix, List, str, callable], 
+        z: Union[IVector, IMatrix, List, str, callable]
+    ) -> Literal[True]:
         """
-        Verify the triangle inequality axiom: d(x, z) ≤ d(x, y) + d(y, z).
+        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
-            z: T
-                The third point
+            x: The first point. Can be a vector, matrix, list, string, or callable.
+            y: The second point. Can be a vector, matrix, list, string, or callable.
+            z: The third point. Can be a vector, matrix, list, string, or callable.
 
         Returns:
-            bool:
-                True if the triangle inequality condition holds, False otherwise
+            Literal[True]: True if the triangle inequality property holds.
 
         Raises:
-            NotImplementedError:
-                This method must be implemented by subclass
-            ValueError:
-                If the distance computation fails
+            NotImplementedError: This method must be implemented in a subclass.
         """
-        raise NotImplementedError("check_triangle_inequality must be implemented by subclass")
+        logger.warning("check_triangle_inequality method called on base class - must be implemented in subclass")
+        raise NotImplementedError("check_triangle_inequality method must be implemented in subclass")

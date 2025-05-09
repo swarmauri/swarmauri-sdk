@@ -1,212 +1,249 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, TypeVar, Union
+from typing import Any, Tuple, Union, Literal
+from swarmauri_core.matrices.IMatrix import IMatrix
 import logging
 
-from swarmauri_core.matrices.IMatrix import IMatrix
-
-# Configure logging
 logger = logging.getLogger(__name__)
-
-T = TypeVar('T', int, float, bool, slice, Tuple[Union[int, slice], ...])
-S = TypeVar('S', int, float, bool, str)
 
 
 class MatrixBase(IMatrix, ABC):
     """
-    Base class for matrix operations providing concrete implementations of abstract
-    methods from IMatrix interface. This class serves as a foundation for specific
-    matrix implementations and should not be used directly.
+    Base class for matrix operations. This provides a foundation for implementing
+    matrix data structures with support for indexing, slicing, shape manipulation,
+    and matrix operations.
 
-    Subclasses must implement all methods marked as abstract or provide specific
-    implementations tailored to their matrix representation.
+    This class must be subclassed by concrete matrix implementations, which will
+    provide the actual storage and specific operation implementations.
     """
 
-    def __init__(self, shape: Tuple[int, int]):
+    def __getitem__(self, index: Union[Tuple[int, int], int, slice, tuple]) -> Union['IMatrix', IVector, Any]:
         """
-        Initialize the base matrix with the specified shape.
+        Get item from matrix using indexing or slicing.
 
         Args:
-            shape: Tuple[int, int]
-                The dimensions of the matrix (rows, columns)
-        """
-        super().__init__(shape)
-        logger.debug(f"MatrixBase initialized with shape {shape}")
-
-    @property
-    def dtype(self) -> type:
-        """
-        Get the data type of the elements in the matrix.
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
 
         Returns:
-            type: The data type of the elements
+            Union[IMatrix, IVector, Any]: The accessed element(s). Returns a
+            new IMatrix if slicing returns a submatrix, an IVector if slicing
+            returns a row/column vector, or the element itself for single index.
 
         Raises:
-            NotImplementedError: Must be implemented by subclass
+            IndexError: If index is out of bounds.
+            ValueError: If slice step is invalid.
         """
-        raise NotImplementedError("dtype must be implemented by subclass")
+        logger.error("Method __getitem__ must be implemented in a subclass")
+        raise NotImplementedError("__getitem__ must be implemented in a subclass")
 
-    def get_row(self, index: int) -> IMatrix:
+    def __setitem__(self, index: Union[Tuple[int, int], int, slice, tuple], value: Any) -> None:
         """
-        Get a row from the matrix as an IVector.
+        Set item in matrix using indexing or slicing.
 
         Args:
-            index: int
-                The row index to retrieve
-
-        Returns:
-            IVector: The specified row as an IVector
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
-            IndexError: If the index is out of bounds
-        """
-        raise NotImplementedError("get_row must be implemented by subclass")
-
-    def get_column(self, index: int) -> IMatrix:
-        """
-        Get a column from the matrix as an IVector.
-
-        Args:
-            index: int
-                The column index to retrieve
-
-        Returns:
-            IVector: The specified column as an IVector
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
+            value: Value to set at the specified index. Can be a single value,
+                vector, or another matrix of compatible shape.
 
         Raises:
-            NotImplementedError: Method must be implemented by subclass
-            IndexError: If the index is out of bounds
+            IndexError: If index is out of bounds.
+            ValueError: If value shape is incompatible with index.
         """
-        raise NotImplementedError("get_column must be implemented by subclass")
+        logger.error("Method __setitem__ must be implemented in a subclass")
+        raise NotImplementedError("__setitem__ must be implemented in a subclass")
 
-    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
+    def __iter__(self) -> iter:
         """
-        Reshape the matrix to the specified dimensions.
+        Return an iterator over the matrix rows.
 
-        Args:
-            new_shape: Tuple[int, int]
-                The new dimensions (rows, columns)
-
-        Returns:
-            IMatrix: The reshaped matrix
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
-            ValueError: If the new shape is incompatible with the data
+        Yields:
+            IVector: The next row vector in the matrix.
         """
-        raise NotImplementedError("reshape must be implemented by subclass")
-
-    def __getitem__(self, index: T) -> Union['IMatrix', IMatrix, S]:
-        """
-        Get an element, row, or column from the matrix.
-
-        Args:
-            index: T
-                The index or slice to retrieve
-
-        Returns:
-            Union['IMatrix', IMatrix, S]: 
-                - If index is a tuple of slices: Returns a submatrix
-                - If index is an integer: Returns the specified row as an IVector
-                - If index is a slice: Returns a slice of rows as an IMatrix
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
-            IndexError: If the index is out of bounds
-            TypeError: If the index type is not supported
-        """
-        raise NotImplementedError(" __getitem__ must be implemented by subclass")
-
-    def __setitem__(self, index: T, value: Union['IMatrix', IMatrix, S]) -> None:
-        """
-        Set an element, row, or column in the matrix.
-
-        Args:
-            index: T
-                The index or slice to set
-            value: Union['IMatrix', IMatrix, S]
-                The value to set
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
-            IndexError: If the index is out of bounds
-            TypeError: If the value type is not compatible
-        """
-        raise NotImplementedError(" __setitem__ must be implemented by subclass")
-
-    def tolist(self) -> list:
-        """
-        Convert the matrix to a list of lists.
-
-        Returns:
-            list: A list of lists representing the matrix
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
-        """
-        raise NotImplementedError(" tolist must be implemented by subclass")
+        logger.error("Method __iter__ must be implemented in a subclass")
+        raise NotImplementedError("__iter__ must be implemented in a subclass")
 
     def __add__(self, other: 'IMatrix') -> 'IMatrix':
         """
-        Element-wise addition of two matrices.
+        Matrix addition.
 
         Args:
-            other: IMatrix
-                The matrix to add
+            other: Another matrix of the same shape and compatible dtype.
 
         Returns:
-            IMatrix: The result of the addition
+            IMatrix: Result of element-wise addition.
 
         Raises:
-            NotImplementedError: Method must be implemented by subclass
-            ValueError: If the matrices have different shapes
+            ValueError: If matrix shapes do not match.
+            TypeError: If matrices have incompatible dtypes.
         """
-        raise NotImplementedError(" __add__ must be implemented by subclass")
+        logger.error("Method __add__ must be implemented in a subclass")
+        raise NotImplementedError("__add__ must be implemented in a subclass")
 
     def __sub__(self, other: 'IMatrix') -> 'IMatrix':
         """
-        Element-wise subtraction of two matrices.
+        Matrix subtraction.
 
         Args:
-            other: IMatrix
-                The matrix to subtract
+            other: Another matrix of the same shape and compatible dtype.
 
         Returns:
-            IMatrix: The result of the subtraction
+            IMatrix: Result of element-wise subtraction.
 
         Raises:
-            NotImplementedError: Method must be implemented by subclass
-            ValueError: If the matrices have different shapes
+            ValueError: If matrix shapes do not match.
+            TypeError: If matrices have incompatible dtypes.
         """
-        raise NotImplementedError(" __sub__ must be implemented by subclass")
+        logger.error("Method __sub__ must be implemented in a subclass")
+        raise NotImplementedError("__sub__ must be implemented in a subclass")
 
-    def __mul__(self, other: Union['IMatrix', S]) -> 'IMatrix':
+    def __mul__(self, other: Union['IMatrix', Any]) -> Union['IMatrix', IVector]:
         """
-        Element-wise multiplication or matrix multiplication.
+        Matrix multiplication or element-wise multiplication.
 
         Args:
-            other: Union['IMatrix', S]
-                - If IMatrix: Performs matrix multiplication
-                - If scalar: Performs element-wise multiplication
+            other: Either another matrix for matrix multiplication or a scalar for
+                element-wise multiplication.
 
         Returns:
-            IMatrix: The result of the multiplication
+            Union[IMatrix, IVector]: Result of multiplication. Returns an
+            IMatrix for matrix multiplication, or an IVector if multiplying
+            with a vector, or the element-wise result if multiplying with a scalar.
 
         Raises:
-            NotImplementedError: Method must be implemented by subclass
-            ValueError: If the shapes are incompatible for multiplication
-            TypeError: If the multiplication type is not supported
+            ValueError: If matrix dimensions are incompatible for multiplication.
+            TypeError: If other is of unsupported type.
         """
-        raise NotImplementedError(" __mul__ must be implemented by subclass")
+        logger.error("Method __mul__ must be implemented in a subclass")
+        raise NotImplementedError("__mul__ must be implemented in a subclass")
+
+    def __matmul__(self, other: 'IMatrix') -> 'IMatrix':
+        """
+        Matrix multiplication (Python 3.5+ matrix multiplication operator).
+
+        Args:
+            other: Another matrix of compatible dimensions for multiplication.
+
+        Returns:
+            IMatrix: Result of matrix multiplication.
+
+        Raises:
+            ValueError: If number of columns in self does not match number of rows in other.
+        """
+        logger.error("Method __matmul__ must be implemented in a subclass")
+        raise NotImplementedError("__matmul__ must be implemented in a subclass")
+
+    def shape(self) -> Tuple[int, int]:
+        """
+        Get the shape of the matrix as (rows, columns).
+
+        Returns:
+            Tuple[int, int]: The shape of the matrix.
+        """
+        logger.error("Method shape must be implemented in a subclass")
+        raise NotImplementedError("shape must be implemented in a subclass")
+
+    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
+        """
+        Reshape the matrix to new dimensions.
+
+        Args:
+            new_shape: Tuple[int, int] representing the new (rows, columns).
+
+        Returns:
+            IMatrix: The reshaped matrix.
+
+        Raises:
+            ValueError: If the total number of elements does not match.
+        """
+        logger.error("Method reshape must be implemented in a subclass")
+        raise NotImplementedError("reshape must be implemented in a subclass")
+
+    def dtype(self) -> type:
+        """
+        Get the data type of the matrix elements.
+
+        Returns:
+            type: The dtype of the matrix elements.
+        """
+        logger.error("Method dtype must be implemented in a subclass")
+        raise NotImplementedError("dtype must be implemented in a subclass")
+
+    def tolist(self) -> list:
+        """
+        Convert the matrix to a nested list representation.
+
+        Returns:
+            list: A list of lists, where each sublist represents a row of the matrix.
+        """
+        logger.error("Method tolist must be implemented in a subclass")
+        raise NotImplementedError("tolist must be implemented in a subclass")
+
+    def row(self, index: int) -> IVector:
+        """
+        Get a specific row as a vector.
+
+        Args:
+            index: The row index to access.
+
+        Returns:
+            IVector: The row vector at the specified index.
+
+        Raises:
+            IndexError: If index is out of bounds.
+        """
+        logger.error("Method row must be implemented in a subclass")
+        raise NotImplementedError("row must be implemented in a subclass")
+
+    def column(self, index: int) -> IVector:
+        """
+        Get a specific column as a vector.
+
+        Args:
+            index: The column index to access.
+
+        Returns:
+            IVector: The column vector at the specified index.
+
+        Raises:
+            IndexError: If index is out of bounds.
+        """
+        logger.error("Method column must be implemented in a subclass")
+        raise NotImplementedError("column must be implemented in a subclass")
+
+    def __len__(self) -> int:
+        """
+        Get the number of rows in the matrix.
+
+        Returns:
+            int: Number of rows.
+        """
+        logger.error("Method __len__ must be implemented in a subclass")
+        raise NotImplementedError("__len__ must be implemented in a subclass")
+
+    @classmethod
+    def from_list(cls, data: list) -> 'IMatrix':
+        """
+        Create a matrix from a nested list.
+
+        Args:
+            data: A list of lists, where each sublist is a row of the matrix.
+
+        Returns:
+            IMatrix: The constructed matrix.
+
+        Raises:
+            ValueError: If the input data is invalid or inconsistent.
+        """
+        logger.error("Method from_list must be implemented in a subclass")
+        raise NotImplementedError("from_list must be implemented in a subclass")
 
     def __str__(self) -> str:
         """
-        Get a string representation of the matrix.
+        String representation of the matrix.
 
         Returns:
-            str: A string representation of the matrix
-
-        Raises:
-            NotImplementedError: Method must be implemented by subclass
+            str: A string representation of the matrix elements.
         """
-        raise NotImplementedError(" __str__ must be implemented by subclass")
+        logger.error("Method __str__ must be implemented in a subclass")
+        raise NotImplementedError("__str__ must be implemented in a subclass")

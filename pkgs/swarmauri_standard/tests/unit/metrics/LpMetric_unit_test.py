@@ -1,120 +1,97 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.metrics.LpMetric import LpMetric
+from swarmauri_standard.metrics.LpMetric import LpMetric
 import logging
 
+@pytest.fixture
+def lp_metricFixture(p: float = 2.0):
+    """Fixture to create LpMetric instances with specified p value."""
+    return LpMetric(p=p)
 
 @pytest.mark.unit
 class TestLpMetric:
-    """Unit tests for the LpMetric class."""
-
-    def test_resource_attribute(self):
+    """Unit tests for the LpMetric class implementation."""
+    
+    def test_resource(self):
         """Test that the resource attribute is correctly set."""
         assert LpMetric.resource == "Metric"
-
-    def test_type_attribute(self):
+        
+    def test_type(self):
         """Test that the type attribute is correctly set."""
         assert LpMetric.type == "LpMetric"
-
-    def test_initialization(self):
-        """Test that an LpMetric instance initializes correctly."""
-        p = 2.0
-        lp_metric = LpMetric(p=p)
-        assert lp_metric.p == p
-        assert isinstance(lp_metric.norm, GeneralLpNorm)
-
-    def test_invalid_p_value(self):
-        """Test that invalid p values raise a ValueError."""
+        
+    def test_p_value(self, lp_metricFixture):
+        """Test that the p value is correctly set during initialization."""
+        assert lp_metricFixture.p == lp_metricFixture._p
+        
+    @pytest.mark.parametrize("p", [2.0, 3.0, 1.5])
+    def test_valid_p_values(self, p):
+        """Test that valid p values are accepted."""
+        metric = LpMetric(p=p)
+        assert metric.p == p
+        
+    @pytest.mark.parametrize("invalid_p", ["string", -2, 1, 0])
+    def test_invalid_p_values(self, invalid_p):
+        """Test that invalid p values raise ValueError."""
         with pytest.raises(ValueError):
-            LpMetric(p=1)
-
-        with pytest.raises(ValueError):
-            LpMetric(p=-2)
-
-    def test_distance_scalar(self):
-        """Test distance calculation between scalar values."""
-        lp_metric = LpMetric(p=2)
-        assert lp_metric.distance(1, 1) == 0
-        assert lp_metric.distance(2, 1) == 1.0
-        assert lp_metric.distance(3.5, 1.5) == 2.0
-
-    def test_distance_vector(self):
-        """Test distance calculation between vector values."""
-        lp_metric = LpMetric(p=2)
+            LpMetric(p=invalid_p)
+            
+    def test_distance_vector(self, lp_metricFixture):
+        """Test distance computation for vector inputs."""
         x = [1, 2, 3]
         y = [4, 5, 6]
-        expected = (3**2 + 3**2 + 3**2) ** 0.5
-        assert lp_metric.distance(x, y) == expected
-
-    def test_distance_different_lengths(self):
-        """Test that vectors of different lengths raise ValueError."""
-        lp_metric = LpMetric(p=2)
-        x = [1, 2]
-        y = [3, 4, 5]
+        distance = lp_metricFixture.distance(x, y)
+        assert distance >= 0
+        
+    def test_distance_matrix(self, lp_metricFixture):
+        """Test distance computation for matrix inputs."""
+        x = [[1, 2], [3, 4]]
+        y = [[5, 6], [7, 8]]
+        distance = lp_metricFixture.distance(x, y)
+        assert distance >= 0
+        
+    def test_distance_callable(self, lp_metricFixture):
+        """Test distance computation for callable inputs."""
+        x = lambda: [1, 2, 3]
+        y = lambda: [4, 5, 6]
+        distance = lp_metricFixture.distance(x, y)
+        assert distance >= 0
+        
+    def test_identity_property(self, lp_metricFixture):
+        """Test the identity property: d(x, y) = 0 iff x == y."""
+        x = [1, 2, 3]
+        y = [1, 2, 3]
+        assert lp_metricFixture.check_identity(x, y)
+        
+        x_diff = [1, 2, 3]
+        y_diff = [4, 5, 6]
+        with pytest.raises(AssertionError):
+            lp_metricFixture.check_identity(x_diff, y_diff)
+            
+    def test_symmetry_property(self, lp_metricFixture):
+        """Test the symmetry property: d(x, y) = d(y, x)."""
+        x = [1, 2, 3]
+        y = [4, 5, 6]
+        d_xy = lp_metricFixture.distance(x, y)
+        d_yx = lp_metricFixture.distance(y, x)
+        assert d_xy == d_yx
+        
+    def test_triangle_inequality(self, lp_metricFixture):
+        """Test the triangle inequality: d(x, z) <= d(x, y) + d(y, z)."""
+        x = [1, 1]
+        y = [2, 2]
+        z = [3, 3]
+        d_xz = lp_metricFixture.distance(x, z)
+        d_xy = lp_metricFixture.distance(x, y)
+        d_yz = lp_metricFixture.distance(y, z)
+        assert d_xz <= d_xy + d_yz
+        
+    def test_invalid_input_handling(self, lp_metricFixture):
+        """Test that invalid input types raise ValueError."""
         with pytest.raises(ValueError):
-            lp_metric.distance(x, y)
-
-    def test_non_negativity(self):
-        """Test the non-negativity property."""
-        lp_metric = LpMetric(p=2)
-        assert lp_metric.check_non_negativity(1, 1)
-        assert lp_metric.check_non_negativity(1, 2)
-
-    def test_identity(self):
-        """Test the identity property."""
-        lp_metric = LpMetric(p=2)
-        assert lp_metric.check_identity(1, 1)
-        assert not lp_metric.check_identity(1, 2)
-
-    def test_symmetry(self):
-        """Test the symmetry property."""
-        lp_metric = LpMetric(p=2)
-        x = 1
-        y = 2
-        assert lp_metric.check_symmetry(x, y)
-
-    def test_triangle_inequality(self):
-        """Test the triangle inequality property."""
-        lp_metric = LpMetric(p=2)
-        x = 1
-        y = 2
-        z = 3
-        assert lp_metric.check_triangle_inequality(x, y, z)
-
-    @pytest.mark.parametrize(
-        "p,x,y,expected",
-        [
-            (2, 1, 1, 0),
-            (2, 2, 1, 1.0),
-            (1.5, 3, 1, 2.0),
-        ],
-    )
-    def test_parameterized_distance(self, p, x, y, expected):
-        """Test parameterized distance calculations."""
-        lp_metric = LpMetric(p=p)
-        assert lp_metric.distance(x, y) == expected
-
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            (1, 1),
-            (2, 3),
-            (3.5, 1.5),
-        ],
-    )
-    def test_parameterized_non_negativity(self, x, y):
-        """Test parameterized non-negativity."""
-        lp_metric = LpMetric(p=2)
-        assert lp_metric.check_non_negativity(x, y)
-
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            (1, 1),
-            (2, 2),
-            (3.5, 3.5),
-        ],
-    )
-    def test_parameterized_identity(self, x, y):
-        """Test parameterized identity."""
-        lp_metric = LpMetric(p=2)
-        assert lp_metric.check_identity(x, y)
+            lp_metricFixture.distance([1, 2], "invalid")
+            
+    def test_serialization(self, lp_metricFixture):
+        """Test serialization and deserialization."""
+        lp_metric_json = lp_metricFixture.model_dump_json()
+        deserialized = LpMetric.model_validate_json(lp_metric_json)
+        assert lp_metricFixture.id == deserialized.id

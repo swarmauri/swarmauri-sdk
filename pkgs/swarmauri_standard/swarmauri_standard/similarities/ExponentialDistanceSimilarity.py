@@ -1,13 +1,10 @@
-from typing import Any, Sequence, Tuple, TypeVar, Union, Callable
+from typing import Union, List, Optional, Callable, Literal
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.similarities.ISimilarity import ISimilarity
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 import logging
+from scipy.spatial import distance
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", str, bytes, Any)
-OutputType = TypeVar("OutputType", float)
 
 
 @ComponentBase.register_type(SimilarityBase, "ExponentialDistanceSimilarity")
@@ -15,112 +12,162 @@ class ExponentialDistanceSimilarity(SimilarityBase):
     """
     Exponential distance similarity implementation.
 
-    This class provides an exponential decay similarity measure based on arbitrary distance metrics.
-    The similarity between two elements is calculated as exp(-distance), where distance is computed using
-    a provided distance function.
+    This class provides an implementation of similarity calculation using an exponential
+    decay function based on the distance between elements. It supports arbitrary distance
+    measures and provides standard similarity functionality.
 
     Attributes:
-        distance_function: Callable[[InputType, InputType], float]
-            A function that computes the distance between two elements
+        distance_fn: Callable to compute distance between elements.
+        gamma: Scaling factor for exponential decay. Defaults to 1.0.
     """
-
     type: Literal["ExponentialDistanceSimilarity"] = "ExponentialDistanceSimilarity"
-    resource: str = ResourceTypes.SIMILARITY.value
+    resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
-    def __init__(self, distance_function: Callable[[InputType, InputType], float]):
+    def __init__(self, distance_fn: Callable = distance.euclidean, gamma: float = 1.0):
         """
         Initialize the ExponentialDistanceSimilarity instance.
 
         Args:
-            distance_function: Callable[[InputType, InputType], float]
-                A function that computes the distance between two elements of type InputType
+            distance_fn: Function to compute distance between elements. Defaults to Euclidean distance.
+            gamma: Scaling factor for exponential decay. Defaults to 1.0.
         """
-        super().__init__()
-        if distance_function is None:
-            raise ValueError("distance_function must be provided")
-        if not callable(distance_function):
-            raise TypeError("distance_function must be callable")
-        self.distance_function = distance_function
-        logger.debug("Initialized ExponentialDistanceSimilarity instance")
+        self.distance_fn = distance_fn
+        self.gamma = gamma
 
-    def similarity(self, x: InputType, y: InputType) -> float:
+    def similarity(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
-        Calculate the similarity between two elements using exponential decay of distance.
+        Compute the similarity between two elements using exponential decay.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: First element to compare. Can be vector, matrix, tuple, string, or callable.
+            y: Second element to compare. Can be vector, matrix, tuple, string, or callable.
 
         Returns:
-            float:
-                A float representing the similarity between x and y, computed as exp(-distance(x, y))
-        """
-        logger.debug(f"Calculating similarity between {x} and {y}")
-        distance = self.distance_function(x, y)
-        similarity = float(__import__("math").exp(-distance))
-        logger.debug(f"Similarity: {similarity}")
-        return similarity
+            float: Similarity score between x and y.
 
-    def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+        Raises:
+            ValueError: If elements are of invalid type.
         """
-        Calculate similarities for multiple pairs of elements.
+        # Ensure elements are valid
+        if isinstance(x, Callable):
+            x = x()
+        if isinstance(y, Callable):
+            y = y()
+
+        try:
+            # Compute distance between elements
+            dist = self.distance_fn(x, y)
+            # Apply exponential decay
+            similarity = 1.0 / (1.0 + (dist / self.gamma))
+            logger.debug(f"Computed similarity: {similarity}")
+            return similarity
+        except Exception as e:
+            logger.error(f"Error computing similarity: {str(e)}")
+            raise
+
+    def dissimilarity(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
+        """
+        Compute the dissimilarity between two elements.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: First element to compare. Can be vector, matrix, tuple, string, or callable.
+            y: Second element to compare. Can be vector, matrix, tuple, string, or callable.
 
         Returns:
-            Sequence[float]:
-                A sequence of similarity scores corresponding to each pair
+            float: Dissimilarity score between x and y.
         """
-        logger.debug(f"Calculating similarities for {len(pairs)} pairs")
-        results = []
-        for x, y in pairs:
-            results.append(self.similarity(x, y))
-        logger.debug(f"Similarities calculated: {results}")
-        return results
-
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
-        """
-        Calculate the dissimilarity between two elements.
-
-        Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
-
-        Returns:
-            float:
-                A float representing the dissimilarity between x and y, computed as 1 - similarity(x, y)
-        """
-        logger.debug(f"Calculating dissimilarity between {x} and {y}")
+        # Compute similarity and convert to dissimilarity
         similarity = self.similarity(x, y)
-        dissimilarity = 1.0 - similarity
-        logger.debug(f"Dissimilarity: {dissimilarity}")
-        return dissimilarity
+        return 1.0 - similarity
 
-    def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+    def check_boundedness(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
         """
-        Calculate dissimilarities for multiple pairs of elements.
+        Check if the similarity measure is bounded.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: First element to compare.
+            y: Second element to compare.
 
         Returns:
-            Sequence[float]:
-                A sequence of dissimilarity scores corresponding to each pair
+            bool: True if the measure is bounded, False otherwise.
         """
-        logger.debug(f"Calculating dissimilarities for {len(pairs)} pairs")
-        results = []
-        for x, y in pairs:
-            results.append(self.dissimilarity(x, y))
-        logger.debug(f"Dissimilarities calculated: {results}")
-        return results
+        return True  # Exponential similarity is always bounded between 0 and 1
+
+    def check_reflexivity(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is reflexive.
+
+        Args:
+            x: Element to check reflexivity for.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        try:
+            # Compute similarity of element with itself
+            similarity = self.similarity(x, x)
+            return similarity == 1.0
+        except Exception as e:
+            logger.error(f"Error checking reflexivity: {str(e)}")
+            return False
+
+    def check_symmetry(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is symmetric.
+
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        try:
+            # Compute similarity in both directions
+            similarity_xy = self.similarity(x, y)
+            similarity_yx = self.similarity(y, x)
+            return similarity_xy == similarity_yx
+        except Exception as e:
+            logger.error(f"Error checking symmetry: {str(e)}")
+            return False
+
+    def check_identity(
+        self,
+        x: Union[IVector, IMatrix, Tuple, str, Callable],
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure satisfies identity.
+
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise.
+        """
+        try:
+            # Identity means x and y are the same if similarity is 1.0
+            return self.similarity(x, y) == 1.0
+        except Exception as e:
+            logger.error(f"Error checking identity: {str(e)}")
+            return False

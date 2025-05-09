@@ -1,194 +1,216 @@
-import logging
-from typing import TypeVar, Union, Sequence, Optional, Tuple, Any
-import numpy as np
+from typing import Union, List, Literal, Optional, Callable, Sequence
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
+import logging
+import numpy as np
 
-T = TypeVar("T", Union["IVector", "IMatrix", Sequence, Tuple, np.ndarray, Any])
-
+logger = logging.getLogger(__name__)
 
 @ComponentBase.register_type(MetricBase, "SupremumMetric")
 class SupremumMetric(MetricBase):
     """
-    Provides a concrete implementation of the L∞ metric, which measures the maximum
-    deviation between corresponding components of two vectors.
+    Concrete implementation of the MetricBase class for computing the supremum metric.
+
+    The supremum metric (L∞ metric) measures the maximum absolute difference between 
+    corresponding components of two vectors. This implementation handles both vector 
+    and callable inputs, evaluating callables at a specified number of points.
 
     Inherits From:
-        MetricBase: Base class providing common interfaces for metric computations.
-        ComponentBase: Base class for all components in the system.
-
-    Implements:
-        - distance(): Computes the L∞ distance between two points
-        - distances(): Computes distances between a point and multiple points
-        - Various metric axiom verification methods
+        MetricBase: Base class providing the interface for metric computations
+        ComponentBase: Base class for all components in the system
 
     Attributes:
-        type: Literal["SupremumMetric"] = "SupremumMetric"
-            Type identifier for the metric class
+        resource: Type of resource this component represents
     """
-
-    type: Literal["SupremumMetric"] = "SupremumMetric"
-    resource: Optional[str] = Field(default="Metric")
+    resource: Optional[str] = Field(default="metric")
 
     def __init__(self):
-        """
-        Initializes the SupremumMetric instance.
-
-        Sets up logging and initializes the base class.
-        """
+        """Initialize the SupremumMetric instance."""
         super().__init__()
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug("SupremumMetric instance initialized")
+        logger.debug("Initialized SupremumMetric")
 
-    def distance(self, x: T, y: T) -> float:
+    def distance(
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+    ) -> float:
         """
-        Computes the L∞ distance between two points.
+        Compute the supremum distance between two points.
 
-        The L∞ distance is defined as the maximum absolute difference between
-        corresponding components of the two points.
+        For vectors/arrays: Computes the maximum absolute difference between corresponding elements.
+        For callables: Evaluates both functions at multiple points and takes the maximum difference.
 
         Args:
-            x: T
-                The first point to compare
-            y: T
-                The second point to compare
+            x: The first point. Can be a vector, array, callable, string, or bytes.
+            y: The second point. Can be a vector, array, callable, string, or bytes.
 
         Returns:
-            float:
-                The computed L∞ distance between x and y
+            float: The computed supremum distance between x and y.
 
         Raises:
-            ValueError:
-                If the input shapes are incompatible
-            TypeError:
-                If the input types are not supported
+            ValueError: If input types are not compatible
+            TypeError: If input types are not supported
         """
-        self.logger.debug("Computing L∞ distance between points")
+        logger.debug("Computing supremum distance")
 
         try:
-            # Convert inputs to numpy arrays if they're not already
-            x_arr = np.asarray(x)
-            y_arr = np.asarray(y)
+            if callable(x) and callable(y):
+                # Evaluate both functions at multiple points
+                x_eval = cast(Callable, x)
+                y_eval = cast(Callable, y)
+                # Use a default set of evaluation points (could be parameterized)
+                eval_points = np.linspace(0, 1, 1000)
+                x_values = x_eval(eval_points)
+                y_values = y_eval(eval_points)
+                differences = np.abs(x_values - y_values)
+                return np.max(differences)
 
-            # Ensure same shape
-            if x_arr.shape != y_arr.shape:
-                raise ValueError("Input shapes must match for distance computation")
+            elif isinstance(x, (Sequence, np.ndarray)) and isinstance(y, (Sequence, np.ndarray)):
+                # Compute element-wise differences for arrays
+                x_array = np.asarray(x)
+                y_array = np.asarray(y)
+                differences = np.abs(x_array - y_array)
+                return np.max(differences)
 
-            # Compute element-wise absolute differences
-            differences = np.abs(x_arr - y_arr)
+            elif isinstance(x, (str, bytes)) and isinstance(y, (str, bytes)):
+                # Handle string/bytes input as sequences of characters
+                x_seq = [ord(c) for c in x]
+                y_seq = [ord(c) for c in y]
+                differences = np.abs(np.array(x_seq) - np.array(y_seq))
+                return np.max(differences)
 
-            # Return the maximum difference
-            return float(np.amax(differences))
+            else:
+                raise ValueError(f"Incompatible input types: {type(x).__name__} and {type(y).__name__}")
 
         except Exception as e:
-            self.logger.error(f"Error computing distance: {str(e)}")
-            raise e
+            logger.error(f"Error computing supremum distance: {str(e)}")
+            raise TypeError("Failed to compute distance due to invalid input types") from e
 
     def distances(
-        self, x: T, y_list: Union[T, Sequence[T]]
-    ) -> Union[float, Sequence[float]]:
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        ys: List[Union[Callable, Sequence, np.ndarray, str, bytes]]
+    ) -> List[float]:
         """
-        Computes the L∞ distances from a reference point to one or more points.
+        Compute distances from a single point x to multiple points ys.
 
         Args:
-            x: T
-                The reference point
-            y_list: Union[T, Sequence[T]]
-                Either a single point or a sequence of points
+            x: The reference point. Can be a vector, array, callable, string, or bytes.
+            ys: List of points to compute distances to. Each can be a vector, array, 
+                callable, string, or bytes.
 
         Returns:
-            Union[float, Sequence[float]]:
-                - If y_list is a single point: Returns the distance as a float
-                - If y_list is a sequence: Returns a sequence of distances
+            List[float]: List of distances from x to each point in ys.
 
         Raises:
-            ValueError:
-                If input types are incompatible
-            TypeError:
-                If input types are not supported
+            ValueError: If input types are not compatible
+            TypeError: If input types are not supported
         """
-        self.logger.debug("Computing L∞ distances to reference point")
+        logger.debug("Computing multiple supremum distances")
+        
+        distances = []
+        for y in ys:
+            distances.append(self.distance(x, y))
+        return distances
 
-        if isinstance(y_list, Sequence):
-            try:
-                return [self.distance(x, y) for y in y_list]
-            except Exception as e:
-                self.logger.error(f"Error computing distances: {str(e)}")
-                raise e
+    def check_non_negativity(
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+    ) -> Literal[True]:
+        """
+        Verify the non-negativity property: distance(x, y) ≥ 0.
+
+        Args:
+            x: The first point. Can be a vector, array, callable, string, or bytes.
+            y: The second point. Can be a vector, array, callable, string, or bytes.
+
+        Returns:
+            Literal[True]: True if the non-negativity property holds.
+
+        Raises:
+            AssertionError: If non-negativity property is violated.
+        """
+        logger.debug("Checking non-negativity property")
+        distance_value = self.distance(x, y)
+        assert distance_value >= 0, "Non-negativity violation: Negative distance value"
+        return True
+
+    def check_identity(
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+    ) -> Literal[True]:
+        """
+        Verify the identity of indiscernibles property: distance(x, y) = 0 if and only if x = y.
+
+        Args:
+            x: The first point. Can be a vector, array, callable, string, or bytes.
+            y: The second point. Can be a vector, array, callable, string, or bytes.
+
+        Returns:
+            Literal[True]: True if the identity property holds.
+
+        Raises:
+            AssertionError: If identity property is violated.
+        """
+        logger.debug("Checking identity property")
+        if x == y:
+            distance_value = self.distance(x, y)
+            assert distance_value == 0, "Identity violation: x == y but distance != 0"
         else:
-            return self.distance(x, y_list)
+            distance_value = self.distance(x, y)
+            assert distance_value > 0, "Identity violation: x != y but distance == 0"
+        return True
 
-    def check_non_negativity(self, x: T, y: T) -> bool:
+    def check_symmetry(
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        y: Union[Callable, Sequence, np.ndarray, str, bytes]
+    ) -> Literal[True]:
         """
-        Verifies the non-negativity axiom for the L∞ metric.
+        Verify the symmetry property: distance(x, y) = distance(y, x).
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
+            x: The first point. Can be a vector, array, callable, string, or bytes.
+            y: The second point. Can be a vector, array, callable, string, or bytes.
 
         Returns:
-            bool:
-                True if the non-negativity condition holds, False otherwise
-        """
-        self.logger.debug("Checking non-negativity axiom")
-        distance = self.distance(x, y)
-        return distance >= 0.0
+            Literal[True]: True if the symmetry property holds.
 
-    def check_identity(self, x: T, y: T) -> bool:
+        Raises:
+            AssertionError: If symmetry property is violated.
         """
-        Verifies the identity of indiscernibles axiom for the L∞ metric.
+        logger.debug("Checking symmetry property")
+        distance_xy = self.distance(x, y)
+        distance_yx = self.distance(y, x)
+        assert np.isclose(distance_xy, distance_yx), "Symmetry violation: distance(x, y) != distance(y, x)"
+        return True
+
+    def check_triangle_inequality(
+        self, 
+        x: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        y: Union[Callable, Sequence, np.ndarray, str, bytes], 
+        z: Union[Callable, Sequence, np.ndarray, str, bytes]
+    ) -> Literal[True]:
+        """
+        Verify the triangle inequality property: distance(x, z) ≤ distance(x, y) + distance(y, z).
 
         Args:
-            x: T
-                The first point
-            y: T
-                The second point
+            x: The first point. Can be a vector, array, callable, string, or bytes.
+            y: The second point. Can be a vector, array, callable, string, or bytes.
+            z: The third point. Can be a vector, array, callable, string, or bytes.
 
         Returns:
-            bool:
-                True if x and y are identical according to the metric, False otherwise
+            Literal[True]: True if the triangle inequality property holds.
+
+        Raises:
+            AssertionError: If triangle inequality property is violated.
         """
-        self.logger.debug("Checking identity of indiscernibles axiom")
-        return self.distance(x, y) == 0.0
-
-    def check_symmetry(self, x: T, y: T) -> bool:
-        """
-        Verifies the symmetry axiom for the L∞ metric.
-
-        Args:
-            x: T
-                The first point
-            y: T
-                The second point
-
-        Returns:
-            bool:
-                True if the symmetry condition holds, False otherwise
-        """
-        self.logger.debug("Checking symmetry axiom")
-        return self.distance(x, y) == self.distance(y, x)
-
-    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
-        """
-        Verifies the triangle inequality axiom for the L∞ metric.
-
-        Args:
-            x: T
-                The first point
-            y: T
-                The second point
-            z: T
-                The third point
-
-        Returns:
-            bool:
-                True if the triangle inequality condition holds, False otherwise
-        """
-        self.logger.debug("Checking triangle inequality axiom")
-        d_xz = self.distance(x, z)
-        d_xy = self.distance(x, y)
-        d_yz = self.distance(y, z)
-        return d_xz <= d_xy + d_yz
+        logger.debug("Checking triangle inequality property")
+        distance_xz = self.distance(x, z)
+        distance_xy = self.distance(x, y)
+        distance_yz = self.distance(y, z)
+        assert distance_xz <= (distance_xy + distance_yz), "Triangle inequality violation"
+        return True

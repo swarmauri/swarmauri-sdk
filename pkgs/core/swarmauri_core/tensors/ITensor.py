@@ -1,337 +1,233 @@
-Here is the code for the `ITensor.py` file:
-
-```python
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, TypeVar, Union, Optional, Iterator, overload
-import logging
-
+from typing import Any, Tuple, Optional, Union, Literal, Type
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', int, float, bool, slice, Tuple[Union[int, slice], ...], ellipsis)
-S = TypeVar('S', int, float, bool, str)
-D = TypeVar('D', IVector, IMatrix)
-Shape = Tuple[int, ...]
-```
 
-```python
 class ITensor(ABC):
     """
-    Interface for tensor operations. This class defines the core functionality 
-    required for tensor operations including indexing, slicing, reshaping, and 
-    basic tensor operations.
+    Interface for tensor operations. This provides a blueprint for implementing
+    tensor data structures with support for various operations, including
+    indexing, slicing, shape manipulation, and tensor operations.
 
-    This interface provides a foundation for working with multi-dimensional 
-    data structures and tensor algebra while remaining agnostic to the 
-    underlying implementation.
+    The interface enforces type safety and provides a consistent API for
+    different tensor implementations.
     """
 
-    def __init__(self, shape: Shape, dtype: type):
-        """
-        Initialize the tensor with the specified shape and data type.
-
-        Args:
-            shape: Shape
-                The dimensions of the tensor
-            dtype: type
-                The data type of the elements
-        """
-        self._shape = shape
-        self._dtype = dtype
-        logger.debug(f"Tensor initialized with shape {shape} and dtype {dtype}")
-
-    @property
-    def shape(self) -> Shape:
-        """
-        Get the shape of the tensor.
-
-        Returns:
-            Shape: The dimensions of the tensor
-        """
-        return self._shape
-
-    @property
-    def dtype(self) -> type:
-        """
-        Get the data type of the elements in the tensor.
-
-        Returns:
-            type: The data type of the elements
-        """
-        return self._dtype
-
-    @property
-    def ndim(self) -> int:
-        """
-        Get the number of dimensions in the tensor.
-
-        Returns:
-            int: The number of dimensions
-        """
-        return len(self.shape)
-
-    @property
-    def size(self) -> int:
-        """
-        Get the total number of elements in the tensor.
-
-        Returns:
-            int: The total number of elements
-        """
-        return 1
-
     @abstractmethod
-    def __getitem__(self, index: T) -> Union['ITensor', IVector, IMatrix, S]:
+    def __getitem__(self, index: Union[Tuple[int, ...], int, slice, ...]) -> Union['ITensor', IMatrix, IVector, Any]:
         """
-        Get a slice, element, or view of the tensor.
+        Get item from tensor using indexing or slicing.
 
         Args:
-            index: T
-                The index or slice to retrieve
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
 
         Returns:
-            Union['ITensor', IVector, IMatrix, S]: 
-                - If index is a tuple of slices: Returns a sub-tensor
-                - If index is an integer: Returns the specified element
-                - If index is a slice: Returns a slice of the tensor
+            Union[ITensor, IMatrix, IVector, Any]: The accessed element(s). Returns a
+            new ITensor if slicing returns a subtensor, an IMatrix if slicing
+            returns a matrix, an IVector if slicing returns a vector, or the element
+            itself for single index.
 
         Raises:
-            IndexError: If the index is out of bounds
-            TypeError: If the index type is not supported
+            IndexError: If index is out of bounds.
+            ValueError: If slice step is invalid.
         """
         pass
 
     @abstractmethod
-    def __setitem__(self, index: T, value: Union['ITensor', IVector, IMatrix, S]) -> None:
+    def __setitem__(self, index: Union[Tuple[int, ...], int, slice, ...], value: Any) -> None:
         """
-        Set an element, slice, or view of the tensor.
+        Set item in tensor using indexing or slicing.
 
         Args:
-            index: T
-                The index or slice to set
-            value: Union['ITensor', IVector, IMatrix, S]
-                The value to set
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
+            value: Value to set at the specified index. Can be a single value,
+                vector, matrix, or another tensor of compatible shape.
 
         Raises:
-            IndexError: If the index is out of bounds
-            TypeError: If the value type is not compatible
+            IndexError: If index is out of bounds.
+            ValueError: If value shape is incompatible with index.
         """
         pass
 
     @abstractmethod
-    def reshape(self, new_shape: Shape) -> 'ITensor':
+    def __iter__(self) -> iter:
         """
-        Reshape the tensor to the specified dimensions.
+        Return an iterator over the tensor elements.
 
-        Args:
-            new_shape: Shape
-                The new dimensions for the tensor
-
-        Returns:
-            ITensor: The reshaped tensor
-
-        Raises:
-            ValueError: If the new shape is incompatible with the data
-        """
-        pass
-
-    @abstractmethod
-    def transpose(self, axes: Optional[Tuple[int, ...]] = None) -> 'ITensor':
-        """
-        Transpose the tensor along the specified axes.
-
-        Args:
-            axes: Optional[Tuple[int, ...]]
-                The permutation of axes. If None, reverses the order of the axes.
-
-        Returns:
-            ITensor: The transposed tensor
-        """
-        pass
-
-    @abstractmethod
-    def broadcast(self, new_shape: Shape) -> 'ITensor':
-        """
-        Broadcast the tensor to the specified shape.
-
-        Args:
-            new_shape: Shape
-                The new shape to broadcast to
-
-        Returns:
-            ITensor: The broadcasted tensor
-
-        Raises:
-            ValueError: If broadcasting is not possible
-        """
-        pass
-
-    @abstractmethod
-    def get_vector(self, index: int) -> IVector:
-        """
-        Get a vector from the tensor at the specified index.
-
-        Args:
-            index: int
-                The index of the vector to retrieve
-
-        Returns:
-            IVector: The specified vector
-
-        Raises:
-            IndexError: If the index is out of bounds
-        """
-        pass
-
-    @abstractmethod
-    def get_matrix(self, index: int) -> IMatrix:
-        """
-        Get a matrix from the tensor at the specified index.
-
-        Args:
-            index: int
-                The index of the matrix to retrieve
-
-        Returns:
-            IMatrix: The specified matrix
-
-        Raises:
-            IndexError: If the index is out of bounds
-        """
-        pass
-
-    @abstractmethod
-    def tolist(self) -> list:
-        """
-        Convert the tensor to a nested list structure.
-
-        Returns:
-            list: A nested list representation of the tensor
+        Yields:
+            Any: The next element in the tensor.
         """
         pass
 
     @abstractmethod
     def __add__(self, other: 'ITensor') -> 'ITensor':
         """
-        Element-wise addition of two tensors.
+        Tensor addition.
 
         Args:
-            other: ITensor
-                The tensor to add
+            other: Another tensor of the same shape and compatible dtype.
 
         Returns:
-            ITensor: The result of the addition
+            ITensor: Result of element-wise addition.
 
         Raises:
-            ValueError: If the tensors have different shapes
+            ValueError: If tensor shapes do not match.
+            TypeError: If tensors have incompatible dtypes.
         """
         pass
 
     @abstractmethod
     def __sub__(self, other: 'ITensor') -> 'ITensor':
         """
-        Element-wise subtraction of two tensors.
+        Tensor subtraction.
 
         Args:
-            other: ITensor
-                The tensor to subtract
+            other: Another tensor of the same shape and compatible dtype.
 
         Returns:
-            ITensor: The result of the subtraction
+            ITensor: Result of element-wise subtraction.
 
         Raises:
-            ValueError: If the tensors have different shapes
+            ValueError: If tensor shapes do not match.
+            TypeError: If tensors have incompatible dtypes.
         """
         pass
 
     @abstractmethod
-    def __mul__(self, other: Union['ITensor', S]) -> 'ITensor':
+    def __mul__(self, other: Union['ITensor', Any]) -> Union['ITensor', IMatrix, IVector]:
         """
-        Element-wise multiplication or tensor product.
+        Tensor multiplication or element-wise multiplication.
 
         Args:
-            other: Union['ITensor', S]
-                - If ITensor: Performs element-wise multiplication
-                - If scalar: Performs scalar multiplication
+            other: Either another tensor for tensor multiplication or a scalar for
+                element-wise multiplication.
 
         Returns:
-            ITensor: The result of the multiplication
+            Union[ITensor, IMatrix, IVector]: Result of multiplication. Returns an
+            ITensor for tensor multiplication, or an IMatrix/IVector if multiplying
+            with a compatible lower-dimensional tensor, or the element-wise result
+            if multiplying with a scalar.
 
         Raises:
-            ValueError: If the shapes are incompatible for multiplication
-            TypeError: If the multiplication type is not supported
+            ValueError: If tensor dimensions are incompatible for multiplication.
+            TypeError: If other is of unsupported type.
         """
         pass
 
-    @overload
-    def __mul__(self, other: 'ITensor') -> 'ITensor':
-        ...
-
-    @overload
-    def __mul__(self, other: S) -> 'ITensor':
-        ...
-
     @abstractmethod
-    def __rmul__(self, other: S) -> 'ITensor':
+    def __matmul__(self, other: 'ITensor') -> 'ITensor':
         """
-        Element-wise multiplication by a scalar (reverse operation).
+        Tensor matrix multiplication (Python 3.5+ matrix multiplication operator).
 
         Args:
-            other: S
-                The scalar to multiply by
+            other: Another tensor of compatible dimensions for multiplication.
 
         Returns:
-            ITensor: The result of the multiplication
+            ITensor: Result of matrix multiplication.
+
+        Raises:
+            ValueError: If number of dimensions or shapes are incompatible.
+        """
+        pass
+
+    @abstractmethod
+    def shape(self) -> Tuple[int, ...]:
+        """
+        Get the shape of the tensor as a tuple of dimensions.
+
+        Returns:
+            Tuple[int, ...]: The shape of the tensor.
+        """
+        pass
+
+    @abstractmethod
+    def reshape(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+        """
+        Reshape the tensor to new dimensions.
+
+        Args:
+            new_shape: Tuple[int, ...] representing the new shape.
+
+        Returns:
+            ITensor: The reshaped tensor.
+
+        Raises:
+            ValueError: If the total number of elements does not match.
+        """
+        pass
+
+    @abstractmethod
+    def dtype(self) -> type:
+        """
+        Get the data type of the tensor elements.
+
+        Returns:
+            type: The dtype of the tensor elements.
+        """
+        pass
+
+    @abstractmethod
+    def transpose(self, axes: Optional[Tuple[int, ...]] = None) -> 'ITensor':
+        """
+        Transpose the tensor by swapping axes.
+
+        Args:
+            axes: Optional tuple of integers representing the new order of axes.
+                If None, reverses the order of the axes.
+
+        Returns:
+            ITensor: The transposed tensor.
+
+        Raises:
+            ValueError: If the number of axes is invalid.
+        """
+        pass
+
+    @abstractmethod
+    def broadcast(self, new_shape: Tuple[int, ...]) -> 'ITensor':
+        """
+        Broadcast the tensor to a new shape.
+
+        Args:
+            new_shape: Tuple[int, ...] representing the new shape.
+
+        Returns:
+            ITensor: The broadcasted tensor.
+
+        Raises:
+            ValueError: If broadcasting is not possible.
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_numpy(cls, array: Any) -> 'ITensor':
+        """
+        Create a tensor from a numpy array.
+
+        Args:
+            array: Numpy array to convert to a tensor.
+
+        Returns:
+            ITensor: The constructed tensor.
+
+        Raises:
+            ValueError: If the input array is invalid.
         """
         pass
 
     @abstractmethod
     def __str__(self) -> str:
         """
-        Get a string representation of the tensor.
+        String representation of the tensor.
 
         Returns:
-            str: A string representation of the tensor
+            str: A string representation of the tensor elements.
         """
         pass
-
-    @abstractmethod
-    def __repr__(self) -> str:
-        """
-        Get an official string representation of the tensor.
-
-        Returns:
-            str: An official string representation of the tensor
-        """
-        pass
-
-    @abstractmethod
-    def __iter__(self) -> Iterator['ITensor']:
-        """
-        Create an iterator over the tensor elements.
-
-        Returns:
-            Iterator['ITensor']: An iterator over the tensor elements
-        """
-        pass
-
-    @abstractmethod
-    def __bool__(self) -> bool:
-        """
-        Determine if the tensor is non-zero.
-
-        Returns:
-            bool: True if the tensor is non-zero, False otherwise
-        """
-        pass
-
-    @classmethod
-    def __subclasshook__(cls, subclass: type) -> bool:
-        """
-        Allow registration of additional subclasses without explicit registration.
-        """
-        return hasattr(subclass, '__getitem__') and hasattr(subclass, '__setitem__')
-```

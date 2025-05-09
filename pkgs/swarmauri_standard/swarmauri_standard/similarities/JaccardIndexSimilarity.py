@@ -1,123 +1,197 @@
-from typing import Set, Sequence, Tuple, TypeVar
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from typing import Union, List, Optional, Tuple, Any
+from abc import ABC, abstractmethod
 import logging
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", Set, frozenset)
-OutputType = TypeVar("OutputType", float)
 
 
 @ComponentBase.register_type(SimilarityBase, "JaccardIndexSimilarity")
 class JaccardIndexSimilarity(SimilarityBase):
     """
-    Concrete implementation of the Jaccard Index Similarity measure for sets.
+    Concrete implementation of the SimilarityBase class for Jaccard Index Similarity.
 
-    The Jaccard Index is a statistic used for comparing the similarity and diversity
-    of set data. It is defined as the size of the intersection divided by the size
-    of the union of the two sets.
-
-    This implementation provides methods for calculating similarity and dissimilarity
-    between pairs of sets or multiple pairs of sets.
+    The Jaccard Index is a statistic used for comparing the similarity and diversity of set data.
+    It is calculated as the size of the intersection divided by the size of the union of two sets.
 
     Attributes:
-        type: Literal["JaccardIndexSimilarity"]
-            Type identifier for the similarity measure
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+    resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
-    type: Literal["JaccardIndexSimilarity"] = "JaccardIndexSimilarity"
-
-    def __init__(self):
+    def __init__(self) -> None:
         """
-        Initialize the JaccardIndexSimilarity instance.
+        Initializes the JaccardIndexSimilarity component.
         """
         super().__init__()
-        logger.debug("Initialized JaccardIndexSimilarity instance")
 
-    def similarity(self, x: InputType, y: InputType) -> OutputType:
+    def similarity(
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        y: Union[Tuple, frozenset, set, List]
+    ) -> float:
         """
-        Calculate the Jaccard Index similarity between two sets.
+        Computes the Jaccard Index similarity between two sets.
 
-        The Jaccard Index is calculated as:
-            J(x, y) = |x ∩ y| / |x ∪ y|
+        The Jaccard Index is calculated as the size of the intersection of x and y 
+        divided by the size of the union of x and y.
 
         Args:
-            x: InputType
-                The first set to compare
-            y: InputType
-                The second set to compare
+            x: First set to compare.
+            y: Second set to compare.
 
         Returns:
-            OutputType:
-                A float between 0 and 1 representing the similarity.
-                0 indicates no similarity, 1 indicates identical sets.
+            float: Jaccard Index similarity between x and y.
 
         Raises:
-            ValueError: If inputs are not valid sets
+            ValueError: If either x or y is not a set-like collection.
         """
-        if not isinstance(x, (Set, frozenset)) or not isinstance(y, (Set, frozenset)):
-            raise ValueError("Inputs must be sets or frozensets")
+        if not isinstance(x, (set, frozenset, tuple, list)) or \
+           not isinstance(y, (set, frozenset, tuple, list)):
+            raise ValueError("Inputs must be set-like collections.")
 
-        intersection = x & y
-        union = x | y
+        x_set = set(x) if not isinstance(x, (set, frozenset)) else x
+        y_set = set(y) if not isinstance(y, (set, frozenset)) else y
 
-        if not union:
-            # Both sets are empty
+        intersection = x_set & y_set
+        union = x_set | y_set
+
+        if len(union) == 0:
+            logger.debug("Both sets are empty, returning maximum similarity of 1.0")
             return 1.0
-
+            
         jaccard_index = len(intersection) / len(union)
-        logger.debug(f"Similarity between {x} and {y}: {jaccard_index}")
+        logger.debug(f"Jaccard Index similarity calculated as {jaccard_index}")
         return jaccard_index
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        ys: Union[List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Jaccard Index similarities for multiple pairs of sets.
+        Computes similarities between a reference set and multiple other sets.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of set pairs to compare
+            x: Reference set to compare against.
+            ys: List of sets or single set to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of similarity scores corresponding to each pair
+            Union[float, List[float]]: Similarity scores between x and each set in ys.
         """
-        return [self.similarity(x, y) for x, y in pairs]
+        if isinstance(ys, (list, tuple)):
+            return [self.similarity(x, y) for y in ys]
+        else:
+            return self.similarity(x, ys)
 
-    def dissimilarity(self, x: InputType, y: InputType) -> OutputType:
+    def dissimilarity(
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        y: Union[Tuple, frozenset, set, List]
+    ) -> float:
         """
-        Calculate the dissimilarity between two sets using Jaccard Index.
-
-        Dissimilarity is calculated as 1 - similarity.
+        Computes the dissimilarity as 1 minus the similarity.
 
         Args:
-            x: InputType
-                The first set to compare
-            y: InputType
-                The second set to compare
+            x: First set to compare.
+            y: Second set to compare.
 
         Returns:
-            OutputType:
-                A float between 0 and 1 representing the dissimilarity.
-                0 indicates identical sets, 1 indicates no similarity.
+            float: Dissimilarity between x and y.
         """
         return 1.0 - self.similarity(x, y)
 
     def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        ys: Union[List[Union[Tuple, frozenset, set, List]], Tuple, frozenset, set, List]
+    ) -> Union[float, List[float]]:
         """
-        Calculate dissimilarities for multiple pairs of sets.
+        Computes dissimilarities between a reference set and multiple other sets.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of set pairs to compare
+            x: Reference set to compare against.
+            ys: List of sets or single set to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of dissimilarity scores corresponding to each pair
+            Union[float, List[float]]: Dissimilarity scores between x and each set in ys.
         """
-        return [1.0 - sim for sim in self.similarities(pairs)]
+        if isinstance(ys, (list, tuple)):
+            return [1.0 - sim for sim in self.similarities(x, ys)]
+        else:
+            return 1.0 - self.similarity(x, ys)
+
+    def check_boundedness(
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        y: Union[Tuple, frozenset, set, List]
+    ) -> bool:
+        """
+        Checks if the similarity measure is bounded.
+
+        The Jaccard Index is bounded between 0 and 1.
+
+        Args:
+            x: First set to compare.
+            y: Second set to compare.
+
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+        """
+        return True
+
+    def check_reflexivity(
+        self, 
+        x: Union[Tuple, frozenset, set, List]
+    ) -> bool:
+        """
+        Checks if the similarity measure is reflexive.
+
+        The Jaccard Index is reflexive since the similarity of a set with itself is 1.
+
+        Args:
+            x: Set to check reflexivity for.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        return self.similarity(x, x) == 1.0
+
+    def check_symmetry(
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        y: Union[Tuple, frozenset, set, List]
+    ) -> bool:
+        """
+        Checks if the similarity measure is symmetric.
+
+        The Jaccard Index is symmetric as J(x, y) = J(y, x).
+
+        Args:
+            x: First set to compare.
+            y: Second set to compare.
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        return self.similarity(x, y) == self.similarity(y, x)
+
+    def check_identity(
+        self, 
+        x: Union[Tuple, frozenset, set, List], 
+        y: Union[Tuple, frozenset, set, List]
+    ) -> bool:
+        """
+        Checks if the similarity measure satisfies identity.
+
+        The Jaccard Index satisfies identity as identical sets have maximum similarity.
+
+        Args:
+            x: First set to compare.
+            y: Second set to compare.
+
+        Returns:
+            bool: True if x and y are identical sets, False otherwise.
+        """
+        return self.similarity(x, y) == 1.0

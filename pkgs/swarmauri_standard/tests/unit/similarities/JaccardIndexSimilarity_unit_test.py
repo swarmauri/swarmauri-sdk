@@ -1,112 +1,131 @@
 import pytest
-from swarmauri_standard.similarities.JaccardIndexSimilarity import JaccardIndexSimilarity
 import logging
+from typing import Union, List, Tuple
+from swarmauri_standard.swarmauri_standard.similarities.JaccardIndexSimilarity import JaccardIndexSimilarity
+
+# Set up basic logging configuration
+logging.basicConfig(level=logging.DEBUG)
+
+@pytest.fixture
+def jaccard_index_similarity() -> JaccardIndexSimilarity:
+    """Fixture providing a JaccardIndexSimilarity instance for testing."""
+    return JaccardIndexSimilarity()
 
 @pytest.mark.unit
-class TestJaccardIndexSimilarity:
-    """Unit tests for JaccardIndexSimilarity class."""
+def test_similarity_empty_sets(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test Jaccard Index similarity calculation with empty sets."""
+    assert jaccard_index_similarity.similarity(set(), set()) == 1.0
+
+@pytest.mark.unit
+def test_similarity_identical_sets(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test Jaccard Index similarity when input sets are identical."""
+    test_set = {"a", "b", "c"}
+    assert jaccard_index_similarity.similarity(test_set, test_set) == 1.0
+
+@pytest.mark.unit
+def test_similarity_disjoint_sets(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test Jaccard Index similarity when input sets are disjoint."""
+    set1 = {"a", "b"}
+    set2 = {"c", "d"}
+    assert jaccard_index_similarity.similarity(set1, set2) == 0.0
+
+@pytest.mark.unit
+def test_similarity_overlapping_sets(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test Jaccard Index similarity with partially overlapping sets."""
+    set1 = {"a", "b", "c"}
+    set2 = {"b", "c", "d"}
+    assert jaccard_index_similarity.similarity(set1, set2) == 2/5 == 0.4
+
+@pytest.mark.unit
+def test_similarity_with_different_types(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test Jaccard Index similarity with different input types (list, tuple)."""
+    list_input = ["a", "b", "c"]
+    tuple_input = ("b", "c", "d")
     
-    def test_similarity_identical_sets(self):
-        """Test similarity calculation for identical sets."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {1, 2, 3}
-        assert jaccard.similarity(set1, set2) == 1.0
-        logging.debug("Test identical sets passed")
+    similarity_list = jaccard_index_similarity.similarity(list_input, tuple_input)
+    assert similarity_list == 2/5 == 0.4
 
-    def test_similarity_disjoint_sets(self):
-        """Test similarity calculation for disjoint sets."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {4, 5, 6}
-        assert jaccard.similarity(set1, set2) == 0.0
-        logging.debug("Test disjoint sets passed")
+@pytest.mark.unit
+def test_similarities_single(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test similarities method with a single set."""
+    set1 = {"a", "b"}
+    set2 = {"b", "c"}
+    result = jaccard_index_similarity.similarities(set1, set2)
+    assert isinstance(result, float) and result == 0.5
 
-    def test_similarity_partial_overlap(self):
-        """Test similarity calculation for sets with partial overlap."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {3, 4, 5}
-        assert jaccard.similarity(set1, set2) == 1/5  # |{3}| / |{1,2,3,4,5}|
-        logging.debug("Test partial overlap sets passed")
+@pytest.mark.unit
+def test_similarities_batch(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test similarities method with multiple sets."""
+    set1 = {"a", "b"}
+    set2 = {"b", "c"}
+    set3 = {"d", "e"}
+    
+    results = jaccard_index_similarity.similarities(set1, [set2, set3])
+    assert isinstance(results, list) and len(results) == 2
+    assert results[0] == 0.5 and results[1] == 0.0
 
-    def test_similarity_invalid_input(self):
-        """Test similarity with invalid input types."""
-        jaccard = JaccardIndexSimilarity()
-        with pytest.raises(ValueError):
-            jaccard.similarity([1,2], {1,2})
-        logging.debug("Test invalid input types passed")
+@pytest.mark.unit
+def test_dissimilarity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test dissimilarity calculation."""
+    set1 = {"a", "b"}
+    set2 = {"b", "c"}
+    assert jaccard_index_similarity.dissimilarity(set1, set2) == 0.5
 
-    def test_dissimilarity_identical_sets(self):
-        """Test dissimilarity calculation for identical sets."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {1, 2, 3}
-        assert jaccard.dissimilarity(set1, set2) == 0.0
-        logging.debug("Test identical sets dissimilarity passed")
+@pytest.mark.unit
+def test_dissimilarities(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test dissimilarities method with multiple sets."""
+    set1 = {"a", "b"}
+    set2 = {"b", "c"}
+    set3 = {"d", "e"}
+    
+    results = jaccard_index_similarity.dissimilarities(set1, [set2, set3])
+    assert isinstance(results, list) and len(results) == 2
+    assert results[0] == 0.5 and results[1] == 1.0
 
-    def test_dissimilarity_disjoint_sets(self):
-        """Test dissimilarity calculation for disjoint sets."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {4, 5, 6}
-        assert jaccard.dissimilarity(set1, set2) == 1.0
-        logging.debug("Test disjoint sets dissimilarity passed")
+@pytest.mark.unit
+def test_check_boundedness(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test if the similarity measure is bounded between 0 and 1."""
+    assert jaccard_index_similarity.check_boundedness({"a"}, {"a"}) is True
 
-    def test_dissimilarity_partial_overlap(self):
-        """Test dissimilarity calculation for sets with partial overlap."""
-        jaccard = JaccardIndexSimilarity()
-        set1 = {1, 2, 3}
-        set2 = {3, 4, 5}
-        assert jaccard.dissimilarity(set1, set2) == 4/5  # 1 - (1/5)
-        logging.debug("Test partial overlap dissimilarity passed")
+@pytest.mark.unit
+def test_check_reflexivity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test if the similarity measure is reflexive."""
+    test_set = {"a", "b", "c"}
+    assert jaccard_index_similarity.check_reflexivity(test_set) is True
 
-    def test_similarities_multiple_pairs(self):
-        """Test similarities calculation for multiple pairs."""
-        jaccard = JaccardIndexSimilarity()
-        pairs = [
-            ({1, 2}, {1, 2, 3}),
-            ({1, 2, 3}, {3, 4, 5}),
-            ({}, {1})
-        ]
-        expected = [2/3, 1/5, 0.0]
-        assert jaccard.similarities(pairs) == expected
-        logging.debug("Test multiple pairs similarities passed")
+@pytest.mark.unit
+def test_check_symmetry(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test if the similarity measure is symmetric."""
+    set1 = {"a", "b"}
+    set2 = {"b", "c"}
+    assert jaccard_index_similarity.check_symmetry(set1, set2) is True
 
-    def test_dissimilarities_multiple_pairs(self):
-        """Test dissimilarities calculation for multiple pairs."""
-        jaccard = JaccardIndexSimilarity()
-        pairs = [
-            ({1, 2}, {1, 2, 3}),
-            ({1, 2, 3}, {3, 4, 5}),
-            ({}, {1})
-        ]
-        expected = [1/3, 4/5, 1.0]
-        assert jaccard.dissimilarities(pairs) == expected
-        logging.debug("Test multiple pairs dissimilarities passed")
+@pytest.mark.unit
+def test_check_identity(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test if the similarity measure satisfies identity."""
+    set1 = {"a", "b"}
+    set2 = {"a", "b"}
+    assert jaccard_index_similarity.check_identity(set1, set2) is True
 
-    def test_type_property(self):
-        """Test the type property."""
-        assert JaccardIndexSimilarity.type == "JaccardIndexSimilarity"
-        logging.debug("Test type property passed")
+@pytest.mark.unit
+@pytest.mark.parametrize("x,y,expected", [
+    ({"a", "b"}, {"b", "c"}, 0.5),
+    ({"a"}, {"a", "b"}, 0.5),
+    ({"x", "y", "z"}, {"a", "b", "c"}, 0.0),
+])
+def test_similarity_parametrized(jaccard_index_similarity: JaccardIndexSimilarity, x, y, expected) -> None:
+    """Parametrized test for similarity method with various inputs."""
+    assert jaccard_index_similarity.similarity(x, y) == expected
 
-    def test_resource_property(self):
-        """Test the resource property."""
-        assert JaccardIndexSimilarity.resource == "Similarity"
-        logging.debug("Test resource property passed"
-
-    def test_edge_cases(self):
-        """Test edge cases including empty sets."""
-        jaccard = JaccardIndexSimilarity()
-        
-        # Both sets empty
-        set1 = set()
-        set2 = set()
-        assert jaccard.similarity(set1, set2) == 1.0
-        assert jaccard.dissimilarity(set1, set2) == 0.0
-        
-        # One set empty
-        set3 = {1, 2, 3}
-        assert jaccard.similarity(set1, set3) == 0.0
-        assert jaccard.dissimilarity(set1, set3) == 1.0
-        logging.debug("Test edge cases passed")
+@pytest.mark.unit
+def test_similarity_value_range(jaccard_index_similarity: JaccardIndexSimilarity) -> None:
+    """Test if similarity values stay within valid range [0,1]."""
+    # Test with empty sets
+    assert 0.0 <= jaccard_index_similarity.similarity(set(), set()) <= 1.0
+    # Test with identical sets
+    test_set = {"a", "b", "c"}
+    assert 0.0 <= jaccard_index_similarity.similarity(test_set, test_set) <= 1.0
+    # Test with disjoint sets
+    set1 = {"a", "b"}
+    set2 = {"c", "d"}
+    assert 0.0 <= jaccard_index_similarity.similarity(set1, set2) <= 1.0

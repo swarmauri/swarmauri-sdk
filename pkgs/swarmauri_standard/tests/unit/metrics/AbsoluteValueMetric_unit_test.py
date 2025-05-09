@@ -1,216 +1,164 @@
-```python
 import pytest
+from swarmauri_standard.metrics.AbsoluteValueMetric import AbsoluteValueMetric
 import logging
-from swarmauri_standard.metrics import AbsoluteValueMetric
+
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_absolute_value_metric_distance() -> None:
-    """Tests the distance method of AbsoluteValueMetric."""
-    # Initialize the metric instance
-    metric = AbsoluteValueMetric()
+class TestAbsoluteValueMetric:
+    """
+    Unit tests for the AbsoluteValueMetric class.
     
-    # Test with positive integers
-    assert metric.distance(5, 3) == 2
+    Inherits From:
+        object: Base class for unit tests
     
-    # Test with negative integers
-    assert metric.distance(-5, -3) == 2
+    Attributes:
+        None
     
-    # Test with mixed signs
-    assert metric.distance(-5, 3) == 8
-    
-    # Test with floats
-    assert metric.distance(5.5, 3.5) == 2.0
-    
-    # Test with identical values
-    assert metric.distance(5, 5) == 0
+    Methods:
+        test_distance: Test the distance method with various inputs
+        test_distances: Test the distances method with multiple inputs
+        test_non_negativity: Test the non-negativity property
+        test_identity: Test the identity property
+        test_symmetry: Test the symmetry property
+        test_triangle_inequality: Test the triangle inequality property
+    """
 
-@pytest.mark.unit
-def test_absolute_value_metric_distances() -> None:
-    """Tests the distances method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test single value
-    assert metric.distances(5, 3) == 2
-    
-    # Test with list of values
-    assert metric.distances(5, [3, 7, 5]) == [2, 2, 0]
-    
-    # Test with negative values
-    assert metric.distances(-5, [-3, -7, -5]) == [2, 2, 0]
-    
-    # Test with mixed values
-    assert metric.distances(-5, [3, -7, 5]) == [8, 2, 10]
+    @pytest.mark.parametrize("x,y,expected_distance", [
+        (5, 3, 2.0),
+        (3.5, 5.5, 2.0),
+        ("10", "20", 10.0),
+        (lambda: 15, lambda: 20, 5.0)
+    ])
+    def test_distance(self, x, y, expected_distance):
+        """
+        Test the distance method with various input types.
+        
+        Args:
+            x: First point (int, float, str, or callable)
+            y: Second point (int, float, str, or callable)
+            expected_distance: Expected distance value
+        """
+        logger.debug(f"Testing distance between {x} and {y}")
+        metric = AbsoluteValueMetric()
+        assert metric.distance(x, y) == expected_distance
+        logger.debug("Distance test passed")
 
-@pytest.mark.unit
-def test_absolute_value_metric_check_non_negativity() -> None:
-    """Tests the non-negativity check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test with positive distance
-    assert metric.check_non_negativity(5, 3) is True
-    
-    # Test with zero distance
-    assert metric.check_non_negativity(5, 5) is True
-    
-    # Test with negative values
-    assert metric.check_non_negativity(-5, -3) is True
+    def test_distances(self):
+        """
+        Test the distances method with multiple points.
+        """
+        logger.debug("Testing multiple distances")
+        x = 10.0
+        ys = [5.0, 15.0, "20.0", lambda: 12.0]
+        expected_distances = [5.0, 5.0, 10.0, 2.0]
+        
+        metric = AbsoluteValueMetric()
+        distances = metric.distances(x, ys)
+        
+        assert len(distances) == len(ys)
+        assert all(isinstance(d, float) for d in distances)
+        assert distances == expected_distances
+        logger.debug("Distances test passed")
 
-@pytest.mark.unit
-def test_absolute_value_metric_check_identity() -> None:
-    """Tests the identity check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test identical values
-    assert metric.check_identity(5, 5) is True
-    
-    # Test different values
-    assert metric.check_identity(5, 3) is False
-    
-    # Test with negative values
-    assert metric.check_identity(-5, -5) is True
-    
-    # Test with mixed signs
-    assert metric.check_identity(-5, 5) is False
+    @pytest.mark.parametrize("x,y", [
+        (5, 5),
+        (3.5, 3.5),
+        ("10", "10"),
+        (lambda: 15, lambda: 15)
+    ])
+    def test_non_negativity(self, x, y):
+        """
+        Test the non-negativity property of the metric.
+        
+        Args:
+            x: First point (int, float, str, or callable)
+            y: Second point (int, float, str, or callable)
+        """
+        logger.debug("Testing non-negativity property")
+        metric = AbsoluteValueMetric()
+        assert metric.check_non_negativity(x, y)
+        logger.debug("Non-negativity test passed")
 
-@pytest.mark.unit
-def test_absolute_value_metric_check_symmetry() -> None:
-    """Tests the symmetry check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test symmetric values
-    assert metric.check_symmetry(5, 3) is True
-    
-    # Test with negative values
-    assert metric.check_symmetry(-5, -3) is True
-    
-    # Test with mixed signs
-    assert metric.check_symmetry(-5, 5) is True
-    
-    # Test with different values
-    assert metric.check_symmetry(3, 5) is True
+    @pytest.mark.parametrize("x,y", [
+        (5, 5),
+        (3.5, 3.5),
+        ("10", "10"),
+        (lambda: 15, lambda: 15)
+    ])
+    def test_identity(self, x, y):
+        """
+        Test the identity property of the metric.
+        
+        Args:
+            x: First point (int, float, str, or callable)
+            y: Second point (int, float, str, or callable)
+        """
+        logger.debug("Testing identity property")
+        metric = AbsoluteValueMetric()
+        assert metric.check_identity(x, y)
+        logger.debug("Identity test passed")
 
-@pytest.mark.unit
-def test_absolute_value_metric_check_triangle_inequality() -> None:
-    """Tests the triangle inequality check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test with valid triangle inequality
-    assert metric.check_triangle_inequality(5, 3, 7) is True
-    
-    # Test with edge case
-    assert metric.check_triangle_inequality(5, 5, 5) is True
-    
-    # Test with negative values
-    assert metric.check_triangle_inequality(-5, -3, -7) is True
-    
-    # Test with mixed signs
-    assert metric.check_triangle_inequality(-5, 3, 7) is True
-```
+    @pytest.mark.parametrize("x,y", [
+        (5, 3),
+        (3.5, 5.5),
+        ("10", "20"),
+        (lambda: 15, lambda: 20)
+    ])
+    def test_symmetry(self, x, y):
+        """
+        Test the symmetry property of the metric.
+        
+        Args:
+            x: First point (int, float, str, or callable)
+            y: Second point (int, float, str, or callable)
+        """
+        logger.debug("Testing symmetry property")
+        metric = AbsoluteValueMetric()
+        assert metric.check_symmetry(x, y)
+        logger.debug("Symmetry test passed")
 
-```python
-import pytest
-import logging
-from swarmauri_standard.metrics import AbsoluteValueMetric
+    def test_triangle_inequality(self):
+        """
+        Test the triangle inequality property of the metric.
+        """
+        logger.debug("Testing triangle inequality property")
+        metric = AbsoluteValueMetric()
+        
+        # Test with numbers
+        x = 1.0
+        y = 2.0
+        z = 3.0
+        assert metric.check_triangle_inequality(x, y, z)
+        
+        # Test with strings
+        x = "1"
+        y = "2"
+        z = "3"
+        assert metric.check_triangle_inequality(x, y, z)
+        
+        # Test with callables
+        x = lambda: 1.0
+        y = lambda: 2.0
+        z = lambda: 3.0
+        assert metric.check_triangle_inequality(x, y, z)
+        
+        logger.debug("Triangle inequality test passed")
 
-@pytest.mark.unit
-def test_absolute_value_metric_distance() -> None:
-    """Tests the distance method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test with positive integers
-    assert metric.distance(5, 3) == 2
-    
-    # Test with negative integers
-    assert metric.distance(-5, -3) == 2
-    
-    # Test with mixed signs
-    assert metric.distance(-5, 3) == 8
-    
-    # Test with floats
-    assert metric.distance(5.5, 3.5) == 2.0
-    
-    # Test with identical values
-    assert metric.distance(5, 5) == 0
-
-@pytest.mark.unit
-def test_absolute_value_metric_distances() -> None:
-    """Tests the distances method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test single value
-    assert metric.distances(5, 3) == 2
-    
-    # Test with list of values
-    assert metric.distances(5, [3, 7, 5]) == [2, 2, 0]
-    
-    # Test with negative values
-    assert metric.distances(-5, [-3, -7, -5]) == [2, 2, 0]
-    
-    # Test with mixed values
-    assert metric.distances(-5, [3, -7, 5]) == [8, 2, 10]
-
-@pytest.mark.unit
-def test_absolute_value_metric_check_non_negativity() -> None:
-    """Tests the non-negativity check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test with positive distance
-    assert metric.check_non_negativity(5, 3) is True
-    
-    # Test with zero distance
-    assert metric.check_non_negativity(5, 5) is True
-    
-    # Test with negative values
-    assert metric.check_non_negativity(-5, -3) is True
-
-@pytest.mark.unit
-def test_absolute_value_metric_check_identity() -> None:
-    """Tests the identity check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test identical values
-    assert metric.check_identity(5, 5) is True
-    
-    # Test different values
-    assert metric.check_identity(5, 3) is False
-    
-    # Test with negative values
-    assert metric.check_identity(-5, -5) is True
-    
-    # Test with mixed signs
-    assert metric.check_identity(-5, 5) is False
-
-@pytest.mark.unit
-def test_absolute_value_metric_check_symmetry() -> None:
-    """Tests the symmetry check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test symmetric values
-    assert metric.check_symmetry(5, 3) is True
-    
-    # Test with negative values
-    assert metric.check_symmetry(-5, -3) is True
-    
-    # Test with mixed signs
-    assert metric.check_symmetry(-5, 5) is True
-    
-    # Test with different values
-    assert metric.check_symmetry(3, 5) is True
-
-@pytest.mark.unit
-def test_absolute_value_metric_check_triangle_inequality() -> None:
-    """Tests the triangle inequality check method of AbsoluteValueMetric."""
-    metric = AbsoluteValueMetric()
-    
-    # Test with valid triangle inequality
-    assert metric.check_triangle_inequality(5, 3, 7) is True
-    
-    # Test with edge case
-    assert metric.check_triangle_inequality(5, 5, 5) is True
-    
-    # Test with negative values
-    assert metric.check_triangle_inequality(-5, -3, -7) is True
-    
-    # Test with mixed signs
-    assert metric.check_triangle_inequality(-5, 3, 7) is True
-```
+    def test_invalid_input(self):
+        """
+        Test invalid input handling.
+        """
+        logger.debug("Testing invalid input handling")
+        metric = AbsoluteValueMetric()
+        
+        with pytest.raises(ValueError):
+            metric.distance("invalid", 5)
+            
+        with pytest.raises(ValueError):
+            metric.distance(5, "invalid")
+            
+        with pytest.raises(ValueError):
+            metric.distances(5, ["invalid"])
+            
+        logger.debug("Invalid input test passed")

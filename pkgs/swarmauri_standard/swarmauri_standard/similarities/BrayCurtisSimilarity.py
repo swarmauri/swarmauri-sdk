@@ -1,164 +1,179 @@
-from typing import Any, Sequence, Tuple, TypeVar, Union
-import numpy as np
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+from typing import Union, List, Optional, Tuple
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", str, bytes, Any)
-OutputType = TypeVar("OutputType", float)
 
 
 @ComponentBase.register_type(SimilarityBase, "BrayCurtisSimilarity")
 class BrayCurtisSimilarity(SimilarityBase):
     """
-    Concrete implementation of the Bray-Curtis similarity measure.
+    A concrete implementation of the SimilarityBase class for Bray-Curtis similarity measure.
 
-    The Bray-Curtis similarity is calculated as 1 minus the Bray-Curtis dissimilarity.
-    It is commonly used in ecological studies to compare sample compositions.
+    The Bray-Curtis similarity is calculated as 1 minus the sum of absolute differences
+    between corresponding elements of two vectors, divided by the sum of all elements.
+    It is commonly used in ecology to compare sample compositions.
 
     Attributes:
-        type: Literal["BrayCurtisSimilarity"]
-            The type identifier for this similarity measure
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
-
     type: Literal["BrayCurtisSimilarity"] = "BrayCurtisSimilarity"
+    resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
-    def __init__(self):
-        """
-        Initialize the BrayCurtisSimilarity instance.
-        """
-        super().__init__()
-        logger.debug("Initialized BrayCurtisSimilarity instance")
-
-    def similarity(self, x: InputType, y: InputType) -> float:
+    def similarity(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        y: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> float:
         """
         Calculate the Bray-Curtis similarity between two vectors.
 
         The Bray-Curtis similarity is computed as:
-            1 - (|x - y| / (|x| + |y|))
+            1 - (sum(|x_i - y_i|) / sum(x_i + y_i))
 
         Args:
-            x: InputType
-                The first vector to compare
-            y: InputType
-                The second vector to compare
+            x: First vector for comparison
+            y: Second vector for comparison
 
         Returns:
-            float:
-                A float representing the similarity between x and y,
-                ranging between 0 (completely dissimilar) and 1 (identical).
+            float: Bray-Curtis similarity score between 0 and 1
 
         Raises:
             ValueError: If input vectors contain negative values
         """
-        if not (
-            isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))
-        ):
-            x = np.array(x)
-            y = np.array(y)
+        # Ensure inputs are valid vectors
+        if not (isinstance(x, (tuple, list)) and isinstance(y, (tuple, list))):
+            raise ValueError("Both inputs must be vectors (tuple or list)")
 
-        if np.any(x < 0) or np.any(y < 0):
-            raise ValueError("Input vectors must contain non-negative values")
+        # Check for non-negative values
+        if any(val < 0 for val in x) or any(val < 0 for val in y):
+            raise ValueError("Input vectors must contain only non-negative values")
 
-        # Calculate absolute differences
-        differences = np.abs(x - y)
-        total = np.sum(differences)
-        sum_all = np.sum(x) + np.sum(y)
+        # Calculate sum of absolute differences
+        sum_diff = sum(abs(a - b) for a, b in zip(x, y))
+        # Calculate total sum of both vectors
+        total = sum(x) + sum(y)
 
-        if sum_all == 0:
-            # Handle case where both vectors are zero vectors
+        if total == 0:
+            # Special case: both vectors are zero vectors
             return 1.0
 
-        similarity = 1.0 - (total / sum_all)
-        logger.debug(f"Similarity calculation result: {similarity}")
+        similarity = 1 - (sum_diff / total)
+
+        logger.debug(f"Bray-Curtis similarity calculated: {similarity}")
         return similarity
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        ys: Union[List[Union[Tuple[float, ...], List[float], str, Callable]], 
+            Union[Tuple[float, ...], List[float], str, Callable]]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Bray-Curtis similarities for multiple pairs of vectors.
+        Calculate Bray-Curtis similarities between a reference vector and multiple vectors.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
+            x: Reference vector
+            ys: List of vectors or single vector to compare against
 
         Returns:
-            Sequence[float]:
-                A sequence of similarity scores corresponding to each pair
+            Union[float, List[float]]: Similarity scores against each vector in ys
         """
-        similarities = []
-        for pair in pairs:
-            x, y = pair
-            similarities.append(self.similarity(x, y))
-        logger.debug(f"Similarities for multiple pairs calculated: {similarities}")
-        return similarities
+        if not isinstance(ys, list):
+            ys = [ys]
 
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
+        return [self.similarity(x, y) for y in ys]
+
+    def dissimilarity(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        y: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> float:
         """
         Calculate the Bray-Curtis dissimilarity between two vectors.
 
-        The Bray-Curtis dissimilarity is computed as:
-            (|x - y|) / (|x| + |y|)
+        This is simply 1 minus the similarity.
 
         Args:
-            x: InputType
-                The first vector to compare
-            y: InputType
-                The second vector to compare
+            x: First vector for comparison
+            y: Second vector for comparison
 
         Returns:
-            float:
-                A float representing the dissimilarity between x and y,
-                ranging between 0 (identical) and 1 (completely dissimilar)
-
-        Raises:
-            ValueError: If input vectors contain negative values
+            float: Dissimilarity score between 0 and 1
         """
-        if not (
-            isinstance(x, (list, np.ndarray)) and isinstance(y, (list, np.ndarray))
-        ):
-            x = np.array(x)
-            y = np.array(y)
+        return 1 - self.similarity(x, y)
 
-        if np.any(x < 0) or np.any(y < 0):
-            raise ValueError("Input vectors must contain non-negative values")
-
-        # Calculate absolute differences
-        differences = np.abs(x - y)
-        total = np.sum(differences)
-        sum_all = np.sum(x) + np.sum(y)
-
-        if sum_all == 0:
-            # Handle case where both vectors are zero vectors
-            return 0.0
-
-        dissimilarity = total / sum_all
-        logger.debug(f"Dissimilarity calculation result: {dissimilarity}")
-        return dissimilarity
-
-    def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+    def check_boundedness(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        y: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> bool:
         """
-        Calculate Bray-Curtis dissimilarities for multiple pairs of vectors.
+        Check if the Bray-Curtis similarity measure is bounded.
+
+        The Bray-Curtis similarity ranges between 0 and 1, making it bounded.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
+            x: First vector for comparison
+            y: Second vector for comparison
 
         Returns:
-            Sequence[float]:
-                A sequence of dissimilarity scores corresponding to each pair
+            bool: True if the measure is bounded, False otherwise
         """
-        dissimilarities = []
-        for pair in pairs:
-            x, y = pair
-            dissimilarities.append(self.dissimilarity(x, y))
-        logger.debug(
-            f"Dissimilarities for multiple pairs calculated: {dissimilarities}"
-        )
-        return dissimilarities
+        return True
+
+    def check_reflexivity(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> bool:
+        """
+        Check if the Bray-Curtis similarity measure is reflexive.
+
+        The measure is reflexive since similarity(x, x) = 1 for any vector x.
+
+        Args:
+            x: Vector to check reflexivity for
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise
+        """
+        return True
+
+    def check_symmetry(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        y: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> bool:
+        """
+        Check if the Bray-Curtis similarity measure is symmetric.
+
+        The measure is symmetric since similarity(x, y) = similarity(y, x).
+
+        Args:
+            x: First vector for comparison
+            y: Second vector for comparison
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise
+        """
+        return True
+
+    def check_identity(
+        self, 
+        x: Union[Tuple[float, ...], List[float], str, Callable], 
+        y: Union[Tuple[float, ...], List[float], str, Callable]
+    ) -> bool:
+        """
+        Check if the Bray-Curtis similarity measure satisfies identity.
+
+        The measure satisfies identity since similarity(x, x) = 1 and x ≠ y implies similarity(x, y) < 1.
+
+        Args:
+            x: First vector for comparison
+            y: Second vector for comparison
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise
+        """
+        return x == y

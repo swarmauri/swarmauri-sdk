@@ -1,185 +1,199 @@
-from typing import Any, Sequence, Tuple, TypeVar, Union
-from collections import Counter
-from swarmauri_base.ComponentBase import ComponentBase
+from typing import Union, List, Optional, Tuple
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.similarities.ISimilarity import ISimilarity
 import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", str, bytes, Any)
-OutputType = TypeVar("OutputType", float)
 
 
 @ComponentBase.register_type(SimilarityBase, "DiceSimilarity")
 class DiceSimilarity(SimilarityBase):
     """
-    Concrete implementation of the Dice similarity measure for sets or multisets.
+    Implementation of the Dice similarity measure for sets.
 
-    This class implements the Dice coefficient, which is a measure of similarity
-    between two sets or multisets. The coefficient is calculated as twice the
-    intersection divided by the sum of the sizes of both sets.
-
-    The implementation supports both sets and multisets, with the similarity
-    ranging between 0 (completely dissimilar) and 1 (identical).
+    The Dice similarity coefficient is a measure of similarity between two sets,
+    defined as twice the size of their intersection divided by the sum of the sizes
+    of the two sets. This implementation supports both sets and multisets.
 
     Attributes:
-        type: Literal["DiceSimilarity"] = "DiceSimilarity"
-            The type identifier for this similarity measure.
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+    type: str = "DiceSimilarity"
+    resource: Optional[str] = ResourceTypes.SIMILARITY.value
 
-    type: Literal["DiceSimilarity"] = "DiceSimilarity"
-
-    def __init__(self):
+    def similarity(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        y: Union[Union[List, Tuple, str], Callable]
+    ) -> float:
         """
-        Initialize the DiceSimilarity instance.
-        """
-        super().__init__()
-        logger.debug("Initialized DiceSimilarity instance")
-
-    def similarity(self, x: InputType, y: InputType) -> float:
-        """
-        Calculate the Dice similarity coefficient between two elements.
-
-        The Dice coefficient is calculated as:
-            similarity = 2 * |x ∩ y| / (|x| + |y|)
+        Calculate the Dice similarity coefficient between two sets.
 
         Args:
-            x: InputType
-                The first element to compare (can be a set or multiset)
-            y: InputType
-                The second element to compare (can be a set or multiset)
+            x: First set or iterable to compare.
+            y: Second set or iterable to compare.
 
         Returns:
-            float:
-                A float between 0 and 1 representing the similarity between x and y.
-                Returns 1.0 if both elements are empty, and 0.0 if they have
-                nothing in common.
+            float: Similarity score between 0 (no overlap) and 1 (complete overlap).
 
         Raises:
-            ValueError:
-                If the input types are not supported
+            ValueError: If either input is None or not iterable.
         """
-        logger.debug("Calculating Dice similarity between two elements")
-
         try:
-            # Convert inputs to Counter objects to handle multisets
-            x_counter = Counter(x) if x else Counter()
-            y_counter = Counter(y) if y else Counter()
-
-            # Calculate the intersection
-            intersection = sum((x_counter & y_counter).values())
-
-            # Calculate total number of elements in both sets
-            total = sum(x_counter.values()) + sum(y_counter.values())
-
-            # Handle special cases
-            if total == 0:
-                # Both sets are empty
-                return 1.0
-            if intersection == 0:
-                # No overlap
+            # Convert inputs to sets
+            set_x = set(x) if not isinstance(x, str) else set(x)
+            set_y = set(y) if not isinstance(y, str) else set(y)
+            
+            # Calculate intersection and sizes
+            intersection = len(set_x & set_y)
+            size_x = len(set_x)
+            size_y = len(set_y)
+            
+            # Avoid division by zero
+            if size_x + size_y == 0:
                 return 0.0
-
-            # Calculate Dice similarity
-            similarity = (2 * intersection) / total
-
-            logger.debug(f"Dice similarity result: {similarity}")
+                
+            # Compute Dice similarity
+            similarity = (2 * intersection) / (size_x + size_y)
+            logger.debug(f"Dice similarity calculated: {similarity}")
+            
             return similarity
-
+            
         except Exception as e:
             logger.error(f"Error calculating Dice similarity: {str(e)}")
-            raise
+            raise ValueError(f"Failed to calculate similarity: {str(e)}")
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        ys: Union[List[Union[List, Tuple, str, Callable]], Union[List, Tuple, str, Callable]]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Dice similarities for multiple pairs of elements.
+        Calculate Dice similarity coefficients between a reference set and multiple sets.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: Reference set or iterable.
+            ys: List of sets or iterables to compare against x.
 
         Returns:
-            Sequence[float]:
-                A sequence of similarity scores corresponding to each pair.
+            Union[float, List[float]]: Similarity scores for each set in ys.
 
         Raises:
-            ValueError:
-                If the input pairs are not in the correct format
+            ValueError: If any input is invalid.
         """
-        logger.debug("Calculating Dice similarities for multiple pairs")
-
         try:
+            # Ensure ys is a list
+            if not isinstance(ys, list):
+                ys = [ys]
+                
+            # Initialize results list
             results = []
-            for pair in pairs:
-                if len(pair) != 2:
-                    raise ValueError("Each pair must contain exactly two elements")
-                similarity = self.similarity(pair[0], pair[1])
-                results.append(similarity)
-
-            logger.debug(f"Dice similarities results: {results}")
+            
+            # Calculate similarity for each element in ys
+            for y in ys:
+                results.append(self.similarity(x, y))
+                
+            logger.debug(f"Calculated similarities: {results}")
+            
             return results
-
+            
         except Exception as e:
-            logger.error(f"Error calculating Dice similarities: {str(e)}")
-            raise
+            logger.error(f"Error calculating similarities: {str(e)}")
+            raise ValueError(f"Failed to calculate similarities: {str(e)}")
 
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
+    def dissimilarity(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        y: Union[Union[List, Tuple, str], Callable]
+    ) -> float:
         """
-        Calculate the Dice dissimilarity between two elements.
-
-        Dissimilarity is calculated as 1 - similarity.
+        Calculate the dissimilarity as 1 - similarity.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: First set or iterable.
+            y: Second set or iterable.
 
         Returns:
-            float:
-                A float between 0 and 1 representing the dissimilarity between x and y.
+            float: Dissimilarity score between 0 (identical) and 1 (completely different).
         """
-        logger.debug("Calculating Dice dissimilarity between two elements")
-
-        try:
-            similarity = self.similarity(x, y)
-            dissimilarity = 1.0 - similarity
-            logger.debug(f"Dice dissimilarity result: {dissimilarity}")
-            return dissimilarity
-
-        except Exception as e:
-            logger.error(f"Error calculating Dice dissimilarity: {str(e)}")
-            raise
+        return 1.0 - self.similarity(x, y)
 
     def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        ys: Union[List[Union[List, Tuple, str, Callable]], Union[List, Tuple, str, Callable]]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Dice dissimilarities for multiple pairs of elements.
+        Calculate dissimilarities between a reference set and multiple sets.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: Reference set or iterable.
+            ys: List of sets or iterables to compare against x.
 
         Returns:
-            Sequence[float]:
-                A sequence of dissimilarity scores corresponding to each pair.
+            Union[float, List[float]]: Dissimilarity scores for each set in ys.
         """
-        logger.debug("Calculating Dice dissimilarities for multiple pairs")
+        similarities = self.similarities(x, ys)
+        if isinstance(similarities, float):
+            return 1.0 - similarities
+        else:
+            return [1.0 - s for s in similarities]
 
-        try:
-            results = []
-            for pair in pairs:
-                if len(pair) != 2:
-                    raise ValueError("Each pair must contain exactly two elements")
-                dissimilarity = self.dissimilarity(pair[0], pair[1])
-                results.append(dissimilarity)
+    def check_boundedness(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        y: Union[Union[List, Tuple, str], Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is bounded.
 
-            logger.debug(f"Dice dissimilarities results: {results}")
-            return results
+        The Dice similarity measure is bounded between 0 and 1.
 
-        except Exception as e:
-            logger.error(f"Error calculating Dice dissimilarities: {str(e)}")
-            raise
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+        """
+        return True
+
+    def check_reflexivity(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is reflexive.
+
+        The Dice similarity measure is reflexive since similarity(x, x) = 1.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        return True
+
+    def check_symmetry(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        y: Union[Union[List, Tuple, str], Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is symmetric.
+
+        The Dice similarity measure is symmetric since similarity(x, y) = similarity(y, x).
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        return True
+
+    def check_identity(
+        self, 
+        x: Union[Union[List, Tuple, str], Callable], 
+        y: Union[Union[List, Tuple, str], Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure satisfies identity.
+
+        The Dice similarity measure satisfies identity since if x == y, similarity(x, y) = 1.
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise.
+        """
+        return self.similarity(x, y) == 1.0

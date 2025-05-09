@@ -1,63 +1,52 @@
 import pytest
+from swarmauri_standard.swarmauri_standard.seminorms import ZeroSeminorm
 import logging
-from swarmauri_standard.swarmauri_standard.seminorms.ZeroSeminorm import ZeroSeminorm
 
-
-@pytest.mark.unit
-def test_resource() -> None:
-    """Test that the resource type is correctly set."""
-    assert ZeroSeminorm.resource == "Seminorm"
-
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
-def test_compute() -> None:
-    """Test the compute method with various input types."""
-    zeroseminorm = ZeroSeminorm()
+class TestZeroSeminorm:
+    """Unit tests for ZeroSeminorm class."""
+    
+    @pytest.fixture
+    def zero_seminorm_instance(self):
+        """Fixture to provide a ZeroSeminorm instance for testing."""
+        return ZeroSeminorm()
 
-    # Test with string input
-    assert zeroseminorm.compute("test_string") == 0.0
+    @pytest.mark.unit
+    def test_compute_string_input(self, zero_seminorm_instance):
+        """Test compute method with string input."""
+        result = zero_seminorm_instance.compute("test_string")
+        assert result == 0.0
 
-    # Test with number input
-    assert zeroseminorm.compute(123) == 0.0
+    @pytest.mark.unit
+    def test_compute_callable_input(self, zero_seminorm_instance):
+        """Test compute method with callable input."""
+        result = zero_seminorm_instance.compute(lambda x: x)
+        assert result == 0.0
 
-    # Test with list input
-    assert zeroseminorm.compute([1.0, 2.0, 3.0]) == 0.0
+    @pytest.mark.unit
+    def test_compute_sequence_input(self, zero_seminorm_instance):
+        """Test compute method with sequence input."""
+        result = zero_seminorm_instance.compute([1, 2, 3])
+        assert result == 0.0
 
-    # Test with callable input
-    assert zeroseminorm.compute(lambda x: x) == 0.0
+    @pytest.mark.unit
+    def test_check_triangle_inequality(self, zero_seminorm_instance):
+        """Test triangle inequality method."""
+        result = zero_seminorm_instance.check_triangle_inequality("a", "b")
+        assert result is True
 
+    @pytest.mark.unit
+    def test_check_scalar_homogeneity(self, zero_seminorm_instance):
+        """Test scalar homogeneity method."""
+        result = zero_seminorm_instance.check_scalar_homogeneity("test", 5.0)
+        assert result is True
 
-@pytest.mark.unit
-def test_triangle_inequality() -> None:
-    """Test the triangle inequality check."""
-    zeroseminorm = ZeroSeminorm()
-
-    # Test with string inputs
-    assert zeroseminorm.check_triangle_inequality("a", "b") == True
-
-    # Test with number inputs
-    assert zeroseminorm.check_triangle_inequality(1.0, 2.0) == True
-
-    # Test with list inputs
-    assert zeroseminorm.check_triangle_inequality([1.0, 2.0], [3.0, 4.0]) == True
-
-
-@pytest.mark.unit
-def test_scalar_homogeneity() -> None:
-    """Test scalar homogeneity check."""
-    zeroseminorm = ZeroSeminorm()
-
-    # Test with string input and different scalars
-    assert zeroseminorm.check_scalar_homogeneity("test_string", 0.0) == True
-    assert zeroseminorm.check_scalar_homogeneity("test_string", 1.0) == True
-    assert zeroseminorm.check_scalar_homogeneity("test_string", -1.0) == True
-
-    # Test with number input and different scalars
-    assert zeroseminorm.check_scalar_homogeneity(123, 0.0) == True
-    assert zeroseminorm.check_scalar_homogeneity(123, 1.0) == True
-    assert zeroseminorm.check_scalar_homogeneity(123, -1.0) == True
-
-    # Test with list input and different scalars
-    assert zeroseminorm.check_scalar_homogeneity([1.0, 2.0], 0.0) == True
-    assert zeroseminorm.check_scalar_homogeneity([1.0, 2.0], 1.0) == True
-    assert zeroseminorm.check_scalar_homogeneity([1.0, 2.0], -1.0) == True
+    @pytest.mark.unit
+    def test_serialization(self, zero_seminorm_instance):
+        """Test serialization/deserialization of ZeroSeminorm."""
+        instance = zero_seminorm_instance
+        serialized = instance.model_dump_json()
+        deserialized = ZeroSeminorm.model_validate_json(serialized)
+        assert instance.id == deserialized.id

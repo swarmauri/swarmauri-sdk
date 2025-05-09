@@ -1,129 +1,178 @@
-from typing import Union, TypeVar, Optional
-import logging
-from pydantic import Field
+from typing import Union, Sequence
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
-from swarmauri_core.norms.INorm import INorm
+import logging
 
-T = TypeVar("T", Union["IVector", "IMatrix", str, bytes, Sequence, Callable])
+logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_model()
+@ComponentBase.register_type(NormBase, "L1ManhattanNorm")
 class L1ManhattanNorm(NormBase):
     """
-    Concrete implementation of the L1 (Manhattan) norm for real vectors.
+    Implementation of the L1 (Manhattan) norm for real vectors.
 
     Inherits From:
-        NormBase: Base class providing template logic for norm computations.
-        INorm: Interface for norm computations on vector spaces.
-        ComponentBase: Base class for all components in the system.
+        NormBase: Base class for norm computations
 
-    Provides:
-        Implementation of L1 norm computation and associated properties.
+    Attributes:
+        type: Type identifier for this norm class
+        resource: Type of resource this component represents
     """
-
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
-    type: Literal["L1ManhattanNorm"] = "L1ManhattanNorm"
+    type: str = "L1ManhattanNorm"
+    resource: str = "norm"
 
     def __init__(self):
         """
-        Initializes the L1ManhattanNorm instance.
+        Initialize the L1ManhattanNorm instance.
         """
         super().__init__()
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug("L1ManhattanNorm instance initialized")
 
-    def compute(self, x: T) -> float:
+    def compute(self, x: Union[Sequence, str, Callable]) -> float:
         """
-        Computes the L1 (Manhattan) norm of a vector.
+        Compute the L1 (Manhattan) norm of a vector.
+
+        The L1 norm is calculated as the sum of the absolute values of the vector components.
 
         Args:
-            x: T
-                The input vector for which to compute the norm.
-                Expected to be an iterable of numerical values.
+            x: The input vector. Can be a sequence, string representation of a vector, or a callable.
 
         Returns:
-            float:
-                The computed L1 norm value.
+            float: The computed L1 norm value.
 
         Raises:
-            ValueError: If the input is not a valid vector type.
+            TypeError: If the input type is not supported
+            ValueError: If the input cannot be converted to a valid vector
         """
-        self.logger.debug("Computing L1 norm")
+        logger.debug("Computing L1 norm")
+        
         try:
-            # Convert to list of absolute values and sum them
-            return float(sum(abs(component) for component in x))
-        except TypeError:
-            raise ValueError("Input must be an iterable of numerical values")
+            # Convert input to a list of float values
+            if isinstance(x, str):
+                vector = list(map(float, x.strip().split()))
+            elif isinstance(x, Callable):
+                vector = x()
+            else:
+                vector = list(x)
+            
+            # Compute L1 norm as sum of absolute values
+            norm = sum(abs(component) for component in vector)
+            logger.debug(f"L1 norm computed: {norm}")
+            return norm
+            
+        except TypeError as e:
+            logger.error(f"TypeError in L1 computation: {str(e)}")
+            raise TypeError(f"Unsupported type for L1 norm computation: {type(x)}") from e
+        except Exception as e:
+            logger.error(f"Error in L1 computation: {str(e)}")
+            raise ValueError(f"Invalid input for L1 norm computation") from e
 
-    def check_non_negativity(self, x: T) -> bool:
+    def check_non_negativity(self, x: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the L1 norm satisfies non-negativity.
+        Verify the non-negativity property of the L1 norm.
+
+        The norm must satisfy ||x|| >= 0 for all x, and ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input vector to check.
+            x: The input vector to verify non-negativity for.
 
-        Returns:
-            bool:
-                True if norm(x) >= 0, False otherwise.
+        Raises:
+            AssertionError: If non-negativity property is not satisfied
         """
-        self.logger.debug("Checking non-negativity for L1 norm")
-        # L1 norm is always non-negative since it's sum of absolute values
-        return self.compute(x) >= 0
+        logger.debug("Checking non-negativity property")
+        
+        norm = self.compute(x)
+        assert norm >= 0, "Non-negativity violation: Norm is negative"
+        logger.debug("Non-negativity property verified")
 
-    def check_triangle_inequality(self, x: T, y: T) -> bool:
+    def check_triangle_inequality(self, x: Union[Sequence, str, Callable], 
+                                    y: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the L1 norm satisfies the triangle inequality.
+        Verify the triangle inequality property of the L1 norm.
+
+        The norm must satisfy ||x + y|| <= ||x|| + ||y|| for all x, y.
 
         Args:
-            x: T
-                The first input vector
-            y: T
-                The second input vector
+            x: The first input vector
+            y: The second input vector
 
-        Returns:
-            bool:
-                True if ||x + y|| <= ||x|| + ||y||, False otherwise.
+        Raises:
+            AssertionError: If triangle inequality property is not satisfied
         """
-        self.logger.debug("Checking triangle inequality for L1 norm")
+        logger.debug("Checking triangle inequality property")
+        
         norm_x = self.compute(x)
         norm_y = self.compute(y)
-        norm_xy = self.compute([x[i] + y[i] for i in range(len(x))])
-        return norm_xy <= norm_x + norm_y
+        sum_xy = [x_i + y_i for x_i, y_i in zip(self._convert_to_vector(x), self._convert_to_vector(y))]
+        norm_sum = self.compute(sum_xy)
+        
+        assert norm_sum <= norm_x + norm_y, "Triangle inequality violation"
+        logger.debug("Triangle inequality property verified")
 
-    def check_absolute_homogeneity(self, x: T, scalar: float) -> bool:
+    def check_absolute_homogeneity(self, x: Union[Sequence, str, Callable], alpha: float) -> None:
         """
-        Checks if the L1 norm satisfies absolute homogeneity.
+        Verify the absolute homogeneity property of the L1 norm.
+
+        The norm must satisfy ||αx|| = |α| ||x|| for all scalars α and vectors x.
 
         Args:
-            x: T
-                The input vector to check
-            scalar: float
-                The scalar to scale with
+            x: The input vector
+            alpha: The scalar to scale the vector by
 
-        Returns:
-            bool:
-                True if ||c * x|| = |c| * ||x||, False otherwise.
+        Raises:
+            AssertionError: If absolute homogeneity property is not satisfied
         """
-        self.logger.debug("Checking absolute homogeneity for L1 norm")
-        scaled_norm = self.compute([scalar * component for component in x])
-        expected_norm = abs(scalar) * self.compute(x)
-        return scaled_norm == expected_norm
+        logger.debug("Checking absolute homogeneity property")
+        
+        scaled_vector = [alpha * component for component in self._convert_to_vector(x)]
+        norm_scaled = self.compute(scaled_vector)
+        norm_original = self.compute(x)
+        
+        assert norm_scaled == abs(alpha) * norm_original, "Absolute homogeneity violation"
+        logger.debug("Absolute homogeneity property verified")
 
-    def check_definiteness(self, x: T) -> bool:
+    def check_definiteness(self, x: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the L1 norm is definite (norm(x) = 0 if and only if x = 0).
+        Verify the definiteness property of the L1 norm.
+
+        The norm must satisfy ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input vector to check
+            x: The input vector to verify definiteness for.
+
+        Raises:
+            AssertionError: If definiteness property is not satisfied
+        """
+        logger.debug("Checking definiteness property")
+        
+        vector = self._convert_to_vector(x)
+        norm = self.compute(vector)
+        
+        if norm == 0:
+            assert all(component == 0 for component in vector), "Definiteness violation: Non-zero vector with zero norm"
+        else:
+            assert norm != 0, "Definiteness violation: Zero vector has non-zero norm"
+            
+        logger.debug("Definiteness property verified")
+
+    def _convert_to_vector(self, x: Union[Sequence, str, Callable]) -> list:
+        """
+        Helper method to convert input to a list of float values.
+
+        Args:
+            x: The input to convert. Can be a sequence, string, or callable.
 
         Returns:
-            bool:
-                True if norm(x) = 0 implies x = 0, False otherwise.
+            list: The converted vector as a list of floats.
+
+        Raises:
+            ValueError: If conversion fails
         """
-        self.logger.debug("Checking definiteness for L1 norm")
-        norm = self.compute(x)
-        # Check if norm is zero and vector is zero vector
-        return norm == 0 and all(component == 0 for component in x)
+        try:
+            if isinstance(x, str):
+                return list(map(float, x.strip().split()))
+            elif isinstance(x, Callable):
+                return x()
+            else:
+                return list(x)
+        except Exception as e:
+            raise ValueError(f"Failed to convert input to vector: {str(e)}") from e

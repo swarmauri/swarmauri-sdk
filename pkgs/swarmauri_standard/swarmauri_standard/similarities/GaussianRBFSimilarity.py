@@ -1,147 +1,245 @@
-import logging
-import numpy as np
-from typing import Sequence, Tuple, Any
+from typing import Union, List, Optional, Literal
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_standard.similarities.SimilarityBase import SimilarityBase
+from swarmauri_core.similarities.ISimilarity import ISimilarity
+import numpy as np
+from scipy.spatial import distance
+import logging
 
 logger = logging.getLogger(__name__)
 
-InputType = Any
-OutputType = float
-
-
 @ComponentBase.register_model()
-class GaussianRBFSimilarity(SimilarityBase):
+class GaussianRBFSimilarity(ISimilarity, ComponentBase):
     """
-    Concrete implementation of the RBF (Gaussian) similarity measure.
+    Implementation of the Gaussian RBF similarity measure.
 
-    This class implements the Gaussian radial basis function (RBF) similarity,
-    which measures the exponential decay of similarity with squared Euclidean distance.
-    The similarity is calculated as:
-
-    similarity(x, y) = exp(-γ ||x - y||²)
-
-    where γ is a positive parameter controlling the bandwidth of the RBF.
+    This class provides an implementation of the Gaussian Radial Basis Function (RBF)
+    similarity measure. The similarity is calculated as the exponential of the negative
+    squared Euclidean distance scaled by a gamma parameter.
 
     Attributes:
-        gamma: float
-            The bandwidth parameter of the RBF kernel. Must be greater than 0.
+        gamma: Inverse kernel width parameter. Must be greater than 0.
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
-
-    type: str = "GaussianRBFSimilarity"
-
+    resource: Optional[str] = Field(default=ResourceTypes.SIMILARITY.value)
+    gamma: float
+    
     def __init__(self, gamma: float = 1.0):
         """
-        Initialize the GaussianRBFSimilarity instance.
+        Initialize the Gaussian RBF similarity measure.
 
         Args:
-            gamma: float
-                The bandwidth parameter of the RBF kernel. Must be greater than 0.
-                Defaults to 1.0
+            gamma: Inverse kernel width parameter. Must be greater than 0.
+                  Defaults to 1.0.
         """
         super().__init__()
         if gamma <= 0:
             raise ValueError("Gamma must be greater than 0")
         self.gamma = gamma
-        logger.debug("Initialized GaussianRBFSimilarity with gamma=%s", gamma)
+        logger.info("GaussianRBFSimilarity initialized with gamma = %s", self.gamma)
 
-    def similarity(self, x: InputType, y: InputType) -> OutputType:
+    def similarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
         Calculate the Gaussian RBF similarity between two elements.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: First element to compare.
+            y: Second element to compare.
 
         Returns:
-            OutputType:
-                A float representing the similarity between x and y,
-                ranging between 0 and 1.
+            float: Similarity score between x and y in the range [0, 1].
 
-        Note:
-            The elements can be of any type that can be converted to a numpy array.
-            The similarity is computed as exp(-gamma * ||x - y||²).
+        Raises:
+            ValueError: If inputs cannot be converted to numerical arrays.
         """
         try:
-            # Convert inputs to numpy arrays if they aren't already
-            x_array = np.asarray(x)
-            y_array = np.asarray(y)
-
-            # Compute squared Euclidean distance
-            distance_sq = np.linalg.norm(x_array - y_array) ** 2
-
+            x_arr = np.asarray(x)
+            y_arr = np.asarray(y)
+            
+            if x_arr.size == 1 and y_arr.size == 1:
+                # Handle scalar inputs
+                dist_sq = (x_arr.item() - y_arr.item()) ** 2
+            else:
+                # Calculate squared Euclidean distance between vectors
+                dist_sq = distance.squared_euclidean(x_arr, y_arr)
+            
             # Compute RBF similarity
-            similarity = np.exp(-self.gamma * distance_sq)
-
-            logger.debug("Computed similarity: %s", similarity)
-            return similarity
-
+            similarity = np.exp(-self.gamma * dist_sq)
+            logger.debug("Similarity calculated: %s", similarity)
+            return similarity.item()
+            
         except Exception as e:
-            logger.error("Error computing similarity", exc_info=e)
-            raise
+            logger.error("Error calculating similarity: %s", str(e))
+            raise ValueError("Failed to calculate similarity") from e
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Gaussian RBF similarities for multiple pairs of elements.
+        Calculate Gaussian RBF similarities between an element and multiple elements.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: Reference element to compare against.
+            ys: List of elements or single element to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of similarity scores corresponding to each pair.
+            Union[float, List[float]]: Similarity scores between x and each element in ys.
+
+        Raises:
+            ValueError: If inputs cannot be converted to numerical arrays.
         """
         try:
-            # Use list comprehension to compute similarity for each pair
-            return [self.similarity(x, y) for x, y in pairs]
+            # Handle single element case
+            if not isinstance(ys, list):
+                return self.similarity(x, ys)
+            
+            # Convert inputs to numpy arrays
+            x_arr = np.asarray(x)
+            ys_arr = [np.asarray(y) for y in ys]
+            
+            # Calculate pairwise squared distances
+            dist_sq_matrix = distance.cdist([x_arr], ys_arr, metric='sqeuclidean')
+            
+            # Compute RBF similarities for all pairs
+            similarities = np.exp(-self.gamma * dist_sq_matrix.flatten())
+            logger.debug("Similarities calculated: %s", similarities)
+            
+            return similarities.tolist()
+            
         except Exception as e:
-            logger.error("Error computing similarities", exc_info=e)
-            raise
+            logger.error("Error calculating similarities: %s", str(e))
+            raise ValueError("Failed to calculate similarities") from e
 
-    def dissimilarity(self, x: InputType, y: InputType) -> OutputType:
+    def dissimilarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
-        Calculate the Gaussian RBF dissimilarity between two elements.
+        Calculate the dissimilarity using Gaussian RBF similarity.
+
+        This is implemented as 1 - similarity(x, y) to convert the similarity
+        measure to a dissimilarity measure.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: First element to compare.
+            y: Second element to compare.
 
         Returns:
-            OutputType:
-                A float representing the dissimilarity between x and y,
-                ranging between 0 and 1.
+            float: Dissimilarity score between x and y in the range [0, 1].
         """
-        try:
-            # Dissimilarity is 1 - similarity
-            return 1.0 - self.similarity(x, y)
-        except Exception as e:
-            logger.error("Error computing dissimilarity", exc_info=e)
-            raise
+        similarity = self.similarity(x, y)
+        dissimilarity = 1.0 - similarity
+        logger.debug("Dissimilarity calculated: %s", dissimilarity)
+        return dissimilarity
 
     def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate Gaussian RBF dissimilarities for multiple pairs of elements.
+        Calculate Gaussian RBF dissimilarities between an element and multiple elements.
+
+        This is implemented as 1 - similarities(x, ys) to convert the similarity
+        measure to a dissimilarity measure.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: Reference element to compare against.
+            ys: List of elements or single element to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of dissimilarity scores corresponding to each pair.
+            Union[float, List[float]]: Dissimilarity scores between x and each element in ys.
         """
-        try:
-            # Use list comprehension to compute dissimilarity for each pair
-            return [self.dissimilarity(x, y) for x, y in pairs]
-        except Exception as e:
-            logger.error("Error computing dissimilarities", exc_info=e)
-            raise
+        similarities = self.similarities(x, ys)
+        if isinstance(similarities, float):
+            return 1.0 - similarities
+        else:
+            return [1.0 - s for s in similarities]
+
+    def check_boundedness(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is bounded.
+
+        The Gaussian RBF similarity measure produces values in the range (0, 1],
+        making it bounded.
+
+        Args:
+            x: First element to compare (unused in this check).
+            y: Second element to compare (unused in this check).
+
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+        """
+        return True
+
+    def check_reflexivity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is reflexive.
+
+        For any element x, the similarity with itself is 1, making it reflexive.
+
+        Args:
+            x: Element to check reflexivity for.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        return True
+
+    def check_symmetry(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is symmetric.
+
+        The Gaussian RBF similarity measure is symmetric since it depends only
+        on the squared distance between x and y.
+
+        Args:
+            x: First element to compare (unused in this check).
+            y: Second element to compare (unused in this check).
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        return True
+
+    def check_identity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure satisfies identity.
+
+        The measure satisfies identity if x == y implies similarity(x, y) = 1.
+
+        Args:
+            x: First element to compare.
+            y: Second element to compare.
+
+        Returns:
+            bool: True if x and y are identical and similarity is 1, False otherwise.
+        """
+        return self.similarity(x, y) == 1.0

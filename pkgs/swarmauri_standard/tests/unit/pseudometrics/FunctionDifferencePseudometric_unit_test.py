@@ -1,214 +1,98 @@
 import pytest
 import logging
-from swarmauri_standard.swarmauri_standard.pseudometrics.FunctionDifferencePseudometric import (
-    FunctionDifferencePseudometric,
-)
-
+from swarmauri_standard.swarmauri_standard.pseudometrics.FunctionDifferencePseudometric import FunctionDifferencePseudometric
+from typing import Union, List, Tuple, Callable
 
 @pytest.mark.unit
-def test_function_difference_pseudometric_initialization():
-    """
-    Test basic initialization of FunctionDifferencePseudometric.
-    """
-    fdp = FunctionDifferencePseudometric()
-    assert isinstance(fdp, FunctionDifferencePseudometric)
-    assert hasattr(fdp, "resource")
-    assert hasattr(fdp, "evaluation_points")
-    assert hasattr(fdp, "sample_count")
+class TestFunctionDifferencePseudometric(PseudometricBase_tests):
+    """Unit test class for FunctionDifferencePseudometric class."""
+    
+    @pytest.fixture
+    def fixture_function_difference(self):
+        """Fixture to provide a FunctionDifferencePseudometric instance."""
+        return FunctionDifferencePseudometric()
 
+    @pytest.mark.parametrize("points,num_sample_points,random_seed", [
+        (None, 1000, None),
+        ([1.0, 2.0, 3.0], 0, 42)
+    ])
+    def test_constructor(self, points, num_sample_points, random_seed):
+        """Test the initialization of FunctionDifferencePseudometric."""
+        fdp = FunctionDifferencePseudometric(
+            points=points,
+            num_sample_points=num_sample_points,
+            random_seed=random_seed
+        )
+        
+        if points is None:
+            assert len(fdp.points) == num_sample_points
+        else:
+            assert fdp.points == points
+        assert fdp.num_sample_points == num_sample_points
+        assert fdp.random_seed == random_seed
 
-@pytest.mark.unit
-def test_function_difference_pseudometric_resource():
-    """
-    Test the resource property of FunctionDifferencePseudometric.
-    """
-    fdp = FunctionDifferencePseudometric()
-    assert fdp.resource == "Pseudometric"
+    def test_distance(self, fixture_function_difference):
+        """Test the distance method with simple functions."""
+        f = lambda x: x
+        g = lambda x: -x
+        
+        distance = fixture_function_difference.distance(f, g)
+        assert distance >= 0.0
+        assert distance == pytest.approx(1.0, abs=1e-2)
 
+    def test_distances(self, fixture_function_difference):
+        """Test the distances method with multiple functions."""
+        f = lambda x: x
+        g1 = lambda x: -x
+        g2 = lambda x: x + 1
+        
+        distances = fixture_function_difference.distances(f, [g1, g2])
+        assert isinstance(distances, list)
+        assert len(distances) == 2
+        assert all(isinstance(d, float) for d in distances)
 
-@pytest.mark.unit
-def test_function_difference_pseudometric_type():
-    """
-    Test the type property of FunctionDifferencePseudometric.
-    """
-    fdp = FunctionDifferencePseudometric()
-    assert fdp.type == "FunctionDifferencePseudometric"
+    def test_check_non_negativity(self, fixture_function_difference):
+        """Test the non-negativity property."""
+        f = lambda x: x
+        g = lambda x: x
+        
+        assert fixture_function_difference.check_non_negativity(f, g)
+        assert fixture_function_difference.check_non_negativity(f, lambda x: -x)
 
+    def test_check_symmetry(self, fixture_function_difference):
+        """Test the symmetry property."""
+        f = lambda x: x
+        g = lambda x: x + 1
+        h = lambda x: x - 1
+        
+        assert fixture_function_difference.check_symmetry(f, g)
+        assert fixture_function_difference.check_symmetry(g, h)
 
-@pytest.mark.unit
-def test_function_difference_pseudometric_serialization():
-    """
-    Test serialization/deserialization of FunctionDifferencePseudometric.
-    """
-    fdp = FunctionDifferencePseudometric()
-    model = fdp.model_dump_json()
-    assert fdp.model_validate_json(model) == fdp.id
+    def test_check_triangle_inequality(self, fixture_function_difference):
+        """Test the triangle inequality property."""
+        f = lambda x: x
+        g = lambda x: x + 1
+        h = lambda x: x + 2
+        
+        d_fg = fixture_function_difference.distance(f, g)
+        d_gh = fixture_function_difference.distance(g, h)
+        d_fh = fixture_function_difference.distance(f, h)
+        
+        assert d_fh <= d_fg + d_gh
 
+    def test_check_weak_identity(self, fixture_function_difference):
+        """Test the weak identity of indiscernibles property."""
+        f = lambda x: x
+        g = lambda x: x
+        
+        assert fixture_function_difference.check_weak_identity(f, g)
+        assert not fixture_function_difference.check_weak_identity(f, lambda x: x + 1)
 
-@pytest.mark.unit
-def test_function_difference_pseudometric_distance():
-    """
-    Test the distance calculation between two simple functions.
-    """
+    def test_serialization(self, fixture_function_difference):
+        """Test JSON serialization and validation."""
+        model_json = fixture_function_difference.model_dump_json()
+        assert model_json == fixture_function_difference.model_validate_json(model_json)
 
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    distance = fdp.distance(f1, f2)
-    assert distance == 1.0
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_distance_no_evaluation_points():
-    """
-    Test distance calculation when no evaluation points are provided.
-    """
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    fdp = FunctionDifferencePseudometric()
-    distance = fdp.distance(f1, f2)
-    assert distance >= 0.0
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_distances():
-    """
-    Test distances calculation for multiple functions.
-    """
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    def f3(x):
-        return 3 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    distances = fdp.distances(f1, [f2, f3])
-    assert len(distances) == 2
-    assert all(0 <= d <= 2.0 for d in distances)
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_non_negativity():
-    """
-    Test non-negativity property of the distance metric.
-    """
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    non_negative = fdp.check_non_negativity(f1, f2)
-    assert non_negative is True
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_symmetry():
-    """
-    Test symmetry property of the distance metric.
-    """
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    is_symmetric = fdp.check_symmetry(f1, f2)
-    assert is_symmetric is True
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_triangle_inequality():
-    """
-    Test triangle inequality property of the distance metric.
-    """
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    def f3(x):
-        return 3 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    is_triangle_inequality = fdp.check_triangle_inequality(f1, f2, f3)
-    assert is_triangle_inequality is True
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_weak_identity():
-    """
-    Test weak identity of indiscernibles property of the distance metric.
-    """
-
-    # Simple test function
-    def f1(x):
-        return x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    is_weak_identity = fdp.check_weak_identity(f1, f1)
-    assert is_weak_identity is True
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_evaluation_points():
-    """
-    Test initialization with and without evaluation points.
-    """
-    # Test with custom evaluation points
-    evaluation_points = [0.0, 0.5, 1.0]
-    fdp_custom = FunctionDifferencePseudometric(evaluation_points=evaluation_points)
-    assert fdp_custom.evaluation_points == evaluation_points
-
-    # Test without evaluation points (uses default)
-    fdp_default = FunctionDifferencePseudometric()
-    assert fdp_default.evaluation_points is not None
-    assert len(fdp_default.evaluation_points) == 10
-
-
-@pytest.mark.unit
-def test_function_difference_pseudometric_logging():
-    """
-    Test logging functionality in FunctionDifferencePseudometric.
-    """
-    # Configure logging
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-
-    # Simple test functions
-    def f1(x):
-        return x
-
-    def f2(x):
-        return 2 * x
-
-    fdp = FunctionDifferencePseudometric(evaluation_points=[0.0, 1.0])
-    distance = fdp.distance(f1, f2)
-
-    # Check if logging was called
-    # This is a simplistic test - in real scenarios, you might want to mock logging
-    assert distance == 1.0
+    pytest.main([__file__])

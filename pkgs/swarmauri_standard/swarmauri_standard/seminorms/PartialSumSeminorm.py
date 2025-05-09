@@ -1,156 +1,92 @@
-from typing import Union, Sequence, Optional, TypeVar
+from typing import Union, Sequence, Optional, Literal
+from abc import ABC
 import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.seminorms.ISeminorm import ISeminorm
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T", Union[Sequence[float], Sequence[Sequence[float]], str, callable])
 
 
 @ComponentBase.register_type(SeminormBase, "PartialSumSeminorm")
 class PartialSumSeminorm(SeminormBase):
     """
-    A concrete implementation of SeminormBase that computes the seminorm by summing
-    only a specified part of the input vector.
+    A seminorm that computes the sum of a specified subset of elements
+    in the input vector.
 
+    This implementation allows for specifying a range of indices to be
+    included in the summation process. The indices can be specified
+    either by start and end indices or by a list of specific indices.
+    
     Attributes:
-        start: int
-            The starting index (inclusive) of the segment to consider.
-        end: int
-            The ending index (exclusive) of the segment to consider.
-        resource: str
-            The resource type identifier for this component.
+        start: The starting index of the range to be summed (inclusive)
+        end: The ending index of the range to be summed (exclusive)
+        indices: Optional list of specific indices to be summed
     """
-
-    resource: str = ResourceTypes.SEMINORM.value
-
-    def __init__(self, start: int = 0, end: Optional[int] = None):
+    type: Literal["PartialSumSeminorm"] = "PartialSumSeminorm"
+    
+    def __init__(self, start: int = 0, end: Optional[int] = None, indices: Optional[Sequence[int]] = None):
         """
-        Initialize the PartialSumSeminorm instance.
+        Initialize the PartialSumSeminorm object.
 
         Args:
-            start: int
-                The starting index (inclusive) of the segment to sum.
-                Defaults to 0.
-            end: Optional[int]
-                The ending index (exclusive) of the segment to sum.
-                Defaults to None, which means the end of the input.
+            start: The starting index of the range to be summed (inclusive)
+            end: The ending index of the range to be summed (exclusive)
+            indices: Optional list of specific indices to be summed
+            
+        Raises:
+            ValueError: If both end and indices are specified or if neither is specified
         """
         super().__init__()
+        
+        if (end is not None and indices is not None) or (end is None and indices is None):
+            raise ValueError("Either specify end or indices, but not both and not neither")
+            
         self.start = start
         self.end = end
-        logger.debug(
-            "Initialized PartialSumSeminorm with start=%d, end=%s",
-            start,
-            end if end is not None else "None",
-        )
+        self.indices = indices
 
-    def compute(self, input: T) -> float:
+    def compute(
+        self,
+        input: Union[IVector, IMatrix, Sequence, str, Callable]
+    ) -> float:
         """
-        Compute the seminorm by summing the specified segment of the input.
+        Compute the seminorm of the given input.
+
+        The seminorm is computed as the sum of the elements in the specified
+        range or at the specified indices.
 
         Args:
-            input: T
-                The input to compute the seminorm on. This should be an iterable
-                of numeric values.
+            input: The input to compute the seminorm for. Currently supports
+                vectors, sequences, and strings.
 
         Returns:
-            float
-                The computed seminorm value.
+            float: The computed seminorm value.
 
         Raises:
-            ValueError
-                If the input is not iterable or the indices are out of bounds.
+            NotImplementedError: If the input type is not supported
+            ValueError: If the input is of incorrect type
         """
-        try:
-            # Convert input to list for indexing operations
-            input_list = list(input)
-
-            # Get the actual end index, defaulting to the length of the input
-            actual_end = self.end if self.end is not None else len(input_list)
-
-            # Validate indices
-            if self.start >= len(input_list):
-                raise ValueError(
-                    f"Start index {self.start} exceeds input length {len(input_list)}"
-                )
-            if actual_end > len(input_list):
-                raise ValueError(
-                    f"End index {actual_end} exceeds input length {len(input_list)}"
-                )
-
-            # Slice the input based on start and end indices
-            segment = input_list[self.start : actual_end]
-
-            # Compute the sum of absolute values
-            return sum(abs(x) for x in segment)
-
-        except Exception as e:
-            logger.error("Error during compute: %s", str(e))
-            raise
-
-    def check_triangle_inequality(self, a: T, b: T) -> bool:
-        """
-        Check the triangle inequality for this seminorm.
-
-        The triangle inequality states that:
-        seminorm(a + b) <= seminorm(a) + seminorm(b)
-
-        Args:
-            a: T
-                The first input vector.
-            b: T
-                The second input vector.
-
-        Returns:
-            bool
-                True if the triangle inequality holds, False otherwise.
-        """
-        try:
-            # Compute seminorms
-            seminorm_a = self.compute(a)
-            seminorm_b = self.compute(b)
-            seminorm_ab = self.compute([a[i] + b[i] for i in range(len(a))])
-
-            # Check inequality
-            return seminorm_ab <= seminorm_a + seminorm_b
-
-        except Exception as e:
-            logger.error("Error during triangle inequality check: %s", str(e))
-            return False
-
-    def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
-        """
-        Check the scalar homogeneity property.
-
-        The property states that for any scalar c >= 0:
-        seminorm(c * a) = c * seminorm(a)
-
-        Args:
-            a: T
-                The input vector to check.
-            scalar: float
-                The scalar to check against.
-
-        Returns:
-            bool
-                True if scalar homogeneity holds, False otherwise.
-        """
-        try:
-            if scalar < 0:
-                raise ValueError("Scalar must be non-negative")
-
-            # Compute original seminorm
-            original = self.compute(a)
-
-            # Compute scaled seminorm
-            scaled = self.compute([scalar * x for x in a])
-
-            # Check homogeneity
-            return scaled == scalar * original
-
-        except Exception as e:
-            logger.error("Error during scalar homogeneity check: %s", str(e))
-            return False
+        logger.debug("Computing partial sum seminorm")
+        
+        if isinstance(input, (IVector, Sequence, str)):
+            vector = list(input)
+            
+            if self.end is not None:
+                # Slice from start to end
+                elements = vector[self.start:self.end]
+            else:
+                # Use specified indices
+                elements = [vector[i] for i in self.indices]
+            
+            return abs(sum(elements))
+            
+        elif isinstance(input, IMatrix):
+            raise NotImplementedError("Matrix support not implemented")
+            
+        elif isinstance(input, Callable):
+            raise NotImplementedError("Callable support not implemented")
+            
+        else:
+            raise ValueError(f"Unsupported input type: {type(input)}")

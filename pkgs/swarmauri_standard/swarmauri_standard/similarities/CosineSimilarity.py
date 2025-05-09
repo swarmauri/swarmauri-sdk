@@ -1,14 +1,10 @@
-from typing import Literal, Sequence, Tuple
+import logging
 import numpy as np
+from typing import Union, List, Optional, Tuple, Callable
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.similarities.SimilarityBase import SimilarityBase
-import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", np.ndarray, Sequence[float])
-OutputType = TypeVar("OutputType", float)
 
 
 @ComponentBase.register_type(SimilarityBase, "CosineSimilarity")
@@ -16,123 +12,186 @@ class CosineSimilarity(SimilarityBase):
     """
     Computes the cosine similarity between vectors.
 
-    The cosine similarity is a measure of similarity between two non-zero vectors
-    of an inner product space that measures the cosine of the angle between them.
-    The cosine of the angle between them is equivalent to their dot product divided
-    by the product of their magnitudes.
+    This class provides an implementation of cosine similarity, a measure of
+    similarity between two non-zero vectors of an inner product space that
+    measures the cosine of the angle between them. The cosine similarity is
+    the dot product of the vectors divided by the product of their magnitudes.
 
     Attributes:
-        type: Literal["CosineSimilarity"]
-            The type identifier for this similarity measure.
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
+    type: str = "CosineSimilarity"
+    resource: Optional[str] = SimilarityBase.ResourceTypes.SIMILARITY
 
-    type: Literal["CosineSimilarity"] = "CosineSimilarity"
-
-    def __init__(self):
+    def similarity(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        y: Union[np.ndarray, Tuple, str, Callable]
+    ) -> float:
         """
-        Initialize the CosineSimilarity instance.
-        """
-        super().__init__()
-        logger.debug("Initialized CosineSimilarity instance")
-
-    def similarity(self, x: InputType, y: InputType) -> OutputType:
-        """
-        Calculate the cosine similarity between two vectors.
+        Calculate cosine similarity between two vectors.
 
         Args:
-            x: InputType
-                The first vector to compare
-            y: InputType
-                The second vector to compare
+            x: First vector to compare.
+            y: Second vector to compare.
 
         Returns:
-            OutputType:
-                The cosine similarity between x and y, ranging from 0 to 1.
+            float: Cosine similarity score between x and y.
 
         Raises:
-            ValueError:
-                If either vector is zero or if the vectors are of different lengths.
+            ValueError: If either vector is zero.
         """
-        logger.debug("Calculating cosine similarity between two vectors")
+        # Ensure inputs are numpy arrays
+        x = np.asarray(x) if not isinstance(x, (np.ndarray, str)) else x
+        y = np.asarray(y) if not isinstance(y, (np.ndarray, str)) else y
 
-        # Convert input to numpy arrays if they are not already
-        x = np.asarray(x)
-        y = np.asarray(y)
+        if callable(x):
+            x = x()
+        if callable(y):
+            y = y()
 
-        # Check if vectors are non-zero
-        if np.allclose(x, np.zeros_like(x)) or np.allclose(y, np.zeros_like(y)):
-            raise ValueError("Non-zero vectors only")
+        # Check for non-zero vectors
+        if np.linalg.norm(x) == 0 or np.linalg.norm(y) == 0:
+            raise ValueError("Non-zero vectors only. Found zero vector.")
 
-        # Calculate the dot product
+        # Compute dot product
         dot_product = np.dot(x, y)
 
-        # Calculate the norms
-        norm_x = np.linalg.norm(x)
-        norm_y = np.linalg.norm(y)
-
-        # Avoid division by zero
-        if norm_x == 0 or norm_y == 0:
-            raise ValueError("Non-zero vectors only")
+        # Compute magnitudes
+        x_magnitude = np.linalg.norm(x)
+        y_magnitude = np.linalg.norm(y)
 
         # Compute cosine similarity
-        similarity = dot_product / (norm_x * norm_y)
+        similarity = dot_product / (x_magnitude * y_magnitude)
+        similarity = np.clip(similarity, -1.0, 1.0)
 
         return similarity
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        ys: Union[
+            List[Union[np.ndarray, Tuple, str, Callable]],
+            Union[np.ndarray, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate cosine similarities for multiple pairs of vectors.
+        Calculate cosine similarities between a vector and multiple vectors.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
+            x: Reference vector to compare against.
+            ys: List of vectors or single vector to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of cosine similarity scores corresponding to each pair.
+            Union[float, List[float]]: Cosine similarity scores between x and each vector in ys.
         """
-        logger.debug("Calculating cosine similarities for multiple pairs")
+        if not isinstance(ys, list):
+            ys = [ys]
 
-        # Calculate similarity for each pair
-        return [self.similarity(x, y) for x, y in pairs]
+        return [self.similarity(x, y) for y in ys]
 
-    def dissimilarity(self, x: InputType, y: InputType) -> OutputType:
+    def dissimilarity(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        y: Union[np.ndarray, Tuple, str, Callable]
+    ) -> float:
         """
-        Calculate the cosine dissimilarity between two vectors.
-
-        Dissimilarity is 1 minus similarity.
+        Calculate cosine dissimilarity between two vectors.
 
         Args:
-            x: InputType
-                The first vector to compare
-            y: InputType
-                The second vector to compare
+            x: First vector to compare.
+            y: Second vector to compare.
 
         Returns:
-            OutputType:
-                The cosine dissimilarity between x and y, ranging from 0 to 1.
+            float: Dissimilarity score between x and y.
         """
-        logger.debug("Calculating cosine dissimilarity between two vectors")
-
         return 1.0 - self.similarity(x, y)
 
     def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[OutputType]:
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        ys: Union[
+            List[Union[np.ndarray, Tuple, str, Callable]],
+            Union[np.ndarray, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate cosine dissimilarities for multiple pairs of vectors.
+        Calculate cosine dissimilarities between a vector and multiple vectors.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
+            x: Reference vector to compare against.
+            ys: List of vectors or single vector to compare with x.
 
         Returns:
-            Sequence[OutputType]:
-                A sequence of cosine dissimilarity scores corresponding to each pair.
+            Union[float, List[float]]: Dissimilarity scores between x and each vector in ys.
         """
-        logger.debug("Calculating cosine dissimilarities for multiple pairs")
+        if not isinstance(ys, list):
+            ys = [ys]
 
-        # Calculate dissimilarity for each pair
-        return [self.dissimilarity(x, y) for x, y in pairs]
+        return [self.dissimilarity(x, y) for y in ys]
+
+    def check_boundedness(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        y: Union[np.ndarray, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is bounded.
+
+        Args:
+            x: First vector to compare.
+            y: Second vector to compare.
+
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+        """
+        return True
+
+    def check_reflexivity(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is reflexive.
+
+        Args:
+            x: Vector to check reflexivity for.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        return True
+
+    def check_symmetry(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        y: Union[np.ndarray, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is symmetric.
+
+        Args:
+            x: First vector to compare.
+            y: Second vector to compare.
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        return True
+
+    def check_identity(
+        self,
+        x: Union[np.ndarray, Tuple, str, Callable],
+        y: Union[np.ndarray, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure satisfies identity.
+
+        Args:
+            x: First vector to compare.
+            y: Second vector to compare.
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise.
+        """
+        return np.allclose(self.similarity(x, y), 1.0)

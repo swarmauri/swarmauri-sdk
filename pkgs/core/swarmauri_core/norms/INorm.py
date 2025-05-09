@@ -1,110 +1,105 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Union
-import logging
-
+from typing import Union, Sequence, Callable
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', IVector, IMatrix, str, bytes, Sequence, Callable)
 
 class INorm(ABC):
     """
-    Interface for norm computations on vector spaces. This class defines the 
-    contract for computing norms and verifying norm properties such as 
-    non-negativity, triangle inequality, and absolute homogeneity.
+    Interface for norm computations on vector spaces. This interface defines
+    the contract for norm behavior, enforcing point-separating distance logic.
+    Implementations must satisfy the properties of a norm:
+    - Non-negativity
+    - Absolute homogeneity
+    - Triangle inequality
+    - Definiteness
+    
+    All implementations must provide implementations for:
+    - compute(): Computes the norm of the input
+    - check_*(): Verification methods for norm properties
     """
     
-    def __init__(self):
-        """
-        Initializes the INorm instance.
-        """
-        logger.debug("INorm instance initialized")
-
     @abstractmethod
-    def compute(self, x: T) -> float:
+    def compute(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> float:
         """
-        Computes the norm of the given input.
+        Compute the norm of the input.
 
         Args:
-            x: T
-                - For IVector: Compute the vector norm
-                - For IMatrix: Compute the matrix norm
-                - For str/bytes: Compute the string length
-                - For Sequence: Compute the sequence length
-                - For Callable: Compute based on the function's output
+            x: The input to compute the norm of. Can be a vector, matrix, sequence,
+                string, or callable.
 
         Returns:
-            float:
-                The computed norm value
+            float: The computed norm value.
 
         Raises:
-            ValueError: If the input type is not supported
+            ValueError: If the input type is not supported.
+            TypeError: If the input cannot be processed.
         """
         pass
-
+    
     @abstractmethod
-    def check_non_negativity(self, x: T) -> bool:
+    def check_non_negativity(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Checks if the norm satisfies non-negativity.
+        Verify the non-negativity property of the norm.
+
+        The norm must satisfy ||x|| >= 0 for all x, and ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input to check
+            x: The input to verify non-negativity for.
 
-        Returns:
-            bool:
-                True if norm(x) >= 0, False otherwise
+        Raises:
+            AssertionError: If the non-negativity property is not satisfied.
         """
         pass
-
+    
     @abstractmethod
-    def check_triangle_inequality(self, x: T, y: T) -> bool:
+    def check_triangle_inequality(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
+                                  y: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Checks if the norm satisfies the triangle inequality.
+        Verify the triangle inequality property of the norm.
+
+        The norm must satisfy ||x + y|| <= ||x|| + ||y|| for all x, y.
 
         Args:
-            x: T
-                The first input vector/matrix
-            y: T
-                The second input vector/matrix
+            x: The first input vector.
+            y: The second input vector.
 
-        Returns:
-            bool:
-                True if ||x + y|| <= ||x|| + ||y||, False otherwise
+        Raises:
+            AssertionError: If the triangle inequality property is not satisfied.
         """
         pass
-
+    
     @abstractmethod
-    def check_absolute_homogeneity(self, x: T, scalar: float) -> bool:
+    def check_absolute_homogeneity(self, x: Union[IVector, IMatrix, Sequence, str, Callable],
+                                 alpha: float) -> None:
         """
-        Checks if the norm satisfies absolute homogeneity.
+        Verify the absolute homogeneity property of the norm.
+
+        The norm must satisfy ||αx|| = |α| ||x|| for all scalars α and vectors x.
 
         Args:
-            x: T
-                The input to check
-            scalar: float
-                The scalar to scale with
+            x: The input vector.
+            alpha: The scalar to scale the vector by.
 
-        Returns:
-            bool:
-                True if ||c * x|| = |c| * ||x||, False otherwise
+        Raises:
+            AssertionError: If the absolute homogeneity property is not satisfied.
         """
         pass
-
+    
     @abstractmethod
-    def check_definiteness(self, x: T) -> bool:
+    def check_definiteness(self, x: Union[IVector, IMatrix, Sequence, str, Callable]) -> None:
         """
-        Checks if the norm is definite (norm(x) = 0 if and only if x = 0).
+        Verify the definiteness property of the norm.
+
+        The norm must satisfy ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input to check
+            x: The input to verify definiteness for.
 
-        Returns:
-            bool:
-                True if norm(x) = 0 implies x = 0, False otherwise
+        Raises:
+            AssertionError: If the definiteness property is not satisfied.
         """
         pass

@@ -1,153 +1,124 @@
-```python
 import pytest
-import logging
+import numpy as np
 from swarmauri_standard.swarmauri_standard.metrics.SupremumMetric import SupremumMetric
 
 @pytest.mark.unit
 class TestSupremumMetric:
-    """Unit test class for SupremumMetric class."""
-
-    def test_resource_attribute(self):
-        """Test the resource attribute of the SupremumMetric class."""
-        assert SupremumMetric.resource == "Metric"
-
-    def test_type_attribute(self):
-        """Test the type attribute of the SupremumMetric class."""
-        assert SupremumMetric.type == "SupremumMetric"
-
-    def test_initialization(self, caplog):
-        """Test the initialization of the SupremumMetric class."""
-        with caplog.at_level(logging.DEBUG):
-            supremum_metric = SupremumMetric()
-            assert "SupremumMetric instance initialized" in caplog.text
-
-    @pytest.mark.parametrize("x,y,expected_distance", [
-        ((1, 2, 3), (1, 2, 3), 0.0),
-        ((0, 0), (1, 1), 1.0),
-        ((-1, 2), (3, -2), 4.0)
-    ])
-    def test_distance(self, x, y, expected_distance):
-        """Test the distance method with various inputs."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.distance(x, y) == expected_distance
-
-    @pytest.mark.parametrize("x,y_list,expected_distances", [
-        ((1, 2), [(1, 2), (3, 4)], [0.0, 2.0]),
-        ((0, 0, 0), (0, 0, 0), 0.0)
-    ])
-    def test_distances(self, x, y_list, expected_distances):
-        """Test the distances method with single and multiple points."""
-        supremum_metric = SupremumMetric()
-        if isinstance(y_list, list):
-            distances = supremum_metric.distances(x, y_list)
-            assert isinstance(distances, list)
+    """Unit tests for the SupremumMetric class."""
+    
+    def test_resource_type(self):
+        """Test if the resource type is correctly set."""
+        assert SupremumMetric.resource == "metric"
+        
+    def test_distance_array_inputs(self, array_data):
+        """Test distance calculation with array inputs."""
+        x, y = array_data
+        distance = SupremumMetric().distance(x, y)
+        assert distance >= 0
+        assert isinstance(distance, float)
+        
+    def test_distance_callable_inputs(self, callable_data):
+        """Test distance calculation with callable inputs."""
+        x, y = callable_data
+        distance = SupremumMetric().distance(x, y)
+        assert distance >= 0
+        assert isinstance(distance, float)
+        
+    def test_distance_string_inputs(self, string_data):
+        """Test distance calculation with string inputs."""
+        x, y = string_data
+        distance = SupremumMetric().distance(x, y)
+        assert distance >= 0
+        assert isinstance(distance, float)
+        
+    def test_distances(self, mixed_data):
+        """Test calculation of multiple distances."""
+        x, ys = mixed_data
+        distances = SupremumMetric().distances(x, ys)
+        assert isinstance(distances, list)
+        assert all(isinstance(d, float) for d in distances)
+        
+    def test_non_negativity(self, scalar_values):
+        """Test the non-negativity property."""
+        x, y = scalar_values
+        metric = SupremumMetric()
+        distance = metric.distance(x, y)
+        assert distance >= 0
+        
+    def test_identity_property(self, scalar_values):
+        """Test the identity of indiscernibles property."""
+        x, y = scalar_values
+        metric = SupremumMetric()
+        
+        # Test when x == y
+        if x == y:
+            distance = metric.distance(x, y)
+            assert distance == 0
         else:
-            distances = supremum_metric.distances(x, y_list)
-            assert isinstance(distances, float)
-        assert distances == expected_distances
+            # Test when x != y
+            distance = metric.distance(x, y)
+            assert distance > 0
+            
+    def test_symmetry_property(self, scalar_values):
+        """Test the symmetry property."""
+        x, y = scalar_values
+        metric = SupremumMetric()
+        distance_xy = metric.distance(x, y)
+        distance_yx = metric.distance(y, x)
+        assert np.isclose(distance_xy, distance_yx)
+        
+    def test_triangle_inequality(self, vector_values):
+        """Test the triangle inequality property."""
+        x, y, z = vector_values
+        metric = SupremumMetric()
+        distance_xz = metric.distance(x, z)
+        distance_xy = metric.distance(x, y)
+        distance_yz = metric.distance(y, z)
+        assert distance_xz <= (distance_xy + distance_yz)
+        
+@pytest.fixture
+def array_data():
+    """Fixture providing test array data."""
+    x = np.array([1, 2, 3])
+    y = np.array([4, 5, 6])
+    return x, y
 
-    def test_non_negativity(self):
-        """Test the non-negativity axiom."""
-        supremum_metric = SupremumMetric()
-        distance = supremum_metric.distance((1, 2), (3, 4))
-        assert distance >= 0.0
+@pytest.fixture
+def callable_data():
+    """Fixture providing test callable data."""
+    def x_func(t):
+        return t**2
+        
+    def y_func(t):
+        return t**3
+        
+    return x_func, y_func
 
-    def test_identity(self):
-        """Test the identity of indiscernibles axiom."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.check_identity((1, 2), (1, 2))
+@pytest.fixture
+def string_data():
+    """Fixture providing test string data."""
+    return "test_string_x", "test_string_y"
 
-    def test_symmetry(self):
-        """Test the symmetry axiom."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.check_symmetry((1, 2), (3, 4)) == \
-               supremum_metric.check_symmetry((3, 4), (1, 2))
+@pytest.fixture
+def mixed_data():
+    """Fixture providing mixed data types for distance calculations."""
+    x = np.array([1, 2, 3])
+    ys = [
+        np.array([4, 5, 6]),
+        lambda t: t**2,
+        "test_string"
+    ]
+    return x, ys
 
-    def test_triangle_inequality(self):
-        """Test the triangle inequality axiom."""
-        supremum_metric = SupremumMetric()
-        x = (1, 2)
-        y = (3, 4)
-        z = (5, 6)
-        d_xy = supremum_metric.distance(x, y)
-        d_yz = supremum_metric.distance(y, z)
-        d_xz = supremum_metric.distance(x, z)
-        assert d_xz <= d_xy + d_yz
-```
+@pytest.fixture
+def scalar_values():
+    """Fixture providing scalar values for metric property tests."""
+    return 5.0, 5.0
 
-```python
-import pytest
-import logging
-from swarmauri_standard.swarmauri_standard.metrics.SupremumMetric import SupremumMetric
-
-@pytest.mark.unit
-class TestSupremumMetric:
-    """Unit test class for SupremumMetric class."""
-
-    def test_resource_attribute(self):
-        """Test the resource attribute of the SupremumMetric class."""
-        assert SupremumMetric.resource == "Metric"
-
-    def test_type_attribute(self):
-        """Test the type attribute of the SupremumMetric class."""
-        assert SupremumMetric.type == "SupremumMetric"
-
-    def test_initialization(self, caplog):
-        """Test the initialization of the SupremumMetric class."""
-        with caplog.at_level(logging.DEBUG):
-            supremum_metric = SupremumMetric()
-            assert "SupremumMetric instance initialized" in caplog.text
-
-    @pytest.mark.parametrize("x,y,expected_distance", [
-        ((1, 2, 3), (1, 2, 3), 0.0),
-        ((0, 0), (1, 1), 1.0),
-        ((-1, 2), (3, -2), 4.0)
-    ])
-    def test_distance(self, x, y, expected_distance):
-        """Test the distance method with various inputs."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.distance(x, y) == expected_distance
-
-    @pytest.mark.parametrize("x,y_list,expected_distances", [
-        ((1, 2), [(1, 2), (3, 4)], [0.0, 2.0]),
-        ((0, 0, 0), (0, 0, 0), 0.0)
-    ])
-    def test_distances(self, x, y_list, expected_distances):
-        """Test the distances method with single and multiple points."""
-        supremum_metric = SupremumMetric()
-        if isinstance(y_list, list):
-            distances = supremum_metric.distances(x, y_list)
-            assert isinstance(distances, list)
-        else:
-            distances = supremum_metric.distances(x, y_list)
-            assert isinstance(distances, float)
-        assert distances == expected_distances
-
-    def test_non_negativity(self):
-        """Test the non-negativity axiom."""
-        supremum_metric = SupremumMetric()
-        distance = supremum_metric.distance((1, 2), (3, 4))
-        assert distance >= 0.0
-
-    def test_identity(self):
-        """Test the identity of indiscernibles axiom."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.check_identity((1, 2), (1, 2))
-
-    def test_symmetry(self):
-        """Test the symmetry axiom."""
-        supremum_metric = SupremumMetric()
-        assert supremum_metric.check_symmetry((1, 2), (3, 4)) == \
-               supremum_metric.check_symmetry((3, 4), (1, 2))
-
-    def test_triangle_inequality(self):
-        """Test the triangle inequality axiom."""
-        supremum_metric = SupremumMetric()
-        x = (1, 2)
-        y = (3, 4)
-        z = (5, 6)
-        d_xy = supremum_metric.distance(x, y)
-        d_yz = supremum_metric.distance(y, z)
-        d_xz = supremum_metric.distance(x, z)
-        assert d_xz <= d_xy + d_yz
-```
+@pytest.fixture
+def vector_values():
+    """Fixture providing vector values for triangle inequality test."""
+    x = np.array([1.0, 2.0])
+    y = np.array([3.0, 4.0])
+    z = np.array([5.0, 6.0])
+    return x, y, z

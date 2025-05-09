@@ -1,98 +1,86 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Union
 import logging
-from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 
+# Define logger
 logger = logging.getLogger(__name__)
 
+# Import the interface class
+from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
 
-class InnerProductBase(IInnerProduct, ABC):
-    """Base implementation of the IInnerProduct interface.
+class InnerProductBase(ABC, IInnerProduct):
+    """
+    A base implementation of the IInnerProduct interface.
     
-    Provides a concrete base class for implementing inner product operations.
-    This class implements the interface defined by IInnerProduct while leaving
-    the core computation methods to be implemented by subclasses.
-    
-    All computation methods raise NotImplementedError and should be
-    implemented by concrete subclasses.
+    This class provides a foundation for implementing inner product calculations.
+    It includes abstract methods that must be implemented by subclasses.
     """
     
-    def compute(self, x: "IVector", y: "IVector") -> float:
-        """Compute the inner product between two vectors.
+    @abstractmethod
+    def compute(self, a: Union[object, object], b: Union[object, object]) -> Union[float, complex]:
+        """
+        Computes the inner product between two elements.
         
         Args:
-            x: First vector
-            y: Second vector
+            a: The first element for the inner product
+            b: The second element for the inner product
             
         Returns:
-            The inner product of x and y as a scalar value.
+            Union[float, complex]: The result of the inner product computation
             
         Raises:
-            NotImplementedError: This method must be implemented by subclasses
+            NotImplementedError: If the method is not implemented in the subclass
         """
-        logger.debug("Base compute method called")
-        raise NotImplementedError("Subclasses must implement the compute method")
-        
-    def check_conjugate_symmetry(self, x: "IVector", y: "IVector") -> bool:
-        """Check if the inner product satisfies conjugate symmetry.
-        
-        Conjugate symmetry requires that the inner product of x and y is
-        equal to the conjugate of the inner product of y and x.
+        logger.error("Compute method not implemented in subclass")
+        raise NotImplementedError("Subclass must implement the compute method")
+    
+    def check_conjugate_symmetry(self, a: Union[object, object], b: Union[object, object]) -> bool:
+        """
+        Checks if the inner product implementation satisfies conjugate symmetry.
         
         Args:
-            x: First vector
-            y: Second vector
+            a: The first element to check
+            b: The second element to check
             
         Returns:
-            True if conjugate symmetry holds, False otherwise.
+            bool: True if conjugate symmetry holds, False otherwise
             
         Raises:
-            NotImplementedError: This method must be implemented by subclasses
+            NotImplementedError: If the method is not implemented in the subclass
         """
-        logger.debug("Base check_conjugate_symmetry method called")
-        raise NotImplementedError("Subclasses must implement the check_conjugate_symmetry method")
-        
-    def check_linearity_first_argument(self, 
-                                      x: "IVector", 
-                                      y: "IVector", 
-                                      z: "IVector",
-                                      a: float = 1.0, 
-                                      b: float = 1.0) -> bool:
-        """Check if the inner product is linear in the first argument.
-        
-        Linearity in the first argument requires that for any vectors x, y, z
-        and scalars a, b, the following holds:
-        <ax + by, z> = a<x, z> + b<y, z>
+        logger.error("check_conjugate_symmetry method not implemented in subclass")
+        raise NotImplementedError("Subclass must implement the check_conjugate_symmetry method")
+    
+    def check_linearity_first_argument(self, a: Union[object, object], b: Union[object, object], c: Union[object, object]) -> bool:
+        """
+        Checks if the inner product implementation is linear in the first argument.
         
         Args:
-            x: First vector
-            y: Second vector
-            z: Third vector
-            a: Scalar coefficient for x
-            b: Scalar coefficient for y
+            a: The first element for linearity check
+            b: The second element for linearity check
+            c: The third element for linearity check
             
         Returns:
-            True if linearity holds, False otherwise.
+            bool: True if linearity in the first argument holds, False otherwise
             
         Raises:
-            NotImplementedError: This method must be implemented by subclasses
+            NotImplementedError: If the method is not implemented in the subclass
         """
-        logger.debug("Base check_linearity_first_argument method called")
-        raise NotImplementedError("Subclasses must implement the check_linearity_first_argument method")
-        
-    def check_positivity(self, x: "IVector") -> bool:
-        """Check if the inner product is positive definite.
-        
-        Positive definiteness requires that for any non-zero vector x,
-        the inner product <x, x> is positive.
+        logger.error("check_linearity_first_argument method not implemented in subclass")
+        raise NotImplementedError("Subclass must implement the check_linearity_first_argument method")
+    
+    def check_positivity(self, a: Union[object, object]) -> bool:
+        """
+        Checks if the inner product implementation satisfies positive definiteness.
         
         Args:
-            x: Vector to check
+            a: The element to check for positivity
             
         Returns:
-            True if positivity holds, False otherwise.
+            bool: True if positivity holds, False otherwise
             
         Raises:
-            NotImplementedError: This method must be implemented by subclasses
+            NotImplementedError: If the method is not implemented in the subclass
         """
-        logger.debug("Base check_positivity method called")
-        raise NotImplementedError("Subclasses must implement the check_positivity method")
+        logger.error("check_positivity method not implemented in subclass")
+        raise NotImplementedError("Subclass must implement the check_positivity method")

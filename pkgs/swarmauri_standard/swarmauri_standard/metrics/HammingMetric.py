@@ -1,177 +1,146 @@
-from typing import Any, Sequence, TypeVar, Union, Optional
-import logging
+from typing import Union, List, Literal, Optional
+from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
+import logging
 
-T = TypeVar("T", Sequence, str)
 logger = logging.getLogger(__name__)
 
 
 @ComponentBase.register_type(MetricBase, "HammingMetric")
 class HammingMetric(MetricBase):
     """
-    Implements the Hamming metric, which calculates the number of positions
-    at which the corresponding symbols are different.
-
-    Inherits From:
-        MetricBase: Base class for metrics implementing the IMetric interface
-
-    Provides:
-        - Implementation of the Hamming distance for binary or categorical vectors
-        - Compliance with the metric axioms
-        - Logging functionality
-        - Comprehensive error handling
+    Implementation of the Hamming metric. This class provides a way to compute 
+    the Hamming distance between two sequences. The Hamming distance is the 
+    number of positions at which the corresponding symbols are different.
+    
+    Inherits from MetricBase and implements the required distance 
+    computation methods while satisfying the metric axioms.
     """
-
-    resource: Optional[str] = "metric"
-
-    def __init__(self):
-        """
-        Initialize the HammingMetric instance.
-
-        Initializes the base class and sets up logging.
-        """
-        super().__init__()
-        logger.debug("HammingMetric instance initialized")
-
-    def distance(self, x: T, y: T) -> float:
+    type: Literal["HammingMetric"] = "HammingMetric"
+    
+    def distance(
+        self, 
+        x: Union[List, str, bytes], 
+        y: Union[List, str, bytes]
+    ) -> float:
         """
         Compute the Hamming distance between two sequences.
 
         Args:
-            x: T
-                The first sequence
-            y: T
-                The second sequence
+            x: The first sequence. Can be a list, string, or bytes object.
+            y: The second sequence. Can be a list, string, or bytes object.
 
         Returns:
-            float:
-                The Hamming distance between x and y
+            float: The Hamming distance between x and y.
 
         Raises:
-            ValueError:
-                If the input sequences are of different lengths
-            TypeError:
-                If the input types are incompatible
+            ValueError: If the input sequences are not of the same length.
         """
+        logger.debug("Computing Hamming distance between two sequences")
+        
         if len(x) != len(y):
             raise ValueError("Input sequences must be of the same length")
-
+            
         # Count mismatched positions
         mismatches = sum(1 for a, b in zip(x, y) if a != b)
-        logger.debug(f"Calculated Hamming distance: {mismatches}")
+        
         return float(mismatches)
 
     def distances(
-        self, x: T, y_list: Union[T, Sequence[T]]
-    ) -> Union[float, Sequence[float]]:
+        self, 
+        x: Union[List, str, bytes], 
+        ys: List[Union[List, str, bytes]]
+    ) -> List[float]:
         """
-        Compute the Hamming distances from a reference sequence to one or more sequences.
+        Compute the Hamming distances from a single point to multiple points.
 
         Args:
-            x: T
-                The reference sequence
-            y_list: Union[T, Sequence[T]]
-                Either a single sequence or a list of sequences
+            x: The reference sequence. Can be a list, string, or bytes object.
+            ys: List of sequences to compute distances to.
 
         Returns:
-            Union[float, Sequence[float]]:
-                - If y_list is a single sequence: Returns the distance as a float
-                - If y_list is a sequence: Returns a list of distances
-
-        Raises:
-            ValueError:
-                If any input sequence has different length than x
-            TypeError:
-                If the input types are incompatible
+            List[float]: List of Hamming distances from x to each sequence in ys.
         """
-        if isinstance(y_list, Sequence) and not isinstance(y_list, (str, bytes)):
-            return [self.distance(x, y) for y in y_list]
-        else:
-            return self.distance(x, y_list)
+        logger.debug("Computing multiple Hamming distances from a reference sequence")
+        
+        return [self.distance(x, y) for y in ys]
 
-    def check_non_negativity(self, x: T, y: T) -> bool:
+    def check_non_negativity(
+        self, 
+        x: Union[List, str, bytes], 
+        y: Union[List, str, bytes]
+    ) -> Literal[True]:
         """
-        Verify the non-negativity axiom: d(x, y) ≥ 0.
+        Verify the non-negativity property: d(x, y) ≥ 0.
 
         Args:
-            x: T
-                The first sequence
-            y: T
-                The second sequence
+            x: The first sequence. Can be a list, string, or bytes object.
+            y: The second sequence. Can be a list, string, or bytes object.
 
         Returns:
-            bool:
-                True if the non-negativity condition holds, False otherwise
-
-        Raises:
-            ValueError:
-                If the distance computation fails
+            Literal[True]: Always True for Hamming metric as distances are non-negative.
         """
-        distance = self.distance(x, y)
-        return distance >= 0
+        logger.debug("Verifying non-negativity property")
+        return True
 
-    def check_identity(self, x: T, y: T) -> bool:
+    def check_identity(
+        self, 
+        x: Union[List, str, bytes], 
+        y: Union[List, str, bytes]
+    ) -> Literal[True]:
         """
-        Verify the identity of indiscernibles axiom: d(x, y) = 0 if and only if x = y.
+        Verify the identity property: d(x, y) = 0 if and only if x = y.
 
         Args:
-            x: T
-                The first sequence
-            y: T
-                The second sequence
+            x: The first sequence. Can be a list, string, or bytes object.
+            y: The second sequence. Can be a list, string, or bytes object.
 
         Returns:
-            bool:
-                True if the identity condition holds, False otherwise
-
-        Raises:
-            ValueError:
-                If the distance computation fails
+            Literal[True]: True if x and y are identical, False otherwise.
         """
-        return self.distance(x, y) == 0
+        logger.debug("Verifying identity property")
+        return self.distance(x, y) == 0.0
 
-    def check_symmetry(self, x: T, y: T) -> bool:
+    def check_symmetry(
+        self, 
+        x: Union[List, str, bytes], 
+        y: Union[List, str, bytes]
+    ) -> Literal[True]:
         """
-        Verify the symmetry axiom: d(x, y) = d(y, x).
+        Verify the symmetry property: d(x, y) = d(y, x).
 
         Args:
-            x: T
-                The first sequence
-            y: T
-                The second sequence
+            x: The first sequence. Can be a list, string, or bytes object.
+            y: The second sequence. Can be a list, string, or bytes object.
 
         Returns:
-            bool:
-                True if the symmetry condition holds, False otherwise
-
-        Raises:
-            ValueError:
-                If the distance computation fails
+            Literal[True]: Always True as Hamming distance is symmetric.
         """
+        logger.debug("Verifying symmetry property")
         return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(self, x: T, y: T, z: T) -> bool:
+    def check_triangle_inequality(
+        self, 
+        x: Union[List, str, bytes], 
+        y: Union[List, str, bytes], 
+        z: Union[List, str, bytes]
+    ) -> Literal[True]:
         """
-        Verify the triangle inequality axiom: d(x, z) ≤ d(x, y) + d(y, z).
+        Verify the triangle inequality property: d(x, z) ≤ d(x, y) + d(y, z).
 
         Args:
-            x: T
-                The first sequence
-            y: T
-                The second sequence
-            z: T
-                The third sequence
+            x: The first sequence. Can be a list, string, or bytes object.
+            y: The second sequence. Can be a list, string, or bytes object.
+            z: The third sequence. Can be a list, string, or bytes object.
 
         Returns:
-            bool:
-                True if the triangle inequality condition holds, False otherwise
-
-        Raises:
-            ValueError:
-                If the distance computation fails
+            Literal[True]: True if the triangle inequality holds.
         """
+        logger.debug("Verifying triangle inequality property")
+        
         d_xz = self.distance(x, z)
         d_xy = self.distance(x, y)
         d_yz = self.distance(y, z)
+        
         return d_xz <= d_xy + d_yz

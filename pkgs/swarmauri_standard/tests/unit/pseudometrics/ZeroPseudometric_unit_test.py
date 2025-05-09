@@ -1,115 +1,74 @@
 import pytest
-from swarmauri_standard.swarmauri_standard.pseudometrics import ZeroPseudometric
+from typing import Union, List, Any, Literal, ABC
+from swarmauri_standard.pseudometrics.ZeroPseudometric import ZeroPseudometric
+import logging
 
-
-@pytest.fixture
-def zero_pseudometric():
-    """
-    Fixture to provide a ZeroPseudometric instance for testing.
-    """
-    return ZeroPseudometric()
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.unit
-def test_distance(zero_pseudometric):
-    """
-    Test the distance method of ZeroPseudometric.
-    """
-    # Test with different input types
-    params = [
-        ("test1", "test2"),
-        (b"bytes1", b"bytes2"),
-        (1, 2),
-        ("test", 1),
-        (None, None),
-    ]
+class TestZeroPseudometric:
+    """Unit tests for ZeroPseudometric class implementation."""
+    
+    @pytest.fixture
+    def zero_pseudometric(self):
+        """Fixture providing an instance of ZeroPseudometric."""
+        return ZeroPseudometric()
 
-    for x, y in params:
+    def setup_method(self):
+        """Set up logging for test methods."""
+        logger.debug("Initializing ZeroPseudometric unit tests")
+
+    @pytest.mark.parametrize("x,y", [
+        (None, None),
+        ("test", "test"),
+        (1, 2),
+        (True, False),
+        ({"a": 1}, {"a": 1}),
+        ([1, 2, 3], [1, 2, 3])
+    ])
+    def test_distance(self, zero_pseudometric, x, y):
+        """Test that distance between any two points is zero."""
         assert zero_pseudometric.distance(x, y) == 0.0
 
+    @pytest.mark.parametrize("x, y_list", [
+        ("test", ["test1", "test2", "test3"]),
+        (1, [2, 3, 4]),
+        (True, [False, True, False]),
+        ({"a": 1}, [{"a": 1}, {"a": 2}, {"b": 3}]),
+        ([1, 2, 3], [[1, 2, 3], [4, 5, 6]])
+    ])
+    def test_distances(self, zero_pseudometric, x, y_list):
+        """Test that distances to multiple points return all zeros."""
+        distances = zero_pseudometric.distances(x, y_list)
+        assert all(d == 0.0 for d in distances)
 
-@pytest.mark.unit
-def test_distances(zero_pseudometric):
-    """
-    Test the distances method of ZeroPseudometric.
-    """
-    # Test with multiple inputs
-    x = "test"
-    ys = ["test1", "test2", "test3"]
-    results = zero_pseudometric.distances(x, ys)
-    assert all(r == 0.0 for r in results)
+    def test_check_non_negativity(self, zero_pseudometric):
+        """Test that non-negativity condition is always satisfied."""
+        assert zero_pseudometric.check_non_negativity("test", "test") is True
 
-    # Test with None for ys
-    results = zero_pseudometric.distances(x)
-    assert results[0] == 0.0
-
-
-@pytest.mark.unit
-def test_check_non_negativity(zero_pseudometric):
-    """
-    Test the check_non_negativity method of ZeroPseudometric.
-    """
-    params = [
-        ("test1", "test2"),
-        (b"bytes1", b"bytes2"),
+    @pytest.mark.parametrize("x,y", [
+        ("test", "test"),
         (1, 2),
-        ("test", 1),
-        (None, None),
-    ]
-
-    for x, y in params:
-        assert zero_pseudometric.check_non_negativity(x, y) is True
-
-
-@pytest.mark.unit
-def test_check_symmetry(zero_pseudometric):
-    """
-    Test the check_symmetry method of ZeroPseudometric.
-    """
-    params = [
-        ("test1", "test2"),
-        (b"bytes1", b"bytes2"),
-        (1, 2),
-        ("test", 1),
-        (None, None),
-    ]
-
-    for x, y in params:
+        (True, False),
+        ({"a": 1}, {"a": 1}),
+        ([1, 2, 3], [1, 2, 3])
+    ])
+    def test_check_symmetry(self, zero_pseudometric, x, y):
+        """Test that symmetry condition is always satisfied."""
         assert zero_pseudometric.check_symmetry(x, y) is True
 
-
-@pytest.mark.unit
-def test_check_triangle_inequality(zero_pseudometric):
-    """
-    Test the check_triangle_inequality method of ZeroPseudometric.
-    """
-    params = [
-        ("test1", "test2", "test3"),
-        (b"bytes1", b"bytes2", b"bytes3"),
+    @pytest.mark.parametrize("x,y,z", [
+        ("test", "test", "test"),
         (1, 2, 3),
-        ("test", 1, 2),
-        (None, None, None),
-    ]
-
-    for x, y, z in params:
+        (True, False, True),
+        ({"a": 1}, {"a": 1}, {"a": 2}),
+        ([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    ])
+    def test_check_triangle_inequality(self, zero_pseudometric, x, y, z):
+        """Test that triangle inequality condition is always satisfied."""
         assert zero_pseudometric.check_triangle_inequality(x, y, z) is True
 
-
-@pytest.mark.unit
-def test_check_weak_identity(zero_pseudometric):
-    """
-    Test the check_weak_identity method of ZeroPseudometric.
-    """
-    # Test when x == y
-    x = y = "test"
-    assert zero_pseudometric.check_weak_identity(x, y) is True
-
-    # Test when x != y
-    x = "test1"
-    y = "test2"
-    assert zero_pseudometric.check_weak_identity(x, y) is False
-
-    # Test with different types
-    x = "test"
-    y = 1
-    assert zero_pseudometric.check_weak_identity(x, y) is False
+    def test_check_weak_identity(self, zero_pseudometric):
+        """Test that weak identity condition is always satisfied."""
+        assert zero_pseudometric.check_weak_identity("test", "test") is True

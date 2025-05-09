@@ -1,112 +1,93 @@
 import pytest
-import logging
-from swarmauri_standard.swarmauri_standard.seminorms.PointEvaluationSeminorm import (
-    PointEvaluationSeminorm,
-)
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-
-@pytest.fixture
-def point_evaluation_seminorm():
-    """Fixture to provide a default PointEvaluationSeminorm instance."""
-    return PointEvaluationSeminorm()
-
+from swarmauri_standard.swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
+from typing import Union, Sequence, Callable
+from swarmauri_core.vectors.IVector import IVector
+from swarmauri_core.matrices.IMatrix import IMatrix
 
 @pytest.mark.unit
-def test_point_evaluation_seminorm_resource(point_evaluation_seminorm):
-    """Test that the resource attribute is correctly set."""
-    assert point_evaluation_seminorm.resource == "Seminorm"
+class TestPointEvaluationSeminorm:
+    """Unit tests for the PointEvaluationSeminorm class."""
 
+    def test_initialization(self):
+        """Test the initialization of PointEvaluationSeminorm with and without point."""
+        pes = PointEvaluationSeminorm()
+        assert pes.point == 0.0
+        
+        custom_point = 5.0
+        pes_custom = PointEvaluationSeminorm(point=custom_point)
+        assert pes_custom.point == custom_point
 
-@pytest.mark.unit
-def test_point_evaluation_seminorm_type():
-    """Test that the type attribute is correctly set."""
-    assert PointEvaluationSeminorm.type == "PointEvaluationSeminorm"
+    def test_compute_vector(self):
+        """Test compute method with vector input."""
+        input_vector = [1, 2, 3]
+        point = 1
+        pes = PointEvaluationSeminorm(point=point)
+        result = pes.compute(input_vector)
+        assert result == input_vector[point]
 
+    def test_compute_matrix(self):
+        """Test compute method with matrix input."""
+        input_matrix = IMatrix()  # Assuming IMatrix has some implementation
+        pes = PointEvaluationSeminorm()
+        with pytest.raises(NotImplementedError):
+            pes.compute(input_matrix)
 
-@pytest.mark.unit
-def test_point_evaluation_seminorm_compute_callable(point_evaluation_seminorm):
-    """Test computation with a callable input."""
-    # Test with a simple function
-    result = point_evaluation_seminorm.compute(lambda x: x)
-    assert result == 0.0
+    def test_compute_sequence(self):
+        """Test compute method with sequence input."""
+        input_seq = (10, 20, 30)
+        point = 2
+        pes = PointEvaluationSeminorm(point=point)
+        result = pes.compute(input_seq)
+        assert result == input_seq[point]
 
+    def test_compute_string(self):
+        """Test compute method with string input."""
+        input_str = "test"
+        point = 2
+        pes = PointEvaluationSeminorm(point=point)
+        result = pes.compute(input_str)
+        assert result == input_str[point]
 
-@pytest.mark.unit
-def test_point_evaluation_seminorm_compute_vector():
-    """Test computation with a vector input."""
-    seminorm = PointEvaluationSeminorm(evaluation_point=(0,))
-    result = seminorm.compute([1, 2, 3])
-    assert result == 1.0
+    def test_compute_callable(self):
+        """Test compute method with callable input."""
+        def func(x):
+            return x * 2
+        point = 5.0
+        pes = PointEvaluationSeminorm(point=point)
+        result = pes.compute(func)
+        assert result == func(point)
 
+    def test_check_triangle_inequality(self):
+        """Test the triangle inequality check."""
+        pes = PointEvaluationSeminorm()
+        a = [1, 2, 3]
+        b = [4, 5, 6]
+        assert pes.check_triangle_inequality(a, b) is True
 
-@pytest.mark.unit
-def test_point_evaluation_seminorm_compute_invalid_input():
-    """Test that invalid input raises ValueError."""
-    seminorm = PointEvaluationSeminorm()
-    with pytest.raises(ValueError):
-        seminorm.compute("invalid_input")
+    def test_check_scalar_homogeneity(self):
+        """Test the scalar homogeneity check."""
+        pes = PointEvaluationSeminorm()
+        input = [1, 2, 3]
+        scalar = 2.0
+        assert pes.check_scalar_homogeneity(input, scalar) is True
 
+    def test_serialization(self):
+        """Test the model serialization and deserialization."""
+        pes = PointEvaluationSeminorm(point=10.0)
+        model_dump = pes.model_dump_json()
+        model_load = pes.model_validate_json(model_dump)
+        assert pes.id == model_load.id
 
-@pytest.mark.unit
-def test_point_evaluation_seminorm_triangle_inequality():
-    """Test the triangle inequality property."""
-    seminorm = PointEvaluationSeminorm(evaluation_point=(0,))
+    def test_error_handling_point_out_of_bounds(self):
+        """Test error handling for point out of bounds."""
+        pes = PointEvaluationSeminorm(point=5)
+        input = [1, 2]
+        with pytest.raises(IndexError):
+            pes.compute(input)
 
-    # Test with simple functions
-    f = lambda x, y: x
-    g = lambda x, y: y
-
-    seminorm_f = seminorm.compute(f)
-    seminorm_g = seminorm.compute(g)
-    seminorm_f_plus_g = seminorm.compute(lambda x, y: f(x, y) + g(x, y))
-
-    assert seminorm_f_plus_g <= seminorm_f + seminorm_g
-
-
-@pytest.mark.unit
-def test_point_evaluation_seminorm_scalar_homogeneity():
-    """Test scalar homogeneity property."""
-    seminorm = PointEvaluationSeminorm(evaluation_point=(0,))
-
-    # Test with scalar multiplication
-    f = lambda x: x
-    scalar = 2.0
-
-    seminorm_f = seminorm.compute(f)
-    seminorm_scaled_f = seminorm.compute(lambda x: scalar * f(x))
-
-    assert seminorm_scaled_f == scalar * seminorm_f
-
-
-@pytest.mark.unit
-def test_point_evaluation_seminorm_zero_scalar():
-    """Test scalar homogeneity with zero scalar."""
-    seminorm = PointEvaluationSeminorm(evaluation_point=(0,))
-
-    # Test with zero scalar
-    f = lambda x: x
-    scalar = 0.0
-
-    seminorm_f = seminorm.compute(f)
-    seminorm_scaled_f = seminorm.compute(lambda x: scalar * f(x))
-
-    assert seminorm_scaled_f == scalar * seminorm_f
-
-
-@pytest.mark.unit
-def test_point_evaluation_seminorm_negative_scalar():
-    """Test scalar homogeneity with negative scalar."""
-    seminorm = PointEvaluationSeminorm(evaluation_point=(0,))
-
-    # Test with negative scalar
-    f = lambda x: x
-    scalar = -1.0
-
-    seminorm_f = seminorm.compute(f)
-    seminorm_scaled_f = seminorm.compute(lambda x: scalar * f(x))
-
-    assert seminorm_scaled_f == scalar * seminorm_f
+    def test_error_handling_unsupported_type(self):
+        """Test error handling for unsupported input type."""
+        pes = PointEvaluationSeminorm()
+        input = dict()
+        with pytest.raises(ValueError):
+            pes.compute(input)

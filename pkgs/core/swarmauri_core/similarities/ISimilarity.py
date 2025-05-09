@@ -1,209 +1,181 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Literal, TypeVar, Union
-import logging
+from typing import Union, Any, Tuple, Callable, Literal
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
-from typing import Sequence
+import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-InputType = TypeVar('InputType', str, Callable, IVector, IMatrix, Sequence)
-OutputType = TypeVar('OutputType', float, bool)
 
 class ISimilarity(ABC):
     """
-    Abstract base class for implementing similarity measures.
+    Abstract base class for implementing similarity measures. This interface
+    provides a blueprint for creating concrete similarity implementations with
+    support for various data types and mathematical properties.
 
-    This interface provides a foundation for various similarity and dissimilarity 
-    measures. It supports direction-based or bounded comparisons and includes 
-    validation methods for different similarity properties.
-
-    Classes implementing this interface should provide concrete implementations 
-    for the similarity calculation methods while adhering to the defined interface.
+    The interface enforces abstract methods for core similarity calculations
+    and property checks, ensuring consistency and type safety across different
+    implementations.
     """
 
-    def __init__(self):
-        """
-        Initialize the similarity measure.
-        """
-        self._is_bounded: bool | None = None
-        logger.debug("Initialized ISimilarity instance")
-
-    @property
-    def is_bounded(self) -> bool:
-        """
-        Check if the similarity measure is bounded.
-
-        Returns:
-            bool: True if the similarity measure is bounded, False otherwise
-        """
-        if self._is_bounded is None:
-            self._is_bounded = self.check_boundedness()
-        return self._is_bounded
-
     @abstractmethod
-    def similarity(self, x: InputType, y: InputType) -> float:
+    def similarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
         Calculate the similarity between two elements.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
+            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            float:
-                A float representing the similarity between x and y.
-                If bounded, should be between 0 and 1.
+            float: A measure of similarity between x and y.
 
         Raises:
-            TypeError: If input types are not supported
+            TypeError: If input types are not supported.
         """
-        raise NotImplementedError("similarity must be implemented by subclass")
+        pass
 
     @abstractmethod
-    def similarities(self, pairs: Sequence[tuple[InputType, InputType]]) -> list[float]:
+    def similarities(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate similarities for multiple pairs of elements.
+        Calculate similarities between an element and multiple elements.
 
         Args:
-            pairs: Sequence[tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: The reference element to compare against. Can be a vector, matrix, tuple, string, or callable.
+            ys: A list of elements or a single element to compare with x. Elements can be vectors, matrices, tuples, strings, or callables.
 
         Returns:
-            list[float]:
-                A list of similarity scores corresponding to each pair.
+            Union[float, List[float]]: A measure of similarity (or similarities) between x and each element in ys.
+
+        Raises:
+            TypeError: If input types are not supported.
         """
-        raise NotImplementedError("similarities must be implemented by subclass")
+        pass
 
     @abstractmethod
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
+    def dissimilarity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> float:
         """
         Calculate the dissimilarity between two elements.
 
         Args:
-            x: InputType
-                The first element to compare
-            y: InputType
-                The second element to compare
+            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
+            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            float:
-                A float representing the dissimilarity between x and y.
-                If bounded, should be between 0 and 1.
+            float: A measure of dissimilarity between x and y.
 
         Raises:
-            TypeError: If input types are not supported
+            TypeError: If input types are not supported.
         """
-        raise NotImplementedError("dissimilarity must be implemented by subclass")
+        pass
 
     @abstractmethod
-    def dissimilarities(self, pairs: Sequence[tuple[InputType, InputType]]) -> list[float]:
+    def dissimilarities(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        ys: Union[
+            List[Union[IVector, IMatrix, Tuple, str, Callable]], 
+            Union[IVector, IMatrix, Tuple, str, Callable]
+        ]
+    ) -> Union[float, List[float]]:
         """
-        Calculate dissimilarities for multiple pairs of elements.
+        Calculate dissimilarities between an element and multiple elements.
 
         Args:
-            pairs: Sequence[tuple[InputType, InputType]]
-                A sequence of element pairs to compare
+            x: The reference element to compare against. Can be a vector, matrix, tuple, string, or callable.
+            ys: A list of elements or a single element to compare with x. Elements can be vectors, matrices, tuples, strings, or callables.
 
         Returns:
-            list[float]:
-                A list of dissimilarity scores corresponding to each pair.
-        """
-        raise NotImplementedError("dissimilarities must be implemented by subclass")
+            Union[float, List[float]]: A measure of dissimilarity (or dissimilarities) between x and each element in ys.
 
-    def check_boundedness(self, pairs: Sequence[tuple[InputType, InputType]] = ()) -> bool:
+        Raises:
+            TypeError: If input types are not supported.
         """
-        Check if the similarity measure is bounded between 0 and 1.
+        pass
+
+    @abstractmethod
+    def check_boundedness(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
+        """
+        Check if the similarity measure is bounded.
 
         Args:
-            pairs: Sequence[tuple[InputType, InputType]]
-                Optional sequence of pairs to test boundedness
+            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
+            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            bool:
-                True if the similarity measure is bounded between 0 and 1,
-                False otherwise
+            bool: True if the measure is bounded, False otherwise.
         """
-        if not pairs:
-            logger.warning("No pairs provided for boundedness check")
-            return False
-        
-        all_bounded = all(0 <= self.similarity(x, y) <= 1 for x, y in pairs)
-        logger.debug(f"Boundedness check result: {all_bounded}")
-        return all_bounded
+        pass
 
-    def check_reflexivity(self, elements: Sequence[InputType] = ()) -> bool:
+    @abstractmethod
+    def check_reflexivity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
         """
-        Check if the similarity measure is reflexive (s(x, x) = 1).
+        Check if the similarity measure is reflexive (s(x,x) = 0).
 
         Args:
-            elements: Sequence[InputType]
-                Optional sequence of elements to test reflexivity
+            x: The element to check reflexivity for. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            bool:
-                True if the similarity measure is reflexive,
-                False otherwise
+            bool: True if the measure is reflexive, False otherwise.
         """
-        if not elements:
-            logger.warning("No elements provided for reflexivity check")
-            return False
-        
-        all_reflexive = all(self.similarity(x, x) == 1 for x in elements)
-        logger.debug(f"Reflexivity check result: {all_reflexive}")
-        return all_reflexive
+        pass
 
-    def check_symmetry(self, pairs: Sequence[tuple[InputType, InputType]] = ()) -> bool:
+    @abstractmethod
+    def check_symmetry(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
         """
-        Check if the similarity measure is symmetric (s(x, y) = s(y, x)).
+        Check if the similarity measure is symmetric (s(x,y) = s(y,x)).
 
         Args:
-            pairs: Sequence[tuple[InputType, InputType]]
-                Optional sequence of pairs to test symmetry
+            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
+            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            bool:
-                True if the similarity measure is symmetric,
-                False otherwise
+            bool: True if the measure is symmetric, False otherwise.
         """
-        if not pairs:
-            logger.warning("No pairs provided for symmetry check")
-            return False
-        
-        all_symmetric = all(self.similarity(x, y) == self.similarity(y, x) for x, y in pairs)
-        logger.debug(f"Symmetry check result: {all_symmetric}")
-        return all_symmetric
+        pass
 
-    def check_identity(self, pairs: Sequence[tuple[InputType, InputType]] = ()) -> bool:
+    @abstractmethod
+    def check_identity(
+        self, 
+        x: Union[IVector, IMatrix, Tuple, str, Callable], 
+        y: Union[IVector, IMatrix, Tuple, str, Callable]
+    ) -> bool:
         """
-        Check if the similarity measure satisfies identity (s(x, y) = 1 ⟺ x = y).
+        Check if the similarity measure satisfies identity (s(x,y) = 1 if and only if x == y).
 
         Args:
-            pairs: Sequence[tuple[InputType, InputType]]
-                Optional sequence of pairs to test identity
+            x: The first element to compare. Can be a vector, matrix, tuple, string, or callable.
+            y: The second element to compare. Can be a vector, matrix, tuple, string, or callable.
 
         Returns:
-            bool:
-                True if the similarity measure satisfies identity,
-                False otherwise
+            bool: True if the measure satisfies identity, False otherwise.
         """
-        if not pairs:
-            logger.warning("No pairs provided for identity check")
-            return False
-        
-        all_identity = True
-        for x, y in pairs:
-            if x == y:
-                if not self.similarity(x, y) == 1:
-                    all_identity = False
-                    break
-            else:
-                if self.similarity(x, y) == 1:
-                    all_identity = False
-                    break
-        
-        logger.debug(f"Identity check result: {all_identity}")
-        return all_identity
+        pass
+
+    pass

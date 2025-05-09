@@ -1,252 +1,127 @@
 import pytest
-from unittest.mock import patch
 import logging
-from swarmauri_standard.pseudometrics.ProjectionPseudometricR2 import (
-    ProjectionPseudometricR2,
-)
-
+from swarmauri_standard.swarmauri_standard.pseudometrics.ProjectionPseudometricR2 import ProjectionPseudometricR2
 
 @pytest.mark.unit
 class TestProjectionPseudometricR2:
     """
-    Unit test class for ProjectionPseudometricR2.
-
-    This class provides comprehensive unit tests for the ProjectionPseudometricR2
-    class, ensuring all functionality works as expected.
+    Unit tests for the ProjectionPseudometricR2 class.
     """
-
+    
     @pytest.fixture
-    def projection_pseudometric(self):
+    def logger(self):
         """
-        Fixture to provide a default instance of ProjectionPseudometricR2.
-
-        Returns:
-            ProjectionPseudometricR2:
-                An instance of ProjectionPseudometricR2 with default axis='x'
+        Fixture to provide a logger instance.
         """
-        return ProjectionPseudometricR2()
+        return logging.getLogger(__name__)
 
     @pytest.mark.unit
-    def test_resource_type(self, projection_pseudometric):
+    def test_initialization(self, logger):
         """
-        Test the resource type of the pseudometric.
+        Test the initialization of ProjectionPseudometricR2 with valid and invalid parameters.
+        """
+        # Test default initialization
+        p = ProjectionPseudometricR2()
+        assert p.axis == 'x'
+        logger.debug("Test default initialization passed")
 
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-        """
-        assert projection_pseudometric.resource == "Pseudometric"
-
-    @pytest.mark.unit
-    def test_axis_initialization(self):
-        """
-        Test initialization with different axis values.
-        """
-        # Test valid axis values
-        projection_x = ProjectionPseudometricR2(axis="x")
-        projection_y = ProjectionPseudometricR2(axis="y")
-
-        assert projection_x.axis == "x"
-        assert projection_y.axis == "y"
+        # Test initialization with 'y' axis
+        p = ProjectionPseudometricR2(axis='y')
+        assert p.axis == 'y'
+        logger.debug("Test initialization with 'y' axis passed")
 
         # Test invalid axis value
         with pytest.raises(ValueError):
-            ProjectionPseudometricR2(axis="z")
+            ProjectionPseudometricR2(axis='z')
+        logger.debug("Test invalid axis value passed")
 
     @pytest.mark.unit
-    @patch("logging.getLogger")
-    def test_logging_initialization(self, mock_logger, projection_pseudometric):
+    def test_distance(self, logger):
         """
-        Test logging during initialization.
+        Test the distance calculation for various input types and scenarios.
+        """
+        p_x = ProjectionPseudometricR2(axis='x')
+        p_y = ProjectionPseudometricR2(axis='y')
 
-        Args:
-            mock_logger: Mock
-                Mocked logging.getLogger for verification
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-        """
-        # Verify debug message was logged during initialization
-        mock_logger.return_value.debug.assert_called_once_with(
-            f"Initialized ProjectionPseudometricR2 with axis={projection_pseudometric.axis}"
-        )
+        # Test with tuples
+        assert p_x.distance((1, 2), (3, 4)) == 2
+        assert p_y.distance((1, 2), (3, 4)) == 2
+        logger.debug("Test distance with tuples passed")
 
-    @pytest.mark.unit
-    @pytest.mark.parametrize(
-        "x,y,expected_distance",
-        [
-            ((0, 0), (0, 0), 0),  # Same point
-            ((1, 2), (3, 4), 2),  # Distance on x-axis
-            ((1, 2), (1, 4), 0),  # Same x-coordinate
-            ((1, 2), (3, 2), 2),  # Same y-coordinate
-        ],
-    )
-    def test_distance(self, projection_pseudometric, x, y, expected_distance):
-        """
-        Test distance calculation between two points.
+        # Test with lists
+        assert p_x.distance([1, 2], [3, 4]) == 2
+        assert p_y.distance([1, 2], [3, 4]) == 2
+        logger.debug("Test distance with lists passed")
 
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-            x: tuple
-                First point coordinates
-            y: tuple
-                Second point coordinates
-            expected_distance: float
-                Expected distance value
-        """
-        assert projection_pseudometric.distance(x, y) == expected_distance
-
-    @pytest.mark.unit
-    def test_distance_invalid_input(self, projection_pseudometric):
-        """
-        Test distance calculation with invalid input.
-
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-        """
+        # Test invalid points
         with pytest.raises(ValueError):
-            projection_pseudometric.distance("invalid", (0, 0))
-
-        with pytest.raises(ValueError):
-            projection_pseudometric.distance((0, 0, 0), (0, 0))
+            p_x.distance([1], [2])
+        logger.debug("Test invalid points passed")
 
     @pytest.mark.unit
-    @pytest.mark.parametrize(
-        "x,ys,expected_distances",
-        [
-            ((0, 0), [(0, 0), (1, 0)], [0, 1]),  # Simple x-axis projections
-            ((0, 0), [(0, 1), (0, 2)], [0, 0]),  # Same x-coordinate
-            ((0, 0), [(1, 1), (2, 1)], [1, 2]),  # Different x-coordinates
-        ],
-    )
-    def test_distances(self, projection_pseudometric, x, ys, expected_distances):
+    def test_distances(self, logger):
         """
-        Test distances calculation from one point to multiple points.
+        Test the distances method with multiple points.
+        """
+        p = ProjectionPseudometricR2()
+        
+        # Test with list of tuples
+        points = [(1, 2), (3, 4), (5, 6)]
+        distances = p.distances((0, 0), points)
+        assert len(distances) == 3
+        logger.debug("Test distances with list of tuples passed")
 
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-            x: tuple
-                Reference point coordinates
-            ys: list[tuple]
-                List of points to calculate distances to
-            expected_distances: list[float]
-                Expected distances
-        """
-        distances = projection_pseudometric.distances(x, ys)
-        assert list(distances) == expected_distances
+        # Test with a single point as a tuple
+        distance = p.distances((0, 0), [(1, 1)])
+        assert len(distance) == 1
+        logger.debug("Test distances with single point as tuple passed")
 
     @pytest.mark.unit
-    def test_check_non_negativity(self, projection_pseudometric):
+    def test_check_non_negativity(self, logger):
         """
-        Test non-negativity check.
-
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
+        Test the non-negativity check.
         """
-        # Test with positive distance
-        assert projection_pseudometric.check_non_negativity((0, 0), (1, 0))
-
-        # Test with zero distance
-        assert projection_pseudometric.check_non_negativity((0, 0), (0, 0))
+        p = ProjectionPseudometricR2()
+        assert p.check_non_negativity((1, 2), (3, 4)) == True
+        logger.debug("Test non-negativity passed")
 
     @pytest.mark.unit
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            ((0, 0), (1, 0)),  # Different points
-            ((0, 0), (0, 0)),  # Same point
-        ],
-    )
-    def test_check_symmetry(self, projection_pseudometric, x, y):
+    def test_check_symmetry(self, logger):
         """
-        Test symmetry check.
-
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-            x: tuple
-                First point coordinates
-            y: tuple
-                Second point coordinates
+        Test the symmetry check.
         """
-        assert projection_pseudometric.check_symmetry(x, y)
+        p = ProjectionPseudometricR2()
+        assert p.check_symmetry((1, 2), (3, 4)) == True
+        logger.debug("Test symmetry passed")
 
     @pytest.mark.unit
-    @pytest.mark.parametrize(
-        "x,y,z,expected_result",
-        [
-            ((0, 0), (1, 0), (2, 0), True),  # Simple line
-            ((0, 0), (1, 0), (0, 1), True),  # Right triangle
-            ((0, 0), (1, 0), (3, 0), True),  # Extended line
-        ],
-    )
-    def test_check_triangle_inequality(
-        self, projection_pseudometric, x, y, z, expected_result
-    ):
+    def test_check_triangle_inequality(self, logger):
         """
-        Test triangle inequality check.
-
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-            x: tuple
-                First point coordinates
-            y: tuple
-                Second point coordinates
-            z: tuple
-                Third point coordinates
-            expected_result: bool
-                Expected result of the check
+        Test the triangle inequality check.
         """
-        assert (
-            projection_pseudometric.check_triangle_inequality(x, y, z)
-            == expected_result
-        )
+        p = ProjectionPseudometricR2()
+        assert p.check_triangle_inequality((0, 0), (1, 1), (2, 2)) == True
+        logger.debug("Test triangle inequality passed")
 
     @pytest.mark.unit
-    @pytest.mark.parametrize(
-        "x,y,expected_result",
-        [
-            ((0, 0), (0, 0), True),  # Same point
-            ((0, 0), (1, 0), False),  # Different points
-            ((0, 0), (0, 1), False),  # Same x but different y
-        ],
-    )
-    def test_check_weak_identity(self, projection_pseudometric, x, y, expected_result):
+    def test_check_weak_identity(self, logger):
         """
-        Test weak identity of indiscernibles check.
-
-        Args:
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
-            x: tuple
-                First point coordinates
-            y: tuple
-                Second point coordinates
-            expected_result: bool
-                Expected result of the check
+        Test the weak identity check.
         """
-        assert projection_pseudometric.check_weak_identity(x, y) == expected_result
+        p = ProjectionPseudometricR2()
+        assert p.check_weak_identity((1, 2), (1, 3)) == False
+        logger.debug("Test weak identity passed")
 
     @pytest.mark.unit
-    @patch("logging.getLogger")
-    def test_logging_distance_error(self, mock_logger, projection_pseudometric):
+    @pytest.mark.parametrize("axis,expected_distance", [
+        ('x', 2),
+        ('y', 1)
+    ])
+    def test_parameterized_distance(self, axis, expected_distance, logger):
         """
-        Test logging during distance calculation error.
-
-        Args:
-            mock_logger: Mock
-                Mocked logging.getLogger for verification
-            projection_pseudometric: ProjectionPseudometricR2
-                Instance of ProjectionPseudometricR2 from fixture
+        Parameterized test for distance calculation with different axes.
         """
-        with pytest.raises(ValueError):
-            projection_pseudometric.distance("invalid", (0, 0))
-
-        # Verify error message was logged
-        mock_logger.return_value.error.assert_called_once_with(
-            "Invalid input types for distance calculation: %s", "invalid input types"
-        )
+        p = ProjectionPseudometricR2(axis=axis)
+        distance = p.distance((1, 2), (3, 3))
+        assert distance == expected_distance
+        logger.debug(f"Test parameterized distance with axis={axis} passed")

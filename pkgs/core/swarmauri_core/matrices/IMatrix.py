@@ -1,215 +1,251 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, TypeVar, Union
+from typing import Any, Tuple, Optional, Union, Literal
+from swarmauri_core.vectors.IVector import IVector
 import logging
 
-from swarmauri_core.vectors.IVector import IVector
-
-# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', int, float, bool, slice, Tuple[Union[int, slice], ...])
-S = TypeVar('S', int, float, bool, str)
 
 class IMatrix(ABC):
     """
-    Interface for matrix operations. This class defines the core functionality 
-    required for matrix operations including indexing, slicing, reshaping, and 
-    basic matrix operations.
+    Interface for matrix operations. This provides a blueprint for implementing
+    matrix data structures with support for various operations, including
+    indexing, slicing, shape manipulation, and matrix operations.
 
-    This interface provides a foundation for working with 2D data structures 
-    and linear algebra operations while remaining agnostic to the underlying 
-    implementation.
+    The interface enforces type safety and provides a consistent API for
+    different matrix implementations.
     """
 
-    def __init__(self, shape: Tuple[int, int]):
-        """
-        Initialize the matrix with the specified shape.
-
-        Args:
-            shape: Tuple[int, int]
-                The dimensions of the matrix (rows, columns)
-        """
-        self._shape = shape
-        logger.debug(f"Matrix initialized with shape {shape}")
-
-    @property
-    def shape(self) -> Tuple[int, int]:
-        """
-        Get the shape of the matrix.
-
-        Returns:
-            Tuple[int, int]: The dimensions of the matrix (rows, columns)
-        """
-        return self._shape
-
-    @property
-    def dtype(self) -> type:
-        """
-        Get the data type of the elements in the matrix.
-
-        Returns:
-            type: The data type of the elements
-        """
-        raise NotImplementedError("dtype must be implemented by subclass")
-
     @abstractmethod
-    def get_row(self, index: int) -> IVector:
+    def __getitem__(self, index: Union[Tuple[int, int], int, slice, tuple]) -> Union['IMatrix', IVector, Any]:
         """
-        Get a row from the matrix as an IVector.
+        Get item from matrix using indexing or slicing.
 
         Args:
-            index: int
-                The row index to retrieve
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
 
         Returns:
-            IVector: The specified row as an IVector
+            Union[IMatrix, IVector, Any]: The accessed element(s). Returns a
+            new IMatrix if slicing returns a submatrix, an IVector if slicing
+            returns a row/column vector, or the element itself for single index.
 
         Raises:
-            IndexError: If the index is out of bounds
+            IndexError: If index is out of bounds.
+            ValueError: If slice step is invalid.
         """
         pass
 
     @abstractmethod
-    def get_column(self, index: int) -> IVector:
+    def __setitem__(self, index: Union[Tuple[int, int], int, slice, tuple], value: Any) -> None:
         """
-        Get a column from the matrix as an IVector.
+        Set item in matrix using indexing or slicing.
 
         Args:
-            index: int
-                The column index to retrieve
-
-        Returns:
-            IVector: The specified column as an IVector
+            index: Index or slice to access elements. Can be a tuple of integers,
+                single integer, slice object, or a tuple of slices/ints.
+            value: Value to set at the specified index. Can be a single value,
+                vector, or another matrix of compatible shape.
 
         Raises:
-            IndexError: If the index is out of bounds
+            IndexError: If index is out of bounds.
+            ValueError: If value shape is incompatible with index.
         """
         pass
 
     @abstractmethod
-    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
+    def __iter__(self) -> iter:
         """
-        Reshape the matrix to the specified dimensions.
+        Return an iterator over the matrix rows.
 
-        Args:
-            new_shape: Tuple[int, int]
-                The new dimensions (rows, columns)
-
-        Returns:
-            IMatrix: The reshaped matrix
-
-        Raises:
-            ValueError: If the new shape is incompatible with the data
-        """
-        pass
-
-    @abstractmethod
-    def __getitem__(self, index: T) -> Union['IMatrix', IVector, S]:
-        """
-        Get an element, row, or column from the matrix.
-
-        Args:
-            index: T
-                The index or slice to retrieve
-
-        Returns:
-            Union['IMatrix', IVector, S]: 
-                - If index is a tuple of slices: Returns a submatrix
-                - If index is an integer: Returns the specified row as an IVector
-                - If index is a slice: Returns a slice of rows as an IMatrix
-
-        Raises:
-            IndexError: If the index is out of bounds
-            TypeError: If the index type is not supported
-        """
-        pass
-
-    @abstractmethod
-    def __setitem__(self, index: T, value: Union['IMatrix', IVector, S]) -> None:
-        """
-        Set an element, row, or column in the matrix.
-
-        Args:
-            index: T
-                The index or slice to set
-            value: Union['IMatrix', IVector, S]
-                The value to set
-
-        Raises:
-            IndexError: If the index is out of bounds
-            TypeError: If the value type is not compatible
-        """
-        pass
-
-    @abstractmethod
-    def tolist(self) -> list:
-        """
-        Convert the matrix to a list of lists.
-
-        Returns:
-            list: A list of lists representing the matrix
+        Yields:
+            IVector: The next row vector in the matrix.
         """
         pass
 
     @abstractmethod
     def __add__(self, other: 'IMatrix') -> 'IMatrix':
         """
-        Element-wise addition of two matrices.
+        Matrix addition.
 
         Args:
-            other: IMatrix
-                The matrix to add
+            other: Another matrix of the same shape and compatible dtype.
 
         Returns:
-            IMatrix: The result of the addition
+            IMatrix: Result of element-wise addition.
 
         Raises:
-            ValueError: If the matrices have different shapes
+            ValueError: If matrix shapes do not match.
+            TypeError: If matrices have incompatible dtypes.
         """
         pass
 
     @abstractmethod
     def __sub__(self, other: 'IMatrix') -> 'IMatrix':
         """
-        Element-wise subtraction of two matrices.
+        Matrix subtraction.
 
         Args:
-            other: IMatrix
-                The matrix to subtract
+            other: Another matrix of the same shape and compatible dtype.
 
         Returns:
-            IMatrix: The result of the subtraction
+            IMatrix: Result of element-wise subtraction.
 
         Raises:
-            ValueError: If the matrices have different shapes
+            ValueError: If matrix shapes do not match.
+            TypeError: If matrices have incompatible dtypes.
         """
         pass
 
     @abstractmethod
-    def __mul__(self, other: Union['IMatrix', S]) -> 'IMatrix':
+    def __mul__(self, other: Union['IMatrix', Any]) -> Union['IMatrix', IVector]:
         """
-        Element-wise multiplication or matrix multiplication.
+        Matrix multiplication or element-wise multiplication.
 
         Args:
-            other: Union['IMatrix', S]
-                - If IMatrix: Performs matrix multiplication
-                - If scalar: Performs element-wise multiplication
+            other: Either another matrix for matrix multiplication or a scalar for
+                element-wise multiplication.
 
         Returns:
-            IMatrix: The result of the multiplication
+            Union[IMatrix, IVector]: Result of multiplication. Returns an
+            IMatrix for matrix multiplication, or an IVector if multiplying
+            with a vector, or the element-wise result if multiplying with a scalar.
 
         Raises:
-            ValueError: If the shapes are incompatible for multiplication
-            TypeError: If the multiplication type is not supported
+            ValueError: If matrix dimensions are incompatible for multiplication.
+            TypeError: If other is of unsupported type.
+        """
+        pass
+
+    @abstractmethod
+    def __matmul__(self, other: 'IMatrix') -> 'IMatrix':
+        """
+        Matrix multiplication (Python 3.5+ matrix multiplication operator).
+
+        Args:
+            other: Another matrix of compatible dimensions for multiplication.
+
+        Returns:
+            IMatrix: Result of matrix multiplication.
+
+        Raises:
+            ValueError: If number of columns in self does not match number of rows in other.
+        """
+        pass
+
+    @abstractmethod
+    def shape(self) -> Tuple[int, int]:
+        """
+        Get the shape of the matrix as (rows, columns).
+
+        Returns:
+            Tuple[int, int]: The shape of the matrix.
+        """
+        pass
+
+    @abstractmethod
+    def reshape(self, new_shape: Tuple[int, int]) -> 'IMatrix':
+        """
+        Reshape the matrix to new dimensions.
+
+        Args:
+            new_shape: Tuple[int, int] representing the new (rows, columns).
+
+        Returns:
+            IMatrix: The reshaped matrix.
+
+        Raises:
+            ValueError: If the total number of elements does not match.
+        """
+        pass
+
+    @abstractmethod
+    def dtype(self) -> type:
+        """
+        Get the data type of the matrix elements.
+
+        Returns:
+            type: The dtype of the matrix elements.
+        """
+        pass
+
+    @abstractmethod
+    def tolist(self) -> list:
+        """
+        Convert the matrix to a nested list representation.
+
+        Returns:
+            list: A list of lists, where each sublist represents a row of the matrix.
+        """
+        pass
+
+    @abstractmethod
+    def row(self, index: int) -> IVector:
+        """
+        Get a specific row as a vector.
+
+        Args:
+            index: The row index to access.
+
+        Returns:
+            IVector: The row vector at the specified index.
+
+        Raises:
+            IndexError: If index is out of bounds.
+        """
+        pass
+
+    @abstractmethod
+    def column(self, index: int) -> IVector:
+        """
+        Get a specific column as a vector.
+
+        Args:
+            index: The column index to access.
+
+        Returns:
+            IVector: The column vector at the specified index.
+
+        Raises:
+            IndexError: If index is out of bounds.
+        """
+        pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """
+        Get the number of rows in the matrix.
+
+        Returns:
+            int: Number of rows.
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_list(cls, data: list) -> 'IMatrix':
+        """
+        Create a matrix from a nested list.
+
+        Args:
+            data: A list of lists, where each sublist is a row of the matrix.
+
+        Returns:
+            IMatrix: The constructed matrix.
+
+        Raises:
+            ValueError: If the input data is invalid or inconsistent.
         """
         pass
 
     @abstractmethod
     def __str__(self) -> str:
         """
-        Get a string representation of the matrix.
+        String representation of the matrix.
 
         Returns:
-            str: A string representation of the matrix
+            str: A string representation of the matrix elements.
         """
         pass
+
+    pass

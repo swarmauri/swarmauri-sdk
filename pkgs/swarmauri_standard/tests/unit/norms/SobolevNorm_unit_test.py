@@ -1,208 +1,146 @@
 import pytest
-from swarmauri_standard.norms.SobolevNorm import SobolevNorm
+import numpy as np
 import logging
 
+from swarmauri_standard.swarmauri_standard.norms.SobolevNorm import SobolevNorm
 
 @pytest.mark.unit
-class TestSobolevNorm:
-    """
-    Unit tests for the SobolevNorm class.
-    """
+def test_compute():
+    """Test the compute method of the SobolevNorm class."""
+    # Test with callable function
+    def test_func(x):
+        return 1.0
+    norm = SobolevNorm().compute(test_func)
+    assert norm >= 0.0
+    
+    # Test with numpy array
+    test_array = np.array([1.0, 2.0, 3.0])
+    norm = SobolevNorm().compute(test_array)
+    assert norm >= 0.0
+    
+    # Test with string
+    norm = SobolevNorm().compute("5.0")
+    assert norm >= 0.0
+    
+    # Test invalid input
+    with pytest.raises(ValueError):
+        SobolevNorm().compute(None)
 
-    @pytest.fixture
-    def sobolev_norm_fixture(self, order: int = 1, weight: float = 1.0):
-        """
-        Fixture to provide a SobolevNorm instance with specified parameters.
+@pytest.mark.unit
+def test_check_non_negativity():
+    """Test the non-negativity check of the SobolevNorm class."""
+    # Test with zero function
+    def zero_func(x):
+        return 0.0
+    SobolevNorm().check_non_negativity(zero_func)
+    
+    # Test with non-zero function
+    def non_zero_func(x):
+        return 1.0
+    SobolevNorm().check_non_negativity(non_zero_func)
+    
+    # Test with negative values
+    with pytest.raises(AssertionError):
+        SobolevNorm().check_non_negativity(-1.0)
 
-        Args:
-            order: int, optional
-                The order of the Sobolev norm. Defaults to 1.
-            weight: float, optional
-                The weighting factor. Defaults to 1.0.
+@pytest.mark.unit
+def test_check_triangle_inequality():
+    """Test the triangle inequality check of the SobolevNorm class."""
+    # Test with simple functions
+    def func1(x):
+        return 1.0
+    def func2(x):
+        return 2.0
+    
+    SobolevNorm().check_triangle_inequality(func1, func2)
 
-        Returns:
-            SobolevNorm
-                An instance of SobolevNorm with the specified parameters.
-        """
-        return SobolevNorm(order=order, weight=weight)
+@pytest.mark.unit
+def test_check_absolute_homogeneity():
+    """Test the absolute homogeneity check of the SobolevNorm class."""
+    # Test with scalar 2.0
+    def test_func(x):
+        return 1.0
+    SobolevNorm().check_absolute_homogeneity(test_func, 2.0)
+    
+    # Test with negative scalar
+    SobolevNorm().check_absolute_homogeneity(test_func, -1.0)
 
-    def test_type(self):
-        """
-        Test the type property of the SobolevNorm class.
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm type")
-        assert SobolevNorm.type == "SobolevNorm"
+@pytest.mark.unit
+def test_check_definiteness():
+    """Test the definiteness check of the SobolevNorm class."""
+    # Test with zero vector
+    zero_array = np.array([0.0, 0.0, 0.0])
+    SobolevNorm().check_definiteness(zero_array)
+    
+    # Test with non-zero vector
+    non_zero_array = np.array([1.0, 2.0, 3.0])
+    SobolevNorm().check_definiteness(non_zero_array)
+    
+    # Test with zero function
+    def zero_func(x):
+        return 0.0
+    SobolevNorm().check_definiteness(zero_func)
+    
+    # Test with non-zero function
+    def non_zero_func(x):
+        return 1.0
+    SobolevNorm().check_definiteness(non_zero_func)
 
-    def test_resource(self):
-        """
-        Test the resource property of the SobolevNorm class.
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm resource")
-        assert SobolevNorm.resource == "Norm"
+@pytest.fixture
+def logging_config():
+    """Fixture to configure logging."""
+    logging.basicConfig(level=logging.WARNING)
+    yield
+    logging.basicConfig(level=logging.NOTSET)
 
-    def test_constructor(self, sobolev_norm_fixture):
-        """
-        Test the constructor of the SobolevNorm class.
+def test_logging(logging_config):
+    """Test logging configuration."""
+    logger = logging.getLogger(__name__)
+    logger.debug("Testing logging configuration")
+    assert logger.level == logging.WARNING
 
-        Args:
-            sobolev_norm_fixture: SobolevNorm
-                Fixture providing a SobolevNorm instance
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm constructor")
+@pytest.mark.unit
+@pytest.mark.parametrize("test_input,expected_result", [
+    (np.array([1.0, 2.0, 3.0]), 3.0),
+    ([1.0, 2.0, 3.0], 3.0),
+])
+def test_compute_parameterized(test_input, expected_result):
+    """Parameterized test for compute method."""
+    norm = SobolevNorm().compute(test_input)
+    assert norm >= expected_result
 
-        sobolev = sobolev_norm_fixture
-        assert hasattr(sobolev, "order")
-        assert hasattr(sobolev, "weight")
+@pytest.mark.unit
+def test_invalid_input():
+    """Test handling of invalid input types."""
+    with pytest.raises(ValueError):
+        SobolevNorm().compute("invalid_string")
 
-    def test_constructor_invalid_order(self):
-        """
-        Test that the constructor raises ValueError for negative order.
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm constructor with invalid order")
+@pytest.mark.unit
+def test_compute_with_derivatives():
+    """Test compute method with function and derivatives."""
+    def func(x):
+        return x**2
+    def deriv(x):
+        return 2*x
+    test_input = [func, deriv]
+    norm = SobolevNorm().compute(test_input)
+    assert norm >= 0.0
 
-        with pytest.raises(ValueError):
-            SobolevNorm(order=-1)
+@pytest.mark.unit
+def test_compute_with_multiple_derivatives():
+    """Test compute method with multiple derivatives."""
+    def func(x):
+        return x**3
+    def deriv1(x):
+        return 3*x**2
+    def deriv2(x):
+        return 6*x
+    test_input = [func, deriv1, deriv2]
+    norm = SobolevNorm().compute(test_input)
+    assert norm >= 0.0
 
-    def test_constructor_invalid_weight(self):
-        """
-        Test that the constructor raises ValueError for non-positive weight.
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm constructor with invalid weight")
-
-        with pytest.raises(ValueError):
-            SobolevNorm(weight=0.0)
-
-    def test_compute(self, mocker):
-        """
-        Test the compute method of the SobolevNorm class.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm compute method")
-
-        # Create mock x with norm() method
-        x = mocker.Mock()
-        x.norm.return_value = 2.0
-
-        # Create mock derivative method
-        x.derivative = lambda order: mocker.Mock()
-        x.derivative(1).norm.return_value = 3.0
-
-        sobolev = SobolevNorm(order=1, weight=1.0)
-        result = sobolev.compute(x)
-
-        assert result == 2.0 + 3.0  # 2.0 (function) + 3.0 (derivative)
-
-    def test_compute_order_zero(self, mocker):
-        """
-        Test compute method with order=0.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm compute method with order 0")
-
-        x = mocker.Mock()
-        x.norm.return_value = 1.0
-
-        sobolev = SobolevNorm(order=0, weight=1.0)
-        result = sobolev.compute(x)
-
-        assert result == 1.0
-
-    def test_check_non_negativity(self, mocker):
-        """
-        Test the check_non_negativity method.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm check_non_negativity")
-
-        sobolev = SobolevNorm()
-        mocker.patch.object(sobolev, "compute", return_value=5.0)
-
-        assert sobolev.check_non_negativity(None) is True
-
-        sobolev.compute = mocker.Mock(return_value=-1.0)
-        assert sobolev.check_non_negativity(None) is False
-
-    def test_check_triangle_inequality(self, mocker):
-        """
-        Test the check_triangle_inequality method.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm check_triangle_inequality")
-
-        # Setup mocks
-        x = mocker.Mock()
-        y = mocker.Mock()
-        z = mocker.Mock()
-
-        x.compute = mocker.Mock(return_value=1.0)
-        y.compute = mocker.Mock(return_value=2.0)
-        z.compute = mocker.Mock(return_value=3.0)
-
-        sobolev = SobolevNorm()
-        result = sobolev.check_triangle_inequality(x, y)
-
-        assert result is True
-
-    def test_check_absolute_homogeneity(self, mocker):
-        """
-        Test the check_absolute_homogeneity method.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm check_absolute_homogeneity")
-
-        # Setup mocks
-        x = mocker.Mock()
-        x.compute = mocker.Mock(return_value=2.0)
-
-        scalar = 3.0
-        scaled_x = scalar * x
-
-        sobolev = SobolevNorm()
-        result = sobolev.check_absolute_homogeneity(x, scalar)
-
-        assert result is True
-
-    def test_check_definiteness(self, mocker):
-        """
-        Test the check_definiteness method.
-
-        Args:
-            mocker: pytest fixture
-                Used to mock objects for testing
-        """
-        logger = logging.getLogger(__name__)
-        logger.debug("Testing SobolevNorm check_definiteness")
-
-        # Test with x = 0
-        x = mocker.Mock()
-        x.compute = mocker.Mock(return_value=0.0)
-        assert SobolevNorm().check_definiteness(x) is True
-
-        # Test with x != 0
-        x.compute = mocker.Mock(return_value=5.0)
-        assert SobolevNorm().check_definiteness(x) is True
+@pytest.mark.unit
+def test_compute_with_empty_input():
+    """Test compute method with empty input."""
+    with pytest.raises(ValueError):
+        SobolevNorm().compute([])

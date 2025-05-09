@@ -1,90 +1,95 @@
 import pytest
-import numpy as np
 import logging
 from swarmauri_standard.swarmauri_standard.norms.L2EuclideanNorm import L2EuclideanNorm
 
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
 class TestL2EuclideanNorm:
-    """Unit tests for the L2EuclideanNorm class."""
-
+    """Unit tests for L2EuclideanNorm class implementation."""
+    
     @pytest.fixture
-    def valid_vectors(self):
-        """Fixture providing valid vectors for testing."""
-        return [
-            np.array([1, 2, 3]),
-            np.array([4, 5, 6, 7]),
-            np.array([-1, -2, -3]),
-            np.array([0, 0, 0]),
-            np.array([2.5, -3.5, 4.5]),
-        ]
+    def setup_l2_norm(self):
+        """Fixture to provide a L2EuclideanNorm instance for testing."""
+        return L2EuclideanNorm()
 
-    @pytest.fixture
-    def invalid_vectors(self):
-        """Fixture providing invalid vectors for testing."""
-        return [[], None, "invalid_string", 123]
+    def test_resource_property(self, setup_l2_norm):
+        """Test the resource property of the L2EuclideanNorm class."""
+        assert setup_l2_norm.resource == "norm"
+        logger.info("Resource property test completed successfully")
 
-    def test_compute(self, valid_vectors):
-        """Test the compute method with valid vectors."""
-        for vector in valid_vectors:
-            norm = L2EuclideanNorm().compute(vector)
-            assert norm >= 0.0
-            assert isinstance(norm, float)
+    def test_type_property(self, setup_l2_norm):
+        """Test the type property of the L2EuclideanNorm class."""
+        assert setup_l2_norm.type == "L2EuclideanNorm"
+        logger.info("Type property test completed successfully")
 
-    def test_compute_edge_cases(self, invalid_vectors):
-        """Test the compute method with invalid vectors."""
-        for vector in invalid_vectors:
-            with pytest.raises(ValueError):
-                L2EuclideanNorm().compute(vector)
+    @pytest.mark.parametrize("input_vector,expected_norm", [
+        ([3, 4], 5.0),
+        ([0, 0], 0.0),
+        ("1 2 3", (1**2 + 2**2 + 3**2)**0.5),
+        (lambda: [5, 12], 13.0)
+    ])
+    def test_compute_method(self, setup_l2_norm, input_vector, expected_norm):
+        """Test the compute method with various input types and expected norms."""
+        computed_norm = setup_l2_norm.compute(input_vector)
+        assert abs(computed_norm - expected_norm) < 1e-9
+        logger.info(f"Compute method test with input {input_vector} completed successfully")
 
-    def test_check_non_negativity(self, valid_vectors):
-        """Test the non-negativity property."""
-        for vector in valid_vectors:
-            assert L2EuclideanNorm().check_non_negativity(vector) is True
+    def test_compute_method_invalid_input(self, setup_l2_norm):
+        """Test the compute method with invalid input."""
+        with pytest.raises(ValueError):
+            setup_l2_norm.compute("invalid_input")
+        logger.info("Invalid input test for compute method completed successfully")
 
-    @pytest.mark.parametrize(
-        "x,y",
-        [
-            (np.array([1, 2]), np.array([3, 4])),
-            (np.array([5, 6, 7]), np.array([-1, -2, -3])),
-            (np.array([0, 0]), np.array([0, 0])),
-        ],
-    )
-    def test_check_triangle_inequality(self, x, y):
-        """Test the triangle inequality property."""
-        assert L2EuclideanNorm().check_triangle_inequality(x, y) is True
+    def test_check_non_negativity(self, setup_l2_norm):
+        """Test the non-negativity property of the L2 norm."""
+        # Test with positive vector
+        assert setup_l2_norm.compute([1, 2]) >= 0
+        
+        # Test with negative vector
+        assert setup_l2_norm.compute([-1, -2]) >= 0
+        
+        # Test with zero vector
+        assert setup_l2_norm.compute([0, 0]) == 0
+        
+        logger.info("Non-negativity property test completed successfully")
 
-    @pytest.mark.parametrize(
-        "x,scalar",
-        [
-            (np.array([1, 2, 3]), 2),
-            (np.array([4, 5, 6, 7]), -1.5),
-            (np.array([-1, -2, -3]), 0),
-            (np.array([0, 0, 0]), 5),
-        ],
-    )
-    def test_check_absolute_homogeneity(self, x, scalar):
-        """Test the absolute homogeneity property."""
-        assert L2EuclideanNorm().check_absolute_homogeneity(x, scalar) is True
+    def test_check_triangle_inequality(self, setup_l2_norm):
+        """Test the triangle inequality property of the L2 norm."""
+        x = [1, 2]
+        y = [2, 3]
+        
+        norm_x = setup_l2_norm.compute(x)
+        norm_y = setup_l2_norm.compute(y)
+        norm_sum = setup_l2_norm.compute([3, 5])
+        
+        assert norm_sum <= norm_x + norm_y
+        logger.info("Triangle inequality property test completed successfully")
 
-    @pytest.mark.parametrize(
-        "x,expected",
-        [
-            (np.array([1, 2, 3]), False),
-            (np.array([0, 0, 0]), True),
-            (np.array([]), True),
-            (np.array([0.0, 0.0, 0.0]), True),
-        ],
-    )
-    def test_check_definiteness(self, x, expected):
-        """Test the definiteness property."""
-        assert L2EuclideanNorm().check_definiteness(x) == expected
+    @pytest.mark.parametrize("scale_factor", [2, -1, 0.5])
+    def test_check_absolute_homogeneity(self, setup_l2_norm, scale_factor):
+        """Test the absolute homogeneity property of the L2 norm."""
+        x = [1, 2]
+        scaled_x = [scale_factor * num for num in x]
+        
+        scaled_norm = setup_l2_norm.compute(scaled_x)
+        original_norm = setup_l2_norm.compute(x)
+        
+        assert abs(scaled_norm - abs(scale_factor) * original_norm) < 1e-9
+        logger.info(f"Absolute homogeneity property test with scale factor {scale_factor} completed successfully")
 
+    def test_check_definiteness(self, setup_l2_norm):
+        """Test the definiteness property of the L2 norm."""
+        # Test with zero vector
+        assert setup_l2_norm.compute([0, 0]) == 0
+        
+        # Test with non-zero vector
+        assert setup_l2_norm.compute([1, 1]) > 0
+        
+        logger.info("Definiteness property test completed successfully")
 
-@pytest.fixture(scope="session", autouse=True)
-def logging_setup():
-    """Fixture to configure basic logging for tests."""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
+    def test_model_serialization(self, setup_l2_norm):
+        """Test model serialization and validation."""
+        model_json = setup_l2_norm.model_dump_json()
+        assert setup_l2_norm.model_validate_json(model_json) == setup_l2_norm.id
+        logger.info("Model serialization and validation test completed successfully")

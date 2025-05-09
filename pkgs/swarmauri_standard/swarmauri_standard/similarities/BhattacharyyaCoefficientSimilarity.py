@@ -1,103 +1,232 @@
-from typing import Sequence, Tuple, TypeVar, Union
-from swarmauri_base.similarities import SimilarityBase
-from swarmauri_base.ComponentBase import ComponentBase
-import math
 import logging
+import numpy as np
+from typing import Union, List, Optional, Tuple, Literal
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", Sequence[float], Tuple[float, ...])
-OutputType = TypeVar("OutputType", float)
-
 
 @ComponentBase.register_type(SimilarityBase, "BhattacharyyaCoefficientSimilarity")
 class BhattacharyyaCoefficientSimilarity(SimilarityBase):
     """
-    A class to compute the Bhattacharyya Coefficient Similarity between two probability distributions.
+    Measures the overlap of probability distributions using the Bhattacharyya coefficient.
 
-    The Bhattacharyya Coefficient is a measure of similarity between two probability distributions.
-    It is defined as the sum of the square roots of the product of corresponding probabilities.
-    This implementation assumes that the input distributions are normalized, but it will automatically
-    normalize them if they are not.
+    The Bhattacharyya coefficient is a measure of similarity between two probability
+    distributions. It is particularly useful for comparing histograms or probability
+    density functions. The coefficient ranges between 0 and 1, where 1 indicates
+    identical distributions.
 
     Attributes:
-        None
-
-    Methods:
-        similarity: Calculates the similarity between two distributions.
-        similarities: Calculates similarities for multiple pairs of distributions.
+        resource: Type of resource this component represents, defaults to SIMILARITY.
     """
-
-    type: Literal["BhattacharyyaCoefficientSimilarity"] = (
-        "BhattacharyyaCoefficientSimilarity"
-    )
-    resource: str = "SIMILARITY"
+    resource: Literal[str] = ResourceTypes.SIMILARITY.value
 
     def __init__(self):
         """
-        Initialize the BhattacharyyaCoefficientSimilarity instance.
+        Initializes the BhattacharyyaCoefficientSimilarity instance.
         """
         super().__init__()
-        logger.debug("Initialized BhattacharyyaCoefficientSimilarity instance")
+        self._name = "BhattacharyyaCoefficientSimilarity"
 
-    def similarity(self, x: InputType, y: InputType) -> float:
+    def similarity(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> float:
         """
-        Calculate the Bhattacharyya Coefficient Similarity between two probability distributions.
+        Calculates the similarity between two probability distributions using the
+        Bhattacharyya coefficient.
 
         Args:
-            x: InputType
-                The first probability distribution
-            y: InputType
-                The second probability distribution
+            x: The first probability distribution.
+            y: The second probability distribution.
 
         Returns:
-            float:
-                The Bhattacharyya Coefficient Similarity value between x and y.
-                The value ranges between 0 (completely dissimilar) and 1 (completely similar).
+            float: The Bhattacharyya coefficient similarity score between x and y.
 
         Raises:
-            ValueError: If the distributions have different lengths
-            ValueError: If either distribution has a sum of zero
+            ValueError: If the input distributions do not have the same length.
         """
-        logger.debug("Calculating Bhattacharyya Coefficient Similarity")
+        x = self._validate_distribution(x)
+        y = self._validate_distribution(y)
 
-        # Ensure both distributions have the same length
         if len(x) != len(y):
             raise ValueError("Distributions must have the same length")
 
-        # Normalize the distributions if they are not already
-        sum_x = sum(x)
-        sum_y = sum(y)
+        # Calculate the Bhattacharyya coefficient
+        sqrt_sum = np.sqrt(np.sum(np.multiply(x, y)))
+        bc = sqrt_sum
 
-        if sum_x == 0 or sum_y == 0:
-            raise ValueError("Distribution sums to zero. Cannot normalize.")
-
-        x_normalized = [xi / sum_x for xi in x]
-        y_normalized = [yi / sum_y for yi in y]
-
-        # Calculate the Bhattacharyya Coefficient
-        bc = 0.0
-        for xi, yi in zip(x_normalized, y_normalized):
-            bc += math.sqrt(xi * yi)
-
+        logger.debug(f"Bhattacharyya similarity calculated: {bc}")
         return bc
 
-    def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+    def dissimilarity(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> float:
         """
-        Calculate Bhattacharyya Coefficient Similarities for multiple pairs of distributions.
+        Calculates the dissimilarity between two probability distributions using the
+        Bhattacharyya coefficient.
 
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of pairs of probability distributions to compare
+            x: The first probability distribution.
+            y: The second probability distribution.
 
         Returns:
-            Sequence[float]:
-                A sequence of Bhattacharyya Coefficient Similarity values corresponding to each pair
+            float: The Bhattacharyya coefficient dissimilarity score between x and y.
         """
-        logger.debug(
-            "Calculating Bhattacharyya Coefficient Similarities for multiple pairs"
-        )
-        return [self.similarity(x, y) for x, y in pairs]
+        similarity = self.similarity(x, y)
+        return 1.0 - similarity
+
+    def similarities(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        ys: Union[
+            List[Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]], 
+            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        ]
+    ) -> Union[float, List[float]]:
+        """
+        Calculates similarity scores between a reference distribution and multiple
+        distributions.
+
+        Args:
+            x: The reference distribution.
+            ys: Either a single distribution or a list of distributions to compare.
+
+        Returns:
+            Union[float, List[float]]: Similarity scores between x and each element in ys.
+        """
+        if isinstance(ys, list):
+            return [self.similarity(x, y) for y in ys]
+        else:
+            return self.similarity(x, ys)
+
+    def dissimilarities(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        ys: Union[
+            List[Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]], 
+            Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+        ]
+    ) -> Union[float, List[float]]:
+        """
+        Calculates dissimilarity scores between a reference distribution and multiple
+        distributions.
+
+        Args:
+            x: The reference distribution.
+            ys: Either a single distribution or a list of distributions to compare.
+
+        Returns:
+            Union[float, List[float]]: Dissimilarity scores between x and each element in ys.
+        """
+        if isinstance(ys, list):
+            return [self.dissimilarity(x, y) for y in ys]
+        else:
+            return self.dissimilarity(x, ys)
+
+    def check_boundedness(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> bool:
+        """
+        Checks if the similarity measure is bounded.
+
+        The Bhattacharyya coefficient is bounded between 0 and 1.
+
+        Args:
+            x: The first distribution (unused in this check).
+            y: The second distribution (unused in this check).
+
+        Returns:
+            bool: True if the measure is bounded, False otherwise.
+        """
+        return True
+
+    def check_reflexivity(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> bool:
+        """
+        Checks if the similarity measure is reflexive.
+
+        For any distribution x, similarity(x, x) should be 1.
+
+        Args:
+            x: The distribution to check reflexivity for.
+
+        Returns:
+            bool: True if the measure is reflexive, False otherwise.
+        """
+        return True
+
+    def check_symmetry(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> bool:
+        """
+        Checks if the similarity measure is symmetric.
+
+        The Bhattacharyya coefficient is symmetric, meaning similarity(x, y) = similarity(y, x).
+
+        Args:
+            x: The first distribution (unused in this check).
+            y: The second distribution (unused in this check).
+
+        Returns:
+            bool: True if the measure is symmetric, False otherwise.
+        """
+        return True
+
+    def check_identity(
+        self, 
+        x: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable], 
+        y: Union[Union[List[float], np.ndarray], Tuple[float, ...], str, callable]
+    ) -> bool:
+        """
+        Checks if the similarity measure satisfies identity.
+
+        For identical distributions x and y, similarity(x, y) should be 1.
+
+        Args:
+            x: The first distribution.
+            y: The second distribution.
+
+        Returns:
+            bool: True if the measure satisfies identity, False otherwise.
+        """
+        return self.similarity(x, y) == 1.0
+
+    def _validate_distribution(self, distribution: Union[List[float], np.ndarray, Tuple[float, ...], str, callable]) -> np.ndarray:
+        """
+        Validates and normalizes a probability distribution.
+
+        Args:
+            distribution: The distribution to validate and normalize.
+
+        Returns:
+            np.ndarray: The validated and normalized distribution as a numpy array.
+
+        Raises:
+            ValueError: If the distribution is invalid or cannot be normalized.
+        """
+        if isinstance(distribution, str) or callable(distribution):
+            raise ValueError("Distribution must be provided as a list, array, or tuple of floats")
+
+        if not isinstance(distribution, (list, np.ndarray, tuple)):
+            raise ValueError("Invalid distribution type")
+
+        dist_array = np.asarray(distribution)
+        if np.any(np.isnan(dist_array)) or np.any(np.isinf(dist_array)) or np.any(dist_array < 0):
+            raise ValueError("Distribution contains invalid values (NaN, Inf, or negative values)")
+
+        sum_dist = np.sum(dist_array)
+        if sum_dist == 0:
+            raise ValueError("Distribution sum is zero and cannot be normalized")
+
+        normalized = dist_array / sum_dist
+        return normalized

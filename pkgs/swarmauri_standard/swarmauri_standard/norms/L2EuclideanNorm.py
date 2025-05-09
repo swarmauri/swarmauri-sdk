@@ -1,155 +1,144 @@
-from typing import Union, TypeVar
 import logging
-import numpy as np
+from typing import Union, Sequence, Optional
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.norms.INorm import INorm
-
-T = TypeVar("T", Union["IVector", "IMatrix", str, bytes, Sequence, Callable])
+from swarmauri_base.norms.NormBase import NormBase
 
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_type(NormBase, "L2EuclideanNorm")
+@ComponentBase.register_model()
 class L2EuclideanNorm(NormBase):
     """
     Concrete implementation of the NormBase class for computing the L2 Euclidean norm.
 
-    The L2 Euclidean norm is defined as the square root of the sum of the squares of
-    the vector components. This class provides the implementation for computing this norm
-    and checking its properties.
+    The L2 norm, also known as the Euclidean norm, is the square root of the sum of
+    the squares of the vector components. This implementation provides the core
+    functionality for computing the norm and validating its properties.
 
     Inherits From:
-        NormBase: Base class providing template logic for norm computations
-        INorm: Interface for norm computations on vector spaces
-        ComponentBase: Base class for all components in the system
+        NormBase: Base class for norm computations
 
-    Provides:
-        Implementation of the compute method for L2 norm calculation
-        Implementations for checking norm properties like non-negativity,
-        triangle inequality, absolute homogeneity, and definiteness
+    Attributes:
+        type: Type identifier for the norm implementation
+        resource: Type of resource this component represents
     """
+    type: str = "L2EuclideanNorm"
+    resource: Optional[str] = "norm"
 
-    def __init__(self):
+    def compute(self, x: Union[Sequence, str, Callable]) -> float:
         """
-        Initializes the L2EuclideanNorm instance.
-        """
-        super().__init__()
-        logger.debug("L2EuclideanNorm instance initialized")
+        Compute the L2 Euclidean norm of the input vector.
 
-    def compute(self, x: T) -> float:
-        """
-        Computes the L2 Euclidean norm of the given input.
+        The computation follows the formula:
+        ||x|| = sqrt(x1^2 + x2^2 + ... + xn^2)
 
         Args:
-            x: T
-                The input vector to compute the norm for. Must support element-wise
-                squaring and summation operations.
+            x: Input vector to compute the norm of. Can be a sequence of numbers,
+                a string representation, or a callable that produces a vector.
 
         Returns:
-            float:
-                The computed L2 norm value
+            float: The computed L2 norm value.
 
         Raises:
-            ValueError: If the input vector is empty or contains invalid values
+            ValueError: If the input cannot be processed into a numeric vector
         """
-        logger.debug("Starting L2 norm computation")
-
         try:
-            # Convert input to numpy array if not already
-            if not isinstance(x, np.ndarray):
-                x = np.asarray(x)
+            # Convert input to a list of floats if it's a string or callable
+            if isinstance(x, str):
+                vector = [float(num) for num in x.strip().split()]
+            elif callable(x):
+                vector = list(x())
+            else:
+                vector = list(x)
+            
+            # Compute the sum of squares
+            sum_squares = sum(num ** 2 for num in vector)
+            
+            # Return the square root of the sum
+            return sum_squares ** 0.5
+            
+        except (TypeError, ValueError) as e:
+            logger.error(f"Failed to compute L2 norm: {str(e)}")
+            raise ValueError("Invalid input type for L2 norm computation")
 
-            if x.size == 0:
-                raise ValueError("Input vector cannot be empty")
-
-            # Square each element
-            squared = np.square(x)
-
-            # Sum the squares
-            sum_of_squares = np.sum(squared)
-
-            # Compute square root
-            norm = np.sqrt(sum_of_squares)
-
-            logger.debug(f"L2 norm computed successfully: {norm}")
-            return float(norm)
-
-        except Exception as e:
-            logger.error(f"Error computing L2 norm: {str(e)}")
-            raise ValueError(f"Failed to compute L2 norm: {str(e)}")
-
-    def check_non_negativity(self, x: T) -> bool:
+    def check_non_negativity(self, x: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the computed norm satisfies non-negativity.
+        Verify the non-negativity property of the L2 norm.
+
+        The norm must satisfy ||x|| >= 0 for all x, and ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input vector to check
+            x: Input vector to verify non-negativity for.
 
-        Returns:
-            bool:
-                True if the norm is non-negative, False otherwise
+        Raises:
+            AssertionError: If the non-negativity property is not satisfied
         """
-        logger.debug("Checking non-negativity of L2 norm")
         norm = self.compute(x)
-        return norm >= 0.0
+        assert norm >= 0, "L2 norm is negative - non-negativity violated"
+        logger.info("Non-negativity property verified for L2 norm")
 
-    def check_triangle_inequality(self, x: T, y: T) -> bool:
+    def check_triangle_inequality(self, x: Union[Sequence, str, Callable],
+                                    y: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the computed norm satisfies the triangle inequality.
+        Verify the triangle inequality property of the L2 norm.
+
+        The norm must satisfy ||x + y|| <= ||x|| + ||y|| for all x, y.
 
         Args:
-            x: T
-                The first input vector
-            y: T
-                The second input vector
+            x: First input vector
+            y: Second input vector
 
-        Returns:
-            bool:
-                True if ||x + y|| <= ||x|| + ||y||, False otherwise
+        Raises:
+            AssertionError: If the triangle inequality is not satisfied
         """
-        logger.debug("Checking triangle inequality for L2 norm")
+        x_norm = self.compute(x)
+        y_norm = self.compute(y)
+        sum_norms = x_norm + y_norm
+        
+        # Compute the norm of the sum
+        combined = [a + b for a, b in zip(x, y)]
+        sum_norm = self.compute(combined)
+        
+        assert sum_norm <= sum_norms, "Triangle inequality violated for L2 norm"
+        logger.info("Triangle inequality property verified for L2 norm")
 
-        norm_x = self.compute(x)
-        norm_y = self.compute(y)
-        norm_x_plus_y = self.compute(x + y)
-
-        return norm_x_plus_y <= (norm_x + norm_y)
-
-    def check_absolute_homogeneity(self, x: T, scalar: float) -> bool:
+    def check_absolute_homogeneity(self, x: Union[Sequence, str, Callable],
+                                    alpha: float) -> None:
         """
-        Checks if the computed norm satisfies absolute homogeneity.
+        Verify the absolute homogeneity property of the L2 norm.
+
+        The norm must satisfy ||αx|| = |α| ||x|| for all scalars α and vectors x.
 
         Args:
-            x: T
-                The input vector
-            scalar: float
-                The scalar to scale with
+            x: Input vector to scale
+            alpha: Scalar to use for scaling
 
-        Returns:
-            bool:
-                True if ||c * x|| = |c| * ||x||, False otherwise
+        Raises:
+            AssertionError: If absolute homogeneity is not satisfied
         """
-        logger.debug("Checking absolute homogeneity for L2 norm")
+        scaled = [alpha * num for num in x]
+        scaled_norm = self.compute(scaled)
+        original_norm = self.compute(x)
+        
+        assert abs(scaled_norm - abs(alpha) * original_norm) < 1e-9, \
+            f"Absolute homogeneity violated for L2 norm: {scaled_norm} != {abs(alpha)}*{original_norm}"
+        logger.info("Absolute homogeneity property verified for L2 norm")
 
-        scaled_x = x * scalar
-        norm_scaled = self.compute(scaled_x)
-        norm_x = self.compute(x)
-
-        return np.isclose(norm_scaled, abs(scalar) * norm_x)
-
-    def check_definiteness(self, x: T) -> bool:
+    def check_definiteness(self, x: Union[Sequence, str, Callable]) -> None:
         """
-        Checks if the computed norm is definite (norm(x) = 0 if and only if x = 0).
+        Verify the definiteness property of the L2 norm.
+
+        The norm must satisfy ||x|| = 0 if and only if x = 0.
 
         Args:
-            x: T
-                The input vector
+            x: Input vector to verify definiteness for.
 
-        Returns:
-            bool:
-                True if norm(x) = 0 implies x = 0, False otherwise
+        Raises:
+            AssertionError: If definiteness property is not satisfied
         """
-        logger.debug("Checking definiteness of L2 norm")
         norm = self.compute(x)
-        return norm == 0.0 if x.size == 0 or np.all(x == 0) else norm > 0.0
+        if norm == 0:
+            assert all(num == 0 for num in x), "Definiteness violated: Non-zero vector with zero norm"
+        else:
+            assert norm > 0, "Definiteness violated: Zero vector with positive norm"
+        logger.info("Definiteness property verified for L2 norm")

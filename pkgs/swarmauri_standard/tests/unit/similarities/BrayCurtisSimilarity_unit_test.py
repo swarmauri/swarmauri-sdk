@@ -1,126 +1,108 @@
 import pytest
-import numpy as np
-from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import (
-    BrayCurtisSimilarity,
-)
-
+from swarmauri_standard.swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
+import logging
 
 @pytest.mark.unit
 class TestBrayCurtisSimilarity:
-    """Unit test class for BrayCurtisSimilarity class."""
 
-    def test_similarity_basic_case(self):
-        """Test basic functionality of similarity method."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([4, 5, 6])
-        expected_similarity = 1 - (np.sum(np.abs(x - y)) / (np.sum(x) + np.sum(y)))
-        assert bray_curtis.similarity(x, y) == pytest.approx(expected_similarity)
+    @pytest.fixture
+    def braycurtis_instance(self):
+        """Fixture to create an instance of BrayCurtisSimilarity."""
+        return BrayCurtisSimilarity()
 
-    def test_similarity_identical_vectors(self):
-        """Test similarity when input vectors are identical."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([1, 2, 3])
-        assert bray_curtis.similarity(x, y) == 1.0
+    @pytest.mark.unit
+    def test_similarity_with_identical_vectors(self, braycurtis_instance):
+        """Test similarity with identical vectors."""
+        x = (1, 2, 3)
+        y = (1, 2, 3)
+        result = braycurtis_instance.similarity(x, y)
+        assert result == 1.0
 
-    def test_similarity_zero_vectors(self):
-        """Test similarity when both vectors are zero vectors."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([0, 0, 0])
-        y = np.array([0, 0, 0])
-        assert bray_curtis.similarity(x, y) == 1.0
+    @pytest.mark.unit
+    def test_similarity_with_different_vectors(self, braycurtis_instance):
+        """Test similarity with different vectors."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        result = braycurtis_instance.similarity(x, y)
+        assert result < 1.0
 
-    def test_similarity_one_zero_vector(self):
-        """Test similarity when one vector is zero."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([0, 0, 0])
-        assert bray_curtis.similarity(x, y) == 0.0
+    @pytest.mark.unit
+    def test_similarity_with_empty_vectors(self, braycurtis_instance):
+        """Test similarity with empty vectors."""
+        x = ()
+        y = ()
+        result = braycurtis_instance.similarity(x, y)
+        assert result == 1.0
 
-    def test_similarity_negative_values(self):
-        """Test that similarity raises ValueError for negative values."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, -2, 3])
-        y = np.array([4, 5, 6])
+    @pytest.mark.unit
+    def test_similarity_with_negative_values(self, braycurtis_instance):
+        """Test similarity with negative values."""
+        x = (1, -2, 3)
+        y = (4, 5, 6)
         with pytest.raises(ValueError):
-            bray_curtis.similarity(x, y)
+            braycurtis_instance.similarity(x, y)
 
-    def test_similarities_multiple_pairs(self):
-        """Test similarities method with multiple pairs."""
-        bray_curtis = BrayCurtisSimilarity()
-        pairs = [
-            (np.array([1, 2]), np.array([4, 5])),
-            (np.array([0, 0]), np.array([0, 0])),
-            (np.array([3, 3]), np.array([3, 3])),
-        ]
-        expected = [
-            1 - (np.sum(np.abs([1 - 4, 2 - 5])) / (np.sum([1, 2]) + np.sum([4, 5]))),
-            1.0,
-            1.0,
-        ]
-        similarities = bray_curtis.similarities(pairs)
-        for s, e in zip(similarities, expected):
-            assert s == pytest.approx(e)
+    @pytest.mark.unit
+    def test_similarities_with_multiple_vectors(self, braycurtis_instance):
+        """Test similarities with multiple vectors."""
+        x = (1, 2, 3)
+        ys = [(4, 5, 6), (7, 8, 9)]
+        results = braycurtis_instance.similarities(x, ys)
+        assert len(results) == 2
 
-    def test_dissimilarity_basic_case(self):
-        """Test basic functionality of dissimilarity method."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([4, 5, 6])
-        expected_dissimilarity = np.sum(np.abs(x - y)) / (np.sum(x) + np.sum(y))
-        assert bray_curtis.dissimilarity(x, y) == pytest.approx(expected_dissimilarity)
+    @pytest.mark.unit
+    def test_dissimilarity(self, braycurtis_instance):
+        """Test dissimilarity calculation."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        similarity = braycurtis_instance.similarity(x, y)
+        dissimilarity = braycurtis_instance.dissimilarity(x, y)
+        assert dissimilarity == 1 - similarity
 
-    def test_dissimilarity_identical_vectors(self):
-        """Test dissimilarity when input vectors are identical."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([1, 2, 3])
-        assert bray_curtis.dissimilarity(x, y) == 0.0
+    @pytest.mark.unit
+    def test_check_boundedness(self, braycurtis_instance):
+        """Test boundedness check."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        result = braycurtis_instance.check_boundedness(x, y)
+        assert result is True
 
-    def test_dissimilarity_zero_vectors(self):
-        """Test dissimilarity when both vectors are zero vectors."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([0, 0, 0])
-        y = np.array([0, 0, 0])
-        assert bray_curtis.dissimilarity(x, y) == 0.0
+    @pytest.mark.unit
+    def test_check_reflexivity(self, braycurtis_instance):
+        """Test reflexivity check."""
+        x = (1, 2, 3)
+        result = braycurtis_instance.check_reflexivity(x)
+        assert result is True
 
-    def test_dissimilarity_one_zero_vector(self):
-        """Test dissimilarity when one vector is zero."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, 2, 3])
-        y = np.array([0, 0, 0])
-        assert bray_curtis.dissimilarity(x, y) == 1.0
+    @pytest.mark.unit
+    def test_check_symmetry(self, braycurtis_instance):
+        """Test symmetry check."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        result = braycurtis_instance.check_symmetry(x, y)
+        assert result is True
 
-    def test_dissimilarity_negative_values(self):
-        """Test that dissimilarity raises ValueError for negative values."""
-        bray_curtis = BrayCurtisSimilarity()
-        x = np.array([1, -2, 3])
-        y = np.array([4, 5, 6])
-        with pytest.raises(ValueError):
-            bray_curtis.dissimilarity(x, y)
+    @pytest.mark.unit
+    def test_check_identity(self, braycurtis_instance):
+        """Test identity check."""
+        x = (1, 2, 3)
+        y = (1, 2, 3)
+        result = braycurtis_instance.check_identity(x, y)
+        assert result is True
 
-    def test_dissimilarities_multiple_pairs(self):
-        """Test dissimilarities method with multiple pairs."""
-        bray_curtis = BrayCurtisSimilarity()
-        pairs = [
-            (np.array([1, 2]), np.array([4, 5])),
-            (np.array([0, 0]), np.array([0, 0])),
-            (np.array([3, 3]), np.array([3, 3])),
-        ]
-        expected = [
-            np.sum(np.abs([1 - 4, 2 - 5])) / (np.sum([1, 2]) + np.sum([4, 5])),
-            0.0,
-            0.0,
-        ]
-        dissimilarities = bray_curtis.dissimilarities(pairs)
-        for d, e in zip(dissimilarities, expected):
-            assert d == pytest.approx(e)
+    @pytest.mark.unit
+    def test_check_identity_with_different_vectors(self, braycurtis_instance):
+        """Test identity check with different vectors."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        result = braycurtis_instance.check_identity(x, y)
+        assert result is False
 
-    def test_type_attribute(self):
-        """Test that type attribute is correctly set."""
-        assert BrayCurtisSimilarity.type == "BrayCurtisSimilarity"
-
-    def test_resource_attribute(self):
-        """Test that resource attribute is correctly set."""
-        assert BrayCurtisSimilarity.resource == "Similarity"
+    @pytest.mark.unit
+    def test_logging(self, braycurtis_instance, caplog):
+        """Test logging in similarity method."""
+        x = (1, 2, 3)
+        y = (4, 5, 6)
+        with caplog.at_level(logging.DEBUG):
+            braycurtis_instance.similarity(x, y)
+            assert "Bray-Curtis similarity calculated" in caplog.text

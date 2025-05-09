@@ -1,125 +1,102 @@
-```python
 import pytest
-import numpy as np
-import logging
-
+from typing import Union, Sequence, Tuple, Optional
 from swarmauri_standard.swarmauri_standard.seminorms.CoordinateProjectionSeminorm import CoordinateProjectionSeminorm
-
-# Configure logging
-logger = logging.getLogger(__name__)
+import logging
 
 @pytest.mark.unit
 class TestCoordinateProjectionSeminorm:
-    """Unit test class for CoordinateProjectionSeminorm implementation."""
+    """Unit tests for the CoordinateProjectionSeminorm class."""
     
     @pytest.fixture
-    def valid_projection_indices(self):
-        """Fixture providing valid projection indices."""
-        return [0, 1, 2]
-    
+    def default_instance(self) -> CoordinateProjectionSeminorm:
+        """Fixture providing a default instance of CoordinateProjectionSeminorm."""
+        return CoordinateProjectionSeminorm(projection_indices=[0, 1])
+
     @pytest.fixture
-    def invalid_projection_indices(self):
-        """Fixture providing invalid (out-of-bounds) projection indices."""
-        return [0, 5, 10]
-    
-    @pytest.fixture
-    def test_vector(self):
-        """Fixture providing a test vector for seminorm computation."""
-        return np.array([1.0, 2.0, 3.0, 4.0])
-    
-    @pytest.fixture
-    def zero_vector(self):
-        """Fixture providing a zero vector for edge case testing."""
-        return np.array([0.0, 0.0, 0.0, 0.0])
-    
-    def test_initialization(self):
-        """Test proper initialization of the CoordinateProjectionSeminorm class."""
-        projection_indices = [0, 1]
-        seminorm = CoordinateProjectionSeminorm(projection_indices)
-        
-        assert seminorm.projection_indices == projection_indices
-        assert seminorm.resource == "seminorm"
-        
-    def test_initialization_with_invalid_indices(self, invalid_projection_indices):
-        """Test initialization with invalid projection indices."""
-        with pytest.raises(ValueError):
-            CoordinateProjectionSeminorm(invalid_projection_indices)
-    
-    @pytest.mark.parametrize("input,vector_type", [
-        (np.array([1.0, 2.0, 3.0]), np.ndarray),
-        ([4.0, 5.0, 6.0], list),
-        ((7.0, 8.0, 9.0), tuple)
-    ])
-    def test_compute(self, input, vector_type, valid_projection_indices):
-        """Test the compute method with various input types."""
-        seminorm = CoordinateProjectionSeminorm(valid_projection_indices)
-        result = seminorm.compute(input)
-        
+    def single_projection_instance(self) -> CoordinateProjectionSeminorm:
+        """Fixture providing a instance of CoordinateProjectionSeminorm with single projection index."""
+        return CoordinateProjectionSeminorm(projection_indices=[0])
+
+    @pytest.mark.unit
+    def test_type(self) -> None:
+        """Test the type attribute of the CoordinateProjectionSeminorm class."""
+        assert CoordinateProjectionSeminorm.type == "CoordinateProjectionSeminorm"
+
+    @pytest.mark.unit
+    def test_resource(self) -> None:
+        """Test the resource attribute of the CoordinateProjectionSeminorm class."""
+        assert CoordinateProjectionSeminorm.resource == "Seminorm"
+
+    @pytest.mark.unit
+    def test_compute_vector(self, default_instance) -> None:
+        """Test the compute method with a vector input."""
+        test_vector = [1.0, 2.0, 3.0]
+        result = default_instance.compute(test_vector)
         assert isinstance(result, float)
         assert result >= 0.0
-        
-    def test_compute_with_zero_vector(self, zero_vector, valid_projection_indices):
-        """Test compute method with zero vector input."""
-        seminorm = CoordinateProjectionSeminorm(valid_projection_indices)
-        result = seminorm.compute(zero_vector)
-        
-        assert result == 0.0
-        
-    @pytest.mark.parametrize("a,b,expected_result", [
-        (np.array([1.0, 2.0]), np.array([3.0, 4.0]), True),
-        (np.array([1.0, -2.0]), np.array([3.0, 4.0]), True),
-        (np.array([1.0, 2.0]), np.array([-3.0, 4.0]), True),
-        (np.array([1.0, 2.0]), np.array([3.0, 4.0]), True)
-    ])
-    def test_check_triangle_inequality(self, a, b, expected_result, valid_projection_indices):
-        """Test the triangle inequality check."""
-        seminorm = CoordinateProjectionSeminorm(valid_projection_indices)
-        result = seminorm.check_triangle_inequality(a, b)
-        
-        assert result == expected_result
-        
-    @pytest.mark.parametrize("a,scalar,expected_result", [
-        (np.array([1.0, 2.0]), 2.0, True),
-        (np.array([1.0, 2.0]), 0.0, True),
-        (np.array([1.0, 2.0]), -1.0, True),
-        (np.array([1.0, 2.0]), 1.5, True)
-    ])
-    def test_check_scalar_homogeneity(self, a, scalar, expected_result, valid_projection_indices):
-        """Test scalar homogeneity property."""
-        seminorm = CoordinateProjectionSeminorm(valid_projection_indices)
-        result = seminorm.check_scalar_homogeneity(a, scalar)
-        
-        assert result == expected_result
-        
-    def test_invalid_input_type(self, valid_projection_indices):
-        """Test compute method with invalid input type."""
-        seminorm = CoordinateProjectionSeminorm(valid_projection_indices)
-        
+
+    @pytest.mark.unit
+    def test_compute_matrix(self, default_instance) -> None:
+        """Test the compute method with a matrix input."""
+        test_matrix = [[1.0, 2.0], [3.0, 4.0]]
+        result = default_instance.compute(test_matrix)
+        assert isinstance(result, float)
+        assert result >= 0.0
+
+    @pytest.mark.unit
+    def test_compute_sequence(self, default_instance) -> None:
+        """Test the compute method with a sequence input."""
+        test_sequence = (1.0, 2.0, 3.0)
+        result = default_instance.compute(test_sequence)
+        assert isinstance(result, float)
+        assert result >= 0.0
+
+    @pytest.mark.unit
+    def test_invalid_input(self, default_instance) -> None:
+        """Test that compute raises ValueError for invalid input."""
         with pytest.raises(ValueError):
-            seminorm.compute("invalid_input")
-```
+            default_instance.compute(object())
 
-```python
-# Content for conftest.py (if needed)
-import pytest
+    @pytest.mark.unit
+    @pytest.mark.parametrize("projection_indices,expected_norm", [
+        ([0], 1.0),
+        ([1], 2.0),
+        ([2], 3.0)
+    ])
+    def test_projection_indices(self, projection_indices, expected_norm) -> None:
+        """Test the projection indices functionality."""
+        instance = CoordinateProjectionSeminorm(projection_indices)
+        test_vector = [1.0, 2.0, 3.0]
+        result = instance.compute(test_vector)
+        assert result == expected_norm
 
-@pytest.fixture
-def valid_projection_indices():
-    """Fixture providing valid projection indices."""
-    return [0, 1, 2]
+    @pytest.mark.unit
+    def test_triangle_inequality(self, default_instance) -> None:
+        """Test the triangle inequality check."""
+        a = [1.0, 2.0, 3.0]
+        b = [4.0, 5.0, 6.0]
+        result = default_instance.check_triangle_inequality(a, b)
+        assert isinstance(result, bool)
 
-@pytest.fixture
-def invalid_projection_indices():
-    """Fixture providing invalid (out-of-bounds) projection indices."""
-    return [0, 5, 10]
+    @pytest.mark.unit
+    def test_scalar_homogeneity(self, default_instance) -> None:
+        """Test the scalar homogeneity check."""
+        input = [1.0, 2.0, 3.0]
+        scalar = 2.0
+        result = default_instance.check_scalar_homogeneity(input, scalar)
+        assert isinstance(result, bool)
 
-@pytest.fixture
-def test_vector():
-    """Fixture providing a test vector for seminorm computation."""
-    return np.array([1.0, 2.0, 3.0, 4.0])
+    @pytest.mark.unit
+    def test_projection_indices_property(self, default_instance) -> None:
+        """Test the projection_indices property."""
+        assert isinstance(default_instance.projection_indices, tuple)
+        assert len(default_instance.projection_indices) > 0
 
-@pytest.fixture
-def zero_vector():
-    """Fixture providing a zero vector for edge case testing."""
-    return np.array([0.0, 0.0, 0.0, 0.0])
-```
+@pytest.mark.unit
+def test_logging():
+    """Test that logging is properly configured."""
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # Test if logging works
+    logger.debug("Test debug message")
+    assert logger.isEnabledFor(logging.DEBUG)

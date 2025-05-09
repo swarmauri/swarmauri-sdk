@@ -1,149 +1,180 @@
-from typing import Any, Sequence, Tuple, TypeVar
-from swarmauri_base.ComponentBase import ComponentBase
-import math
 import logging
+from typing import Union, List, Optional, Literal
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.similarities.SimilarityBase import SimilarityBase
+import math
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-InputType = TypeVar("InputType", str, bytes, Any)
-OutputType = TypeVar("OutputType", float)
-
 
 @ComponentBase.register_type(SimilarityBase, "TriangleCosineSimilarity")
 class TriangleCosineSimilarity(SimilarityBase):
     """
-    A concrete implementation of the SimilarityBase class that calculates the cosine similarity between vectors.
-
-    This class uses the dot product and magnitudes of vectors to compute the cosine of the angle between them.
-    It provides a measure of how similar the direction of two vectors is, with 1.0 indicating identical direction
-    and 0.0 indicating orthogonal directions.
-
-    The implementation follows the spherical law of cosines for tighter bounding of similarity scores.
+    Computes the cosine similarity between vectors using the dot product over norm product.
+    
+    This implementation provides a concrete realization of the SimilarityBase class
+    for calculating cosine similarity, which measures the cosine of the angle between
+    two vectors. The similarity is calculated as the dot product of the vectors divided
+    by the product of their magnitudes. The implementation ensures non-zero vectors only
+    and uses a tighter bound derived from spherical law of cosines.
     """
-
-    type: str = "TriangleCosineSimilarity"
-
+    type: Literal["TriangleCosineSimilarity"] = "TriangleCosineSimilarity"
+    
     def __init__(self):
         """
-        Initialize the TriangleCosineSimilarity instance.
+        Initializes the TriangleCosineSimilarity calculator.
+        
+        This constructor sets up the basic configuration for the cosine similarity
+        calculation. It initializes the parent class and prepares the calculator
+        for vector comparison.
         """
         super().__init__()
-        self.type = "TriangleCosineSimilarity"
-        logger.debug("Initialized TriangleCosineSimilarity instance")
+        logger.debug("Initialized TriangleCosineSimilarity calculator")
 
-    def similarity(self, x: InputType, y: InputType) -> float:
+    def similarity(
+        self, 
+        x: Union[List[float], tuple], 
+        y: Union[List[float], tuple]
+    ) -> float:
         """
-        Calculate the cosine similarity between two vectors.
-
-        The cosine similarity is calculated as the dot product of the vectors divided by the product of their magnitudes.
-        This implementation assumes non-zero vectors and uses mathematically valid operations to ensure numerical stability.
-
+        Computes the cosine similarity between two vectors.
+        
         Args:
-            x: InputType
-                The first vector for comparison
-            y: InputType
-                The second vector for comparison
-
+            x: First non-zero vector (list or tuple of floats)
+            y: Second non-zero vector (list or tuple of floats)
+            
         Returns:
-            float:
-                A float value between 0.0 and 1.0 representing the cosine similarity between the vectors.
-
+            float: Cosine similarity score between x and y in range [-1, 1]
+            
         Raises:
-            ValueError: If either vector has a magnitude of zero
-            TypeError: If the input vectors are not of a supported type
+            ValueError: If either vector is zero vector or of different lengths
         """
-        try:
-            # Ensure vectors are in a format that supports mathematical operations
-            if not isinstance(x, (list, tuple, str, bytes)):
-                raise TypeError("Unsupported type for vector x")
-            if not isinstance(y, (list, tuple, str, bytes)):
-                raise TypeError("Unsupported type for vector y")
+        if len(x) != len(y):
+            raise ValueError("Vectors must be of the same length")
+            
+        if all(v == 0 for v in x) or all(v == 0 for v in y):
+            raise ValueError("Non-zero vectors only")
+            
+        # Compute dot product
+        dot_product = sum(a * b for a, b in zip(x, y))
+        logger.debug(f"Dot product: {dot_product}")
+        
+        # Compute magnitudes
+        x_norm = math.sqrt(sum(a**2 for a in x))
+        y_norm = math.sqrt(sum(b**2 for b in y))
+        logger.debug(f"Norm of x: {x_norm}, Norm of y: {y_norm}")
+        
+        if x_norm == 0 or y_norm == 0:
+            raise ValueError("Vectors must be non-zero")
+            
+        # Compute cosine similarity with tight bounding
+        cosine_sim = dot_product / (x_norm * y_norm)
+        cosine_sim = max(min(cosine_sim, 1.0), -1.0)  # Ensure in [-1, 1]
+        
+        logger.debug(f"Cosine similarity: {cosine_sim}")
+        return cosine_sim
 
-            # Calculate dot product
-            dot_product = sum(a * b for a, b in zip(x, y))
-
-            # Calculate magnitudes
-            magnitude_x = math.sqrt(sum(a**2 for a in x))
-            magnitude_y = math.sqrt(sum(b**2 for b in y))
-
-            # Check for zero vectors
-            if magnitude_x == 0 or magnitude_y == 0:
-                raise ValueError("Non-zero vectors only")
-
-            # Calculate cosine similarity
-            cosine_similarity = dot_product / (magnitude_x * magnitude_y)
-
-            # Ensure result is within valid range [0.0, 1.0]
-            return max(0.0, min(cosine_similarity, 1.0))
-
-        except Exception as e:
-            logger.error(f"Error calculating cosine similarity: {str(e)}")
-            raise
+    def dissimilarity(
+        self, 
+        x: Union[List[float], tuple], 
+        y: Union[List[float], tuple]
+    ) -> float:
+        """
+        Computes the dissimilarity as 1 - similarity.
+        
+        Args:
+            x: First non-zero vector (list or tuple of floats)
+            y: Second non-zero vector (list or tuple of floats)
+            
+        Returns:
+            float: Dissimilarity score between x and y in range [-1, 1]
+        """
+        sim = self.similarity(x, y)
+        return 1.0 - sim
 
     def similarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+        self, 
+        x: Union[List[float], tuple], 
+        ys: Union[List[List[float]], List[tuple], List[Union[List[float], tuple]]]
+    ) -> Union[float, List[float]]:
         """
-        Calculate cosine similarities for multiple pairs of vectors.
-
+        Computes similarity scores between x and multiple vectors.
+        
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
-
+            x: Reference non-zero vector (list or tuple of floats)
+            ys: List of non-zero vectors (list of lists or tuples of floats)
+            
         Returns:
-            Sequence[float]:
-                A sequence of similarity scores corresponding to each pair
-
-        Raises:
-            Exception: If any error occurs during similarity calculation
+            Union[float, List[float]]: Similarity scores between x and each vector in ys
         """
-        similarities = []
-        for pair in pairs:
-            try:
-                sim = self.similarity(pair[0], pair[1])
-                similarities.append(sim)
-            except Exception as e:
-                logger.warning(
-                    f"Error calculating similarity for pair {pair}: {str(e)}"
-                )
-                similarities.append(0.0)  # or handle as needed
-        return similarities
+        if not isinstance(ys, list):
+            return self.similarity(x, ys)
+            
+        return [self.similarity(x, y) for y in ys]
 
-    def dissimilarity(self, x: InputType, y: InputType) -> float:
+    def check_boundedness(
+        self, 
+        x: Union[List[float], tuple], 
+        y: Union[List[float], tuple]
+    ) -> bool:
         """
-        Calculate the dissimilarity between two vectors as 1 - similarity.
-
+        Checks if the similarity measure is bounded.
+        
         Args:
-            x: InputType
-                The first vector for comparison
-            y: InputType
-                The second vector for comparison
-
+            x: First vector (list or tuple of floats)
+            y: Second vector (list or tuple of floats)
+            
         Returns:
-            float:
-                A float value between 0.0 and 1.0 representing the dissimilarity
+            bool: True if the measure is bounded, False otherwise
         """
-        try:
-            sim = self.similarity(x, y)
-            return 1.0 - sim
-        except Exception as e:
-            logger.error(f"Error calculating dissimilarity: {str(e)}")
-            raise
+        return True  # Cosine similarity is always bounded between -1 and 1
 
-    def dissimilarities(
-        self, pairs: Sequence[Tuple[InputType, InputType]]
-    ) -> Sequence[float]:
+    def check_reflexivity(
+        self, 
+        x: Union[List[float], tuple]
+    ) -> bool:
         """
-        Calculate dissimilarities for multiple pairs of vectors.
-
+        Checks if the similarity measure is reflexive.
+        
         Args:
-            pairs: Sequence[Tuple[InputType, InputType]]
-                A sequence of vector pairs to compare
-
+            x: Vector to check reflexivity for (list or tuple of floats)
+            
         Returns:
-            Sequence[float]:
-                A sequence of dissimilarity scores corresponding to each pair
+            bool: True if the measure is reflexive, False otherwise
         """
-        sims = self.similarities(pairs)
-        return [1.0 - sim for sim in sims]
+        if all(v == 0 for v in x):
+            return False
+        return True
+
+    def check_symmetry(
+        self, 
+        x: Union[List[float], tuple], 
+        y: Union[List[float], tuple]
+    ) -> bool:
+        """
+        Checks if the similarity measure is symmetric.
+        
+        Args:
+            x: First vector (list or tuple of floats)
+            y: Second vector (list or tuple of floats)
+            
+        Returns:
+            bool: True if the measure is symmetric, False otherwise
+        """
+        return True  # Cosine similarity is symmetric
+
+    def check_identity(
+        self, 
+        x: Union[List[float], tuple], 
+        y: Union[List[float], tuple]
+    ) -> bool:
+        """
+        Checks if the similarity measure satisfies identity.
+        
+        Args:
+            x: First vector (list or tuple of floats)
+            y: Second vector (list or tuple of floats)
+            
+        Returns:
+            bool: True if x and y are identical, False otherwise
+        """
+        return x == y

@@ -1,163 +1,120 @@
-from typing import Iterable, TypeVar, Optional
-from pydantic import Field
+from typing import Union, List, Any
+from abc import ABC
 import logging
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Define type variables for input types
-InputTypes = TypeVar("InputTypes", Iterable, str, bytes, memoryview, Callable)
-DistanceInput = TypeVar("DistanceInput", InputTypes, Iterable[InputTypes])
 
-
-@ComponentBase.register_model()
 class ZeroPseudometric(PseudometricBase):
     """
-    A trivial pseudometric implementation that assigns zero distance between all points.
+    A trivial pseudometric that assigns zero distance between all pairs of points.
 
-    This class implements a degenerate pseudometric space where every pair of
-    points has zero distance between them. It satisfies all the pseudometric
-    properties but does not provide any meaningful distance measurement.
+    This class implements a pseudometric space where the distance between any two
+    points is always zero. This satisfies all the pseudometric axioms trivially.
 
-    Attributes:
-        resource: str = ResourceTypes.PSEUDOMETRIC.value
-            The resource type identifier for this component.
+    Inherits:
+        PseudometricBase: Base class for pseudometric implementations
     """
+    type: Literal["ZeroPseudometric"] = "ZeroPseudometric"
 
-    resource: str = Field(default=ResourceTypes.PSEUDOMETRIC.value)
-
-    def distance(self, x: InputTypes, y: InputTypes) -> float:
+    def distance(self, x: Union[Any], y: Union[Any]) -> float:
         """
-        Compute the distance between two points x and y.
+        Calculate the distance between two elements in the pseudometric space.
 
-        Since this is a trivial pseudometric, the distance will always be 0
-        regardless of the input values.
+        Since this is a zero pseudometric, the distance will always be 0.0
+        regardless of the input.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element to measure distance from
+            y: The second element to measure distance to
 
         Returns:
-            float:
-                The computed distance, which will always be 0.0
+            float: The distance between x and y, which is always 0.0
         """
-        logger.debug(
-            "Computing zero distance between inputs of types {} and {}".format(
-                type(x), type(y)
-            )
-        )
+        logger.debug("Calculating zero distance between two points")
         return 0.0
 
-    def distances(
-        self, x: InputTypes, ys: Optional[Iterable[InputTypes]] = None
-    ) -> Iterable[float]:
+    def distances(self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]) -> List[float]:
         """
-        Compute distances from point x to multiple points ys.
+        Calculate distances from a single element to a list of elements.
 
-        Since this is a trivial pseudometric, all distances will be 0
-        regardless of the input values.
+        Since this is a zero pseudometric, all distances will be 0.0
+        regardless of the input.
 
         Args:
-            x: InputTypes
-                The reference point
-            ys: Optional[Iterable[InputTypes]]
-                The collection of points to compute distances to.
-                If None, returns a single zero distance for x itself.
+            x: The reference element
+            y_list: List or tuple of elements to measure distances to
 
         Returns:
-            Iterable[float]:
-                An iterable containing zero distances for each point in ys
+            List[float]: List of distances from x to each element in y_list,
+                         which will all be 0.0
         """
-        logger.debug("Computing zero distances for input of type {}".format(type(x)))
-        if ys is None:
-            return [0.0]
-        return [0.0 for _ in ys]
+        logger.debug("Calculating zero distances from one point to multiple points")
+        return [0.0] * len(y_list)
 
-    def check_non_negativity(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_non_negativity(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Check if the distance satisfies non-negativity.
+        Check if the distance satisfies non-negativity: d(x,y) ≥ 0.
 
-        For this trivial pseudometric, the distance is always zero, which
-        satisfies the non-negativity property.
+        Since the distance is always 0.0, this condition is always satisfied.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True, since distance(x, y) is always non-negative
+            bool: True, as distance is always non-negative
         """
-        logger.debug("Checking non-negativity constraint")
+        logger.debug("Checking non-negativity condition")
         return True
 
-    def check_symmetry(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_symmetry(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Check if the distance satisfies symmetry.
+        Check if the distance satisfies symmetry: d(x,y) = d(y,x).
 
-        For this trivial pseudometric, distance(x, y) will always equal
-        distance(y, x) since both are zero.
+        Since the distance is always 0.0, this condition is always satisfied.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True, since distance(x, y) == distance(y, x)
+            bool: True, as distance is symmetric
         """
-        logger.debug("Checking symmetry constraint")
+        logger.debug("Checking symmetry condition")
         return True
 
-    def check_triangle_inequality(
-        self, x: InputTypes, y: InputTypes, z: InputTypes
-    ) -> bool:
+    def check_triangle_inequality(self, x: Union[Any], y: Union[Any], z: Union[Any]) -> bool:
         """
-        Check if the distance satisfies the triangle inequality.
+        Check if the distance satisfies triangle inequality: d(x,z) ≤ d(x,y) + d(y,z).
 
-        For this trivial pseudometric, the inequality distance(x, z) <= distance(x, y) + distance(y, z)
-        holds true because all terms are zero.
+        Since all distances are 0.0, this condition is always satisfied:
+        0.0 ≤ 0.0 + 0.0
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
-            z: InputTypes
-                The third point
+            x: The first element
+            y: The second element
+            z: The third element
 
         Returns:
-            bool:
-                True, since 0 <= 0 + 0 is always true
+            bool: True, as triangle inequality holds
         """
-        logger.debug("Checking triangle inequality constraint")
+        logger.debug("Checking triangle inequality condition")
         return True
 
-    def check_weak_identity(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_weak_identity(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Check if the distance satisfies weak identity of indiscernibles.
+        Check if the distance satisfies weak identity of indiscernibles:
+        d(x,y) = 0 if and only if x and y are not distinguishable.
 
-        For this trivial pseudometric, if x and y are the same point,
-        the distance will be zero. However, different points may also have
-        zero distance, so this pseudometric does not satisfy strong identity.
+        Since the distance is always 0.0, this condition is trivially satisfied.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True if x == y implies distance(x, y) == 0, False otherwise
+            bool: True, as distance is always zero
         """
-        logger.debug("Checking weak identity constraint")
-        return x == y
+        logger.debug("Checking weak identity condition")
+        return True

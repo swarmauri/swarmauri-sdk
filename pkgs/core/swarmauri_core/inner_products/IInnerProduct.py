@@ -1,105 +1,116 @@
 from abc import ABC, abstractmethod
+from typing import Union, Optional
 import logging
 
+# Define logger
 logger = logging.getLogger(__name__)
 
+# Type alias for vector types
+IVector = "IVector"
+
+# Type alias for matrix types
+Matrix = "Matrix"
+
+# Type alias for callable types
+Callable = "Callable"
 
 class IInnerProduct(ABC):
-    """Interface defining the contract for inner product operations.
-    
-    This interface requires implementation of core functionality for computing
-    inner products between vectors. It also provides methods for validating key
-    properties of inner products: conjugate symmetry, linearity, and positivity.
+    """
+    Defines the interface for computing inner products between vectors, matrices, and callables.
+    This interface enforces implementation of core inner product properties and checks.
     """
 
     @abstractmethod
-    def compute(self, x: "IVector", y: "IVector") -> float:
-        """Compute the inner product between two vectors.
-        
+    def compute(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable]) -> Union[float, complex]:
+        """
+        Computes the inner product between two vectors, matrices, or callables.
+
         Args:
-            x: First vector
-            y: Second vector
-            
+            a: The first element in the inner product operation. Can be a vector, matrix, or callable.
+            b: The second element in the inner product operation. Can be a vector, matrix, or callable.
+
         Returns:
-            The inner product of x and y as a scalar value.
+            Union[float, complex]: The result of the inner product computation.
         """
         pass
 
-    def check_conjugate_symmetry(self, x: "IVector", y: "IVector") -> bool:
-        """Check if the inner product satisfies conjugate symmetry.
-        
-        Conjugate symmetry requires that the inner product of x and y is
-        equal to the conjugate of the inner product of y and x.
-        
-        Args:
-            x: First vector
-            y: Second vector
-            
-        Returns:
-            True if conjugate symmetry holds, False otherwise.
+    def check_conjugate_symmetry(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable]) -> bool:
         """
-        inner_xy = self.compute(x, y)
-        inner_yx = self.compute(y, x)
+        Checks if the inner product implementation satisfies conjugate symmetry.
+        For any elements a and b, the inner product of a and b should equal the conjugate of the inner product of b and a.
+
+        Args:
+            a: The first element to check
+            b: The second element to check
+
+        Returns:
+            bool: True if conjugate symmetry holds, False otherwise
+        """
+        logger.info("Checking conjugate symmetry")
+        result_ab = self.compute(a, b)
+        result_ba = self.compute(b, a)
         
-        # For real vectors, this should be exact equality
-        # For complex vectors, inner_xy should be the conjugate of inner_yx
-        if inner_xy == inner_yx.conjugate():
-            logger.debug("Conjugate symmetry holds")
+        # Check if result_ab equals the conjugate of result_ba
+        if result_ab == result_ba.conjugate():
+            logger.info("Conjugate symmetry check passed")
             return True
         else:
-            logger.warning("Conjugate symmetry does not hold")
+            logger.warning("Conjugate symmetry check failed")
             return False
 
-    def check_linearity_first_argument(self, 
-                                       x: "IVector", 
-                                       y: "IVector", 
-                                       z: "IVector",
-                                       a: float = 1.0, 
-                                       b: float = 1.0) -> bool:
-        """Check if the inner product is linear in the first argument.
-        
-        Linearity in the first argument requires that for any vectors x, y, z
-        and scalars a, b, the following holds:
-        <ax + by, z> = a<x, z> + b<y, z>
-        
-        Args:
-            x: First vector
-            y: Second vector
-            z: Third vector
-            a: Scalar coefficient for x
-            b: Scalar coefficient for y
-            
-        Returns:
-            True if linearity holds, False otherwise.
+    def check_linearity_first_argument(self, a: Union[IVector, Matrix, Callable], b: Union[IVector, Matrix, Callable], c: Union[IVector, Matrix, Callable]) -> bool:
         """
-        ax_plus_by = a * x + b * y
-        left_side = self.compute(ax_plus_by, z)
-        right_side = a * self.compute(x, z) + b * self.compute(y, z)
+        Checks if the inner product implementation is linear in the first argument.
+        For any elements a, b, and scalar s, the inner product of (a + b) with c should equal the sum of the inner products of a and b with c.
+        Similarly, the inner product of (s * a) with b should equal s times the inner product of a and b.
+
+        Args:
+            a: The first element for linearity check
+            b: The second element for linearity check
+            c: The third element for linearity check
+
+        Returns:
+            bool: True if linearity in the first argument holds, False otherwise
+        """
+        logger.info("Checking linearity in first argument")
         
-        if left_side == right_side:
-            logger.debug("Linearity in first argument holds")
-            return True
-        else:
-            logger.warning("Linearity in first argument does not hold")
+        # Check additivity
+        result_add = self.compute(a + b, c)
+        result_split = self.compute(a, c) + self.compute(b, c)
+        
+        if result_add != result_split:
+            logger.warning("Additivity check failed")
             return False
 
-    def check_positivity(self, x: "IVector") -> bool:
-        """Check if the inner product is positive definite.
+        # Check homogeneity
+        scalar = 2.0
+        result_scale = self.compute(scalar * a, c)
+        result_scaled = scalar * self.compute(a, c)
         
-        Positive definiteness requires that for any non-zero vector x,
-        the inner product <x, x> is positive.
-        
-        Args:
-            x: Vector to check
-            
-        Returns:
-            True if positivity holds, False otherwise.
+        if result_scale != result_scaled:
+            logger.warning("Homogeneity check failed")
+            return False
+
+        logger.info("Linearity check passed")
+        return True
+
+    def check_positivity(self, a: Union[IVector, Matrix, Callable]) -> bool:
         """
-        inner_xx = self.compute(x, x)
+        Checks if the inner product implementation satisfies positive definiteness.
+        For any non-zero element a, the inner product of a with itself should be positive.
+
+        Args:
+            a: The element to check for positivity
+
+        Returns:
+            bool: True if positivity holds, False otherwise
+        """
+        logger.info("Checking positivity")
+        result = self.compute(a, a)
         
-        if inner_xx > 0:
-            logger.debug("Positivity holds")
+        if result > 0:
+            logger.info("Positivity check passed")
             return True
         else:
-            logger.warning("Positivity does not hold")
+            logger.warning("Positivity check failed")
             return False

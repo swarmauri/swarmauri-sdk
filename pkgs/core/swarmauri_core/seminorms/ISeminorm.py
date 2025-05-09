@@ -1,58 +1,62 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Union
+from typing import Union, Sequence, Callable
 import logging
-
 from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T', IVector, IMatrix, str, callable, Sequence[float], Sequence[Sequence[float]])
 
 class ISeminorm(ABC):
     """
-    Interface for seminorm structures. This class defines the core functionality 
-    required for seminorm operations. A seminorm is a function that satisfies 
-    the triangle inequality and positive scalability but does not necessarily 
-    satisfy the condition that only the zero vector has a norm of zero.
+    Interface for seminorm structures. This interface defines the fundamental
+    operations and properties that must be implemented by any seminorm
+    implementation. A seminorm relaxes the definiteness property of norms,
+    allowing for the possibility that the seminorm of an object is zero even
+    if the object itself is not trivial.
 
-    This interface provides a foundation for working with seminorms while 
-    remaining agnostic to the underlying implementation.
+    Implementations of this interface must provide concrete implementations
+    for all defined methods. The interface enforces type safety through
+    type annotations and abstract method definitions.
     """
 
     @abstractmethod
-    def compute(self, input: T) -> float:
+    def compute(
+        self,
+        input: Union[IVector, IMatrix, Sequence, str, Callable]
+    ) -> float:
         """
         Compute the seminorm of the given input.
 
         Args:
-            input: T
-                The input to compute the seminorm on. This can be a vector, matrix, 
-                sequence, string, or callable.
+            input: The input to compute the seminorm for. Can be a vector,
+                matrix, sequence, string, or callable object.
 
         Returns:
-            float: 
-                The computed seminorm value.
+            float: The computed seminorm value.
 
         Raises:
-            TypeError: If the input type is not supported.
+            ValueError: If the input type is not supported.
+            TypeError: If the input is of incorrect type.
         """
         pass
 
     @abstractmethod
-    def check_triangle_inequality(self, a: T, b: T) -> bool:
+    def check_triangle_inequality(
+        self,
+        a: Union[IVector, IMatrix, Sequence, str, Callable],
+        b: Union[IVector, IMatrix, Sequence, str, Callable]
+    ) -> bool:
         """
         Check if the triangle inequality holds for the given inputs.
 
-        The triangle inequality states that for any two vectors a and b:
-        seminorm(a + b) <= seminorm(a) + seminorm(b)
+        The triangle inequality states that for any elements a and b,
+        the seminorm of (a + b) should be less than or equal to the sum
+        of the seminorms of a and b.
 
         Args:
-            a: T
-                The first input.
-            b: T
-                The second input.
+            a: The first element to check.
+            b: The second element to check.
 
         Returns:
             bool: True if the triangle inequality holds, False otherwise.
@@ -60,18 +64,20 @@ class ISeminorm(ABC):
         pass
 
     @abstractmethod
-    def check_scalar_homogeneity(self, a: T, scalar: float) -> bool:
+    def check_scalar_homogeneity(
+        self,
+        input: Union[IVector, IMatrix, Sequence, str, Callable],
+        scalar: float
+    ) -> bool:
         """
-        Check if scalar homogeneity holds for the given input and scalar.
+        Check if the seminorm satisfies scalar homogeneity.
 
-        Scalar homogeneity states that for any vector a and scalar c >= 0:
-        seminorm(c * a) = c * seminorm(a)
+        Scalar homogeneity requires that for any scalar c and input x,
+        the seminorm of (c * x) is equal to |c| * seminorm(x).
 
         Args:
-            a: T
-                The input to check.
-            scalar: float
-                The scalar to check against.
+            input: The input element to check.
+            scalar: The scalar to scale the input by.
 
         Returns:
             bool: True if scalar homogeneity holds, False otherwise.

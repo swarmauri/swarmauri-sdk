@@ -1,143 +1,140 @@
-from typing import Iterable, TypeVar, Optional
-from pydantic import Field
+from typing import Union, List, Any, Tuple, Literal
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_standard.swarmauri_standard.pseudometrics import PseudometricBase
-from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
+from base.swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 import logging
 
-# Configure logging
 logger = logging.getLogger(__name__)
-
-# Define type variables for input types
-InputTypes = TypeVar("InputTypes")
-DistanceInput = TypeVar("DistanceInput", InputTypes, Iterable[InputTypes])
 
 
 @ComponentBase.register_type(PseudometricBase, "EquivalenceRelationPseudometric")
 class EquivalenceRelationPseudometric(PseudometricBase):
     """
-    A concrete implementation of the PseudometricBase class that defines a pseudometric
-    based on an equivalence relation. Points are considered at distance 0 if they
-    are equivalent under the relation and 1 otherwise.
+    A pseudometric implementation based on an equivalence relation.
+
+    This class implements a pseudometric where the distance between two points is 0 if they are
+    equivalent under the given equivalence relation, and 1 otherwise. This creates a quotient space
+    where equivalent points are not distinguishable.
+
+    Implements:
+    - distance()
+    - distances()
+    - check_non_negativity()
+    - check_symmetry()
+    - check_triangle_inequality()
+    - check_weak_identity()
+
+    Attributes:
+        equivalence_relation: A function that determines if two elements are equivalent.
+            Must satisfy reflexivity, symmetry, and transitivity.
     """
 
-    type: str = "EquivalenceRelationPseudometric"
+    type: Literal["EquivalenceRelationPseudometric"] = "EquivalenceRelationPseudometric"
+    equivalence_relation: callable
+    resource: str = ResourceTypes.PSEUDOMETRIC.value
 
-    def are_equivalent(self, x: InputTypes, y: InputTypes) -> bool:
+    def __init__(self, equivalence_relation: callable):
         """
-        Checks if two points are equivalent under the equivalence relation.
+        Initialize the equivalence relation pseudometric.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            equivalence_relation: A function that takes two arguments and returns True
+                if they are equivalent, False otherwise. Must satisfy reflexivity,
+                symmetry, and transitivity.
 
-        Returns:
-            bool:
-                True if x and y are equivalent, False otherwise
+        Raises:
+            ValueError: If the equivalence_relation is not callable
         """
-        return x == y  # Default equivalence based on object equality
+        super().__init__()
+        if not callable(equivalence_relation):
+            raise ValueError("equivalence_relation must be callable")
+        self.equivalence_relation = equivalence_relation
+        logger.debug("Initialized EquivalenceRelationPseudometric")
 
-    def distance(self, x: InputTypes, y: InputTypes) -> float:
+    def distance(self, x: Union[Any], y: Union[Any]) -> float:
         """
-        Computes the distance between two points based on equivalence.
+        Calculate the distance between two elements based on equivalence.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element to measure distance from
+            y: The second element to measure distance to
 
         Returns:
-            float:
-                0.0 if x and y are equivalent, 1.0 otherwise
+            float: 0 if x and y are equivalent, 1 otherwise
         """
-        if self.are_equivalent(x, y):
+        logger.debug(f"Calculating distance between {x} and {y}")
+        if self.equivalence_relation(x, y):
             return 0.0
         else:
             return 1.0
 
-    def distances(self, x: InputTypes, ys: Iterable[InputTypes]) -> Iterable[float]:
+    def distances(self, x: Union[Any], y_list: Union[List[Union[Any]], Tuple[Union[Any]]]) -> List[float]:
         """
-        Computes distances from a single point x to multiple points ys.
+        Calculate distances from a single element to a list of elements.
 
         Args:
-            x: InputTypes
-                The reference point
-            ys: Iterable[InputTypes]
-                Collection of points to compute distances to
+            x: The reference element
+            y_list: List or tuple of elements to measure distances to
 
         Returns:
-            Iterable[float]:
-                Iterable containing distances from x to each point in ys
+            List[float]: List of distances from x to each element in y_list
         """
-        return [self.distance(x, y) for y in ys]
+        logger.debug(f"Calculating distances from {x} to {y_list}")
+        return [self.distance(x, y) for y in y_list]
 
-    def check_non_negativity(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_non_negativity(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Checks if the distance satisfies non-negativity.
+        Verify the non-negativity property of the pseudometric.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True if distance(x, y) >= 0, False otherwise
+            bool: True if distance is non-negative, False otherwise
         """
-        return self.distance(x, y) >= 0
+        distance = self.distance(x, y)
+        return distance >= 0.0
 
-    def check_symmetry(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_symmetry(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Checks if the distance satisfies symmetry.
+        Verify the symmetry property of the pseudometric.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True if distance(x, y) == distance(y, x), False otherwise
+            bool: True if distance is symmetric, False otherwise
         """
         return self.distance(x, y) == self.distance(y, x)
 
-    def check_triangle_inequality(
-        self, x: InputTypes, y: InputTypes, z: InputTypes
-    ) -> bool:
+    def check_triangle_inequality(self, x: Union[Any], y: Union[Any], z: Union[Any]) -> bool:
         """
-        Checks if the distance satisfies the triangle inequality.
+        Verify the triangle inequality property of the pseudometric.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
-            z: InputTypes
-                The third point
+            x: The first element
+            y: The second element
+            z: The third element
 
         Returns:
-            bool:
-                True if distance(x, z) <= distance(x, y) + distance(y, z), False otherwise
+            bool: True if triangle inequality holds, False otherwise
         """
-        return self.distance(x, z) <= self.distance(x, y) + self.distance(y, z)
+        d_xy = self.distance(x, y)
+        d_yz = self.distance(y, z)
+        d_xz = self.distance(x, z)
+        return d_xz <= d_xy + d_yz
 
-    def check_weak_identity(self, x: InputTypes, y: InputTypes) -> bool:
+    def check_weak_identity(self, x: Union[Any], y: Union[Any]) -> bool:
         """
-        Checks if the distance satisfies weak identity of indiscernibles.
+        Verify the weak identity of indiscernibles property of the pseudometric.
 
         Args:
-            x: InputTypes
-                The first point
-            y: InputTypes
-                The second point
+            x: The first element
+            y: The second element
 
         Returns:
-            bool:
-                True if x == y implies distance(x, y) == 0, False otherwise
+            bool: True if weak identity holds, False otherwise
         """
-        return x == y if self.distance(x, y) == 0 else False
+        distance = self.distance(x, y)
+        return (distance == 0.0) == self.equivalence_relation(x, y)
