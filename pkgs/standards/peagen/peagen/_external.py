@@ -88,19 +88,25 @@ def call_external_agent(
 
     # Special case for LlamaCpp which doesn't need an API key
     if provider.lower() == "llamacpp":
-        llm = llm_manager.get_llm(
-            provider=provider,
-            api_key=api_key,
-            model_name="localhost",
-            allowed_models=["localhost"],
-        )
+        try:
+            llm = llm_manager.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name="localhost",
+                allowed_models=["localhost"],
+            )
+        except Exception as e:
+            logger.error(str(e))
     else:
-        # Get an instance of the requested LLM
-        llm = llm_manager.get_llm(
-            provider=provider,
-            api_key=api_key,
-            model_name=model_name,
-        )
+        try:
+            # Get an instance of the requested LLM
+            llm = llm_manager.get_llm(
+                provider=provider,
+                api_key=api_key,
+                model_name=model_name,
+            )
+        except Exception as e:
+            logger.error(str(e))
 
     # Create QAAgent with the configured LLM
     system_context = "You are a software developer."

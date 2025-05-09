@@ -45,6 +45,7 @@ class GenericLLM:
         "deepseek": "DeepSeekModel",
         "ai21studio": "AI21StudioModel",
         "hyperbolic": "HyperbolicModel",
+        "cerebras": "CerebrasModel"
     }
 
     def __init__(self):
